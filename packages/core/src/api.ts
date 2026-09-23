@@ -1,3 +1,6 @@
+import { Portfolio } from './portfolio.ts';
+import { Projects } from './projects.ts';
+import { workFor, projectFor } from './production-policy.ts';
 import { Media, assetFor, uploadFor } from './media.ts';
 import { randomUUID } from 'node:crypto';
 import type { Actor, Clock, CommandReceipt, Config, RequestMeta, Permission } from './model.ts';
@@ -54,6 +57,8 @@ export class Application {
     imports: Imports;
     handoffs: Handoffs;
     media: Media;
+    portfolio: Portfolio;
+    projects: Projects;
     constructor(store: Store, config: Config, clock: Clock = { now: () => new Date() }) {
         invariant(config.contactKey.length === 32 && config.csrfKey.length === 32, 'CONFIG_INVALID', '密钥必须为 32 字节', 503);
         const origin = new URL(config.origin);
@@ -65,6 +70,8 @@ export class Application {
         this.config = config;
         this.identity = new Identity(store, clock, config);
         this.talent = new Talent(clock, config);
+        this.portfolio = new Portfolio(clock, this.talent);
+        this.projects = new Projects(clock, this.talent);
         this.handoffs = new Handoffs(clock);
         this.media = new Media(store, clock, config);
         this.commands = new Commands(clock);
@@ -181,6 +188,25 @@ export class Application {
                     revision: number;
                 }>, target = id || null) => this.commands.execute(tx, actor, route.operation, request.headers['idempotency-key'] ?? '', target, data, kind, meta, execute, receipt => authorizeReceipt(tx, actor, receipt, this.clock), ['import.commit', 'job.resume', 'upload.complete'].includes(route.operation) ? 'ACCEPTED' : 'SUCCEEDED');
                 switch (route.operation) {
+                    case 'work.list': return this.portfolio.list(tx, actor, query);
+                    case 'work.create': return command('work', () => this.portfolio.create(tx, actor, data));
+                    case 'work.get': return this.portfolio.get(tx, actor, id);
+                    case 'work.update': return command('work', () => this.portfolio.update(tx, actor, id, data));
+                    case 'work.assetAdd': return command('work', () => this.portfolio.addAsset(tx, actor, id, data));
+                    case 'work.assetRemove': return command('work', () => this.portfolio.removeAsset(tx, actor, id, data));
+                    case 'work.reorder': return command('work', () => this.portfolio.reorder(tx, actor, id, data));
+                    case 'work.creditAdd': return command('work', () => this.portfolio.addCredit(tx, actor, id, data));
+                    case 'work.creditRemove': return command('work', () => this.portfolio.removeCredit(tx, actor, id, data));
+                    case 'project.list': return this.projects.list(tx, actor, query);
+                    case 'project.create': return command('project', () => this.projects.create(tx, actor, data));
+                    case 'project.get': return this.projects.get(tx, actor, id);
+                    case 'project.update': return command('project', () => this.projects.update(tx, actor, id, data));
+                    case 'project.participantAdd': return command('project', () => this.projects.addParticipant(tx, actor, id, data));
+                    case 'project.participantUpdate': return command('project', () => this.projects.updateParticipant(tx, actor, id, data));
+                    case 'project.participantRemove': return command('project', () => this.projects.removeParticipant(tx, actor, id, data));
+                    case 'project.workLink': return command('project', () => this.projects.linkWork(tx, actor, id, data));
+                    case 'project.workRemove': return command('project', () => this.projects.removeWork(tx, actor, id, data));
+                    case 'person.production': return this.projects.personProduction(tx, actor, id, query);
                     case 'upload.create': return command('upload', () => this.media.create(tx, actor, data));
                     case 'upload.list': return this.media.listUploads(tx, actor, query);
                     case 'upload.get': return this.media.get(tx, actor, id);
@@ -240,7 +266,7 @@ export class Application {
             });
             if (['import.commit', 'job.resume', 'upload.complete'].includes(route.operation))
                 response.status = 202;
-            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
+            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
                 response.status = 201;
             return response;
         }
@@ -278,6 +304,10 @@ export class Application {
                     await assetFor(tx, actor, row.resourceId, this.clock);
                 if (row.resourceKind === 'handoff')
                     await handoffParticipant(tx, actor, row.resourceId);
+                if (row.resourceKind === 'work')
+                    await workFor(tx, actor, row.resourceId, this.clock);
+                if (row.resourceKind === 'project')
+                    await projectFor(tx, actor, row.resourceId, this.clock);
                 if (row.resourceKind === 'person')
                     await personFor(tx, actor, row.resourceId, this.clock, false);
                 if (row.resourceKind === 'source')

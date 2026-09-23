@@ -9,6 +9,12 @@ datasource db {
 }
 
 model Workspace {
+  ProjectWork_workspace ProjectWork[] @relation("ProjectWork_workspace")
+  ProjectParticipant_workspace ProjectParticipant[] @relation("ProjectParticipant_workspace")
+  Project_workspace Project[] @relation("Project_workspace")
+  WorkCredit_workspace WorkCredit[] @relation("WorkCredit_workspace")
+  WorkAsset_workspace WorkAsset[] @relation("WorkAsset_workspace")
+  Work_workspace Work[] @relation("Work_workspace")
   MediaUpload_workspace MediaUpload[] @relation("MediaUpload_workspace")
   MediaAsset_workspace MediaAsset[] @relation("MediaAsset_workspace")
   RecordHandoff_workspace RecordHandoff[] @relation("RecordHandoff_workspace")
@@ -57,6 +63,8 @@ model User {
 }
 
 model Membership {
+  Project_maintainerIdRef Project[] @relation("Project_maintainerIdRef")
+  Work_maintainerIdRef Work[] @relation("Work_maintainerIdRef")
   MediaUpload_actorIdRef MediaUpload[] @relation("MediaUpload_actorIdRef")
   RecordHandoff_senderIdRef RecordHandoff[] @relation("RecordHandoff_senderIdRef")
   RecordHandoff_recipientIdRef RecordHandoff[] @relation("RecordHandoff_recipientIdRef")
@@ -131,6 +139,8 @@ model Activation {
 }
 
 model AccessScope {
+  Project_scopeIdRef Project[] @relation("Project_scopeIdRef")
+  Work_scopeIdRef Work[] @relation("Work_scopeIdRef")
   MediaUpload_scopeIdRef MediaUpload[] @relation("MediaUpload_scopeIdRef")
   MediaUpload_personScopeIdRef MediaUpload[] @relation("MediaUpload_personScopeIdRef")
   MediaAsset_scopeIdRef MediaAsset[] @relation("MediaAsset_scopeIdRef")
@@ -172,6 +182,8 @@ model ScopeMember {
 }
 
 model SourceRecord {
+  Project_sourceIdRef Project[] @relation("Project_sourceIdRef")
+  Work_sourceIdRef Work[] @relation("Work_sourceIdRef")
   MediaUpload_sourceIdRef MediaUpload[] @relation("MediaUpload_sourceIdRef")
   MediaAsset_sourceIdRef MediaAsset[] @relation("MediaAsset_sourceIdRef")
   RecordHandoff_sourceIdRef RecordHandoff[] @relation("RecordHandoff_sourceIdRef")
@@ -211,6 +223,8 @@ model SourceRecord {
 }
 
 model Person {
+  ProjectParticipant_personIdRef ProjectParticipant[] @relation("ProjectParticipant_personIdRef")
+  WorkCredit_personIdRef WorkCredit[] @relation("WorkCredit_personIdRef")
   MediaUpload_personIdRef MediaUpload[] @relation("MediaUpload_personIdRef")
   MediaAsset_personIdRef MediaAsset[] @relation("MediaAsset_personIdRef")
   RecordHandoff_personIdRef RecordHandoff[] @relation("RecordHandoff_personIdRef")
@@ -514,6 +528,7 @@ model MediaUpload {
 }
 
 model MediaAsset {
+  WorkAsset_assetIdRef WorkAsset[] @relation("WorkAsset_assetIdRef")
   id String @db.Uuid @id
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -541,4 +556,143 @@ model MediaAsset {
   @@unique([workspaceId, id])
   @@index([workspaceId, sourceId, personId], map: "assets_lookup_idx")
   @@map("assets")
+}
+
+
+model Work {
+  ProjectWork_workIdRef ProjectWork[] @relation("ProjectWork_workIdRef")
+  WorkCredit_workIdRef WorkCredit[] @relation("WorkCredit_workIdRef")
+  WorkAsset_workIdRef WorkAsset[] @relation("WorkAsset_workIdRef")
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int 
+  sourceId String @db.Uuid
+  scopeId String @db.Uuid
+  maintainerId String @db.Uuid
+  title String @db.Text
+  description String @db.Text
+  origin String @db.Text
+  originNote String @db.Text
+  status String @db.Text
+  coverEntryId String? @db.Uuid
+  workspace Workspace @relation("Work_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "works_workspace_fkey")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, createdAt], map: "works_wp1_created_idx")
+  sourceIdRef SourceRecord @relation("Work_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "works_sourceIdRef_fkey")
+  scopeIdRef AccessScope @relation("Work_scopeIdRef", fields: [workspaceId, scopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "works_scopeIdRef_fkey")
+  maintainerIdRef Membership @relation("Work_maintainerIdRef", fields: [workspaceId, maintainerId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "works_maintainerIdRef_fkey")
+  cover WorkAsset? @relation("Work_cover", fields: [workspaceId, id, coverEntryId], references: [workspaceId, workId, id], onDelete: NoAction, onUpdate: NoAction, map: "works_cover_parent_fkey")
+  @@index([workspaceId, sourceId], map: "works_wp1_sourceId_idx")
+  @@map("works")
+}
+
+model WorkAsset {
+  coveringWorks Work[] @relation("Work_cover")
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int 
+  workId String @db.Uuid
+  assetId String @db.Uuid
+  position Int 
+  workspace Workspace @relation("WorkAsset_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "workAssets_workspace_fkey")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, workId, id], map: "workAssets_workspaceId_workId_id_key")
+  @@unique([workspaceId, workId, assetId], map: "workAssets_workspaceId_workId_assetId_key")
+  @@unique([workspaceId, workId, position], map: "workAssets_workspaceId_workId_position_key")
+  @@index([workspaceId, createdAt], map: "workAssets_wp1_created_idx")
+  workIdRef Work @relation("WorkAsset_workIdRef", fields: [workspaceId, workId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "workAssets_workIdRef_fkey")
+  assetIdRef MediaAsset @relation("WorkAsset_assetIdRef", fields: [workspaceId, assetId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "workAssets_assetIdRef_fkey")
+  @@index([workspaceId, assetId], map: "workAssets_wp1_assetId_idx")
+  @@map("workAssets")
+}
+
+model WorkCredit {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int 
+  workId String @db.Uuid
+  personId String @db.Uuid
+  roleCode String @db.Text
+  note String @db.Text
+  workspace Workspace @relation("WorkCredit_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "workCredits_workspace_fkey")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, workId, personId, roleCode], map: "workCredits_workspaceId_workId_personId_roleCode_key")
+  @@index([workspaceId, createdAt], map: "workCredits_wp1_created_idx")
+  workIdRef Work @relation("WorkCredit_workIdRef", fields: [workspaceId, workId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "workCredits_workIdRef_fkey")
+  personIdRef Person @relation("WorkCredit_personIdRef", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "workCredits_personIdRef_fkey")
+  @@index([workspaceId, personId], map: "workCredits_wp1_personId_idx")
+  @@map("workCredits")
+}
+
+model Project {
+  ProjectWork_projectIdRef ProjectWork[] @relation("ProjectWork_projectIdRef")
+  ProjectParticipant_projectIdRef ProjectParticipant[] @relation("ProjectParticipant_projectIdRef")
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int 
+  sourceId String @db.Uuid
+  scopeId String @db.Uuid
+  maintainerId String @db.Uuid
+  title String @db.Text
+  brief String @db.Text
+  locationNote String @db.Text
+  dateNote String @db.Text
+  reviewNote String @db.Text
+  status String @db.Text
+  workspace Workspace @relation("Project_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "projects_workspace_fkey")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, createdAt], map: "projects_wp1_created_idx")
+  sourceIdRef SourceRecord @relation("Project_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "projects_sourceIdRef_fkey")
+  scopeIdRef AccessScope @relation("Project_scopeIdRef", fields: [workspaceId, scopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "projects_scopeIdRef_fkey")
+  maintainerIdRef Membership @relation("Project_maintainerIdRef", fields: [workspaceId, maintainerId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "projects_maintainerIdRef_fkey")
+  @@index([workspaceId, sourceId], map: "projects_wp1_sourceId_idx")
+  @@map("projects")
+}
+
+model ProjectParticipant {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int 
+  projectId String @db.Uuid
+  personId String @db.Uuid
+  roleCode String @db.Text
+  state String @db.Text
+  note String @db.Text
+  workspace Workspace @relation("ProjectParticipant_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "projectParticipants_workspace_fkey")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, projectId, personId, roleCode], map: "projectParticipants_workspaceId_projectId_personId_roleCode_key")
+  @@index([workspaceId, createdAt], map: "projectParticipants_wp1_created_idx")
+  projectIdRef Project @relation("ProjectParticipant_projectIdRef", fields: [workspaceId, projectId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "projectParticipants_projectIdRef_fkey")
+  personIdRef Person @relation("ProjectParticipant_personIdRef", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "projectParticipants_personIdRef_fkey")
+  @@index([workspaceId, personId], map: "projectParticipants_wp1_personId_idx")
+  @@map("projectParticipants")
+}
+
+model ProjectWork {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int 
+  projectId String @db.Uuid
+  workId String @db.Uuid
+  relation String @db.Text
+  workspace Workspace @relation("ProjectWork_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "projectWorks_workspace_fkey")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, projectId, workId], map: "projectWorks_workspaceId_projectId_workId_key")
+  @@index([workspaceId, createdAt], map: "projectWorks_wp1_created_idx")
+  projectIdRef Project @relation("ProjectWork_projectIdRef", fields: [workspaceId, projectId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "projectWorks_projectIdRef_fkey")
+  workIdRef Work @relation("ProjectWork_workIdRef", fields: [workspaceId, workId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "projectWorks_workIdRef_fkey")
+  @@index([workspaceId, workId], map: "projectWorks_wp1_workId_idx")
+  @@map("projectWorks")
 }

@@ -112,5 +112,5 @@ export function Pager({ page, pageSize, total, setPage }: {
     pageSize: number;
     total: number;
     setPage: (page: number) => void;
-}) { return <div className="pager"><small>共 {total} 条 · 第 {page} 页</small><div><button disabled={page <= 1} onClick={() => setPage(page - 1)}>上一页</button><button disabled={page * pageSize >= total} onClick={() => setPage(page + 1)}>下一页</button></div></div>; }
+}) { return <div className="pager"><small>共 {total} 条 · 第 {page} 页</small><div><button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>上一页</button><button type="button" disabled={page * pageSize >= total} onClick={() => setPage(page + 1)}>下一页</button></div></div>; }
 export function prevent(e: FormEvent) { e.preventDefault(); }

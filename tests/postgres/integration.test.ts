@@ -1,3 +1,4 @@
+import { runProductionContracts } from "./production-contracts.ts";
 /** Real PostgreSQL tests. NOT executed in the offline development environment.
  * This suite deliberately leaves its synthetic records in a disposable database.
  * It never deletes, truncates, drops or restores a database.
@@ -289,10 +290,12 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
                 const key = randomUUID();
                 const faults = new FaultStore(storeA);
                 let fired = false;
-                faults.afterInsert = table => { if (table === stage && !fired) {
-                    fired = true;
-                    throw new Error('H1 after-insert fault');
-                } };
+                faults.afterInsert = table => {
+                    if (table === stage && !fired) {
+                        fired = true;
+                        throw new Error('H1 after-insert fault');
+                    }
+                };
                 const app = new Application(faults, config, clock), client = new Client(app);
                 client.jar = { ...ownerA.jar };
                 client.csrf = ownerA.csrf;
@@ -347,10 +350,12 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
                 const before = await a.mediaUpload.findUniqueOrThrow({ where: { id } }), auditBefore = await a.auditEvent.count();
                 const faults = new FaultStore(storeA);
                 let fired = false;
-                faults.afterInsert = table => { if (table === stage && !fired) {
-                    fired = true;
-                    throw new Error('M1 synthetic after write');
-                } };
+                faults.afterInsert = table => {
+                    if (table === stage && !fired) {
+                        fired = true;
+                        throw new Error('M1 synthetic after write');
+                    }
+                };
                 const app = new Application(faults, config, clock), output = { mime: 'image/png' as const, bytes: 12, sha256: imageHash, width: 2, height: 3, previewBytes: 10, previewHash: imagePreviewHash };
                 await assert.rejects(app.media.finish(claim, output));
                 assert.ok(fired);
@@ -361,6 +366,7 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
                 assert.equal(await a.mediaAsset.count({ where: { id } }), 1);
             });
         }
+        await runProductionContracts(t, { a, b, storeA, ownerA, ownerB, appA, config, clock, identity });
     }
     finally {
         await Promise.all([storeA.close(), storeB.close()]);
