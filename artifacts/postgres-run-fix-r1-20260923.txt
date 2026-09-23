@@ -1,0 +1,95 @@
+
+> once-production-os@0.1.0-dev.1 verify:postgres /Users/dengwang/Documents/coding/once-production-os
+> node scripts/verify-postgres.mjs
+
+TAP version 13
+# Subtest: fresh disposable PostgreSQL: constraints, real transactions and independent workers
+    # Subtest: two independent clients serialize the same command into one source/person/receipt
+    ok 1 - two independent clients serialize the same command into one source/person/receipt
+      ---
+      duration_ms: 210.292875
+      type: 'test'
+      ...
+    # Subtest: actual PostgreSQL person-update rollback (atomic command coverage follows below)
+    ok 2 - actual PostgreSQL person-update rollback (atomic command coverage follows below)
+      ---
+      duration_ms: 10.87375
+      type: 'test'
+      ...
+    # Subtest: database itself rejects cross-workspace scope membership
+    ok 3 - database itself rejects cross-workspace scope membership
+      ---
+      duration_ms: 31.912125
+      type: 'test'
+      ...
+    # Subtest: two stale CAS writes cannot both succeed
+    ok 4 - two stale CAS writes cannot both succeed
+      ---
+      duration_ms: 78.113625
+      type: 'test'
+      ...
+    # Subtest: two workers claim once; expired owner cannot modify replacement lease
+    ok 5 - two workers claim once; expired owner cannot modify replacement lease
+      ---
+      duration_ms: 210.826083
+      type: 'test'
+      ...
+    # Subtest: real command rollback after sourceHistory insert, plus same-key successful retry
+    ok 6 - real command rollback after sourceHistory insert, plus same-key successful retry
+      ---
+      duration_ms: 167.007208
+      type: 'test'
+      ...
+    # Subtest: real command rollback after people insert, plus same-key successful retry
+    ok 7 - real command rollback after people insert, plus same-key successful retry
+      ---
+      duration_ms: 64.711541
+      type: 'test'
+      ...
+    # Subtest: real command rollback after audits insert, plus same-key successful retry
+    ok 8 - real command rollback after audits insert, plus same-key successful retry
+      ---
+      duration_ms: 85.117291
+      type: 'test'
+      ...
+    # Subtest: real command rollback after receipts insert, plus same-key successful retry
+    ok 9 - real command rollback after receipts insert, plus same-key successful retry
+      ---
+      duration_ms: 68.402459
+      type: 'test'
+      ...
+    # Subtest: new source-history SQL constraints reject duplicate revision, cross-scope FK, UPDATE and DELETE
+    ok 10 - new source-history SQL constraints reject duplicate revision, cross-scope FK, UPDATE and DELETE
+      ---
+      duration_ms: 19.061917
+      type: 'test'
+      ...
+    # Subtest: PG partial import resume retains checkpoints, idempotency and two-worker ownership
+    ok 11 - PG partial import resume retains checkpoints, idempotency and two-worker ownership
+      ---
+      duration_ms: 290.398416
+      type: 'test'
+      ...
+# {"metric":"PG-preview","people":100,"rows":100,"queries":20,"elapsedMs":82.57716700000014}
+# {"metric":"PG-preview","people":1000,"rows":100,"queries":20,"elapsedMs":43.879249999999956}
+    # Subtest: PG query count stays bounded for 100/1000 people and a 100-row preview
+    ok 12 - PG query count stays bounded for 100/1000 people and a 100-row preview
+      ---
+      duration_ms: 282.697916
+      type: 'test'
+      ...
+    1..12
+ok 1 - fresh disposable PostgreSQL: constraints, real transactions and independent workers
+  ---
+  duration_ms: 1993.364083
+  type: 'test'
+  ...
+1..1
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2221.051292

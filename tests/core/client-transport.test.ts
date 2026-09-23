@@ -71,3 +71,20 @@ test('server session failure notifies UI and never exposes server secrets', asyn
     assert.equal(expired, 1);
     window.removeEventListener('once-session-expired', fn);
 });
+
+test('job.resume retains the exact job revision and key across unknown response', async () => {
+    const requests: RequestInit[] = [];
+    globalThis.fetch = (async (_u, init) => {
+        requests.push(init!);
+        if (requests.length === 1) throw new Error('resume response lost');
+        return new Response(JSON.stringify({ operationId: 'resume-op', resourceId: 'job', revision: 4, state: 'ACCEPTED' }), { status: 202 });
+    }) as typeof fetch;
+    const params = { id: '12345678-1234-4234-8234-123456789abc' };
+    await assert.rejects(() => call('job.resume', { expectedRevision: 3 }, params));
+    await assert.rejects(() => call('job.resume', { expectedRevision: 4 }, params), /上次提交结果尚不明确/);
+    assert.equal(requests.length, 1);
+    const receipt = await call<'job.resume', { state: string }>('job.resume', { expectedRevision: 3 }, params);
+    assert.equal(receipt.state, 'ACCEPTED');
+    assert.equal(requests[0]!.body, requests[1]!.body);
+    assert.equal((requests[0]!.headers as Record<string, string>)['Idempotency-Key'], (requests[1]!.headers as Record<string, string>)['Idempotency-Key']);
+});

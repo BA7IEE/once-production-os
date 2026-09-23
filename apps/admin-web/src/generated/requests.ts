@@ -20,6 +20,7 @@ export interface Inputs {
   "record.scope": { "expectedRevision": number; "scopeId": string };
   "source.list": undefined;
   "source.create": { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string };
+  "source.history": undefined;
   "source.get": undefined;
   "source.update": { "expectedRevision": number; "title"?: string; "textPayload"?: string; "providerClaim"?: string };
   "source.review": { "expectedRevision": number; "basisDescription": string; "validUntil": string };
@@ -35,6 +36,7 @@ export interface Inputs {
   "import.get": undefined;
   "import.commit": { "expectedRevision": number; "selectedRows": Array<number> };
   "job.list": undefined;
+  "job.resume": { "expectedRevision": number };
   "job.get": undefined;
   "audit.list": undefined;
 }
@@ -139,6 +141,11 @@ export const ENDPOINTS = {
     "path": "/sources",
     "mode": "COMMAND"
   },
+  "source.history": {
+    "method": "GET",
+    "path": "/sources/{id}/history",
+    "mode": "READ"
+  },
   "source.get": {
     "method": "GET",
     "path": "/sources/{id}",
@@ -213,6 +220,11 @@ export const ENDPOINTS = {
     "method": "GET",
     "path": "/jobs",
     "mode": "READ"
+  },
+  "job.resume": {
+    "method": "POST",
+    "path": "/jobs/{id}/resume",
+    "mode": "COMMAND"
   },
   "job.get": {
     "method": "GET",

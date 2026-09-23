@@ -1,0 +1,12 @@
+PASS: ready, login, migrated suspended-source history and ambiguity warning; page errors 0
+Starting server 1/1: node --env-file=.env dist/apps/api/src/main.js
+Waiting for server on port 4318...
+Server ready on port 4318
+
+All 1 server(s) ready
+Running: /private/tmp/once-r1-playwright-venv/bin/python /private/tmp/once-r1-browser-check.py
+
+
+Stopping 1 server(s)...
+Server 1 stopped
+All servers stopped

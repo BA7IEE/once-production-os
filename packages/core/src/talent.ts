@@ -5,7 +5,9 @@ import { audit, base, cas, page, touch, unique, workspaceRow, patchDefined } fro
 import { invariant, missing } from './errors.ts';
 import { digest } from './json.ts';
 import { encryptContact, decryptContact } from './crypto.ts';
-import { requirePermission, personFor, personVisible, scopeVisible, requireScope, sourceFor, sourceCurrent, sourceVisible, validateScopeMembers } from './policy.ts';
+import { requirePermission, personFor, scopeVisible, requireScope, sourceFor, sourceCurrent, sourceVisible, validateScopeMembers } from './policy.ts';
+import { appendSourceHistory } from './source-history.ts';
+import { loadVisibility } from './visibility.ts';
 import { PersonInput, PersonPatch, Schemas, SourceInput, type Parsed } from './validation.ts';
 export class Talent {
     clock: Clock;
@@ -67,6 +69,7 @@ export class Talent {
             status: temporary ? 'RECEIVED' : 'CONFIRMED', protectionEpoch: 1, reviewedBy: temporary ? null : actor.membershipId,
             reviewedAt: temporary ? null : this.clock.now().toISOString() };
         await tx.insert('sources', source);
+        await appendSourceHistory(tx, actor, source, 'CREATED', this.clock);
         return source;
     }
     sourceDto(source: Source, actor: Actor, includeContent = false): Record<string, unknown> {
@@ -110,6 +113,7 @@ export class Talent {
         const { expectedRevision: _, ...patch } = data;
         const next = patchDefined(touch(source, this.clock), patch);
         await tx.replace('sources', next);
+        await appendSourceHistory(tx, actor, next, 'EDITED', this.clock);
         return next;
     }
     async reviewSource(tx: Tx, actor: Actor, id: string, input: unknown): Promise<Source> {
@@ -122,6 +126,7 @@ export class Talent {
             validFrom: this.clock.now().toISOString(), basisMode: 'INTERNAL_USE', status: 'CONFIRMED', protectionEpoch: source.protectionEpoch + 1,
             reviewedBy: actor.membershipId, reviewedAt: this.clock.now().toISOString() };
         await tx.replace('sources', next);
+        await appendSourceHistory(tx, actor, next, 'REVIEWED', this.clock);
         return next;
     }
     async suspendSource(tx: Tx, actor: Actor, id: string, input: unknown): Promise<Source> {
@@ -130,9 +135,9 @@ export class Talent {
         const source = await sourceFor(tx, actor, id, this.clock, false);
         cas(source, data.expectedRevision);
         const next: Source = { ...touch(source, this.clock), status: 'SUSPENDED', protectionEpoch: source.protectionEpoch + 1 };
-        // Reason remains private operational metadata in the source; it is not copied into audit diffs.
-        next.basisDescription = data.reason;
+        // The basis remains unchanged. The pause decision has its own protected history field.
         await tx.replace('sources', next);
+        await appendSourceHistory(tx, actor, next, 'SUSPENDED', this.clock, data.reason);
         return next;
     }
     async validateCatalog(tx: Tx, workspaceId: string, namespace: 'role' | 'city' | 'language' | 'skill', codes: string[], previous: string[] = []): Promise<void> {
@@ -188,14 +193,17 @@ export class Talent {
             status: person.status, sourceId: person.sourceId, scopeId: person.scopeId, maintainerId: person.maintainerId,
             revision: person.revision, createdAt: person.createdAt, updatedAt: person.updatedAt };
     }
+    async visiblePeople(tx: Tx, actor: Actor): Promise<Person[]> {
+        requirePermission(actor, 'records.read');
+        const visibility = await loadVisibility(tx, actor, this.clock);
+        return (await tx.find('people', { workspaceId: actor.workspaceId })).filter(p => visibility.personVisible(p));
+    }
     async listPeople(tx: Tx, actor: Actor, query: Record<string, string>): Promise<unknown> {
         requirePermission(actor, 'records.read');
         invariant((query.q?.length ?? 0) <= 120, 'QUERY_INVALID', '关键词过长', 400);
         const result: Record<string, unknown>[] = [];
         const q = query.q?.toLocaleLowerCase() ?? '';
-        for (const person of await tx.find('people', { workspaceId: actor.workspaceId })) {
-            if (!(await personVisible(tx, actor, person, this.clock)))
-                continue;
+        for (const person of await this.visiblePeople(tx, actor)) {
             if (q && ![person.displayName, ...person.aliases].some(s => s.toLocaleLowerCase().includes(q)))
                 continue;
             if (query.role && !person.roles.includes(query.role))
@@ -288,8 +296,10 @@ export class Talent {
         const next = { ...touch(row, this.clock), scopeId: data.scopeId, protectionEpoch: row.protectionEpoch + 1 };
         if (kind === 'person')
             await tx.replace('people', next as Person);
-        else
+        else {
             await tx.replace('sources', next as Source);
+            await appendSourceHistory(tx, actor, next as Source, 'SCOPE_CHANGED', this.clock);
+        }
         return next;
     }
     async catalog(tx: Tx, actor: Actor): Promise<unknown> {

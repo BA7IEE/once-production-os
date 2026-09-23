@@ -9,17 +9,17 @@ function tsType(schema:Record<string,unknown>):string {
   return'unknown';
 }
 const paths:Record<string,Record<string,unknown>>={};
-const queryFields:Record<string,string[]>={'person.list':['page','pageSize','q','role','cityCode','languageCode','status'],'source.list':['page','pageSize'],'member.list':['page','pageSize'],'job.list':['page','pageSize'],'audit.list':['page','pageSize']};
+const queryFields:Record<string,string[]>={'person.list':['page','pageSize','q','role','cityCode','languageCode','status'],'source.list':['page','pageSize'],'source.history':['page','pageSize'],'member.list':['page','pageSize'],'job.list':['page','pageSize'],'audit.list':['page','pageSize']};
 for(const route of ROUTES){
  const path='/api/v1'+route.path;paths[path]??={};const params:unknown[]=[];
  for(const match of route.path.matchAll(/\{(\w+)\}/g))params.push({name:match[1],in:'path',required:true,schema:{type:'string',...(match[1]==='id'?{format:'uuid'}:{enum:['person','source']})}});
  for(const name of queryFields[route.operation]??[])params.push({name,in:'query',required:false,schema:{type:'string'}});
  if(route.method!=='GET')params.push({name:'Origin',in:'header',required:true,schema:{type:'string'}},{name:'X-CSRF-Token',in:'header',required:true,schema:{type:'string'}});
  if(route.mode==='COMMAND')params.push({name:'Idempotency-Key',in:'header',required:true,schema:{type:'string',minLength:8,maxLength:128}});
- const code=route.operation==='import.commit'?'202':['person.create','source.create','scope.create','catalog.create','import.preview','member.create'].includes(route.operation)?'201':'200';
+ const code=['import.commit','job.resume'].includes(route.operation)?'202':['person.create','source.create','scope.create','catalog.create','import.preview','member.create'].includes(route.operation)?'201':'200';
  paths[path][route.method.toLowerCase()]={operationId:route.operation,parameters:params,security:route.mode==='AUTH'?[]:[{sessionCookie:[]}],
    ...(route.schema?{requestBody:{required:true,content:{'application/json':{schema:route.schema.json}}}}:{}),
-   responses:{[code]:{description:route.mode==='COMMAND'?'Minimal command receipt; import commit acknowledges enqueue only':'Allowlisted response DTO; see src/dto.ts'},default:{description:'Sanitized error with code, message, requestId'}},
+   responses:{[code]:{description:route.mode==='COMMAND'?'Minimal command receipt; import commit/resume acknowledge enqueue only':'Allowlisted response DTO; see src/dto.ts'},default:{description:'Sanitized error with code, message, requestId'}},
    'x-permission':route.permission??null,'x-mode':route.mode};
 }
 const spec={openapi:'3.1.0',info:{title:'ONCE Internal OS — development increment 1',version:'0.1.0-dev.1',description:'Paths and strict request schemas are generated from runtime routes. Response shapes are currently TypeScript DTOs; this is not a complete response-schema validator.'},paths,components:{securitySchemes:{sessionCookie:{type:'apiKey',in:'cookie',name:'once_session'}}}};

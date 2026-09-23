@@ -1,6 +1,7 @@
+import { AppError } from '../../packages/core/src/errors.ts';
 import type { Store, Tx } from '../../packages/core/src/store.ts';
 import type { Table, TableMap } from '../../packages/core/src/model.ts';
-const tables: Table[] = ['workspaces', 'users', 'memberships', 'sessions', 'activations', 'scopes', 'scopeMembers', 'sources', 'people', 'contacts', 'evidence', 'dictionary', 'receipts', 'audits', 'rateBuckets', 'imports', 'jobs'];
+const tables: Table[] = ['workspaces', 'users', 'memberships', 'sessions', 'activations', 'scopes', 'scopeMembers', 'sources', 'sourceHistory', 'people', 'contacts', 'evidence', 'dictionary', 'receipts', 'audits', 'rateBuckets', 'imports', 'jobs'];
 type Data = {
     [K in Table]: Map<string, TableMap[K]>;
 };
@@ -33,11 +34,12 @@ export class MemoryStore implements Store {
                 (draft[table] as Map<string, TableMap[K]>).set(row.id, structuredClone(row));
             },
             replace: async <K extends Table>(table: K, row: TableMap[K]): Promise<void> => {
+                if (table === 'sourceHistory') throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加');
                 if (!draft[table].has(row.id))
                     throw new Error('missing row');
                 (draft[table] as Map<string, TableMap[K]>).set(row.id, structuredClone(row));
             },
-            remove: async (table, id) => { draft[table].delete(id); }
+            remove: async (table, id) => { if (table === 'sourceHistory') throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加'); draft[table].delete(id); }
         };
         try {
             const result = await fn(tx);

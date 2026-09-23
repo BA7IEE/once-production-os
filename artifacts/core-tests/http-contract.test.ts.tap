@@ -2,7 +2,7 @@ TAP version 13
 # Subtest: loopback HTTP journey: csrf, login, typed create, detail, replay, Origin rejection, logout
 ok 1 - loopback HTTP journey: csrf, login, typed create, detail, replay, Origin rejection, logout
   ---
-  duration_ms: 152.182375
+  duration_ms: 172.887041
   type: 'test'
   ...
 1..1
@@ -13,4 +13,4 @@ ok 1 - loopback HTTP journey: csrf, login, typed create, detail, replay, Origin 
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 270.899417
+# duration_ms 326.963709
