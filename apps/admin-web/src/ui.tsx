@@ -20,12 +20,7 @@ export function Empty({ title, children }: {
     title: string;
     children?: ReactNode;
 }) { return <div className="empty"><div className="empty-glyph">◇</div><h3>{title}</h3>{children && <p>{children}</p>}</div>; }
-export function Field({ label, children, hint, wide = false }: {
-    label: string;
-    children: ReactNode;
-    hint?: string;
-    wide?: boolean;
-}) { return <label className={'field' + (wide ? ' wide' : '')}><span>{label}</span>{children}{hint && <small>{hint}</small>}</label>; }
+export { Field } from './field.ts';
 export function Modal({ title, children, onClose, wide = false }: {
     title: string;
     children: ReactNode;

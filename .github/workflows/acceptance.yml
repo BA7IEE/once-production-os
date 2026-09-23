@@ -219,5 +219,7 @@ jobs:
       - run: pnpm exec prisma validate && pnpm db:generate
       - run: pnpm verify && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
+      - name: Native form labels and descriptions in a real browser
+        run: node --experimental-strip-types --test tests/ui/field-accessibility.test.mjs
       - run: node tests/acceptance/browser-production.mjs
 
