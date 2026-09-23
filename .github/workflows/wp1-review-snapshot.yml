@@ -1,0 +1,27 @@
+name: WP1 read-only source snapshot
+on:
+  push:
+    branches: [dev/wp1-review-snapshot]
+    paths: [.github/workflows/wp1-review-snapshot.yml]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: b6935ba9c4a6665f319268a82450b4c5a4822fe6
+          persist-credentials: false
+      - name: Export only tracked source at the reviewed commit
+        run: |
+          test "$(git rev-parse HEAD)" = b6935ba9c4a6665f319268a82450b4c5a4822fe6
+          git archive --format=tar HEAD > "$RUNNER_TEMP/wp1-source.tar"
+          sha256sum "$RUNNER_TEMP/wp1-source.tar"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wp1-source-b6935ba
+          path: ${{ runner.temp }}/wp1-source.tar
+          retention-days: 1
+          if-no-files-found: error
