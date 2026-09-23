@@ -9,6 +9,7 @@ datasource db {
 }
 
 model Workspace {
+  RecordHandoff_workspace RecordHandoff[] @relation("RecordHandoff_workspace")
   id String @id @db.Uuid
   name String @db.Text
   createdAt DateTime @db.Timestamptz(3)
@@ -54,6 +55,9 @@ model User {
 }
 
 model Membership {
+  RecordHandoff_senderIdRef RecordHandoff[] @relation("RecordHandoff_senderIdRef")
+  RecordHandoff_recipientIdRef RecordHandoff[] @relation("RecordHandoff_recipientIdRef")
+  RecordHandoff_closedByIdRef RecordHandoff[] @relation("RecordHandoff_closedByIdRef")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -124,6 +128,8 @@ model Activation {
 }
 
 model AccessScope {
+  RecordHandoff_personScopeIdRef RecordHandoff[] @relation("RecordHandoff_personScopeIdRef")
+  RecordHandoff_sourceScopeIdRef RecordHandoff[] @relation("RecordHandoff_sourceScopeIdRef")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -160,6 +166,7 @@ model ScopeMember {
 }
 
 model SourceRecord {
+  RecordHandoff_sourceIdRef RecordHandoff[] @relation("RecordHandoff_sourceIdRef")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -196,6 +203,7 @@ model SourceRecord {
 }
 
 model Person {
+  RecordHandoff_personIdRef RecordHandoff[] @relation("RecordHandoff_personIdRef")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -409,4 +417,45 @@ model SourceHistory {
   @@unique([workspaceId, id])
   @@unique([workspaceId, sourceId, sourceRevision])
   @@map("sourceHistory")
+}
+
+// Purpose-limited per-person handoff; never used by source/contacts/native-scope endpoints.
+model RecordHandoff {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  sourceId String @db.Uuid
+  senderId String @db.Uuid
+  recipientId String @db.Uuid
+  senderRevision Int
+  recipientRevision Int
+  personRevision Int
+  sourceRevision Int
+  personEpoch Int
+  sourceEpoch Int
+  personScopeId String @db.Uuid
+  sourceScopeId String @db.Uuid
+  personScopeRevision Int
+  sourceScopeRevision Int
+  purpose String @db.Text
+  state String @db.Text
+  expiresAt DateTime @db.Timestamptz(3)
+  acceptedAt DateTime? @db.Timestamptz(3)
+  closedAt DateTime? @db.Timestamptz(3)
+  closedById String? @db.Uuid
+  workspace Workspace @relation("RecordHandoff_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "handoffs_workspace_fkey")
+  personIdRef Person @relation("RecordHandoff_personIdRef", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "handoffs_personIdRef_fkey")
+  sourceIdRef SourceRecord @relation("RecordHandoff_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "handoffs_sourceIdRef_fkey")
+  senderIdRef Membership @relation("RecordHandoff_senderIdRef", fields: [workspaceId, senderId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "handoffs_senderIdRef_fkey")
+  recipientIdRef Membership @relation("RecordHandoff_recipientIdRef", fields: [workspaceId, recipientId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "handoffs_recipientIdRef_fkey")
+  personScopeIdRef AccessScope @relation("RecordHandoff_personScopeIdRef", fields: [workspaceId, personScopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "handoffs_personScopeIdRef_fkey")
+  sourceScopeIdRef AccessScope @relation("RecordHandoff_sourceScopeIdRef", fields: [workspaceId, sourceScopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "handoffs_sourceScopeIdRef_fkey")
+  closedByIdRef Membership? @relation("RecordHandoff_closedByIdRef", fields: [workspaceId, closedById], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "handoffs_closedByIdRef_fkey")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, recipientId, state, personId], map: "handoffs_recipient_idx")
+  @@index([workspaceId, senderId, createdAt], map: "handoffs_sender_idx")
+  @@map("handoffs")
 }

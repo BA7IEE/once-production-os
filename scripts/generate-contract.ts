@@ -9,14 +9,14 @@ function tsType(schema:Record<string,unknown>):string {
   return'unknown';
 }
 const paths:Record<string,Record<string,unknown>>={};
-const queryFields:Record<string,string[]>={'person.list':['page','pageSize','q','role','cityCode','languageCode','status'],'source.list':['page','pageSize'],'source.history':['page','pageSize'],'member.list':['page','pageSize'],'job.list':['page','pageSize'],'audit.list':['page','pageSize']};
+const queryFields:Record<string,string[]>={'handoff.list':['page','pageSize','direction'],'handoff.recipients':['page','pageSize','q','purpose'],'person.list':['page','pageSize','q','role','cityCode','languageCode','status'],'source.list':['page','pageSize'],'source.history':['page','pageSize'],'member.list':['page','pageSize'],'job.list':['page','pageSize'],'audit.list':['page','pageSize']};
 for(const route of ROUTES){
  const path='/api/v1'+route.path;paths[path]??={};const params:unknown[]=[];
  for(const match of route.path.matchAll(/\{(\w+)\}/g))params.push({name:match[1],in:'path',required:true,schema:{type:'string',...(match[1]==='id'?{format:'uuid'}:{enum:['person','source']})}});
  for(const name of queryFields[route.operation]??[])params.push({name,in:'query',required:false,schema:{type:'string'}});
  if(route.method!=='GET')params.push({name:'Origin',in:'header',required:true,schema:{type:'string'}},{name:'X-CSRF-Token',in:'header',required:true,schema:{type:'string'}});
  if(route.mode==='COMMAND')params.push({name:'Idempotency-Key',in:'header',required:true,schema:{type:'string',minLength:8,maxLength:128}});
- const code=['import.commit','job.resume'].includes(route.operation)?'202':['person.create','source.create','scope.create','catalog.create','import.preview','member.create'].includes(route.operation)?'201':'200';
+ const code=['import.commit','job.resume'].includes(route.operation)?'202':['person.create','source.create','scope.create','catalog.create','import.preview','member.create','handoff.create'].includes(route.operation)?'201':'200';
  paths[path][route.method.toLowerCase()]={operationId:route.operation,parameters:params,security:route.mode==='AUTH'?[]:[{sessionCookie:[]}],
    ...(route.schema?{requestBody:{required:true,content:{'application/json':{schema:route.schema.json}}}}:{}),
    responses:{[code]:{description:route.mode==='COMMAND'?'Minimal command receipt; import commit/resume acknowledge enqueue only':'Allowlisted response DTO; see src/dto.ts'},default:{description:'Sanitized error with code, message, requestId'}},

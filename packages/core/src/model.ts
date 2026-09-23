@@ -123,7 +123,7 @@ export interface CommandReceipt extends Base {
     operation: string;
     commandKey: string;
     requestDigest: string;
-    resourceKind: 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job';
+    resourceKind: 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff';
     resourceId: string;
     result: ReceiptResult;
 }
@@ -176,6 +176,29 @@ export interface DurableJob extends Base {
     attempts: number;
     errorCode: string | null;
 }
+/** A purpose-limited invitation for ONE person's basic profile. No scope membership is granted. */
+export interface RecordHandoff extends Base {
+    personId: string;
+    sourceId: string;
+    senderId: string;
+    recipientId: string;
+    senderRevision: number;
+    recipientRevision: number;
+    personRevision: number;
+    sourceRevision: number;
+    personEpoch: number;
+    sourceEpoch: number;
+    personScopeId: string;
+    sourceScopeId: string;
+    personScopeRevision: number;
+    sourceScopeRevision: number;
+    purpose: 'EDIT' | 'REVIEW';
+    state: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'REVOKED';
+    expiresAt: string;
+    acceptedAt: string | null;
+    closedAt: string | null;
+    closedById: string | null;
+}
 export interface TableMap {
     workspaces: Workspace;
     users: User;
@@ -195,6 +218,7 @@ export interface TableMap {
     rateBuckets: RateBucket;
     imports: ImportBatch;
     jobs: DurableJob;
+    handoffs: RecordHandoff;
 }
 export type Table = keyof TableMap;
 export interface Actor {
@@ -225,4 +249,4 @@ export interface Config {
 }
 export const LIMITS = Object.freeze({ idleMs: 30 * 60000, absoluteMs: 12 * 60 * 60000,
     activationMs: 24 * 60 * 60000, temporaryMs: 7 * 24 * 60 * 60000, pageSize: 20, maxPageSize: 100,
-    importRows: 100, importMs: 24 * 60 * 60000, jobLeaseMs: 30000, jobMaxAttempts: 3 });
+    importRows: 100, importMs: 24 * 60 * 60000, jobLeaseMs: 30000, jobMaxAttempts: 3, handoffMs: 7 * 24 * 60 * 60000, maxOpenHandoffs: 100 });

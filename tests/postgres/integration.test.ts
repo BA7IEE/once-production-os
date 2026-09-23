@@ -46,6 +46,17 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
         const ownerB = new Client(appB, '192.0.2.77');
         assert.equal((await ownerA.login()).status, 200);
         assert.equal((await ownerB.login()).status, 200);
+        // Login intentionally requires exactly one installed workspace. Establish real test
+        // identities before later FK-negative fixtures add foreign workspaces; do not weaken
+        // the production installation gate or ignore failed activation/login responses.
+        const senderCreated = await ownerA.raw('POST', '/memberships', { loginName: 'pg_handoff_sender', displayName: 'PG交接发起人', role: 'EDITOR', extraPermissions: [] });
+        const recipientCreated = await ownerA.raw('POST', '/memberships', { loginName: 'pg_handoff_receiver', displayName: 'PG交接接收人', role: 'ADMIN', extraPermissions: ['sensitive.read', 'sensitive.write'] });
+        assert.equal(senderCreated.status, 201); assert.equal(recipientCreated.status, 201);
+        const sender = new Client(appA, '192.0.2.80'), receiver = new Client(appB, '192.0.2.81');
+        assert.equal((await sender.activate(result(senderCreated).activationToken)).status, 200);
+        assert.equal((await sender.login('pg_handoff_sender')).status, 200);
+        assert.equal((await receiver.activate(result(recipientCreated).activationToken)).status, 200);
+        assert.equal((await receiver.login('pg_handoff_receiver')).status, 200);
         let personId = '';
         await t.test('two independent clients serialize the same command into one source/person/receipt', async () => {
             const key = randomUUID();
@@ -198,6 +209,64 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
                 }
             } finally { await measuredStore.close(); }
         });
+        await t.test('H1 PG private basic-profile grant and native evidence separation', async () => {
+            const created = await sender.cmd('POST', '/people', { displayName: 'PG H1私有档案', roles: ['model'], inlineSource: sourceInput(true) });
+            assert.equal(created.status, 201);
+            const person = await a.person.findUniqueOrThrow({ where: { id: result(created).resourceId } });
+            const sourceBefore = await a.sourceRecord.findUniqueOrThrow({ where: { id: person.sourceId } });
+            const scopesBefore = await a.scopeMember.findMany({ orderBy: { id: 'asc' } });
+            const input = { expectedRevision: person.revision, expectedSourceRevision: sourceBefore.revision,
+                recipientId: result(recipientCreated).membershipId, purpose: 'EDIT', acknowledgeLimitedAccess: true,
+                expiresAt: new Date(clock.now().getTime() + 3600000).toISOString() };
+            const key = randomUUID();
+            const invites = await Promise.all([sender, sender].map(c => c.cmd('POST', '/people/' + person.id + '/handoffs', input, key)));
+            assert.ok(invites.every(r => r.status === 201));
+            const hid = result(invites[0]!).resourceId;
+            assert.equal(await a.recordHandoff.count({ where: { personId: person.id } }), 1);
+            assert.equal((await receiver.raw('GET', '/people/' + person.id)).status, 404);
+            const ak = randomUUID();
+            const accepts = await Promise.all([receiver, receiver].map(c => c.cmd('POST', '/handoffs/' + hid + '/accept', { expectedRevision: 1 }, ak)));
+            assert.ok(accepts.every(r => r.status === 200));
+            assert.equal((await receiver.raw('GET', '/people/' + person.id)).status, 200);
+            for (const path of ['/sources/' + person.sourceId, '/sources/' + person.sourceId + '/history', '/people/' + person.id + '/contacts'])
+                assert.equal((await receiver.raw('GET', path)).status, 404);
+            assert.deepEqual(await a.sourceRecord.findUniqueOrThrow({ where: { id: person.sourceId } }), sourceBefore);
+            assert.deepEqual(await a.scopeMember.findMany({ orderBy: { id: 'asc' } }), scopesBefore);
+            const editKey = randomUUID(); const edit = { expectedRevision: 1, intro: 'PG受控修改' };
+            assert.equal((await receiver.cmd('PATCH', '/people/' + person.id, edit, editKey)).status, 200);
+            assert.equal((await sender.cmd('POST', '/handoffs/' + hid + '/revoke', { expectedRevision: 2 })).status, 200);
+            assert.equal((await receiver.cmd('PATCH', '/people/' + person.id, edit, editKey)).status, 404);
+            assert.equal((await receiver.raw('GET', '/people/' + person.id)).status, 404);
+            const row = await a.recordHandoff.findUniqueOrThrow({ where: { id: hid } });
+            // DB is a second boundary: malformed state and cross-workspace recipient must fail.
+            await assert.rejects(a.recordHandoff.update({ where: { id: hid }, data: { state: 'DECLINED', acceptedAt: null, closedById: null } }));
+            const alienWorkspace = randomUUID(), alienUser = randomUUID(), alienMember = randomUUID();
+            const now = clock.now();
+            await a.workspace.create({ data: { id: alienWorkspace, name: 'H1隔离空间', createdAt: now, recoveryEpoch: config.recoveryEpoch } });
+            await a.user.create({ data: { id: alienUser, workspaceId: alienWorkspace, loginName: 'alien_' + alienUser, displayName: '仅FK测试', status: 'ACTIVE', passwordHash: null, sessionEpoch: 1, revision: 1, createdAt: now, updatedAt: now } });
+            await a.membership.create({ data: { id: alienMember, workspaceId: alienWorkspace, userId: alienUser, role: 'EDITOR', extraPermissions: [], status: 'ACTIVE', revision: 1, createdAt: now, updatedAt: now } });
+            await assert.rejects(a.recordHandoff.create({ data: { ...row, id: randomUUID(), recipientId: alienMember } }));
+            assert.equal(await a.recordHandoff.count({ where: { personId: person.id } }), 1);
+        });
+        for (const stage of ['handoffs', 'audits', 'receipts'] as const) {
+            await t.test('H1 PG atomic handoff creation rollback after ' + stage, async () => {
+                const receiver = await a.membership.findFirstOrThrow({ where: { role: 'EDITOR', status: 'ACTIVE', id: { not: identity.membershipId } } });
+                const created = await ownerA.cmd('POST', '/people', { displayName: 'H1回滚-' + stage, roles: ['model'], inlineSource: sourceInput(true) });
+                assert.equal(created.status, 201);
+                const person = await a.person.findUniqueOrThrow({ where: { id: result(created).resourceId } });
+                const input = { expectedRevision: 1, expectedSourceRevision: 1, recipientId: receiver.id, purpose: 'EDIT',
+                    expiresAt: new Date(clock.now().getTime() + 3600000).toISOString(), acknowledgeLimitedAccess: true };
+                const count = async () => ({ handoffs: await a.recordHandoff.count(), audits: await a.auditEvent.count(), receipts: await a.commandReceipt.count() });
+                const before = await count(); const key = randomUUID(); const faults = new FaultStore(storeA); let fired = false;
+                faults.afterInsert = table => { if (table === stage && !fired) { fired = true; throw new Error('H1 after-insert fault'); } };
+                const app = new Application(faults, config, clock), client = new Client(app);
+                client.jar = { ...ownerA.jar }; client.csrf = ownerA.csrf;
+                assert.equal((await client.cmd('POST', '/people/' + person.id + '/handoffs', input, key)).status, 503);
+                assert.ok(fired); assert.deepEqual(await count(), before);
+                assert.equal((await ownerA.cmd('POST', '/people/' + person.id + '/handoffs', input, key)).status, 201);
+                assert.deepEqual(await count(), Object.fromEntries(Object.entries(before).map(([k, v]) => [k, v + 1])));
+            });
+        }
     }
     finally {
         await Promise.all([storeA.close(), storeB.close()]);

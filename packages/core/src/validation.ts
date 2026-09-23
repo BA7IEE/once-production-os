@@ -95,6 +95,9 @@ export const PersonPatch = v.object({ expectedRevision: revision,
 export const RevisionOnly = v.object({ expectedRevision: revision });
 export const PersonImportRow = v.object({ displayName: v.string(120, 1), roles: v.array(code, 10, 1), cityCode: v.optional(v.nullable(code)) });
 export const Schemas = {
+    handoffCreate: v.object({ expectedRevision: revision, expectedSourceRevision: revision,
+        recipientId: uuid, purpose: v.enum(['EDIT', 'REVIEW']), expiresAt: dateIso,
+        acknowledgeLimitedAccess: v.boolean() }),
     empty: v.object({}), login: v.object({ loginName: v.string(80, 1), password: v.string(256, 1) }),
     activate: v.object({ token: v.string(100, 32), password: v.string(256, 12) }),
     password: v.object({ oldPassword: v.string(256, 1), newPassword: v.string(256, 12) }),
