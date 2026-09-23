@@ -82,7 +82,15 @@ try {
  const lose=async route=>{const upstream=await route.fetch();assert.equal(upstream.status(),202);await route.abort('failed');};await editor.route(path,lose);
  await editor.locator('input[type=file]').setInputFiles({name:'M1-synthetic.png',mimeType:'image/png',buffer:image});
  await editor.getByRole('button',{name:'上传并检查',exact:true}).click();await editor.getByRole('alert').waitFor();
- await editor.unroute(path,lose);await editor.getByRole('button',{name:'核对上传状态并继续',exact:true}).click();
+ // QUEUED is already true after the first committed request; it cannot prove replay finished.
+ assert.equal(sends.length,1);
+ assert.equal(await prisma.mediaUpload.count({where:{state:'QUEUED'}}),1);
+ await editor.unroute(path,lose);
+ const replayResponse=editor.waitForResponse(r=>r.url().endsWith('/complete')&&r.request().method()==='POST');
+ await editor.getByRole('button',{name:'核对上传状态并继续',exact:true}).click();
+ const replay=await replayResponse;assert.equal(replay.status(),202);
+ assert.equal((await replay.json()).replayed,true,'must observe the actual replay receipt, not only old queue state');
+ await editor.locator('[data-upload-state=QUEUED]').waitFor();
  await until(async()=>await prisma.mediaUpload.count({where:{state:'QUEUED'}})===1);
  assert.equal(sends.length,2);assert.deepEqual(sends[0],sends[1]);
  const upload=await prisma.mediaUpload.findFirstOrThrow();assert.equal(await prisma.commandReceipt.count({where:{operation:'upload.complete',resourceId:upload.id}}),1);
