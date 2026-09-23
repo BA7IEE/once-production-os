@@ -2,7 +2,7 @@
 
 ## 事实顺序
 
-先读 docs/release/FIX_R1.md（本补丁新增实现与实测边界）→ README → docs/release/IMPLEMENTATION_STATUS.md → REVIEW.md → TEST_REPORT.md，再读 docs/spec/06_DEVELOPMENT.md 与相应领域契约。原 release 文档保留旧基线证据；本补丁不把旧通过记录套用于新迁移。
+先读 docs/release/A1_FOLLOWUP.md（当前验收补强与未执行边界）→ docs/release/FIX_R1.md（本补丁新增实现与实测边界）→ README → docs/release/IMPLEMENTATION_STATUS.md → REVIEW.md → TEST_REPORT.md，再读 docs/spec/06_DEVELOPMENT.md 与相应领域契约。原 release 文档保留旧基线证据；本补丁不把旧通过记录套用于新迁移。
 
 `docs/spec/` 是未改写的 v0.3 输入规格，其“尚未实现”是原文历史状态。当前已做和未做以 release 状态表及实际代码为准；这不是把未实现功能从一期删除的授权。
 
@@ -25,8 +25,10 @@
 
 ## 验证与下一步
 
-依赖锁定、R1 完整构建、既有合成库迁移、新空库 PostgreSQL 测试与受限历史页面已有 2026-09-23 记录。每次修改仍按当前锁文件重新运行受影响测试；导入继续的真实数据库故障用例已通过，浏览器继续操作仍未验收。完整浏览器异常清单、CI、正式镜像与恢复仍未验收。
+A1 后续补强以 `7c327b4` 为输入：拒绝后完整检查点断言、降权后新会话拒绝、独立 PostgreSQL CI 和一键本地隔离验收脚本已编写。当前新脚本只完成核心回归、辅助断言与编排模拟；真实浏览器/数据库和 GitHub Runner 未执行。以下 A1/R1 成功记录只属于此前版本，不能沿用为新脚本通过。详见 `docs/release/A1_FOLLOWUP.md`。
 
-后续补齐来源旧记录不能重建的证据边界与协作交接，再按 DEV-04/05/06/07/09 完成内部人工链路，然后 DEV-08 的有界 AI。M0/M1/M2/M3 目前均不能标记完成。
+依赖锁定、R1 完整构建、既有合成库迁移、新空库 PostgreSQL 测试与受限历史页面已有 2026-09-23 记录。A1 已在隔离数据库中验证浏览器续跑、响应丢失原样核对及来源/权限变化拒绝；最小 CI 已加入，但 GitHub 因账号付款/消费上限在启动 Runner 前拒绝检查，CI 仍 BLOCKED。完整浏览器异常清单、正式镜像与恢复仍未验收。
+
+下一切片补受控资料交接及来源旧记录不能重建的证据边界，再按 DEV-04 私有媒体→DEV-05 作品/项目→DEV-06 内部候选清单推进，同时完成 DEV-07/09；之后完成 DEV-08 的有界 AI。AI 仍在一期，M0/M1/M2/M3 目前均不能标记完成。
 
 每次交付更新状态表、review、测试报告和 MANIFEST。`PASS`、`CORE_MEMORY_TESTED`、`DB_TESTED`、`PROVIDER_VERIFIED`、`NOT_RUN` 必须区分，源文件存在不等于实现验收完成。

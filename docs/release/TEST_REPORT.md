@@ -2,6 +2,19 @@
 
 应用版本：0.1.0-dev.1。规格输入：v0.3。下列结果只适用于这批源码，不是完整一期验收。
 
+## 2026-09-23 验收切片 A1（基线 `1ba170e`）
+
+本机环境：Node 22.22.3、pnpm 10.14.0、隔离 PostgreSQL 16、真实 API/Worker、无头 Chrome。测试脚本在新建空 `once_test_browser_*` 库上迁移并创建随机合成账号；故障触发器只作用于该库的合成第二行。测试库保留，未清空旧库。
+
+| 检查 | 实际结果 | 边界与证据 |
+|---|---|---|
+| `pnpm verify:online` | PASS：冻结安装、Prisma validate/generate、39 条请求契约、完整类型检查、135/135 核心测试、静态检查、API/Web 构建、生产依赖审计 0 个已知漏洞 | [运行日志](../../artifacts/acceptance-online-20260923.txt)；核心测试仍是 MemoryStore |
+| `pnpm verify:browser` | BROWSER_TESTED：页面两行预览/提交；第二行真实 SQL 失败时仅第一行入库且显示部分完成；点击继续后响应丢失，原键/原请求体重放只产生一个回执；Worker 只补第二行，最终两行各一条 | [运行日志](../../artifacts/acceptance-browser-20260923.txt)；真实 PostgreSQL、Nest API、独立 Worker、Chrome |
+| 三类继续拒绝 | BROWSER_TESTED：来源暂停/版本变化后页面显示拒绝原因且 API 返回 404/409；编辑权限撤销后旧页面点击继续返回 401，任务保持 FAILED、第二行未入库 | 同一浏览器日志；只覆盖指定的三种变化 |
+| 最小 GitHub CI | BLOCKED：PR #2 的[首次检查](https://github.com/BA7IEE/once-production-os/actions/runs/35856990647)在启动 Runner 前被 GitHub 拒绝；检查注释称账号付款失败或达到消费上限，步骤数为 0 | 未运行冻结安装、构建或浏览器脚本；账单恢复后必须在最终 PR 提交上重新运行，不把本机通过写成 CI 通过 |
+
+本切片未执行完整浏览器异常/可访问性清单、生产部署、正式数据升级、恢复演练、受控资料交接和后续业务模块。AI 仍在 v0.3 一期范围。下文为 R1 和更早基线的历史结果。
+
 ## 2026-09-23 Review R1 本机实测
 
 目标代码基线 `44aac4d93f23bb1f4c69e960a4c82d01b8b0d9dc`；R1 补丁在独立分支应用后验证。环境为 macOS、Node 22.22.3、pnpm 10.14.0、隔离 PostgreSQL 16。包作者随附的离线测试记录仅供审阅；下表是本机重新执行的结果。

@@ -27,6 +27,7 @@
     "review:static": "node scripts/static-review.mjs",
     "verify": "pnpm contract:check && pnpm typecheck && pnpm test:core && pnpm review:static && pnpm build",
     "verify:postgres": "node scripts/verify-postgres.mjs",
+    "verify:browser": "node tests/acceptance/browser-resume.mjs",
     "typecheck:transport": "tsc -p apps/admin-web/tsconfig.transport.json",
     "init:local": "node scripts/init-local.mjs",
     "verify:online": "bash scripts/online-verify.sh",
@@ -38,16 +39,17 @@
     "@nestjs/platform-express": "11.2.5",
     "@prisma/client": "6.19.3",
     "express": "5.1.0",
-    "reflect-metadata": "0.2.2",
-    "rxjs": "7.8.2",
     "react": "19.1.1",
-    "react-dom": "19.1.1"
+    "react-dom": "19.1.1",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2"
   },
   "devDependencies": {
     "@types/express": "5.0.3",
     "@types/node": "22.15.30",
     "@types/react": "19.1.10",
     "@types/react-dom": "19.1.9",
+    "playwright": "1.63.0",
     "prisma": "6.19.3",
     "typescript": "5.8.3",
     "vite": "6.4.1"
