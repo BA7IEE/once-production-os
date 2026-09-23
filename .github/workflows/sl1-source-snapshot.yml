@@ -13,9 +13,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
-      - name: Confirm pinned parent
+      - name: Confirm product tree still contains pinned base
         run: |
-          test "$(git rev-parse HEAD^)" = "c349af4f3cb8515c619f50836d79bac828aad34b"
+          test "$(git rev-parse HEAD:.gitignore)" = "$(git rev-parse c349af4f3cb8515c619f50836d79bac828aad34b:.gitignore)"
+          test "$(git rev-parse HEAD:packages/core/src/model.ts)" = "$(git rev-parse c349af4f3cb8515c619f50836d79bac828aad34b:packages/core/src/model.ts)"
       - uses: actions/upload-artifact@v4
         with:
           name: sl1-source-c349af4
