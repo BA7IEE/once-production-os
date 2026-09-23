@@ -20,6 +20,7 @@ model Workspace {
   AccessScope_workspace AccessScope[] @relation("AccessScope_workspace")
   ScopeMember_workspace ScopeMember[] @relation("ScopeMember_workspace")
   SourceRecord_workspace SourceRecord[] @relation("SourceRecord_workspace")
+  SourceHistory_workspace SourceHistory[] @relation("SourceHistory_workspace")
   Person_workspace Person[] @relation("Person_workspace")
   Contact_workspace Contact[] @relation("Contact_workspace")
   FieldEvidence_workspace FieldEvidence[] @relation("FieldEvidence_workspace")
@@ -68,6 +69,7 @@ model Membership {
   ScopeMember_membershipIdRef ScopeMember[] @relation("ScopeMember_membershipIdRef")
   SourceRecord_maintainerIdRef SourceRecord[] @relation("SourceRecord_maintainerIdRef")
   SourceRecord_reviewedByRef SourceRecord[] @relation("SourceRecord_reviewedByRef")
+  SourceHistory_actorIdRef SourceHistory[] @relation("SourceHistory_actorIdRef")
   Person_maintainerIdRef Person[] @relation("Person_maintainerIdRef")
   FieldEvidence_reviewerIdRef FieldEvidence[] @relation("FieldEvidence_reviewerIdRef")
   CommandReceipt_actorIdRef CommandReceipt[] @relation("CommandReceipt_actorIdRef")
@@ -132,6 +134,7 @@ model AccessScope {
   workspace Workspace @relation("AccessScope_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "scopes_workspace_fkey")
   ScopeMember_scopeIdRef ScopeMember[] @relation("ScopeMember_scopeIdRef")
   SourceRecord_scopeIdRef SourceRecord[] @relation("SourceRecord_scopeIdRef")
+  SourceHistory_scopeIdRef SourceHistory[] @relation("SourceHistory_scopeIdRef")
   Person_scopeIdRef Person[] @relation("Person_scopeIdRef")
   ImportBatch_scopeIdRef ImportBatch[] @relation("ImportBatch_scopeIdRef")
   @@unique([workspaceId, id])
@@ -183,6 +186,7 @@ model SourceRecord {
   Person_sourceIdRef Person[] @relation("Person_sourceIdRef")
   Contact_sourceIdRef Contact[] @relation("Contact_sourceIdRef")
   FieldEvidence_sourceIdRef FieldEvidence[] @relation("FieldEvidence_sourceIdRef")
+  SourceHistory_sourceIdRef SourceHistory[] @relation("SourceHistory_sourceIdRef")
   ImportBatch_sourceIdRef ImportBatch[] @relation("ImportBatch_sourceIdRef")
   @@unique([workspaceId, id])
   @@index([workspaceId, createdAt], map: "sources_idx_0")
@@ -380,4 +384,29 @@ model DurableJob {
   @@index([workspaceId, createdAt], map: "jobs_idx_0")
   @@index([state, leaseUntil], map: "jobs_idx_1")
   @@map("jobs")
+}
+
+// Append-only protected source versions/decisions. SQL also enforces write-once history.
+model SourceHistory {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  sourceId String @db.Uuid
+  sourceRevision Int
+  scopeId String @db.Uuid
+  actorId String? @db.Uuid
+  action String @db.Text
+  decisionReason String? @db.Text
+  baselineOnly Boolean
+  basisAmbiguous Boolean
+  snapshot Json @db.JsonB
+  workspace Workspace @relation("SourceHistory_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "sourceHistory_workspace_fkey")
+  sourceIdRef SourceRecord @relation("SourceHistory_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "sourceHistory_sourceIdRef_fkey")
+  scopeIdRef AccessScope @relation("SourceHistory_scopeIdRef", fields: [workspaceId, scopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "sourceHistory_scopeIdRef_fkey")
+  actorIdRef Membership? @relation("SourceHistory_actorIdRef", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "sourceHistory_actorIdRef_fkey")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, sourceId, sourceRevision])
+  @@map("sourceHistory")
 }

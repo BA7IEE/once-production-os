@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client';
 import { useEffect, useState, createContext, useContext, type ReactNode } from 'react';
 import { call, read, resetTransport, acknowledgeSecretInspection, type ApiError } from './api.ts';
 import type { Inputs } from './generated/requests.ts';
-import type { Me, Person, Page, CatalogItem, Receipt, Source, Membership, Contact, Job, ImportBatch, Scope, Audit } from './dto.ts';
+import type { Me, Person, Page, CatalogItem, Receipt, Source, Membership, Contact, Job, ImportBatch, Scope, Audit, SourceHistoryEntry } from './dto.ts';
 import { Modal, Field, ErrorBox, Tag, Empty, date, useLoad, useAction, Submit, PageTitle, Pager, labels } from './ui.tsx';
 import './style.css';
 import { parseStrictJson } from '../../../packages/core/src/json-boundary.ts';
@@ -227,7 +227,17 @@ function SourceDetail({ id, onClose }: {
                     if (!confirm('暂停后，依赖该来源的人才资料将不可读取，未执行的导入也会停止。确认继续？'))
                         return;
                     void a.run(async () => { await command('source.suspend', { expectedRevision: load.data!.revision, reason }, { id }); setReason(''); setRefresh(x => x + 1); });
-                }}><input required minLength={4} maxLength={1000} placeholder="填写暂停原因" value={reason} onChange={e => setReason(e.target.value)}/><button className="danger" disabled={a.busy}>暂停使用</button></form></>}{can('members.manage') && <div className="detail-actions"><button onClick={() => setScope(true)}>调整来源访问范围</button></div>}</>}</div><footer className="modal-footer"><button onClick={onClose}>关闭</button></footer></Modal>;
+                }}><input required minLength={4} maxLength={1000} placeholder="填写暂停原因" value={reason} onChange={e => setReason(e.target.value)}/><button className="danger" disabled={a.busy}>暂停使用</button></form></>}{can('members.manage') && <div className="detail-actions"><button onClick={() => setScope(true)}>调整来源访问范围</button></div>}{can('sources.review') && can('sensitive.read') && <SourceHistoryPanel id={id} revision={load.data.revision}/>}</>}</div><footer className="modal-footer"><button onClick={onClose}>关闭</button></footer></Modal>;
+}
+function SourceHistoryPanel({ id, revision }: { id: string; revision: number }) {
+    const [open, setOpen] = useState(false);
+    return <section><h3 className="section-title">受限来源历史</h3><button onClick={() => setOpen(v => !v)}>{open ? '收起历史' : '查看来源版本与决定（记录审计）'}</button>{open && <SourceHistoryRows id={id} revision={revision}/>}</section>;
+}
+function SourceHistoryRows({ id, revision }: { id: string; revision: number }) {
+    const [page, setPage] = useState(1);
+    const load = useLoad(() => read<Page<SourceHistoryEntry>>('source.history', { id }, { page: String(page), pageSize: '20' }), id + ':' + revision + ':' + page);
+    const actions: Record<string, string> = { CREATED: '创建', EDITED: '编辑', REVIEWED: '核验', SUSPENDED: '暂停', SCOPE_CHANGED: '范围调整', BASELINE: '迁移时可见状态' };
+    return <><p className="muted">历史只用于复核，不代表目前仍允许使用资料。需同时具备核验、原文读取权限和对应访问范围。</p><ErrorBox error={load.error}/>{load.busy ? <p>正在读取受限历史…</p> : load.data && <>{load.data.items.map(h => <section className="panel padded" key={h.id}><strong>来源版本 {h.sourceRevision} · {actions[h.action] ?? h.action}</strong><small>{date(h.recordedAt)}</small>{h.baselineOnly && <p className="notice">迁移前的完整历史不可恢复；这里仅保存迁移时可见状态。</p>}{h.legacyBasisAmbiguous && <p className="notice">旧暂停来源中的“依据说明”可能实际是暂停原因，不能据此证明原使用依据。</p>}<Field label="该版本的依据说明"><textarea readOnly value={h.snapshot.basisDescription}/></Field>{h.decisionReason && <Field label="独立暂停原因"><textarea readOnly value={h.decisionReason}/></Field>}{h.snapshot.textPayload && <Field label="该版本受限原文"><textarea readOnly rows={4} value={h.snapshot.textPayload}/></Field>}</section>)}<Pager page={page} pageSize={20} total={load.data.total} setPage={setPage}/></>}</>;
 }
 function ScopeChange({ kind, id, revision, onClose, onSaved }: {
     kind: 'person' | 'source';
@@ -242,6 +252,22 @@ function ScopeChange({ kind, id, revision, onClose, onSaved }: {
     const [value, setValue] = useState('');
     const a = useAction();
     return <Modal title="调整访问范围" onClose={onClose}><form onSubmit={e => { e.preventDefault(); void a.run(async () => { await command('record.scope', { expectedRevision: revision, scopeId: value }, { kind, id }); onSaved(); }); }}><div className="modal-body"><ErrorBox error={a.error ?? load.error}/><p>人才范围与来源范围取交集。收窄任一范围，都可能让部分成员立即失去访问权。</p><Field label="目标范围"><select required value={value} onChange={e => setValue(e.target.value)}><option value="">请选择当前有权访问的范围</option>{load.data?.items.map(s => <option key={s.id} value={s.id}>{s.name} · {s.mode === 'WORKSPACE' ? '内部成员' : '限定成员'}</option>)}</select></Field></div><footer className="modal-footer"><button type="button" onClick={onClose}>取消</button><Submit busy={a.busy}>确认调整</Submit></footer></form></Modal>;
+}
+function ResumeImport({ job, onQueued }: { job: Job; onQueued: () => void }) {
+    const action = useAction();
+    const [submittedRevision, setSubmittedRevision] = useState<number | null>(null);
+    const unknown = (action.error as ApiError | null)?.unknownOutcome === true;
+    const blocked: Record<string, string> = { JOB_NOT_RETRYABLE: '该错误不可直接继续', ATTEMPTS_EXHAUSTED: '已达到领取上限',
+        REVISION_CONFLICT: '来源已经变更', NOT_FOUND: '来源、范围或预览已失效', CHECKPOINT_INVALID: '入库检查点需人工核对' };
+    if (job.state !== 'FAILED' && !unknown) return null;
+    return <div><ErrorBox error={action.error}/>{job.canResume || unknown ? <button disabled={action.busy} onClick={() => void action.run(async () => {
+        const expectedRevision = unknown && submittedRevision !== null ? submittedRevision : job.revision;
+        setSubmittedRevision(expectedRevision);
+        await command('job.resume', { expectedRevision }, { id: job.id });
+        setSubmittedRevision(null);
+        action.clear();
+        onQueued();
+    })}>{unknown ? '原样核对上次继续请求' : '继续处理未完成行'}</button> : <small>{blocked[job.resumeBlockedReason ?? ''] ?? '当前不可继续，请核查任务及资料依据'}</small>}</div>;
 }
 function Imports() {
     const [refresh, setRefresh] = useState(0);
@@ -275,7 +301,7 @@ function Imports() {
                 const receipt = await command('import.preview', { sourceId, rows });
                 await loadBatch(receipt.resourceId);
             });
-        }}><Field label="本批资料来源"><select required value={sourceId} onChange={e => setSourceId(e.target.value)}><option value="">选择当前可用来源</option>{sources.data?.items.filter(s => s.current).map(s => <option key={s.id} value={s.id}>{s.title}</option>)}</select></Field><Field label="JSON 数据" hint={'每行仅允许 displayName、roles、cityCode。角色和城市必须使用字典中的稳定代码。'}><textarea className="code-input" required rows={7} value={text} onChange={e => setText(e.target.value)} placeholder={'[\n  {"displayName":"合成示例（请替换）", "roles":["model"], "cityCode":"shenzhen"}\n]'}/></Field><Submit busy={a.busy}>生成预览，不写入人才</Submit></form></section>{batch && <section className="panel"><div className="panel-heading"><div><h2>预览与逐行结果</h2><p>截止 {date(batch.expiresAt)} · 批次 {batch.id}</p></div>{batch.job && <Tag value={batch.job.state}/>}</div><div className="table-wrap"><table><thead><tr><th>选择</th><th>姓名</th><th>角色代码</th><th>状态 / 提示</th></tr></thead><tbody>{batch.rows.map(r => <tr key={r.index}><td><input aria-label={'选择第 ' + (r.index + 1) + ' 行'} type="checkbox" disabled={!!batch.job || r.state !== 'VALID'} checked={selected.includes(r.index)} onChange={e => setSelected(e.target.checked ? [...selected, r.index] : selected.filter(i => i !== r.index))}/></td><td>{r.displayName || '第 ' + (r.index + 1) + ' 行'}</td><td>{r.roles.join(', ')}</td><td><Tag value={r.state}/>{r.issues.map((m, i) => <small key={i}>{m}</small>)}{r.personId && <small>已生成独立人才编号</small>}</td></tr>)}</tbody></table></div><footer className="panel-footer">{!batch.job ? <button className="primary" disabled={a.busy || !selected.length} onClick={() => void a.run(async () => { await command('import.commit', { expectedRevision: batch.revision, selectedRows: selected }, { id: batch.id }); await loadBatch(batch.id); setRefresh(x => x + 1); })}>提交 {selected.length} 行到后台任务</button> : <p>已提交不等于已完成。后台 Worker 会再次核对来源与发起者权限；失败时保留逐行结果，不自动重复创建。</p>}</footer></section>}<section className="panel"><div className="panel-heading"><h2>本人导入任务</h2></div>{jobs.data?.items.length ? <div className="table-wrap"><table><thead><tr><th>创建时间</th><th>状态</th><th>重领次数</th><th>失败代码</th><th /></tr></thead><tbody>{jobs.data.items.map(j => <tr key={j.id}><td>{date(j.createdAt)}</td><td><Tag value={j.state}/></td><td>{j.attempts}</td><td><code>{j.errorCode ?? '—'}</code></td><td><button onClick={() => void a.run(() => loadBatch(j.aggregateId))}>查看批次</button></td></tr>)}</tbody></table></div> : <Empty title="暂无导入任务"/>}</section>{jobs.data && <Pager page={jobPage} pageSize={20} total={jobs.data.total} setPage={setJobPage}/>}</>;
+        }}><Field label="本批资料来源"><select required value={sourceId} onChange={e => setSourceId(e.target.value)}><option value="">选择当前可用来源</option>{sources.data?.items.filter(s => s.current).map(s => <option key={s.id} value={s.id}>{s.title}</option>)}</select></Field><Field label="JSON 数据" hint={'每行仅允许 displayName、roles、cityCode。角色和城市必须使用字典中的稳定代码。'}><textarea className="code-input" required rows={7} value={text} onChange={e => setText(e.target.value)} placeholder={'[\n  {"displayName":"合成示例（请替换）", "roles":["model"], "cityCode":"shenzhen"}\n]'}/></Field><Submit busy={a.busy}>生成预览，不写入人才</Submit></form></section>{batch && <section className="panel"><div className="panel-heading"><div><h2>预览与逐行结果</h2><p>截止 {date(batch.expiresAt)} · 批次 {batch.id}</p></div>{batch.job && <Tag value={batch.job.state}/>}</div><div className="table-wrap"><table><thead><tr><th>选择</th><th>姓名</th><th>角色代码</th><th>状态 / 提示</th></tr></thead><tbody>{batch.rows.map(r => <tr key={r.index}><td><input aria-label={'选择第 ' + (r.index + 1) + ' 行'} type="checkbox" disabled={!!batch.job || r.state !== 'VALID'} checked={selected.includes(r.index)} onChange={e => setSelected(e.target.checked ? [...selected, r.index] : selected.filter(i => i !== r.index))}/></td><td>{r.displayName || '第 ' + (r.index + 1) + ' 行'}</td><td>{r.roles.join(', ')}</td><td><Tag value={r.state}/>{r.issues.map((m, i) => <small key={i}>{m}</small>)}{r.personId && <small>已生成独立人才编号</small>}</td></tr>)}</tbody></table></div><footer className="panel-footer">{!batch.job ? <button className="primary" disabled={a.busy || !selected.length} onClick={() => void a.run(async () => { await command('import.commit', { expectedRevision: batch.revision, selectedRows: selected }, { id: batch.id }); await loadBatch(batch.id); setRefresh(x => x + 1); })}>提交 {selected.length} 行到后台任务</button> : <p>已提交不等于已完成。后台 Worker 会再次核对来源与发起者权限；失败时保留逐行结果，不自动重复创建。</p>}</footer></section>}<section className="panel"><div className="panel-heading"><h2>本人导入任务</h2></div>{jobs.data?.items.length ? <div className="table-wrap"><table><thead><tr><th>创建时间</th><th>状态</th><th>领取次数</th><th>进度 / 失败代码</th><th /></tr></thead><tbody>{jobs.data.items.map(j => <tr key={j.id}><td>{date(j.createdAt)}</td><td><Tag value={j.state}/></td><td>{j.attempts}</td><td><small>已入库 {j.importedCount} / {j.selectedCount}{j.state === 'FAILED' && j.importedCount > 0 && '（部分完成）'}</small><code>{j.errorCode ?? '—'}</code></td><td><button onClick={() => void a.run(() => loadBatch(j.aggregateId))}>查看批次</button><ResumeImport job={j} onQueued={() => { setRefresh(x => x + 1); if (batch?.id === j.aggregateId) void a.run(() => loadBatch(j.aggregateId)); }}/></td></tr>)}</tbody></table></div> : <Empty title="暂无导入任务"/>}</section>{jobs.data && <Pager page={jobPage} pageSize={20} total={jobs.data.total} setPage={setJobPage}/>}</>;
 }
 function Members() {
     const { me } = useOS();

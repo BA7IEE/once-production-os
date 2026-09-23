@@ -7,6 +7,7 @@ import { audit, base, cas, touch, unique, workspaceRow, page } from './helpers.t
 import { requirePermission, sourceFor, permissionsFor } from './policy.ts';
 import { PersonImportRow, Schemas } from './validation.ts';
 import { Talent } from './talent.ts';
+const RETRYABLE_IMPORT_ERRORS = new Set(['STORE_BUSY', 'STORE_UNAVAILABLE']);
 export class Imports {
     store: Store;
     clock: Clock;
@@ -18,19 +19,22 @@ export class Imports {
         const data = Schemas.importPreview.parse(input);
         const source = await sourceFor(tx, actor, data.sourceId, this.clock);
         const rows: ImportRow[] = [];
+        // One batch read, not one full talent traversal per input row. Names remain permission-filtered.
+        const visibleNames = new Set((await this.talent.visiblePeople(tx, actor)).map(p => p.displayName));
+        const activeCodes = new Set((await tx.find('dictionary', { workspaceId: actor.workspaceId }))
+            .filter(d => d.status === 'ACTIVE').map(d => d.namespace + ':' + d.code));
+        const checkCodes = (namespace: string, codes: string[]) => {
+            invariant(unique(codes).length === codes.length, 'DUPLICATE_CODE', '同一分类不能重复', 400);
+            for (const code of codes) invariant(activeCodes.has(namespace + ':' + code), 'CATALOG_INVALID', '所选分类不存在或已停用，请刷新分类选项', 422);
+        };
+        const batchNames = new Set<string>();
         for (let index = 0; index < data.rows.length; index++) {
             try {
                 const row = PersonImportRow.parse(data.rows[index]);
-                await this.talent.validateCatalog(tx, actor.workspaceId, 'role', row.roles);
-                if (row.cityCode)
-                    await this.talent.validateCatalog(tx, actor.workspaceId, 'city', [row.cityCode]);
-                // Same-name candidates are advisory only and filtered by the same query boundary.
-                const candidates = await this.talent.listPeople(tx, actor, { q: row.displayName, pageSize: '5' }) as {
-                    items: {
-                        displayName: string;
-                    }[];
-                };
-                const duplicateName = candidates.items.some(p => p.displayName === row.displayName) || rows.some(p => p.displayName === row.displayName);
+                checkCodes('role', row.roles);
+                if (row.cityCode) checkCodes('city', [row.cityCode]);
+                const duplicateName = visibleNames.has(row.displayName) || batchNames.has(row.displayName);
+                batchNames.add(row.displayName);
                 rows.push({ index, displayName: row.displayName, roles: row.roles, cityCode: row.cityCode ?? null, state: 'VALID',
                     issues: duplicateName ? ['同名仅提示：提交仍会创建独立档案，不自动合并'] : [], personId: null });
             }
@@ -77,6 +81,53 @@ export class Imports {
         await tx.replace('imports', touch(batch, this.clock));
         return job;
     }
+    private async resumeChecks(tx: Tx, actor: Actor, job: DurableJob): Promise<ImportBatch> {
+        invariant(job.state === 'FAILED', 'JOB_NOT_FAILED', '只能继续已经失败的任务', 409);
+        invariant(RETRYABLE_IMPORT_ERRORS.has(job.errorCode ?? ''), 'JOB_NOT_RETRYABLE', '该错误不能直接继续；请核查来源、权限或重新整理未完成资料', 409);
+        invariant(job.attempts < LIMITS.jobMaxAttempts, 'ATTEMPTS_EXHAUSTED', '已达到本批次领取上限，请联系维护人员核对', 409);
+        await this.actorForJob(tx, job);
+        const batch = await this.batchFor(tx, actor, job.aggregateId);
+        const source = await sourceFor(tx, actor, batch.sourceId, this.clock);
+        cas(source, batch.sourceRevision);
+        for (const index of job.selectedRows) {
+            const row = batch.rows[index];
+            invariant(row && (row.state === 'VALID' || row.state === 'IMPORTED'), 'ROW_INVALID', '导入检查点无法继续', 409);
+            // Never recreate a committed row whose referenced entity was removed or altered externally.
+            if (row.state === 'IMPORTED') {
+                const person = row.personId ? await workspaceRow(tx, 'people', row.personId, job.workspaceId) : null;
+                invariant(person && person.sourceId === batch.sourceId, 'CHECKPOINT_INVALID', '已入库行的关联不完整，请人工核对', 409);
+            }
+        }
+        return batch;
+    }
+    async resume(tx: Tx, actor: Actor, id: string, input: unknown): Promise<DurableJob> {
+        requirePermission(actor, 'records.write');
+        const data = Schemas.revision.parse(input);
+        const job = await workspaceRow(tx, 'jobs', id, actor.workspaceId);
+        if (!job || job.actorId !== actor.membershipId) missing();
+        cas(job, data.expectedRevision); // Receipt replay is handled before this method.
+        await this.resumeChecks(tx, actor, job);
+        const next: DurableJob = { ...touch(job, this.clock), state: 'QUEUED', leaseToken: null, leaseUntil: null, errorCode: null };
+        await tx.replace('jobs', next);
+        return next;
+    }
+    private async jobDto(tx: Tx, actor: Actor, job: DurableJob): Promise<unknown> {
+        const batch = await workspaceRow(tx, 'imports', job.aggregateId, job.workspaceId);
+        const importedCount = batch ? job.selectedRows.filter(i => batch.rows[i]?.state === 'IMPORTED').length : 0;
+        let canResume = false;
+        let resumeBlockedReason: string | null = null;
+        if (job.state === 'FAILED') {
+            try { await this.resumeChecks(tx, actor, job); canResume = true; }
+            catch (e) {
+                // Do not turn an infrastructure exception into a plausible business denial.
+                if (!(e instanceof AppError) || e.status >= 500) throw e;
+                resumeBlockedReason = e.code;
+            }
+        }
+        return { id: job.id, type: job.type, aggregateId: job.aggregateId, state: job.state, attempts: job.attempts,
+            errorCode: job.errorCode, revision: job.revision, createdAt: job.createdAt,
+            importedCount, selectedCount: job.selectedRows.length, canResume, resumeBlockedReason };
+    }
     async actorForJob(tx: Tx, job: DurableJob): Promise<Actor> {
         const member = await workspaceRow(tx, 'memberships', job.actorId, job.workspaceId);
         const user = member ? await workspaceRow(tx, 'users', member.userId, job.workspaceId) : null;
@@ -98,7 +149,7 @@ export class Imports {
                 const workspace = await tx.get('workspaces', row.workspaceId);
                 if (workspace?.recoveryEpoch !== this.config.recoveryEpoch)
                     continue;
-                if (row.attempts >= 3) {
+                if (row.attempts >= LIMITS.jobMaxAttempts) {
                     await tx.replace('jobs', { ...touch(row, this.clock), state: 'FAILED', errorCode: 'ATTEMPTS_EXHAUSTED', leaseToken: null, leaseUntil: null });
                     continue;
                 }
@@ -152,8 +203,10 @@ export class Imports {
         requirePermission(actor, 'records.write');
         const rows = await tx.find('jobs', { workspaceId: actor.workspaceId, actorId: actor.membershipId });
         rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id));
-        return page(rows.map(j => ({ id: j.id, type: j.type, aggregateId: j.aggregateId, state: j.state, attempts: j.attempts,
-            errorCode: j.errorCode, revision: j.revision, createdAt: j.createdAt })), query);
+        const selected = page(rows, query);
+        const items = [];
+        for (const job of selected.items) items.push(await this.jobDto(tx, actor, job));
+        return { ...selected, items };
     }
     async getJob(tx: Tx, actor: Actor, id: string): Promise<unknown> {
         requirePermission(actor, 'records.write');
@@ -161,6 +214,6 @@ export class Imports {
         if (!job || job.actorId !== actor.membershipId)
             missing();
         // Only safe operation metadata is available after the source expires; batch contents stay blocked.
-        return { id: job.id, type: job.type, aggregateId: job.aggregateId, state: job.state, attempts: job.attempts, errorCode: job.errorCode, revision: job.revision };
+        return this.jobDto(tx, actor, job);
     }
 }

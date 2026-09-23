@@ -398,7 +398,7 @@
         },
         "responses": {
           "201": {
-            "description": "Minimal command receipt; import commit acknowledges enqueue only"
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
           },
           "default": {
             "description": "Sanitized error with code, message, requestId"
@@ -493,7 +493,7 @@
         },
         "responses": {
           "200": {
-            "description": "Minimal command receipt; import commit acknowledges enqueue only"
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
           },
           "default": {
             "description": "Sanitized error with code, message, requestId"
@@ -696,7 +696,7 @@
         },
         "responses": {
           "200": {
-            "description": "Minimal command receipt; import commit acknowledges enqueue only"
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
           },
           "default": {
             "description": "Sanitized error with code, message, requestId"
@@ -797,7 +797,7 @@
         },
         "responses": {
           "200": {
-            "description": "Minimal command receipt; import commit acknowledges enqueue only"
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
           },
           "default": {
             "description": "Sanitized error with code, message, requestId"
@@ -965,7 +965,7 @@
         },
         "responses": {
           "201": {
-            "description": "Minimal command receipt; import commit acknowledges enqueue only"
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
           },
           "default": {
             "description": "Sanitized error with code, message, requestId"
@@ -1062,7 +1062,7 @@
         },
         "responses": {
           "200": {
-            "description": "Minimal command receipt; import commit acknowledges enqueue only"
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
           },
           "default": {
             "description": "Sanitized error with code, message, requestId"
@@ -1210,7 +1210,7 @@
         },
         "responses": {
           "201": {
-            "description": "Minimal command receipt; import commit acknowledges enqueue only"
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
           },
           "default": {
             "description": "Sanitized error with code, message, requestId"
@@ -1218,6 +1218,53 @@
         },
         "x-permission": "sources.write",
         "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/sources/{id}/history": {
+      "get": {
+        "operationId": "source.history",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "sources.review",
+        "x-mode": "READ"
       }
     },
     "/api/v1/sources/{id}": {
@@ -1332,7 +1379,7 @@
         },
         "responses": {
           "200": {
-            "description": "Minimal command receipt; import commit acknowledges enqueue only"
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
           },
           "default": {
             "description": "Sanitized error with code, message, requestId"
@@ -1421,7 +1468,7 @@
         },
         "responses": {
           "200": {
-            "description": "Minimal command receipt; import commit acknowledges enqueue only"
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
           },
           "default": {
             "description": "Sanitized error with code, message, requestId"
@@ -1505,7 +1552,7 @@
         },
         "responses": {
           "200": {
-            "description": "Minimal command receipt; import commit acknowledges enqueue only"
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
           },
           "default": {
             "description": "Sanitized error with code, message, requestId"
@@ -1787,7 +1834,7 @@
         },
         "responses": {
           "201": {
-            "description": "Minimal command receipt; import commit acknowledges enqueue only"
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
           },
           "default": {
             "description": "Sanitized error with code, message, requestId"
@@ -1980,7 +2027,7 @@
         },
         "responses": {
           "200": {
-            "description": "Minimal command receipt; import commit acknowledges enqueue only"
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
           },
           "default": {
             "description": "Sanitized error with code, message, requestId"
@@ -2124,7 +2171,7 @@
         },
         "responses": {
           "200": {
-            "description": "Minimal command receipt; import commit acknowledges enqueue only"
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
           },
           "default": {
             "description": "Sanitized error with code, message, requestId"
@@ -2227,7 +2274,7 @@
         },
         "responses": {
           "200": {
-            "description": "Minimal command receipt; import commit acknowledges enqueue only"
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
           },
           "default": {
             "description": "Sanitized error with code, message, requestId"
@@ -2304,7 +2351,7 @@
         },
         "responses": {
           "201": {
-            "description": "Minimal command receipt; import commit acknowledges enqueue only"
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
           },
           "default": {
             "description": "Sanitized error with code, message, requestId"
@@ -2424,7 +2471,7 @@
         },
         "responses": {
           "202": {
-            "description": "Minimal command receipt; import commit acknowledges enqueue only"
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
           },
           "default": {
             "description": "Sanitized error with code, message, requestId"
@@ -2470,6 +2517,84 @@
         },
         "x-permission": "records.write",
         "x-mode": "READ"
+      }
+    },
+    "/api/v1/jobs/{id}/resume": {
+      "post": {
+        "operationId": "job.resume",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "expectedRevision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.write",
+        "x-mode": "COMMAND"
       }
     },
     "/api/v1/jobs/{id}": {

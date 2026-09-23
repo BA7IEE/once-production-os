@@ -6,6 +6,7 @@ import { Identity } from './identity.ts';
 import { Talent } from './talent.ts';
 import { Commands } from './commands.ts';
 import { authorizeReceipt } from './replay-policy.ts';
+import { readSourceHistory } from './source-history.ts';
 import { Imports } from './imports.ts';
 import { csrfFor, equalSecret, randomSecret } from './crypto.ts';
 import { parseStrictJson } from './json.ts';
@@ -163,7 +164,7 @@ export class Application {
                 const command = (kind: CommandReceipt['resourceKind'], execute: () => Promise<{
                     id: string;
                     revision: number;
-                }>, target = id || null) => this.commands.execute(tx, actor, route.operation, request.headers['idempotency-key'] ?? '', target, data, kind, meta, execute, receipt => authorizeReceipt(tx, actor, receipt, this.clock), route.operation === 'import.commit' ? 'ACCEPTED' : 'SUCCEEDED');
+                }>, target = id || null) => this.commands.execute(tx, actor, route.operation, request.headers['idempotency-key'] ?? '', target, data, kind, meta, execute, receipt => authorizeReceipt(tx, actor, receipt, this.clock), ['import.commit', 'job.resume'].includes(route.operation) ? 'ACCEPTED' : 'SUCCEEDED');
                 switch (route.operation) {
                     case 'identity.me': return { membershipId: actor.membershipId, displayName: actor.displayName, role: actor.role, permissions: actor.permissions, workspaceName: (await tx.get('workspaces', actor.workspaceId))?.name ?? 'ONCE', csrfToken: csrfFor(token, this.config.csrfKey), version: '0.1.0-dev.1' };
                     case 'dashboard.get': return this.dashboard(tx, actor);
@@ -183,6 +184,7 @@ export class Application {
                     case 'catalog.create': return command('catalog', () => this.talent.createCatalog(tx, actor, data));
                     case 'catalog.update': return command('catalog', () => this.talent.updateCatalog(tx, actor, id, data));
                     case 'source.list': return this.talent.listSources(tx, actor, query);
+                    case 'source.history': return readSourceHistory(tx, actor, id, query, this.clock, meta);
                     case 'source.get': return this.talent.getSource(tx, actor, id, meta);
                     case 'source.create': return command('source', () => this.talent.createSource(tx, actor, data));
                     case 'source.update': return command('source', () => this.talent.updateSource(tx, actor, id, data));
@@ -199,12 +201,13 @@ export class Application {
                     case 'import.get': return this.imports.get(tx, actor, id);
                     case 'import.commit': return command('job', () => this.imports.commit(tx, actor, id, data));
                     case 'job.list': return this.imports.listJobs(tx, actor, query);
+                    case 'job.resume': return command('job', () => this.imports.resume(tx, actor, id, data));
                     case 'job.get': return this.imports.getJob(tx, actor, id);
                     case 'audit.list': return this.auditList(tx, actor, query);
                     default: return missing();
                 }
             });
-            if (route.operation === 'import.commit')
+            if (['import.commit', 'job.resume'].includes(route.operation))
                 response.status = 202;
             else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview'].includes(route.operation)))
                 response.status = 201;

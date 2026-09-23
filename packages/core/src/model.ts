@@ -67,6 +67,19 @@ export interface Source extends Base {
     reviewedBy: string | null;
     reviewedAt: string | null;
 }
+/** Immutable source state + decision, separate from the mutable Source record.
+ * BASELINE preserves only the state observed during migration, not an invented history. */
+export interface SourceHistory extends Base {
+    sourceId: string;
+    sourceRevision: number;
+    scopeId: string;
+    actorId: string | null;
+    action: 'CREATED' | 'EDITED' | 'REVIEWED' | 'SUSPENDED' | 'SCOPE_CHANGED' | 'BASELINE';
+    decisionReason: string | null;
+    baselineOnly: boolean;
+    basisAmbiguous: boolean;
+    snapshot: Source;
+}
 export interface Person extends Base {
     scopeId: string;
     sourceId: string;
@@ -172,6 +185,7 @@ export interface TableMap {
     scopes: Scope;
     scopeMembers: ScopeMember;
     sources: Source;
+    sourceHistory: SourceHistory;
     people: Person;
     contacts: Contact;
     evidence: FieldEvidence;
@@ -211,4 +225,4 @@ export interface Config {
 }
 export const LIMITS = Object.freeze({ idleMs: 30 * 60000, absoluteMs: 12 * 60 * 60000,
     activationMs: 24 * 60 * 60000, temporaryMs: 7 * 24 * 60 * 60000, pageSize: 20, maxPageSize: 100,
-    importRows: 100, importMs: 24 * 60 * 60000, jobLeaseMs: 30000 });
+    importRows: 100, importMs: 24 * 60 * 60000, jobLeaseMs: 30000, jobMaxAttempts: 3 });

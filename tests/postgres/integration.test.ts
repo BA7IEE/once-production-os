@@ -5,8 +5,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { PrismaStore } from '../../apps/api/src/prisma-store.ts';
+import { FaultStore } from '../support/fault-store.ts';
+import { AppError } from '../../packages/core/src/errors.ts';
 import { Application } from '../../packages/core/src/api.ts';
 import type { Config } from '../../packages/core/src/model.ts';
 import { LIMITS } from '../../packages/core/src/model.ts';
@@ -56,7 +58,7 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
             assert.equal(await a.sourceRecord.count(), 1);
             assert.equal(await a.commandReceipt.count(), 1);
         });
-        await t.test('actual PostgreSQL rollback includes domain rows and audit', async () => {
+        await t.test('actual PostgreSQL person-update rollback (atomic command coverage follows below)', async () => {
             const before = await a.person.findUniqueOrThrow({ where: { id: personId } });
             const auditCount = await a.auditEvent.count();
             await assert.rejects(storeA.transaction(async (tx) => {
@@ -106,6 +108,95 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
             await appB.imports.process(current);
             assert.equal(await a.person.count(), before + 2);
             assert.equal(result(await ownerA.raw('GET', `/jobs/${result(committed).resourceId}`)).state, 'SUCCEEDED');
+        });
+        // Each fault is thrown AFTER the target SQL insert, not before it and not merely
+        // asserted by an unchanged audit count. Domain + history + audit + receipt roll back together.
+        for (const stage of ['sourceHistory', 'people', 'audits', 'receipts'] as const) {
+            await t.test('real command rollback after ' + stage + ' insert, plus same-key successful retry', async () => {
+                const faults = new FaultStore(storeA);
+                let fired = false;
+                faults.afterInsert = (table) => {
+                    if (table === stage && !fired) { fired = true; throw new Error('synthetic after-insert failure'); }
+                };
+                const failApp = new Application(faults, config, clock);
+                const c = new Client(failApp); c.jar = { ...ownerA.jar }; c.csrf = ownerA.csrf;
+                const counts = async () => ({ people: await a.person.count(), sources: await a.sourceRecord.count(),
+                    history: await a.sourceHistory.count(), audits: await a.auditEvent.count(), receipts: await a.commandReceipt.count() });
+                const before = await counts(); const key = randomUUID();
+                const body = { displayName: 'PG rollback ' + stage, roles: ['model'], inlineSource: sourceInput() };
+                assert.equal((await c.cmd('POST', '/people', body, key)).status, 503);
+                assert.ok(fired, 'the targeted SQL write must actually have run');
+                assert.ok(faults.insertTrace.includes(stage));
+                assert.deepEqual(await counts(), before, 'all inserts must have rolled back');
+                const success = await ownerA.cmd('POST', '/people', body, key);
+                assert.equal(success.status, 201);
+                assert.deepEqual(await counts(), Object.fromEntries(Object.entries(before).map(([k, v]) => [k, v + 1])));
+                const replay = await ownerB.cmd('POST', '/people', body, key);
+                assert.equal(replay.status, 201); assert.equal(result(replay).resourceId, result(success).resourceId);
+                assert.deepEqual(await counts(), Object.fromEntries(Object.entries(before).map(([k, v]) => [k, v + 1])));
+            });
+        }
+        await t.test('new source-history SQL constraints reject duplicate revision, cross-scope FK, UPDATE and DELETE', async () => {
+            const h = await a.sourceHistory.findFirstOrThrow({ where: { workspaceId: identity.workspaceId } });
+            const input = { ...h, id: randomUUID(), snapshot: h.snapshot as Prisma.InputJsonValue };
+            await assert.rejects(a.sourceHistory.create({ data: input }));
+            await assert.rejects(a.sourceHistory.update({ where: { id: h.id }, data: { decisionReason: 'synthetic overwrite' } }), /sourceHistory is append-only/);
+            await assert.rejects(a.sourceHistory.delete({ where: { id: h.id } }), /sourceHistory is append-only/);
+            const foreign = await a.accessScope.findFirstOrThrow({ where: { workspaceId: { not: identity.workspaceId } } });
+            await assert.rejects(a.sourceHistory.create({ data: { ...input, id: randomUUID(), scopeId: foreign.id,
+                sourceRevision: 123456, snapshot: { ...(h.snapshot as Prisma.JsonObject), scopeId: foreign.id, revision: 123456 } } }));
+            assert.equal(await a.sourceHistory.count({ where: { workspaceId: identity.workspaceId, sourceId: h.sourceId, sourceRevision: 123456 } }), 0);
+        });
+        await t.test('PG partial import resume retains checkpoints, idempotency and two-worker ownership', async () => {
+            const source = await ownerA.cmd('POST', '/sources', sourceInput());
+            const preview = await ownerA.cmd('POST', '/imports/preview', { sourceId: result(source).resourceId,
+                rows: [{ displayName: 'PG resume 1', roles: ['model'] }, { displayName: 'PG resume 2', roles: ['editor'] }] });
+            assert.equal(preview.status, 201);
+            const queued = await ownerA.cmd('POST', '/imports/' + result(preview).resourceId + '/commit', { expectedRevision: 1, selectedRows: [0, 1] });
+            assert.equal(queued.status, 202);
+            const jobId = result(queued).resourceId;
+            const faults = new FaultStore(storeA); let fired = false;
+            faults.afterInsert = (table, row) => { if (table === 'people' && 'displayName' in row && row.displayName === 'PG resume 2' && !fired) {
+                fired = true; throw new AppError(503, 'STORE_BUSY', 'synthetic row rollback');
+            } };
+            const worker = new Application(faults, config, clock);
+            const before = await a.person.count();
+            const old = await worker.imports.claim(); assert.ok(old); await worker.imports.process(old);
+            assert.ok(fired); assert.equal(await a.person.count(), before + 1);
+            const state = result(await ownerA.raw('GET', '/jobs/' + jobId));
+            assert.equal(state.canResume, true); assert.equal(state.importedCount, 1);
+            const key = randomUUID(); const input = { expectedRevision: state.revision };
+            const resumed = await Promise.all([ownerA, ownerB].map(c => c.cmd('POST', '/jobs/' + jobId + '/resume', input, key)));
+            assert.ok(resumed.every(r => r.status === 202));
+            const claims = await Promise.all([appA.imports.claim(), appB.imports.claim()]);
+            assert.equal(claims.filter(Boolean).length, 1);
+            await worker.imports.process(old);
+            assert.equal(await a.person.count(), before + 1);
+            await appA.imports.process(claims.find(Boolean)!);
+            assert.equal(await a.person.count(), before + 2);
+            assert.equal(result(await ownerB.raw('GET', '/jobs/' + jobId)).state, 'SUCCEEDED');
+            assert.equal((await ownerA.cmd('POST', '/jobs/' + jobId + '/resume', input, key)).status, 202);
+            assert.equal(await a.person.count(), before + 2);
+        });
+        await t.test('PG query count stays bounded for 100/1000 people and a 100-row preview', async () => {
+            const measured = new PrismaClient({ datasources: { db: { url } }, log: [{ emit: 'event', level: 'query' }] });
+            const measuredStore = new PrismaStore(measured); let queries = 0;
+            measured.$on('query', () => { queries++; }); // Never log SQL parameters or full records.
+            try {
+                const measuredApp = new Application(measuredStore, config, clock);
+                const c = new Client(measuredApp); c.jar = { ...ownerA.jar }; c.csrf = ownerA.csrf;
+                const template = await a.person.findUniqueOrThrow({ where: { id: personId } });
+                for (const target of [100, 1000]) {
+                    const existing = await a.person.count();
+                    if (existing < target) await a.person.createMany({ data: Array.from({ length: target - existing }, (_, i) => ({
+                        ...template, id: randomUUID(), displayName: 'PG scale ' + target + ':' + i })) });
+                    queries = 0; const started = performance.now();
+                    const res = await c.cmd('POST', '/imports/preview', { sourceId: template.sourceId,
+                        rows: Array.from({ length: 100 }, (_, i) => ({ displayName: 'PG preview ' + i, roles: ['model'] })) });
+                    assert.equal(res.status, 201); assert.ok(queries <= 50, 'query budget exceeded: ' + queries);
+                    console.log(JSON.stringify({ metric: 'PG-preview', people: target, rows: 100, queries, elapsedMs: performance.now() - started }));
+                }
+            } finally { await measuredStore.close(); }
         });
     }
     finally {

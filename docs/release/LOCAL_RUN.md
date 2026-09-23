@@ -69,7 +69,7 @@ node --env-file=.env dist/apps/api/src/worker-main.js
 
 ## 5. 真实 PostgreSQL 专用测试
 
-源码在 [tests/postgres/integration.test.ts](../../tests/postgres/integration.test.ts)。2026-09-23 已在独立空测试库执行，**DB_TESTED 6/6 通过**；再次运行必须新建另一空库。
+源码在 [tests/postgres/integration.test.ts](../../tests/postgres/integration.test.ts)。原基线在独立空库通过 6/6；R1 在另一新空库通过 13/13，详见[测试报告](TEST_REPORT.md)。再次运行必须新建另一空库。
 
 在同一个本地 PostgreSQL 创建新的空库，名字必须为 `once_test_` 加小写字母/数字/下划线，例如 once_test_inc01。使用单独测试凭据；下面环境值由本地维护人员填写，不提供万能口令。
 
@@ -83,7 +83,7 @@ pnpm verify:postgres
 
 **迁移前由维护人核对 URL 指向测试库。**测试入口自身仅允许回环地址、明确测试库名、无 query 参数、显式口令；不会回退到 DATABASE_URL，不自动迁移，不清空任何库。测试启动时要求 workspace 数为 0，测试结束保留合成记录。重复跑请新建另一个空测试库，不自动删除已有数据。
 
-覆盖目标：两个独立 Prisma 客户端的同键竞争、真实事务回滚、数据库组合外键拒绝跨空间绑定、并发 CAS、两 Worker 抢占及过期租约。MemoryStore 通过不能替代这里。
+覆盖目标：两个独立 Prisma 客户端的同键竞争、真实事务回滚、数据库组合外键拒绝跨空间绑定、并发 CAS、两 Worker 抢占及过期租约；R1 另覆盖写后故障回滚、来源历史约束、部分导入继续和查询次数。MemoryStore 通过不能替代这里。
 
 ## 6. 必跑浏览器清单
 

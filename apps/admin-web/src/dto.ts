@@ -78,6 +78,17 @@ export interface Source {
     textPayload?: string;
     textRestricted: boolean;
 }
+export interface SourceHistoryEntry {
+    id: string;
+    sourceRevision: number;
+    action: string;
+    actorId: string | null;
+    recordedAt: string;
+    decisionReason: string | null;
+    baselineOnly: boolean;
+    legacyBasisAmbiguous: boolean;
+    snapshot: { title: string; basisDescription: string; textPayload: string; validUntil: string; status: string };
+}
 export interface Contact {
     id: string;
     kind: 'PHONE' | 'WECHAT' | 'EMAIL' | 'OTHER';
@@ -103,6 +114,10 @@ export interface Job {
     errorCode: string | null;
     revision: number;
     createdAt?: string;
+    importedCount: number;
+    selectedCount: number;
+    canResume: boolean;
+    resumeBlockedReason: string | null;
 }
 export interface ImportRow {
     index: number;

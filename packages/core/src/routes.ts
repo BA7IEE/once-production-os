@@ -29,6 +29,7 @@ export const ROUTES: RouteDefinition[] = [
     { method: 'PATCH', path: '/records/{kind}/{id}/scope', operation: 'record.scope', mode: 'COMMAND', permission: 'members.manage', schema: Schemas.recordScope },
     { method: 'GET', path: '/sources', operation: 'source.list', mode: 'READ', permission: 'sources.read' },
     { method: 'POST', path: '/sources', operation: 'source.create', mode: 'COMMAND', permission: 'sources.write', schema: Schemas.sourceCreate },
+    { method: 'GET', path: '/sources/{id}/history', operation: 'source.history', mode: 'READ', permission: 'sources.review' },
     { method: 'GET', path: '/sources/{id}', operation: 'source.get', mode: 'READ', permission: 'sources.read' },
     { method: 'PATCH', path: '/sources/{id}', operation: 'source.update', mode: 'COMMAND', permission: 'sources.write', schema: Schemas.sourcePatch },
     { method: 'POST', path: '/sources/{id}/review', operation: 'source.review', mode: 'COMMAND', permission: 'sources.review', schema: Schemas.sourceReview },
@@ -44,6 +45,7 @@ export const ROUTES: RouteDefinition[] = [
     { method: 'GET', path: '/imports/{id}', operation: 'import.get', mode: 'READ', permission: 'records.write' },
     { method: 'POST', path: '/imports/{id}/commit', operation: 'import.commit', mode: 'COMMAND', permission: 'records.write', schema: Schemas.importCommit },
     { method: 'GET', path: '/jobs', operation: 'job.list', mode: 'READ', permission: 'records.write' },
+    { method: 'POST', path: '/jobs/{id}/resume', operation: 'job.resume', mode: 'COMMAND', permission: 'records.write', schema: Schemas.revision },
     { method: 'GET', path: '/jobs/{id}', operation: 'job.get', mode: 'READ', permission: 'records.write' },
     { method: 'GET', path: '/audit-events', operation: 'audit.list', mode: 'READ', permission: 'audit.read' }
 ];
