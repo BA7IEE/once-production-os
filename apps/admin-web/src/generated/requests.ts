@@ -25,6 +25,13 @@ export interface Inputs {
   "source.update": { "expectedRevision": number; "title"?: string; "textPayload"?: string; "providerClaim"?: string };
   "source.review": { "expectedRevision": number; "basisDescription": string; "validUntil": string };
   "source.suspend": { "expectedRevision": number; "reason": string };
+  "handoff.recipients": undefined;
+  "handoff.create": { "expectedRevision": number; "expectedSourceRevision": number; "recipientId": string; "purpose": "EDIT" | "REVIEW"; "expiresAt": string; "acknowledgeLimitedAccess": boolean };
+  "handoff.list": undefined;
+  "handoff.get": undefined;
+  "handoff.accept": { "expectedRevision": number };
+  "handoff.decline": { "expectedRevision": number };
+  "handoff.revoke": { "expectedRevision": number };
   "person.list": undefined;
   "person.create": { "displayName": string; "roles": Array<string>; "sourceId"?: string; "inlineSource"?: { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string }; "aliases"?: Array<string>; "cityCode"?: string | null; "languageCodes"?: Array<string>; "skillCodes"?: Array<string>; "heightCm"?: number | null; "intro"?: string };
   "person.get": undefined;
@@ -164,6 +171,41 @@ export const ENDPOINTS = {
   "source.suspend": {
     "method": "POST",
     "path": "/sources/{id}/suspend",
+    "mode": "COMMAND"
+  },
+  "handoff.recipients": {
+    "method": "GET",
+    "path": "/people/{id}/handoff-recipients",
+    "mode": "READ"
+  },
+  "handoff.create": {
+    "method": "POST",
+    "path": "/people/{id}/handoffs",
+    "mode": "COMMAND"
+  },
+  "handoff.list": {
+    "method": "GET",
+    "path": "/handoffs",
+    "mode": "READ"
+  },
+  "handoff.get": {
+    "method": "GET",
+    "path": "/handoffs/{id}",
+    "mode": "READ"
+  },
+  "handoff.accept": {
+    "method": "POST",
+    "path": "/handoffs/{id}/accept",
+    "mode": "COMMAND"
+  },
+  "handoff.decline": {
+    "method": "POST",
+    "path": "/handoffs/{id}/decline",
+    "mode": "COMMAND"
+  },
+  "handoff.revoke": {
+    "method": "POST",
+    "path": "/handoffs/{id}/revoke",
     "mode": "COMMAND"
   },
   "person.list": {

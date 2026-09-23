@@ -1,4 +1,6 @@
 import type { Actor, Clock, CommandReceipt } from './model.ts';
+import { profileAccess } from './handoff-policy.ts';
+import { handoffParticipant } from './handoffs.ts';
 import type { Tx } from './store.ts';
 import { workspaceRow } from './helpers.ts';
 import { missing } from './errors.ts';
@@ -7,7 +9,14 @@ import { personFor, sourceFor, sourceCurrent, requireScope, requirePermission } 
 export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandReceipt, clock: Clock): Promise<void> {
     const id = receipt.resourceId;
     switch (receipt.resourceKind) {
+        case 'handoff':
+            await handoffParticipant(tx, actor, id);
+            return;
         case 'person':
+            if (['person.update', 'evidence.confirm'].includes(receipt.operation)) {
+                await profileAccess(tx, actor, id, clock, receipt.operation === 'person.update' ? 'edit' : 'review');
+                return;
+            }
             await personFor(tx, actor, id, clock);
             return;
         case 'source': {

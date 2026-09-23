@@ -7,6 +7,7 @@ import { Talent } from './talent.ts';
 import { Commands } from './commands.ts';
 import { authorizeReceipt } from './replay-policy.ts';
 import { readSourceHistory } from './source-history.ts';
+import { Handoffs, handoffParticipant } from './handoffs.ts';
 import { Imports } from './imports.ts';
 import { csrfFor, equalSecret, randomSecret } from './crypto.ts';
 import { parseStrictJson } from './json.ts';
@@ -50,6 +51,7 @@ export class Application {
     talent: Talent;
     commands: Commands;
     imports: Imports;
+    handoffs: Handoffs;
     constructor(store: Store, config: Config, clock: Clock = { now: () => new Date() }) {
         invariant(config.contactKey.length === 32 && config.csrfKey.length === 32, 'CONFIG_INVALID', '密钥必须为 32 字节', 503);
         const origin = new URL(config.origin);
@@ -61,6 +63,7 @@ export class Application {
         this.config = config;
         this.identity = new Identity(store, clock, config);
         this.talent = new Talent(clock, config);
+        this.handoffs = new Handoffs(clock);
         this.commands = new Commands(clock);
         this.imports = new Imports(store, clock, config, this.talent);
     }
@@ -190,6 +193,13 @@ export class Application {
                     case 'source.update': return command('source', () => this.talent.updateSource(tx, actor, id, data));
                     case 'source.review': return command('source', () => this.talent.reviewSource(tx, actor, id, data));
                     case 'source.suspend': return command('source', () => this.talent.suspendSource(tx, actor, id, data));
+                    case 'handoff.recipients': return this.handoffs.recipients(tx, actor, id, query);
+                    case 'handoff.list': return this.handoffs.list(tx, actor, query);
+                    case 'handoff.get': return this.handoffs.get(tx, actor, id);
+                    case 'handoff.create': return command('handoff', () => this.handoffs.create(tx, actor, id, data));
+                    case 'handoff.accept': return command('handoff', () => this.handoffs.act(tx, actor, id, data, 'accept'));
+                    case 'handoff.decline': return command('handoff', () => this.handoffs.act(tx, actor, id, data, 'decline'));
+                    case 'handoff.revoke': return command('handoff', () => this.handoffs.act(tx, actor, id, data, 'revoke'));
                     case 'person.list': return this.talent.listPeople(tx, actor, query);
                     case 'person.get': return this.talent.getPerson(tx, actor, id);
                     case 'person.create': return command('person', () => this.talent.createPerson(tx, actor, data));
@@ -209,7 +219,7 @@ export class Application {
             });
             if (['import.commit', 'job.resume'].includes(route.operation))
                 response.status = 202;
-            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview'].includes(route.operation)))
+            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create'].includes(route.operation)))
                 response.status = 201;
             return response;
         }
@@ -241,6 +251,8 @@ export class Application {
         const result = [];
         for (const row of await tx.find('audits', { workspaceId: actor.workspaceId })) {
             try {
+                if (row.resourceKind === 'handoff')
+                    await handoffParticipant(tx, actor, row.resourceId);
                 if (row.resourceKind === 'person')
                     await personFor(tx, actor, row.resourceId, this.clock, false);
                 if (row.resourceKind === 'source')

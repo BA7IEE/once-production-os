@@ -2,7 +2,7 @@
 
 ## 事实顺序
 
-先读 docs/release/A1_FOLLOWUP.md（当前验收补强与未执行边界）→ docs/release/FIX_R1.md（本补丁新增实现与实测边界）→ README → docs/release/IMPLEMENTATION_STATUS.md → REVIEW.md → TEST_REPORT.md，再读 docs/spec/06_DEVELOPMENT.md 与相应领域契约。原 release 文档保留旧基线证据；本补丁不把旧通过记录套用于新迁移。
+先读 docs/release/H1_HANDOFF.md（当前受控交接代码与验证边界）→ docs/release/A1_FOLLOWUP.md（当前验收补强与未执行边界）→ docs/release/FIX_R1.md（本补丁新增实现与实测边界）→ README → docs/release/IMPLEMENTATION_STATUS.md → REVIEW.md → TEST_REPORT.md，再读 docs/spec/06_DEVELOPMENT.md 与相应领域契约。原 release 文档保留旧基线证据；本补丁不把旧通过记录套用于新迁移。
 
 `docs/spec/` 是未改写的 v0.3 输入规格，其“尚未实现”是原文历史状态。当前已做和未做以 release 状态表及实际代码为准；这不是把未实现功能从一期删除的授权。
 
@@ -32,3 +32,7 @@ A1 后续补强以 `7c327b4` 为输入：拒绝后完整检查点断言、降权
 下一切片补受控资料交接及来源旧记录不能重建的证据边界，再按 DEV-04 私有媒体→DEV-05 作品/项目→DEV-06 内部候选清单推进，同时完成 DEV-07/09；之后完成 DEV-08 的有界 AI。AI 仍在一期，M0/M1/M2/M3 目前均不能标记完成。
 
 每次交付更新状态表、review、测试报告和 MANIFEST。`PASS`、`CORE_MEMORY_TESTED`、`DB_TESTED`、`PROVIDER_VERIFIED`、`NOT_RUN` 必须区分，源文件存在不等于实现验收完成。
+
+## H1 当前增量
+
+PR #2 的 `0c2da7d` 已在 Actions 35859891008/attempts/2 实际通过；这是 H1 的基线，不是 H1 的测试结果。H1 新增单条基本档案的限时处理邀请，不改变维护人或原始范围，不授予敏感/原文/历史访问。仅基本资料操作使用 profileAccess；其他入口保持 policy.personFor/sourceFor，禁止全局替换。新迁移追加为 202609230002_record_handoffs。当前完整验证以 H1 文档及最终 PR head 的实际 CI 为准。

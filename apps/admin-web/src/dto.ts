@@ -30,6 +30,8 @@ export interface CatalogItem {
     revision: number;
 }
 export interface Person {
+    access?: { mode: 'NATIVE' | 'HANDOFF'; canEdit: boolean; canReview: boolean;
+        canReadSource: boolean; canReadContacts: boolean; canManageScope: boolean; canOffer: boolean };
     id: string;
     displayName: string;
     aliases: string[];
@@ -48,6 +50,7 @@ export interface Person {
     updatedAt: string;
     source?: {
         id: string;
+        revision: number;
         title: string;
         basisMode: string;
         validUntil: string;
@@ -156,3 +159,22 @@ export interface Scope {
     mode: 'WORKSPACE' | 'RESTRICTED';
     revision: number;
 }
+
+export interface Handoff {
+    id: string;
+    counterpart: string;
+    revision: number;
+    purpose: 'EDIT' | 'REVIEW';
+    state: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'REVOKED';
+    effectiveState: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'REVOKED' | 'EXPIRED' | 'INVALIDATED';
+    direction: 'SENT' | 'RECEIVED';
+    person: { id: string; displayName: string } | null;
+    expiresAt: string;
+    createdAt: string;
+    acceptedAt: string | null;
+    closedAt: string | null;
+    canAccept: boolean;
+    canDecline: boolean;
+    canRevoke: boolean;
+}
+export interface HandoffRecipient { membershipId: string; displayName: string }
