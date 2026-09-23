@@ -45,6 +45,9 @@ jobs:
               path = root.joinpath(rel)
               assert not path.is_symlink() and all(not p.is_symlink() for p in path.parents if p != root.parent)
               old = path.read_bytes() if path.exists() else b''
+              if f['path'] == '.github/workflows/acceptance.yml':
+                  assert hashlib.sha256(old).hexdigest() == f['after']
+                  continue  # Workflow changes use the authorized connector, not the job token.
               assert (hashlib.sha256(old).hexdigest() if path.exists() else None) == f['before'], f['path']
               text = old.decode('utf-8')
               last_end = 0
@@ -61,7 +64,7 @@ jobs:
               target = root / rel
               target.parent.mkdir(parents=True, exist_ok=True)
               target.write_bytes(data)
-          temporary = chunks + [pathlib.Path('.github/workflows/m1-materialize.yml'), pathlib.Path('.github/workflows/media-source-snapshot.yml')]
+          temporary = chunks  # Temporary workflows are removed through the connector after this push.
           for path in temporary:
               path.unlink()
           subprocess.run(['sha256sum', '-c', 'MANIFEST.sha256'], check=True)
@@ -70,5 +73,5 @@ jobs:
           subprocess.run(['git', 'config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com'], check=True)
           subprocess.run(['git', 'commit', '-m', 'feat(media): implement private image ingestion and reviewed previews'], check=True)
           subprocess.run(['git', 'push', 'origin', 'HEAD:' + branch], check=True)
-          print('Applied 45 hash-verified files; removed all one-time transfer files.')
+          print('Applied 44 hash-verified source files; workflow already verified; removed transfer fragments.')
           PY
