@@ -11,7 +11,7 @@
 | `pnpm verify:online` | PASS：冻结安装、Prisma validate/generate、39 条请求契约、完整类型检查、135/135 核心测试、静态检查、API/Web 构建、生产依赖审计 0 个已知漏洞 | [运行日志](../../artifacts/acceptance-online-20260923.txt)；核心测试仍是 MemoryStore |
 | `pnpm verify:browser` | BROWSER_TESTED：页面两行预览/提交；第二行真实 SQL 失败时仅第一行入库且显示部分完成；点击继续后响应丢失，原键/原请求体重放只产生一个回执；Worker 只补第二行，最终两行各一条 | [运行日志](../../artifacts/acceptance-browser-20260923.txt)；真实 PostgreSQL、Nest API、独立 Worker、Chrome |
 | 三类继续拒绝 | BROWSER_TESTED：来源暂停/版本变化后页面显示拒绝原因且 API 返回 404/409；编辑权限撤销后旧页面点击继续返回 401，任务保持 FAILED、第二行未入库 | 同一浏览器日志；只覆盖指定的三种变化 |
-| 最小 GitHub CI | 工作流已添加，实际运行状态见对应 PR 检查 | 不把本机通过写成 CI 通过 |
+| 最小 GitHub CI | BLOCKED：PR #2 的[首次检查](https://github.com/BA7IEE/once-production-os/actions/runs/35856990647)在启动 Runner 前被 GitHub 拒绝；检查注释称账号付款失败或达到消费上限，步骤数为 0 | 未运行冻结安装、构建或浏览器脚本；账单恢复后必须在最终 PR 提交上重新运行，不把本机通过写成 CI 通过 |
 
 本切片未执行完整浏览器异常/可访问性清单、生产部署、正式数据升级、恢复演练、受控资料交接和后续业务模块。AI 仍在 v0.3 一期范围。下文为 R1 和更早基线的历史结果。
 

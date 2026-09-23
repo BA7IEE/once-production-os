@@ -1,5 +1,5 @@
 {
-  "recordedAtEnvironmentClock": "2026-09-23T11:50:01.490659+00:00",
+  "recordedAtEnvironmentClock": "2026-09-23T11:53:47.890165+00:00",
   "scope": "A1 browser resume/denial acceptance on fresh local PostgreSQL; minimal CI definition; not complete phase 1 acceptance",
   "node": "v22.22.3",
   "typescript": "Version 5.8.3 (project lockfile)",
@@ -62,12 +62,12 @@
     "package.json": "ae177cf44d97b5aadd4e729c712476b16503b1b37f38c05bcff372adaa398ab2",
     "pnpm-lock.yaml": "b87f61427d52062c090d345744ceb9625b2bc0abd154de2ac6df09e34f37c709",
     "README.md": "1427c6fb013e2edb816695cc4b976819b1498fd02cf273772f53a6bbb9f98dec",
-    "docs/release/IMPLEMENTATION_STATUS.md": "c71eaea541afdda76639887b53961d1fa303450d2754ae21a40f0407795c1b67",
-    "docs/release/REVIEW.md": "520ce5a5ee6b156d709595eab559bf5e208a2c96a1c6f423ba977a78f0bba2bb",
-    "docs/release/TEST_REPORT.md": "62cfc9c0c9f874d2cb316ba79436b61657796781db0a2d69e787d94e8c9acd02",
+    "docs/release/IMPLEMENTATION_STATUS.md": "26e8c1617de426fdd2faca5f6be0ccf7ca5119ee93d8dcba3ceb17138ee9e20f",
+    "docs/release/REVIEW.md": "cbfc018583ce435277a709ee7e58c4183623e86dafec144005752dd2aca70fa7",
+    "docs/release/TEST_REPORT.md": "45cd48f04f26f9957e1bf57c170289b22337dd0500e2c53281d6c329a8adf4b6",
     "docs/release/LOCAL_RUN.md": "8372b83aa69110c737d62406fb7582bf084b815d8cacee6fc319d47bc4da8883",
     ".nvmrc": "9c579c4eab1d526e689fe7cda201a0ab2f39070304043bb55c459a3d90954250",
-    "AGENTS.md": "7c2cb18c23e11342f6d73363425deab03a4d42ad09def684cf45c1d68f637d4e",
+    "AGENTS.md": "48e9aae63242fd130281b7fac372896558ff8dc6dadf327de0b1f91fb2294dc3",
     "docs/release/FIX_R1.md": "d91c72ec65524a0a100b763a3b03f478f3d5a5ef86ed7ff3e1c83b46d04db21d",
     "docs/release/ARCHITECTURE.md": "1f6ad3b767706eab3c315ed4b66396e98c7058156de64956a98edea406830443",
     "packages/core/src/source-history.ts": "7f1b22f14cd3e1748dbebcacd381e0fcbe4d8e8ef6cd7a6b9374522a1ccd684b",
@@ -260,8 +260,9 @@
     {
       "name": "acceptance-ci",
       "command": "GitHub Actions ONCE acceptance workflow",
-      "result": "NOT_RUN",
-      "details": "Workflow added; verify the exact PR head check before claiming CI pass"
+      "result": "BLOCKED",
+      "details": "GitHub rejected the job before a runner or steps started; annotation cites recent payment failure or spending limit. No CI test result exists; rerun final PR head after billing recovery.",
+      "evidence": "https://github.com/BA7IEE/once-production-os/actions/runs/35856990647"
     }
   ]
 }
