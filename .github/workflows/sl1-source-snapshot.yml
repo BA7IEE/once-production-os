@@ -1,0 +1,28 @@
+name: SL1 read-only source snapshot
+
+on:
+  push:
+    branches: [dev/sl1-source-snapshot]
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Confirm pinned parent
+        run: |
+          test "$(git rev-parse HEAD^)" = "c349af4f3cb8515c619f50836d79bac828aad34b"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sl1-source-c349af4
+          path: |
+            .
+            !.git/**
+            !.github/workflows/sl1-source-snapshot.yml
+          include-hidden-files: true
+          retention-days: 1
+          if-no-files-found: error
