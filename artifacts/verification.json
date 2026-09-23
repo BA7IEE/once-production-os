@@ -1,6 +1,6 @@
 {
-  "recordedAtEnvironmentClock": "2026-09-23T10:45:08.356603+00:00",
-  "scope": "Review R1 local locked build, synthetic existing-DB upgrade, fresh PostgreSQL integration and limited browser history check; not phase 1 acceptance",
+  "recordedAtEnvironmentClock": "2026-09-23T11:50:01.490659+00:00",
+  "scope": "A1 browser resume/denial acceptance on fresh local PostgreSQL; minimal CI definition; not complete phase 1 acceptance",
   "node": "v22.22.3",
   "typescript": "Version 5.8.3 (project lockfile)",
   "coreTypingSource": "Project-pinned @types/node 22.15.30; full server and React typecheck",
@@ -30,7 +30,7 @@
     "apps/admin-web/src/style.css": "bce1dd3030dd5c8f52d17f974b3dd0eaa9bf3dc998dfb682f0cff725780b09b5",
     "apps/admin-web/src/dto.ts": "67b4560887d0ee9c40b2331e7d7835de3b749ab3445978b5752ee63e00bb51e4",
     "apps/admin-web/src/ui.tsx": "81e791614afa5643511fb334dc35b8f4d9b9cd2fe7677cfdd723008619e009f4",
-    "apps/admin-web/src/main.tsx": "e69544435284c875b455c7982ed29bfc65e97feb98a6080858e60fbf3ac450fd",
+    "apps/admin-web/src/main.tsx": "2fac81ea8e5b525fb3161f976cfaed7a6f60241a475a33812e99e09af8e5031d",
     "apps/admin-web/src/api.ts": "0344a28801c0a6c329602430230d9d39ba1b134d20d8b122035d8b541de57d8d",
     "apps/admin-web/src/generated/requests.ts": "18d9d9c43814b4b0fa6bf4ed9bf23978aec795896568dce4ff1178bab45d2f8b",
     "apps/api/src/worker-main.ts": "27510c8ee31c1a01a46ebd874d40aef496c313ba556e9d585202f2665b88db7e",
@@ -59,30 +59,32 @@
     "scripts/online-verify.sh": "ba429be3ad5bf0192c0ebec9bb3ec75c6f0938a8d38032186188b7a6d60bed1c",
     "scripts/init-local.mjs": "d8ba58bd351591a45d2f18cb380cdf6cd885409a85fac0f835ee26e1122a0769",
     "scripts/generate-contract.ts": "216f0adf81f68ed8e6931aa21af91ee359606b254feee8d8f49ff61a72493a7f",
-    "package.json": "a9290615b539710dc02a3f3ab5488892a15076da2b3eb8c17fee00e40cd7aab6",
-    "pnpm-lock.yaml": "5b7326279a55b2a6d2b3e838ec58e85e7f80183bdfbbb8d964b7708a1a759efd",
-    "README.md": "4d2756ab62d233ceb06ac07e285440689ebd2d7ea3e9ffed31c14abe0b4cf122",
-    "docs/release/IMPLEMENTATION_STATUS.md": "8e6b9ed7176e91862b8ae55b375f6bfb275797f76838d6907cec7ffb0d1e84df",
-    "docs/release/REVIEW.md": "9bf7b12ed5adf1a929ee73fc9cded109159091af8e20f6cffac079c102309bad",
-    "docs/release/TEST_REPORT.md": "14b4f78cc64e71a5a7e47a8c3d3f94389206bf47893f93339854c14279854df3",
-    "docs/release/LOCAL_RUN.md": "229befee4e90adc21cb14b1d685ed837e5204b7108f9c723ff211f92fe2de097",
+    "package.json": "ae177cf44d97b5aadd4e729c712476b16503b1b37f38c05bcff372adaa398ab2",
+    "pnpm-lock.yaml": "b87f61427d52062c090d345744ceb9625b2bc0abd154de2ac6df09e34f37c709",
+    "README.md": "1427c6fb013e2edb816695cc4b976819b1498fd02cf273772f53a6bbb9f98dec",
+    "docs/release/IMPLEMENTATION_STATUS.md": "c71eaea541afdda76639887b53961d1fa303450d2754ae21a40f0407795c1b67",
+    "docs/release/REVIEW.md": "520ce5a5ee6b156d709595eab559bf5e208a2c96a1c6f423ba977a78f0bba2bb",
+    "docs/release/TEST_REPORT.md": "62cfc9c0c9f874d2cb316ba79436b61657796781db0a2d69e787d94e8c9acd02",
+    "docs/release/LOCAL_RUN.md": "8372b83aa69110c737d62406fb7582bf084b815d8cacee6fc319d47bc4da8883",
     ".nvmrc": "9c579c4eab1d526e689fe7cda201a0ab2f39070304043bb55c459a3d90954250",
-    "AGENTS.md": "cfc9a4b2de518da2399fa50cb78a36a484bbdf12c3865d7ff0e6b12c74697dbe",
+    "AGENTS.md": "7c2cb18c23e11342f6d73363425deab03a4d42ad09def684cf45c1d68f637d4e",
     "docs/release/FIX_R1.md": "d91c72ec65524a0a100b763a3b03f478f3d5a5ef86ed7ff3e1c83b46d04db21d",
     "docs/release/ARCHITECTURE.md": "1f6ad3b767706eab3c315ed4b66396e98c7058156de64956a98edea406830443",
     "packages/core/src/source-history.ts": "7f1b22f14cd3e1748dbebcacd381e0fcbe4d8e8ef6cd7a6b9374522a1ccd684b",
     "packages/core/src/visibility.ts": "02b9d839fc0e1adbef973b00fb0238e911a3894dae98382a9ec3403b82dcb04d",
     "prisma/migrations/202609230001_source_history/migration.sql": "3203b40d1538657714fff33ebad617b96b5651852b68222fb07707ca9354521f",
     "tests/core/review-r1.test.ts": "5141e08eb337a41ade509bd708c7c10504a366c0cbf5e8a9c3858e8720d50808",
-    "tests/support/fault-store.ts": "6f9b8cd364e7b8d25c244ac3666c056e914dfce27fdb737ded1ae23c73882f7f"
+    "tests/support/fault-store.ts": "6f9b8cd364e7b8d25c244ac3666c056e914dfce27fdb737ded1ae23c73882f7f",
+    ".github/workflows/acceptance.yml": "e5ac46357db432a110eb979fbb99356ab4642b319c7522a8a5e603b2f84c2ad6",
+    "tests/acceptance/browser-resume.mjs": "9c9f41b18e65cac955e04465a143c6269d4bbe5806e48be3d07317ba015af98d"
   },
   "notExecuted": [
-    "browser resume and unknown-outcome end-to-end cases",
+    "GitHub CI on the final PR head",
     "complete browser exception/accessibility checklist",
-    "CI and production image",
-    "real storage and AI providers",
     "formal backup/restore and deletion",
-    "production data migration and deployment"
+    "production data migration and deployment",
+    "controlled record handoff and later product modules",
+    "real storage and AI providers"
   ],
   "previousOfflineChecks": [
     {
@@ -198,7 +200,7 @@
       "details": "Node 22 LTS and PostgreSQL 16 supported on 2026-09-23; Prisma 6 receives security-only patches through 2026-11-19, so major-version migration remains required before long-term production use"
     }
   ],
-  "checks": [
+  "reviewR1Checks": [
     {
       "name": "review-r1-online-verification",
       "command": "pnpm verify:online",
@@ -238,6 +240,28 @@
       "command": "sha256sum -c MANIFEST.sha256",
       "result": "PASS",
       "details": "Regenerated after R1 validation; excludes itself, local secrets, backup, dependencies and build output"
+    }
+  ],
+  "checks": [
+    {
+      "name": "acceptance-locked-build",
+      "command": "pnpm verify:online",
+      "result": "PASS",
+      "evidence": "artifacts/acceptance-online-20260923.txt",
+      "details": "Frozen install; 39 request contracts; full typechecks; 135/135 core tests; static review; API/web build; production audit 0 known vulnerabilities"
+    },
+    {
+      "name": "acceptance-browser-resume",
+      "command": "ALLOW_BROWSER_TESTS=yes DATABASE_URL_TEST=<fresh loopback once_test_*> pnpm verify:browser",
+      "result": "BROWSER_TESTED",
+      "evidence": "artifacts/acceptance-browser-20260923.txt",
+      "details": "Real API, Worker, Chrome and PostgreSQL: row 2 fault, partial UI, lost resume response exact replay, one receipt, only row 2 added; suspend/revision/permission denials"
+    },
+    {
+      "name": "acceptance-ci",
+      "command": "GitHub Actions ONCE acceptance workflow",
+      "result": "NOT_RUN",
+      "details": "Workflow added; verify the exact PR head check before claiming CI pass"
     }
   ]
 }

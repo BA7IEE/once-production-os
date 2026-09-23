@@ -1,0 +1,9 @@
+
+> once-production-os@0.1.0-dev.1 verify:browser /Users/dengwang/Documents/coding/once-production-os
+> node tests/acceptance/browser-resume.mjs
+
+PASS browser: two-row import shows partial completion after only row 1 commits
+PASS browser: lost response replays one receipt, then only row 2 is added
+PASS browser/API: suspend blocks resume without changing the checkpoint
+PASS browser/API: revision blocks resume without changing the checkpoint
+PASS browser/API: revoked editor cannot resume; no second row or page script errors

@@ -87,6 +87,8 @@ pnpm verify:postgres
 
 ## 6. 必跑浏览器清单
 
+A1 的自动化只覆盖导入续跑及指定异常。复现时先执行 `pnpm verify:online` 和构建，在隔离 PostgreSQL 中另建全新空 `once_test_*` 库与独立角色；显式设置 `DATABASE_URL_TEST` 和 `ALLOW_BROWSER_TESTS=yes` 后运行 `pnpm verify:browser`。本地使用已安装 Chrome 时可设置 `CHROME_EXECUTABLE`；CI 用 `pnpm exec playwright install --with-deps chromium` 安装受锁文件约束的浏览器版本。测试入口拒绝非回环地址、非测试库名和非空公共 schema，不删除测试库。
+
 来源依据截止时点按当前浏览器/设备时区填写，保存为 UTC；这不是“所选日期结束时”。测试时核对界面显示的具体时刻。
 
 用独立浏览器会话验证：管理员登录→创建编辑和审核员→各自激活→建立包含编辑/审核员的限定范围→编辑在该范围创建临时来源+人才→审核员核验→查看联系方式附加权限→预览合成 JSON→提交任务→Worker 执行→停用/到期拒绝下一次访问。
