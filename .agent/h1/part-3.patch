@@ -1,0 +1,96 @@
++    { method: 'POST', path: '/people/{id}/handoffs', operation: 'handoff.create', mode: 'COMMAND', permission: 'records.write', schema: Schemas.handoffCreate },
++    { method: 'GET', path: '/handoffs', operation: 'handoff.list', mode: 'READ', permission: 'records.read' },
++    { method: 'GET', path: '/handoffs/{id}', operation: 'handoff.get', mode: 'READ', permission: 'records.read' },
++    { method: 'POST', path: '/handoffs/{id}/accept', operation: 'handoff.accept', mode: 'COMMAND', permission: 'records.read', schema: Schemas.revision },
++    { method: 'POST', path: '/handoffs/{id}/decline', operation: 'handoff.decline', mode: 'COMMAND', permission: 'records.read', schema: Schemas.revision },
++    { method: 'POST', path: '/handoffs/{id}/revoke', operation: 'handoff.revoke', mode: 'COMMAND', permission: 'records.read', schema: Schemas.revision },
+--- a/apps/admin-web/src/dto.ts
++++ b/apps/admin-web/src/dto.ts
+@@ -32,0 +33,2 @@
++    access?: { mode: 'NATIVE' | 'HANDOFF'; canEdit: boolean; canReview: boolean;
++        canReadSource: boolean; canReadContacts: boolean; canManageScope: boolean; canOffer: boolean };
+@@ -50,0 +53 @@
++        revision: number;
+@@ -158,0 +162,19 @@
++
++export interface Handoff {
++    id: string;
++    counterpart: string;
++    revision: number;
++    purpose: 'EDIT' | 'REVIEW';
++    state: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'REVOKED';
++    effectiveState: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'REVOKED' | 'EXPIRED' | 'INVALIDATED';
++    direction: 'SENT' | 'RECEIVED';
++    person: { id: string; displayName: string } | null;
++    expiresAt: string;
++    createdAt: string;
++    acceptedAt: string | null;
++    closedAt: string | null;
++    canAccept: boolean;
++    canDecline: boolean;
++    canRevoke: boolean;
++}
++export interface HandoffRecipient { membershipId: string; displayName: string }
+--- /dev/null
++++ b/apps/admin-web/src/handoff-ui.tsx
+@@ -0,0 +1,94 @@
++import { useState } from 'react';
++import { ApiError, call, read } from './api.ts';
++import type { Handoff, HandoffRecipient, Page, Person, Receipt, Source } from './dto.ts';
++import { Modal, Field, ErrorBox, Empty, date, useLoad, useAction, Submit, PageTitle, Pager } from './ui.tsx';
++
++const purposes = { EDIT: '整理基本资料', REVIEW: '查看及字段核验' };
++const states = { PENDING: '待接收', ACCEPTED: '已接收', DECLINED: '已拒收', REVOKED: '已撤销', EXPIRED: '已到期', INVALIDATED: '已失效' };
++const unknown = (error: unknown) => error instanceof ApiError && error.unknownOutcome;
++function localInput(ms: number) { const d = new Date(ms); return new Date(ms - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16); }
++
++export function HandoffOffer({ person, onClose, onSaved }: { person: Person; onClose: () => void; onSaved: () => void }) {
++    const [purpose, setPurpose] = useState<'EDIT' | 'REVIEW'>('EDIT');
++    const [recipientId, setRecipientId] = useState('');
++    const [q, setQ] = useState('');
++    const [page, setPage] = useState(1);
++    const [until, setUntil] = useState(() => localInput(Math.min(Date.parse(person.source!.validUntil), Date.now() + 86400000)));
++    const [ack, setAck] = useState(false);
++    const action = useAction();
++    const freeze = action.busy || unknown(action.error);
++    const load = useLoad(() => read<Page<HandoffRecipient>>('handoff.recipients', { id: person.id },
++        { purpose, q, page: String(page), pageSize: '20' }), [person.id, purpose, q, page].join('|'));
++    const close = () => { if (!action.busy && (!unknown(action.error) || confirm('提交结果未知。关闭后请到发出的交接列表核对，不能直接另发一份。确认关闭？'))) onClose(); };
++    return <Modal title="交给指定同事" onClose={close}><form onSubmit={e => { e.preventDefault(); void action.run(async () => {
++        await call<'handoff.create', Receipt>('handoff.create', { expectedRevision: person.revision,
++            expectedSourceRevision: person.source!.revision, recipientId, purpose,
++            expiresAt: new Date(until).toISOString(), acknowledgeLimitedAccess: ack }, { id: person.id });
++        onSaved();
++    }); }}><div className="modal-body"><ErrorBox error={action.error ?? load.error}/><p><strong>{person.displayName}</strong> · 版本 {person.revision}</p>
++        <div className="notice">只交接这一份基本档案，原维护人保留访问权。不改变整个范围，不带出联系方式、来源原文或历史，也不能继续转交。</div>
++        <Field label="处理用途"><select disabled={freeze} value={purpose} onChange={e => { setPurpose(e.target.value as typeof purpose); setRecipientId(''); setPage(1); }}>{Object.entries(purposes).map(([v, label]) => <option key={v} value={v}>{label}</option>)}</select></Field>
++        <Field label="筛选同事"><input value={q} disabled={freeze} maxLength={120} onChange={e => { setQ(e.target.value); setPage(1); setRecipientId(''); }}/></Field>
++        <Field label="接收同事"><select required disabled={freeze || load.busy} value={recipientId} onChange={e => setRecipientId(e.target.value)}><option value="">选择有相应能力的已激活成员</option>{load.data?.items.map(m => <option key={m.membershipId} value={m.membershipId}>{m.displayName}</option>)}</select></Field>
++        {!freeze && load.data && <Pager page={page} pageSize={20} total={load.data.total} setPage={p => { setPage(p); setRecipientId(''); }}/ >}
++        <Field label="交接截止时点" hint="按设备时区填写；不得超过来源截止时点，最长 7 天。"><input required disabled={freeze} type="datetime-local" value={until} onChange={e => setUntil(e.target.value)}/></Field>
++        <label className="check-chip"><input type="checkbox" required disabled={freeze} checked={ack} onChange={e => setAck(e.target.checked)}/>我已检查基本字段适合交给该同事，不含应放入受限字段的内容。</label>
++        <p className="muted">“字段核验”仍需使用接收人本来就有权读取的独立证据，交接不会批准来源用途或延长期限。</p>
++    </div><footer className="modal-footer"><button type="button" disabled={action.busy} onClick={close}>取消</button><Submit busy={action.busy}>{unknown(action.error) ? '原样核对交接邀请' : '发送交接邀请'}</Submit></footer></form></Modal>;
++}
++
++function HandoffActions({ item, refresh }: { item: Handoff; refresh: () => void }) {
++    const action = useAction();
++    const [pending, setPending] = useState<{ kind: 'accept' | 'decline' | 'revoke'; revision: number } | null>(null);
++    const uncertain = unknown(action.error);
++    const perform = (kind: 'accept' | 'decline' | 'revoke') => void action.run(async () => {
++        const request = uncertain && pending ? pending : { kind, revision: item.revision };
++        setPending(request);
++        await call('handoff.' + request.kind as 'handoff.accept' | 'handoff.decline' | 'handoff.revoke',
++            { expectedRevision: request.revision }, { id: item.id });
++        setPending(null); action.clear(); refresh();
++    });
++    return <div><ErrorBox error={action.error}/>{uncertain && pending ? <button disabled={action.busy} onClick={() => perform(pending.kind)}>原样核对上次交接操作</button> : <>
++        {item.canAccept && <button disabled={action.busy} onClick={() => perform('accept')}>接收交接</button>}
++        {item.canDecline && <button disabled={action.busy} onClick={() => perform('decline')}>拒绝接收</button>}
++        {item.canRevoke && <button disabled={action.busy} onClick={() => perform('revoke')}>{item.direction === 'SENT' ? '撤销交接' : '放弃本次交接'}</button>}
++    </>}</div>;
++}
++export function HandoffInbox({ onOpen }: { onOpen: (id: string) => void }) {
++    const [direction, setDirection] = useState<'SENT' | 'RECEIVED'>('RECEIVED');
++    const [page, setPage] = useState(1), [version, setVersion] = useState(0);
++    const refresh = () => setVersion(v => v + 1);

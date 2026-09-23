@@ -1,0 +1,81 @@
++    const sibling = await f.sender.client.cmd('POST', '/people', { displayName: '另一份不可见档案', roles: ['model'], sourceId: f.source.id });
++    assert.equal(sibling.status, 201);
++    const h = await offer(f); await accept(f, h);
++    const list = result(await f.receiver.client.raw('GET', '/people'));
++    assert.equal(list.total, 1); forbiddenPayload(list, '另一份不可见档案');
++    assert.equal((await f.receiver.client.raw('GET', '/people/' + result(sibling).resourceId)).status, 404);
++});
++test('H1 even a sensitive ADMIN recipient gains no contacts, raw source, history or scope authority', async () => {
++    const f = await setup('ADMIN', ['sensitive.read', 'sensitive.write']);
++    const h = await offer(f); await accept(f, h);
++    for (const path of ['/sources/' + f.source.id, '/sources/' + f.source.id + '/history', '/people/' + f.person.id + '/contacts'])
++        assert.equal((await f.receiver.client.raw('GET', path)).status, 404, path);
++    assert.equal((await f.receiver.client.cmd('PUT', '/people/' + f.person.id + '/contacts', { expectedRevision: 1, contacts: [] })).status, 404);
++    assert.equal((await f.receiver.client.cmd('PATCH', '/records/person/' + f.person.id + '/scope', { expectedRevision: 1, scopeId: f.person.scopeId })).status, 404);
++    assert.equal((await f.receiver.client.cmd('POST', '/sources/' + f.source.id + '/review', { expectedRevision: 1, basisDescription: '不得通过交接核准来源', validUntil: f.source.validUntil })).status, 404);
++});
++test('H1 received access cannot be delegated again or used to import extra people from the source', async () => {
++    const f = await setup(); const h = await offer(f); await accept(f, h);
++    assert.equal((await f.receiver.client.raw('GET', '/people/' + f.person.id + '/handoff-recipients?purpose=EDIT')).status, 404);
++    assert.equal((await f.receiver.client.cmd('POST', '/people/' + f.person.id + '/handoffs', { ...f.input, recipientId: f.sender.id })).status, 404);
++    assert.equal((await f.receiver.client.cmd('POST', '/imports/preview', { sourceId: f.source.id, rows: [{ displayName: '禁止扩散', roles: ['model'] }] })).status, 404);
++});
++test('H1 unscoped ADMIN cannot offer or accept someone else\'s private handoff', async () => {
++    const f = await setup(); const h = await offer(f);
++    assert.equal((await f.owner.cmd('POST', '/people/' + f.person.id + '/handoffs', f.input)).status, 404);
++    assert.equal((await f.owner.raw('GET', '/handoffs/' + h)).status, 404);
++    assert.equal((await f.owner.cmd('POST', '/handoffs/' + h + '/accept', { expectedRevision: 1 })).status, 404);
++    assert.ok(!result(await f.owner.raw('GET', '/audit-events')).items.some((a: any) => a.resourceKind === 'handoff'));
++});
++test('H1 only the joint person/source maintainer may offer; native scope alone is insufficient', async () => {
++    const f = await setup();
++    await f.store.transaction(async tx => { const s = (await tx.get('sources', f.source.id))!; await tx.replace('sources', { ...s, maintainerId: f.membershipId }); });
++    assert.equal((await f.sender.client.cmd('POST', '/people/' + f.person.id + '/handoffs', f.input)).status, 403);
++});
++test('H1 REVIEW access cannot write basic profile even when target globally has records.write', async () => {
++    const f = await setup('ADMIN'); const h = await offer(f, { purpose: 'REVIEW' }); await accept(f, h);
++    assert.equal(result(await f.receiver.client.raw('GET', '/people/' + f.person.id)).access.canEdit, false);
++    assert.equal((await f.receiver.client.cmd('PATCH', '/people/' + f.person.id, { expectedRevision: 1, intro: '错误写入' })).status, 404);
++});
++test('H1 field review still needs an independently readable evidence source; no raw-source shortcut', async () => {
++    const f = await setup('REVIEWER'); const h = await offer(f); await accept(f, h);
++    const evidence = { personId: f.person.id, expectedRevision: 1, fieldPath: 'displayName', sourceId: f.source.id, sourceRevision: 1 };
++    assert.equal((await f.receiver.client.cmd('POST', '/field-evidence', evidence)).status, 404);
++    const shared = await f.owner.cmd('POST', '/sources', { title: '独立可读证据', type: 'MANUAL', providerClaim: '合成', basisMode: 'INTERNAL_USE', basisDescription: '供字段核验的合成证据', validUntil: f.source.validUntil });
++    assert.equal(shared.status, 201);
++    assert.equal((await f.receiver.client.cmd('POST', '/field-evidence', { ...evidence, sourceId: result(shared).resourceId })).status, 200);
++    assert.equal(f.store.rows('evidence').length, 1);
++    assert.equal(result(await f.receiver.client.raw('GET', '/people/' + f.person.id)).evidence.length, 1);
++});
++test('H1 EDIT does not confer field review when target has reviewer permission by another role', async () => {
++    const f = await setup('ADMIN'); const h = await offer(f); await accept(f, h);
++    const shared = await f.owner.cmd('POST', '/sources', { title: '独立证据', type: 'MANUAL', providerClaim: '合成', basisMode: 'INTERNAL_USE', basisDescription: '仅供测试的依据', validUntil: f.source.validUntil });
++    const r = await f.receiver.client.cmd('POST', '/field-evidence', { personId: f.person.id, expectedRevision: 1, fieldPath: 'displayName', sourceId: result(shared).resourceId, sourceRevision: 1 });
++    assert.equal(r.status, 404);
++});
++test('H1 revoke removes access on next read/write/list, but retains minimal participant receipt', async () => {
++    const f = await setup(); const h = await offer(f); await accept(f, h);
++    const key = randomUUID(), input = { expectedRevision: 1, intro: '先前成功的编辑' };
++    assert.equal((await f.receiver.client.cmd('PATCH', '/people/' + f.person.id, input, key)).status, 200);
++    const revoke = await f.sender.client.cmd('POST', '/handoffs/' + h + '/revoke', { expectedRevision: 2 }); assert.equal(revoke.status, 200);
++    assert.equal((await f.receiver.client.cmd('PATCH', '/people/' + f.person.id, input, key)).status, 404);
++    assert.equal(result(await f.receiver.client.raw('GET', '/people')).total, 0);
++    assert.equal(result(await f.receiver.client.raw('GET', '/handoffs/' + h)).person, null);
++    assert.equal((await f.receiver.client.raw('GET', '/people/' + f.person.id)).status, 404);
++});
++test('H1 recipient can decline pending or release accepted access without changing original records', async () => {
++    const f = await setup(); const h = await offer(f);
++    assert.equal((await f.receiver.client.cmd('POST', '/handoffs/' + h + '/decline', { expectedRevision: 1 })).status, 200);
++    assert.equal((await f.receiver.client.cmd('POST', '/handoffs/' + h + '/accept', { expectedRevision: 2 })).status, 409);
++    const next = await offer(f); await accept(f, next);
++    assert.equal((await f.receiver.client.cmd('POST', '/handoffs/' + next + '/revoke', { expectedRevision: 2 })).status, 200);
++    assert.equal(f.store.rows('people')[0]!.revision, 1);
++});
++test('H1 immutable invite identity: malformed, self, excessive expiry and missing acknowledgment rejected', async () => {
++    const f = await setup();
++    for (const extra of [{ recipientId: f.sender.id }, { acknowledgeLimitedAccess: false }, { expiresAt: '2027-01-01T00:00:00.000Z' }, { state: 'ACCEPTED' }, { workspaceId: f.workspaceId }]) {
++        const r = await f.sender.client.cmd('POST', '/people/' + f.person.id + '/handoffs', { ...f.input, ...extra });
++        assert.ok([400, 422].includes(r.status), JSON.stringify(r.body));
++    }
++    assert.equal(f.store.rows('handoffs').length, 0);
++});

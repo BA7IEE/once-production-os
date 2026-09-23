@@ -1,0 +1,89 @@
++            await a.user.create({ data: { id: alienUser, workspaceId: alienWorkspace, loginName: 'alien_' + alienUser, displayName: '仅FK测试', status: 'ACTIVE', passwordHash: null, sessionEpoch: 1, revision: 1, createdAt: now, updatedAt: now } });
++            await a.membership.create({ data: { id: alienMember, workspaceId: alienWorkspace, userId: alienUser, role: 'EDITOR', extraPermissions: [], status: 'ACTIVE', revision: 1, createdAt: now, updatedAt: now } });
++            await assert.rejects(a.recordHandoff.create({ data: { ...row, id: randomUUID(), recipientId: alienMember } }));
++            assert.equal(await a.recordHandoff.count({ where: { personId: person.id } }), 1);
++        });
++        for (const stage of ['handoffs', 'audits', 'receipts'] as const) {
++            await t.test('H1 PG atomic handoff creation rollback after ' + stage, async () => {
++                const receiver = await a.membership.findFirstOrThrow({ where: { role: 'EDITOR', status: 'ACTIVE', id: { not: identity.membershipId } } });
++                const created = await ownerA.cmd('POST', '/people', { displayName: 'H1回滚-' + stage, roles: ['model'], inlineSource: sourceInput(true) });
++                assert.equal(created.status, 201);
++                const person = await a.person.findUniqueOrThrow({ where: { id: result(created).resourceId } });
++                const input = { expectedRevision: 1, expectedSourceRevision: 1, recipientId: receiver.id, purpose: 'EDIT',
++                    expiresAt: new Date(clock.now().getTime() + 3600000).toISOString(), acknowledgeLimitedAccess: true };
++                const count = async () => ({ handoffs: await a.recordHandoff.count(), audits: await a.auditEvent.count(), receipts: await a.commandReceipt.count() });
++                const before = await count(); const key = randomUUID(); const faults = new FaultStore(storeA); let fired = false;
++                faults.afterInsert = table => { if (table === stage && !fired) { fired = true; throw new Error('H1 after-insert fault'); } };
++                const app = new Application(faults, config, clock), client = new Client(app);
++                client.jar = { ...ownerA.jar }; client.csrf = ownerA.csrf;
++                assert.equal((await client.cmd('POST', '/people/' + person.id + '/handoffs', input, key)).status, 503);
++                assert.ok(fired); assert.deepEqual(await count(), before);
++                assert.equal((await ownerA.cmd('POST', '/people/' + person.id + '/handoffs', input, key)).status, 201);
++                assert.deepEqual(await count(), Object.fromEntries(Object.entries(before).map(([k, v]) => [k, v + 1])));
++            });
++        }
+--- a/tests/support/memory-store.ts
++++ b/tests/support/memory-store.ts
+@@ -4 +4 @@
+-const tables: Table[] = ['workspaces', 'users', 'memberships', 'sessions', 'activations', 'scopes', 'scopeMembers', 'sources', 'sourceHistory', 'people', 'contacts', 'evidence', 'dictionary', 'receipts', 'audits', 'rateBuckets', 'imports', 'jobs'];
++const tables: Table[] = ['workspaces', 'users', 'memberships', 'sessions', 'activations', 'scopes', 'scopeMembers', 'sources', 'sourceHistory', 'people', 'contacts', 'evidence', 'dictionary', 'receipts', 'audits', 'rateBuckets', 'imports', 'jobs', 'handoffs'];
+--- /dev/null
++++ b/tests/core/handoffs.test.ts
+@@ -0,0 +1,207 @@
++import { test } from 'node:test';
++import assert from 'node:assert/strict';
++import { randomUUID } from 'node:crypto';
++import { fixture, member, createPerson, result, Client } from '../support/fixtures.ts';
++import type { Role } from '../../packages/core/src/model.ts';
++import { Application } from '../../packages/core/src/api.ts';
++import { FaultStore } from '../support/fault-store.ts';
++
++async function setup(role: Role = 'EDITOR', extras: string[] = []) {
++    const f = await fixture();
++    const sender = await member(f, 'sender');
++    const receiver = await member(f, 'receiver', role, extras);
++    const personId = await createPerson(sender.client, '仅限本次交接的合成人物', true);
++    const person = f.store.rows('people').find(p => p.id === personId)!;
++    const source = f.store.rows('sources').find(s => s.id === person.sourceId)!;
++    const input = { expectedRevision: person.revision, expectedSourceRevision: source.revision,
++        recipientId: receiver.id, purpose: role === 'REVIEWER' ? 'REVIEW' : 'EDIT',
++        expiresAt: new Date(f.clock.now().getTime() + 3600000).toISOString(), acknowledgeLimitedAccess: true };
++    return { ...f, sender, receiver, person, source, input };
++}
++async function offer(f: Awaited<ReturnType<typeof setup>>, override: object = {}) {
++    const r = await f.sender.client.cmd('POST', '/people/' + f.person.id + '/handoffs', { ...f.input, ...override });
++    assert.equal(r.status, 201, JSON.stringify(r.body)); return String(result(r).resourceId);
++}
++async function accept(f: Awaited<ReturnType<typeof setup>>, id: string) {
++    const r = await f.receiver.client.cmd('POST', '/handoffs/' + id + '/accept', { expectedRevision: 1 });
++    assert.equal(r.status, 200, JSON.stringify(r.body));
++}
++const forbiddenPayload = (value: unknown, text: string) => assert.ok(!JSON.stringify(value).includes(text));
++
++test('H1 pending invitations reveal no profile; acceptance grants only the exact basic profile', async () => {
++    const f = await setup(); const h = await offer(f);
++    assert.equal((await f.receiver.client.raw('GET', '/people/' + f.person.id)).status, 404);
++    assert.equal(result(await f.receiver.client.raw('GET', '/people')).total, 0);
++    const invite = result(await f.receiver.client.raw('GET', '/handoffs/' + h));
++    assert.equal(invite.person, null); assert.equal(invite.effectiveState, 'PENDING');
++    forbiddenPayload(invite, f.person.displayName); forbiddenPayload(invite, f.source.title);
++    const scopes = f.store.rows('scopeMembers'), people = f.store.rows('people'), sources = f.store.rows('sources');
++    await accept(f, h);
++    const view = result(await f.receiver.client.raw('GET', '/people/' + f.person.id));
++    assert.equal(view.access.mode, 'HANDOFF'); assert.equal(view.access.canEdit, true);
++    assert.equal(view.access.canOffer, false); assert.equal(view.access.canReadSource, false);
++    assert.equal(result(await f.receiver.client.raw('GET', '/people')).total, 1);
++    assert.deepEqual(f.store.rows('scopeMembers'), scopes); assert.deepEqual(f.store.rows('people'), people);
++    assert.deepEqual(f.store.rows('sources'), sources);
++});
++test('H1 delegated edit changes basic fields, not ownership, status or private permissions', async () => {
++    const f = await setup(); const h = await offer(f); await accept(f, h);
++    const r = await f.receiver.client.cmd('PATCH', '/people/' + f.person.id, { expectedRevision: 1, intro: '接收人整理后的基本简介' });
++    assert.equal(r.status, 200);
++    assert.equal(f.store.rows('people')[0]!.maintainerId, f.sender.id);
++    assert.equal(f.store.rows('sources')[0]!.maintainerId, f.sender.id);
++    assert.equal((await f.receiver.client.cmd('PATCH', '/people/' + f.person.id, { expectedRevision: 2, status: 'ARCHIVED' })).status, 403);
++    assert.equal((await f.receiver.client.cmd('PATCH', '/people/' + f.person.id, { expectedRevision: 2, maintainerId: f.receiver.id })).status, 400);
++});
++test('H1 grant of one record never reveals sibling people from the same source', async () => {
++    const f = await setup();

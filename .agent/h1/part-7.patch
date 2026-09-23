@@ -1,0 +1,104 @@
++    return <Modal title={load.data?.displayName ?? '人才档案'} onClose={onClose} wide><div className="modal-body"><ErrorBox error={load.error ?? a.error}/>{load.busy ? <p>正在读取资料…</p> : load.data && <><div className="detail-heading"><div className="person-monogram large">{load.data.displayName.slice(0, 2)}</div><div><div className="role-list">{load.data.roles.map(r => <span key={r}>{label('role', r)}</span>)}</div><p className="muted">稳定编号 · {load.data.id}</p><Tag value={load.data.status}/></div></div><dl className="detail-grid"><div><dt>常驻城市</dt><dd>{load.data.cityCode ? label('city', load.data.cityCode) : '未确认'}</dd></div><div><dt>工作语言</dt><dd>{load.data.languageCodes.map(c => label('language', c)).join(' / ') || '未确认'}</dd></div><div><dt>身高</dt><dd>{load.data.heightCm !== null ? load.data.heightCm + ' cm' : '未确认'}</dd></div><div><dt>当前版本</dt><dd>{load.data.revision}</dd></div></dl><h3 className="section-title">简介</h3><p className="pre-line">{load.data.intro || '尚未填写'}</p><h3 className="section-title">来源与核验</h3><div className="source-summary"><div><strong>{load.data.source?.title}</strong><small>依据截止：{date(load.data.source?.validUntil)}</small></div>{load.data.access?.canReadSource && <button onClick={() => setSourceId(load.data!.sourceId)}>查看来源</button>}</div><p className="muted">人工确认仅代表这项字段与当前来源一致，不代表自动认证该人才的专业资质。</p><div className="evidence-list">{(load.data.evidence ?? []).map(e => <div key={e.id}><code>{e.fieldPath}</code><Tag value={e.state}/><small>{date(e.reviewedAt)}</small></div>)}</div>{load.data.access?.mode === 'HANDOFF' && <p className="notice">仅通过交接访问这份基本档案。不包含来源原文、联系方式和历史；接收不等于取得这些权限。</p>}{load.data.access?.canReview && <button onClick={() => setReviewing(true)}>核验字段（选择独立可读证据）</button>}<div className="detail-actions">{load.data.access?.canOffer && <button onClick={() => setOffering(true)}>交给指定同事</button>}{load.data.access?.canReadContacts && <button onClick={() => setContacts(true)}>查看受限联系方式</button>}{load.data.access?.canManageScope && <button onClick={() => setScope(true)}>调整访问范围</button>}</div></>}</div><footer className="modal-footer"><button onClick={onClose}>关闭</button>{load.data?.access?.canEdit && <button className="primary" onClick={() => setEdit(true)}>编辑资料</button>}</footer></Modal>;
+--- a/apps/admin-web/src/generated/requests.ts
++++ b/apps/admin-web/src/generated/requests.ts
+@@ -27,0 +28,7 @@
++  "handoff.recipients": undefined;
++  "handoff.create": { "expectedRevision": number; "expectedSourceRevision": number; "recipientId": string; "purpose": "EDIT" | "REVIEW"; "expiresAt": string; "acknowledgeLimitedAccess": boolean };
++  "handoff.list": undefined;
++  "handoff.get": undefined;
++  "handoff.accept": { "expectedRevision": number };
++  "handoff.decline": { "expectedRevision": number };
++  "handoff.revoke": { "expectedRevision": number };
+@@ -168,0 +176,35 @@
++  "handoff.recipients": {
++    "method": "GET",
++    "path": "/people/{id}/handoff-recipients",
++    "mode": "READ"
++  },
++  "handoff.create": {
++    "method": "POST",
++    "path": "/people/{id}/handoffs",
++    "mode": "COMMAND"
++  },
++  "handoff.list": {
++    "method": "GET",
++    "path": "/handoffs",
++    "mode": "READ"
++  },
++  "handoff.get": {
++    "method": "GET",
++    "path": "/handoffs/{id}",
++    "mode": "READ"
++  },
++  "handoff.accept": {
++    "method": "POST",
++    "path": "/handoffs/{id}/accept",
++    "mode": "COMMAND"
++  },
++  "handoff.decline": {
++    "method": "POST",
++    "path": "/handoffs/{id}/decline",
++    "mode": "COMMAND"
++  },
++  "handoff.revoke": {
++    "method": "POST",
++    "path": "/handoffs/{id}/revoke",
++    "mode": "COMMAND"
++  },
+--- a/apps/api/src/prisma-store.ts
++++ b/apps/api/src/prisma-store.ts
+@@ -7,2 +7,2 @@
+-    dictionary: 'dictionaryItem', receipts: 'commandReceipt', audits: 'auditEvent', rateBuckets: 'rateBucket', imports: 'importBatch', jobs: 'durableJob' };
+-const DATES = new Set(['createdAt', 'updatedAt', 'idleUntil', 'absoluteUntil', 'revokedAt', 'expiresAt', 'consumedAt', 'validFrom', 'validUntil', 'reviewedAt', 'until', 'leaseUntil']);
++    dictionary: 'dictionaryItem', receipts: 'commandReceipt', audits: 'auditEvent', rateBuckets: 'rateBucket', imports: 'importBatch', jobs: 'durableJob', handoffs: 'recordHandoff' };
++const DATES = new Set(['createdAt', 'updatedAt', 'idleUntil', 'absoluteUntil', 'revokedAt', 'expiresAt', 'consumedAt', 'validFrom', 'validUntil', 'reviewedAt', 'until', 'leaseUntil', 'acceptedAt', 'closedAt']);
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -11,0 +12 @@
++  RecordHandoff_workspace RecordHandoff[] @relation("RecordHandoff_workspace")
+@@ -56,0 +58,3 @@
++  RecordHandoff_senderIdRef RecordHandoff[] @relation("RecordHandoff_senderIdRef")
++  RecordHandoff_recipientIdRef RecordHandoff[] @relation("RecordHandoff_recipientIdRef")
++  RecordHandoff_closedByIdRef RecordHandoff[] @relation("RecordHandoff_closedByIdRef")
+@@ -126,0 +131,2 @@
++  RecordHandoff_personScopeIdRef RecordHandoff[] @relation("RecordHandoff_personScopeIdRef")
++  RecordHandoff_sourceScopeIdRef RecordHandoff[] @relation("RecordHandoff_sourceScopeIdRef")
+@@ -162,0 +169 @@
++  RecordHandoff_sourceIdRef RecordHandoff[] @relation("RecordHandoff_sourceIdRef")
+@@ -198,0 +206 @@
++  RecordHandoff_personIdRef RecordHandoff[] @relation("RecordHandoff_personIdRef")
+@@ -412,0 +421,41 @@
++
++// Purpose-limited per-person handoff; never used by source/contacts/native-scope endpoints.
++model RecordHandoff {
++  id String @id @db.Uuid
++  workspaceId String @db.Uuid
++  createdAt DateTime @db.Timestamptz(3)
++  updatedAt DateTime @db.Timestamptz(3)
++  revision Int
++  personId String @db.Uuid
++  sourceId String @db.Uuid
++  senderId String @db.Uuid
++  recipientId String @db.Uuid
++  senderRevision Int
++  recipientRevision Int
++  personRevision Int
++  sourceRevision Int
++  personEpoch Int
++  sourceEpoch Int
++  personScopeId String @db.Uuid
++  sourceScopeId String @db.Uuid
++  personScopeRevision Int
++  sourceScopeRevision Int
++  purpose String @db.Text
++  state String @db.Text
++  expiresAt DateTime @db.Timestamptz(3)
++  acceptedAt DateTime? @db.Timestamptz(3)
++  closedAt DateTime? @db.Timestamptz(3)
++  closedById String? @db.Uuid
++  workspace Workspace @relation("RecordHandoff_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "handoffs_workspace_fkey")
++  personIdRef Person @relation("RecordHandoff_personIdRef", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "handoffs_personIdRef_fkey")
++  sourceIdRef SourceRecord @relation("RecordHandoff_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "handoffs_sourceIdRef_fkey")
++  senderIdRef Membership @relation("RecordHandoff_senderIdRef", fields: [workspaceId, senderId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "handoffs_senderIdRef_fkey")
++  recipientIdRef Membership @relation("RecordHandoff_recipientIdRef", fields: [workspaceId, recipientId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "handoffs_recipientIdRef_fkey")
++  personScopeIdRef AccessScope @relation("RecordHandoff_personScopeIdRef", fields: [workspaceId, personScopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "handoffs_personScopeIdRef_fkey")

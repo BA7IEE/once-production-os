@@ -1,0 +1,89 @@
++test('H1 directory is scoped to an owned record and reveals only eligible active member labels', async () => {
++    const f = await setup(); await member(f, 'viewer', 'VIEWER');
++    const r = await f.sender.client.raw('GET', '/people/' + f.person.id + '/handoff-recipients?purpose=EDIT');
++    assert.equal(r.status, 200); assert.equal(result(r).items.length, 2); // bootstrap admin + receiver
++    for (const item of result(r).items) assert.deepEqual(Object.keys(item).sort(), ['displayName', 'membershipId']);
++    assert.equal((await f.receiver.client.raw('GET', '/people/' + f.person.id + '/handoff-recipients?purpose=EDIT')).status, 404);
++});
++test('H1 same-key creation/accept replays; different-key duplicate and stale accept fail', async () => {
++    const f = await setup(); const key = randomUUID();
++    const create = () => f.sender.client.cmd('POST', '/people/' + f.person.id + '/handoffs', f.input, key);
++    const pair = await Promise.all([create(), create()]); assert.ok(pair.every(r => r.status === 201));
++    assert.equal(f.store.rows('handoffs').length, 1);
++    assert.equal((await f.sender.client.cmd('POST', '/people/' + f.person.id + '/handoffs', f.input)).status, 409);
++    const h = result(pair[0]!).resourceId; const ak = randomUUID();
++    const a = () => f.receiver.client.cmd('POST', '/handoffs/' + h + '/accept', { expectedRevision: 1 }, ak);
++    assert.equal((await a()).status, 200); assert.equal(result(await a()).replayed, true);
++    assert.equal((await f.receiver.client.cmd('POST', '/handoffs/' + h + '/accept', { expectedRevision: 1 })).status, 409);
++    assert.equal((await f.sender.client.cmd('POST', '/people/' + f.person.id + '/handoffs', { ...f.input, purpose: 'REVIEW' }, key)).status, 409);
++});
++for (const change of ['person-before-accept', 'source-before-accept', 'source-after-accept', 'scope-after-accept', 'archive-after-accept', 'recipient-role', 'sender-role', 'expiry'] as const) {
++    test('H1 current facts invalidate access: ' + change, async () => {
++        const f = await setup(); const h = await offer(f);
++        const before = change.endsWith('before-accept'); if (!before) await accept(f, h);
++        if (change === 'person-before-accept') await f.sender.client.cmd('PATCH', '/people/' + f.person.id, { expectedRevision: 1, intro: '发起后已改稿' });
++        if (change.startsWith('source-')) await f.sender.client.cmd('PATCH', '/sources/' + f.source.id, { expectedRevision: 1, title: '来源已变更' });
++        if (change === 'scope-after-accept') await f.store.transaction(async tx => { const p = (await tx.get('people', f.person.id))!; await tx.replace('people', { ...p, protectionEpoch: p.protectionEpoch + 1 }); });
++        if (change === 'archive-after-accept') await f.sender.client.cmd('PATCH', '/people/' + f.person.id, { expectedRevision: 1, status: 'ARCHIVED' });
++        if (change === 'recipient-role') { await f.owner.cmd('PATCH', '/memberships/' + f.receiver.id + '/permissions', { expectedRevision: 1, role: 'VIEWER', extraPermissions: [] }); await f.receiver.client.login('receiver'); }
++        if (change === 'sender-role') await f.owner.cmd('PATCH', '/memberships/' + f.sender.id + '/permissions', { expectedRevision: 1, role: 'VIEWER', extraPermissions: [] });
++        if (change === 'expiry') f.clock.advance(3600000);
++        if (change === 'expiry') await f.receiver.client.login('receiver');
++        if (before) assert.equal((await f.receiver.client.cmd('POST', '/handoffs/' + h + '/accept', { expectedRevision: 1 })).status, 409);
++        assert.equal((await f.receiver.client.raw('GET', '/people/' + f.person.id)).status, 404);
++        const state = result(await f.receiver.client.raw('GET', '/handoffs/' + h));
++        assert.ok(['INVALIDATED', 'EXPIRED'].includes(state.effectiveState)); assert.equal(state.person, null);
++    });
++}
++test('H1 roles restored later do not resurrect a previously invalidated grant', async () => {
++    const f = await setup(); const h = await offer(f); await accept(f, h);
++    await f.owner.cmd('PATCH', '/memberships/' + f.receiver.id + '/permissions', { expectedRevision: 1, role: 'VIEWER', extraPermissions: [] });
++    await f.owner.cmd('PATCH', '/memberships/' + f.receiver.id + '/permissions', { expectedRevision: 2, role: 'EDITOR', extraPermissions: [] });
++    await f.receiver.client.login('receiver');
++    assert.equal((await f.receiver.client.raw('GET', '/people/' + f.person.id)).status, 404);
++});
++test('H1 grant never reduces independently held native access after revocation', async () => {
++    const f = await setup();
++    const native = await createPerson(f.owner, '原本工作空间可见', false);
++    assert.equal((await f.receiver.client.raw('GET', '/people/' + native)).status, 200);
++    const h = await offer(f); await accept(f, h);
++    await f.receiver.client.cmd('POST', '/handoffs/' + h + '/revoke', { expectedRevision: 2 });
++    assert.equal((await f.receiver.client.raw('GET', '/people/' + native)).status, 200);
++});
++test('H1 handoff insert/audit/receipt faults roll back completely; same key then succeeds', async () => {
++    const f = await setup(); const counts = () => ['handoffs', 'audits', 'receipts'].map(t => f.store.rows(t as 'handoffs').length);
++    const before = counts(); const faults = new FaultStore(f.store); let fired = false;
++    faults.afterInsert = t => { if (t === 'receipts' && !fired) { fired = true; throw new Error('after real receipt insert'); } };
++    const app = new Application(faults, f.app.config, f.clock); const c = new Client(app); c.jar = { ...f.sender.client.jar }; c.csrf = f.sender.client.csrf;
++    const key = randomUUID();
++    assert.equal((await c.cmd('POST', '/people/' + f.person.id + '/handoffs', f.input, key)).status, 500);
++    assert.ok(fired); assert.deepEqual(counts(), before);
++    assert.equal((await c.cmd('POST', '/people/' + f.person.id + '/handoffs', f.input, key)).status, 201);
++    assert.deepEqual(counts(), before.map(n => n + 1));
++});
++test('H1 sender and recipient concurrent close/accept cannot both apply stale revisions', async () => {
++    const f = await setup(); const h = await offer(f);
++    const r = await Promise.all([f.sender.client.cmd('POST', '/handoffs/' + h + '/revoke', { expectedRevision: 1 }),
++        f.receiver.client.cmd('POST', '/handoffs/' + h + '/accept', { expectedRevision: 1 })]);
++    assert.deepEqual(r.map(x => x.status).sort(), [200, 409]);
++});
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -5 +5 @@
+-先读 docs/release/A1_FOLLOWUP.md（当前验收补强与未执行边界）→ docs/release/FIX_R1.md（本补丁新增实现与实测边界）→ README → docs/release/IMPLEMENTATION_STATUS.md → REVIEW.md → TEST_REPORT.md，再读 docs/spec/06_DEVELOPMENT.md 与相应领域契约。原 release 文档保留旧基线证据；本补丁不把旧通过记录套用于新迁移。
++先读 docs/release/H1_HANDOFF.md（当前受控交接代码与验证边界）→ docs/release/A1_FOLLOWUP.md（当前验收补强与未执行边界）→ docs/release/FIX_R1.md（本补丁新增实现与实测边界）→ README → docs/release/IMPLEMENTATION_STATUS.md → REVIEW.md → TEST_REPORT.md，再读 docs/spec/06_DEVELOPMENT.md 与相应领域契约。原 release 文档保留旧基线证据；本补丁不把旧通过记录套用于新迁移。
+@@ -34,0 +35,4 @@
++
++## H1 当前增量
++
++PR #2 的 `0c2da7d` 已在 Actions 35859891008/attempts/2 实际通过；这是 H1 的基线，不是 H1 的测试结果。H1 新增单条基本档案的限时处理邀请，不改变维护人或原始范围，不授予敏感/原文/历史访问。仅基本资料操作使用 profileAccess；其他入口保持 policy.personFor/sourceFor，禁止全局替换。新迁移追加为 202609230002_record_handoffs。当前完整验证以 H1 文档及最终 PR head 的实际 CI 为准。
+--- /dev/null
++++ b/docs/release/H1_HANDOFF.md
+@@ -0,0 +1,80 @@
++# H1：单条基本档案的受控交接
++
++基线：`0c2da7dc6a9553afa3ef6904a34395cab6961875`（PR #2 的已验收代码）。
++本增量直接开发内部 OS，不涉及官网发布、商业合同、CRM、账单或 AI 提前上线。
++
++## 1. 实际功能与边界
++

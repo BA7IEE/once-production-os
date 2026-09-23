@@ -1,0 +1,80 @@
++    await hrow(receiver, handoffId).getByText('已接收', { exact: true }).waitFor();
++    assert.equal(requests.length, 2); assert.deepEqual(requests[0], requests[1]);
++    assert.equal(await prisma.commandReceipt.count({ where: { operation: 'handoff.accept', resourceId: handoffId } }), 1);
++    await hrow(receiver, handoffId).getByRole('button', { name: '打开档案' }).click();
++    await receiver.getByRole('button', { name: '编辑资料', exact: true }).waitFor();
++    assert.equal(await receiver.getByRole('button', { name: '查看受限联系方式' }).count(), 0);
++    assert.equal(await receiver.getByRole('button', { name: '查看来源', exact: true }).count(), 0);
++    for (const path of ['/sources/' + person.sourceId, '/sources/' + person.sourceId + '/history', '/people/' + personId + '/contacts', '/people/' + sibling.resourceId])
++        assert.equal(await getStatus(receiver, path), 404, path);
++    assert.deepEqual(await prisma.sourceRecord.findUniqueOrThrow({ where: { id: person.sourceId } }), sourceBefore);
++    assert.deepEqual(await prisma.scopeMember.findMany({ orderBy: { id: 'asc' } }), scopesBefore);
++    console.log('PASS H1 browser/API: lost accept response replayed; source, contacts, history and sibling stay private');
++
++    await receiver.getByRole('button', { name: '编辑资料', exact: true }).click();
++    await receiver.getByLabel('简介').fill('H1接收人已整理基本简介');
++    await receiver.getByRole('button', { name: '保存新版本' }).click();
++    await receiver.getByText('H1接收人已整理基本简介', { exact: true }).waitFor();
++    const changed = await prisma.person.findUniqueOrThrow({ where: { id: personId } });
++    assert.equal(changed.intro, 'H1接收人已整理基本简介'); assert.equal(changed.maintainerId, person.maintainerId);
++    assert.equal(changed.sourceId, person.sourceId); assert.equal(changed.scopeId, person.scopeId);
++    await sender.getByRole('button', { name: '关闭', exact: true }).last().click();
++    await sender.getByRole('button', { name: /资料交接/ }).click();
++    await sender.getByRole('button', { name: '发出的交接', exact: true }).click();
++    await hrow(sender, handoffId).getByRole('button', { name: '撤销交接' }).click();
++    await hrow(sender, handoffId).getByText('已撤销', { exact: true }).waitFor();
++    assert.equal(await getStatus(receiver, '/people/' + personId), 404);
++    await cmd(receiver, 'PATCH', '/people/' + personId, { expectedRevision: changed.revision, intro: '不得保存' }, 404);
++    assert.equal((await prisma.person.findUniqueOrThrow({ where: { id: personId } })).intro, changed.intro);
++    await receiver.getByRole('button', { name: '关闭', exact: true }).last().click();
++    await receiver.getByRole('button', { name: '刷新交接' }).click();
++    await hrow(receiver, handoffId).getByText('已撤销', { exact: true }).waitFor();
++    assert.equal(await hrow(receiver, handoffId).getByRole('button', { name: '打开档案' }).count(), 0);
++    console.log('PASS H1 browser/API: delegated edit preserved ownership; revoke denies next read and write');
++    assert.deepEqual(errors, []);
++} finally {
++    await browser?.close(); await stop(api); await prisma.$disconnect(); rmSync(tmp, { recursive: true, force: true });
++}
+--- a/tests/postgres/integration.test.ts
++++ b/tests/postgres/integration.test.ts
+@@ -200,0 +201,64 @@
++        await t.test('H1 PG private basic-profile grant and native evidence separation', async () => {
++            const senderCreated = await ownerA.raw('POST', '/memberships', { loginName: 'pg_handoff_sender', displayName: 'PG交接发起人', role: 'EDITOR', extraPermissions: [] });
++            const recipientCreated = await ownerA.raw('POST', '/memberships', { loginName: 'pg_handoff_receiver', displayName: 'PG交接接收人', role: 'ADMIN', extraPermissions: ['sensitive.read', 'sensitive.write'] });
++            assert.equal(senderCreated.status, 201); assert.equal(recipientCreated.status, 201);
++            const sender = new Client(appA), receiver = new Client(appB);
++            await sender.activate(result(senderCreated).activationToken); await sender.login('pg_handoff_sender');
++            await receiver.activate(result(recipientCreated).activationToken); await receiver.login('pg_handoff_receiver');
++            const created = await sender.cmd('POST', '/people', { displayName: 'PG H1私有档案', roles: ['model'], inlineSource: sourceInput(true) });
++            assert.equal(created.status, 201);
++            const person = await a.person.findUniqueOrThrow({ where: { id: result(created).resourceId } });
++            const sourceBefore = await a.sourceRecord.findUniqueOrThrow({ where: { id: person.sourceId } });
++            const scopesBefore = await a.scopeMember.findMany({ orderBy: { id: 'asc' } });
++            const input = { expectedRevision: person.revision, expectedSourceRevision: sourceBefore.revision,
++                recipientId: result(recipientCreated).membershipId, purpose: 'EDIT', acknowledgeLimitedAccess: true,
++                expiresAt: new Date(clock.now().getTime() + 3600000).toISOString() };
++            const key = randomUUID();
++            const invites = await Promise.all([sender, sender].map(c => c.cmd('POST', '/people/' + person.id + '/handoffs', input, key)));
++            assert.ok(invites.every(r => r.status === 201));
++            const hid = result(invites[0]!).resourceId;
++            assert.equal(await a.recordHandoff.count({ where: { personId: person.id } }), 1);
++            assert.equal((await receiver.raw('GET', '/people/' + person.id)).status, 404);
++            const ak = randomUUID();
++            const accepts = await Promise.all([receiver, receiver].map(c => c.cmd('POST', '/handoffs/' + hid + '/accept', { expectedRevision: 1 }, ak)));
++            assert.ok(accepts.every(r => r.status === 200));
++            assert.equal((await receiver.raw('GET', '/people/' + person.id)).status, 200);
++            for (const path of ['/sources/' + person.sourceId, '/sources/' + person.sourceId + '/history', '/people/' + person.id + '/contacts'])
++                assert.equal((await receiver.raw('GET', path)).status, 404);
++            assert.deepEqual(await a.sourceRecord.findUniqueOrThrow({ where: { id: person.sourceId } }), sourceBefore);
++            assert.deepEqual(await a.scopeMember.findMany({ orderBy: { id: 'asc' } }), scopesBefore);
++            const editKey = randomUUID(); const edit = { expectedRevision: 1, intro: 'PG受控修改' };
++            assert.equal((await receiver.cmd('PATCH', '/people/' + person.id, edit, editKey)).status, 200);
++            assert.equal((await sender.cmd('POST', '/handoffs/' + hid + '/revoke', { expectedRevision: 2 })).status, 200);
++            assert.equal((await receiver.cmd('PATCH', '/people/' + person.id, edit, editKey)).status, 404);
++            assert.equal((await receiver.raw('GET', '/people/' + person.id)).status, 404);
++            const row = await a.recordHandoff.findUniqueOrThrow({ where: { id: hid } });
++            // DB is a second boundary: malformed state and cross-workspace recipient must fail.
++            await assert.rejects(a.recordHandoff.update({ where: { id: hid }, data: { state: 'DECLINED', acceptedAt: null, closedById: null } }));
++            const alienWorkspace = randomUUID(), alienUser = randomUUID(), alienMember = randomUUID();
++            const now = clock.now();
++            await a.workspace.create({ data: { id: alienWorkspace, name: 'H1隔离空间', createdAt: now, recoveryEpoch: config.recoveryEpoch } });
