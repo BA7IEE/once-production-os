@@ -36,3 +36,7 @@ A1 后续补强以 `7c327b4` 为输入：拒绝后完整检查点断言、降权
 ## H1 当前增量
 
 PR #2 的 `0c2da7d` 已在 Actions 35859891008/attempts/2 实际通过；这是 H1 的基线，不是 H1 的测试结果。H1 新增单条基本档案的限时处理邀请，不改变维护人或原始范围，不授予敏感/原文/历史访问。仅基本资料操作使用 profileAccess；其他入口保持 policy.personFor/sourceFor，禁止全局替换。新迁移追加为 202609230002_record_handoffs。当前完整验证以 H1 文档及最终 PR head 的实际 CI 为准。
+
+## 当前媒体增量
+
+私有图片基线为 H1 683b9a1；A1/H1 已在各自固定提交的 CI 通过，不再称其 Runner 被账单阻止。当前媒体 PR 不自动合并。新图像链路与追加迁移/源代码是本批内容，不能沿用旧测试通过记录。媒体测试 `node --experimental-strip-types --test tests/media/local-images.test.mjs` 需要先真实构建 API；浏览器使用独立空库 `node tests/acceptance/browser-media.mjs`。生产/staging 本地存储关闭；不临时绕过它以接入真实资料。接续仍是剩余私有媒体能力、作品/项目、内部清单和有界 AI。

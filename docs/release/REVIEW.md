@@ -1,3 +1,5 @@
+> 当前媒体增量见 [M1_PRIVATE_IMAGES.md](M1_PRIVATE_IMAGES.md)。下文保留先前版本证据，不将历史结果覆盖到新代码。当前 CI 状态以当前 PR 的最终提交对应 Actions 为准。
+
 # 第一批源码 Review
 
 ## 2026-09-23 验收切片 A1

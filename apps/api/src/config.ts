@@ -1,3 +1,4 @@
+import { isAbsolute } from 'node:path';
 import { readFileSync } from 'node:fs';
 import type { Config } from '../../../packages/core/src/model.ts';
 function required(name: string): string {
@@ -24,6 +25,11 @@ export function loadConfig(): Config {
     if (!['true', 'false'].includes(secure))
         throw new Error('COOKIE_SECURE invalid');
     required('DATABASE_URL');
-    return { origin: required('APP_ORIGIN'), secureCookies: secure === 'true', environment: environment as Config['environment'], accessMode: accessMode as Config['accessMode'],
+    const media = process.env.MEDIA_PROVIDER ?? 'disabled';
+    if (!['disabled', 'local'].includes(media))
+        throw new Error('MEDIA_PROVIDER not supported');
+    if (media === 'local' && (!['local', 'test'].includes(environment) || !isAbsolute(process.env.MEDIA_ROOT ?? '')))
+        throw new Error('Local media requires local/test and an absolute MEDIA_ROOT; production provider is not approved');
+    return { mediaEnabled: media === 'local', origin: required('APP_ORIGIN'), secureCookies: secure === 'true', environment: environment as Config['environment'], accessMode: accessMode as Config['accessMode'],
         contactKey: key('CONTACT_KEY_FILE'), csrfKey: key('CSRF_KEY_FILE'), recoveryEpoch: readFileSync(required('RECOVERY_EPOCH_FILE'), 'utf8').trim() };
 }

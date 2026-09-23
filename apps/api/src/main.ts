@@ -1,3 +1,5 @@
+import { registerMediaHttp } from './media/http.ts';
+import { LocalMediaProvider } from './media/local-provider.ts';
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { All, Controller, Module, Req, Res } from '@nestjs/common';
@@ -15,7 +17,7 @@ class ApiController {
     @All('{*path}')
     async handle(
     @Req()
-    req: Request,
+    req: Request, 
     @Res()
     res: Response): Promise<void> {
         const headers: Record<string, string | undefined> = {};
@@ -50,6 +52,7 @@ async function main() {
     const app = await NestFactory.create(AppModule, { bodyParser: false, logger: ['error', 'warn'] });
     const server = app.getHttpAdapter().getInstance() as express.Express;
     server.disable('x-powered-by');
+    server.set('etag', false);
     // Only explicitly trust a local reverse proxy which overwrites X-Forwarded-For.
     if (process.env.TRUST_LOOPBACK_PROXY === 'true')
         server.set('trust proxy', 'loopback');
@@ -61,6 +64,8 @@ async function main() {
             res.setHeader('Strict-Transport-Security', 'max-age=31536000');
         next();
     });
+    const mediaProvider = config.mediaEnabled ? await LocalMediaProvider.create(process.env.MEDIA_ROOT!) : null;
+    registerMediaHttp(server, core, mediaProvider);
     app.use('/api/v1', express.raw({ type: 'application/json', limit: '1mb', inflate: false }));
     app.use('/api/v1', (error: unknown, _req: Request, res: Response, _next: NextFunction) => {
         const reported = (error as {

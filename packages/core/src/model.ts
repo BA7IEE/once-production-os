@@ -1,7 +1,8 @@
+import type { MediaUpload, MediaAsset } from './media-model.ts';
 export type Role = 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'VIEWER';
 export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write'] as const;
 export type ExtraPermission = typeof EXTRA_PERMISSIONS[number];
-export type Permission = 'records.read' | 'records.write' | 'sources.read' | 'sources.write' | 'sources.review' | 'catalog.manage' | 'members.manage' | 'audit.read' | ExtraPermission;
+export type Permission = 'records.read' | 'records.write' | 'sources.read' | 'sources.write' | 'sources.review' | 'catalog.manage' | 'members.manage' | 'audit.read' | 'assets.read' | 'assets.upload' | ExtraPermission;
 export interface Base {
     id: string;
     workspaceId: string;
@@ -123,7 +124,7 @@ export interface CommandReceipt extends Base {
     operation: string;
     commandKey: string;
     requestDigest: string;
-    resourceKind: 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff';
+    resourceKind: 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset';
     resourceId: string;
     result: ReceiptResult;
 }
@@ -200,6 +201,8 @@ export interface RecordHandoff extends Base {
     closedById: string | null;
 }
 export interface TableMap {
+    uploads: MediaUpload;
+    assets: MediaAsset;
     workspaces: Workspace;
     users: User;
     memberships: Membership;
@@ -239,6 +242,7 @@ export interface Clock {
     now(): Date;
 }
 export interface Config {
+    mediaEnabled?: boolean;
     origin: string;
     secureCookies: boolean;
     contactKey: Buffer;

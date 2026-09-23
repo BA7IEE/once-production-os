@@ -1,3 +1,5 @@
+> 新增私有静态图片：见 [M1 开发/验收/部署边界](docs/release/M1_PRIVATE_IMAGES.md)。本批不是整个一期或生产上线完成；默认存储禁用。
+
 # ONCE Production OS
 
 **交付版本：0.1.0-dev.1｜第一批开发源码，不是一期完工版。**

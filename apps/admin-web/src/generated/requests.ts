@@ -1,5 +1,16 @@
 // Generated from packages/core/src/routes.ts and validation.ts. Do not edit.
 export interface Inputs {
+  "upload.create": { "sourceId": string; "expectedSourceRevision": number; "personId"?: string; "fileName": string; "mime": "image/jpeg" | "image/png" | "image/webp"; "expectedBytes": number; "sha256": string };
+  "upload.list": undefined;
+  "upload.get": undefined;
+  "upload.content": undefined;
+  "upload.renew": { "expectedRevision": number };
+  "upload.complete": { "expectedRevision": number };
+  "upload.cancel": { "expectedRevision": number };
+  "asset.list": undefined;
+  "asset.get": undefined;
+  "asset.preview": undefined;
+  "asset.quarantine": { "expectedRevision": number };
   "auth.csrf": undefined;
   "auth.login": { "loginName": string; "password": string };
   "auth.activate": { "token": string; "password": string };
@@ -48,6 +59,61 @@ export interface Inputs {
   "audit.list": undefined;
 }
 export const ENDPOINTS = {
+  "upload.create": {
+    "method": "POST",
+    "path": "/uploads",
+    "mode": "COMMAND"
+  },
+  "upload.list": {
+    "method": "GET",
+    "path": "/uploads",
+    "mode": "READ"
+  },
+  "upload.get": {
+    "method": "GET",
+    "path": "/uploads/{id}",
+    "mode": "READ"
+  },
+  "upload.content": {
+    "method": "PUT",
+    "path": "/uploads/{id}/content",
+    "mode": "BINARY"
+  },
+  "upload.renew": {
+    "method": "POST",
+    "path": "/uploads/{id}/renew",
+    "mode": "COMMAND"
+  },
+  "upload.complete": {
+    "method": "POST",
+    "path": "/uploads/{id}/complete",
+    "mode": "COMMAND"
+  },
+  "upload.cancel": {
+    "method": "POST",
+    "path": "/uploads/{id}/cancel",
+    "mode": "COMMAND"
+  },
+  "asset.list": {
+    "method": "GET",
+    "path": "/assets",
+    "mode": "READ"
+  },
+  "asset.get": {
+    "method": "GET",
+    "path": "/assets/{id}",
+    "mode": "READ"
+  },
+  "asset.preview": {
+    "method": "GET",
+    "path": "/assets/{id}/preview",
+    "mode": "BINARY"
+  },
+  "asset.quarantine": {
+    "method": "POST",
+    "path": "/assets/{id}/quarantine",
+    "mode": "COMMAND"
+  },
   "auth.csrf": {
     "method": "GET",
     "path": "/auth/csrf",
