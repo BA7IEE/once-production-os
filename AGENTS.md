@@ -2,7 +2,7 @@
 
 ## 事实顺序
 
-先读 docs/release/FIX_R1.md（本补丁新增实现与实测边界）→ README → docs/release/IMPLEMENTATION_STATUS.md → REVIEW.md → TEST_REPORT.md，再读 docs/spec/06_DEVELOPMENT.md 与相应领域契约。原 release 文档保留旧基线证据；本补丁不把旧通过记录套用于新迁移。
+先读 docs/release/A1_FOLLOWUP.md（当前验收补强与未执行边界）→ docs/release/FIX_R1.md（本补丁新增实现与实测边界）→ README → docs/release/IMPLEMENTATION_STATUS.md → REVIEW.md → TEST_REPORT.md，再读 docs/spec/06_DEVELOPMENT.md 与相应领域契约。原 release 文档保留旧基线证据；本补丁不把旧通过记录套用于新迁移。
 
 `docs/spec/` 是未改写的 v0.3 输入规格，其“尚未实现”是原文历史状态。当前已做和未做以 release 状态表及实际代码为准；这不是把未实现功能从一期删除的授权。
 
@@ -24,6 +24,8 @@
 10. 来源历史迁移已在本地既有合成库和新空库实跑；这不代表正式环境已升级。历史记录只允许追加；保留清理/删除须另行评审，不能绕过不可改规则。
 
 ## 验证与下一步
+
+A1 后续补强以 `7c327b4` 为输入：拒绝后完整检查点断言、降权后新会话拒绝、独立 PostgreSQL CI 和一键本地隔离验收脚本已编写。当前新脚本只完成核心回归、辅助断言与编排模拟；真实浏览器/数据库和 GitHub Runner 未执行。以下 A1/R1 成功记录只属于此前版本，不能沿用为新脚本通过。详见 `docs/release/A1_FOLLOWUP.md`。
 
 依赖锁定、R1 完整构建、既有合成库迁移、新空库 PostgreSQL 测试与受限历史页面已有 2026-09-23 记录。A1 已在隔离数据库中验证浏览器续跑、响应丢失原样核对及来源/权限变化拒绝；最小 CI 已加入，但 GitHub 因账号付款/消费上限在启动 Runner 前拒绝检查，CI 仍 BLOCKED。完整浏览器异常清单、正式镜像与恢复仍未验收。
 

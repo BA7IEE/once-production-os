@@ -11,6 +11,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:net';
 import { PrismaClient } from '@prisma/client';
 import { chromium } from 'playwright';
+import { captureImportCheckpoint, assertImportCheckpointUnchanged } from './support/import-checkpoint.mjs';
 
 const raw = process.env.DATABASE_URL_TEST;
 assert.equal(process.env.ALLOW_BROWSER_TESTS, 'yes', 'Set ALLOW_BROWSER_TESTS=yes only for a fresh, disposable browser test database.');
@@ -227,16 +228,18 @@ try {
         const { jobId } = await queueByApi(owner, sourceId, label);
         await failSecond(jobId);
         await partial(owner, jobId, label);
-        const before = await prisma.durableJob.findUniqueOrThrow({ where: { id: jobId } });
+        const before = await captureImportCheckpoint(prisma, jobId);
         if (changed === 'suspend') await requestCommand(owner, 'POST', `/sources/${sourceId}/suspend`, { expectedRevision: 1, reason: '合成暂停验收' });
         else await requestCommand(owner, 'PATCH', `/sources/${sourceId}`, { expectedRevision: 1, title: title + '-新版' });
         await owner.getByRole('button', { name: '刷新任务' }).click();
         await row(owner, jobId).getByText(changed === 'suspend' ? '来源、范围或预览已失效' : '来源已经变更').waitFor();
         assert.equal(await row(owner, jobId).getByRole('button', { name: '继续处理未完成行' }).count(), 0);
-        const denied = await requestCommand(owner, 'POST', `/jobs/${jobId}/resume`, { expectedRevision: before.revision }, changed === 'suspend' ? 404 : 409);
+        const denied = await requestCommand(owner, 'POST', `/jobs/${jobId}/resume`, { expectedRevision: before.job.revision }, changed === 'suspend' ? 404 : 409);
         assert.equal(denied.error.code, changed === 'suspend' ? 'NOT_FOUND' : 'REVISION_CONFLICT');
-        assert.equal((await prisma.durableJob.findUniqueOrThrow({ where: { id: jobId } })).state, 'FAILED');
-        console.log(`PASS browser/API: ${changed} blocks resume without changing the checkpoint`);
+        assertImportCheckpointUnchanged(before, await captureImportCheckpoint(prisma, jobId), changed);
+        assert.equal(await prisma.person.count({ where: { displayName: label + '-first' } }), 1);
+        assert.equal(await prisma.person.count({ where: { displayName: label + '-second' } }), 0);
+        console.log(`PASS browser/API: ${changed} blocks resume; job, rows, people and receipts unchanged`);
     }
 
     const editorLogin = 'editor_' + suffix;
@@ -255,19 +258,30 @@ try {
     await editor.getByRole('button', { name: /批量导入/ }).click();
     await failSecond(permissionJob);
     await partial(editor, permissionJob, permissionName);
-    const beforePermission = await prisma.durableJob.findUniqueOrThrow({ where: { id: permissionJob } });
+    const beforePermission = await captureImportCheckpoint(prisma, permissionJob);
     await requestCommand(owner, 'PATCH', `/memberships/${created.membershipId}/permissions`,
         { expectedRevision: 1, role: 'VIEWER', extraPermissions: [] });
     const denied = editor.waitForResponse(response => response.url().endsWith(`/jobs/${permissionJob}/resume`) && response.request().method() === 'POST');
     await row(editor, permissionJob).getByRole('button', { name: '继续处理未完成行' }).click();
     assert.equal((await denied).status(), 401);
     await editor.getByText('登录工作空间').waitFor();
-    const finalPermissionJob = await prisma.durableJob.findUniqueOrThrow({ where: { id: permissionJob } });
-    assert.equal(finalPermissionJob.state, 'FAILED');
-    assert.equal(finalPermissionJob.revision, beforePermission.revision);
+    assertImportCheckpointUnchanged(beforePermission, await captureImportCheckpoint(prisma, permissionJob), 'revoked-session');
+
+    // A revoked session (401) is not sufficient: a fresh VIEWER session must be denied (403).
+    await login(editor, editorLogin, password);
+    const freshMe = await editor.context().request.get(base + '/api/v1/me');
+    assert.equal(freshMe.status(), 200);
+    const viewer = await freshMe.json();
+    assert.equal(viewer.role, 'VIEWER');
+    assert.equal(viewer.permissions.includes('records.write'), false);
+    assert.equal(await editor.getByRole('button', { name: /批量导入/ }).count(), 0);
+    const freshDenied = await requestCommand(editor, 'POST', `/jobs/${permissionJob}/resume`,
+        { expectedRevision: beforePermission.job.revision }, 403);
+    assert.equal(freshDenied.error.code, 'FORBIDDEN');
+    assertImportCheckpointUnchanged(beforePermission, await captureImportCheckpoint(prisma, permissionJob), 'fresh-viewer-session');
     assert.equal(await prisma.person.count({ where: { displayName: permissionName + '-second' } }), 0);
     assert.deepEqual(pageErrors, []);
-    console.log('PASS browser/API: revoked editor cannot resume; no second row or page script errors');
+    console.log('PASS browser/API: revoked session gets 401; fresh viewer gets 403; checkpoints and receipts unchanged');
 } finally {
     await stop(workerProcess);
     await browser?.close();

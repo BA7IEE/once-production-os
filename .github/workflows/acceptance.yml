@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: once-acceptance-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   browser-resume:
     runs-on: ubuntu-24.04
@@ -46,4 +50,45 @@ jobs:
       - run: pnpm exec prisma validate && pnpm db:generate
       - run: pnpm verify && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
+      - run: node --test tests/acceptance/checkpoint.test.mjs
       - run: pnpm verify:browser
+
+  # A separate runner/service/database: never reuse the browser suite's populated DB.
+  postgres-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: once_ci
+          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
+          POSTGRES_DB: once_test_contract
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U once_ci -d once_test_contract"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v6
+      - name: Set independent contract database target
+        env:
+          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
+        run: |
+          echo "::add-mask::$CI_DB_PASSWORD"
+          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_contract" >> "$GITHUB_ENV"
+          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_contract" >> "$GITHUB_ENV"
+          echo "ALLOW_DB_TESTS=yes" >> "$GITHUB_ENV"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec prisma validate && pnpm db:generate
+      - name: Apply migrations only to this fresh contract database
+        run: pnpm db:deploy
+      - name: PostgreSQL atomicity, constraints, leases and resume
+        run: pnpm verify:postgres
