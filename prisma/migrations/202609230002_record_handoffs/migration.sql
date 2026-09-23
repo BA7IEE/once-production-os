@@ -32,7 +32,7 @@ CREATE TABLE "handoffs" (
         AND "expiresAt" <= "createdAt" + interval '7 days'
         AND ("acceptedAt" IS NULL OR ("acceptedAt" >= "createdAt" AND "acceptedAt" < "expiresAt"))
         AND ("closedAt" IS NULL OR "closedAt" >= COALESCE("acceptedAt", "createdAt"))),
-    CONSTRAINT "handoffs_state_check" CHECK (
+    CONSTRAINT "handoffs_state_shape_check" CHECK (
         ("state" = 'PENDING' AND "acceptedAt" IS NULL AND "closedAt" IS NULL AND "closedById" IS NULL)
         OR ("state" = 'ACCEPTED' AND "acceptedAt" IS NOT NULL AND "closedAt" IS NULL AND "closedById" IS NULL)
         OR ("state" = 'DECLINED' AND "acceptedAt" IS NULL AND "closedAt" IS NOT NULL AND "closedById" IS NOT NULL AND "closedById" = "recipientId")
