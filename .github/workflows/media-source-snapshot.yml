@@ -8,20 +8,29 @@ permissions:
 jobs:
   snapshot:
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
         with:
           ref: 683b9a18d5fbd1e9b465bb3ef5b46737978ab8ab
           persist-credentials: false
-      - name: Archive only tracked source at pinned commit
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v6
+      - name: Resolve exact image dependency without publishing or pushing
         run: |
-          test "$(git rev-parse HEAD)" = 683b9a18d5fbd1e9b465bb3ef5b46737978ab8ab
-          git archive --format=tar HEAD > "$RUNNER_TEMP/once-source.tar"
-          sha256sum "$RUNNER_TEMP/once-source.tar"
+          node --input-type=module -e "import fs from 'node:fs'; const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.dependencies.sharp='0.35.4';p.pnpm.onlyBuiltDependencies.push('sharp');fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n');"
+          pnpm install --no-frozen-lockfile
+          pnpm install --frozen-lockfile
+          pnpm audit --prod --json > "$RUNNER_TEMP/media-audit.json" || test "$?" = 1
+          tar -czf "$RUNNER_TEMP/media-deps.tgz" package.json pnpm-lock.yaml node_modules
       - uses: actions/upload-artifact@v4
         with:
-          name: once-source-683b9a1
-          path: ${{ runner.temp }}/once-source.tar
+          name: once-media-deps
+          path: |
+            ${{ runner.temp }}/media-deps.tgz
+            ${{ runner.temp }}/media-audit.json
           retention-days: 1
           if-no-files-found: error
