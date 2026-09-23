@@ -1,0 +1,27 @@
+name: Private media development source snapshot
+on:
+  push:
+    branches: [feat/private-media]
+    paths: [.github/workflows/media-source-snapshot.yml]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: 683b9a18d5fbd1e9b465bb3ef5b46737978ab8ab
+          persist-credentials: false
+      - name: Archive only tracked source at pinned commit
+        run: |
+          test "$(git rev-parse HEAD)" = 683b9a18d5fbd1e9b465bb3ef5b46737978ab8ab
+          git archive --format=tar HEAD > "$RUNNER_TEMP/once-source.tar"
+          sha256sum "$RUNNER_TEMP/once-source.tar"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: once-source-683b9a1
+          path: ${{ runner.temp }}/once-source.tar
+          retention-days: 1
+          if-no-files-found: error
