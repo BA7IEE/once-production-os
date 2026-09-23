@@ -1,5 +1,24 @@
 // Generated from packages/core/src/routes.ts and validation.ts. Do not edit.
 export interface Inputs {
+  "work.list": undefined;
+  "work.create": { "title": string; "sourceId"?: string; "inlineSource"?: { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string }; "description"?: string; "origin"?: "ONCE" | "EXTERNAL" | "UNKNOWN"; "originNote"?: string };
+  "work.get": undefined;
+  "work.update": { "expectedRevision": number; "title"?: string; "description"?: string; "origin"?: "ONCE" | "EXTERNAL" | "UNKNOWN"; "originNote"?: string; "status"?: "DRAFT" | "ACTIVE" | "ARCHIVED" };
+  "work.assetAdd": { "expectedRevision": number; "assetId": string };
+  "work.assetRemove": { "expectedRevision": number; "entryId": string };
+  "work.reorder": { "expectedRevision": number; "entryIds": Array<string>; "coverEntryId": string | null };
+  "work.creditAdd": { "expectedRevision": number; "personId": string; "roleCode": string; "note": string };
+  "work.creditRemove": { "expectedRevision": number; "entryId": string };
+  "project.list": undefined;
+  "project.create": { "title": string; "sourceId"?: string; "inlineSource"?: { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string }; "brief"?: string; "locationNote"?: string; "dateNote"?: string };
+  "project.get": undefined;
+  "project.update": { "expectedRevision": number; "title"?: string; "brief"?: string; "locationNote"?: string; "dateNote"?: string; "reviewNote"?: string; "status"?: "DRAFT" | "ACTIVE" | "COMPLETED" | "ARCHIVED" };
+  "project.participantAdd": { "expectedRevision": number; "personId": string; "roleCode": string; "state": "NOMINATED" | "CONFIRMED" | "ACTUAL"; "note": string };
+  "project.participantUpdate": { "expectedRevision": number; "entryId": string; "state": "NOMINATED" | "CONFIRMED" | "ACTUAL"; "note": string };
+  "project.participantRemove": { "expectedRevision": number; "entryId": string };
+  "project.workLink": { "expectedRevision": number; "workId": string; "relation": "REFERENCE" | "DELIVERABLE" };
+  "project.workRemove": { "expectedRevision": number; "entryId": string };
+  "person.production": undefined;
   "upload.create": { "sourceId": string; "expectedSourceRevision": number; "personId"?: string; "fileName": string; "mime": "image/jpeg" | "image/png" | "image/webp"; "expectedBytes": number; "sha256": string };
   "upload.list": undefined;
   "upload.get": undefined;
@@ -59,6 +78,101 @@ export interface Inputs {
   "audit.list": undefined;
 }
 export const ENDPOINTS = {
+  "work.list": {
+    "method": "GET",
+    "path": "/works",
+    "mode": "READ"
+  },
+  "work.create": {
+    "method": "POST",
+    "path": "/works",
+    "mode": "COMMAND"
+  },
+  "work.get": {
+    "method": "GET",
+    "path": "/works/{id}",
+    "mode": "READ"
+  },
+  "work.update": {
+    "method": "PATCH",
+    "path": "/works/{id}",
+    "mode": "COMMAND"
+  },
+  "work.assetAdd": {
+    "method": "POST",
+    "path": "/works/{id}/assets",
+    "mode": "COMMAND"
+  },
+  "work.assetRemove": {
+    "method": "POST",
+    "path": "/works/{id}/assets/remove",
+    "mode": "COMMAND"
+  },
+  "work.reorder": {
+    "method": "POST",
+    "path": "/works/{id}/assets/reorder",
+    "mode": "COMMAND"
+  },
+  "work.creditAdd": {
+    "method": "POST",
+    "path": "/works/{id}/credits",
+    "mode": "COMMAND"
+  },
+  "work.creditRemove": {
+    "method": "POST",
+    "path": "/works/{id}/credits/remove",
+    "mode": "COMMAND"
+  },
+  "project.list": {
+    "method": "GET",
+    "path": "/projects",
+    "mode": "READ"
+  },
+  "project.create": {
+    "method": "POST",
+    "path": "/projects",
+    "mode": "COMMAND"
+  },
+  "project.get": {
+    "method": "GET",
+    "path": "/projects/{id}",
+    "mode": "READ"
+  },
+  "project.update": {
+    "method": "PATCH",
+    "path": "/projects/{id}",
+    "mode": "COMMAND"
+  },
+  "project.participantAdd": {
+    "method": "POST",
+    "path": "/projects/{id}/participants",
+    "mode": "COMMAND"
+  },
+  "project.participantUpdate": {
+    "method": "POST",
+    "path": "/projects/{id}/participants/update",
+    "mode": "COMMAND"
+  },
+  "project.participantRemove": {
+    "method": "POST",
+    "path": "/projects/{id}/participants/remove",
+    "mode": "COMMAND"
+  },
+  "project.workLink": {
+    "method": "POST",
+    "path": "/projects/{id}/works",
+    "mode": "COMMAND"
+  },
+  "project.workRemove": {
+    "method": "POST",
+    "path": "/projects/{id}/works/remove",
+    "mode": "COMMAND"
+  },
+  "person.production": {
+    "method": "GET",
+    "path": "/people/{id}/production",
+    "mode": "READ"
+  },
   "upload.create": {
     "method": "POST",
     "path": "/uploads",

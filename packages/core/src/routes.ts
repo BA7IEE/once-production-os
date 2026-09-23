@@ -1,3 +1,4 @@
+import { ProductionSchemas as PS } from './production-validation.ts';
 import { MediaSchemas } from './media-validation.ts';
 import type { Permission } from './model.ts';
 import { Schemas, type Schema } from './validation.ts';
@@ -10,6 +11,25 @@ export interface RouteDefinition {
     schema?: Schema<unknown>;
 }
 export const ROUTES: RouteDefinition[] = [
+    { method: 'GET', path: '/works', operation: 'work.list', mode: 'READ', permission: 'records.read' },
+    { method: 'POST', path: '/works', operation: 'work.create', mode: 'COMMAND', permission: 'records.write', schema: PS.workCreate },
+    { method: 'GET', path: '/works/{id}', operation: 'work.get', mode: 'READ', permission: 'records.read' },
+    { method: 'PATCH', path: '/works/{id}', operation: 'work.update', mode: 'COMMAND', permission: 'records.write', schema: PS.workPatch },
+    { method: 'POST', path: '/works/{id}/assets', operation: 'work.assetAdd', mode: 'COMMAND', permission: 'records.write', schema: PS.workAsset },
+    { method: 'POST', path: '/works/{id}/assets/remove', operation: 'work.assetRemove', mode: 'COMMAND', permission: 'records.write', schema: PS.remove },
+    { method: 'POST', path: '/works/{id}/assets/reorder', operation: 'work.reorder', mode: 'COMMAND', permission: 'records.write', schema: PS.order },
+    { method: 'POST', path: '/works/{id}/credits', operation: 'work.creditAdd', mode: 'COMMAND', permission: 'records.write', schema: PS.credit },
+    { method: 'POST', path: '/works/{id}/credits/remove', operation: 'work.creditRemove', mode: 'COMMAND', permission: 'records.write', schema: PS.remove },
+    { method: 'GET', path: '/projects', operation: 'project.list', mode: 'READ', permission: 'records.read' },
+    { method: 'POST', path: '/projects', operation: 'project.create', mode: 'COMMAND', permission: 'records.write', schema: PS.projectCreate },
+    { method: 'GET', path: '/projects/{id}', operation: 'project.get', mode: 'READ', permission: 'records.read' },
+    { method: 'PATCH', path: '/projects/{id}', operation: 'project.update', mode: 'COMMAND', permission: 'records.write', schema: PS.projectPatch },
+    { method: 'POST', path: '/projects/{id}/participants', operation: 'project.participantAdd', mode: 'COMMAND', permission: 'records.write', schema: PS.participant },
+    { method: 'POST', path: '/projects/{id}/participants/update', operation: 'project.participantUpdate', mode: 'COMMAND', permission: 'records.write', schema: PS.participantPatch },
+    { method: 'POST', path: '/projects/{id}/participants/remove', operation: 'project.participantRemove', mode: 'COMMAND', permission: 'records.write', schema: PS.remove },
+    { method: 'POST', path: '/projects/{id}/works', operation: 'project.workLink', mode: 'COMMAND', permission: 'records.write', schema: PS.projectWork },
+    { method: 'POST', path: '/projects/{id}/works/remove', operation: 'project.workRemove', mode: 'COMMAND', permission: 'records.write', schema: PS.remove },
+    { method: 'GET', path: '/people/{id}/production', operation: 'person.production', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/uploads', operation: 'upload.create', mode: 'COMMAND', permission: 'assets.upload', schema: MediaSchemas.create },
     { method: 'GET', path: '/uploads', operation: 'upload.list', mode: 'READ', permission: 'records.read' },
     { method: 'GET', path: '/uploads/{id}', operation: 'upload.get', mode: 'READ', permission: 'records.read' },
