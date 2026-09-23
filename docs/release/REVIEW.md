@@ -1,0 +1,69 @@
+# 第一批源码 Review
+
+## 2026-09-23 接力复核
+
+OPEN-01、OPEN-02、OPEN-03 的本地验证门已关闭：真实依赖锁文件及冻结安装、完整 Nest/React/Vite 类型检查和构建、空库迁移、隔离 PostgreSQL 集成测试全部通过。生产依赖审计现为 0 个已知漏洞；升级了 Nest 11.2.5，并对其 Multer 及 Prisma 配置的 deepmerge-ts 使用显式锁定覆盖。覆盖后的 Prisma validate/generate、迁移、构建与数据库测试均实际重跑。仍需跟踪上游正式修复，不把覆盖视作永久支持保证。
+
+OPEN-04 只部分关闭：本地真实浏览器主链路通过，但异常响应、未知结果、受限字段、移动宽度及键盘焦点未逐项验收。其余 OPEN-05 至 OPEN-12 继续保留。M0/M1/M2/M3 仍未验收；无正式数据或生产部署。
+
+首次 typecheck 暴露的重复 JSX `hint` 已修正。浏览器测试两次中断源于测试脚本定位器分别匹配重复“关闭/当前不可用”文案，以及用英文状态寻找中文“已完成”；只读查询证实导入任务已完成，修正定位器后整条链路通过。详见 [测试报告](TEST_REPORT.md)。
+
+以下为 2026-09-22 离线交付时的历史 Review，保留当时的未执行状态供追溯。
+
+结论：**允许打包作为开发接力源码；不批准生产上线、不宣布 M0/M1 验收。**
+
+这是同一实现环境内的自查、反例测试与修订，不是独立第三方审计。本轮没有远程开发机可连接，容器不能解析 npm 域名；不能用“review 完成”掩盖完整编译和数据库验证的缺口。
+
+## 1. 已回填代码并验证的事项
+
+| 编号 | 反例 / 问题 | 实际处理 | 证据边界 |
+|---|---|---|---|
+| RV-01 | 旧请求重复创建或旧 CAS 拒绝正确重放 | 查回执先于原 CAS；内容/目标摘要冲突拒绝；写与回执同事务 | commands-imports 核心测试；PG NOT_RUN |
+| RV-02 | 撤销角色/范围后借旧回执读取 | 每次当前身份检查 + 领域回执读取鉴权 | identity / commands-imports / talent |
+| RV-03 | 凭证签发超时后自动再签一份 | 前端标记未知，强制先刷新核对再显式重置；不把 secret 写回执 | client-transport；浏览器 NOT_RUN |
+| RV-04 | 重置接口把更新错误记成创建 | reset-access 返回 200；create 仍 201；重置追加限流 | identity |
+| RV-05 | 待激活管理员影响最后管理员判断 | 只保护当前已激活的管理员；待激活账号可停用 | identity |
+| RV-06 | 恢复隔离只挡普通 API 不挡激活 | 登录 KDF 后再查隔离状态；激活前后也查 epoch | identity；真实恢复 NOT_RUN |
+| RV-07 | 调换两条联系信息的密文仍能解密 | AES-GCM AAD 绑定 workspace/person/contact，严格密文段落和编码 | talent / json-validation |
+| RV-08 | 核验新字段覆盖旧核验记录 | 字段 evidence 改为追加，值或来源版本变化返回 STALE | talent；完整来源全文历史仍缺 |
+| RV-09 | 导入 202 被当作完成 | 回执 state=ACCEPTED，界面查询 job 最终状态 | commands-imports；真实 Worker NOT_RUN |
+| RV-10 | Worker 在来源暂停/账号降权后继续 | 每行当前资格/来源 revision 和租约检查 | commands-imports |
+| RV-11 | 旧租约覆盖新 Worker | 领取 token + lease 截止双检查，过期 owner 不能写结果 | commands-imports；PG双进程 NOT_RUN |
+| RV-12 | JSON.parse 静默丢弃重复字段 | 前后端共用严格 JSON 边界；拒绝重复/原型键、坏 Unicode、超限 | json-validation / contract |
+| RV-13 | 普通 DTO 可注入敏感字段或空间 ID | 请求 Schema 拒额外字段；联系信息另端点及权限 | json-validation / talent |
+| RV-14 | 编辑私有草稿无人有权审核 | 支持在创建前选择共同限定范围，明确默认私有的局限 | talent 合成协作测试；浏览器未执行 |
+| RV-15 | 过期预览的旧回执重新获得入口 | replay-policy 对预览增加 expiresAt 检查 | commands-imports |
+| RV-16 | 密码哈希或密文尾部多余序列仍被接受 | 固定序列段数，拒绝尾部附加数据 | json-validation |
+| RV-17 | .secrets 初始化后可能被 Git/镜像带走 | .gitignore/.dockerignore 明确排除密钥、数据和非必要 artifacts | 实际文件核对及打包检查；不是完整秘密扫描 |
+| RV-18 | 通用回执层反向依赖人才规则 | 独立 replay-policy；Commands 只调用传入领域校验 | 静态阅读与现有核心回归 |
+
+前端另修订了“已选停用分类无法取消”的问题，并将来源依据从仅日期输入改为设备时区的明确截止时点，保存为 UTC。这两处只有源码/语法核对，真实浏览器仍 NOT_RUN。
+
+Express 入口还增加严格 UTF-8、1MB 请求体限制和禁用压缩体；这部分只有源码/语法检查，不能写成真实 HTTP 中间件已验收。Vite 本地开发服务的文件拒绝列表也补入 .git、私密数据和 artifacts；开发服务仍不应对外开放。候选 SQL/Prisma 的 FK/索引名称已对齐，但尚未 `prisma validate` 或 DB diff。
+
+## 2. 未关闭事项与放行边界
+
+| 编号 | 问题 | 下一步 / 禁止结论 |
+|---|---|---|
+| OPEN-01 | 无真实依赖锁定，顶层版本仅候选 | 在线安装/支持周期/漏洞与许可检查；不可写“供应链安全” |
+| OPEN-02 | Nest、React/Vite、Prisma 完整编译/生成未执行 | 完整 typecheck/build；不得用伪类型声明使检查假通过 |
+| OPEN-03 | PG 迁移、组合 FK、并发和回滚未执行 | 跑专用空测试库；测试源码存在不是 DB_TESTED |
+| OPEN-04 | 实际浏览器交互/可访问性未执行 | 对完整登录-建档-核验-导入链做真实浏览器测试 |
+| OPEN-05 | 来源尚无完整版本史，暂停原因占当前依据字段 | 补独立来源版本/决定记录，保留原依据；不得声称原始证据全过程可追溯 |
+| OPEN-06 | 默认私有编辑草稿尚无交接/范围成员变更命令 | 增加显式授权交接；不能通过 ADMIN 绕过权限“解决” |
+| OPEN-07 | 全局事务锁 + 全量读取/应用层筛选 | SQL 授权分页和真实负载测试；不承诺规模指标 |
+| OPEN-08 | JSON 摘要仅受限子集，响应 Schema 不完整 | 明确跨端规范、补 JCS 向量及响应契约；不宣称全量兼容 |
+| OPEN-09 | 机构/媒体/作品/项目/清单/AI/导出删除未开发 | 接续 v0.3 工作包；不是把它们改为延期 |
+| OPEN-10 | 尚无备份、完整恢复、密钥轮换与保留清理 | 保持合成验证，不用真实资料长期运营；不能拿 epoch guard 当作恢复验收 |
+| OPEN-11 | readiness 只检查 workspace/隔离，不证明 schema drift | 接力完善迁移指纹与依赖就绪检查，保留最小存活检查 |
+| OPEN-12 | SQL 运行身份未最小化，append-only 主要靠应用边界 | 实际 DB 角色/迁移权限/不可改审计约束另行落实 |
+
+这些不是已经发现的线上漏洞：没有线上 ONCE 实例被测试。前四项直接阻挡本包“可部署已验证”结论；其余按对应工作包关闭，尤其正式资料试用前必须有删除、导出和恢复能力。
+
+## 3. 复核方法与证据
+
+核心测试在 Node 原生 TS strip 模式运行，生产路径之外使用测试专用 MemoryStore。回环 HTTP 测试实际开了本地 HTTP 端口，但适配器仍是测试 Harness，不是 Nest/Express，也不是浏览器。
+
+静态检查使用 TypeScript AST/语法输出与生成契约比对，涵盖测试适配器不入生产、危险存储/HTML 标识符、命令头、延期路径等。它不是 lint 全集、依赖解析、完整安全扫描或模型证明。
+
+最终具体条数与执行命令见 [TEST_REPORT.md](TEST_REPORT.md)；当前源码指纹见 artifacts/verification.json，整包指纹见 MANIFEST.sha256。没有修改 SRVF 仓库、连接生产库或云服务。

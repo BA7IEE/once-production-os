@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: ten concurrent same-key creates produce one identity, source and receipt
+ok 1 - ten concurrent same-key creates produce one identity, source and receipt
+  ---
+  duration_ms: 128.44425
+  type: 'test'
+  ...
+# Subtest: same key plus different request or target returns conflict
+ok 2 - same key plus different request or target returns conflict
+  ---
+  duration_ms: 119.01175
+  type: 'test'
+  ...
+# Subtest: exact replay is checked before original CAS, and never reapplies old write
+ok 3 - exact replay is checked before original CAS, and never reapplies old write
+  ---
+  duration_ms: 119.590833
+  type: 'test'
+  ...
+# Subtest: current record scope is checked before returning even minimal old receipt
+ok 4 - current record scope is checked before returning even minimal old receipt
+  ---
+  duration_ms: 237.048041
+  type: 'test'
+  ...
+# Subtest: command without idempotency key does not write
+ok 5 - command without idempotency key does not write
+  ---
+  duration_ms: 117.782333
+  type: 'test'
+  ...
+# Subtest: audit failure rolls back source, person and receipt, then same key may succeed
+ok 6 - audit failure rolls back source, person and receipt, then same key may succeed
+  ---
+  duration_ms: 117.448334
+  type: 'test'
+  ...
+# Subtest: receipt schema contains only operation metadata, not person text
+ok 7 - receipt schema contains only operation metadata, not person text
+  ---
+  duration_ms: 117.487458
+  type: 'test'
+  ...
+# Subtest: preview reports errors per row and never creates people
+ok 8 - preview reports errors per row and never creates people
+  ---
+  duration_ms: 120.05625
+  type: 'test'
+  ...
+# Subtest: preview rejects over 100 rows and duplicate selected indices
+ok 9 - preview rejects over 100 rows and duplicate selected indices
+  ---
+  duration_ms: 117.304042
+  type: 'test'
+  ...
+# Subtest: preview is private to initiating member, including other administrators
+ok 10 - preview is private to initiating member, including other administrators
+  ---
+  duration_ms: 238.24675
+  type: 'test'
+  ...
+# Subtest: commit only enqueues; worker creates selected people with row-level result
+ok 11 - commit only enqueues; worker creates selected people with row-level result
+  ---
+  duration_ms: 121.559834
+  type: 'test'
+  ...
+# Subtest: exact commit replay returns original job; new key cannot change selected rows
+ok 12 - exact commit replay returns original job; new key cannot change selected rows
+  ---
+  duration_ms: 120.837542
+  type: 'test'
+  ...
+# Subtest: source revision change between preview and commit blocks stale batch
+ok 13 - source revision change between preview and commit blocks stale batch
+  ---
+  duration_ms: 118.22425
+  type: 'test'
+  ...
+# Subtest: source suspension after enqueue stops worker without importing
+ok 14 - source suspension after enqueue stops worker without importing
+  ---
+  duration_ms: 117.046666
+  type: 'test'
+  ...
+# Subtest: worker rechecks initiating member role after enqueue
+ok 15 - worker rechecks initiating member role after enqueue
+  ---
+  duration_ms: 233.451292
+  type: 'test'
+  ...
+# Subtest: expired claim cannot write or mark a newly claimed job successful
+ok 16 - expired claim cannot write or mark a newly claimed job successful
+  ---
+  duration_ms: 121.699875
+  type: 'test'
+  ...
+# Subtest: concurrent claims have one owner
+ok 17 - concurrent claims have one owner
+  ---
+  duration_ms: 119.909666
+  type: 'test'
+  ...
+# Subtest: job audit failure cannot leave unaccounted person
+ok 18 - job audit failure cannot leave unaccounted person
+  ---
+  duration_ms: 120.04575
+  type: 'test'
+  ...
+# Subtest: import preview expiry is enforced at access boundary
+ok 19 - import preview expiry is enforced at access boundary
+  ---
+  duration_ms: 182.925
+  type: 'test'
+  ...
+# Subtest: three abandoned leases exhaust retry budget
+ok 20 - three abandoned leases exhaust retry budget
+  ---
+  duration_ms: 119.826625
+  type: 'test'
+  ...
+# Subtest: 202 import receipt is ACCEPTED, never confused with job completion
+ok 21 - 202 import receipt is ACCEPTED, never confused with job completion
+  ---
+  duration_ms: 116.88925
+  type: 'test'
+  ...
+# Subtest: an expired preview receipt cannot revive preview access even when source remains valid
+ok 22 - an expired preview receipt cannot revive preview access even when source remains valid
+  ---
+  duration_ms: 174.539958
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3184.922792

@@ -1,0 +1,172 @@
+TAP version 13
+# Subtest: strict JSON rejects {"a":1,"a":2}
+ok 1 - strict JSON rejects {"a":1,"a":2}
+  ---
+  duration_ms: 1.077666
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects {"a":1,"\\u0061":2}
+ok 2 - strict JSON rejects {"a":1,"\\u0061":2}
+  ---
+  duration_ms: 0.13775
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects {"__proto__":{}}
+ok 3 - strict JSON rejects {"__proto__":{}}
+  ---
+  duration_ms: 0.057584
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects {"constructor":1}
+ok 4 - strict JSON rejects {"constructor":1}
+  ---
+  duration_ms: 0.053917
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects [1,]
+ok 5 - strict JSON rejects [1,]
+  ---
+  duration_ms: 0.0515
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects 01
+ok 6 - strict JSON rejects 01
+  ---
+  duration_ms: 0.144625
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects 1e400
+ok 7 - strict JSON rejects 1e400
+  ---
+  duration_ms: 0.079916
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects 9007199254740992
+ok 8 - strict JSON rejects 9007199254740992
+  ---
+  duration_ms: 0.071375
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects {"a":"\\ud800"}
+ok 9 - strict JSON rejects {"a":"\\ud800"}
+  ---
+  duration_ms: 0.314041
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects {}x
+ok 10 - strict JSON rejects {}x
+  ---
+  duration_ms: 0.262792
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects {"a":NaN}
+ok 11 - strict JSON rejects {"a":NaN}
+  ---
+  duration_ms: 0.09725
+  type: 'test'
+  ...
+# Subtest: strict JSON accepts escaped strings and supplementary characters
+ok 12 - strict JSON accepts escaped strings and supplementary characters
+  ---
+  duration_ms: 0.131084
+  type: 'test'
+  ...
+# Subtest: canonical field order does not change digest
+ok 13 - canonical field order does not change digest
+  ---
+  duration_ms: 0.248292
+  type: 'test'
+  ...
+# Subtest: canonical rejects integers outside safe range
+ok 14 - canonical rejects integers outside safe range
+  ---
+  duration_ms: 0.0425
+  type: 'test'
+  ...
+# Subtest: canonical subset vector
+ok 15 - canonical subset vector
+  ---
+  duration_ms: 0.038625
+  type: 'test'
+  ...
+# Subtest: canonical does not normalize Unicode or trim source content
+ok 16 - canonical does not normalize Unicode or trim source content
+  ---
+  duration_ms: 0.046667
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects excessive nesting
+ok 17 - strict JSON rejects excessive nesting
+  ---
+  duration_ms: 0.059208
+  type: 'test'
+  ...
+# Subtest: body size cap is bytes
+ok 18 - body size cap is bytes
+  ---
+  duration_ms: 0.720958
+  type: 'test'
+  ...
+# Subtest: DTO rejects contact injection in normal person fields
+ok 19 - DTO rejects contact injection in normal person fields
+  ---
+  duration_ms: 0.072541
+  type: 'test'
+  ...
+# Subtest: DTO rejects caller-supplied workspace
+ok 20 - DTO rejects caller-supplied workspace
+  ---
+  duration_ms: 0.034667
+  type: 'test'
+  ...
+# Subtest: date validation rejects normalized invalid date
+ok 21 - date validation rejects normalized invalid date
+  ---
+  duration_ms: 1.143791
+  type: 'test'
+  ...
+# Subtest: explicit null height remains null
+ok 22 - explicit null height remains null
+  ---
+  duration_ms: 0.094959
+  type: 'test'
+  ...
+# Subtest: omitted keys are not emitted
+ok 23 - omitted keys are not emitted
+  ---
+  duration_ms: 0.414666
+  type: 'test'
+  ...
+# Subtest: AES-GCM roundtrip, random ciphertext and wrong-key rejection
+ok 24 - AES-GCM roundtrip, random ciphertext and wrong-key rejection
+  ---
+  duration_ms: 0.616917
+  type: 'test'
+  ...
+# Subtest: scrypt verifies only correct password
+ok 25 - scrypt verifies only correct password
+  ---
+  duration_ms: 236.577166
+  type: 'test'
+  ...
+# Subtest: contact decryption rejects trailing ciphertext components and malformed encoding
+ok 26 - contact decryption rejects trailing ciphertext components and malformed encoding
+  ---
+  duration_ms: 0.276292
+  type: 'test'
+  ...
+# Subtest: password verifier rejects a valid hash with trailing serialized components
+ok 27 - password verifier rejects a valid hash with trailing serialized components
+  ---
+  duration_ms: 117.101875
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 433.266583

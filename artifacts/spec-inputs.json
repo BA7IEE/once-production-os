@@ -1,0 +1,119 @@
+{
+  "sourceArchive": "ONCE_Production_OS_v0.3_INTERNAL_MD.zip",
+  "fileCount": 16,
+  "unchanged": true,
+  "files": [
+    {
+      "file": "docs/spec/00_README.md",
+      "sha256": "c47d9b2aa9bea200c8cba373d5fa1159af12bf9e7d4a8221441db98e46e0244c",
+      "originalSha256": "c47d9b2aa9bea200c8cba373d5fa1159af12bf9e7d4a8221441db98e46e0244c",
+      "unchanged": true,
+      "bytes": 4563
+    },
+    {
+      "file": "docs/spec/01_REVIEW.md",
+      "sha256": "096a4ece68f052796d88a1361b7ee92243b5340f84cace7d4adf6225e1098c68",
+      "originalSha256": "096a4ece68f052796d88a1361b7ee92243b5340f84cace7d4adf6225e1098c68",
+      "unchanged": true,
+      "bytes": 6492
+    },
+    {
+      "file": "docs/spec/02_BRD.md",
+      "sha256": "21e809f59b8a7bae190613cfe856b25f856b7971b6e52389814716d6f1dbc809",
+      "originalSha256": "21e809f59b8a7bae190613cfe856b25f856b7971b6e52389814716d6f1dbc809",
+      "unchanged": true,
+      "bytes": 7423
+    },
+    {
+      "file": "docs/spec/03_MRD.md",
+      "sha256": "f99a8f21564be0f9ed40e4a875031d5fb0c8fe0b0708b49e65a029d33a3ebe46",
+      "originalSha256": "f99a8f21564be0f9ed40e4a875031d5fb0c8fe0b0708b49e65a029d33a3ebe46",
+      "unchanged": true,
+      "bytes": 5975
+    },
+    {
+      "file": "docs/spec/04_PRD.md",
+      "sha256": "b629d472d8d62616d1c444d5f478baab259d58dc0e85aa5338d7d24644ad2037",
+      "originalSha256": "b629d472d8d62616d1c444d5f478baab259d58dc0e85aa5338d7d24644ad2037",
+      "unchanged": true,
+      "bytes": 18588
+    },
+    {
+      "file": "docs/spec/05_REUSE.md",
+      "sha256": "e9a5c0f78ff1974f10472c6127227c62c3f0857d1ed68f84d23284c5842bffd5",
+      "originalSha256": "e9a5c0f78ff1974f10472c6127227c62c3f0857d1ed68f84d23284c5842bffd5",
+      "unchanged": true,
+      "bytes": 5275
+    },
+    {
+      "file": "docs/spec/06_DEVELOPMENT.md",
+      "sha256": "59ba26d4fc23d05d90e3c5c83c4421e1ed71b5b3f21f9eeaa2e30fc0da3f1110",
+      "originalSha256": "59ba26d4fc23d05d90e3c5c83c4421e1ed71b5b3f21f9eeaa2e30fc0da3f1110",
+      "unchanged": true,
+      "bytes": 11266
+    },
+    {
+      "file": "docs/spec/07_DATA_MODEL.md",
+      "sha256": "820541bc14431c2c7368bcb706c2d82f414f26d316fae55923d4c92ecacb5c25",
+      "originalSha256": "820541bc14431c2c7368bcb706c2d82f414f26d316fae55923d4c92ecacb5c25",
+      "unchanged": true,
+      "bytes": 15889
+    },
+    {
+      "file": "docs/spec/08_API_PERMISSIONS.md",
+      "sha256": "c79da569e9ac669a7d4aa4fbb8edc8feca1957d4bed761dda50c6e2bab4ced7d",
+      "originalSha256": "c79da569e9ac669a7d4aa4fbb8edc8feca1957d4bed761dda50c6e2bab4ced7d",
+      "unchanged": true,
+      "bytes": 18837
+    },
+    {
+      "file": "docs/spec/09_STATES_WORKFLOWS.md",
+      "sha256": "66c7ec2352a209b2e0a7bef786d285fe2f1e2c9b6ac5d525af5b778a013f6b4c",
+      "originalSha256": "66c7ec2352a209b2e0a7bef786d285fe2f1e2c9b6ac5d525af5b778a013f6b4c",
+      "unchanged": true,
+      "bytes": 10356
+    },
+    {
+      "file": "docs/spec/10_BACKLOG_TESTS.md",
+      "sha256": "c88af0a73d9bb829eb13d9948d51ee1156b72604997fbc85c9a9304d63e2e574",
+      "originalSha256": "c88af0a73d9bb829eb13d9948d51ee1156b72604997fbc85c9a9304d63e2e574",
+      "unchanged": true,
+      "bytes": 18868
+    },
+    {
+      "file": "docs/spec/11_OPERATIONS.md",
+      "sha256": "6e4ef6fb36d0d4c488be1aa2fd175053687c81ed9e1d77523f3f7d9583851e45",
+      "originalSha256": "6e4ef6fb36d0d4c488be1aa2fd175053687c81ed9e1d77523f3f7d9583851e45",
+      "unchanged": true,
+      "bytes": 7559
+    },
+    {
+      "file": "docs/spec/12_DECISIONS_CHANGELOG.md",
+      "sha256": "376959121f88d31035a666dc6c4591943bf940c1a828ae46e249e67e21b280e3",
+      "originalSha256": "376959121f88d31035a666dc6c4591943bf940c1a828ae46e249e67e21b280e3",
+      "unchanged": true,
+      "bytes": 7942
+    },
+    {
+      "file": "docs/spec/13_SOURCES.md",
+      "sha256": "0cc7d8c49c260bf1d629803748149e5b0b95a517d527e039511be6c43d1331fe",
+      "originalSha256": "0cc7d8c49c260bf1d629803748149e5b0b95a517d527e039511be6c43d1331fe",
+      "unchanged": true,
+      "bytes": 11019
+    },
+    {
+      "file": "docs/spec/14_DOC_QA.md",
+      "sha256": "6ca7a6c57282dd7ab0bd232260144b25c6720ff220a7635644922e0125ca5345",
+      "originalSha256": "6ca7a6c57282dd7ab0bd232260144b25c6720ff220a7635644922e0125ca5345",
+      "unchanged": true,
+      "bytes": 6020
+    },
+    {
+      "file": "docs/spec/AGENTS.md",
+      "sha256": "b946dd42b36a21d7240652c3797e914263274acd3597c96ae040a1e787b603c3",
+      "originalSha256": "b946dd42b36a21d7240652c3797e914263274acd3597c96ae040a1e787b603c3",
+      "unchanged": true,
+      "bytes": 2227
+    }
+  ]
+}

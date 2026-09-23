@@ -1,0 +1,5 @@
+[
+  {"displayName":"合成摄影师 A","roles":["photographer","editor"],"cityCode":"shenzhen"},
+  {"displayName":"合成模特 B","roles":["model"],"cityCode":"guangzhou"},
+  {"displayName":"合成化妆师 C","roles":["makeup"],"cityCode":"dongguan"}
+]

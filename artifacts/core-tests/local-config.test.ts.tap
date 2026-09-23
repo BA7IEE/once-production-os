@@ -1,0 +1,34 @@
+TAP version 13
+# Subtest: local initializer creates private random files, never emits their values
+ok 1 - local initializer creates private random files, never emits their values
+  ---
+  duration_ms: 75.754542
+  type: 'test'
+  ...
+# Subtest: local initializer refuses an existing environment without overwriting keys
+ok 2 - local initializer refuses an existing environment without overwriting keys
+  ---
+  duration_ms: 67.403625
+  type: 'test'
+  ...
+# Subtest: config loader accepts valid file references and rejects malformed secrets and modes
+ok 3 - config loader accepts valid file references and rejects malformed secrets and modes
+  ---
+  duration_ms: 35.215208
+  type: 'test'
+  ...
+# Subtest: production core refuses insecure origin and cookies before any database access
+ok 4 - production core refuses insecure origin and cookies before any database access
+  ---
+  duration_ms: 0.462209
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 310.187125

@@ -1,0 +1,160 @@
+TAP version 13
+# Subtest: bootstrap is CLI-only and rejects a second initialization
+ok 1 - bootstrap is CLI-only and rejects a second initialization
+  ---
+  duration_ms: 184.080667
+  type: 'test'
+  ...
+# Subtest: failed bootstrap audit rolls the entire installation back
+ok 2 - failed bootstrap audit rolls the entire installation back
+  ---
+  duration_ms: 59.093916
+  type: 'test'
+  ...
+# Subtest: anonymous business reads rejected
+ok 3 - anonymous business reads rejected
+  ---
+  duration_ms: 117.351917
+  type: 'test'
+  ...
+# Subtest: login cookie is host-only Secure HttpOnly SameSite
+ok 4 - login cookie is host-only Secure HttpOnly SameSite
+  ---
+  duration_ms: 174.075625
+  type: 'test'
+  ...
+# Subtest: login requires server-issued preauth token
+ok 5 - login requires server-issued preauth token
+  ---
+  duration_ms: 118.477542
+  type: 'test'
+  ...
+# Subtest: cross-origin writes rejected even with a valid session and CSRF
+ok 6 - cross-origin writes rejected even with a valid session and CSRF
+  ---
+  duration_ms: 116.972958
+  type: 'test'
+  ...
+# Subtest: missing CSRF rejected
+ok 7 - missing CSRF rejected
+  ---
+  duration_ms: 119.483625
+  type: 'test'
+  ...
+# Subtest: non-JSON write rejected
+ok 8 - non-JSON write rejected
+  ---
+  duration_ms: 119.630125
+  type: 'test'
+  ...
+# Subtest: invalid login is uniform and eventually rate-limited
+ok 9 - invalid login is uniform and eventually rate-limited
+  ---
+  duration_ms: 584.442791
+  type: 'test'
+  ...
+# Subtest: activation is single-use and secret is never recoverable from list
+ok 10 - activation is single-use and secret is never recoverable from list
+  ---
+  duration_ms: 245.299167
+  type: 'test'
+  ...
+# Subtest: activation expires at the exact boundary
+ok 11 - activation expires at the exact boundary
+  ---
+  duration_ms: 176.337583
+  type: 'test'
+  ...
+# Subtest: reset invalidates the previous activation and active sessions
+ok 12 - reset invalidates the previous activation and active sessions
+  ---
+  duration_ms: 366.990541
+  type: 'test'
+  ...
+# Subtest: self-reset is refused in favor of password change
+ok 13 - self-reset is refused in favor of password change
+  ---
+  duration_ms: 117.483042
+  type: 'test'
+  ...
+# Subtest: pending admin does not allow deleting last active admin
+ok 14 - pending admin does not allow deleting last active admin
+  ---
+  duration_ms: 117.417292
+  type: 'test'
+  ...
+# Subtest: VIEWER cannot write or list members
+ok 15 - VIEWER cannot write or list members
+  ---
+  duration_ms: 232.662416
+  type: 'test'
+  ...
+# Subtest: permission change revokes old sessions
+ok 16 - permission change revokes old sessions
+  ---
+  duration_ms: 295.131917
+  type: 'test'
+  ...
+# Subtest: disabled member cannot replay a previously valid command
+ok 17 - disabled member cannot replay a previously valid command
+  ---
+  duration_ms: 231.867792
+  type: 'test'
+  ...
+# Subtest: idle timeout is checked without a worker
+ok 18 - idle timeout is checked without a worker
+  ---
+  duration_ms: 115.992042
+  type: 'test'
+  ...
+# Subtest: absolute expiry is not extended by activity
+ok 19 - absolute expiry is not extended by activity
+  ---
+  duration_ms: 119.065583
+  type: 'test'
+  ...
+# Subtest: password change invalidates all previous sessions
+ok 20 - password change invalidates all previous sessions
+  ---
+  duration_ms: 289.737708
+  type: 'test'
+  ...
+# Subtest: recovery epoch mismatch isolates old sessions
+ok 21 - recovery epoch mismatch isolates old sessions
+  ---
+  duration_ms: 116.971292
+  type: 'test'
+  ...
+# Subtest: maintenance mode blocks business and claims
+ok 22 - maintenance mode blocks business and claims
+  ---
+  duration_ms: 116.041666
+  type: 'test'
+  ...
+# Subtest: pending administrator can be disabled without removing the sole active administrator
+ok 23 - pending administrator can be disabled without removing the sole active administrator
+  ---
+  duration_ms: 115.66625
+  type: 'test'
+  ...
+# Subtest: recovery isolation also blocks activation rather than only ordinary API reads
+ok 24 - recovery isolation also blocks activation rather than only ordinary API reads
+  ---
+  duration_ms: 117.083167
+  type: 'test'
+  ...
+# Subtest: access reset has a per-member issuance rate limit
+ok 25 - access reset has a per-member issuance rate limit
+  ---
+  duration_ms: 117.498208
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4569.849584

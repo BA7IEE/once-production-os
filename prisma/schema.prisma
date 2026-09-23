@@ -1,0 +1,383 @@
+// CHECK constraints in migration.sql are intentional and must be retained in future migrations.
+// Initial development schema. Validate + migrate + test against PostgreSQL before real data.
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+model Workspace {
+  id String @id @db.Uuid
+  name String @db.Text
+  createdAt DateTime @db.Timestamptz(3)
+  recoveryEpoch String @db.Text
+  User_workspace User[] @relation("User_workspace")
+  Membership_workspace Membership[] @relation("Membership_workspace")
+  Session_workspace Session[] @relation("Session_workspace")
+  Activation_workspace Activation[] @relation("Activation_workspace")
+  AccessScope_workspace AccessScope[] @relation("AccessScope_workspace")
+  ScopeMember_workspace ScopeMember[] @relation("ScopeMember_workspace")
+  SourceRecord_workspace SourceRecord[] @relation("SourceRecord_workspace")
+  Person_workspace Person[] @relation("Person_workspace")
+  Contact_workspace Contact[] @relation("Contact_workspace")
+  FieldEvidence_workspace FieldEvidence[] @relation("FieldEvidence_workspace")
+  DictionaryItem_workspace DictionaryItem[] @relation("DictionaryItem_workspace")
+  CommandReceipt_workspace CommandReceipt[] @relation("CommandReceipt_workspace")
+  AuditEvent_workspace AuditEvent[] @relation("AuditEvent_workspace")
+  RateBucket_workspace RateBucket[] @relation("RateBucket_workspace")
+  ImportBatch_workspace ImportBatch[] @relation("ImportBatch_workspace")
+  DurableJob_workspace DurableJob[] @relation("DurableJob_workspace")
+  @@map("workspaces")
+}
+
+model User {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  loginName String @db.Text
+  displayName String @db.Text
+  passwordHash String? @db.Text
+  status String @db.Text
+  sessionEpoch Int
+  workspace Workspace @relation("User_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "users_workspace_fkey")
+  Membership_userIdRef Membership[] @relation("Membership_userIdRef")
+  Activation_userIdRef Activation[] @relation("Activation_userIdRef")
+  @@unique([workspaceId, id])
+  @@unique([loginName])
+  @@index([workspaceId, createdAt], map: "users_idx_0")
+  @@map("users")
+}
+
+model Membership {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  userId String @db.Uuid
+  role String @db.Text
+  extraPermissions String[]
+  status String @db.Text
+  workspace Workspace @relation("Membership_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "memberships_workspace_fkey")
+  userIdRef User @relation("Membership_userIdRef", fields: [workspaceId, userId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "memberships_userIdRef_fkey")
+  Session_membershipIdRef Session[] @relation("Session_membershipIdRef")
+  ScopeMember_membershipIdRef ScopeMember[] @relation("ScopeMember_membershipIdRef")
+  SourceRecord_maintainerIdRef SourceRecord[] @relation("SourceRecord_maintainerIdRef")
+  SourceRecord_reviewedByRef SourceRecord[] @relation("SourceRecord_reviewedByRef")
+  Person_maintainerIdRef Person[] @relation("Person_maintainerIdRef")
+  FieldEvidence_reviewerIdRef FieldEvidence[] @relation("FieldEvidence_reviewerIdRef")
+  CommandReceipt_actorIdRef CommandReceipt[] @relation("CommandReceipt_actorIdRef")
+  AuditEvent_actorIdRef AuditEvent[] @relation("AuditEvent_actorIdRef")
+  ImportBatch_actorIdRef ImportBatch[] @relation("ImportBatch_actorIdRef")
+  DurableJob_actorIdRef DurableJob[] @relation("DurableJob_actorIdRef")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, userId])
+  @@index([workspaceId, createdAt], map: "memberships_idx_0")
+  @@map("memberships")
+}
+
+model Session {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  membershipId String @db.Uuid
+  tokenHash String @db.Text
+  userEpoch Int
+  recoveryEpoch String @db.Text
+  idleUntil DateTime @db.Timestamptz(3)
+  absoluteUntil DateTime @db.Timestamptz(3)
+  revokedAt DateTime? @db.Timestamptz(3)
+  workspace Workspace @relation("Session_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "sessions_workspace_fkey")
+  membershipIdRef Membership @relation("Session_membershipIdRef", fields: [workspaceId, membershipId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "sessions_membershipIdRef_fkey")
+  @@unique([workspaceId, id])
+  @@unique([tokenHash])
+  @@index([workspaceId, createdAt], map: "sessions_idx_0")
+  @@index([idleUntil], map: "sessions_idx_1")
+  @@map("sessions")
+}
+
+model Activation {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  userId String @db.Uuid
+  tokenHash String @db.Text
+  expiresAt DateTime @db.Timestamptz(3)
+  consumedAt DateTime? @db.Timestamptz(3)
+  workspace Workspace @relation("Activation_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "activations_workspace_fkey")
+  userIdRef User @relation("Activation_userIdRef", fields: [workspaceId, userId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "activations_userIdRef_fkey")
+  @@unique([workspaceId, id])
+  @@unique([tokenHash])
+  @@index([workspaceId, createdAt], map: "activations_idx_0")
+  @@index([expiresAt], map: "activations_idx_1")
+  @@map("activations")
+}
+
+model AccessScope {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  name String @db.Text
+  mode String @db.Text
+  workspace Workspace @relation("AccessScope_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "scopes_workspace_fkey")
+  ScopeMember_scopeIdRef ScopeMember[] @relation("ScopeMember_scopeIdRef")
+  SourceRecord_scopeIdRef SourceRecord[] @relation("SourceRecord_scopeIdRef")
+  Person_scopeIdRef Person[] @relation("Person_scopeIdRef")
+  ImportBatch_scopeIdRef ImportBatch[] @relation("ImportBatch_scopeIdRef")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, createdAt], map: "scopes_idx_0")
+  @@map("scopes")
+}
+
+model ScopeMember {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  scopeId String @db.Uuid
+  membershipId String @db.Uuid
+  workspace Workspace @relation("ScopeMember_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "scopeMembers_workspace_fkey")
+  scopeIdRef AccessScope @relation("ScopeMember_scopeIdRef", fields: [workspaceId, scopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "scopeMembers_scopeIdRef_fkey")
+  membershipIdRef Membership @relation("ScopeMember_membershipIdRef", fields: [workspaceId, membershipId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "scopeMembers_membershipIdRef_fkey")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, scopeId, membershipId])
+  @@index([workspaceId, createdAt], map: "scopeMembers_idx_0")
+  @@map("scopeMembers")
+}
+
+model SourceRecord {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  scopeId String @db.Uuid
+  maintainerId String @db.Uuid
+  title String @db.Text
+  type String @db.Text
+  providerClaim String @db.Text
+  textPayload String @db.Text
+  basisMode String @db.Text
+  basisDescription String @db.Text
+  validFrom DateTime @db.Timestamptz(3)
+  validUntil DateTime @db.Timestamptz(3)
+  status String @db.Text
+  protectionEpoch Int
+  reviewedBy String? @db.Uuid
+  reviewedAt DateTime? @db.Timestamptz(3)
+  workspace Workspace @relation("SourceRecord_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "sources_workspace_fkey")
+  scopeIdRef AccessScope @relation("SourceRecord_scopeIdRef", fields: [workspaceId, scopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "sources_scopeIdRef_fkey")
+  maintainerIdRef Membership @relation("SourceRecord_maintainerIdRef", fields: [workspaceId, maintainerId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "sources_maintainerIdRef_fkey")
+  reviewedByRef Membership? @relation("SourceRecord_reviewedByRef", fields: [workspaceId, reviewedBy], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "sources_reviewedByRef_fkey")
+  Person_sourceIdRef Person[] @relation("Person_sourceIdRef")
+  Contact_sourceIdRef Contact[] @relation("Contact_sourceIdRef")
+  FieldEvidence_sourceIdRef FieldEvidence[] @relation("FieldEvidence_sourceIdRef")
+  ImportBatch_sourceIdRef ImportBatch[] @relation("ImportBatch_sourceIdRef")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, createdAt], map: "sources_idx_0")
+  @@index([workspaceId, scopeId], map: "sources_idx_1")
+  @@index([validUntil], map: "sources_idx_2")
+  @@map("sources")
+}
+
+model Person {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  scopeId String @db.Uuid
+  sourceId String @db.Uuid
+  maintainerId String @db.Uuid
+  displayName String @db.Text
+  aliases String[]
+  roles String[]
+  cityCode String? @db.Text
+  languageCodes String[]
+  skillCodes String[]
+  heightCm Float? @db.DoublePrecision
+  intro String @db.Text
+  status String @db.Text
+  protectionEpoch Int
+  workspace Workspace @relation("Person_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "people_workspace_fkey")
+  scopeIdRef AccessScope @relation("Person_scopeIdRef", fields: [workspaceId, scopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "people_scopeIdRef_fkey")
+  sourceIdRef SourceRecord @relation("Person_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "people_sourceIdRef_fkey")
+  maintainerIdRef Membership @relation("Person_maintainerIdRef", fields: [workspaceId, maintainerId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "people_maintainerIdRef_fkey")
+  Contact_personIdRef Contact[] @relation("Contact_personIdRef")
+  FieldEvidence_personIdRef FieldEvidence[] @relation("FieldEvidence_personIdRef")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, createdAt], map: "people_idx_0")
+  @@index([workspaceId, sourceId], map: "people_idx_1")
+  @@index([workspaceId, scopeId], map: "people_idx_2")
+  @@map("people")
+}
+
+model Contact {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  sourceId String @db.Uuid
+  kind String @db.Text
+  ciphertext String @db.Text
+  maskedValue String @db.Text
+  workspace Workspace @relation("Contact_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "contacts_workspace_fkey")
+  personIdRef Person @relation("Contact_personIdRef", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "contacts_personIdRef_fkey")
+  sourceIdRef SourceRecord @relation("Contact_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "contacts_sourceIdRef_fkey")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, createdAt], map: "contacts_idx_0")
+  @@index([workspaceId, personId], map: "contacts_idx_1")
+  @@map("contacts")
+}
+
+model FieldEvidence {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  fieldPath String @db.Text
+  valueDigest String @db.Text
+  sourceId String @db.Uuid
+  sourceRevision Int
+  reviewerId String @db.Uuid
+  reviewedAt DateTime @db.Timestamptz(3)
+  workspace Workspace @relation("FieldEvidence_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "evidence_workspace_fkey")
+  personIdRef Person @relation("FieldEvidence_personIdRef", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "evidence_personIdRef_fkey")
+  sourceIdRef SourceRecord @relation("FieldEvidence_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "evidence_sourceIdRef_fkey")
+  reviewerIdRef Membership @relation("FieldEvidence_reviewerIdRef", fields: [workspaceId, reviewerId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "evidence_reviewerIdRef_fkey")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, createdAt], map: "evidence_idx_0")
+  @@index([workspaceId, personId], map: "evidence_idx_1")
+  @@map("evidence")
+}
+
+model DictionaryItem {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  namespace String @db.Text
+  code String @db.Text
+  labelZh String @db.Text
+  labelEn String @db.Text
+  status String @db.Text
+  workspace Workspace @relation("DictionaryItem_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "dictionary_workspace_fkey")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, namespace, code])
+  @@index([workspaceId, createdAt], map: "dictionary_idx_0")
+  @@map("dictionary")
+}
+
+model CommandReceipt {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  actorId String @db.Uuid
+  operation String @db.Text
+  commandKey String @db.Text
+  requestDigest String @db.Text
+  resourceKind String @db.Text
+  resourceId String @db.Uuid
+  result Json @db.JsonB
+  workspace Workspace @relation("CommandReceipt_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "receipts_workspace_fkey")
+  actorIdRef Membership @relation("CommandReceipt_actorIdRef", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "receipts_actorIdRef_fkey")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, actorId, operation, commandKey])
+  @@index([workspaceId, createdAt], map: "receipts_idx_0")
+  @@map("receipts")
+}
+
+model AuditEvent {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  actorId String? @db.Uuid
+  action String @db.Text
+  resourceKind String @db.Text
+  resourceId String @db.Uuid
+  changedFields String[]
+  requestId String @db.Uuid
+  workspace Workspace @relation("AuditEvent_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "audits_workspace_fkey")
+  actorIdRef Membership? @relation("AuditEvent_actorIdRef", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "audits_actorIdRef_fkey")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, createdAt], map: "audits_idx_0")
+  @@index([workspaceId, resourceKind, resourceId], map: "audits_idx_1")
+  @@map("audits")
+}
+
+model RateBucket {
+  id String @id @db.Text
+  workspaceId String @db.Uuid
+  count Int
+  until DateTime @db.Timestamptz(3)
+  workspace Workspace @relation("RateBucket_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "rateBuckets_workspace_fkey")
+  @@index([until], map: "rateBuckets_idx_0")
+  @@map("rateBuckets")
+}
+
+model ImportBatch {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  actorId String @db.Uuid
+  sourceId String @db.Uuid
+  sourceRevision Int
+  scopeId String @db.Uuid
+  rows Json @db.JsonB
+  expiresAt DateTime @db.Timestamptz(3)
+  workspace Workspace @relation("ImportBatch_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "imports_workspace_fkey")
+  actorIdRef Membership @relation("ImportBatch_actorIdRef", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "imports_actorIdRef_fkey")
+  sourceIdRef SourceRecord @relation("ImportBatch_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "imports_sourceIdRef_fkey")
+  scopeIdRef AccessScope @relation("ImportBatch_scopeIdRef", fields: [workspaceId, scopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "imports_scopeIdRef_fkey")
+  DurableJob_aggregateIdRef DurableJob[] @relation("DurableJob_aggregateIdRef")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, createdAt], map: "imports_idx_0")
+  @@map("imports")
+}
+
+model DurableJob {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  type String @db.Text
+  actorId String @db.Uuid
+  aggregateId String @db.Uuid
+  selectedRows Int[]
+  state String @db.Text
+  leaseToken String? @db.Uuid
+  leaseUntil DateTime? @db.Timestamptz(3)
+  attempts Int
+  errorCode String? @db.Text
+  workspace Workspace @relation("DurableJob_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "jobs_workspace_fkey")
+  actorIdRef Membership @relation("DurableJob_actorIdRef", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "jobs_actorIdRef_fkey")
+  aggregateIdRef ImportBatch @relation("DurableJob_aggregateIdRef", fields: [workspaceId, aggregateId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "jobs_aggregateIdRef_fkey")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, type, aggregateId])
+  @@index([workspaceId, createdAt], map: "jobs_idx_0")
+  @@index([state, leaseUntil], map: "jobs_idx_1")
+  @@map("jobs")
+}

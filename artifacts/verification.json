@@ -1,0 +1,192 @@
+{
+  "recordedAtEnvironmentClock": "2026-09-23T05:50:44.388356+00:00",
+  "scope": "2026-09-23 isolated online build, PostgreSQL integration and browser main journey; not complete ONCE phase 1",
+  "node": "v22.22.3",
+  "typescript": "Version 5.8.3 (project lockfile)",
+  "coreTypingSource": "Project-pinned @types/node 22.15.30; full server and React typecheck",
+  "sourceSha256": {
+    "packages/core/tsconfig.json": "9ec291eb594e8a285239270cc0c79aa05a97ca159d87d4e661b0096d20a8ac4d",
+    "packages/core/src/talent.ts": "4471a074f9fa7836252d93a2d9f8534815b9751dc35793eaccfcba2e3ea4ba50",
+    "packages/core/src/crypto.ts": "b3b507c85cfd207c07e3df36d9b4e24a5ff6d6512420bc16edae85eed1287ccd",
+    "packages/core/src/json.ts": "cd73013de7821b0eea2c40fe9f9da517e3794ba0a32d0e4e09e0b1ed9f3350be",
+    "packages/core/src/imports.ts": "29fdca0ddffca2a7089b2ffb9ed462249b8558807145b80a6994c8671aa30c94",
+    "packages/core/src/validation.ts": "a1c32679664839a1045f85415f963955a975876953af2903f0d88c35033de37c",
+    "packages/core/src/routes.ts": "14de5daf7b0b60e22b84ad7243fbdd2ffb310f425c6731c5463ca44529824182",
+    "packages/core/src/json-boundary.ts": "e119aad53186bb2f45d91422c5b002bec8fa6c65ab4b325a3e9a8571145bf77e",
+    "packages/core/src/index.ts": "bbda77543de691366d0aaf256abec8674493eaf8e649e9db7eeb8ce2cc33654c",
+    "packages/core/src/commands.ts": "647eb105179af89f74161f660d972d9f975d561cf975d985e5faf5389d4ff6d8",
+    "packages/core/src/identity.ts": "b606d3ac2f3556a40634881d9a022d5569ddb2c2b62893d1cc7a5f7b54d8991a",
+    "packages/core/src/helpers.ts": "6c9a166cc201a2163a1915e0f7a22a622495edd7ac0b131cc593ffcb228c4eaa",
+    "packages/core/src/errors.ts": "55717e337da903bb04d10bfb3950f2b00b4851821d2e9e8c710e37087ae0cf97",
+    "packages/core/src/api.ts": "95c7617d0f02cbfe63d150ec3fd597736df3c45160e4cf31c725a8d2ab5789ba",
+    "packages/core/src/store.ts": "700a238fca36ec240301af91ccaab63dc20f583fdcf678193fc03b551fab6505",
+    "packages/core/src/policy.ts": "7e0c299b7f204c17a29a7addf4dccb3a4dcc31b3c5ce55cf41d38612cdf0da82",
+    "packages/core/src/replay-policy.ts": "5e1c38ccc848b5e9fa645310c2fc7c890fe6ea658cf71c3b4beb7778972f8cf0",
+    "packages/core/src/model.ts": "6e0a97d53b82577fec13bde92139d9dbbe6c3549d57729d076aee0e89e2199b4",
+    "apps/admin-web/vite.config.ts": "9f04c182a4cb89dcfaf2a6676c0c9504b1567b27d53e5cf4e1698ce009d0e8de",
+    "apps/admin-web/index.html": "7d051176b9b7120e5d1c1391961e018a77897776557829530b21d60552d014e3",
+    "apps/admin-web/tsconfig.json": "c7b1a5c25abf78f86473742ced9b4cad9729147408e864c4050b1de5d4337d27",
+    "apps/admin-web/tsconfig.transport.json": "56ba85acc16dba878236fb63634e3281ac8ee2b656eac7085c84d486e7797ec3",
+    "apps/admin-web/src/style.css": "bce1dd3030dd5c8f52d17f974b3dd0eaa9bf3dc998dfb682f0cff725780b09b5",
+    "apps/admin-web/src/dto.ts": "a64627a8e6cd367fa994ea6c6d14012719f40b58a68aeb3675f416ab36170091",
+    "apps/admin-web/src/ui.tsx": "81e791614afa5643511fb334dc35b8f4d9b9cd2fe7677cfdd723008619e009f4",
+    "apps/admin-web/src/main.tsx": "8043d2c1f638ba66af85a313e94d1ac8705f50035b02d21a49859e14b1b9f3d5",
+    "apps/admin-web/src/api.ts": "0344a28801c0a6c329602430230d9d39ba1b134d20d8b122035d8b541de57d8d",
+    "apps/admin-web/src/generated/requests.ts": "4a34455d73e8b732c7e1b11e055da478c663e9820da5ea568d4b7747fd7f8212",
+    "apps/api/src/worker-main.ts": "27510c8ee31c1a01a46ebd874d40aef496c313ba556e9d585202f2665b88db7e",
+    "apps/api/src/main.ts": "63e407cbb92646b946cbd21bdeb2ec1dbce7fa0cb0cd1e24108efcf8e6ec88f9",
+    "apps/api/src/prisma-store.ts": "45613015ab9393123cca0c3a10f5d886735c4d8e271b17c9d2249f978446dd49",
+    "apps/api/src/config.ts": "0d5105438ef8ae6bfd24f29453ca6a2381a2392bf8d32e12949ba488882d0c14",
+    "apps/api/src/bootstrap.ts": "1053b125676a7138bd9802262c699cde96a9f976610bb54dd04e2d89041a700e",
+    "tests/core/client-transport.test.ts": "afa3e9d9a2639ff2d46ba4e672755a349cc758a8c71945d76f8befaa76d950ab",
+    "tests/core/json-validation.test.ts": "e1c0a6c21ec1ac852619c53c7a589b426de43f54517d4a5e80a1ad1ab318bac7",
+    "tests/core/commands-imports.test.ts": "7b00468030014ddc0ed99b1c320599ca7d54bd0488b15e456bddea9fb43c06b2",
+    "tests/core/local-config.test.ts": "7c3081a43c076a8c3f8589dbadb3162fd93ff6ab207e75605914d2dab5bc165d",
+    "tests/core/identity.test.ts": "a347956ef0c87790fe320c5ef07352676009746a81fe718926fe2e21ba68acd0",
+    "tests/core/http-contract.test.ts": "f5b84d25278b7fe858eac1e1350d3407114d9bf23e462e9e053d546c1d84f853",
+    "tests/core/talent.test.ts": "17884ed153b35b58ad2e86c35560540c9affbb7a7b3a3295d580c22511f6aa90",
+    "tests/postgres/integration.test.ts": "83fe17c055635542bf870136d710e02b0e9823b3bce6b3d5b3c5b5444d94c859",
+    "tests/support/memory-store.ts": "2cb00eb0f698ed166fb7445ddeb8a8f1827f88d96820c90ec12101c4ddccf956",
+    "tests/support/fixtures.ts": "7388a0c4111091d7cc84c0a4de95cf71bb14ef07eacfb6fd106be11d33bf45c7",
+    "prisma/schema.prisma": "f16c674976c3298d1df7a7ca2a30588f9080f36e61038fba97198fa5778dfae4",
+    "prisma/migrations/migration_lock.toml": "1db17a8d051aa136110736752c5e1f8b7ed92b6ea8e803112fbbe2497047c210",
+    "prisma/migrations/202609220001_initial/migration.sql": "7e69f40e9a61b2b2f54d1944939d791bc2e7905d75ddd8e94e3f43aa6238c060",
+    "scripts/verify-postgres.mjs": "6e4a2a331ae81e1653316c54ad973aca017adb3a5f1b5b938a65fd961bb89e1f",
+    "scripts/static-review.mjs": "c3aed1419c6e442d340f2faea16f90d20827c3f61cd583d522b748b925101bd6",
+    "scripts/check-package.mjs": "eb44e322ecfff885e81de12d33a5b8a9b0dbb5918ca97dfdddab1f0a69536acc",
+    "scripts/run-core-tests.mjs": "511b8c1a08e4458327d660f371fab4f205263d5147714f1f1f3536674ca01179",
+    "scripts/format-source.mjs": "17171815ee8e87ecd6c0d0df8cbe6490f167bc17e7686304dff56b272270f8c0",
+    "scripts/online-verify.sh": "ba429be3ad5bf0192c0ebec9bb3ec75c6f0938a8d38032186188b7a6d60bed1c",
+    "scripts/init-local.mjs": "d8ba58bd351591a45d2f18cb380cdf6cd885409a85fac0f835ee26e1122a0769",
+    "scripts/generate-contract.ts": "4bc2502814bec6ebfb0515d88d8ec8bff35a236ae330f1ebd5ba75ac17f5c515",
+    "package.json": "a9290615b539710dc02a3f3ab5488892a15076da2b3eb8c17fee00e40cd7aab6",
+    "pnpm-lock.yaml": "5b7326279a55b2a6d2b3e838ec58e85e7f80183bdfbbb8d964b7708a1a759efd",
+    "README.md": "a399195fed230663f564521062692000f0daac8031df88c4d059344bb2534419",
+    "docs/release/IMPLEMENTATION_STATUS.md": "d4d3c7754638a570fee74f7cff7e417893e46ec0dcc04b85034d719289688241",
+    "docs/release/REVIEW.md": "bf57c45e413d751b0e8cfca02e293a0b3a2542740167d07714ca786ecc3c54de",
+    "docs/release/TEST_REPORT.md": "b2ffe6ec11171d4ef3120fc2504cd1df078e32738f909fe63c9d0853261f49c3",
+    "docs/release/LOCAL_RUN.md": "f1979ca0e9cfef77adb6e43d99029374c4d8b62bcc019653f487982ad673acf0",
+    ".nvmrc": "9c579c4eab1d526e689fe7cda201a0ab2f39070304043bb55c459a3d90954250"
+  },
+  "notExecuted": [
+    "complete browser exception/accessibility checklist",
+    "CI and production image",
+    "real storage and AI providers",
+    "backup, restore and deletion",
+    "production data import and deployment"
+  ],
+  "previousOfflineChecks": [
+    {
+      "name": "request-contract",
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "scripts/generate-contract.ts",
+        "--check"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "passed": true,
+      "evidence": "request-contract.log"
+    },
+    {
+      "name": "core-typecheck-global-typings",
+      "command": [
+        "tsc",
+        "-p",
+        "packages/core/tsconfig.json",
+        "--typeRoots",
+        "/opt/nvm/versions/node/v22.16.0/lib/node_modules/ts-node/node_modules/@types"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "passed": true,
+      "evidence": "core-typecheck-global-typings.log"
+    },
+    {
+      "name": "transport-typecheck",
+      "command": [
+        "tsc",
+        "-p",
+        "apps/admin-web/tsconfig.transport.json"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "passed": true,
+      "evidence": "transport-typecheck.log"
+    },
+    {
+      "name": "static-review",
+      "command": [
+        "node",
+        "scripts/static-review.mjs"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "passed": true,
+      "evidence": "static-review.log"
+    },
+    {
+      "name": "db-test-safety-preflight",
+      "command": [
+        "node",
+        "scripts/verify-postgres.mjs"
+      ],
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "passed": true,
+      "evidence": "db-test-safety-preflight.log"
+    }
+  ],
+  "previousNetworkProbeExitCode": 6,
+  "checks": [
+    {
+      "name": "online-verification",
+      "command": "pnpm verify:online",
+      "result": "PASS",
+      "evidence": "artifacts/online-run-20260923.txt",
+      "details": "Frozen install, Prisma validate/generate, 37 request contracts, full typechecks, 111/111 core tests, 11/11 static checks, API/web build, production audit 0 known vulnerabilities"
+    },
+    {
+      "name": "local-migration",
+      "command": "pnpm db:deploy; pnpm exec prisma migrate status",
+      "result": "PASS",
+      "details": "Fresh once_local, initial migration applied, schema up to date"
+    },
+    {
+      "name": "postgres-integration",
+      "command": "pnpm verify:postgres with ALLOW_DB_TESTS=yes and a dedicated once_test_* URL",
+      "result": "DB_TESTED",
+      "details": "6/6 real PostgreSQL assertions passed; disposable database retained"
+    },
+    {
+      "name": "browser-main-journey",
+      "command": "Headless Google Chrome via Playwright against 127.0.0.1:4318",
+      "result": "BROWSER_TESTED",
+      "details": "Owner/member login and activation, shared scope, editor source/person, reviewer source/field confirmation, JSON import/Worker, source suspension/read denial, logout; 0 page errors"
+    },
+    {
+      "name": "local-health",
+      "command": "GET /health/live and /health/ready",
+      "result": "PASS",
+      "details": "alive and ready"
+    },
+    {
+      "name": "staged-package-review",
+      "command": "node scripts/check-package.mjs in a copy excluding local secrets, dependencies and build output",
+      "result": "PASS",
+      "details": "76 Markdown links, 62 source fingerprints, 0 issues"
+    },
+    {
+      "name": "manifest",
+      "command": "sha256sum --status -c MANIFEST.sha256",
+      "result": "PASS",
+      "details": "113 files covered; manifest excludes itself and local secrets"
+    },
+    {
+      "name": "support-cycle-review",
+      "result": "PASS_WITH_LIMIT",
+      "details": "Node 22 LTS and PostgreSQL 16 supported on 2026-09-23; Prisma 6 receives security-only patches through 2026-11-19, so major-version migration remains required before long-term production use"
+    }
+  ]
+}

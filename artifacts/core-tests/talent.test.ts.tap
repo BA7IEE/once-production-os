@@ -1,0 +1,166 @@
+TAP version 13
+# Subtest: minimal talent journey: no media file, one identity and multiple roles
+ok 1 - minimal talent journey: no media file, one identity and multiple roles
+  ---
+  duration_ms: 130.733084
+  type: 'test'
+  ...
+# Subtest: ordinary editor receives temporary self-only source, not permanent permission
+ok 2 - ordinary editor receives temporary self-only source, not permanent permission
+  ---
+  duration_ms: 250.650708
+  type: 'test'
+  ...
+# Subtest: temporary source cannot exceed 7 days or use workspace scope
+ok 3 - temporary source cannot exceed 7 days or use workspace scope
+  ---
+  duration_ms: 119.714
+  type: 'test'
+  ...
+# Subtest: expiry blocks person read and search without a worker
+ok 4 - expiry blocks person read and search without a worker
+  ---
+  duration_ms: 184.468291
+  type: 'test'
+  ...
+# Subtest: suspension immediately blocks dependent person and replay
+ok 5 - suspension immediately blocks dependent person and replay
+  ---
+  duration_ms: 121.812666
+  type: 'test'
+  ...
+# Subtest: source review requires current revision and does not automatically widen scope
+ok 6 - source review requires current revision and does not automatically widen scope
+  ---
+  duration_ms: 243.254459
+  type: 'test'
+  ...
+# Subtest: unknown source, simultaneous source inputs and missing source are rejected
+ok 7 - unknown source, simultaneous source inputs and missing source are rejected
+  ---
+  duration_ms: 120.149
+  type: 'test'
+  ...
+# Subtest: invalid dictionary code rolls back inline source and person together
+ok 8 - invalid dictionary code rolls back inline source and person together
+  ---
+  duration_ms: 117.042375
+  type: 'test'
+  ...
+# Subtest: duplicate role is rejected, not silently multiplied
+ok 9 - duplicate role is rejected, not silently multiplied
+  ---
+  duration_ms: 119.461084
+  type: 'test'
+  ...
+# Subtest: same-name people remain separate identities
+ok 10 - same-name people remain separate identities
+  ---
+  duration_ms: 124.489583
+  type: 'test'
+  ...
+# Subtest: partial update preserves omitted fields and can explicitly clear optional height
+ok 11 - partial update preserves omitted fields and can explicitly clear optional height
+  ---
+  duration_ms: 120.414416
+  type: 'test'
+  ...
+# Subtest: CAS conflict rejects stale write and empty patch
+ok 12 - CAS conflict rejects stale write and empty patch
+  ---
+  duration_ms: 117.623833
+  type: 'test'
+  ...
+# Subtest: contacts stored encrypted, never included in person or generic receipt
+ok 13 - contacts stored encrypted, never included in person or generic receipt
+  ---
+  duration_ms: 119.243125
+  type: 'test'
+  ...
+# Subtest: ordinary editor can edit profile but cannot read or replace contacts
+ok 14 - ordinary editor can edit profile but cannot read or replace contacts
+  ---
+  duration_ms: 234.771584
+  type: 'test'
+  ...
+# Subtest: sensitive text is absent from list and requires explicit read/write permission
+ok 15 - sensitive text is absent from list and requires explicit read/write permission
+  ---
+  duration_ms: 233.930708
+  type: 'test'
+  ...
+# Subtest: field evidence binds exact value and becomes stale when value changes
+ok 16 - field evidence binds exact value and becomes stale when value changes
+  ---
+  duration_ms: 121.963875
+  type: 'test'
+  ...
+# Subtest: evidence also becomes stale after source text revision changes
+ok 17 - evidence also becomes stale after source text revision changes
+  ---
+  duration_ms: 129.276292
+  type: 'test'
+  ...
+# Subtest: inactive dictionary retains old references but rejects new use
+ok 18 - inactive dictionary retains old references but rejects new use
+  ---
+  duration_ms: 121.900666
+  type: 'test'
+  ...
+# Subtest: catalog cannot mutate stable code, duplicate namespace+code denied
+ok 19 - catalog cannot mutate stable code, duplicate namespace+code denied
+  ---
+  duration_ms: 120.403625
+  type: 'test'
+  ...
+# Subtest: scope shrink hides detail, rows and count from other members
+ok 20 - scope shrink hides detail, rows and count from other members
+  ---
+  duration_ms: 236.450333
+  type: 'test'
+  ...
+# Subtest: source and person scopes intersect, never union
+ok 21 - source and person scopes intersect, never union
+  ---
+  duration_ms: 235.202417
+  type: 'test'
+  ...
+# Subtest: inaccessible source cannot be smuggled into new profile
+ok 22 - inaccessible source cannot be smuggled into new profile
+  ---
+  duration_ms: 234.71725
+  type: 'test'
+  ...
+# Subtest: pagination caps, duplicate filters and malformed URI reject
+ok 23 - pagination caps, duplicate filters and malformed URI reject
+  ---
+  duration_ms: 117.549209
+  type: 'test'
+  ...
+# Subtest: contact ciphertext cannot be transplanted between people
+ok 24 - contact ciphertext cannot be transplanted between people
+  ---
+  duration_ms: 119.115041
+  type: 'test'
+  ...
+# Subtest: later field confirmation does not overwrite previous confirmation evidence
+ok 25 - later field confirmation does not overwrite previous confirmation evidence
+  ---
+  duration_ms: 120.113709
+  type: 'test'
+  ...
+# Subtest: editor and reviewer complete internal review through an explicitly assigned restricted scope
+ok 26 - editor and reviewer complete internal review through an explicitly assigned restricted scope
+  ---
+  duration_ms: 397.510208
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4407.813125

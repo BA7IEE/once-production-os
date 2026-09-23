@@ -1,0 +1,68 @@
+{
+  "name": "once-production-os",
+  "version": "0.1.0-dev.1",
+  "private": true,
+  "description": "ONCE 内部生产资源系统：首个账号、来源、人才建档开发切片",
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@10.14.0",
+  "engines": {
+    "node": ">=22.16.0 <23"
+  },
+  "scripts": {
+    "test:core": "node scripts/run-core-tests.mjs",
+    "typecheck:core": "tsc -p packages/core/tsconfig.json",
+    "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p apps/admin-web/tsconfig.json",
+    "build:api": "tsc -p tsconfig.server.json",
+    "build:web": "vite build --config apps/admin-web/vite.config.ts",
+    "build": "pnpm build:api && pnpm build:web",
+    "dev:api": "node --env-file=.env dist/apps/api/src/main.js",
+    "dev:web": "vite --config apps/admin-web/vite.config.ts",
+    "start": "node dist/apps/api/src/main.js",
+    "worker": "node dist/apps/api/src/worker-main.js",
+    "db:generate": "prisma generate",
+    "db:deploy": "prisma migrate deploy",
+    "bootstrap": "node dist/apps/api/src/bootstrap.js",
+    "contract:generate": "node --experimental-strip-types scripts/generate-contract.ts",
+    "contract:check": "node --experimental-strip-types scripts/generate-contract.ts --check",
+    "review:static": "node scripts/static-review.mjs",
+    "verify": "pnpm contract:check && pnpm typecheck && pnpm test:core && pnpm review:static && pnpm build",
+    "verify:postgres": "node scripts/verify-postgres.mjs",
+    "typecheck:transport": "tsc -p apps/admin-web/tsconfig.transport.json",
+    "init:local": "node scripts/init-local.mjs",
+    "verify:online": "bash scripts/online-verify.sh",
+    "review:package": "node scripts/check-package.mjs"
+  },
+  "dependencies": {
+    "@nestjs/common": "11.2.5",
+    "@nestjs/core": "11.2.5",
+    "@nestjs/platform-express": "11.2.5",
+    "@prisma/client": "6.19.3",
+    "express": "5.1.0",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.3",
+    "@types/node": "22.15.30",
+    "@types/react": "19.1.10",
+    "@types/react-dom": "19.1.9",
+    "prisma": "6.19.3",
+    "typescript": "5.8.3",
+    "vite": "6.4.1"
+  },
+  "type": "module",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "esbuild"
+    ],
+    "overrides": {
+      "@nestjs/platform-express>multer": "2.3.0",
+      "@prisma/config>deepmerge-ts": "8.0.1"
+    }
+  }
+}

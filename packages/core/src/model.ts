@@ -1,0 +1,214 @@
+export type Role = 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'VIEWER';
+export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write'] as const;
+export type ExtraPermission = typeof EXTRA_PERMISSIONS[number];
+export type Permission = 'records.read' | 'records.write' | 'sources.read' | 'sources.write' | 'sources.review' | 'catalog.manage' | 'members.manage' | 'audit.read' | ExtraPermission;
+export interface Base {
+    id: string;
+    workspaceId: string;
+    createdAt: string;
+    updatedAt: string;
+    revision: number;
+}
+export interface Workspace {
+    id: string;
+    name: string;
+    createdAt: string;
+    recoveryEpoch: string;
+}
+export interface User extends Base {
+    loginName: string;
+    displayName: string;
+    passwordHash: string | null;
+    status: 'PENDING' | 'ACTIVE' | 'DISABLED';
+    sessionEpoch: number;
+}
+export interface Membership extends Base {
+    userId: string;
+    role: Role;
+    extraPermissions: ExtraPermission[];
+    status: 'ACTIVE' | 'DISABLED';
+}
+export interface Session extends Base {
+    membershipId: string;
+    tokenHash: string;
+    userEpoch: number;
+    recoveryEpoch: string;
+    idleUntil: string;
+    absoluteUntil: string;
+    revokedAt: string | null;
+}
+export interface Activation extends Base {
+    userId: string;
+    tokenHash: string;
+    expiresAt: string;
+    consumedAt: string | null;
+}
+export interface Scope extends Base {
+    name: string;
+    mode: 'WORKSPACE' | 'RESTRICTED';
+}
+export interface ScopeMember extends Base {
+    scopeId: string;
+    membershipId: string;
+}
+export interface Source extends Base {
+    scopeId: string;
+    maintainerId: string;
+    title: string;
+    type: 'MANUAL' | 'TEXT';
+    providerClaim: string;
+    textPayload: string;
+    basisMode: 'TEMP_ORGANIZE' | 'INTERNAL_USE';
+    basisDescription: string;
+    validFrom: string;
+    validUntil: string;
+    status: 'RECEIVED' | 'CONFIRMED' | 'SUSPENDED';
+    protectionEpoch: number;
+    reviewedBy: string | null;
+    reviewedAt: string | null;
+}
+export interface Person extends Base {
+    scopeId: string;
+    sourceId: string;
+    maintainerId: string;
+    displayName: string;
+    aliases: string[];
+    roles: string[];
+    cityCode: string | null;
+    languageCodes: string[];
+    skillCodes: string[];
+    heightCm: number | null;
+    intro: string;
+    status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
+    protectionEpoch: number;
+}
+export interface Contact extends Base {
+    personId: string;
+    sourceId: string;
+    kind: 'PHONE' | 'WECHAT' | 'EMAIL' | 'OTHER';
+    ciphertext: string;
+    maskedValue: string;
+}
+export interface FieldEvidence extends Base {
+    personId: string;
+    fieldPath: string;
+    valueDigest: string;
+    sourceId: string;
+    sourceRevision: number;
+    reviewerId: string;
+    reviewedAt: string;
+}
+export interface DictionaryItem extends Base {
+    namespace: 'role' | 'city' | 'language' | 'skill';
+    code: string;
+    labelZh: string;
+    labelEn: string;
+    status: 'ACTIVE' | 'INACTIVE';
+}
+export interface CommandReceipt extends Base {
+    actorId: string;
+    operation: string;
+    commandKey: string;
+    requestDigest: string;
+    resourceKind: 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job';
+    resourceId: string;
+    result: ReceiptResult;
+}
+export interface ReceiptResult {
+    operationId: string;
+    resourceId: string;
+    revision: number;
+    state: 'SUCCEEDED' | 'ACCEPTED';
+    replayed?: boolean;
+}
+export interface AuditEvent extends Base {
+    actorId: string | null;
+    action: string;
+    resourceKind: string;
+    resourceId: string;
+    changedFields: string[];
+    requestId: string;
+}
+export interface RateBucket {
+    id: string;
+    workspaceId: string;
+    count: number;
+    until: string;
+}
+export interface ImportBatch extends Base {
+    actorId: string;
+    sourceId: string;
+    sourceRevision: number;
+    scopeId: string;
+    rows: ImportRow[];
+    expiresAt: string;
+}
+export interface ImportRow {
+    index: number;
+    displayName: string;
+    roles: string[];
+    cityCode: string | null;
+    state: 'VALID' | 'INVALID' | 'IMPORTED' | 'FAILED';
+    issues: string[];
+    personId: string | null;
+}
+export interface DurableJob extends Base {
+    type: 'IMPORT_PEOPLE';
+    actorId: string;
+    aggregateId: string;
+    selectedRows: number[];
+    state: 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
+    leaseToken: string | null;
+    leaseUntil: string | null;
+    attempts: number;
+    errorCode: string | null;
+}
+export interface TableMap {
+    workspaces: Workspace;
+    users: User;
+    memberships: Membership;
+    sessions: Session;
+    activations: Activation;
+    scopes: Scope;
+    scopeMembers: ScopeMember;
+    sources: Source;
+    people: Person;
+    contacts: Contact;
+    evidence: FieldEvidence;
+    dictionary: DictionaryItem;
+    receipts: CommandReceipt;
+    audits: AuditEvent;
+    rateBuckets: RateBucket;
+    imports: ImportBatch;
+    jobs: DurableJob;
+}
+export type Table = keyof TableMap;
+export interface Actor {
+    userId: string;
+    membershipId: string;
+    workspaceId: string;
+    role: Role;
+    permissions: Permission[];
+    displayName: string;
+    userEpoch: number;
+    sessionId: string;
+}
+export interface RequestMeta {
+    requestId: string;
+    ip: string;
+}
+export interface Clock {
+    now(): Date;
+}
+export interface Config {
+    origin: string;
+    secureCookies: boolean;
+    contactKey: Buffer;
+    csrfKey: Buffer;
+    recoveryEpoch: string;
+    accessMode: 'MAINTENANCE' | 'INTERNAL';
+    environment: 'local' | 'test' | 'staging' | 'production';
+}
+export const LIMITS = Object.freeze({ idleMs: 30 * 60000, absoluteMs: 12 * 60 * 60000,
+    activationMs: 24 * 60 * 60000, temporaryMs: 7 * 24 * 60 * 60000, pageSize: 20, maxPageSize: 100,
+    importRows: 100, importMs: 24 * 60 * 60000, jobLeaseMs: 30000 });

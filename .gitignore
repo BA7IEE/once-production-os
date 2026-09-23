@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.pnpm-store/
+.env
+.env.*
+!.env.example
+.secrets/
+secrets/
+data/
+*.log
+!artifacts/*.log
+artifacts/local-*
+*.zip
+
+.secrets/

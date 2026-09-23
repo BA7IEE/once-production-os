@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: client preserves exact key after network uncertainty and replays only original payload
+ok 1 - client preserves exact key after network uncertainty and replays only original payload
+  ---
+  duration_ms: 12.224667
+  type: 'test'
+  ...
+# Subtest: HTTP 500 retains key, authoritative 409 releases it
+ok 2 - HTTP 500 retains key, authoritative 409 releases it
+  ---
+  duration_ms: 0.536458
+  type: 'test'
+  ...
+# Subtest: unknown activation issuance is not silently repeated
+ok 3 - unknown activation issuance is not silently repeated
+  ---
+  duration_ms: 0.508
+  type: 'test'
+  ...
+# Subtest: transport uses same-origin cookies, no cache and rejects redirects
+ok 4 - transport uses same-origin cookies, no cache and rejects redirects
+  ---
+  duration_ms: 0.223333
+  type: 'test'
+  ...
+# Subtest: malformed success response keeps command unresolved
+ok 5 - malformed success response keeps command unresolved
+  ---
+  duration_ms: 0.495833
+  type: 'test'
+  ...
+# Subtest: server session failure notifies UI and never exposes server secrets
+ok 6 - server session failure notifies UI and never exposes server secrets
+  ---
+  duration_ms: 0.329417
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 86.15275

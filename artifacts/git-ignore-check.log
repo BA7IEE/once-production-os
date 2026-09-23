@@ -1,0 +1,4 @@
+.gitignore:11:.secrets/	.secrets/contact.hex
+.gitignore:3:.env	.env
+.gitignore:1:node_modules/	node_modules/a.js
+.gitignore:7:data/	data/private.json

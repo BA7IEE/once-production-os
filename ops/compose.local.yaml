@@ -1,0 +1,25 @@
+# Local isolated development database only; not a production topology or image pin.
+services:
+  db:
+    image: postgres:16
+    restart: "no"
+    ports:
+      - "127.0.0.1:5436:5432"
+    environment:
+      POSTGRES_DB: once_local
+      POSTGRES_USER: once_dev
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+    volumes:
+      - once_local_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U once_dev -d once_local"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+secrets:
+  db_password:
+    file: ../.secrets/db.password
+volumes:
+  once_local_db:
