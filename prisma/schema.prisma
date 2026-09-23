@@ -9,6 +9,8 @@ datasource db {
 }
 
 model Workspace {
+  MediaUpload_workspace MediaUpload[] @relation("MediaUpload_workspace")
+  MediaAsset_workspace MediaAsset[] @relation("MediaAsset_workspace")
   RecordHandoff_workspace RecordHandoff[] @relation("RecordHandoff_workspace")
   id String @id @db.Uuid
   name String @db.Text
@@ -55,6 +57,7 @@ model User {
 }
 
 model Membership {
+  MediaUpload_actorIdRef MediaUpload[] @relation("MediaUpload_actorIdRef")
   RecordHandoff_senderIdRef RecordHandoff[] @relation("RecordHandoff_senderIdRef")
   RecordHandoff_recipientIdRef RecordHandoff[] @relation("RecordHandoff_recipientIdRef")
   RecordHandoff_closedByIdRef RecordHandoff[] @relation("RecordHandoff_closedByIdRef")
@@ -128,6 +131,9 @@ model Activation {
 }
 
 model AccessScope {
+  MediaUpload_scopeIdRef MediaUpload[] @relation("MediaUpload_scopeIdRef")
+  MediaUpload_personScopeIdRef MediaUpload[] @relation("MediaUpload_personScopeIdRef")
+  MediaAsset_scopeIdRef MediaAsset[] @relation("MediaAsset_scopeIdRef")
   RecordHandoff_personScopeIdRef RecordHandoff[] @relation("RecordHandoff_personScopeIdRef")
   RecordHandoff_sourceScopeIdRef RecordHandoff[] @relation("RecordHandoff_sourceScopeIdRef")
   id String @id @db.Uuid
@@ -166,6 +172,8 @@ model ScopeMember {
 }
 
 model SourceRecord {
+  MediaUpload_sourceIdRef MediaUpload[] @relation("MediaUpload_sourceIdRef")
+  MediaAsset_sourceIdRef MediaAsset[] @relation("MediaAsset_sourceIdRef")
   RecordHandoff_sourceIdRef RecordHandoff[] @relation("RecordHandoff_sourceIdRef")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
@@ -203,6 +211,8 @@ model SourceRecord {
 }
 
 model Person {
+  MediaUpload_personIdRef MediaUpload[] @relation("MediaUpload_personIdRef")
+  MediaAsset_personIdRef MediaAsset[] @relation("MediaAsset_personIdRef")
   RecordHandoff_personIdRef RecordHandoff[] @relation("RecordHandoff_personIdRef")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
@@ -458,4 +468,77 @@ model RecordHandoff {
   @@index([workspaceId, recipientId, state, personId], map: "handoffs_recipient_idx")
   @@index([workspaceId, senderId, createdAt], map: "handoffs_sender_idx")
   @@map("handoffs")
+}
+
+model MediaUpload {
+  MediaAsset_uploadIdRef MediaAsset[] @relation("MediaAsset_uploadIdRef")
+  id String @db.Uuid @id
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int 
+  actorId String @db.Uuid
+  sourceId String @db.Uuid
+  scopeId String @db.Uuid
+  actorRevision Int 
+  actorEpoch Int 
+  sourceRevision Int 
+  sourceEpoch Int 
+  scopeRevision Int 
+  personId String? @db.Uuid
+  personScopeId String? @db.Uuid
+  personEpoch Int? 
+  personScopeRevision Int? 
+  fileName String @db.Text
+  mime String @db.Text
+  expectedHash String @db.Text
+  state String @db.Text
+  expectedBytes Int 
+  expiresAt DateTime @db.Timestamptz(3)
+  renewals Int 
+  attempts Int 
+  receiveToken String? @db.Uuid
+  leaseToken String? @db.Uuid
+  leaseUntil DateTime? @db.Timestamptz(3)
+  errorCode String? @db.Text
+  purgedAt DateTime? @db.Timestamptz(3)
+  workspace Workspace @relation("MediaUpload_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "uploads_workspace_fkey")
+  actorIdRef Membership @relation("MediaUpload_actorIdRef", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "uploads_actorIdRef_fkey")
+  sourceIdRef SourceRecord @relation("MediaUpload_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "uploads_sourceIdRef_fkey")
+  scopeIdRef AccessScope @relation("MediaUpload_scopeIdRef", fields: [workspaceId, scopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "uploads_scopeIdRef_fkey")
+  personIdRef Person? @relation("MediaUpload_personIdRef", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "uploads_personIdRef_fkey")
+  personScopeIdRef AccessScope? @relation("MediaUpload_personScopeIdRef", fields: [workspaceId, personScopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "uploads_personScopeIdRef_fkey")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, actorId, state], map: "uploads_lookup_idx")
+  @@map("uploads")
+}
+
+model MediaAsset {
+  id String @db.Uuid @id
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int 
+  uploadId String @db.Uuid
+  sourceId String @db.Uuid
+  scopeId String @db.Uuid
+  objectToken String @db.Uuid
+  personId String? @db.Uuid
+  fileName String @db.Text
+  mime String @db.Text
+  sha256 String @db.Text
+  previewHash String @db.Text
+  state String @db.Text
+  bytes Int 
+  width Int 
+  height Int 
+  previewBytes Int 
+  workspace Workspace @relation("MediaAsset_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "assets_workspace_fkey")
+  uploadIdRef MediaUpload @relation("MediaAsset_uploadIdRef", fields: [workspaceId, uploadId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "assets_uploadIdRef_fkey")
+  sourceIdRef SourceRecord @relation("MediaAsset_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "assets_sourceIdRef_fkey")
+  scopeIdRef AccessScope @relation("MediaAsset_scopeIdRef", fields: [workspaceId, scopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "assets_scopeIdRef_fkey")
+  personIdRef Person? @relation("MediaAsset_personIdRef", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "assets_personIdRef_fkey")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, sourceId, personId], map: "assets_lookup_idx")
+  @@map("assets")
 }

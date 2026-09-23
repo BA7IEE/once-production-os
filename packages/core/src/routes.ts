@@ -1,14 +1,26 @@
+import { MediaSchemas } from './media-validation.ts';
 import type { Permission } from './model.ts';
 import { Schemas, type Schema } from './validation.ts';
 export interface RouteDefinition {
     method: 'GET' | 'POST' | 'PATCH' | 'PUT';
     path: string;
     operation: string;
-    mode: 'AUTH' | 'READ' | 'COMMAND' | 'SECRET';
+    mode: 'AUTH' | 'READ' | 'COMMAND' | 'SECRET' | 'BINARY';
     permission?: Permission;
     schema?: Schema<unknown>;
 }
 export const ROUTES: RouteDefinition[] = [
+    { method: 'POST', path: '/uploads', operation: 'upload.create', mode: 'COMMAND', permission: 'assets.upload', schema: MediaSchemas.create },
+    { method: 'GET', path: '/uploads', operation: 'upload.list', mode: 'READ', permission: 'records.read' },
+    { method: 'GET', path: '/uploads/{id}', operation: 'upload.get', mode: 'READ', permission: 'records.read' },
+    { method: 'PUT', path: '/uploads/{id}/content', operation: 'upload.content', mode: 'BINARY', permission: 'assets.upload' },
+    { method: 'POST', path: '/uploads/{id}/renew', operation: 'upload.renew', mode: 'COMMAND', permission: 'assets.upload', schema: MediaSchemas.revision },
+    { method: 'POST', path: '/uploads/{id}/complete', operation: 'upload.complete', mode: 'COMMAND', permission: 'assets.upload', schema: MediaSchemas.revision },
+    { method: 'POST', path: '/uploads/{id}/cancel', operation: 'upload.cancel', mode: 'COMMAND', permission: 'records.read', schema: MediaSchemas.revision },
+    { method: 'GET', path: '/assets', operation: 'asset.list', mode: 'READ', permission: 'assets.read' },
+    { method: 'GET', path: '/assets/{id}', operation: 'asset.get', mode: 'READ', permission: 'assets.read' },
+    { method: 'GET', path: '/assets/{id}/preview', operation: 'asset.preview', mode: 'BINARY', permission: 'assets.read' },
+    { method: 'POST', path: '/assets/{id}/quarantine', operation: 'asset.quarantine', mode: 'COMMAND', permission: 'sources.review', schema: MediaSchemas.revision },
     { method: 'GET', path: '/auth/csrf', operation: 'auth.csrf', mode: 'AUTH' },
     { method: 'POST', path: '/auth/login', operation: 'auth.login', mode: 'AUTH', schema: Schemas.login },
     { method: 'POST', path: '/auth/activate', operation: 'auth.activate', mode: 'AUTH', schema: Schemas.activate },

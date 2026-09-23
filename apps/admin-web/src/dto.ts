@@ -1,5 +1,6 @@
 // Explicit presentation DTOs. Never import Prisma models into the browser.
 export interface Me {
+    mediaEnabled?: boolean;
     membershipId: string;
     displayName: string;
     role: 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'VIEWER';
@@ -30,8 +31,15 @@ export interface CatalogItem {
     revision: number;
 }
 export interface Person {
-    access?: { mode: 'NATIVE' | 'HANDOFF'; canEdit: boolean; canReview: boolean;
-        canReadSource: boolean; canReadContacts: boolean; canManageScope: boolean; canOffer: boolean };
+    access?: {
+        mode: 'NATIVE' | 'HANDOFF';
+        canEdit: boolean;
+        canReview: boolean;
+        canReadSource: boolean;
+        canReadContacts: boolean;
+        canManageScope: boolean;
+        canOffer: boolean;
+    };
     id: string;
     displayName: string;
     aliases: string[];
@@ -90,7 +98,13 @@ export interface SourceHistoryEntry {
     decisionReason: string | null;
     baselineOnly: boolean;
     legacyBasisAmbiguous: boolean;
-    snapshot: { title: string; basisDescription: string; textPayload: string; validUntil: string; status: string };
+    snapshot: {
+        title: string;
+        basisDescription: string;
+        textPayload: string;
+        validUntil: string;
+        status: string;
+    };
 }
 export interface Contact {
     id: string;
@@ -159,7 +173,6 @@ export interface Scope {
     mode: 'WORKSPACE' | 'RESTRICTED';
     revision: number;
 }
-
 export interface Handoff {
     id: string;
     counterpart: string;
@@ -168,7 +181,10 @@ export interface Handoff {
     state: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'REVOKED';
     effectiveState: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'REVOKED' | 'EXPIRED' | 'INVALIDATED';
     direction: 'SENT' | 'RECEIVED';
-    person: { id: string; displayName: string } | null;
+    person: {
+        id: string;
+        displayName: string;
+    } | null;
     expiresAt: string;
     createdAt: string;
     acceptedAt: string | null;
@@ -177,4 +193,7 @@ export interface Handoff {
     canDecline: boolean;
     canRevoke: boolean;
 }
-export interface HandoffRecipient { membershipId: string; displayName: string }
+export interface HandoffRecipient {
+    membershipId: string;
+    displayName: string;
+}

@@ -1,3 +1,4 @@
+import { uploadFor, assetFor } from './media.ts';
 import type { Actor, Clock, CommandReceipt } from './model.ts';
 import { profileAccess } from './handoff-policy.ts';
 import { handoffParticipant } from './handoffs.ts';
@@ -9,6 +10,12 @@ import { personFor, sourceFor, sourceCurrent, requireScope, requirePermission } 
 export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandReceipt, clock: Clock): Promise<void> {
     const id = receipt.resourceId;
     switch (receipt.resourceKind) {
+        case 'upload':
+            await uploadFor(tx, actor, id);
+            return;
+        case 'asset':
+            await assetFor(tx, actor, id, clock);
+            return;
         case 'handoff':
             await handoffParticipant(tx, actor, id);
             return;

@@ -4,8 +4,8 @@ import type { Store, Tx } from '../../../packages/core/src/store.ts';
 import { AppError } from '../../../packages/core/src/errors.ts';
 const DELEGATE: Record<Table, string> = { workspaces: 'workspace', users: 'user', memberships: 'membership', sessions: 'session', activations: 'activation',
     scopes: 'accessScope', scopeMembers: 'scopeMember', sources: 'sourceRecord', sourceHistory: 'sourceHistory', people: 'person', contacts: 'contact', evidence: 'fieldEvidence',
-    dictionary: 'dictionaryItem', receipts: 'commandReceipt', audits: 'auditEvent', rateBuckets: 'rateBucket', imports: 'importBatch', jobs: 'durableJob', handoffs: 'recordHandoff' };
-const DATES = new Set(['createdAt', 'updatedAt', 'idleUntil', 'absoluteUntil', 'revokedAt', 'expiresAt', 'consumedAt', 'validFrom', 'validUntil', 'reviewedAt', 'until', 'leaseUntil', 'acceptedAt', 'closedAt']);
+    dictionary: 'dictionaryItem', receipts: 'commandReceipt', audits: 'auditEvent', rateBuckets: 'rateBucket', imports: 'importBatch', jobs: 'durableJob', handoffs: 'recordHandoff', uploads: 'mediaUpload', assets: 'mediaAsset' };
+const DATES = new Set(['createdAt', 'updatedAt', 'idleUntil', 'absoluteUntil', 'revokedAt', 'expiresAt', 'consumedAt', 'validFrom', 'validUntil', 'reviewedAt', 'until', 'leaseUntil', 'acceptedAt', 'closedAt', 'purgedAt']);
 interface Delegate {
     findUnique(input: unknown): Promise<unknown>;
     findMany(input: unknown): Promise<unknown[]>;
@@ -38,8 +38,10 @@ export class PrismaStore implements Store {
                     get: async <K extends Table>(t: K, id: string) => plain(await delegate(t).findUnique({ where: { id } })) as TableMap[K] | null,
                     find: async <K extends Table>(t: K, where: Partial<TableMap[K]> = {}) => plain(await delegate(t).findMany({ where: Object.fromEntries(Object.entries(data(where)).map(([k, v]) => [k, Array.isArray(v) ? { equals: v } : v])) })) as TableMap[K][],
                     insert: async <K extends Table>(t: K, row: TableMap[K]) => { await delegate(t).create({ data: data(row) }); },
-                    replace: async <K extends Table>(t: K, row: TableMap[K]) => { if (t === 'sourceHistory') throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加'); const { id, ...update } = data(row); await delegate(t).update({ where: { id }, data: update }); },
-                    remove: async (t, id) => { if (t === 'sourceHistory') throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加'); await delegate(t).delete({ where: { id } }); }
+                    replace: async <K extends Table>(t: K, row: TableMap[K]) => { if (t === 'sourceHistory')
+                        throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加'); const { id, ...update } = data(row); await delegate(t).update({ where: { id }, data: update }); },
+                    remove: async (t, id) => { if (t === 'sourceHistory')
+                        throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加'); await delegate(t).delete({ where: { id } }); }
                 };
                 return work(tx);
             }, { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted, maxWait: 5000, timeout: 15000 });

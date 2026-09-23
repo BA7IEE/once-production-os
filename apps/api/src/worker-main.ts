@@ -1,23 +1,28 @@
+import { LocalMediaProvider } from './media/local-provider.ts';
+import { MediaWorker } from './media/worker.ts';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { Application } from '../../../packages/core/src/api.ts';
 import { PrismaStore } from './prisma-store.ts';
 import { loadConfig } from './config.ts';
 let store: PrismaStore | undefined;
 let stopping = false;
-process.once('SIGTERM', () => { stopping = true; });
-process.once('SIGINT', () => { stopping = true; });
+const stopController = new AbortController();
+process.once('SIGTERM', () => { stopping = true; stopController.abort(); });
+process.once('SIGINT', () => { stopping = true; stopController.abort(); });
 async function run() {
     const config = loadConfig();
     store = new PrismaStore();
     const core = new Application(store, config);
-    console.log('ONCE import worker starting');
+    const media = config.mediaEnabled ? new MediaWorker(core, await LocalMediaProvider.create(process.env.MEDIA_ROOT!)) : null;
+    console.log('ONCE internal worker starting');
     try {
         while (!stopping) {
             try {
                 const claim = await core.imports.claim();
                 if (claim)
                     await core.imports.process(claim);
-                else
+                const didMedia = media ? await media.cycle(stopController.signal) : false;
+                if (!claim && !didMedia)
                     await sleep(1000);
             }
             catch {

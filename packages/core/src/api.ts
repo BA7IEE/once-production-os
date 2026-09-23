@@ -1,5 +1,6 @@
+import { Media, assetFor, uploadFor } from './media.ts';
 import { randomUUID } from 'node:crypto';
-import type { Actor, Clock, CommandReceipt, Config, RequestMeta } from './model.ts';
+import type { Actor, Clock, CommandReceipt, Config, RequestMeta, Permission } from './model.ts';
 import type { Store, Tx } from './store.ts';
 import { AppError, fail, invariant, missing } from './errors.ts';
 import { Identity } from './identity.ts';
@@ -52,6 +53,7 @@ export class Application {
     commands: Commands;
     imports: Imports;
     handoffs: Handoffs;
+    media: Media;
     constructor(store: Store, config: Config, clock: Clock = { now: () => new Date() }) {
         invariant(config.contactKey.length === 32 && config.csrfKey.length === 32, 'CONFIG_INVALID', '密钥必须为 32 字节', 503);
         const origin = new URL(config.origin);
@@ -64,6 +66,7 @@ export class Application {
         this.identity = new Identity(store, clock, config);
         this.talent = new Talent(clock, config);
         this.handoffs = new Handoffs(clock);
+        this.media = new Media(store, clock, config);
         this.commands = new Commands(clock);
         this.imports = new Imports(store, clock, config, this.talent);
     }
@@ -103,6 +106,15 @@ export class Application {
             return { route, params };
         }
         return missing();
+    }
+    /** Same session/CSRF/recovery boundary for bounded binary transport; file I/O runs outside this transaction. */
+    async authenticated<T>(request: ApiRequest, permission: Permission, work: (tx: Tx, actor: Actor) => Promise<T>): Promise<T> {
+        const token = cookies(request.headers.cookie ?? '')[sessionName] ?? '';
+        if (request.method !== 'GET') {
+            invariant(request.headers.origin === this.config.origin, 'ORIGIN_DENIED', '请求来源不被允许', 403);
+            invariant(!!token && equalSecret(request.headers['x-csrf-token'] ?? '', csrfFor(token, this.config.csrfKey)), 'CSRF_INVALID', '会话校验失败', 403);
+        }
+        return this.store.transaction(async (tx) => { const actor = await this.identity.authenticate(tx, token); requirePermission(actor, permission); return work(tx, actor); });
     }
     async handle(request: ApiRequest): Promise<ApiResponse> {
         const meta: RequestMeta = { requestId: randomUUID(), ip: request.ip };
@@ -167,9 +179,18 @@ export class Application {
                 const command = (kind: CommandReceipt['resourceKind'], execute: () => Promise<{
                     id: string;
                     revision: number;
-                }>, target = id || null) => this.commands.execute(tx, actor, route.operation, request.headers['idempotency-key'] ?? '', target, data, kind, meta, execute, receipt => authorizeReceipt(tx, actor, receipt, this.clock), ['import.commit', 'job.resume'].includes(route.operation) ? 'ACCEPTED' : 'SUCCEEDED');
+                }>, target = id || null) => this.commands.execute(tx, actor, route.operation, request.headers['idempotency-key'] ?? '', target, data, kind, meta, execute, receipt => authorizeReceipt(tx, actor, receipt, this.clock), ['import.commit', 'job.resume', 'upload.complete'].includes(route.operation) ? 'ACCEPTED' : 'SUCCEEDED');
                 switch (route.operation) {
-                    case 'identity.me': return { membershipId: actor.membershipId, displayName: actor.displayName, role: actor.role, permissions: actor.permissions, workspaceName: (await tx.get('workspaces', actor.workspaceId))?.name ?? 'ONCE', csrfToken: csrfFor(token, this.config.csrfKey), version: '0.1.0-dev.1' };
+                    case 'upload.create': return command('upload', () => this.media.create(tx, actor, data));
+                    case 'upload.list': return this.media.listUploads(tx, actor, query);
+                    case 'upload.get': return this.media.get(tx, actor, id);
+                    case 'upload.renew': return command('upload', () => this.media.renew(tx, actor, id, data));
+                    case 'upload.complete': return command('upload', () => this.media.complete(tx, actor, id, data));
+                    case 'upload.cancel': return command('upload', () => this.media.cancel(tx, actor, id, data));
+                    case 'asset.list': return this.media.listAssets(tx, actor, query);
+                    case 'asset.get': return this.media.getAsset(tx, actor, id);
+                    case 'asset.quarantine': return command('asset', () => this.media.quarantine(tx, actor, id, data));
+                    case 'identity.me': return { membershipId: actor.membershipId, displayName: actor.displayName, role: actor.role, permissions: actor.permissions, mediaEnabled: this.config.mediaEnabled === true, workspaceName: (await tx.get('workspaces', actor.workspaceId))?.name ?? 'ONCE', csrfToken: csrfFor(token, this.config.csrfKey), version: '0.1.0-dev.1' };
                     case 'dashboard.get': return this.dashboard(tx, actor);
                     case 'member.list': return this.identity.listMembers(tx, actor, query);
                     case 'member.create': return this.identity.createMember(tx, actor, data, meta);
@@ -217,9 +238,9 @@ export class Application {
                     default: return missing();
                 }
             });
-            if (['import.commit', 'job.resume'].includes(route.operation))
+            if (['import.commit', 'job.resume', 'upload.complete'].includes(route.operation))
                 response.status = 202;
-            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create'].includes(route.operation)))
+            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
                 response.status = 201;
             return response;
         }
@@ -251,6 +272,10 @@ export class Application {
         const result = [];
         for (const row of await tx.find('audits', { workspaceId: actor.workspaceId })) {
             try {
+                if (row.resourceKind === 'upload')
+                    await uploadFor(tx, actor, row.resourceId);
+                if (row.resourceKind === 'asset')
+                    await assetFor(tx, actor, row.resourceId, this.clock);
                 if (row.resourceKind === 'handoff')
                     await handoffParticipant(tx, actor, row.resourceId);
                 if (row.resourceKind === 'person')

@@ -1,3 +1,4 @@
+import { MediaPanel } from './media-ui.tsx';
 import { createRoot } from 'react-dom/client';
 import { useEffect, useState, createContext, useContext, type ReactNode } from 'react';
 import { call, read, resetTransport, acknowledgeSecretInspection, type ApiError } from './api.ts';
@@ -43,8 +44,8 @@ function App() {
         return <main className="boot">正在连接 ONCE…</main>;
     if (!me)
         return <Auth initialError={initialError} onLogin={async () => { setMe(await read<Me>('identity.me')); setInitialError(null); setActive('dashboard'); }}/>;
-    const pages = [['dashboard', '概览', '◈'], ['people', '人才档案', '◎'], ['handoffs', '资料交接', '⇄'], ...(me.permissions.includes('sources.read') ? [['sources', '资料来源', '▤']] : []), ...(me.permissions.includes('records.write') ? [['imports', '批量导入', '↥']] : []), ...(me.permissions.includes('members.manage') ? [['members', '成员与范围', '▦']] : []), ...(me.permissions.includes('catalog.manage') ? [['catalog', '分类字典', '⋮']] : []), ...(me.permissions.includes('audit.read') ? [['audit', '操作记录', '≡']] : [])];
-    return <Ctx.Provider value={{ me, catalog: catalogs.data?.items ?? [], refreshCatalog: () => setCatRefresh(x => x + 1) }}><div className="shell"><aside className="sidebar"><div className="brand">ONCE<span>PRODUCTION OS</span></div><div className="workspace-label"><i />内部工作空间</div><nav>{pages.map(([key, name, icon]) => <button key={key} className={active === key ? 'selected' : ''} onClick={() => setActive(key!)}><span className="nav-icon">{icon}</span>{name}</button>)}</nav><div className="sidebar-foot"><div className="avatar">{me.displayName.slice(0, 1)}</div><div><strong>{me.displayName}</strong><small>{labels[me.role]}</small></div><button aria-label="账号设置" className="account-button" onClick={() => setActive('account')}>⚙</button></div></aside><div className="main"><header className="topbar"><span>制作资源 / {pages.find(p => p[0] === active)?.[1] ?? '账号设置'}</span><div><span className="internal-chip">仅内部使用</span><span className="version">开发增量 01</span></div></header><main className="content"><ErrorBox error={catalogs.error}/>{active === 'dashboard' ? <Dashboard onPeople={() => setActive('people')}/> : active === 'people' ? <People /> : active === 'sources' ? <Sources /> : active === 'imports' ? <Imports /> : active === 'handoffs' ? <HandoffInbox onOpen={setHandoffPerson}/> : active === 'members' ? <Members /> : active === 'catalog' ? <Catalog /> : active === 'audit' ? <Audits /> : <Account onLogout={() => { setMe(null); resetTransport(); }}/>}{handoffPerson && <PersonDetail id={handoffPerson} onClose={() => setHandoffPerson(null)} onChange={() => {}}/>}</main></div></div></Ctx.Provider>;
+    const pages = [['dashboard', '概览', '◈'], ['people', '人才档案', '◎'], ['handoffs', '资料交接', '⇄'], ...(me.permissions.includes('assets.read') ? [['media', '私有图片', '▧']] : []), ...(me.permissions.includes('sources.read') ? [['sources', '资料来源', '▤']] : []), ...(me.permissions.includes('records.write') ? [['imports', '批量导入', '↥']] : []), ...(me.permissions.includes('members.manage') ? [['members', '成员与范围', '▦']] : []), ...(me.permissions.includes('catalog.manage') ? [['catalog', '分类字典', '⋮']] : []), ...(me.permissions.includes('audit.read') ? [['audit', '操作记录', '≡']] : [])];
+    return <Ctx.Provider value={{ me, catalog: catalogs.data?.items ?? [], refreshCatalog: () => setCatRefresh(x => x + 1) }}><div className="shell"><aside className="sidebar"><div className="brand">ONCE<span>PRODUCTION OS</span></div><div className="workspace-label"><i />内部工作空间</div><nav>{pages.map(([key, name, icon]) => <button key={key} className={active === key ? 'selected' : ''} onClick={() => setActive(key!)}><span className="nav-icon">{icon}</span>{name}</button>)}</nav><div className="sidebar-foot"><div className="avatar">{me.displayName.slice(0, 1)}</div><div><strong>{me.displayName}</strong><small>{labels[me.role]}</small></div><button aria-label="账号设置" className="account-button" onClick={() => setActive('account')}>⚙</button></div></aside><div className="main"><header className="topbar"><span>制作资源 / {pages.find(p => p[0] === active)?.[1] ?? '账号设置'}</span><div><span className="internal-chip">仅内部使用</span><span className="version">开发增量 01</span></div></header><main className="content"><ErrorBox error={catalogs.error}/>{active === 'dashboard' ? <Dashboard onPeople={() => setActive('people')}/> : active === 'people' ? <People /> : active === 'media' ? <MediaPanel me={me}/> : active === 'sources' ? <Sources /> : active === 'imports' ? <Imports /> : active === 'handoffs' ? <HandoffInbox onOpen={setHandoffPerson}/> : active === 'members' ? <Members /> : active === 'catalog' ? <Catalog /> : active === 'audit' ? <Audits /> : <Account onLogout={() => { setMe(null); resetTransport(); }}/>}{handoffPerson && <PersonDetail id={handoffPerson} onClose={() => setHandoffPerson(null)} onChange={() => { }}/>}</main></div></div></Ctx.Provider>;
 }
 function Auth({ onLogin, initialError }: {
     onLogin: () => Promise<void>;
@@ -169,7 +170,7 @@ function PersonDetail({ id, onClose, onChange }: {
     onClose: () => void;
     onChange: () => void;
 }) {
-    const { can, label } = useOS();
+    const { me, can, label } = useOS();
     const [refresh, setRefresh] = useState(0);
     const [edit, setEdit] = useState(false);
     const [contacts, setContacts] = useState(false);
@@ -180,8 +181,10 @@ function PersonDetail({ id, onClose, onChange }: {
     const load = useLoad(() => read<Person>('person.get', { id }), id + ':' + refresh);
     const a = useAction();
     const changed = () => { setRefresh(x => x + 1); onChange(); };
-    if (offering && load.data) return <HandoffOffer person={load.data} onClose={() => setOffering(false)} onSaved={() => { setOffering(false); changed(); }}/>;
-    if (reviewing && load.data) return <FieldReview person={load.data} onClose={() => setReviewing(false)} onSaved={() => { setReviewing(false); changed(); }}/>;
+    if (offering && load.data)
+        return <HandoffOffer person={load.data} onClose={() => setOffering(false)} onSaved={() => { setOffering(false); changed(); }}/>;
+    if (reviewing && load.data)
+        return <FieldReview person={load.data} onClose={() => setReviewing(false)} onSaved={() => { setReviewing(false); changed(); }}/>;
     if (edit && load.data)
         return <PersonForm person={load.data} onClose={() => setEdit(false)} onSaved={() => { setEdit(false); changed(); }}/>;
     if (contacts && load.data)
@@ -190,7 +193,7 @@ function PersonDetail({ id, onClose, onChange }: {
         return <SourceDetail id={sourceId} onClose={() => { setSourceId(null); changed(); }}/>;
     if (scope && load.data)
         return <ScopeChange kind="person" id={id} revision={load.data.revision} onClose={() => setScope(false)} onSaved={() => { setScope(false); changed(); }}/>;
-    return <Modal title={load.data?.displayName ?? '人才档案'} onClose={onClose} wide><div className="modal-body"><ErrorBox error={load.error ?? a.error}/>{load.busy ? <p>正在读取资料…</p> : load.data && <><div className="detail-heading"><div className="person-monogram large">{load.data.displayName.slice(0, 2)}</div><div><div className="role-list">{load.data.roles.map(r => <span key={r}>{label('role', r)}</span>)}</div><p className="muted">稳定编号 · {load.data.id}</p><Tag value={load.data.status}/></div></div><dl className="detail-grid"><div><dt>常驻城市</dt><dd>{load.data.cityCode ? label('city', load.data.cityCode) : '未确认'}</dd></div><div><dt>工作语言</dt><dd>{load.data.languageCodes.map(c => label('language', c)).join(' / ') || '未确认'}</dd></div><div><dt>身高</dt><dd>{load.data.heightCm !== null ? load.data.heightCm + ' cm' : '未确认'}</dd></div><div><dt>当前版本</dt><dd>{load.data.revision}</dd></div></dl><h3 className="section-title">简介</h3><p className="pre-line">{load.data.intro || '尚未填写'}</p><h3 className="section-title">来源与核验</h3><div className="source-summary"><div><strong>{load.data.source?.title}</strong><small>依据截止：{date(load.data.source?.validUntil)}</small></div>{load.data.access?.canReadSource && <button onClick={() => setSourceId(load.data!.sourceId)}>查看来源</button>}</div><p className="muted">人工确认仅代表这项字段与当前来源一致，不代表自动认证该人才的专业资质。</p><div className="evidence-list">{(load.data.evidence ?? []).map(e => <div key={e.id}><code>{e.fieldPath}</code><Tag value={e.state}/><small>{date(e.reviewedAt)}</small></div>)}</div>{load.data.access?.mode === 'HANDOFF' && <p className="notice">仅通过交接访问这份基本档案。不包含来源原文、联系方式和历史；接收不等于取得这些权限。</p>}{load.data.access?.canReview && <button onClick={() => setReviewing(true)}>核验字段（选择独立可读证据）</button>}<div className="detail-actions">{load.data.access?.canOffer && <button onClick={() => setOffering(true)}>交给指定同事</button>}{load.data.access?.canReadContacts && <button onClick={() => setContacts(true)}>查看受限联系方式</button>}{load.data.access?.canManageScope && <button onClick={() => setScope(true)}>调整访问范围</button>}</div></>}</div><footer className="modal-footer"><button onClick={onClose}>关闭</button>{load.data?.access?.canEdit && <button className="primary" onClick={() => setEdit(true)}>编辑资料</button>}</footer></Modal>;
+    return <Modal title={load.data?.displayName ?? '人才档案'} onClose={onClose} wide><div className="modal-body"><ErrorBox error={load.error ?? a.error}/>{load.busy ? <p>正在读取资料…</p> : load.data && <><div className="detail-heading"><div className="person-monogram large">{load.data.displayName.slice(0, 2)}</div><div><div className="role-list">{load.data.roles.map(r => <span key={r}>{label('role', r)}</span>)}</div><p className="muted">稳定编号 · {load.data.id}</p><Tag value={load.data.status}/></div></div><dl className="detail-grid"><div><dt>常驻城市</dt><dd>{load.data.cityCode ? label('city', load.data.cityCode) : '未确认'}</dd></div><div><dt>工作语言</dt><dd>{load.data.languageCodes.map(c => label('language', c)).join(' / ') || '未确认'}</dd></div><div><dt>身高</dt><dd>{load.data.heightCm !== null ? load.data.heightCm + ' cm' : '未确认'}</dd></div><div><dt>当前版本</dt><dd>{load.data.revision}</dd></div></dl><h3 className="section-title">简介</h3><p className="pre-line">{load.data.intro || '尚未填写'}</p><h3 className="section-title">来源与核验</h3><div className="source-summary"><div><strong>{load.data.source?.title}</strong><small>依据截止：{date(load.data.source?.validUntil)}</small></div>{load.data.access?.canReadSource && <button onClick={() => setSourceId(load.data!.sourceId)}>查看来源</button>}</div><p className="muted">人工确认仅代表这项字段与当前来源一致，不代表自动认证该人才的专业资质。</p><div className="evidence-list">{(load.data.evidence ?? []).map(e => <div key={e.id}><code>{e.fieldPath}</code><Tag value={e.state}/><small>{date(e.reviewedAt)}</small></div>)}</div>{load.data.access?.mode === 'HANDOFF' && <p className="notice">仅通过交接访问这份基本档案。不包含来源原文、联系方式和历史；接收不等于取得这些权限。</p>}{load.data.access?.canReview && <button onClick={() => setReviewing(true)}>核验字段（选择独立可读证据）</button>}{load.data.access?.mode === 'NATIVE' && <MediaPanel me={me} personId={load.data.id} source={load.data.source} compact/>}<div className="detail-actions">{load.data.access?.canOffer && <button onClick={() => setOffering(true)}>交给指定同事</button>}{load.data.access?.canReadContacts && <button onClick={() => setContacts(true)}>查看受限联系方式</button>}{load.data.access?.canManageScope && <button onClick={() => setScope(true)}>调整访问范围</button>}</div></>}</div><footer className="modal-footer"><button onClick={onClose}>关闭</button>{load.data?.access?.canEdit && <button className="primary" onClick={() => setEdit(true)}>编辑资料</button>}</footer></Modal>;
 }
 function ContactForm({ person, onClose, onSaved }: {
     person: Person;
@@ -235,11 +238,17 @@ function SourceDetail({ id, onClose }: {
                     void a.run(async () => { await command('source.suspend', { expectedRevision: load.data!.revision, reason }, { id }); setReason(''); setRefresh(x => x + 1); });
                 }}><input required minLength={4} maxLength={1000} placeholder="填写暂停原因" value={reason} onChange={e => setReason(e.target.value)}/><button className="danger" disabled={a.busy}>暂停使用</button></form></>}{can('members.manage') && <div className="detail-actions"><button onClick={() => setScope(true)}>调整来源访问范围</button></div>}{can('sources.review') && can('sensitive.read') && <SourceHistoryPanel id={id} revision={load.data.revision}/>}</>}</div><footer className="modal-footer"><button onClick={onClose}>关闭</button></footer></Modal>;
 }
-function SourceHistoryPanel({ id, revision }: { id: string; revision: number }) {
+function SourceHistoryPanel({ id, revision }: {
+    id: string;
+    revision: number;
+}) {
     const [open, setOpen] = useState(false);
     return <section><h3 className="section-title">受限来源历史</h3><button onClick={() => setOpen(v => !v)}>{open ? '收起历史' : '查看来源版本与决定（记录审计）'}</button>{open && <SourceHistoryRows id={id} revision={revision}/>}</section>;
 }
-function SourceHistoryRows({ id, revision }: { id: string; revision: number }) {
+function SourceHistoryRows({ id, revision }: {
+    id: string;
+    revision: number;
+}) {
     const [page, setPage] = useState(1);
     const load = useLoad(() => read<Page<SourceHistoryEntry>>('source.history', { id }, { page: String(page), pageSize: '20' }), id + ':' + revision + ':' + page);
     const actions: Record<string, string> = { CREATED: '创建', EDITED: '编辑', REVIEWED: '核验', SUSPENDED: '暂停', SCOPE_CHANGED: '范围调整', BASELINE: '迁移时可见状态' };
@@ -259,21 +268,25 @@ function ScopeChange({ kind, id, revision, onClose, onSaved }: {
     const a = useAction();
     return <Modal title="调整访问范围" onClose={onClose}><form onSubmit={e => { e.preventDefault(); void a.run(async () => { await command('record.scope', { expectedRevision: revision, scopeId: value }, { kind, id }); onSaved(); }); }}><div className="modal-body"><ErrorBox error={a.error ?? load.error}/><p>人才范围与来源范围取交集。收窄任一范围，都可能让部分成员立即失去访问权。</p><Field label="目标范围"><select required value={value} onChange={e => setValue(e.target.value)}><option value="">请选择当前有权访问的范围</option>{load.data?.items.map(s => <option key={s.id} value={s.id}>{s.name} · {s.mode === 'WORKSPACE' ? '内部成员' : '限定成员'}</option>)}</select></Field></div><footer className="modal-footer"><button type="button" onClick={onClose}>取消</button><Submit busy={a.busy}>确认调整</Submit></footer></form></Modal>;
 }
-function ResumeImport({ job, onQueued }: { job: Job; onQueued: () => void }) {
+function ResumeImport({ job, onQueued }: {
+    job: Job;
+    onQueued: () => void;
+}) {
     const action = useAction();
     const [submittedRevision, setSubmittedRevision] = useState<number | null>(null);
     const unknown = (action.error as ApiError | null)?.unknownOutcome === true;
     const blocked: Record<string, string> = { JOB_NOT_RETRYABLE: '该错误不可直接继续', ATTEMPTS_EXHAUSTED: '已达到领取上限',
         REVISION_CONFLICT: '来源已经变更', NOT_FOUND: '来源、范围或预览已失效', CHECKPOINT_INVALID: '入库检查点需人工核对' };
-    if (job.state !== 'FAILED' && !unknown) return null;
+    if (job.state !== 'FAILED' && !unknown)
+        return null;
     return <div><ErrorBox error={action.error}/>{job.canResume || unknown ? <button disabled={action.busy} onClick={() => void action.run(async () => {
-        const expectedRevision = unknown && submittedRevision !== null ? submittedRevision : job.revision;
-        setSubmittedRevision(expectedRevision);
-        await command('job.resume', { expectedRevision }, { id: job.id });
-        setSubmittedRevision(null);
-        action.clear();
-        onQueued();
-    })}>{unknown ? '原样核对上次继续请求' : '继续处理未完成行'}</button> : <small>{blocked[job.resumeBlockedReason ?? ''] ?? '当前不可继续，请核查任务及资料依据'}</small>}</div>;
+                const expectedRevision = unknown && submittedRevision !== null ? submittedRevision : job.revision;
+                setSubmittedRevision(expectedRevision);
+                await command('job.resume', { expectedRevision }, { id: job.id });
+                setSubmittedRevision(null);
+                action.clear();
+                onQueued();
+            })}>{unknown ? '原样核对上次继续请求' : '继续处理未完成行'}</button> : <small>{blocked[job.resumeBlockedReason ?? ''] ?? '当前不可继续，请核查任务及资料依据'}</small>}</div>;
 }
 function Imports() {
     const [refresh, setRefresh] = useState(0);
@@ -307,7 +320,8 @@ function Imports() {
                 const receipt = await command('import.preview', { sourceId, rows });
                 await loadBatch(receipt.resourceId);
             });
-        }}><Field label="本批资料来源"><select required value={sourceId} onChange={e => setSourceId(e.target.value)}><option value="">选择当前可用来源</option>{sources.data?.items.filter(s => s.current).map(s => <option key={s.id} value={s.id}>{s.title}</option>)}</select></Field><Field label="JSON 数据" hint={'每行仅允许 displayName、roles、cityCode。角色和城市必须使用字典中的稳定代码。'}><textarea className="code-input" required rows={7} value={text} onChange={e => setText(e.target.value)} placeholder={'[\n  {"displayName":"合成示例（请替换）", "roles":["model"], "cityCode":"shenzhen"}\n]'}/></Field><Submit busy={a.busy}>生成预览，不写入人才</Submit></form></section>{batch && <section className="panel"><div className="panel-heading"><div><h2>预览与逐行结果</h2><p>截止 {date(batch.expiresAt)} · 批次 {batch.id}</p></div>{batch.job && <Tag value={batch.job.state}/>}</div><div className="table-wrap"><table><thead><tr><th>选择</th><th>姓名</th><th>角色代码</th><th>状态 / 提示</th></tr></thead><tbody>{batch.rows.map(r => <tr key={r.index}><td><input aria-label={'选择第 ' + (r.index + 1) + ' 行'} type="checkbox" disabled={!!batch.job || r.state !== 'VALID'} checked={selected.includes(r.index)} onChange={e => setSelected(e.target.checked ? [...selected, r.index] : selected.filter(i => i !== r.index))}/></td><td>{r.displayName || '第 ' + (r.index + 1) + ' 行'}</td><td>{r.roles.join(', ')}</td><td><Tag value={r.state}/>{r.issues.map((m, i) => <small key={i}>{m}</small>)}{r.personId && <small>已生成独立人才编号</small>}</td></tr>)}</tbody></table></div><footer className="panel-footer">{!batch.job ? <button className="primary" disabled={a.busy || !selected.length} onClick={() => void a.run(async () => { await command('import.commit', { expectedRevision: batch.revision, selectedRows: selected }, { id: batch.id }); await loadBatch(batch.id); setRefresh(x => x + 1); })}>提交 {selected.length} 行到后台任务</button> : <p>已提交不等于已完成。后台 Worker 会再次核对来源与发起者权限；失败时保留逐行结果，不自动重复创建。</p>}</footer></section>}<section className="panel"><div className="panel-heading"><h2>本人导入任务</h2></div>{jobs.data?.items.length ? <div className="table-wrap"><table><thead><tr><th>创建时间</th><th>状态</th><th>领取次数</th><th>进度 / 失败代码</th><th /></tr></thead><tbody>{jobs.data.items.map(j => <tr key={j.id} data-job-id={j.id}><td>{date(j.createdAt)}</td><td><Tag value={j.state}/></td><td>{j.attempts}</td><td><small>已入库 {j.importedCount} / {j.selectedCount}{j.state === 'FAILED' && j.importedCount > 0 && '（部分完成）'}</small><code>{j.errorCode ?? '—'}</code></td><td><button onClick={() => void a.run(() => loadBatch(j.aggregateId))}>查看批次</button><ResumeImport job={j} onQueued={() => { setRefresh(x => x + 1); if (batch?.id === j.aggregateId) void a.run(() => loadBatch(j.aggregateId)); }}/></td></tr>)}</tbody></table></div> : <Empty title="暂无导入任务"/>}</section>{jobs.data && <Pager page={jobPage} pageSize={20} total={jobs.data.total} setPage={setJobPage}/>}</>;
+        }}><Field label="本批资料来源"><select required value={sourceId} onChange={e => setSourceId(e.target.value)}><option value="">选择当前可用来源</option>{sources.data?.items.filter(s => s.current).map(s => <option key={s.id} value={s.id}>{s.title}</option>)}</select></Field><Field label="JSON 数据" hint={'每行仅允许 displayName、roles、cityCode。角色和城市必须使用字典中的稳定代码。'}><textarea className="code-input" required rows={7} value={text} onChange={e => setText(e.target.value)} placeholder={'[\n  {"displayName":"合成示例（请替换）", "roles":["model"], "cityCode":"shenzhen"}\n]'}/></Field><Submit busy={a.busy}>生成预览，不写入人才</Submit></form></section>{batch && <section className="panel"><div className="panel-heading"><div><h2>预览与逐行结果</h2><p>截止 {date(batch.expiresAt)} · 批次 {batch.id}</p></div>{batch.job && <Tag value={batch.job.state}/>}</div><div className="table-wrap"><table><thead><tr><th>选择</th><th>姓名</th><th>角色代码</th><th>状态 / 提示</th></tr></thead><tbody>{batch.rows.map(r => <tr key={r.index}><td><input aria-label={'选择第 ' + (r.index + 1) + ' 行'} type="checkbox" disabled={!!batch.job || r.state !== 'VALID'} checked={selected.includes(r.index)} onChange={e => setSelected(e.target.checked ? [...selected, r.index] : selected.filter(i => i !== r.index))}/></td><td>{r.displayName || '第 ' + (r.index + 1) + ' 行'}</td><td>{r.roles.join(', ')}</td><td><Tag value={r.state}/>{r.issues.map((m, i) => <small key={i}>{m}</small>)}{r.personId && <small>已生成独立人才编号</small>}</td></tr>)}</tbody></table></div><footer className="panel-footer">{!batch.job ? <button className="primary" disabled={a.busy || !selected.length} onClick={() => void a.run(async () => { await command('import.commit', { expectedRevision: batch.revision, selectedRows: selected }, { id: batch.id }); await loadBatch(batch.id); setRefresh(x => x + 1); })}>提交 {selected.length} 行到后台任务</button> : <p>已提交不等于已完成。后台 Worker 会再次核对来源与发起者权限；失败时保留逐行结果，不自动重复创建。</p>}</footer></section>}<section className="panel"><div className="panel-heading"><h2>本人导入任务</h2></div>{jobs.data?.items.length ? <div className="table-wrap"><table><thead><tr><th>创建时间</th><th>状态</th><th>领取次数</th><th>进度 / 失败代码</th><th /></tr></thead><tbody>{jobs.data.items.map(j => <tr key={j.id} data-job-id={j.id}><td>{date(j.createdAt)}</td><td><Tag value={j.state}/></td><td>{j.attempts}</td><td><small>已入库 {j.importedCount} / {j.selectedCount}{j.state === 'FAILED' && j.importedCount > 0 && '（部分完成）'}</small><code>{j.errorCode ?? '—'}</code></td><td><button onClick={() => void a.run(() => loadBatch(j.aggregateId))}>查看批次</button><ResumeImport job={j} onQueued={() => { setRefresh(x => x + 1); if (batch?.id === j.aggregateId)
+        void a.run(() => loadBatch(j.aggregateId)); }}/></td></tr>)}</tbody></table></div> : <Empty title="暂无导入任务"/>}</section>{jobs.data && <Pager page={jobPage} pageSize={20} total={jobs.data.total} setPage={setJobPage}/>}</>;
 }
 function Members() {
     const { me } = useOS();

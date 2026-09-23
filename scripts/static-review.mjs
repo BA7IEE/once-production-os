@@ -12,7 +12,7 @@ const forbidden=[];for(const[file,text]of web){const tree=ts.createSourceFile(fi
 record('no-business-localStorage-or-unsafe-html',forbidden.length===0,{forbidden,note:'AST identifier check; not a complete XSS or data-loss audit.'});
 const artifacts=JSON.parse(fs.readFileSync('artifacts/openapi.json','utf8'));const routes=Object.values(artifacts.paths).flatMap(p=>Object.values(p));
 record('unique-route-operation-identities',new Set(routes.map(r=>r.operationId)).size===routes.length,{routes:routes.length});
-record('strict-request-object-schemas',routes.filter(r=>r.requestBody).every(r=>r.requestBody.content['application/json'].schema.additionalProperties===false),null);
+record('strict-request-object-schemas',routes.filter(r=>r.requestBody?.content['application/json']).every(r=>r.requestBody.content['application/json'].schema.additionalProperties===false),null);
 record('command-key-header-required',routes.filter(r=>r['x-mode']==='COMMAND').every(r=>r.parameters.some(p=>p.name==='Idempotency-Key'&&p.required)),null);
 record('no-deferred-http-surfaces',Object.keys(artifacts.paths).every(p=>!/(publish|anqicms|share|quote|invoice|ai\/)/.test(p)),null);
 const migration=fs.readFileSync('prisma/migrations/202609220001_initial/migration.sql','utf8');

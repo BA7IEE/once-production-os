@@ -3,9 +3,9 @@ import type { Tx } from './store.ts';
 import { fail, invariant, missing } from './errors.ts';
 import { workspaceRow } from './helpers.ts';
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
-    ADMIN: ['records.read', 'records.write', 'sources.read', 'sources.write', 'sources.review', 'members.manage', 'catalog.manage', 'audit.read'],
-    EDITOR: ['records.read', 'records.write', 'sources.read', 'sources.write'],
-    REVIEWER: ['records.read', 'sources.read', 'sources.review'], VIEWER: ['records.read']
+    ADMIN: ['assets.read', 'assets.upload', 'records.read', 'records.write', 'sources.read', 'sources.write', 'sources.review', 'members.manage', 'catalog.manage', 'audit.read'],
+    EDITOR: ['assets.read', 'assets.upload', 'records.read', 'records.write', 'sources.read', 'sources.write'],
+    REVIEWER: ['assets.read', 'records.read', 'sources.read', 'sources.review'], VIEWER: ['assets.read', 'records.read']
 };
 export const permissionsFor = (member: Membership): Permission[] => [...new Set([...ROLE_PERMISSIONS[member.role], ...member.extraPermissions])];
 export function requirePermission(actor: Actor, permission: Permission): void {

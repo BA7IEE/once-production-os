@@ -38,7 +38,7 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
         const clock = new FakeClock();
         const config: Config = { origin: 'https://postgres.test.invalid', secureCookies: true,
             contactKey: randomBytes(32), csrfKey: randomBytes(32), recoveryEpoch: randomBytes(24).toString('hex'),
-            accessMode: 'INTERNAL', environment: 'test' };
+            accessMode: 'INTERNAL', environment: 'test', mediaEnabled: true };
         const appA = new Application(storeA, config, clock);
         const appB = new Application(storeB, config, clock);
         const identity = await appA.identity.bootstrap('owner', '仅限合成测试管理员', SYNTHETIC_PASSWORD);
@@ -51,7 +51,8 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
         // the production installation gate or ignore failed activation/login responses.
         const senderCreated = await ownerA.raw('POST', '/memberships', { loginName: 'pg_handoff_sender', displayName: 'PG交接发起人', role: 'EDITOR', extraPermissions: [] });
         const recipientCreated = await ownerA.raw('POST', '/memberships', { loginName: 'pg_handoff_receiver', displayName: 'PG交接接收人', role: 'ADMIN', extraPermissions: ['sensitive.read', 'sensitive.write'] });
-        assert.equal(senderCreated.status, 201); assert.equal(recipientCreated.status, 201);
+        assert.equal(senderCreated.status, 201);
+        assert.equal(recipientCreated.status, 201);
         const sender = new Client(appA, '192.0.2.80'), receiver = new Client(appB, '192.0.2.81');
         assert.equal((await sender.activate(result(senderCreated).activationToken)).status, 200);
         assert.equal((await sender.login('pg_handoff_sender')).status, 200);
@@ -127,13 +128,19 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
                 const faults = new FaultStore(storeA);
                 let fired = false;
                 faults.afterInsert = (table) => {
-                    if (table === stage && !fired) { fired = true; throw new Error('synthetic after-insert failure'); }
+                    if (table === stage && !fired) {
+                        fired = true;
+                        throw new Error('synthetic after-insert failure');
+                    }
                 };
                 const failApp = new Application(faults, config, clock);
-                const c = new Client(failApp); c.jar = { ...ownerA.jar }; c.csrf = ownerA.csrf;
+                const c = new Client(failApp);
+                c.jar = { ...ownerA.jar };
+                c.csrf = ownerA.csrf;
                 const counts = async () => ({ people: await a.person.count(), sources: await a.sourceRecord.count(),
                     history: await a.sourceHistory.count(), audits: await a.auditEvent.count(), receipts: await a.commandReceipt.count() });
-                const before = await counts(); const key = randomUUID();
+                const before = await counts();
+                const key = randomUUID();
                 const body = { displayName: 'PG rollback ' + stage, roles: ['model'], inlineSource: sourceInput() };
                 assert.equal((await c.cmd('POST', '/people', body, key)).status, 503);
                 assert.ok(fired, 'the targeted SQL write must actually have run');
@@ -143,7 +150,8 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
                 assert.equal(success.status, 201);
                 assert.deepEqual(await counts(), Object.fromEntries(Object.entries(before).map(([k, v]) => [k, v + 1])));
                 const replay = await ownerB.cmd('POST', '/people', body, key);
-                assert.equal(replay.status, 201); assert.equal(result(replay).resourceId, result(success).resourceId);
+                assert.equal(replay.status, 201);
+                assert.equal(result(replay).resourceId, result(success).resourceId);
                 assert.deepEqual(await counts(), Object.fromEntries(Object.entries(before).map(([k, v]) => [k, v + 1])));
             });
         }
@@ -155,7 +163,7 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
             await assert.rejects(a.sourceHistory.delete({ where: { id: h.id } }), /sourceHistory is append-only/);
             const foreign = await a.accessScope.findFirstOrThrow({ where: { workspaceId: { not: identity.workspaceId } } });
             await assert.rejects(a.sourceHistory.create({ data: { ...input, id: randomUUID(), scopeId: foreign.id,
-                sourceRevision: 123456, snapshot: { ...(h.snapshot as Prisma.JsonObject), scopeId: foreign.id, revision: 123456 } } }));
+                    sourceRevision: 123456, snapshot: { ...(h.snapshot as Prisma.JsonObject), scopeId: foreign.id, revision: 123456 } } }));
             assert.equal(await a.sourceHistory.count({ where: { workspaceId: identity.workspaceId, sourceId: h.sourceId, sourceRevision: 123456 } }), 0);
         });
         await t.test('PG partial import resume retains checkpoints, idempotency and two-worker ownership', async () => {
@@ -166,17 +174,26 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
             const queued = await ownerA.cmd('POST', '/imports/' + result(preview).resourceId + '/commit', { expectedRevision: 1, selectedRows: [0, 1] });
             assert.equal(queued.status, 202);
             const jobId = result(queued).resourceId;
-            const faults = new FaultStore(storeA); let fired = false;
-            faults.afterInsert = (table, row) => { if (table === 'people' && 'displayName' in row && row.displayName === 'PG resume 2' && !fired) {
-                fired = true; throw new AppError(503, 'STORE_BUSY', 'synthetic row rollback');
-            } };
+            const faults = new FaultStore(storeA);
+            let fired = false;
+            faults.afterInsert = (table, row) => {
+                if (table === 'people' && 'displayName' in row && row.displayName === 'PG resume 2' && !fired) {
+                    fired = true;
+                    throw new AppError(503, 'STORE_BUSY', 'synthetic row rollback');
+                }
+            };
             const worker = new Application(faults, config, clock);
             const before = await a.person.count();
-            const old = await worker.imports.claim(); assert.ok(old); await worker.imports.process(old);
-            assert.ok(fired); assert.equal(await a.person.count(), before + 1);
+            const old = await worker.imports.claim();
+            assert.ok(old);
+            await worker.imports.process(old);
+            assert.ok(fired);
+            assert.equal(await a.person.count(), before + 1);
             const state = result(await ownerA.raw('GET', '/jobs/' + jobId));
-            assert.equal(state.canResume, true); assert.equal(state.importedCount, 1);
-            const key = randomUUID(); const input = { expectedRevision: state.revision };
+            assert.equal(state.canResume, true);
+            assert.equal(state.importedCount, 1);
+            const key = randomUUID();
+            const input = { expectedRevision: state.revision };
             const resumed = await Promise.all([ownerA, ownerB].map(c => c.cmd('POST', '/jobs/' + jobId + '/resume', input, key)));
             assert.ok(resumed.every(r => r.status === 202));
             const claims = await Promise.all([appA.imports.claim(), appB.imports.claim()]);
@@ -191,23 +208,33 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
         });
         await t.test('PG query count stays bounded for 100/1000 people and a 100-row preview', async () => {
             const measured = new PrismaClient({ datasources: { db: { url } }, log: [{ emit: 'event', level: 'query' }] });
-            const measuredStore = new PrismaStore(measured); let queries = 0;
+            const measuredStore = new PrismaStore(measured);
+            let queries = 0;
             measured.$on('query', () => { queries++; }); // Never log SQL parameters or full records.
             try {
                 const measuredApp = new Application(measuredStore, config, clock);
-                const c = new Client(measuredApp); c.jar = { ...ownerA.jar }; c.csrf = ownerA.csrf;
+                const c = new Client(measuredApp);
+                c.jar = { ...ownerA.jar };
+                c.csrf = ownerA.csrf;
                 const template = await a.person.findUniqueOrThrow({ where: { id: personId } });
                 for (const target of [100, 1000]) {
                     const existing = await a.person.count();
-                    if (existing < target) await a.person.createMany({ data: Array.from({ length: target - existing }, (_, i) => ({
-                        ...template, id: randomUUID(), displayName: 'PG scale ' + target + ':' + i })) });
-                    queries = 0; const started = performance.now();
+                    if (existing < target)
+                        await a.person.createMany({ data: Array.from({ length: target - existing }, (_, i) => ({
+                                ...template, id: randomUUID(), displayName: 'PG scale ' + target + ':' + i
+                            })) });
+                    queries = 0;
+                    const started = performance.now();
                     const res = await c.cmd('POST', '/imports/preview', { sourceId: template.sourceId,
                         rows: Array.from({ length: 100 }, (_, i) => ({ displayName: 'PG preview ' + i, roles: ['model'] })) });
-                    assert.equal(res.status, 201); assert.ok(queries <= 50, 'query budget exceeded: ' + queries);
+                    assert.equal(res.status, 201);
+                    assert.ok(queries <= 50, 'query budget exceeded: ' + queries);
                     console.log(JSON.stringify({ metric: 'PG-preview', people: target, rows: 100, queries, elapsedMs: performance.now() - started }));
                 }
-            } finally { await measuredStore.close(); }
+            }
+            finally {
+                await measuredStore.close();
+            }
         });
         await t.test('H1 PG private basic-profile grant and native evidence separation', async () => {
             const created = await sender.cmd('POST', '/people', { displayName: 'PG H1私有档案', roles: ['model'], inlineSource: sourceInput(true) });
@@ -232,7 +259,8 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
                 assert.equal((await receiver.raw('GET', path)).status, 404);
             assert.deepEqual(await a.sourceRecord.findUniqueOrThrow({ where: { id: person.sourceId } }), sourceBefore);
             assert.deepEqual(await a.scopeMember.findMany({ orderBy: { id: 'asc' } }), scopesBefore);
-            const editKey = randomUUID(); const edit = { expectedRevision: 1, intro: 'PG受控修改' };
+            const editKey = randomUUID();
+            const edit = { expectedRevision: 1, intro: 'PG受控修改' };
             assert.equal((await receiver.cmd('PATCH', '/people/' + person.id, edit, editKey)).status, 200);
             assert.equal((await sender.cmd('POST', '/handoffs/' + hid + '/revoke', { expectedRevision: 2 })).status, 200);
             assert.equal((await receiver.cmd('PATCH', '/people/' + person.id, edit, editKey)).status, 404);
@@ -257,14 +285,80 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
                 const input = { expectedRevision: 1, expectedSourceRevision: 1, recipientId: receiver.id, purpose: 'EDIT',
                     expiresAt: new Date(clock.now().getTime() + 3600000).toISOString(), acknowledgeLimitedAccess: true };
                 const count = async () => ({ handoffs: await a.recordHandoff.count(), audits: await a.auditEvent.count(), receipts: await a.commandReceipt.count() });
-                const before = await count(); const key = randomUUID(); const faults = new FaultStore(storeA); let fired = false;
-                faults.afterInsert = table => { if (table === stage && !fired) { fired = true; throw new Error('H1 after-insert fault'); } };
+                const before = await count();
+                const key = randomUUID();
+                const faults = new FaultStore(storeA);
+                let fired = false;
+                faults.afterInsert = table => { if (table === stage && !fired) {
+                    fired = true;
+                    throw new Error('H1 after-insert fault');
+                } };
                 const app = new Application(faults, config, clock), client = new Client(app);
-                client.jar = { ...ownerA.jar }; client.csrf = ownerA.csrf;
+                client.jar = { ...ownerA.jar };
+                client.csrf = ownerA.csrf;
                 assert.equal((await client.cmd('POST', '/people/' + person.id + '/handoffs', input, key)).status, 503);
-                assert.ok(fired); assert.deepEqual(await count(), before);
+                assert.ok(fired);
+                assert.deepEqual(await count(), before);
                 assert.equal((await ownerA.cmd('POST', '/people/' + person.id + '/handoffs', input, key)).status, 201);
                 assert.deepEqual(await count(), Object.fromEntries(Object.entries(before).map(([k, v]) => [k, v + 1])));
+            });
+        }
+        const imageHash = 'a'.repeat(64), imagePreviewHash = 'b'.repeat(64);
+        async function mediaSetup() {
+            const r = await ownerA.cmd('POST', '/people', { displayName: 'M1 PG合成图片人才', roles: ['model'], inlineSource: sourceInput(true) });
+            assert.equal(r.status, 201);
+            const person = await a.person.findUniqueOrThrow({ where: { id: result(r).resourceId } });
+            const input = { sourceId: person.sourceId, personId: person.id, expectedSourceRevision: 1, fileName: 'synthetic.png', mime: 'image/png', expectedBytes: 12, sha256: imageHash };
+            const key = randomUUID(), out = await Promise.all([ownerA, ownerB].map(c => c.cmd('POST', '/uploads', input, key)));
+            assert.ok(out.every(r => r.status === 201), JSON.stringify(out.map(r => r.body)));
+            const id = result(out[0]!).resourceId as string;
+            assert.equal(result(out[1]!).resourceId, id);
+            const received = await storeA.transaction(async (tx) => appA.media.beginReceive(tx, await appA.identity.authenticate(tx, ownerA.jar.once_session!), id, 12));
+            await storeA.transaction(async (tx) => appA.media.finishReceive(tx, await appA.identity.authenticate(tx, ownerA.jar.once_session!), id, received.receiveToken!, 12, imageHash));
+            const upload = await a.mediaUpload.findUniqueOrThrow({ where: { id } });
+            assert.equal((await ownerA.cmd('POST', '/uploads/' + id + '/complete', { expectedRevision: upload.revision })).status, 202);
+            return id;
+        }
+        await t.test('M1 PG same-key reservation, competing leases and unique asset from current attempt', async () => {
+            const id = await mediaSetup(), claims = await Promise.all([appA.media.claim(), appB.media.claim()]);
+            assert.equal(claims.filter(Boolean).length, 1);
+            const old = claims.find(Boolean)!;
+            clock.advance(31000);
+            const next = (await appB.media.claim())!;
+            assert.equal(next.id, id);
+            assert.notEqual(old.leaseToken, next.leaseToken);
+            const output = { mime: 'image/png' as const, bytes: 12, sha256: imageHash, width: 2, height: 3, previewBytes: 10, previewHash: imagePreviewHash };
+            await assert.rejects(appA.media.finish(old, output));
+            assert.equal(await a.mediaAsset.count({ where: { id } }), 0);
+            await appB.media.finish(next, output);
+            assert.equal(await a.mediaAsset.count({ where: { id } }), 1);
+            assert.equal((await a.mediaUpload.findUniqueOrThrow({ where: { id } })).state, 'READY');
+            await assert.rejects(a.mediaUpload.update({ where: { id }, data: { personEpoch: null } }));
+            await assert.rejects(a.mediaAsset.update({ where: { id }, data: { width: 0 } }));
+            const row = await a.mediaAsset.findUniqueOrThrow({ where: { id } });
+            const alien = await a.sourceRecord.findFirst({ where: { workspaceId: { not: identity.workspaceId } } });
+            // Wrong parent remains rejected even when both IDs are syntactically valid.
+            await assert.rejects(a.mediaAsset.update({ where: { id }, data: { sourceId: randomUUID() } }));
+            assert.equal((await a.mediaAsset.findUniqueOrThrow({ where: { id } })).sourceId, row.sourceId);
+        });
+        for (const stage of ['assets', 'audits'] as const) {
+            await t.test('M1 PG READY publication rollback after ' + stage, async () => {
+                const id = await mediaSetup(), claim = (await appA.media.claim())!;
+                const before = await a.mediaUpload.findUniqueOrThrow({ where: { id } }), auditBefore = await a.auditEvent.count();
+                const faults = new FaultStore(storeA);
+                let fired = false;
+                faults.afterInsert = table => { if (table === stage && !fired) {
+                    fired = true;
+                    throw new Error('M1 synthetic after write');
+                } };
+                const app = new Application(faults, config, clock), output = { mime: 'image/png' as const, bytes: 12, sha256: imageHash, width: 2, height: 3, previewBytes: 10, previewHash: imagePreviewHash };
+                await assert.rejects(app.media.finish(claim, output));
+                assert.ok(fired);
+                assert.equal(await a.mediaAsset.count({ where: { id } }), 0);
+                assert.deepEqual(await a.mediaUpload.findUniqueOrThrow({ where: { id } }), before);
+                assert.equal(await a.auditEvent.count(), auditBefore);
+                await appA.media.finish(claim, output);
+                assert.equal(await a.mediaAsset.count({ where: { id } }), 1);
             });
         }
     }

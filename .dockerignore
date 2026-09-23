@@ -11,3 +11,5 @@ docs
 artifacts/*
 !artifacts/openapi.json
 *.zip
+
+.local-media/
