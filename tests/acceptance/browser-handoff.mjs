@@ -126,8 +126,14 @@ try {
 
     await receiver.getByRole('button', { name: '编辑资料', exact: true }).click();
     await receiver.getByLabel('简介').fill('H1接收人已整理基本简介');
+    // A textarea already contains the edited text before persistence. Await the actual
+    // command response and the detail view, not a text locator that can match that input.
+    const savedResponse = receiver.waitForResponse(r => r.url().endsWith('/people/' + personId) && r.request().method() === 'PATCH');
     await receiver.getByRole('button', { name: '保存新版本' }).click();
-    await receiver.getByText('H1接收人已整理基本简介', { exact: true }).waitFor();
+    const saved = await savedResponse;
+    assert.equal(saved.status(), 200, 'delegated profile save must be accepted by the real API');
+    await receiver.getByRole('button', { name: '编辑资料', exact: true }).waitFor();
+    await receiver.locator('p.pre-line').filter({ hasText: 'H1接收人已整理基本简介' }).waitFor();
     const changed = await prisma.person.findUniqueOrThrow({ where: { id: personId } });
     assert.equal(changed.intro, 'H1接收人已整理基本简介'); assert.equal(changed.maintainerId, person.maintainerId);
     assert.equal(changed.sourceId, person.sourceId); assert.equal(changed.scopeId, person.scopeId);

@@ -46,6 +46,17 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
         const ownerB = new Client(appB, '192.0.2.77');
         assert.equal((await ownerA.login()).status, 200);
         assert.equal((await ownerB.login()).status, 200);
+        // Login intentionally requires exactly one installed workspace. Establish real test
+        // identities before later FK-negative fixtures add foreign workspaces; do not weaken
+        // the production installation gate or ignore failed activation/login responses.
+        const senderCreated = await ownerA.raw('POST', '/memberships', { loginName: 'pg_handoff_sender', displayName: 'PG交接发起人', role: 'EDITOR', extraPermissions: [] });
+        const recipientCreated = await ownerA.raw('POST', '/memberships', { loginName: 'pg_handoff_receiver', displayName: 'PG交接接收人', role: 'ADMIN', extraPermissions: ['sensitive.read', 'sensitive.write'] });
+        assert.equal(senderCreated.status, 201); assert.equal(recipientCreated.status, 201);
+        const sender = new Client(appA, '192.0.2.80'), receiver = new Client(appB, '192.0.2.81');
+        assert.equal((await sender.activate(result(senderCreated).activationToken)).status, 200);
+        assert.equal((await sender.login('pg_handoff_sender')).status, 200);
+        assert.equal((await receiver.activate(result(recipientCreated).activationToken)).status, 200);
+        assert.equal((await receiver.login('pg_handoff_receiver')).status, 200);
         let personId = '';
         await t.test('two independent clients serialize the same command into one source/person/receipt', async () => {
             const key = randomUUID();
@@ -199,12 +210,6 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
             } finally { await measuredStore.close(); }
         });
         await t.test('H1 PG private basic-profile grant and native evidence separation', async () => {
-            const senderCreated = await ownerA.raw('POST', '/memberships', { loginName: 'pg_handoff_sender', displayName: 'PG交接发起人', role: 'EDITOR', extraPermissions: [] });
-            const recipientCreated = await ownerA.raw('POST', '/memberships', { loginName: 'pg_handoff_receiver', displayName: 'PG交接接收人', role: 'ADMIN', extraPermissions: ['sensitive.read', 'sensitive.write'] });
-            assert.equal(senderCreated.status, 201); assert.equal(recipientCreated.status, 201);
-            const sender = new Client(appA), receiver = new Client(appB);
-            await sender.activate(result(senderCreated).activationToken); await sender.login('pg_handoff_sender');
-            await receiver.activate(result(recipientCreated).activationToken); await receiver.login('pg_handoff_receiver');
             const created = await sender.cmd('POST', '/people', { displayName: 'PG H1私有档案', roles: ['model'], inlineSource: sourceInput(true) });
             assert.equal(created.status, 201);
             const person = await a.person.findUniqueOrThrow({ where: { id: result(created).resourceId } });

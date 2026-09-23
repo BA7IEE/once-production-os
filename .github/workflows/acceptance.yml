@@ -34,6 +34,8 @@ jobs:
           --health-retries 20
     steps:
       - uses: actions/checkout@v6
+      - name: Verify committed delivery fingerprints
+        run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
@@ -74,6 +76,8 @@ jobs:
           --health-retries 20
     steps:
       - uses: actions/checkout@v6
+      - name: Verify committed delivery fingerprints
+        run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
@@ -113,6 +117,8 @@ jobs:
           --health-retries 20
     steps:
       - uses: actions/checkout@v6
+      - name: Verify committed delivery fingerprints
+        run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
