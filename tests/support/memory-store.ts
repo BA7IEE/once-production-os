@@ -1,7 +1,7 @@
 import { AppError } from '../../packages/core/src/errors.ts';
 import type { Store, Tx } from '../../packages/core/src/store.ts';
 import type { Table, TableMap } from '../../packages/core/src/model.ts';
-const tables: Table[] = ['usePermissions', 'exports', 'exportDependencies', 'shortlists', 'shortlistItems', 'shortlistItemAssets', 'works', 'workAssets', 'workCredits', 'projects', 'projectParticipants', 'projectWorks', 'workspaces', 'users', 'memberships', 'sessions', 'activations', 'scopes', 'scopeMembers', 'sources', 'sourceHistory', 'people', 'contacts', 'evidence', 'dictionary', 'receipts', 'audits', 'rateBuckets', 'imports', 'jobs', 'handoffs', 'uploads', 'assets'];
+const tables: Table[] = ['deletionRequests', 'deletionItems', 'usePermissions', 'exports', 'exportDependencies', 'shortlists', 'shortlistItems', 'shortlistItemAssets', 'works', 'workAssets', 'workCredits', 'projects', 'projectParticipants', 'projectWorks', 'workspaces', 'users', 'memberships', 'sessions', 'activations', 'scopes', 'scopeMembers', 'sources', 'sourceHistory', 'people', 'contacts', 'evidence', 'dictionary', 'receipts', 'audits', 'rateBuckets', 'imports', 'jobs', 'handoffs', 'uploads', 'assets'];
 type Data = {
     [K in Table]: Map<string, TableMap[K]>;
 };
