@@ -556,11 +556,12 @@ export async function runProductionContracts(t: TestContext, c: Context) {
         await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/block', {
             expectedRevision: 1, previewDigest: preview.previewDigest, acknowledgeBlock: true
         }));
+        const creditRow = await a.workCredit.findFirstOrThrow({ where: { workId: workId2, personId: personId2, roleCode: 'model' } });
         const slots = result(await ownerA.raw('GET', '/deletion-requests/' + requestId + '/items'));
         const pending = slots.items.find((x: any) => x.decision === 'PENDING');
         assert.ok(pending);
         assert.ok(!JSON.stringify(slots).includes(workId2));
-        assert.ok(!JSON.stringify(slots).includes(credit.resourceId));
+        assert.ok(!JSON.stringify(slots).includes(creditRow.id));
         await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/decisions', {
             expectedRevision: 2, entryId: pending.id, decision: 'APPLY_PROPOSED',
             decisionReason: 'synthetic review confirms proposed action'
@@ -574,7 +575,7 @@ export async function runProductionContracts(t: TestContext, c: Context) {
         assert.ok(request.planFrozenAt);
         assert.equal(request.planFrozenById, identity.membershipId);
         assert.equal(await a.person.count({ where: { id: personId2 } }), 1);
-        assert.equal(await a.workCredit.count({ where: { workId: workId2, personId: personId2, roleCode: 'model' } }), 1);
+        assert.equal(await a.workCredit.count({ where: { id: creditRow.id } }), 1);
     });
 
     await t.test('DEV-07D PG invalid retention decision shapes are rejected by DB', async () => {
