@@ -118,7 +118,7 @@ export interface Membership {
     displayName: string;
     loginName: string;
     role: Me['role'];
-    extraPermissions: Array<'sensitive.read' | 'sensitive.write'>;
+    extraPermissions: Array<'sensitive.read' | 'sensitive.write' | 'data.export'>;
     status: string;
     revision: number;
 }
