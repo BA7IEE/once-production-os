@@ -5,7 +5,7 @@ import type { WorkDetail, WorkSummary, ProjectDetail, ProjectSummary } from './p
 import type { AssetDto } from './media-ui.tsx';
 import type { ExportDetail, ExportDownload, ExportSummary, UsePermissionDto } from './export-dto.ts';
 import type { ExportFieldCode, ExportSubjectKind } from '../../../packages/core/src/export-model.ts';
-import { ErrorBox, Field, PageTitle, Pager, Submit, Tag, date, useAction, useLoad } from './ui.tsx';
+import { ErrorBox, Field, Modal, PageTitle, Pager, Submit, Tag, date, useAction, useLoad } from './ui.tsx';
 
 const fieldGroups: Record<ExportSubjectKind, Array<[ExportFieldCode, string]>> = {
     PERSON: [
@@ -81,9 +81,7 @@ function PermissionForm({ resources, onClose, onDone }: { resources: ResourceSet
         : kind === 'SOURCE' ? resources.sources.map(x => [x.id, x.title] as const)
         : resources.assets.map(x => [x.id, x.fileName] as const);
 
-    return <div className="overlay"><div className="modal modal-wide" role="dialog" aria-modal="true" aria-label="批准内部导出用途">
-        <header><div><span className="eyebrow">ONCE / INTERNAL EXPORT</span><h2>批准内部导出用途</h2></div><button className="icon-button" aria-label="关闭" onClick={onClose}>×</button></header>
-        <form onSubmit={e => { e.preventDefault(); void action.run(async () => {
+    return <Modal title="批准内部导出用途" onClose={onClose} wide><form onSubmit={e => { e.preventDefault(); void action.run(async () => {
             if (!sourceId) throw new Error('对象来源尚未读取完成，请稍后再提交');
             if (!fields.length) throw new Error('至少选择一个允许导出的字段');
             await call('usePermission.create', {
@@ -107,8 +105,7 @@ function PermissionForm({ resources, onClose, onDone }: { resources: ResourceSet
                 {sourceId && <p className="muted">来源 ID：{sourceId}</p>}
             </div>
             <footer className="modal-footer"><button type="button" onClick={onClose} disabled={action.busy}>取消</button><Submit busy={action.busy}>批准用途</Submit></footer>
-        </form>
-    </div></div>;
+        </form></Modal>;
 }
 
 function ExportDetailPanel({ id, onChanged }: { id: string; onChanged: () => void }) {
@@ -190,7 +187,7 @@ export function ExportPanel({ me }: { me: Me }) {
 
         <section className="panel padded"><div className="panel-heading"><div><h2>可用导出许可</h2><p>先由资料核验人员批准对象、字段和截止时间。导出任务只能使用这里的现行许可。</p></div><button onClick={() => setRefresh(x => x + 1)}>刷新</button></div>
             <div className="table-wrap"><table><thead><tr>{canExport && <th>用于本次导出</th>}<th>对象</th><th>允许字段</th><th>截止</th><th>状态</th>{canApprove && <th>操作</th>}</tr></thead>
-                <tbody>{permissions.data?.items.map(p => <tr key={p.id}>{canExport && <td><input aria-label={'选择导出许可 ' + p.id} type="checkbox" disabled={p.status !== 'ACTIVE' || Date.parse(p.validUntil) <= Date.now()} checked={selectedPermissions.includes(p.id)} onChange={e => setSelectedPermissions(e.target.checked ? [...selectedPermissions, p.id] : selectedPermissions.filter(x => x !== p.id))}/></td>}<td><strong>{kindNames[p.subjectKind]} · {subjectLabel(p, resources)}</strong><small>{p.subjectId}</small></td><td>{p.fields.map(x => fieldGroups[p.subjectKind].find(([c]) => c === x)?.[1] ?? x).join(' / ')}</td><td>{date(p.validUntil)}</td><td><Tag value={p.status}/></td>{canApprove && <td>{p.status === 'ACTIVE' && <button className="danger-text" disabled={revoke.busy} onClick={() => {
+                <tbody>{permissions.data?.items.map(p => <tr key={p.id}>{canExport && <td><input aria-label={'选择导出许可 ' + p.id} type="checkbox" disabled={p.status !== 'ACTIVE' || Date.parse(p.validUntil) <= Date.now()} checked={selectedPermissions.includes(p.id)} onChange={e => setSelectedPermissions(e.target.checked ? [...selectedPermissions, p.id] : selectedPermissions.filter(x => x !== p.id))}/></td>}<td><strong>{kindNames[p.subjectKind]} · {subjectLabel(p, resources)}</strong><small>{p.subjectId}</small></td><td>{p.fields.map(x => fieldGroups[p.subjectKind].find(([c]) => c === x)?.[1] ?? x).join(' / ')}</td><td>{date(p.validUntil)}</td><td>{p.status === 'ACTIVE' ? '有效' : '已撤销'}</td>{canApprove && <td>{p.status === 'ACTIVE' && <button className="danger-text" disabled={revoke.busy} onClick={() => {
                     if (confirm('撤销后，依赖此许可的旧导出会立即不可下载。确认撤销？')) void revoke.run(async () => { await call('usePermission.revoke', { expectedRevision: p.revision }, { id: p.id }); setRefresh(x => x + 1); });
                 }}>撤销</button>}</td>}</tr>)}</tbody></table></div>
             {!permissions.data?.items.length && <p className="muted">暂无当前可见的导出许可。</p>}
