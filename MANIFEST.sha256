@@ -10,8 +10,8 @@ cde76ca04e048c3eba070a2c0dfcf5b723cf6014eab177157096b924f24ec4ca  .npmrc
 58bd8be8897bc234250866019ca5b72690e63f19fb8d07d0c13621ab5006a6f0  README.md
 7d051176b9b7120e5d1c1391961e018a77897776557829530b21d60552d014e3  apps/admin-web/index.html
 0344a28801c0a6c329602430230d9d39ba1b134d20d8b122035d8b541de57d8d  apps/admin-web/src/api.ts
-e72583e52fa49e0254aa3bc727a00139eb8d2b361371917251cfcfc5487dadce  apps/admin-web/src/deletion-dto.ts
-68cbe77e9dd2b5fe623eb8a346634dba52cb85df93779a22b3fa06e4fb2fc3c1  apps/admin-web/src/deletion-ui.tsx
+7d7f8b411a0de2c8122cf506210271e8db0521b74bdf0eeeacf888903db29f6d  apps/admin-web/src/deletion-dto.ts
+e8b53301de2ec0562a0f18b6650820d2edd02c7dc9f3be95e0910dfd2edfb4f4  apps/admin-web/src/deletion-ui.tsx
 2c1904d73dc6d756a9537a6ca65773ac7a8f32540d8b04735e53d6ea28fb6eab  apps/admin-web/src/dto.ts
 6a14e53146b7c67b4405529fe43160bae338e50f1cbbfbb0581f199641e8b682  apps/admin-web/src/export-dto.ts
 a73537c272e47f4b19c61922534f491d48efcb37e21e26f7dad1eb84f5294bb5  apps/admin-web/src/export-ui.tsx
@@ -24,7 +24,7 @@ d81fd63e5554a8411c42c887043f44836b0c827ea32e061849475f1641acab57  apps/admin-web
 4b85eb840483bf243828f8ef1d958802659467bc5025befc9bcf25bb370b93bd  apps/admin-web/src/production-ui.tsx
 5c13b61f4aa4a9b7d40c707ccdabc79140badae1ec156eeae6b45c22c13f8a53  apps/admin-web/src/shortlist-dto.ts
 478d50f0bf66d0e22b3f572630dc5d6a45b15c8919cd2a52c2e48300b9c48a66  apps/admin-web/src/shortlist-ui.tsx
-2efe6948ae4e29dd236a356539bf9e97a41f0b14e101efe01a460bda54517eff  apps/admin-web/src/style.css
+f558e63ff4c802103ec0108146986aafa2954832af42f6d546cf6fa45fc37a33  apps/admin-web/src/style.css
 69c1424d93beab760048ce18567bebde4abf8e9405cb2cd0776695a52af19c24  apps/admin-web/src/ui.tsx
 c7b1a5c25abf78f86473742ced9b4cad9729147408e864c4050b1de5d4337d27  apps/admin-web/tsconfig.json
 56ba85acc16dba878236fb63634e3281ac8ee2b656eac7085c84d486e7797ec3  apps/admin-web/tsconfig.transport.json
