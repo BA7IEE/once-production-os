@@ -321,3 +321,155 @@ test('DEV-07C already blocked target cannot create another deletion request', as
     assert.equal(result(response).error.code, 'DELETION_ALREADY_BLOCKED');
 });
 
+test('DEV-07D pending review decisions block plan freeze; safe review slots expose no underlying resource ids', async () => {
+    const f = await fixture(), pid = await createPerson(f.owner, '保留决策候选');
+    const person = await get(f.owner, '/people/' + pid);
+    const workId = (await ok(f.owner.cmd('POST', '/works', { title: '带备注关系作品', inlineSource: sourceInput() }), 201)).resourceId as string;
+    const credit = await ok(f.owner.cmd('POST', '/works/' + workId + '/credits', {
+        expectedRevision: 1, personId: pid, roleCode: 'model', note: '这条关系有业务备注，需要人工判断'
+    }));
+    const p = await preview(f, 'PERSON', pid, person.revision);
+    const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
+        targetKind: 'PERSON', targetId: pid, expectedRevision: person.revision,
+        previewDigest: p.previewDigest, reason: '合成测试：先阻断，再做保留决定'
+    }), 201);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/block', {
+        expectedRevision: 1, previewDigest: p.previewDigest, acknowledgeBlock: true
+    }));
+    const slots = await get(f.owner, '/deletion-requests/' + created.resourceId + '/items');
+    const pending = slots.items.find((x: any) => x.evidenceState === 'REVIEW_REQUIRED');
+    assert.ok(pending);
+    const encoded = JSON.stringify(slots);
+    assert.ok(!encoded.includes(workId));
+    assert.ok(!encoded.includes(credit.resourceId));
+    assert.ok(!encoded.includes(person.sourceId));
+    const freeze = await f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/plan/freeze', {
+        expectedRevision: 2, acknowledgePlan: true
+    });
+    assert.equal(freeze.status, 409);
+    assert.equal(result(freeze).error.code, 'DELETION_DECISIONS_PENDING');
+});
+
+test('DEV-07D manual proposed-action decision completes and freezes a non-executing cleanup plan', async () => {
+    const f = await fixture(), pid = await createPerson(f.owner, '按建议处置候选');
+    const person = await get(f.owner, '/people/' + pid);
+    const workId = (await ok(f.owner.cmd('POST', '/works', { title: '人工判断作品', inlineSource: sourceInput() }), 201)).resourceId as string;
+    const creditId = (await ok(f.owner.cmd('POST', '/works/' + workId + '/credits', {
+        expectedRevision: 1, personId: pid, roleCode: 'model', note: '人工判断后按建议移除关系'
+    }))).resourceId as string;
+    const p = await preview(f, 'PERSON', pid, person.revision);
+    const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
+        targetKind: 'PERSON', targetId: pid, expectedRevision: person.revision,
+        previewDigest: p.previewDigest, reason: '合成测试：冻结清理计划但不执行'
+    }), 201);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/block', {
+        expectedRevision: 1, previewDigest: p.previewDigest, acknowledgeBlock: true
+    }));
+    const slots = await get(f.owner, '/deletion-requests/' + created.resourceId + '/items');
+    const pending = slots.items.find((x: any) => x.decision === 'PENDING');
+    assert.ok(pending);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/decisions', {
+        expectedRevision: 2, entryId: pending.id, decision: 'APPLY_PROPOSED',
+        decisionReason: '已核对关系备注，不存在独立保留依据'
+    }));
+    const frozen = await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/plan/freeze', {
+        expectedRevision: 3, acknowledgePlan: true
+    }));
+    assert.equal(frozen.revision, 4);
+    const detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    assert.equal(detail.state, 'BLOCKED_FOR_USE');
+    assert.equal(detail.planFrozen, true);
+    assert.equal(detail.planDigest.length, 64);
+    assert.equal(detail.cleanupAvailable, false);
+    assert.equal(f.store.rows('workCredits').some(x => x.id === creditId), true);
+    assert.equal(f.store.rows('people').some(x => x.id === pid), true);
+    const again = await f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/decisions', {
+        expectedRevision: 4, entryId: pending.id, decision: 'APPLY_PROPOSED',
+        decisionReason: '冻结后不得再改'
+    });
+    assert.equal(again.status, 409);
+    assert.equal(result(again).error.code, 'DELETION_PLAN_FROZEN');
+});
+
+test('DEV-07D retain-with-basis requires independent current source and freezes its revision/epoch', async () => {
+    const f = await fixture(), pid = await createPerson(f.owner, '独立依据保留候选');
+    const person = f.store.rows('people').find(x => x.id === pid)!;
+    const workId = (await ok(f.owner.cmd('POST', '/works', { title: '待保留关系作品', inlineSource: sourceInput() }), 201)).resourceId as string;
+    await ok(f.owner.cmd('POST', '/works/' + workId + '/credits', {
+        expectedRevision: 1, personId: pid, roleCode: 'model', note: '存在另一份独立依据，可保留关系'
+    }));
+    const current = await get(f.owner, '/people/' + pid);
+    const p = await preview(f, 'PERSON', pid, current.revision);
+    const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
+        targetKind: 'PERSON', targetId: pid, expectedRevision: current.revision,
+        previewDigest: p.previewDigest, reason: '合成测试：有独立来源时保留'
+    }), 201);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/block', {
+        expectedRevision: 1, previewDigest: p.previewDigest, acknowledgeBlock: true
+    }));
+    const slot = (await get(f.owner, '/deletion-requests/' + created.resourceId + '/items')).items.find((x: any) => x.decision === 'PENDING');
+    assert.ok(slot);
+    const same = await f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/decisions', {
+        expectedRevision: 2, entryId: slot.id, decision: 'RETAIN_WITH_BASIS',
+        decisionReason: '不能用目标原来源自证保留', retentionSourceId: person.sourceId
+    });
+    assert.equal(same.status, 422);
+    assert.equal(result(same).error.code, 'RETENTION_BASIS_REQUIRED');
+
+    const basisId = (await ok(f.owner.cmd('POST', '/sources', { ...sourceInput(), title: '独立保留依据' }), 201)).resourceId as string;
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/decisions', {
+        expectedRevision: 2, entryId: slot.id, decision: 'RETAIN_WITH_BASIS',
+        decisionReason: '已核对另一份当前有效的正式内部依据', retentionSourceId: basisId
+    }));
+    const basis = await get(f.owner, '/sources/' + basisId);
+    await ok(f.owner.cmd('PATCH', '/sources/' + basisId, { expectedRevision: basis.revision, title: '独立保留依据·已更新' }));
+    const stale = await f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/plan/freeze', {
+        expectedRevision: 3, acknowledgePlan: true
+    });
+    assert.equal(stale.status, 409);
+    assert.equal(result(stale).error.code, 'RETENTION_BASIS_CHANGED');
+
+    const basis2 = await get(f.owner, '/sources/' + basisId);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/decisions', {
+        expectedRevision: 3, entryId: slot.id, decision: 'RETAIN_WITH_BASIS',
+        decisionReason: '重新核对更新后的正式内部依据', retentionSourceId: basisId
+    }));
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/plan/freeze', {
+        expectedRevision: 4, acknowledgePlan: true
+    }));
+    const stored = f.store.rows('deletionItems').find(x => x.id === slot.id)!;
+    assert.equal(stored.retentionSourceId, basisId);
+    assert.equal(stored.retentionSourceRevision, basis2.revision);
+    assert.ok(stored.retentionSourceProtectionEpoch);
+});
+
+test('DEV-07D delete-only member may apply proposed action but cannot authorize retain-with-basis', async () => {
+    const f = await fixture(), reviewer = await member(f, 'delete_only_reviewer', 'EDITOR', ['data.delete']);
+    const pid = await createPerson(f.owner, '删除评估员目标');
+    const person = await get(f.owner, '/people/' + pid);
+    const workId = (await ok(f.owner.cmd('POST', '/works', { title: '删除评估员作品', inlineSource: sourceInput() }), 201)).resourceId as string;
+    await ok(f.owner.cmd('POST', '/works/' + workId + '/credits', {
+        expectedRevision: 1, personId: pid, roleCode: 'model', note: '需要人工决定的关系'
+    }));
+    const p = await preview(f, 'PERSON', pid, person.revision);
+    const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
+        targetKind: 'PERSON', targetId: pid, expectedRevision: person.revision,
+        previewDigest: p.previewDigest, reason: '合成测试：区分删除评估与来源审核权限'
+    }), 201);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/block', {
+        expectedRevision: 1, previewDigest: p.previewDigest, acknowledgeBlock: true
+    }));
+    const slot = (await get(reviewer.client, '/deletion-requests/' + created.resourceId + '/items')).items.find((x: any) => x.decision === 'PENDING');
+    assert.ok(slot);
+    const basisId = (await ok(f.owner.cmd('POST', '/sources', { ...sourceInput(), title: '保留依据' }), 201)).resourceId as string;
+    const retain = await reviewer.client.cmd('POST', '/deletion-requests/' + created.resourceId + '/decisions', {
+        expectedRevision: 2, entryId: slot.id, decision: 'RETAIN_WITH_BASIS',
+        decisionReason: '我没有来源审核权限，不能批准保留', retentionSourceId: basisId
+    });
+    assert.equal(retain.status, 403);
+    await ok(reviewer.client.cmd('POST', '/deletion-requests/' + created.resourceId + '/decisions', {
+        expectedRevision: 2, entryId: slot.id, decision: 'APPLY_PROPOSED',
+        decisionReason: '按冻结影响清单中的建议动作处理'
+    }));
+});
+
