@@ -1,3 +1,4 @@
+import { ShortlistSchemas as SS } from './shortlist-validation.ts';
 import { ProductionSchemas as PS } from './production-validation.ts';
 import { MediaSchemas } from './media-validation.ts';
 import type { Permission } from './model.ts';
@@ -11,6 +12,15 @@ export interface RouteDefinition {
     schema?: Schema<unknown>;
 }
 export const ROUTES: RouteDefinition[] = [
+    { method: 'GET', path: '/talent-search', operation: 'talent.search', mode: 'READ', permission: 'records.read' },
+    { method: 'GET', path: '/shortlists', operation: 'shortlist.list', mode: 'READ', permission: 'records.read' },
+    { method: 'POST', path: '/shortlists', operation: 'shortlist.create', mode: 'COMMAND', permission: 'records.write', schema: SS.create },
+    { method: 'GET', path: '/shortlists/{id}', operation: 'shortlist.get', mode: 'READ', permission: 'records.read' },
+    { method: 'PATCH', path: '/shortlists/{id}', operation: 'shortlist.update', mode: 'COMMAND', permission: 'records.write', schema: SS.patch },
+    { method: 'POST', path: '/shortlists/{id}/items', operation: 'shortlist.itemAdd', mode: 'COMMAND', permission: 'records.write', schema: SS.itemAdd },
+    { method: 'POST', path: '/shortlists/{id}/items/update', operation: 'shortlist.itemUpdate', mode: 'COMMAND', permission: 'records.write', schema: SS.itemPatch },
+    { method: 'POST', path: '/shortlists/{id}/items/remove', operation: 'shortlist.itemRemove', mode: 'COMMAND', permission: 'records.write', schema: SS.remove },
+    { method: 'POST', path: '/shortlists/{id}/items/reorder', operation: 'shortlist.reorder', mode: 'COMMAND', permission: 'records.write', schema: SS.order },
     { method: 'GET', path: '/works', operation: 'work.list', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/works', operation: 'work.create', mode: 'COMMAND', permission: 'records.write', schema: PS.workCreate },
     { method: 'GET', path: '/works/{id}', operation: 'work.get', mode: 'READ', permission: 'records.read' },
