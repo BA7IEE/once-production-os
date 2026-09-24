@@ -144,8 +144,8 @@ try {
  await candidateCard.getByRole('button',{name:'加入当前清单',exact:true}).click();
  f=await dialogReady(owner,'加入候选 · WP1摄影剪辑人员');
  await f.getByLabel('关联署名作品（可选）',{exact:true}).selectOption(wid);
- await f.getByAlt(/WP1-image-/).first().waitFor();
- await f.getByAlt(/WP1-image-/).first().locator('..').click();
+ await f.getByAltText(/WP1-image-/).first().waitFor();
+ await f.getByAltText(/WP1-image-/).first().locator('..').click();
  await f.getByLabel('内部协作备注',{exact:true}).fill('PRIVATE_BROWSER_SHORTLIST_NOTE');
  await writeUI(owner,'POST',slpath+'/items',()=>f.getByRole('button',{name:'加入当前清单',exact:true}).click());
  await owner.getByRole('heading',{name:'WP1内部候选清单',exact:true}).waitFor();
