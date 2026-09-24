@@ -13,6 +13,7 @@ export const DeletionSchemas = {
         retentionSourceId: v.optional(v.nullable(uuid))
     }),
     freezePlan: v.object({ expectedRevision: revision, acknowledgePlan: v.boolean() }),
+    cleanupStart: v.object({ expectedRevision: revision, planDigest: v.string(64, 64, /^[0-9a-f]{64}$/), acknowledgeCleanup: v.boolean() }),
     create: v.object({
         targetKind,
         targetId: uuid,

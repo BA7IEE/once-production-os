@@ -17,7 +17,7 @@ export interface DeletionRequest extends Base {
     targetSourceId: string;
     targetRevision: number;
     targetProtectionEpoch: number | null;
-    state: 'DRAFT' | 'BLOCKED_FOR_USE';
+    state: 'DRAFT' | 'BLOCKED_FOR_USE' | 'CLEANING' | 'COMPLETED' | 'RETAINED_WITH_BASIS' | 'FAILED';
     reason: string;
     previewDigest: string;
     impactCount: number;
@@ -31,6 +31,12 @@ export interface DeletionRequest extends Base {
     planDigest: string | null;
     planFrozenAt: string | null;
     planFrozenById: string | null;
+    cleanupLeaseToken: string | null;
+    cleanupLeaseUntil: string | null;
+    cleanupAttempts: number;
+    cleanupErrorCode: string | null;
+    cleanupStartedAt: string | null;
+    cleanupCompletedAt: string | null;
 }
 
 export interface DeletionItem extends Base {
@@ -48,9 +54,15 @@ export interface DeletionItem extends Base {
     retentionSourceProtectionEpoch: number | null;
     decidedById: string | null;
     decidedAt: string | null;
+    cleanupState: 'PENDING' | 'DONE' | 'RETAINED' | 'DEFERRED' | 'FAILED';
+    cleanupCode: string | null;
+    cleanedAt: string | null;
 }
 
 export const DELETION_LIMITS = Object.freeze({
     impacts: 1000,
-    reason: 2000
+    reason: 2000,
+    cleanupBatch: 50,
+    cleanupLeaseMs: 30000,
+    cleanupAttempts: 3
 });
