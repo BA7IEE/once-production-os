@@ -945,6 +945,12 @@ model DeletionRequest {
   planDigest String? @db.Text
   planFrozenAt DateTime? @db.Timestamptz(3)
   planFrozenById String? @db.Uuid
+  cleanupLeaseToken String? @db.Uuid
+  cleanupLeaseUntil DateTime? @db.Timestamptz(3)
+  cleanupAttempts Int @default(0)
+  cleanupErrorCode String? @db.Text
+  cleanupStartedAt DateTime? @db.Timestamptz(3)
+  cleanupCompletedAt DateTime? @db.Timestamptz(3)
   workspace Workspace @relation("DeletionRequest_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_workspace_fkey")
   actorIdRef Membership @relation("DeletionRequest_actorIdRef", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_actorIdRef_fkey")
   targetSourceIdRef SourceRecord @relation("DeletionRequest_targetSourceIdRef", fields: [workspaceId, targetSourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_targetSourceIdRef_fkey")
@@ -980,6 +986,9 @@ model DeletionItem {
   retentionSourceProtectionEpoch Int?
   decidedById String? @db.Uuid
   decidedAt DateTime? @db.Timestamptz(3)
+  cleanupState String @default("PENDING") @db.Text
+  cleanupCode String? @db.Text
+  cleanedAt DateTime? @db.Timestamptz(3)
   workspace Workspace @relation("DeletionItem_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "deletionItems_workspace_fkey")
   requestRef DeletionRequest @relation("DeletionItem_requestRef", fields: [workspaceId, requestId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "deletionItems_requestRef_fkey")
   retentionSourceRef SourceRecord? @relation("DeletionItem_retentionSourceRef", fields: [workspaceId, retentionSourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "deletionItems_retentionSourceRef_fkey")
