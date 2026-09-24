@@ -301,17 +301,21 @@ export class Exports {
 
     async get(tx: Tx, actor: Actor, id: string) {
         const row = await this.exportFor(tx, actor, id);
-        let effectiveState = row.state, blockedReason: string | null = null, contentChanged = false;
+        let effectiveState = row.state, blockedReason: string | null = row.errorCode, contentChanged = false;
         if (row.state === 'READY') {
-            try { contentChanged = (await this.validateDependencies(tx, actor, row)).contentChanged; }
-            catch (error) {
-                if (!(error instanceof AppError) || error.status >= 500) throw error;
-                effectiveState = 'STALE'; blockedReason = error.code;
+            if (this.config.dataEgressMode !== 'INTERNAL_APPROVED')
+                blockedReason = 'EGRESS_DISABLED';
+            else {
+                try { contentChanged = (await this.validateDependencies(tx, actor, row)).contentChanged; }
+                catch (error) {
+                    if (!(error instanceof AppError) || error.status >= 500) throw error;
+                    effectiveState = 'STALE'; blockedReason = error.code;
+                }
             }
         }
         return { id: row.id, state: row.state, effectiveState, format: row.format, schemaVersion: row.schemaVersion, fields: row.fields,
             createdAt: row.createdAt, expiresAt: row.expiresAt, revision: row.revision, payloadDigest: row.payloadDigest,
-            contentChanged, downloadable: effectiveState === 'READY', blockedReason };
+            contentChanged, downloadable: effectiveState === 'READY' && blockedReason === null, blockedReason };
     }
 
     async download(tx: Tx, actor: Actor, id: string, meta: RequestMeta) {
