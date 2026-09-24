@@ -1,4 +1,5 @@
 import type { Work, WorkAsset, WorkCredit, Project, ProjectParticipant, ProjectWork } from './production-model.ts';
+import type { Shortlist, ShortlistItem, ShortlistItemAsset } from './shortlist-model.ts';
 import type { MediaUpload, MediaAsset } from './media-model.ts';
 export type Role = 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'VIEWER';
 export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write'] as const;
@@ -125,7 +126,7 @@ export interface CommandReceipt extends Base {
     operation: string;
     commandKey: string;
     requestDigest: string;
-    resourceKind: 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project';
+    resourceKind: 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist';
     resourceId: string;
     result: ReceiptResult;
 }
@@ -202,6 +203,9 @@ export interface RecordHandoff extends Base {
     closedById: string | null;
 }
 export interface TableMap {
+    shortlists: Shortlist;
+    shortlistItems: ShortlistItem;
+    shortlistItemAssets: ShortlistItemAsset;
     works: Work;
     workAssets: WorkAsset;
     workCredits: WorkCredit;
