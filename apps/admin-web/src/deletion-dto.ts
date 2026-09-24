@@ -37,6 +37,7 @@ export interface DeletionRequestSummary {
     state: 'DRAFT' | 'BLOCKED_FOR_USE';
     impactCount: number;
     reviewRequiredCount: number;
+    planFrozen?: boolean;
     createdAt: string;
     revision: number;
 }
@@ -45,8 +46,23 @@ export interface DeletionRequestDetail extends DeletionRequestSummary {
     reason: string;
     previewDigest: string;
     unresolvedCount: number;
+    pendingDecisionCount: number;
     blockAvailable: boolean;
+    planFrozen: boolean;
+    planDigest: string | null;
+    planFrozenAt: string | null;
     cleanupAvailable: false;
     executionAvailable: false;
     executionNote: string;
+}
+export interface DeletionDecisionItem {
+    id: string;
+    dependencyKind: string;
+    proposedAction: DeletionAction;
+    evidenceState: DeletionEvidenceState;
+    detailCode: string;
+    decision: 'PENDING' | 'APPLY_PROPOSED' | 'RETAIN_WITH_BASIS';
+    decisionReason: string;
+    retentionBasisPresent: boolean;
+    decidedAt: string | null;
 }
