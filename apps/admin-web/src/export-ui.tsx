@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { call, read } from './api.ts';
-import type { Inputs } from './generated/requests.ts';
 import type { Me, Page, Person, Receipt, Source } from './dto.ts';
 import type { WorkDetail, WorkSummary, ProjectDetail, ProjectSummary } from './production-dto.ts';
 import type { AssetDto } from './media-ui.tsx';
@@ -131,6 +130,7 @@ function ExportDetailPanel({ id, onChanged }: { id: string; onChanged: () => voi
             a.href = href; a.download = result.fileName; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove();
         }
         finally { URL.revokeObjectURL(href); }
+        onChanged();
     }
     return <section className="panel padded export-detail"><ErrorBox error={load.error ?? action.error}/>
         {load.busy && !load.data ? <p>正在核对导出依赖…</p> : load.data && <>
