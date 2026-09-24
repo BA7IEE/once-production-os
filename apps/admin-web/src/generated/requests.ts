@@ -76,6 +76,7 @@ export interface Inputs {
   "job.resume": { "expectedRevision": number };
   "job.get": undefined;
   "audit.list": undefined;
+  "maintenance.impact": undefined;
   "talent.search": undefined;
   "shortlist.list": undefined;
   "shortlist.create": { "title": string; "brief"?: string; "scopeId": string };
@@ -465,6 +466,11 @@ export const ENDPOINTS = {
   "audit.list": {
     "method": "GET",
     "path": "/audit-events",
+    "mode": "READ"
+  },
+  "maintenance.impact": {
+    "method": "GET",
+    "path": "/maintenance/deletion-impact",
     "mode": "READ"
   },
   "talent.search": {

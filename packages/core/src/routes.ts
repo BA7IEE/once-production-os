@@ -88,6 +88,7 @@ export const ROUTES: RouteDefinition[] = [
     { method: 'POST', path: '/jobs/{id}/resume', operation: 'job.resume', mode: 'COMMAND', permission: 'records.write', schema: Schemas.revision },
     { method: 'GET', path: '/jobs/{id}', operation: 'job.get', mode: 'READ', permission: 'records.write' },
     { method: 'GET', path: '/audit-events', operation: 'audit.list', mode: 'READ', permission: 'audit.read' },
+    { method: 'GET', path: '/maintenance/deletion-impact', operation: 'maintenance.impact', mode: 'READ', permission: 'records.write' },
     { method: 'GET', path: '/talent-search', operation: 'talent.search', mode: 'READ', permission: 'records.read' },
     { method: 'GET', path: '/shortlists', operation: 'shortlist.list', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/shortlists', operation: 'shortlist.create', mode: 'COMMAND', permission: 'records.write', schema: SS.create },
