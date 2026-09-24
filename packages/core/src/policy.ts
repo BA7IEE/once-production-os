@@ -9,7 +9,8 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
 };
 export const permissionsFor = (member: Membership): Permission[] => [...new Set([...ROLE_PERMISSIONS[member.role], ...member.extraPermissions])];
 export async function deletionBlocked(tx: Tx, workspaceId: string, kind: 'SOURCE' | 'PERSON' | 'WORK' | 'PROJECT' | 'ASSET', id: string): Promise<boolean> {
-    return (await tx.find('deletionRequests', { workspaceId, targetKind: kind, targetId: id, state: 'BLOCKED_FOR_USE' })).length > 0;
+    const rows = await tx.find('deletionRequests', { workspaceId, targetKind: kind, targetId: id });
+    return rows.some(row => (DELETION_RESTRICTED_STATES as readonly string[]).includes(row.state));
 }
 export function requirePermission(actor: Actor, permission: Permission): void {
     if (!actor.permissions.includes(permission))
