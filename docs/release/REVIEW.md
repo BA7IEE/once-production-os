@@ -1,6 +1,17 @@
-> 当前增量见 [WP2_SEARCH_SHORTLISTS.md](WP2_SEARCH_SHORTLISTS.md)。历史记录保留其原提交证据；当前结果以 PR #7 最终 head 和对应 Actions 为准。
+> 当前增量详见 [WP3_EXPORT_DEPENDENCIES.md](WP3_EXPORT_DEPENDENCIES.md)。以下历史 Review 保留当时证据；当前结论以 PR #10 最终 head 与对应 Actions 为准。
 
 # 第一批源码 Review
+
+## 2026-09-24 WP3 / DEV-07A 导出与依赖 Review
+
+在 WP2B 上增加 data.export、INTERNAL_EXPORT UsePermission、ExportJob/ExportDependency 和部署 DATA_EGRESS_MODE。可读不自动变成可导出；许可精确到 Source + Subject + Fields + Expiry，DB 组合 FK 防止错来源授权。导出 payload 字段显式白名单，没有联系人、Source.textPayload、Session、密码、密钥、objectToken/签名URL。
+
+对抗审查否决了“复用 DurableJob”的捷径，因为现有 aggregateId 外键固定到 ImportBatch；最终 ExportJob 自带有限 lease/attempts。Prisma JSON null 与 SQL NULL 差异通过新前向迁移固定。export-only 成员只读最小许可摘要，不获得 source.list；部署出口关闭后旧元数据仍可审计但不可下载。
+
+功能 head `19585fb4382ac781d9e2688320ec8e1071340c92` 的 Actions 36005508490 五项全绿：92 routes、230/230 core、46/46 PG、四条浏览器回归全部成功。browser-production 真实完成审批→Worker→下载，并在来源暂停后证明整件旧导出不可下载。
+
+仍未关闭：T29 隔离重建、DEV-07B 依赖预览/删除/ERASED/合并、DEV-09 恢复、正式数据与生产 DATA_EGRESS_MODE。不能把导出依赖表写成删除已完成。
+
 
 ## 2026-09-24 WP2B 搜索事实 / SQL 下推 Review
 

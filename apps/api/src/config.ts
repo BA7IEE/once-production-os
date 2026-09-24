@@ -21,6 +21,9 @@ export function loadConfig(): Config {
     const accessMode = required('ACCESS_MODE');
     if (!['MAINTENANCE', 'INTERNAL'].includes(accessMode))
         throw new Error('ACCESS_MODE invalid');
+    const egress = process.env.DATA_EGRESS_MODE ?? 'DISABLED';
+    if (!['DISABLED', 'INTERNAL_APPROVED'].includes(egress))
+        throw new Error('DATA_EGRESS_MODE invalid');
     const secure = required('COOKIE_SECURE');
     if (!['true', 'false'].includes(secure))
         throw new Error('COOKIE_SECURE invalid');
@@ -30,6 +33,6 @@ export function loadConfig(): Config {
         throw new Error('MEDIA_PROVIDER not supported');
     if (media === 'local' && (!['local', 'test'].includes(environment) || !isAbsolute(process.env.MEDIA_ROOT ?? '')))
         throw new Error('Local media requires local/test and an absolute MEDIA_ROOT; production provider is not approved');
-    return { mediaEnabled: media === 'local', origin: required('APP_ORIGIN'), secureCookies: secure === 'true', environment: environment as Config['environment'], accessMode: accessMode as Config['accessMode'],
+    return { mediaEnabled: media === 'local', origin: required('APP_ORIGIN'), secureCookies: secure === 'true', environment: environment as Config['environment'], accessMode: accessMode as Config['accessMode'], dataEgressMode: egress as Config['dataEgressMode'],
         contactKey: key('CONTACT_KEY_FILE'), csrfKey: key('CSRF_KEY_FILE'), recoveryEpoch: readFileSync(required('RECOVERY_EPOCH_FILE'), 'utf8').trim() };
 }

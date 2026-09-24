@@ -7,7 +7,7 @@ React 管理前端源码 ── cookie + CSRF ── Nest/Express 入口源码
                                       ↓
                              Application / routes
                                       ↓
-                Identity / Talent / Portfolio / Projects / Shortlists / Search
+                Identity / Talent / Portfolio / Projects / Shortlists / Search / Exports
                                       ↓
                          Commands + 事务审计 + Tx
                            ↙                   ↘
@@ -27,19 +27,20 @@ React 管理前端源码 ── cookie + CSRF ── Nest/Express 入口源码
 | talent.ts | 人才、来源、受限联系信息、字段核验与分类 |
 | portfolio.ts / projects.ts | 作品组图/署名与轻量项目/参与事实 |
 | talent-search.ts / shortlists.ts | 确定性人才检索、内部候选清单及依赖过滤 |
+| exports.ts / export-model.ts | INTERNAL_EXPORT 用途许可、冻结 JSON、精确依赖复查与 ExportJob |
 | source-history.ts / visibility.ts | 来源版本的受限读取与追加；同一事务中的批量可见性判断 |
 | commands.ts | 最小幂等回执，接收领域鉴权回调；不读取人才表 |
 | replay-policy.ts | 回执重新读取时的领域权限和来源判断 |
 | imports.ts | 有界 JSON 预览、选择集冻结、任务领取、失败后显式继续、逐行原子执行 |
 | json-boundary.ts / validation.ts | 重复键、原型键、非法 Unicode、数值、嵌套、额外字段的请求约束 |
-| api.ts / routes.ts | 框架无关的请求入口与登记表；85 条路由 |
+| api.ts / routes.ts | 框架无关的请求入口与登记表；92 条路由 |
 | apps/api/src | Nest/Express、Prisma、配置、bootstrap 和独立 Worker 入口 |
 | apps/admin-web/src | React 页面、显式 DTO、内存请求状态和响应错误呈现 |
-| prisma | 30 个模型、7 条迁移、组合 FK/CHECK/延迟唯一约束；当前新空库 PG 测试通过，正式数据升级 NOT_RUN |
+| prisma | 33 个模型、11 条迁移、组合 FK/CHECK/延迟唯一约束；当前新空库 PG 测试通过，正式数据升级 NOT_RUN |
 
 ## 3. 当前数据表
 
-workspaces、users、memberships、sessions、activations、scopes、scopeMembers、sources、sourceHistory、people、contacts、evidence、dictionary、receipts、audits、rateBuckets、imports、jobs、handoffs、uploads、assets、works、workAssets、workCredits、projects、projectParticipants、projectWorks、shortlists、shortlistItems、shortlistItemAssets。
+workspaces、users、memberships、sessions、activations、scopes、scopeMembers、sources、sourceHistory、people、contacts、evidence、dictionary、receipts、audits、rateBuckets、imports、jobs、handoffs、uploads、assets、works、workAssets、workCredits、projects、projectParticipants、projectWorks、shortlists、shortlistItems、shortlistItemAssets、usePermissions、exports、exportDependencies。
 
 用户不等于人才；角色为多值分类。敏感联系方式不在 Person 中，以 AES-256-GCM 保存，AAD 绑定 workspace/person/contact。一般人才 DTO 不携带密文、原文或联系信息。
 
@@ -51,7 +52,7 @@ PrismaStore 每个短事务获取一个 PostgreSQL advisory transaction lock，�
 
 正式数据规模前必须做真实 DB 压测，把授权过滤/分页下推 SQL，再评审细粒度锁与多进程竞争。不允许因为慢就拿掉锁，也不能声明已经达到 v0.3 性能目标。
 
-外部 I/O、密码 KDF 不放在业务事务内。后台已有导入任务和 local/test 私有媒体封存/检查链路；没有 AI 或网站发布任务。任务按行重新查发起者、当前来源及其版本；租约 30 秒、过期可接管、最多 3 次领取，旧租约无法回写。失败会标记为 FAILED，已经提交的行保留；仅符合条件的失败可由本人显式继续，不承诺整批回滚。
+外部 I/O、密码 KDF 不放在业务事务内。后台已有导入任务、local/test 私有媒体封存/检查和 ExportJob。ExportJob 不复用 ImportBatch 的 DurableJob 外键；生成前及下载时逐依赖复查。没有 AI 或网站发布任务。任务按行重新查发起者、当前来源及其版本；租约 30 秒、过期可接管、最多 3 次领取，旧租约无法回写。失败会标记为 FAILED，已经提交的行保留；仅符合条件的失败可由本人显式继续，不承诺整批回滚。
 
 ## 5. 协议与状态
 

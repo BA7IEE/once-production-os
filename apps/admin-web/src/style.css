@@ -12,3 +12,9 @@ fieldset{border:0;padding:0;margin:0;min-width:0}.wp-picker{padding:12px;border:
 @media(max-width:1180px){.sl-filters{grid-template-columns:repeat(3,minmax(0,1fr))}.sl-filters>input:first-child{grid-column:span 2}.sl-asset-picker{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:780px){.sl-list-bar{display:block}.sl-list-bar>strong{display:block;margin-bottom:10px}.sl-filters{grid-template-columns:1fr 1fr}.sl-filters>input:first-child{grid-column:1/-1}.sl-item.unavailable{align-items:flex-start;flex-direction:column}.sl-asset-picker{grid-template-columns:1fr 1fr}}
 
+/* DEV-07A controlled export workspace. */
+.export-create-bar{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.export-create-bar>div{display:grid;gap:4px}.export-create-bar small{max-width:760px}
+.export-detail .detail-grid{margin:14px 0}.export-detail code{overflow-wrap:anywhere}
+@media(max-width:780px){.export-create-bar{align-items:stretch;flex-direction:column}.export-create-bar .primary{width:100%}}
+

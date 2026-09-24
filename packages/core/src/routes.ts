@@ -1,3 +1,4 @@
+import { ExportSchemas as ES } from './export-validation.ts';
 import { ShortlistSchemas as SS } from './shortlist-validation.ts';
 import { ProductionSchemas as PS } from './production-validation.ts';
 import { MediaSchemas } from './media-validation.ts';
@@ -88,6 +89,13 @@ export const ROUTES: RouteDefinition[] = [
     { method: 'POST', path: '/jobs/{id}/resume', operation: 'job.resume', mode: 'COMMAND', permission: 'records.write', schema: Schemas.revision },
     { method: 'GET', path: '/jobs/{id}', operation: 'job.get', mode: 'READ', permission: 'records.write' },
     { method: 'GET', path: '/audit-events', operation: 'audit.list', mode: 'READ', permission: 'audit.read' },
+    { method: 'GET', path: '/use-permissions', operation: 'usePermission.list', mode: 'READ', permission: 'records.read' },
+    { method: 'POST', path: '/use-permissions', operation: 'usePermission.create', mode: 'COMMAND', permission: 'sources.review', schema: ES.permissionCreate },
+    { method: 'POST', path: '/use-permissions/{id}/revoke', operation: 'usePermission.revoke', mode: 'COMMAND', permission: 'sources.review', schema: ES.permissionRevoke },
+    { method: 'GET', path: '/exports', operation: 'export.list', mode: 'READ', permission: 'data.export' },
+    { method: 'POST', path: '/exports', operation: 'export.create', mode: 'COMMAND', permission: 'data.export', schema: ES.create },
+    { method: 'GET', path: '/exports/{id}', operation: 'export.get', mode: 'READ', permission: 'data.export' },
+    { method: 'POST', path: '/exports/{id}/download', operation: 'export.download', mode: 'READ', permission: 'data.export', schema: ES.download },
     { method: 'GET', path: '/talent-search', operation: 'talent.search', mode: 'READ', permission: 'records.read' },
     { method: 'GET', path: '/shortlists', operation: 'shortlist.list', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/shortlists', operation: 'shortlist.create', mode: 'COMMAND', permission: 'records.write', schema: SS.create },

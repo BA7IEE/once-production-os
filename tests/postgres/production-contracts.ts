@@ -262,4 +262,99 @@ export async function runProductionContracts(t: TestContext, c: Context) {
         });
     }
 
+    await t.test('DEV-07A PG typed export permissions reject wrong-source subjects and unregistered fields', async () => {
+        const person = await a.person.findUniqueOrThrow({ where: { id: personId } });
+        const foreignSourceId = (await ok(ownerA.cmd('POST', '/sources', sourceInput()), 201)).resourceId as string;
+        const now = clock.now();
+        await assert.rejects(a.usePermission.create({ data: {
+            id: randomUUID(), workspaceId: identity.workspaceId, createdAt: now, updatedAt: now, revision: 1,
+            sourceId: foreignSourceId, subjectKind: 'PERSON', subjectId: personId, purpose: 'INTERNAL_EXPORT',
+            fields: ['person.displayName'], validFrom: now, validUntil: new Date(now.getTime() + 3600000),
+            status: 'ACTIVE', evidenceNote: 'synthetic wrong source permission', reviewerId: identity.membershipId,
+            subjectPersonId: personId, subjectWorkId: null, subjectProjectId: null, subjectAssetId: null, subjectSourceId: null
+        } }));
+        await assert.rejects(a.usePermission.create({ data: {
+            id: randomUUID(), workspaceId: identity.workspaceId, createdAt: now, updatedAt: now, revision: 1,
+            sourceId: person.sourceId, subjectKind: 'PERSON', subjectId: personId, purpose: 'INTERNAL_EXPORT',
+            fields: ['person.secretField'], validFrom: now, validUntil: new Date(now.getTime() + 3600000),
+            status: 'ACTIVE', evidenceNote: 'synthetic forbidden export field', reviewerId: identity.membershipId,
+            subjectPersonId: personId, subjectWorkId: null, subjectProjectId: null, subjectAssetId: null, subjectSourceId: null
+        } }));
+        const member = await a.membership.findUniqueOrThrow({ where: { id: identity.membershipId } });
+        await assert.rejects(a.membership.update({ where: { id: member.id }, data: { extraPermissions: [...member.extraPermissions, 'unregistered.permission'] } }));
+    });
+
+    await t.test('DEV-07A PG export freezes exact dependency and worker produces private JSON payload', async () => {
+        const person = await a.person.findUniqueOrThrow({ where: { id: personId } });
+        const permit = (await ok(ownerA.cmd('POST', '/use-permissions', {
+            sourceId: person.sourceId, subjectKind: 'PERSON', subjectId: personId,
+            fields: ['person.displayName', 'person.roles'], validUntil: new Date(clock.now().getTime() + 86400000).toISOString(),
+            evidenceNote: 'synthetic approved internal export'
+        }), 201)).resourceId as string;
+        const exportId = (await ok(ownerA.cmd('POST', '/exports', {
+            format: 'JSON', selectedIds: { people: [personId], works: [], projects: [] },
+            fields: ['person.displayName', 'person.roles'], usePermissionRefs: [permit]
+        }), 202)).resourceId as string;
+        assert.equal(await a.exportDependency.count({ where: { exportId } }), 1);
+        const dependency = await a.exportDependency.findFirstOrThrow({ where: { exportId } });
+        assert.equal(dependency.personId, personId);
+        assert.equal(dependency.sourceId, person.sourceId);
+        assert.equal(dependency.usePermissionId, permit);
+        const claim = await appA.exports.claim();
+        assert.ok(claim);
+        assert.equal(claim.id, exportId);
+        await appA.exports.process(claim);
+        const row = await a.exportJob.findUniqueOrThrow({ where: { id: exportId } });
+        assert.equal(row.state, 'READY');
+        assert.equal(row.payloadDigest?.length, 64);
+        const downloaded = result(await ownerA.raw('POST', '/exports/' + exportId + '/download', {}));
+        assert.equal(downloaded.sha256, row.payloadDigest);
+        assert.equal(downloaded.payload.manifest.people[0].id, personId);
+        assert.equal('sourceId' in downloaded.payload.manifest.people[0], true);
+        assert.ok(!JSON.stringify(downloaded.payload).includes('passwordHash'));
+        assert.ok(!JSON.stringify(downloaded.payload).includes('textPayload'));
+    });
+
+    for (const stage of ['exports', 'exportDependencies', 'audits', 'receipts'] as const) {
+        await t.test('DEV-07A PG export create rolls back after ' + stage, async () => {
+            const person = await a.person.findUniqueOrThrow({ where: { id: personId } });
+            const permit = (await ok(ownerA.cmd('POST', '/use-permissions', {
+                sourceId: person.sourceId, subjectKind: 'PERSON', subjectId: personId,
+                fields: ['person.displayName'], validUntil: new Date(clock.now().getTime() + 86400000).toISOString(),
+                evidenceNote: 'synthetic rollback export permission ' + stage
+            }), 201)).resourceId as string;
+            const before = {
+                exports: await a.exportJob.count(),
+                deps: await a.exportDependency.count(),
+                audits: await a.auditEvent.count(),
+                receipts: await a.commandReceipt.count()
+            };
+            const faults = new FaultStore(storeA);
+            let fired = false;
+            faults.afterInsert = table => {
+                if (table === stage && !fired) {
+                    fired = true;
+                    throw new Error('DEV07 deliberate export failure');
+                }
+            };
+            const app = new Application(faults, config, clock), client = new Client(app);
+            client.jar = { ...ownerA.jar };
+            client.csrf = ownerA.csrf;
+            const body = { format: 'JSON', selectedIds: { people: [personId], works: [], projects: [] },
+                fields: ['person.displayName'], usePermissionRefs: [permit] };
+            const key = randomUUID(), failed = await client.cmd('POST', '/exports', body, key);
+            assert.ok(failed.status >= 500, JSON.stringify(failed.body));
+            assert.ok(fired);
+            assert.equal(await a.exportJob.count(), before.exports);
+            assert.equal(await a.exportDependency.count(), before.deps);
+            assert.equal(await a.auditEvent.count(), before.audits);
+            assert.equal(await a.commandReceipt.count(), before.receipts);
+            const success = await ok(ownerA.cmd('POST', '/exports', body, key), 202);
+            assert.equal(await a.exportJob.count(), before.exports + 1);
+            assert.equal(await a.exportDependency.count(), before.deps + 1);
+            assert.equal(await a.commandReceipt.count({ where: { commandKey: key, operation: 'export.create' } }), 1);
+            assert.ok(success.resourceId);
+        });
+    }
+
 }

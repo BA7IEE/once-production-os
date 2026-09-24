@@ -1,5 +1,18 @@
 # 实际测试与验证记录
 
+## WP3｜DEV-07A 内部 JSON 导出与依赖
+
+详见 [WP3_EXPORT_DEPENDENCIES.md](WP3_EXPORT_DEPENDENCIES.md)。功能 head `19585fb4382ac781d9e2688320ec8e1071340c92`，PR #10。
+
+Actions [36005508490](https://github.com/BA7IEE/once-production-os/actions/runs/36005508490) 五个 job 全绿：92 条请求契约；230/230 核心/传输；46/46 PostgreSQL；原生表单 Chromium 6/6；browser-resume / handoff / media / production 均 success。
+
+新增真实验证：精确 INTERNAL_EXPORT 许可、TEMP_ORGANIZE 拒导出、data.export 不扩张 sources.read、冻结字段不含联系人/source原文/秘密、普通内容修改保持旧快照并标 contentChanged、部署 egress 关闭时只读元数据不可下载、来源暂停/许可撤销整件失效、两端显式选择才导出关系。真实 PostgreSQL 另验证错来源 FK、字段白名单 CHECK、权限 CHECK、Worker READY payload 及四类写后故障整体回滚。
+
+Chromium 实际通过“用途审批 → Worker JSON → 浏览器下载”，随后暂停人才来源，旧导出详情显示依赖失效且无下载按钮。首两次失败分别是父 modal 未关闭和测试用未展示 UUID 定位行；均只修测试交互，不放宽业务规则。
+
+当前没有正式资料、生产出口、旧库升级、完整 T29 重建、受控删除/合并或恢复演练。JSON 导出不是备份。
+
+
 ## WP2B｜行业/作品类型与 SQL 查询下推
 
 详见 [WP2B_SEARCH_FACTS_SQL.md](WP2B_SEARCH_FACTS_SQL.md)。功能 head `6a7ad1ab184486adaa57edf4295ba13eef905ef0`，PR #8。

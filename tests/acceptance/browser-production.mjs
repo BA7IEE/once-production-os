@@ -21,7 +21,7 @@ const prisma = new PrismaClient({ datasources: { db: { url: raw } }, log: [] });
 const tmp = mkdtempSync(join(tmpdir(), 'once-works-projects-'));
 const password = 'Synthetic-' + randomBytes(20).toString('base64url') + '!';
 const put = (name, text) => { const path = join(tmp, name); writeFileSync(path, text, { mode: 0o600 }); return path; };
-const env = { ...process.env, DATABASE_URL: raw, APP_ENV: 'test', ACCESS_MODE: 'INTERNAL', COOKIE_SECURE: 'false', HOST: '127.0.0.1',
+const env = { ...process.env, DATABASE_URL: raw, APP_ENV: 'test', ACCESS_MODE: 'INTERNAL', DATA_EGRESS_MODE: 'INTERNAL_APPROVED', COOKIE_SECURE: 'false', HOST: '127.0.0.1',
     CONTACT_KEY_FILE: put('contact.hex', randomBytes(32).toString('hex')), CSRF_KEY_FILE: put('csrf.hex', randomBytes(32).toString('hex')),
     RECOVERY_EPOCH_FILE: put('recovery.epoch', randomBytes(24).toString('hex')), BOOTSTRAP_LOGIN: 'owner', BOOTSTRAP_NAME: 'WP1合成管理员',
     BOOTSTRAP_PASSWORD_FILE: put('bootstrap.password', password) };
@@ -133,6 +133,33 @@ try {
  await d.getByRole('button',{name:'编辑项目',exact:true}).click();f=await dialogReady(owner,'编辑项目');await f.getByLabel('内部复盘',{exact:true}).fill('合成复盘：第一次合作注意素材统一命名');await writeUI(owner,'PATCH',ppath,()=>f.getByRole('button',{name:'保存项目',exact:true}).click());await owner.getByRole('heading',{name:'项目人员',exact:true}).waitFor();d=await dialogReady(owner,'WP1家具拍摄项目');await writeUI(owner,'PATCH',ppath,()=>d.getByRole('button',{name:'标记项目完成',exact:true}).click());await until(async()=>(await prisma.project.findUniqueOrThrow({where:{id:projectId}})).status==='COMPLETED');
  await d.getByRole('button',{name:'关闭',exact:true}).last().click();
 
+ // DEV-07A: explicit purpose approval -> frozen JSON export -> browser download.
+ await owner.getByRole('button',{name:/内部导出/}).click();
+ await owner.getByRole('button',{name:'＋ 批准导出用途',exact:true}).click();
+ f=await dialogReady(owner,'批准内部导出用途');
+ await f.getByLabel('对象类型',{exact:true}).selectOption('PERSON');
+ await f.getByLabel('批准对象',{exact:true}).selectOption(pid);
+ await f.getByLabel('姓名 / 展示名',{exact:true}).check();
+ await f.getByLabel('角色',{exact:true}).check();
+ const expiry=new Date(Date.now()+86400000),pad=n=>String(n).padStart(2,'0');
+ await f.getByLabel('许可截止时间',{exact:true}).fill(expiry.getFullYear()+'-'+pad(expiry.getMonth()+1)+'-'+pad(expiry.getDate())+'T'+pad(expiry.getHours())+':'+pad(expiry.getMinutes()));
+ await f.getByLabel('审批依据',{exact:true}).fill('合成测试：仅批准姓名和角色用于内部JSON迁移');
+ const permissionCreate=await writeUI(owner,'POST','/use-permissions',()=>f.getByRole('button',{name:'批准用途',exact:true}).click(),201),exportPermissionId=permissionCreate.resourceId;
+ await owner.getByText('人才 · WP1摄影剪辑人员',{exact:true}).waitFor();
+ const permissionRow=owner.locator('tr').filter({has:owner.getByText('人才 · WP1摄影剪辑人员',{exact:true})});
+ await permissionRow.getByRole('checkbox').check();
+ const exportCreate=await writeUI(owner,'POST','/exports',()=>owner.getByRole('button',{name:'生成内部 JSON',exact:true}).click(),202),exportId=exportCreate.resourceId;
+ await until(async()=>await prisma.exportJob.count({where:{id:exportId,state:'READY'}})===1);
+ await owner.getByRole('button',{name:'下载 JSON',exact:true}).waitFor();
+ const downloadPromise=owner.waitForEvent('download');
+ await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();
+ const downloaded=await downloadPromise;
+ assert.equal(downloaded.suggestedFilename(),'once-export-'+exportId+'.json');
+ const exported=await prisma.exportJob.findUniqueOrThrow({where:{id:exportId}});
+ assert.equal(exported.payloadDigest?.length,64);
+ assert.equal(await prisma.exportDependency.count({where:{exportId,usePermissionId:exportPermissionId,personId:pid}}),1);
+ console.log('PASS DEV-07A browser: explicit export permission -> worker JSON -> controlled browser download');
+
  // DEV-06: real browser internal shortlist flow. No share link/client state is created.
  await owner.getByRole('button',{name:/候选工作台/}).click();
  await owner.getByRole('button',{name:'＋ 新建清单',exact:true}).click();
@@ -186,6 +213,17 @@ try {
  assert.equal(await getStatus(owner,'/works/'+privateWork.resourceId),404);assert.ok(!(await json(owner,'/works')).items.some(x=>x.id===privateWork.resourceId));assert.ok(!(await json(owner,'/audit-events')).items.some(x=>x.resourceId===privateWork.resourceId));
  const before=await prisma.project.findUniqueOrThrow({where:{id:projectId}}),foreignEntry=(await prisma.workCredit.findFirstOrThrow({where:{workId:wid}})).id;
  await cmd(owner,'POST',ppath+'/participants/remove',{expectedRevision:before.revision,entryId:foreignEntry},404);assert.deepEqual(await prisma.project.findUniqueOrThrow({where:{id:projectId}}),before);
- assert.deepEqual(errors,[]);
  console.log('PASS WP1 privacy: suspended dependencies redact identities/previews; private roots and audits stay hidden; wrong-parent command writes nothing');
+ await d.getByRole('button',{name:'关闭',exact:true}).last().click();
+
+ const exportPerson=await prisma.person.findUniqueOrThrow({where:{id:pid}}),exportSource=await prisma.sourceRecord.findUniqueOrThrow({where:{id:exportPerson.sourceId}});
+ await cmd(owner,'POST','/sources/'+exportSource.id+'/suspend',{expectedRevision:exportSource.revision,reason:'合成测试：使旧导出依赖失效'});
+ await owner.getByRole('button',{name:/内部导出/}).click();
+ const exportTasks=owner.locator('section.panel').filter({has:owner.getByRole('heading',{name:'我的导出任务',exact:true})});
+ await exportTasks.getByRole('button',{name:'查看',exact:true}).first().click();
+ await owner.getByText('依赖已失效',{exact:true}).waitFor();
+ assert.equal(await owner.getByRole('button',{name:'下载 JSON',exact:true}).count(),0);
+ assert.equal((await json(owner,'/exports/'+exportId)).downloadable,false);
+ console.log('PASS DEV-07A privacy: source suspension makes the whole old export non-downloadable');
+ assert.deepEqual(errors,[]);
 } finally {if(browser)await browser.close();await stop(worker);await stop(api);await prisma.$disconnect();rmSync(tmp,{recursive:true,force:true});}

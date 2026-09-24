@@ -1,7 +1,7 @@
 import { shortlistFor } from './shortlists.ts';
 import { workFor, projectFor } from './production-policy.ts';
 import { uploadFor, assetFor } from './media.ts';
-import type { Actor, Clock, CommandReceipt } from './model.ts';
+import type { Actor, Clock, CommandReceipt, Config } from './model.ts';
 import { profileAccess } from './handoff-policy.ts';
 import { handoffParticipant } from './handoffs.ts';
 import type { Tx } from './store.ts';
@@ -9,9 +9,30 @@ import { workspaceRow } from './helpers.ts';
 import { missing } from './errors.ts';
 import { personFor, sourceFor, sourceCurrent, requireScope, requirePermission } from './policy.ts';
 /** Domain authorization for returning minimal command receipts. Not part of the generic receipt engine. */
-export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandReceipt, clock: Clock): Promise<void> {
+export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandReceipt, clock: Clock, config?: Config): Promise<void> {
     const id = receipt.resourceId;
     switch (receipt.resourceKind) {
+        case 'usePermission': {
+            requirePermission(actor, 'sources.review');
+            const row = await workspaceRow(tx, 'usePermissions', id, actor.workspaceId);
+            if (!row) missing();
+            await sourceFor(tx, actor, row.sourceId, clock, receipt.operation !== 'usePermission.revoke');
+            if (receipt.operation !== 'usePermission.revoke' && row.status !== 'ACTIVE') missing();
+            return;
+        }
+        case 'export': {
+            requirePermission(actor, 'data.export');
+            if (config?.dataEgressMode !== 'INTERNAL_APPROVED') missing();
+            const row = await workspaceRow(tx, 'exports', id, actor.workspaceId);
+            if (!row || row.actorId !== actor.membershipId) missing();
+            for (const dep of await tx.find('exportDependencies', { workspaceId: actor.workspaceId, exportId: id })) {
+                await sourceFor(tx, actor, dep.sourceId, clock);
+                const permission = await workspaceRow(tx, 'usePermissions', dep.usePermissionId, actor.workspaceId);
+                if (!permission || permission.status !== 'ACTIVE' || permission.revision !== dep.usePermissionRevision || Date.parse(permission.validUntil) <= clock.now().getTime())
+                    missing();
+            }
+            return;
+        }
         case 'shortlist':
             await shortlistFor(tx, actor, id);
             return;

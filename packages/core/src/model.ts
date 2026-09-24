@@ -1,8 +1,9 @@
 import type { Work, WorkAsset, WorkCredit, Project, ProjectParticipant, ProjectWork } from './production-model.ts';
 import type { Shortlist, ShortlistItem, ShortlistItemAsset } from './shortlist-model.ts';
 import type { MediaUpload, MediaAsset } from './media-model.ts';
+import type { UsePermission, ExportJob, ExportDependency } from './export-model.ts';
 export type Role = 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'VIEWER';
-export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write'] as const;
+export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write', 'data.export'] as const;
 export type ExtraPermission = typeof EXTRA_PERMISSIONS[number];
 export type Permission = 'records.read' | 'records.write' | 'sources.read' | 'sources.write' | 'sources.review' | 'catalog.manage' | 'members.manage' | 'audit.read' | 'assets.read' | 'assets.upload' | ExtraPermission;
 export interface Base {
@@ -126,7 +127,7 @@ export interface CommandReceipt extends Base {
     operation: string;
     commandKey: string;
     requestDigest: string;
-    resourceKind: 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist';
+    resourceKind: 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export';
     resourceId: string;
     result: ReceiptResult;
 }
@@ -203,6 +204,9 @@ export interface RecordHandoff extends Base {
     closedById: string | null;
 }
 export interface TableMap {
+    usePermissions: UsePermission;
+    exports: ExportJob;
+    exportDependencies: ExportDependency;
     shortlists: Shortlist;
     shortlistItems: ShortlistItem;
     shortlistItemAssets: ShortlistItemAsset;
@@ -261,6 +265,7 @@ export interface Config {
     recoveryEpoch: string;
     accessMode: 'MAINTENANCE' | 'INTERNAL';
     environment: 'local' | 'test' | 'staging' | 'production';
+    dataEgressMode: 'DISABLED' | 'INTERNAL_APPROVED';
 }
 export const LIMITS = Object.freeze({ idleMs: 30 * 60000, absoluteMs: 12 * 60 * 60000,
     activationMs: 24 * 60 * 60000, temporaryMs: 7 * 24 * 60 * 60000, pageSize: 20, maxPageSize: 100,

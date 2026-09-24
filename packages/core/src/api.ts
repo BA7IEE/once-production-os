@@ -1,3 +1,4 @@
+import { Exports } from './exports.ts';
 import { TalentSearch } from './talent-search.ts';
 import { Shortlists, shortlistFor } from './shortlists.ts';
 import { Portfolio } from './portfolio.ts';
@@ -63,6 +64,7 @@ export class Application {
     projects: Projects;
     shortlists: Shortlists;
     search: TalentSearch;
+    exports: Exports;
     constructor(store: Store, config: Config, clock: Clock = { now: () => new Date() }) {
         invariant(config.contactKey.length === 32 && config.csrfKey.length === 32, 'CONFIG_INVALID', '密钥必须为 32 字节', 503);
         const origin = new URL(config.origin);
@@ -78,6 +80,7 @@ export class Application {
         this.projects = new Projects(clock, this.talent);
         this.shortlists = new Shortlists(clock);
         this.search = new TalentSearch(clock);
+        this.exports = new Exports(store, clock, config);
         this.handoffs = new Handoffs(clock);
         this.media = new Media(store, clock, config);
         this.commands = new Commands(clock);
@@ -192,8 +195,15 @@ export class Application {
                 const command = (kind: CommandReceipt['resourceKind'], execute: () => Promise<{
                     id: string;
                     revision: number;
-                }>, target = id || null) => this.commands.execute(tx, actor, route.operation, request.headers['idempotency-key'] ?? '', target, data, kind, meta, execute, receipt => authorizeReceipt(tx, actor, receipt, this.clock), ['import.commit', 'job.resume', 'upload.complete'].includes(route.operation) ? 'ACCEPTED' : 'SUCCEEDED');
+                }>, target = id || null) => this.commands.execute(tx, actor, route.operation, request.headers['idempotency-key'] ?? '', target, data, kind, meta, execute, receipt => authorizeReceipt(tx, actor, receipt, this.clock, this.config), ['import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation) ? 'ACCEPTED' : 'SUCCEEDED');
                 switch (route.operation) {
+                    case 'usePermission.list': return this.exports.listPermissions(tx, actor, query);
+                    case 'usePermission.create': return command('usePermission', () => this.exports.createPermission(tx, actor, data));
+                    case 'usePermission.revoke': return command('usePermission', () => this.exports.revokePermission(tx, actor, id, data));
+                    case 'export.list': return this.exports.list(tx, actor, query);
+                    case 'export.create': return command('export', () => this.exports.create(tx, actor, data));
+                    case 'export.get': return this.exports.get(tx, actor, id);
+                    case 'export.download': return this.exports.download(tx, actor, id, meta);
                     case 'talent.search': return this.search.search(tx, actor, query);
                     case 'shortlist.list': return this.shortlists.list(tx, actor, query);
                     case 'shortlist.create': return command('shortlist', () => this.shortlists.create(tx, actor, data));
@@ -279,9 +289,9 @@ export class Application {
                     default: return missing();
                 }
             });
-            if (['import.commit', 'job.resume', 'upload.complete'].includes(route.operation))
+            if (['import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation))
                 response.status = 202;
-            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
+            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
                 response.status = 201;
             return response;
         }
