@@ -41,9 +41,9 @@ export interface Inputs {
   "catalog.create": { "namespace": "role" | "city" | "language" | "skill" | "industry" | "workType"; "code": string; "labelZh": string; "labelEn": string };
   "catalog.update": { "expectedRevision": number; "labelZh"?: string; "labelEn"?: string; "status"?: "ACTIVE" | "INACTIVE" };
   "member.list": undefined;
-  "member.create": { "loginName": string; "displayName": string; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write"> };
+  "member.create": { "loginName": string; "displayName": string; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write" | "data.export"> };
   "member.disable": { "expectedRevision": number };
-  "member.permissions": { "expectedRevision": number; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write"> };
+  "member.permissions": { "expectedRevision": number; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write" | "data.export"> };
   "member.resetAccess": { "expectedRevision": number };
   "scope.list": undefined;
   "scope.create": { "name": string; "membershipIds": Array<string> };
@@ -76,6 +76,13 @@ export interface Inputs {
   "job.resume": { "expectedRevision": number };
   "job.get": undefined;
   "audit.list": undefined;
+  "usePermission.list": undefined;
+  "usePermission.create": { "sourceId": string; "subjectKind": "SOURCE" | "PERSON" | "WORK" | "PROJECT" | "ASSET"; "subjectId": string; "fields": Array<"person.displayName" | "person.aliases" | "person.roles" | "person.cityCode" | "person.languageCodes" | "person.skillCodes" | "person.heightCm" | "person.intro" | "person.status" | "work.title" | "work.description" | "work.industryCode" | "work.workTypeCodes" | "work.origin" | "work.originNote" | "work.status" | "work.relations" | "project.title" | "project.brief" | "project.locationNote" | "project.dateNote" | "project.reviewNote" | "project.status" | "project.relations" | "source.title" | "source.type" | "source.providerClaim" | "source.basisMode" | "source.basisDescription" | "source.validFrom" | "source.validUntil" | "source.status" | "media.identity">; "validUntil": string; "evidenceNote": string };
+  "usePermission.revoke": { "expectedRevision": number };
+  "export.list": undefined;
+  "export.create": { "format": "JSON"; "selectedIds": { "people": Array<string>; "works": Array<string>; "projects": Array<string> }; "fields": Array<"person.displayName" | "person.aliases" | "person.roles" | "person.cityCode" | "person.languageCodes" | "person.skillCodes" | "person.heightCm" | "person.intro" | "person.status" | "work.title" | "work.description" | "work.industryCode" | "work.workTypeCodes" | "work.origin" | "work.originNote" | "work.status" | "work.relations" | "project.title" | "project.brief" | "project.locationNote" | "project.dateNote" | "project.reviewNote" | "project.status" | "project.relations" | "source.title" | "source.type" | "source.providerClaim" | "source.basisMode" | "source.basisDescription" | "source.validFrom" | "source.validUntil" | "source.status" | "media.identity">; "usePermissionRefs": Array<string> };
+  "export.get": undefined;
+  "export.download": {  };
   "talent.search": undefined;
   "shortlist.list": undefined;
   "shortlist.create": { "title": string; "brief"?: string; "scopeId": string };
@@ -465,6 +472,41 @@ export const ENDPOINTS = {
   "audit.list": {
     "method": "GET",
     "path": "/audit-events",
+    "mode": "READ"
+  },
+  "usePermission.list": {
+    "method": "GET",
+    "path": "/use-permissions",
+    "mode": "READ"
+  },
+  "usePermission.create": {
+    "method": "POST",
+    "path": "/use-permissions",
+    "mode": "COMMAND"
+  },
+  "usePermission.revoke": {
+    "method": "POST",
+    "path": "/use-permissions/{id}/revoke",
+    "mode": "COMMAND"
+  },
+  "export.list": {
+    "method": "GET",
+    "path": "/exports",
+    "mode": "READ"
+  },
+  "export.create": {
+    "method": "POST",
+    "path": "/exports",
+    "mode": "COMMAND"
+  },
+  "export.get": {
+    "method": "GET",
+    "path": "/exports/{id}",
+    "mode": "READ"
+  },
+  "export.download": {
+    "method": "POST",
+    "path": "/exports/{id}/download",
     "mode": "READ"
   },
   "talent.search": {
