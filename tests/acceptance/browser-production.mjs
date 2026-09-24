@@ -133,6 +133,33 @@ try {
  await d.getByRole('button',{name:'编辑项目',exact:true}).click();f=await dialogReady(owner,'编辑项目');await f.getByLabel('内部复盘',{exact:true}).fill('合成复盘：第一次合作注意素材统一命名');await writeUI(owner,'PATCH',ppath,()=>f.getByRole('button',{name:'保存项目',exact:true}).click());await owner.getByRole('heading',{name:'项目人员',exact:true}).waitFor();d=await dialogReady(owner,'WP1家具拍摄项目');await writeUI(owner,'PATCH',ppath,()=>d.getByRole('button',{name:'标记项目完成',exact:true}).click());await until(async()=>(await prisma.project.findUniqueOrThrow({where:{id:projectId}})).status==='COMPLETED');
  await d.getByRole('button',{name:'关闭',exact:true}).last().click();
 
+ // DEV-07A: explicit purpose approval -> frozen JSON export -> browser download.
+ await owner.getByRole('button',{name:/内部导出/}).click();
+ await owner.getByRole('button',{name:'＋ 批准导出用途',exact:true}).click();
+ f=await dialogReady(owner,'批准内部导出用途');
+ await f.getByLabel('对象类型',{exact:true}).selectOption('PERSON');
+ await f.getByLabel('批准对象',{exact:true}).selectOption(pid);
+ await f.getByLabel('姓名 / 展示名',{exact:true}).check();
+ await f.getByLabel('角色',{exact:true}).check();
+ const expiry=new Date(Date.now()+86400000),pad=n=>String(n).padStart(2,'0');
+ await f.getByLabel('许可截止时间',{exact:true}).fill(expiry.getFullYear()+'-'+pad(expiry.getMonth()+1)+'-'+pad(expiry.getDate())+'T'+pad(expiry.getHours())+':'+pad(expiry.getMinutes()));
+ await f.getByLabel('审批依据',{exact:true}).fill('合成测试：仅批准姓名和角色用于内部JSON迁移');
+ const permissionCreate=await writeUI(owner,'POST','/use-permissions',()=>f.getByRole('button',{name:'批准用途',exact:true}).click(),201),exportPermissionId=permissionCreate.resourceId;
+ await owner.getByText('人才 · WP1摄影剪辑人员',{exact:true}).waitFor();
+ const permissionRow=owner.locator('tr').filter({has:owner.getByText('人才 · WP1摄影剪辑人员',{exact:true})});
+ await permissionRow.getByRole('checkbox').check();
+ const exportCreate=await writeUI(owner,'POST','/exports',()=>owner.getByRole('button',{name:'生成内部 JSON',exact:true}).click(),202),exportId=exportCreate.resourceId;
+ await until(async()=>await prisma.exportJob.count({where:{id:exportId,state:'READY'}})===1);
+ await owner.getByRole('button',{name:'下载 JSON',exact:true}).waitFor();
+ const downloadPromise=owner.waitForEvent('download');
+ await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();
+ const downloaded=await downloadPromise;
+ assert.equal(downloaded.suggestedFilename(),'once-export-'+exportId+'.json');
+ const exported=await prisma.exportJob.findUniqueOrThrow({where:{id:exportId}});
+ assert.equal(exported.payloadDigest?.length,64);
+ assert.equal(await prisma.exportDependency.count({where:{exportId,usePermissionId:exportPermissionId,personId:pid}}),1);
+ console.log('PASS DEV-07A browser: explicit export permission -> worker JSON -> controlled browser download');
+
  // DEV-06: real browser internal shortlist flow. No share link/client state is created.
  await owner.getByRole('button',{name:/候选工作台/}).click();
  await owner.getByRole('button',{name:'＋ 新建清单',exact:true}).click();
