@@ -1,6 +1,5 @@
 // Generated from packages/core/src/routes.ts and validation.ts. Do not edit.
 export interface Inputs {
-  "maintenance.impact": undefined;
   "work.list": undefined;
   "work.create": { "title": string; "sourceId"?: string; "inlineSource"?: { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string }; "description"?: string; "industryCode"?: string | null; "workTypeCodes"?: Array<string>; "origin"?: "ONCE" | "EXTERNAL" | "UNKNOWN"; "originNote"?: string };
   "work.get": undefined;
@@ -77,6 +76,7 @@ export interface Inputs {
   "job.resume": { "expectedRevision": number };
   "job.get": undefined;
   "audit.list": undefined;
+  "maintenance.impact": undefined;
   "talent.search": undefined;
   "shortlist.list": undefined;
   "shortlist.create": { "title": string; "brief"?: string; "scopeId": string };
@@ -88,11 +88,6 @@ export interface Inputs {
   "shortlist.reorder": { "expectedRevision": number; "entryIds": Array<string> };
 }
 export const ENDPOINTS = {
-  "maintenance.impact": {
-    "method": "GET",
-    "path": "/maintenance/deletion-impact",
-    "mode": "READ"
-  },
   "work.list": {
     "method": "GET",
     "path": "/works",
@@ -471,6 +466,11 @@ export const ENDPOINTS = {
   "audit.list": {
     "method": "GET",
     "path": "/audit-events",
+    "mode": "READ"
+  },
+  "maintenance.impact": {
+    "method": "GET",
+    "path": "/maintenance/deletion-impact",
     "mode": "READ"
   },
   "talent.search": {
