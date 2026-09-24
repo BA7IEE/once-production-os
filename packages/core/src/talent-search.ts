@@ -11,13 +11,13 @@ function hidden(error: unknown): boolean {
 }
 
 function facets(rows: Person[]) {
-    const count = (values: string[]) => [...new Set(values)].sort().map(code => ({ code, count: rows.filter(p =>
-        p.roles.includes(code) || p.languageCodes.includes(code) || p.skillCodes.includes(code) || p.cityCode === code).length }));
+    const count = (codes: string[], matches: (person: Person, code: string) => boolean) =>
+        [...new Set(codes)].sort().map(code => ({ code, count: rows.filter(person => matches(person, code)).length }));
     return {
-        roles: count(rows.flatMap(p => p.roles)),
-        cities: count(rows.flatMap(p => p.cityCode ? [p.cityCode] : [])),
-        languages: count(rows.flatMap(p => p.languageCodes)),
-        skills: count(rows.flatMap(p => p.skillCodes))
+        roles: count(rows.flatMap(p => p.roles), (p, code) => p.roles.includes(code)),
+        cities: count(rows.flatMap(p => p.cityCode ? [p.cityCode] : []), (p, code) => p.cityCode === code),
+        languages: count(rows.flatMap(p => p.languageCodes), (p, code) => p.languageCodes.includes(code)),
+        skills: count(rows.flatMap(p => p.skillCodes), (p, code) => p.skillCodes.includes(code))
     };
 }
 
