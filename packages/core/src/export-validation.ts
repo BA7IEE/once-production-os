@@ -12,6 +12,7 @@ export const ExportSchemas = {
         evidenceNote: v.string(2000, 4)
     }),
     permissionRevoke: v.object({ expectedRevision: revision }),
+    download: v.object({}),
     create: v.object({
         format: v.enum(['JSON']),
         selectedIds: v.object({

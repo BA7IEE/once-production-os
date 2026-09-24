@@ -21,8 +21,11 @@ async function run() {
                 const claim = await core.imports.claim();
                 if (claim)
                     await core.imports.process(claim);
+                const exportClaim = await core.exports.claim();
+                if (exportClaim)
+                    await core.exports.process(exportClaim);
                 const didMedia = media ? await media.cycle(stopController.signal) : false;
-                if (!claim && !didMedia)
+                if (!claim && !exportClaim && !didMedia)
                     await sleep(1000);
             }
             catch {

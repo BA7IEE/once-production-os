@@ -127,7 +127,7 @@ export interface CommandReceipt extends Base {
     operation: string;
     commandKey: string;
     requestDigest: string;
-    resourceKind: 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist';
+    resourceKind: 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export';
     resourceId: string;
     result: ReceiptResult;
 }
