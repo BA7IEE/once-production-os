@@ -5,7 +5,7 @@ import { MEDIA_LIMITS as L, terminalUpload } from './media-model.ts';
 import type { MediaUpload, MediaAsset, MediaResult } from './media-model.ts';
 import { audit, base, cas, page, touch, workspaceRow } from './helpers.ts';
 import { AppError, invariant, missing } from './errors.ts';
-import { permissionsFor, personFor, requirePermission, requireScope, sourceFor } from './policy.ts';
+import { deletionBlocked, permissionsFor, personFor, requirePermission, requireScope, sourceFor } from './policy.ts';
 import { loadVisibility } from './visibility.ts';
 import { MediaSchemas } from './media-validation.ts';
 export async function uploadFor(tx: Tx, actor: Actor, id: string): Promise<MediaUpload> {
@@ -19,6 +19,7 @@ export async function assetFor(tx: Tx, actor: Actor, id: string, clock: Clock): 
     if (!a)
         missing();
     await requireScope(tx, actor, a.scopeId);
+    if (await deletionBlocked(tx, actor.workspaceId, 'ASSET', a.id)) missing();
     await sourceFor(tx, actor, a.sourceId, clock);
     if (a.personId) {
         const p = await personFor(tx, actor, a.personId, clock);

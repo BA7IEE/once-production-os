@@ -79,7 +79,7 @@ export interface SourceHistory extends Base {
     sourceRevision: number;
     scopeId: string;
     actorId: string | null;
-    action: 'CREATED' | 'EDITED' | 'REVIEWED' | 'SUSPENDED' | 'SCOPE_CHANGED' | 'BASELINE';
+    action: 'CREATED' | 'EDITED' | 'REVIEWED' | 'SUSPENDED' | 'SCOPE_CHANGED' | 'DELETION_BLOCKED' | 'BASELINE';
     decisionReason: string | null;
     baselineOnly: boolean;
     basisAmbiguous: boolean;
