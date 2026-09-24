@@ -219,7 +219,8 @@ try {
  const exportPerson=await prisma.person.findUniqueOrThrow({where:{id:pid}}),exportSource=await prisma.sourceRecord.findUniqueOrThrow({where:{id:exportPerson.sourceId}});
  await cmd(owner,'POST','/sources/'+exportSource.id+'/suspend',{expectedRevision:exportSource.revision,reason:'合成测试：使旧导出依赖失效'});
  await owner.getByRole('button',{name:/内部导出/}).click();
- const exportRow=owner.locator('tr').filter({hasText:exportId});await exportRow.getByRole('button',{name:'查看',exact:true}).click();
+ const exportTasks=owner.locator('section.panel').filter({has:owner.getByRole('heading',{name:'我的导出任务',exact:true})});
+ await exportTasks.getByRole('button',{name:'查看',exact:true}).first().click();
  await owner.getByText('依赖已失效',{exact:true}).waitFor();
  assert.equal(await owner.getByRole('button',{name:'下载 JSON',exact:true}).count(),0);
  assert.equal((await json(owner,'/exports/'+exportId)).downloadable,false);
