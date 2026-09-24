@@ -11,7 +11,7 @@ cde76ca04e048c3eba070a2c0dfcf5b723cf6014eab177157096b924f24ec4ca  .npmrc
 7d051176b9b7120e5d1c1391961e018a77897776557829530b21d60552d014e3  apps/admin-web/index.html
 0344a28801c0a6c329602430230d9d39ba1b134d20d8b122035d8b541de57d8d  apps/admin-web/src/api.ts
 7d7f8b411a0de2c8122cf506210271e8db0521b74bdf0eeeacf888903db29f6d  apps/admin-web/src/deletion-dto.ts
-e8b53301de2ec0562a0f18b6650820d2edd02c7dc9f3be95e0910dfd2edfb4f4  apps/admin-web/src/deletion-ui.tsx
+c1a8c77582cdb1b9462a5e6c0f9498c2f7ad6f102de2405695f4f51a405da229  apps/admin-web/src/deletion-ui.tsx
 2c1904d73dc6d756a9537a6ca65773ac7a8f32540d8b04735e53d6ea28fb6eab  apps/admin-web/src/dto.ts
 6a14e53146b7c67b4405529fe43160bae338e50f1cbbfbb0581f199641e8b682  apps/admin-web/src/export-dto.ts
 a73537c272e47f4b19c61922534f491d48efcb37e21e26f7dad1eb84f5294bb5  apps/admin-web/src/export-ui.tsx
