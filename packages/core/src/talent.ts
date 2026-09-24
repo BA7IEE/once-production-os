@@ -84,9 +84,10 @@ export class Talent {
     }
     async listSources(tx: Tx, actor: Actor, query: Record<string, string>): Promise<unknown> {
         requirePermission(actor, 'sources.read');
+        const visibility = await loadVisibility(tx, actor, this.clock);
         const result = [];
         for (const source of await tx.find('sources', { workspaceId: actor.workspaceId })) {
-            if (!(await scopeVisible(tx, actor, source.scopeId)))
+            if (visibility.blocked('SOURCE', source.id) || !(await scopeVisible(tx, actor, source.scopeId)))
                 continue;
             if (!sourceCurrent(source, this.clock) && !actor.permissions.includes('sources.review'))
                 continue;

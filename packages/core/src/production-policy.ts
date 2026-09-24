@@ -2,7 +2,7 @@ import type { Actor, Clock } from './model.ts';
 import type { Tx } from './store.ts';
 import type { Work, Project } from './production-model.ts';
 import { AppError, invariant, missing } from './errors.ts';
-import { sourceFor, requireScope, personFor } from './policy.ts';
+import { deletionBlocked, sourceFor, requireScope, personFor } from './policy.ts';
 import { workspaceRow } from './helpers.ts';
 import { assetFor } from './media.ts';
 export async function workFor(tx: Tx, actor: Actor, id: string, clock: Clock): Promise<Work> {
@@ -10,6 +10,7 @@ export async function workFor(tx: Tx, actor: Actor, id: string, clock: Clock): P
     if (!w)
         missing();
     await requireScope(tx, actor, w.scopeId);
+    if (await deletionBlocked(tx, actor.workspaceId, 'WORK', w.id)) missing();
     await sourceFor(tx, actor, w.sourceId, clock);
     return w;
 }
@@ -18,6 +19,7 @@ export async function projectFor(tx: Tx, actor: Actor, id: string, clock: Clock)
     if (!p)
         missing();
     await requireScope(tx, actor, p.scopeId);
+    if (await deletionBlocked(tx, actor.workspaceId, 'PROJECT', p.id)) missing();
     await sourceFor(tx, actor, p.sourceId, clock);
     return p;
 }

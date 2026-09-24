@@ -59,7 +59,12 @@ export class PrismaStore implements Store {
                         const clauses: Prisma.Sql[] = [
                             Prisma.sql`p."workspaceId" = ${input.workspaceId}::uuid`,
                             Prisma.sql`p."scopeId" IN (${scopeList})`,
-                            Prisma.sql`p."sourceId" IN (${sourceList})`
+                            Prisma.sql`p."sourceId" IN (${sourceList})`,
+                            Prisma.sql`NOT EXISTS (
+                                SELECT 1 FROM "deletionRequests" dr
+                                WHERE dr."workspaceId" = p."workspaceId" AND dr."state" = 'BLOCKED_FOR_USE'
+                                  AND dr."targetKind" = 'PERSON' AND dr."targetId" = p."id"
+                            )`
                         ];
                         if (input.q)
                             clauses.push(Prisma.sql`(strpos(lower(p."displayName"), ${input.q}) > 0 OR EXISTS (SELECT 1 FROM unnest(p."aliases") AS a(alias) WHERE strpos(lower(a.alias), ${input.q}) > 0))`);
@@ -79,6 +84,11 @@ export class PrismaStore implements Store {
                                 JOIN "projects" pr ON pr."workspaceId" = pp."workspaceId" AND pr."id" = pp."projectId"
                                 WHERE pp."workspaceId" = p."workspaceId" AND pp."personId" = p."id" AND pp."state" = 'ACTUAL'
                                   AND pr."scopeId" IN (${scopeList}) AND pr."sourceId" IN (${sourceList})
+                                  AND NOT EXISTS (
+                                      SELECT 1 FROM "deletionRequests" dr
+                                      WHERE dr."workspaceId" = pr."workspaceId" AND dr."state" = 'BLOCKED_FOR_USE'
+                                        AND dr."targetKind" = 'PROJECT' AND dr."targetId" = pr."id"
+                                  )
                             )`);
                         if (input.industryCode)
                             clauses.push(Prisma.sql`EXISTS (
@@ -86,6 +96,11 @@ export class PrismaStore implements Store {
                                 JOIN "works" w ON w."workspaceId" = wc."workspaceId" AND w."id" = wc."workId"
                                 WHERE wc."workspaceId" = p."workspaceId" AND wc."personId" = p."id"
                                   AND w."scopeId" IN (${scopeList}) AND w."sourceId" IN (${sourceList})
+                                  AND NOT EXISTS (
+                                      SELECT 1 FROM "deletionRequests" dr
+                                      WHERE dr."workspaceId" = w."workspaceId" AND dr."state" = 'BLOCKED_FOR_USE'
+                                        AND dr."targetKind" = 'WORK' AND dr."targetId" = w."id"
+                                  )
                                   AND w."industryCode" = ${input.industryCode}
                             )`);
                         if (input.workTypeCode)
@@ -94,6 +109,11 @@ export class PrismaStore implements Store {
                                 JOIN "works" w ON w."workspaceId" = wc."workspaceId" AND w."id" = wc."workId"
                                 WHERE wc."workspaceId" = p."workspaceId" AND wc."personId" = p."id"
                                   AND w."scopeId" IN (${scopeList}) AND w."sourceId" IN (${sourceList})
+                                  AND NOT EXISTS (
+                                      SELECT 1 FROM "deletionRequests" dr
+                                      WHERE dr."workspaceId" = w."workspaceId" AND dr."state" = 'BLOCKED_FOR_USE'
+                                        AND dr."targetKind" = 'WORK' AND dr."targetId" = w."id"
+                                  )
                                   AND ${input.workTypeCode} = ANY(w."workTypeCodes")
                             )`);
                         const where = Prisma.join(clauses, ' AND ');
@@ -109,16 +129,31 @@ export class PrismaStore implements Store {
                                FROM "projectParticipants" pp
                                JOIN "projects" pr ON pr."workspaceId" = pp."workspaceId" AND pr."id" = pp."projectId"
                               WHERE pp."workspaceId" = p."workspaceId" AND pp."personId" = p."id" AND pp."state" = 'ACTUAL'
-                                AND pr."scopeId" IN (${scopeList}) AND pr."sourceId" IN (${sourceList})) AS "actualProjectCount",
+                                AND pr."scopeId" IN (${scopeList}) AND pr."sourceId" IN (${sourceList})
+                                AND NOT EXISTS (
+                                    SELECT 1 FROM "deletionRequests" dr
+                                    WHERE dr."workspaceId" = pr."workspaceId" AND dr."state" = 'BLOCKED_FOR_USE'
+                                      AND dr."targetKind" = 'PROJECT' AND dr."targetId" = pr."id"
+                                )) AS "actualProjectCount",
                             COALESCE((SELECT array_agg(DISTINCT w."industryCode" ORDER BY w."industryCode") FILTER (WHERE w."industryCode" IS NOT NULL)
                                FROM "workCredits" wc JOIN "works" w ON w."workspaceId" = wc."workspaceId" AND w."id" = wc."workId"
                               WHERE wc."workspaceId" = p."workspaceId" AND wc."personId" = p."id"
-                                AND w."scopeId" IN (${scopeList}) AND w."sourceId" IN (${sourceList})), ARRAY[]::text[]) AS "industryCodes",
+                                AND w."scopeId" IN (${scopeList}) AND w."sourceId" IN (${sourceList})
+                                AND NOT EXISTS (
+                                    SELECT 1 FROM "deletionRequests" dr
+                                    WHERE dr."workspaceId" = w."workspaceId" AND dr."state" = 'BLOCKED_FOR_USE'
+                                      AND dr."targetKind" = 'WORK' AND dr."targetId" = w."id"
+                                )), ARRAY[]::text[]) AS "industryCodes",
                             COALESCE((SELECT array_agg(DISTINCT wt.code ORDER BY wt.code)
                                FROM "workCredits" wc JOIN "works" w ON w."workspaceId" = wc."workspaceId" AND w."id" = wc."workId"
                                CROSS JOIN LATERAL unnest(w."workTypeCodes") AS wt(code)
                               WHERE wc."workspaceId" = p."workspaceId" AND wc."personId" = p."id"
-                                AND w."scopeId" IN (${scopeList}) AND w."sourceId" IN (${sourceList})), ARRAY[]::text[]) AS "workTypeCodes"
+                                AND w."scopeId" IN (${scopeList}) AND w."sourceId" IN (${sourceList})
+                                AND NOT EXISTS (
+                                    SELECT 1 FROM "deletionRequests" dr
+                                    WHERE dr."workspaceId" = w."workspaceId" AND dr."state" = 'BLOCKED_FOR_USE'
+                                      AND dr."targetKind" = 'WORK' AND dr."targetId" = w."id"
+                                )), ARRAY[]::text[]) AS "workTypeCodes"
                             FROM "people" p WHERE ${where}`;
                         const count = await p.$queryRaw<Array<{ count: number }>>(Prisma.sql`SELECT COUNT(*)::int AS count FROM "people" p WHERE ${where}`);
                         const pageSql = input.scanForVerification ? Prisma.empty : Prisma.sql` LIMIT ${input.pageSize} OFFSET ${(input.page - 1) * input.pageSize}`;
@@ -136,6 +171,11 @@ export class PrismaStore implements Store {
                                 JOIN "works" w ON w."workspaceId" = wc."workspaceId" AND w."id" = wc."workId"
                                 LEFT JOIN LATERAL unnest(w."workTypeCodes") AS wt(code) ON TRUE
                                 WHERE w."scopeId" IN (${scopeList}) AND w."sourceId" IN (${sourceList})
+                                  AND NOT EXISTS (
+                                      SELECT 1 FROM "deletionRequests" dr
+                                      WHERE dr."workspaceId" = w."workspaceId" AND dr."state" = 'BLOCKED_FOR_USE'
+                                        AND dr."targetKind" = 'WORK' AND dr."targetId" = w."id"
+                                  )
                             )
                             SELECT 'role' AS kind, x.code, COUNT(DISTINCT b."id")::int AS count
                               FROM base b CROSS JOIN LATERAL unnest(b."roles") AS x(code) GROUP BY x.code

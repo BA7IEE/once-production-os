@@ -5,7 +5,7 @@ import { MEDIA_LIMITS as L, terminalUpload } from './media-model.ts';
 import type { MediaUpload, MediaAsset, MediaResult } from './media-model.ts';
 import { audit, base, cas, page, touch, workspaceRow } from './helpers.ts';
 import { AppError, invariant, missing } from './errors.ts';
-import { permissionsFor, personFor, requirePermission, requireScope, sourceFor } from './policy.ts';
+import { deletionBlocked, permissionsFor, personFor, requirePermission, requireScope, sourceFor } from './policy.ts';
 import { loadVisibility } from './visibility.ts';
 import { MediaSchemas } from './media-validation.ts';
 export async function uploadFor(tx: Tx, actor: Actor, id: string): Promise<MediaUpload> {
@@ -19,6 +19,7 @@ export async function assetFor(tx: Tx, actor: Actor, id: string, clock: Clock): 
     if (!a)
         missing();
     await requireScope(tx, actor, a.scopeId);
+    if (await deletionBlocked(tx, actor.workspaceId, 'ASSET', a.id)) missing();
     await sourceFor(tx, actor, a.sourceId, clock);
     if (a.personId) {
         const p = await personFor(tx, actor, a.personId, clock);
@@ -154,7 +155,7 @@ export class Media {
         // Reuse the existing native-scope batch index; never multiply permission queries by image count.
         const visibleIndex = await loadVisibility(tx, actor, this.clock);
         const people = new Map((await tx.find('people', { workspaceId: actor.workspaceId })).map(p => [p.id, p]));
-        const visible = rows.filter(a => visibleIndex.scopeVisible(a.scopeId) && visibleIndex.sourceVisible(a.sourceId) && (!a.personId || (() => { const p = people.get(a.personId!); return !!p && p.sourceId === a.sourceId && visibleIndex.personVisible(p); })()));
+        const visible = rows.filter(a => !visibleIndex.blocked('ASSET', a.id) && visibleIndex.scopeVisible(a.scopeId) && visibleIndex.sourceVisible(a.sourceId) && (!a.personId || (() => { const p = people.get(a.personId!); return !!p && p.sourceId === a.sourceId && visibleIndex.personVisible(p); })()));
         return page(visible.sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id)).map(assetDto), query, ['personId', 'sourceId']);
     }
     async getAsset(tx: Tx, actor: Actor, id: string) { requirePermission(actor, 'assets.read'); return assetDto(await assetFor(tx, actor, id, this.clock)); }

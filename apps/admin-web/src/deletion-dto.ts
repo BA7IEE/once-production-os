@@ -34,7 +34,7 @@ export interface DeletionRequestSummary {
     id: string;
     targetKind: DeletionTargetKind;
     targetId: string;
-    state: 'DRAFT';
+    state: 'DRAFT' | 'BLOCKED_FOR_USE';
     impactCount: number;
     reviewRequiredCount: number;
     createdAt: string;
@@ -45,6 +45,8 @@ export interface DeletionRequestDetail extends DeletionRequestSummary {
     reason: string;
     previewDigest: string;
     unresolvedCount: number;
+    blockAvailable: boolean;
+    cleanupAvailable: false;
     executionAvailable: false;
     executionNote: string;
 }

@@ -47,10 +47,13 @@ export class MemoryStore implements Store {
             },
             talentQuery: async input => {
                 const scopeIds = new Set(input.visibleScopeIds), sourceIds = new Set(input.visibleSourceIds);
-                const works = [...draft.works.values()].filter(w => w.workspaceId === input.workspaceId && scopeIds.has(w.scopeId) && sourceIds.has(w.sourceId));
+                const blocks = [...draft.deletionRequests.values()].filter(d => d.workspaceId === input.workspaceId && d.state === 'BLOCKED_FOR_USE');
+                const blocked = (kind: string) => new Set(blocks.filter(d => d.targetKind === kind).map(d => d.targetId));
+                const blockedPeople = blocked('PERSON'), blockedWorks = blocked('WORK'), blockedProjects = blocked('PROJECT');
+                const works = [...draft.works.values()].filter(w => w.workspaceId === input.workspaceId && !blockedWorks.has(w.id) && scopeIds.has(w.scopeId) && sourceIds.has(w.sourceId));
                 const workById = new Map(works.map(w => [w.id, w]));
                 const credits = [...draft.workCredits.values()].filter(c => c.workspaceId === input.workspaceId && workById.has(c.workId));
-                const projects = new Map([...draft.projects.values()].filter(p => p.workspaceId === input.workspaceId && scopeIds.has(p.scopeId) && sourceIds.has(p.sourceId)).map(p => [p.id, p]));
+                const projects = new Map([...draft.projects.values()].filter(p => p.workspaceId === input.workspaceId && !blockedProjects.has(p.id) && scopeIds.has(p.scopeId) && sourceIds.has(p.sourceId)).map(p => [p.id, p]));
                 const actual = [...draft.projectParticipants.values()].filter(p => p.workspaceId === input.workspaceId && p.state === 'ACTUAL' && projects.has(p.projectId));
                 const facts = (personId: string) => {
                     const linked = credits.filter(c => c.personId === personId).map(c => workById.get(c.workId)!).filter(Boolean);
@@ -58,7 +61,7 @@ export class MemoryStore implements Store {
                         workTypeCodes: [...new Set(linked.flatMap(w => w.workTypeCodes))].sort() };
                 };
                 const projectCount = (personId: string) => new Set(actual.filter(p => p.personId === personId).map(p => p.projectId)).size;
-                const all = [...draft.people.values()].filter(p => p.workspaceId === input.workspaceId && scopeIds.has(p.scopeId) && sourceIds.has(p.sourceId)).map(person => {
+                const all = [...draft.people.values()].filter(p => p.workspaceId === input.workspaceId && !blockedPeople.has(p.id) && scopeIds.has(p.scopeId) && sourceIds.has(p.sourceId)).map(person => {
                     const f = facts(person.id); return { person, actualProjectCount: projectCount(person.id), ...f };
                 }).filter(row => {
                     const p = row.person;

@@ -17,7 +17,7 @@ export interface DeletionRequest extends Base {
     targetSourceId: string;
     targetRevision: number;
     targetProtectionEpoch: number | null;
-    state: 'DRAFT';
+    state: 'DRAFT' | 'BLOCKED_FOR_USE';
     reason: string;
     previewDigest: string;
     impactCount: number;

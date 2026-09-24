@@ -438,4 +438,103 @@ export async function runProductionContracts(t: TestContext, c: Context) {
         });
     }
 
+    await t.test('DEV-07C PG person block raises protection epoch, hides normal reads/search and preserves row', async () => {
+        const createdPerson = (await ok(ownerA.cmd('POST', '/people', {
+            displayName: 'DEV07C PG blocked person', roles: ['model'], inlineSource: sourceInput()
+        }), 201)).resourceId as string;
+        const person = await a.person.findUniqueOrThrow({ where: { id: createdPerson } });
+        const preview = result(await ownerA.raw('POST', '/deletion-requests/preview', {
+            targetKind: 'PERSON', targetId: createdPerson, expectedRevision: person.revision
+        }));
+        const requestId = (await ok(ownerA.cmd('POST', '/deletion-requests', {
+            targetKind: 'PERSON', targetId: createdPerson, expectedRevision: person.revision,
+            previewDigest: preview.previewDigest, reason: 'synthetic block person without cleanup'
+        }), 201)).resourceId as string;
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/block', {
+            expectedRevision: 1, previewDigest: preview.previewDigest, acknowledgeBlock: true
+        }));
+        const stored = await a.person.findUniqueOrThrow({ where: { id: createdPerson } });
+        assert.equal(stored.protectionEpoch, person.protectionEpoch + 1);
+        assert.equal((await ownerA.raw('GET', '/people/' + createdPerson)).status, 404);
+        const search = result(await ownerA.raw('GET', '/talent-search?q=' + encodeURIComponent('DEV07C PG blocked person')));
+        assert.equal(search.total, 0);
+        assert.equal((await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } })).state, 'BLOCKED_FOR_USE');
+        assert.equal(await a.person.count({ where: { id: createdPerson } }), 1);
+
+        const now = clock.now(), duplicateId = randomUUID();
+        await assert.rejects(a.deletionRequest.create({ data: {
+            id: duplicateId, workspaceId: identity.workspaceId, createdAt: now, updatedAt: now, revision: 1,
+            actorId: identity.membershipId, targetKind: 'PERSON', targetId: createdPerson, targetSourceId: stored.sourceId,
+            targetRevision: stored.revision, targetProtectionEpoch: stored.protectionEpoch, state: 'BLOCKED_FOR_USE',
+            reason: 'synthetic duplicate blocked request', previewDigest: 'b'.repeat(64),
+            impactCount: 0, reviewRequiredCount: 0, unresolvedCount: 0,
+            targetPersonId: createdPerson, targetWorkId: null, targetProjectId: null, targetAssetId: null, targetSourceSubjectId: null
+        } }));
+    });
+
+    await t.test('DEV-07C PG source block raises protection epoch and appends protected DELETION_BLOCKED history', async () => {
+        const sourceId = (await ok(ownerA.cmd('POST', '/sources', sourceInput()), 201)).resourceId as string;
+        const source = await a.sourceRecord.findUniqueOrThrow({ where: { id: sourceId } });
+        const preview = result(await ownerA.raw('POST', '/deletion-requests/preview', {
+            targetKind: 'SOURCE', targetId: sourceId, expectedRevision: source.revision
+        }));
+        const requestId = (await ok(ownerA.cmd('POST', '/deletion-requests', {
+            targetKind: 'SOURCE', targetId: sourceId, expectedRevision: source.revision,
+            previewDigest: preview.previewDigest, reason: 'synthetic source safety block'
+        }), 201)).resourceId as string;
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/block', {
+            expectedRevision: 1, previewDigest: preview.previewDigest, acknowledgeBlock: true
+        }));
+        const stored = await a.sourceRecord.findUniqueOrThrow({ where: { id: sourceId } });
+        assert.equal(stored.protectionEpoch, source.protectionEpoch + 1);
+        assert.equal((await ownerA.raw('GET', '/sources/' + sourceId)).status, 404);
+        const history = await a.sourceHistory.findFirstOrThrow({ where: { sourceId, sourceRevision: stored.revision } });
+        assert.equal(history.action, 'DELETION_BLOCKED');
+        assert.equal(history.decisionReason, 'synthetic source safety block');
+        assert.equal(await a.sourceRecord.count({ where: { id: sourceId } }), 1);
+    });
+
+    for (const stage of ['sourceHistory', 'audits', 'receipts'] as const) {
+        await t.test('DEV-07C PG source block rolls back after ' + stage, async () => {
+            const sourceId = (await ok(ownerA.cmd('POST', '/sources', sourceInput()), 201)).resourceId as string;
+            const source = await a.sourceRecord.findUniqueOrThrow({ where: { id: sourceId } });
+            const preview = result(await ownerA.raw('POST', '/deletion-requests/preview', {
+                targetKind: 'SOURCE', targetId: sourceId, expectedRevision: source.revision
+            }));
+            const requestId = (await ok(ownerA.cmd('POST', '/deletion-requests', {
+                targetKind: 'SOURCE', targetId: sourceId, expectedRevision: source.revision,
+                previewDigest: preview.previewDigest, reason: 'synthetic source block rollback ' + stage
+            }), 201)).resourceId as string;
+            const before = {
+                source: await a.sourceRecord.findUniqueOrThrow({ where: { id: sourceId } }),
+                request: await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } }),
+                history: await a.sourceHistory.count({ where: { sourceId } }),
+                audits: await a.auditEvent.count(),
+                receipts: await a.commandReceipt.count()
+            };
+            const faults = new FaultStore(storeA);
+            let fired = false;
+            faults.afterInsert = table => {
+                if (table === stage && !fired) {
+                    fired = true;
+                    throw new Error('DEV07C deliberate block failure');
+                }
+            };
+            const app = new Application(faults, config, clock), client = new Client(app);
+            client.jar = { ...ownerA.jar }; client.csrf = ownerA.csrf;
+            const body = { expectedRevision: 1, previewDigest: preview.previewDigest, acknowledgeBlock: true };
+            const key = randomUUID(), failed = await client.cmd('POST', '/deletion-requests/' + requestId + '/block', body, key);
+            assert.ok(failed.status >= 500, JSON.stringify(failed.body));
+            assert.ok(fired);
+            assert.deepEqual(await a.sourceRecord.findUniqueOrThrow({ where: { id: sourceId } }), before.source);
+            assert.deepEqual(await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } }), before.request);
+            assert.equal(await a.sourceHistory.count({ where: { sourceId } }), before.history);
+            assert.equal(await a.auditEvent.count(), before.audits);
+            assert.equal(await a.commandReceipt.count(), before.receipts);
+            await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/block', body, key));
+            assert.equal((await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } })).state, 'BLOCKED_FOR_USE');
+            assert.equal(await a.commandReceipt.count({ where: { commandKey: key, operation: 'deletion.block' } }), 1);
+        });
+    }
+
 }

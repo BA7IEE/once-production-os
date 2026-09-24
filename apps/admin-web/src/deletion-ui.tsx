@@ -49,11 +49,23 @@ const unresolvedLabel: Record<string, string> = {
 };
 
 type Option = { id: string; name: string; revision: number };
-function RequestDetail({ id }: { id: string }) {
-    const load = useLoad(() => read<DeletionRequestDetail>('deletion.get', { id }), id);
-    return <section className="panel padded deletion-request-detail"><ErrorBox error={load.error}/>
+function RequestDetail({ id, onChanged }: { id: string; onChanged: () => void }) {
+    const [tick, setTick] = useState(0);
+    const block = useAction();
+    const load = useLoad(() => read<DeletionRequestDetail>('deletion.get', { id }), id + ':' + tick);
+    async function blockUse() {
+        if (!load.data?.blockAvailable) return;
+        if (!confirm('确认阻断该目标的正常使用？这不会物理删除数据，但正常读取、搜索、候选和导出将立即失效。')) return;
+        await call('deletion.block', {
+            expectedRevision: load.data.revision,
+            previewDigest: load.data.previewDigest,
+            acknowledgeBlock: true
+        }, { id });
+        setTick(x => x + 1); onChanged();
+    }
+    return <section className="panel padded deletion-request-detail"><ErrorBox error={load.error ?? block.error}/>
         {load.busy && !load.data ? <p>正在读取删除申请摘要…</p> : load.data && <>
-            <div className="panel-heading"><div><h2>删除申请草稿</h2><p><code>{load.data.id}</code></p></div><Tag value={load.data.state}/></div>
+            <div className="panel-heading"><div><h2>删除申请</h2><p><code>{load.data.id}</code></p></div><Tag value={load.data.state}/></div>
             <dl className="detail-grid">
                 <div><dt>目标类型</dt><dd>{kindLabel[load.data.targetKind]}</dd></div>
                 <div><dt>目标版本</dt><dd>{load.data.targetRevision}</dd></div>
@@ -63,7 +75,9 @@ function RequestDetail({ id }: { id: string }) {
                 <div><dt>创建时间</dt><dd>{date(load.data.createdAt)}</dd></div>
             </dl>
             <p className="pre-line">{load.data.reason}</p>
-            <div className="notice"><strong>当前不会执行删除</strong><p>{load.data.executionNote}</p></div>
+            <div className="notice"><strong>{load.data.state === 'DRAFT' ? '尚未阻断正常使用' : '已阻断正常使用，尚未物理清理'}</strong><p>{load.data.executionNote}</p></div>
+            {load.data.blockAvailable && <div className="button-row"><button className="danger" disabled={block.busy} onClick={() => void block.run(blockUse)}>阻断正常使用</button></div>}
+            {!load.data.cleanupAvailable && load.data.state === 'BLOCKED_FOR_USE' && <p className="muted">当前没有清理执行按钮；底层数据仍保留，等待后续受控清理阶段。</p>}
         </>}
     </section>;
 }
@@ -110,9 +124,9 @@ export function DeletionImpactPanel({ me }: { me: Me }) {
         setSelectedRequest(receipt.resourceId); setPreview(null); setReason(''); setRefresh(x => x + 1);
     }
 
-    return <><PageTitle overline="CONTROLLED DELETION / PREVIEW ONLY" title="删除影响评估" description="先证明影响，再谈删除。本阶段只做零写入预览和 DRAFT 申请，不阻断、不清理、不擦除任何业务数据。" action={<button onClick={() => setRefresh(x => x + 1)}>刷新</button>}/>
+    return <><PageTitle overline="CONTROLLED DELETION / BLOCK BEFORE CLEANUP" title="删除影响评估" description="先证明影响，再冻结 DRAFT；只有再次确认后才进入阻断使用。当前仍不执行物理删除、媒体清理或 payload 擦除。" action={<button onClick={() => setRefresh(x => x + 1)}>刷新</button>}/>
         <ErrorBox error={people.error ?? works.error ?? projects.error ?? sources.error ?? assets.error ?? requests.error ?? inspect.error ?? create.error}/>
-        <div className="notice"><strong>当前没有“执行删除”能力</strong><p>删除申请仅冻结目标版本与影响摘要。存在隐藏依赖、扫描超限或预览后新增依赖时，系统拒绝创建申请。</p></div>
+        <div className="notice"><strong>当前只有“阻断使用”，没有物理删除</strong><p>阻断前会重新验证冻结影响图；存在隐藏依赖、扫描超限或新增依赖时不会进入 BLOCKED_FOR_USE。</p></div>
 
         <section className="panel padded deletion-preview">
             <h2>1. 选择目标并做零写入预览</h2>
@@ -140,10 +154,10 @@ export function DeletionImpactPanel({ me }: { me: Me }) {
             </div>}
         </section>
 
-        <section className="panel"><div className="panel-heading"><div><h2>已有删除申请草稿</h2><p>这里只显示当前仍有权看到目标的申请摘要；不会回显被冻结的依赖 ID。</p></div></div>
-            {requests.data?.items.length ? <div className="table-wrap"><table><thead><tr><th>时间</th><th>目标</th><th>影响项</th><th>需人工判断</th><th>状态</th><th/></tr></thead><tbody>{requests.data.items.map(x => <tr key={x.id}><td>{date(x.createdAt)}</td><td>{kindLabel[x.targetKind]}<small>{x.targetId}</small></td><td>{x.impactCount}</td><td>{x.reviewRequiredCount}</td><td><Tag value={x.state}/></td><td><button onClick={() => setSelectedRequest(x.id)}>查看摘要</button></td></tr>)}</tbody></table></div> : <Empty title="还没有删除申请草稿">先完成影响预览；只有影响图完整时才能冻结 DRAFT。</Empty>}
+        <section className="panel"><div className="panel-heading"><div><h2>已有删除申请</h2><p>这里只显示当前仍有权看到目标的申请摘要；不会回显被冻结的依赖 ID。</p></div></div>
+            {requests.data?.items.length ? <div className="table-wrap"><table><thead><tr><th>时间</th><th>目标</th><th>影响项</th><th>需人工判断</th><th>状态</th><th/></tr></thead><tbody>{requests.data.items.map(x => <tr key={x.id}><td>{date(x.createdAt)}</td><td>{kindLabel[x.targetKind]}<small>{x.targetId}</small></td><td>{x.impactCount}</td><td>{x.reviewRequiredCount}</td><td><Tag value={x.state}/></td><td><button onClick={() => setSelectedRequest(x.id)}>查看摘要</button></td></tr>)}</tbody></table></div> : <Empty title="还没有删除申请">先完成影响预览；只有影响图完整时才能冻结 DRAFT。</Empty>}
             {requests.data && <Pager page={page} pageSize={20} total={requests.data.total} setPage={setPage}/>}
         </section>
-        {selectedRequest && <RequestDetail id={selectedRequest}/>}
+        {selectedRequest && <RequestDetail id={selectedRequest} onChanged={() => setRefresh(x => x + 1)}/>}
     </>;
 }
