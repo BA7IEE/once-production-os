@@ -140,7 +140,7 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
                         <td>{evidenceLabel[item.evidenceState] ?? item.evidenceState}</td>
                         <td>{item.decision === 'PENDING' ? '待决定' : item.decision === 'RETAIN_WITH_BASIS' ? '有独立依据保留' : '按建议处置'}</td>
                         <td>{item.decisionReason || (item.retentionBasisPresent ? '已记录独立保留依据' : detailLabel[item.detailCode] ?? item.detailCode)}</td>
-                        <td>{item.decision === 'PENDING' && !load.data.planFrozen && <button onClick={() => setEditing(item)}>做决定</button>}</td>
+                        <td>{item.decision === 'PENDING' && !load.data?.planFrozen && <button onClick={() => setEditing(item)}>做决定</button>}</td>
                     </tr>)}</tbody></table></div>
                     <Pager page={itemPage} pageSize={20} total={items.data.total} setPage={setItemPage}/>
                 </>}
