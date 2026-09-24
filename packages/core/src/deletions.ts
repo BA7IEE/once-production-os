@@ -276,10 +276,15 @@ export class Deletions {
             targetKind: d.targetKind, targetId: d.targetId, targetSourceId: preview.target.sourceId,
             targetRevision: preview.target.revision, targetProtectionEpoch: preview.target.protectionEpoch, state: 'DRAFT',
             reason: d.reason, previewDigest: d.previewDigest, impactCount: preview.impactCount,
-            reviewRequiredCount: preview.reviewRequiredCount, unresolvedCount: preview.unresolvedCount, ...targetRefs(d.targetKind, d.targetId) };
+            reviewRequiredCount: preview.reviewRequiredCount, unresolvedCount: preview.unresolvedCount, ...targetRefs(d.targetKind, d.targetId),
+            planDigest: null, planFrozenAt: null, planFrozenById: null };
         await tx.insert('deletionRequests', row);
         for (const impact of preview.items) {
-            const item: DeletionItem = { ...base(actor.workspaceId, this.clock), requestId: row.id, ...impact };
+            const item: DeletionItem = { ...base(actor.workspaceId, this.clock), requestId: row.id, ...impact,
+                decision: impact.evidenceState === 'PROVEN' ? 'APPLY_PROPOSED' : 'PENDING',
+                decisionReason: impact.evidenceState === 'PROVEN' ? 'AUTO_PROVEN' : '',
+                retentionSourceId: null, retentionSourceRevision: null, retentionSourceProtectionEpoch: null,
+                decidedById: null, decidedAt: null };
             await tx.insert('deletionItems', item);
         }
         return row;
@@ -319,6 +324,105 @@ export class Deletions {
         return next;
     }
 
+    async reviewItems(tx: Tx, actor: Actor, id: string, query: Record<string, string>) {
+        const row = await this.requestFor(tx, actor, id);
+        const items = (await tx.find('deletionItems', { workspaceId: actor.workspaceId, requestId: row.id }))
+            .sort((a, b) => (a.evidenceState === b.evidenceState ? a.id.localeCompare(b.id) : a.evidenceState.localeCompare(b.evidenceState)));
+        const safe = items.map(item => ({
+            id: item.id,
+            dependencyKind: item.dependencyKind,
+            proposedAction: item.proposedAction,
+            evidenceState: item.evidenceState,
+            detailCode: item.detailCode,
+            decision: item.decision,
+            decisionReason: item.decisionReason === 'AUTO_PROVEN' ? '' : item.decisionReason,
+            retentionSourceId: item.retentionSourceId,
+            decidedAt: item.decidedAt
+        }));
+        return page(safe, query);
+    }
+
+    async decide(tx: Tx, actor: Actor, id: string, input: unknown): Promise<DeletionRequest> {
+        requirePermission(actor, 'data.delete');
+        const d = S.decision.parse(input);
+        const row = await this.requestFor(tx, actor, id);
+        cas(row, d.expectedRevision);
+        invariant(row.state === 'BLOCKED_FOR_USE', 'DELETION_STATE_CONFLICT', '只有已阻断使用的申请可以做保留决定', 409);
+        invariant(row.planDigest === null, 'DELETION_PLAN_FROZEN', '清理计划已经冻结，不能再修改保留决定', 409);
+        const item = await workspaceRow(tx, 'deletionItems', d.entryId, actor.workspaceId);
+        if (!item || item.requestId !== row.id) missing();
+        invariant(item.evidenceState === 'REVIEW_REQUIRED', 'DELETION_DECISION_NOT_REQUIRED', '该影响项已有可证明的自动处置，不需要人工覆盖', 409);
+
+        let retentionSourceId: string | null = null, retentionSourceRevision: number | null = null, retentionSourceProtectionEpoch: number | null = null;
+        if (d.decision === 'RETAIN_WITH_BASIS') {
+            requirePermission(actor, 'sources.review');
+            invariant(!!d.retentionSourceId && d.retentionSourceId !== row.targetSourceId, 'RETENTION_BASIS_REQUIRED', '保留必须选择另一份独立且当前有效的来源依据', 422);
+            const basis = await sourceFor(tx, actor, d.retentionSourceId, this.clock);
+            invariant(basis.basisMode === 'INTERNAL_USE', 'RETENTION_BASIS_INVALID', '保留依据必须是当前有效的正式内部依据', 422);
+            retentionSourceId = basis.id;
+            retentionSourceRevision = basis.revision;
+            retentionSourceProtectionEpoch = basis.protectionEpoch;
+        }
+        else
+            invariant(d.retentionSourceId === undefined || d.retentionSourceId === null, 'RETENTION_BASIS_UNUSED', '按建议处置时不要附加保留来源', 400);
+
+        await tx.replace('deletionItems', { ...touch(item, this.clock), decision: d.decision, decisionReason: d.decisionReason,
+            retentionSourceId, retentionSourceRevision, retentionSourceProtectionEpoch, decidedById: actor.membershipId,
+            decidedAt: this.clock.now().toISOString() });
+        const next = touch(row, this.clock);
+        await tx.replace('deletionRequests', next);
+        return next;
+    }
+
+    private cleanupPlan(row: DeletionRequest, items: DeletionItem[]) {
+        return {
+            requestId: row.id,
+            targetKind: row.targetKind,
+            targetId: row.targetId,
+            previewDigest: row.previewDigest,
+            items: [...items].sort((a, b) => a.id.localeCompare(b.id)).map(item => ({
+                itemId: item.id,
+                dependencyKind: item.dependencyKind,
+                proposedAction: item.proposedAction,
+                evidenceState: item.evidenceState,
+                decision: item.decision,
+                decisionReason: item.decisionReason,
+                retentionSourceId: item.retentionSourceId,
+                retentionSourceRevision: item.retentionSourceRevision,
+                retentionSourceProtectionEpoch: item.retentionSourceProtectionEpoch
+            }))
+        };
+    }
+
+    async freezePlan(tx: Tx, actor: Actor, id: string, input: unknown): Promise<DeletionRequest> {
+        requirePermission(actor, 'data.delete');
+        const d = S.freezePlan.parse(input);
+        const row = await this.requestFor(tx, actor, id);
+        cas(row, d.expectedRevision);
+        invariant(row.state === 'BLOCKED_FOR_USE', 'DELETION_STATE_CONFLICT', '只有已阻断使用的申请可以冻结清理计划', 409);
+        invariant(row.planDigest === null, 'DELETION_PLAN_FROZEN', '清理计划已经冻结', 409);
+        invariant(d.acknowledgePlan === true, 'DELETION_PLAN_ACK_REQUIRED', '请确认本操作只冻结计划，尚不会执行不可逆清理', 400);
+        const items = await tx.find('deletionItems', { workspaceId: actor.workspaceId, requestId: row.id });
+        invariant(items.length === row.impactCount, 'DELETION_PLAN_INCOMPLETE', '冻结的影响项数量不完整，请停止执行并核对数据', 409);
+        invariant(items.every(item => item.decision !== 'PENDING'), 'DELETION_DECISIONS_PENDING', '仍有需要人工判断的影响项', 409);
+
+        for (const item of items) {
+            if (item.decision !== 'RETAIN_WITH_BASIS') continue;
+            requirePermission(actor, 'sources.review');
+            invariant(!!item.retentionSourceId && !!item.retentionSourceRevision && !!item.retentionSourceProtectionEpoch,
+                'RETENTION_BASIS_MISSING', '保留依据快照不完整', 409);
+            const basis = await sourceFor(tx, actor, item.retentionSourceId, this.clock);
+            invariant(basis.basisMode === 'INTERNAL_USE' && basis.revision === item.retentionSourceRevision
+                && basis.protectionEpoch === item.retentionSourceProtectionEpoch,
+                'RETENTION_BASIS_CHANGED', '保留依据已经变化，请重新作出保留决定', 409);
+        }
+        const planDigest = digest(this.cleanupPlan(row, items));
+        const next: DeletionRequest = { ...touch(row, this.clock), planDigest,
+            planFrozenAt: this.clock.now().toISOString(), planFrozenById: actor.membershipId };
+        await tx.replace('deletionRequests', next);
+        return next;
+    }
+
     private async requestFor(tx: Tx, actor: Actor, id: string) {
         requirePermission(actor, 'data.delete');
         const row = await workspaceRow(tx, 'deletionRequests', id, actor.workspaceId);
@@ -332,8 +436,11 @@ export class Deletions {
         return { id: row.id, targetKind: row.targetKind, targetId: row.targetId, targetRevision: row.targetRevision,
             state: row.state, reason: row.reason, previewDigest: row.previewDigest, impactCount: row.impactCount,
             reviewRequiredCount: row.reviewRequiredCount, unresolvedCount: row.unresolvedCount, createdAt: row.createdAt, revision: row.revision,
-            blockAvailable: row.state === 'DRAFT', cleanupAvailable: false,
-            executionAvailable: false, executionNote: row.state === 'DRAFT' ? '可进入阻断使用；尚不会真正删除数据。' : '目标已阻断正常使用；物理清理仍未启用。' };
+            blockAvailable: row.state === 'DRAFT', planFrozen: row.planDigest !== null, planDigest: row.planDigest,
+            planFrozenAt: row.planFrozenAt, cleanupAvailable: false,
+            executionAvailable: false, executionNote: row.state === 'DRAFT' ? '可进入阻断使用；尚不会真正删除数据。'
+                : row.planDigest ? '目标已阻断，保留决定和清理计划已冻结；物理清理仍未启用。'
+                : '目标已阻断正常使用；请先完成保留决定并冻结清理计划。' };
     }
 
     async list(tx: Tx, actor: Actor, query: Record<string, string>) {
@@ -343,7 +450,7 @@ export class Deletions {
             try { await this.target(tx, actor, row.targetKind, row.targetId); }
             catch (error) { if (error instanceof AppError && error.status === 404) continue; throw error; }
             rows.push({ id: row.id, targetKind: row.targetKind, targetId: row.targetId, state: row.state, impactCount: row.impactCount,
-                reviewRequiredCount: row.reviewRequiredCount, createdAt: row.createdAt, revision: row.revision });
+                reviewRequiredCount: row.reviewRequiredCount, planFrozen: row.planDigest !== null, createdAt: row.createdAt, revision: row.revision });
         }
         rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id));
         return page(rows, query);
