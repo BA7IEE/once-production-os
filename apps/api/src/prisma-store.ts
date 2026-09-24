@@ -52,7 +52,8 @@ export class PrismaStore implements Store {
                     },
                     talentQuery: async (input: TalentQueryFilters): Promise<TalentQueryResult> => {
                         if (!input.visibleScopeIds.length || !input.visibleSourceIds.length)
-                            return { rows: [], baseTotal: 0, alreadyPaged: !input.scanForVerification, facets: [], evidence: [] };
+                            return { rows: [], baseTotal: 0, alreadyPaged: !input.scanForVerification,
+                                facets: { roles: [], cities: [], languages: [], skills: [], industries: [], workTypes: [] }, evidence: [] };
                         const uuidList = (values: string[]) => Prisma.join(values.map(value => Prisma.sql`${value}::uuid`));
                         const scopeList = uuidList(input.visibleScopeIds), sourceList = uuidList(input.visibleSourceIds);
                         const clauses: Prisma.Sql[] = [
@@ -122,7 +123,38 @@ export class PrismaStore implements Store {
                         const count = await p.$queryRaw<Array<{ count: number }>>(Prisma.sql`SELECT COUNT(*)::int AS count FROM "people" p WHERE ${where}`);
                         const pageSql = input.scanForVerification ? Prisma.empty : Prisma.sql` LIMIT ${input.pageSize} OFFSET ${(input.page - 1) * input.pageSize}`;
                         const selected = await p.$queryRaw<DbRow[]>(Prisma.sql`${select} ORDER BY p."updatedAt" DESC, p."id" ASC${pageSql}`);
-                        const facetRows = input.scanForVerification ? selected : await p.$queryRaw<DbRow[]>(Prisma.sql`${select} ORDER BY p."updatedAt" DESC, p."id" ASC`);
+                        type FacetDbRow = { kind: string; code: string; count: number };
+                        const facetDb = input.scanForVerification ? [] : await p.$queryRaw<FacetDbRow[]>(Prisma.sql`
+                            WITH base AS (
+                                SELECT p."id", p."roles", p."cityCode", p."languageCodes", p."skillCodes"
+                                FROM "people" p WHERE ${where}
+                            ),
+                            work_facts AS (
+                                SELECT DISTINCT b."id" AS "personId", w."industryCode", wt.code AS "workTypeCode"
+                                FROM base b
+                                JOIN "workCredits" wc ON wc."workspaceId" = ${input.workspaceId}::uuid AND wc."personId" = b."id"
+                                JOIN "works" w ON w."workspaceId" = wc."workspaceId" AND w."id" = wc."workId"
+                                LEFT JOIN LATERAL unnest(w."workTypeCodes") AS wt(code) ON TRUE
+                                WHERE w."scopeId" IN (${scopeList}) AND w."sourceId" IN (${sourceList})
+                            )
+                            SELECT 'role' AS kind, x.code, COUNT(DISTINCT b."id")::int AS count
+                              FROM base b CROSS JOIN LATERAL unnest(b."roles") AS x(code) GROUP BY x.code
+                            UNION ALL
+                            SELECT 'city', b."cityCode", COUNT(*)::int FROM base b WHERE b."cityCode" IS NOT NULL GROUP BY b."cityCode"
+                            UNION ALL
+                            SELECT 'language', x.code, COUNT(DISTINCT b."id")::int
+                              FROM base b CROSS JOIN LATERAL unnest(b."languageCodes") AS x(code) GROUP BY x.code
+                            UNION ALL
+                            SELECT 'skill', x.code, COUNT(DISTINCT b."id")::int
+                              FROM base b CROSS JOIN LATERAL unnest(b."skillCodes") AS x(code) GROUP BY x.code
+                            UNION ALL
+                            SELECT 'industry', wf."industryCode", COUNT(DISTINCT wf."personId")::int
+                              FROM work_facts wf WHERE wf."industryCode" IS NOT NULL GROUP BY wf."industryCode"
+                            UNION ALL
+                            SELECT 'workType', wf."workTypeCode", COUNT(DISTINCT wf."personId")::int
+                              FROM work_facts wf WHERE wf."workTypeCode" IS NOT NULL GROUP BY wf."workTypeCode"
+                            ORDER BY kind, code
+                        `);
                         const toRow = (row: DbRow) => ({
                             person: plain({ id: row.id, workspaceId: row.workspaceId, createdAt: row.createdAt, updatedAt: row.updatedAt,
                                 revision: row.revision, scopeId: row.scopeId, sourceId: row.sourceId, maintainerId: row.maintainerId,
@@ -136,10 +168,10 @@ export class PrismaStore implements Store {
                         const evidence = ids.length ? plain(await p.fieldEvidence.findMany({ where: {
                             workspaceId: input.workspaceId, personId: { in: ids }, sourceId: { in: input.visibleSourceIds }
                         } })) as TableMap['evidence'][] : [];
+                        const pick = (kind: string) => facetDb.filter(row => row.kind === kind).map(row => ({ code: row.code, count: row.count }));
                         return { rows, baseTotal: count[0]?.count ?? 0, alreadyPaged: !input.scanForVerification,
-                            facets: facetRows.map(row => ({ personId: row.id, roles: row.roles, cityCode: row.cityCode,
-                                languageCodes: row.languageCodes, skillCodes: row.skillCodes,
-                                industryCodes: row.industryCodes, workTypeCodes: row.workTypeCodes })), evidence };
+                            facets: { roles: pick('role'), cities: pick('city'), languages: pick('language'), skills: pick('skill'),
+                                industries: pick('industry'), workTypes: pick('workType') }, evidence };
                     }
                 };
                 return work(tx);

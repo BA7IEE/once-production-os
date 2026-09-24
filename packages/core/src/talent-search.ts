@@ -88,8 +88,8 @@ export class TalentSearch {
                 revision: p.revision, updatedAt: p.updatedAt, actualProjectCount: row.actualProjectCount,
                 verification: { state: latestVerifiedAt ? 'CURRENT' : 'UNKNOWN', latestReviewedAt: latestVerifiedAt }, match };
         });
-        const facetRows = threshold === null ? raw.facets : filtered.map(x => facetRow(x.row));
-        return { items, total: raw.alreadyPaged ? raw.baseTotal : filtered.length, page: pageIndex, pageSize, facets: facets(facetRows),
+        const facetResult = threshold === null ? raw.facets : facets(filtered.map(x => facetRow(x.row)));
+        return { items, total: raw.alreadyPaged ? raw.baseTotal : filtered.length, page: pageIndex, pageSize, facets: facetResult,
             capabilities: { supported: ['q', 'role', 'cityCode', 'languageCode', 'skillCode', 'industryCode', 'workTypeCode', 'status', 'actualProject', 'verifiedWithinDays'],
                 unsupported: ['quote', 'availability'], note: '行业和作品类型来自当前可见且有本人署名的作品；报价和档期当前没有结构化事实，不会用空值伪匹配。' } };
     }

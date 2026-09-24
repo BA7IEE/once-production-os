@@ -70,9 +70,18 @@ export class MemoryStore implements Store {
                 }).sort((a, b) => b.person.updatedAt.localeCompare(a.person.updatedAt) || a.person.id.localeCompare(b.person.id));
                 const chosen = input.scanForVerification ? all : all.slice((input.page - 1) * input.pageSize, input.page * input.pageSize);
                 const ids = new Set(chosen.map(r => r.person.id));
+                const count = (codes: string[], matches: (row: typeof all[number], code: string) => boolean) =>
+                    [...new Set(codes)].sort().map(code => ({ code, count: all.filter(row => matches(row, code)).length }));
+                const facetCounts = {
+                    roles: count(all.flatMap(r => r.person.roles), (r, code) => r.person.roles.includes(code)),
+                    cities: count(all.flatMap(r => r.person.cityCode ? [r.person.cityCode] : []), (r, code) => r.person.cityCode === code),
+                    languages: count(all.flatMap(r => r.person.languageCodes), (r, code) => r.person.languageCodes.includes(code)),
+                    skills: count(all.flatMap(r => r.person.skillCodes), (r, code) => r.person.skillCodes.includes(code)),
+                    industries: count(all.flatMap(r => r.industryCodes), (r, code) => r.industryCodes.includes(code)),
+                    workTypes: count(all.flatMap(r => r.workTypeCodes), (r, code) => r.workTypeCodes.includes(code))
+                };
                 return { rows: structuredClone(chosen), baseTotal: all.length, alreadyPaged: !input.scanForVerification,
-                    facets: structuredClone(all.map(r => ({ personId: r.person.id, roles: r.person.roles, cityCode: r.person.cityCode,
-                        languageCodes: r.person.languageCodes, skillCodes: r.person.skillCodes, industryCodes: r.industryCodes, workTypeCodes: r.workTypeCodes }))),
+                    facets: structuredClone(facetCounts),
                     evidence: structuredClone([...draft.evidence.values()].filter(e => e.workspaceId === input.workspaceId && ids.has(e.personId) && sourceIds.has(e.sourceId))) };
             }
         };

@@ -35,10 +35,23 @@ export interface TalentFacetRow {
     workTypeCodes: string[];
 }
 
+export interface TalentFacetCount {
+    code: string;
+    count: number;
+}
+export interface TalentFacetCounts {
+    roles: TalentFacetCount[];
+    cities: TalentFacetCount[];
+    languages: TalentFacetCount[];
+    skills: TalentFacetCount[];
+    industries: TalentFacetCount[];
+    workTypes: TalentFacetCount[];
+}
+
 export interface TalentQueryResult {
     rows: TalentQueryRow[];
     baseTotal: number;
     alreadyPaged: boolean;
-    facets: TalentFacetRow[];
+    facets: TalentFacetCounts;
     evidence: FieldEvidence[];
 }
