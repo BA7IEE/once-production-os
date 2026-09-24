@@ -3,7 +3,7 @@ name: ONCE acceptance
 on:
   pull_request:
     # Stacked feature PRs can validate before the already-tested A1 PR is merged.
-    branches: [main, acceptance/browser-resume-ci, feat/controlled-handoff, feat/private-media]
+    branches: [main, acceptance/browser-resume-ci, feat/controlled-handoff, feat/private-media, feat/works-projects]
   push:
     branches: [main]
 
@@ -138,7 +138,6 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - run: node tests/acceptance/browser-handoff.mjs
 
-
   browser-media:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -179,7 +178,6 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - run: node --experimental-strip-types --test tests/media/local-images.test.mjs
       - run: node tests/acceptance/browser-media.mjs
-
 
   browser-production:
     runs-on: ubuntu-24.04
@@ -223,3 +221,42 @@ jobs:
         run: node --experimental-strip-types --test tests/ui/field-accessibility.test.mjs
       - run: node tests/acceptance/browser-production.mjs
 
+  browser-shortlist:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: once_ci
+          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
+          POSTGRES_DB: once_test_shortlist
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U once_ci -d once_test_shortlist"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verify committed delivery fingerprints
+        run: sha256sum -c MANIFEST.sha256
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v6
+      - name: Set isolated database target
+        env:
+          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
+        run: |
+          echo "::add-mask::$CI_DB_PASSWORD"
+          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_shortlist" >> "$GITHUB_ENV"
+          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_shortlist" >> "$GITHUB_ENV"
+          echo "ALLOW_BROWSER_TESTS=yes" >> "$GITHUB_ENV"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: pnpm verify && pnpm typecheck:transport
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: node tests/acceptance/browser-shortlists.mjs
