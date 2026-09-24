@@ -74,6 +74,7 @@ export interface Inputs {
   "handoff.decline": { "expectedRevision": number };
   "handoff.revoke": { "expectedRevision": number };
   "person.list": undefined;
+  "person.search": undefined;
   "person.create": { "displayName": string; "roles": Array<string>; "sourceId"?: string; "inlineSource"?: { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string }; "aliases"?: Array<string>; "cityCode"?: string | null; "languageCodes"?: Array<string>; "skillCodes"?: Array<string>; "heightCm"?: number | null; "intro"?: string };
   "person.get": undefined;
   "person.update": { "expectedRevision": number; "displayName"?: string; "roles"?: Array<string>; "aliases"?: Array<string>; "cityCode"?: string | null; "languageCodes"?: Array<string>; "skillCodes"?: Array<string>; "heightCm"?: number | null; "intro"?: string; "status"?: "DRAFT" | "ACTIVE" | "ARCHIVED" };
@@ -457,6 +458,11 @@ export const ENDPOINTS = {
   "person.list": {
     "method": "GET",
     "path": "/people",
+    "mode": "READ"
+  },
+  "person.search": {
+    "method": "GET",
+    "path": "/people/search",
     "mode": "READ"
   },
   "person.create": {

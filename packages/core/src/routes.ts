@@ -86,6 +86,7 @@ export const ROUTES: RouteDefinition[] = [
     { method: 'POST', path: '/handoffs/{id}/decline', operation: 'handoff.decline', mode: 'COMMAND', permission: 'records.read', schema: Schemas.revision },
     { method: 'POST', path: '/handoffs/{id}/revoke', operation: 'handoff.revoke', mode: 'COMMAND', permission: 'records.read', schema: Schemas.revision },
     { method: 'GET', path: '/people', operation: 'person.list', mode: 'READ', permission: 'records.read' },
+    { method: 'GET', path: '/people/search', operation: 'person.search', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/people', operation: 'person.create', mode: 'COMMAND', permission: 'records.write', schema: Schemas.personCreate },
     { method: 'GET', path: '/people/{id}', operation: 'person.get', mode: 'READ', permission: 'records.read' },
     { method: 'PATCH', path: '/people/{id}', operation: 'person.update', mode: 'COMMAND', permission: 'records.write', schema: Schemas.personPatch },

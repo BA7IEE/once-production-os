@@ -6,7 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { useEffect, useState, createContext, useContext, type ReactNode } from 'react';
 import { call, read, resetTransport, acknowledgeSecretInspection, type ApiError } from './api.ts';
 import type { Inputs } from './generated/requests.ts';
-import type { Me, Person, Page, CatalogItem, Receipt, Source, Membership, Contact, Job, ImportBatch, Scope, Audit, SourceHistoryEntry } from './dto.ts';
+import type { Me, Person, Page, CatalogItem, Receipt, Source, Membership, Contact, Job, ImportBatch, Scope, Audit, SourceHistoryEntry, PeopleSearchPage, SearchPerson } from './dto.ts';
 import { Modal, Field, ErrorBox, Tag, Empty, date, useLoad, useAction, Submit, PageTitle, Pager, labels } from './ui.tsx';
 import './style.css';
 import { HandoffInbox, HandoffOffer, FieldReview } from './handoff-ui.tsx';
@@ -103,18 +103,49 @@ function City({ value, onChange }: {
     onChange: (v: string) => void;
 }) { const { catalog } = useOS(); return <select value={value} onChange={e => onChange(e.target.value)}><option value="">未确认</option>{catalog.filter(c => c.namespace === 'city' && (c.status === 'ACTIVE' || c.code === value)).map(c => <option key={c.id} value={c.code}>{c.labelZh}{c.status === 'INACTIVE' ? '（停用）' : ''}</option>)}</select>; }
 function People() {
-    const { can, label } = useOS();
+    const { can, label, catalog } = useOS();
+    const empty = { q: '', role: '', cityCode: '', languageCode: '', skillCode: '', status: '', actualProject: false, workQ: '', workOrigin: '', verifiedWithinDays: '' };
+    const [draft, setDraft] = useState(empty);
+    const [applied, setApplied] = useState(empty);
     const [page, setPage] = useState(1);
-    const [q, setQ] = useState('');
-    const [query, setQuery] = useState('');
-    const [role, setRole] = useState('');
     const [refresh, setRefresh] = useState(0);
     const [modal, setModal] = useState<string | null>(null);
     const [creating, setCreating] = useState(false);
-    const load = useLoad(() => read<Page<Person>>('person.list', {}, { page: String(page), pageSize: '20', ...(query ? { q: query } : {}), ...(role ? { role } : {}) }), [page, query, role, refresh].join('|'));
-    const { catalog } = useOS();
-    return <><PageTitle overline="PEOPLE & TALENT" title="人才档案" description="模特、摄影、剪辑、化妆等角色统一建档；来源与访问范围随资料一起管理。" action={can('records.write') ? <button className="primary" onClick={() => setCreating(true)}>＋ 新增人才</button> : undefined}/><form className="filters" onSubmit={e => { e.preventDefault(); setPage(1); setQuery(q); }}><input aria-label="搜索姓名或别名" placeholder="搜索姓名、艺名或别名" value={q} onChange={e => setQ(e.target.value)} maxLength={120}/><select aria-label="筛选角色" value={role} onChange={e => { setRole(e.target.value); setPage(1); }}><option value="">全部角色</option>{catalog.filter(c => c.namespace === 'role').map(c => <option key={c.id} value={c.code}>{c.labelZh}</option>)}</select><button type="submit">搜索</button><button type="button" onClick={() => setRefresh(x => x + 1)}>刷新</button></form><ErrorBox error={load.error}/>{load.busy ? <div className="loading">正在查询当前可见资料…</div> : load.data && <>{load.data.items.length ? <div className="people-grid">{load.data.items.map(p => <button key={p.id} className="person-card" onClick={() => setModal(p.id)}><div className="card-top"><div className="person-monogram">{p.displayName.slice(0, 2)}</div><Tag value={p.status}/></div><h3>{p.displayName}</h3><div className="role-list">{p.roles.map(r => <span key={r}>{label('role', r)}</span>)}</div><p>{p.cityCode ? label('city', p.cityCode) : '城市待确认'}<span> · </span>{p.languageCodes.length ? p.languageCodes.map(c => label('language', c)).join(' / ') : '语言待确认'}</p><footer><span>版本 {p.revision}</span><span>查看档案 ↗</span></footer></button>)}</div> : <Empty title={query ? '没有找到匹配资料' : '还没有当前可见的人才资料'}>未授权、过期或被暂停的来源不会进入此列表。</Empty>}<Pager page={page} pageSize={20} total={load.data.total} setPage={setPage}/></>}{creating && <PersonForm onClose={() => setCreating(false)} onSaved={id => { setCreating(false); setRefresh(x => x + 1); setModal(id); }}/>}{modal && <PersonDetail id={modal} onClose={() => setModal(null)} onChange={() => setRefresh(x => x + 1)}/>}</>;
+    const query = { page: String(page), pageSize: '20', ...(applied.q ? { q: applied.q } : {}), ...(applied.role ? { role: applied.role } : {}),
+        ...(applied.cityCode ? { cityCode: applied.cityCode } : {}), ...(applied.languageCode ? { languageCode: applied.languageCode } : {}),
+        ...(applied.skillCode ? { skillCode: applied.skillCode } : {}), ...(applied.status ? { status: applied.status } : {}),
+        ...(applied.actualProject ? { actualProject: 'true' } : {}), ...(applied.workQ ? { workQ: applied.workQ } : {}),
+        ...(applied.workOrigin ? { workOrigin: applied.workOrigin } : {}), ...(applied.verifiedWithinDays ? { verifiedWithinDays: applied.verifiedWithinDays } : {}) };
+    const load = useLoad(() => read<PeopleSearchPage>('person.search', {}, query), [page, JSON.stringify(applied), refresh].join('|'));
+    const directActive = !!(draft.role || draft.cityCode || draft.languageCode || draft.skillCode);
+    const hasStructured = !!(applied.role || applied.cityCode || applied.languageCode || applied.skillCode || applied.actualProject || applied.workQ || applied.workOrigin || applied.verifiedWithinDays || applied.status);
+    const set = <K extends keyof typeof draft>(key: K, value: typeof draft[K]) => setDraft(x => ({ ...x, [key]: value }));
+    const valueLabel = (p: SearchPerson['match']['direct'][number]) => p.field === 'role' ? label('role', p.value) : p.field === 'cityCode' ? label('city', p.value) : p.field === 'languageCode' ? label('language', p.value) : label('skill', p.value);
+    const fieldLabel = (field: SearchPerson['match']['direct'][number]['field']) => ({ role: '角色', cityCode: '城市', languageCode: '语言', skillCode: '技能' }[field]);
+    const verification = (v: SearchPerson['match']['direct'][number]['verification']) => v.state === 'CURRENT' ? '当前值有人工核验' : v.state === 'OLD' ? '核验已超出时效要求' : '当前值未核验';
+    const unknownLabels: Record<string, string> = { cityCode: '城市', languageCodes: '语言', skillCodes: '技能' };
+    const unknownLabel = (f: string) => unknownLabels[f] ?? f;
+    return <><PageTitle overline="PEOPLE & TALENT" title="人才档案" description="结构化筛选只使用当前可见、已记录的事实，并说明命中依据；系统不做黑盒匹配分数。" action={can('records.write') ? <button className="primary" onClick={() => setCreating(true)}>＋ 新增人才</button> : undefined}/>
+        <form className="search-panel" onSubmit={e => { e.preventDefault(); setPage(1); setApplied({ ...draft, verifiedWithinDays: directActive ? draft.verifiedWithinDays : '' }); }}>
+            <div className="search-grid">
+                <Field label="姓名 / 别名"><input placeholder="搜索姓名、艺名或别名" value={draft.q} onChange={e => set('q', e.target.value)} maxLength={120}/></Field>
+                <Field label="角色"><select value={draft.role} onChange={e => set('role', e.target.value)}><option value="">不限</option>{catalog.filter(c => c.namespace === 'role').map(c => <option key={c.id} value={c.code}>{c.labelZh}</option>)}</select></Field>
+                <Field label="城市"><select value={draft.cityCode} onChange={e => set('cityCode', e.target.value)}><option value="">不限</option>{catalog.filter(c => c.namespace === 'city').map(c => <option key={c.id} value={c.code}>{c.labelZh}</option>)}</select></Field>
+                <Field label="工作语言"><select value={draft.languageCode} onChange={e => set('languageCode', e.target.value)}><option value="">不限</option>{catalog.filter(c => c.namespace === 'language').map(c => <option key={c.id} value={c.code}>{c.labelZh}</option>)}</select></Field>
+                <Field label="技能 / 擅长类型"><select value={draft.skillCode} onChange={e => set('skillCode', e.target.value)}><option value="">不限</option>{catalog.filter(c => c.namespace === 'skill').map(c => <option key={c.id} value={c.code}>{c.labelZh}</option>)}</select></Field>
+                <Field label="档案状态"><select value={draft.status} onChange={e => set('status', e.target.value)}><option value="">不限</option><option value="ACTIVE">在库</option><option value="DRAFT">草稿</option><option value="ARCHIVED">归档</option></select></Field>
+                <Field label="参与作品关键词" hint="只在该人才当前可见的署名作品标题和描述中匹配。"><input value={draft.workQ} onChange={e => set('workQ', e.target.value)} maxLength={160} placeholder="例如：家具、Lifestyle"/></Field>
+                <Field label="作品制作归属"><select value={draft.workOrigin} onChange={e => set('workOrigin', e.target.value)}><option value="">不限</option><option value="ONCE">ONCE 制作</option><option value="EXTERNAL">外部作品</option><option value="UNKNOWN">待确认</option></select></Field>
+                <Field label="核验时效" hint={directActive ? '要求上面的角色/城市/语言/技能条件对应当前值在指定天数内有人工核验。' : '先选择角色、城市、语言或技能，再启用核验时效。'}><select disabled={!directActive} value={directActive ? draft.verifiedWithinDays : ''} onChange={e => set('verifiedWithinDays', e.target.value)}><option value="">不要求核验时效</option><option value="30">30 天内</option><option value="90">90 天内</option><option value="180">180 天内</option><option value="365">365 天内</option></select></Field>
+                <label className="search-check"><input type="checkbox" checked={draft.actualProject} onChange={e => set('actualProject', e.target.checked)}/><span><strong>有实际参与项目</strong><small>只认当前可见项目中的 ACTUAL 记录；提名和确认不算实际合作。</small></span></label>
+            </div>
+            <div className="search-actions"><button className="primary" type="submit">应用检索条件</button><button type="button" onClick={() => { setDraft(empty); setApplied(empty); setPage(1); }}>清空条件</button><button type="button" onClick={() => setRefresh(x => x + 1)}>刷新</button></div>
+        </form>
+        <div className="notice compact"><strong>检索边界</strong><p>结果按最近更新排序，不计算“匹配分”。档期、预算、国籍当前没有结构化事实，因此不提供筛选，也不会用空值、姓名或照片猜测。实际项目数只代表当前权限下已记录且状态为 ACTUAL 的项目。</p></div>
+        <ErrorBox error={load.error}/>{load.busy ? <div className="loading">正在按当前权限计算结构化匹配…</div> : load.data && <>{load.data.items.length ? <div className="people-grid">{load.data.items.map(p => <button key={p.id} className="person-card" onClick={() => setModal(p.id)}><div className="card-top"><div className="person-monogram">{p.displayName.slice(0, 2)}</div><Tag value={p.status}/></div><h3>{p.displayName}</h3><div className="role-list">{p.roles.map(r => <span key={r}>{label('role', r)}</span>)}</div><p>{p.cityCode ? label('city', p.cityCode) : '城市待确认'}<span> · </span>{p.languageCodes.length ? p.languageCodes.map(c => label('language', c)).join(' / ') : '语言待确认'}</p>{hasStructured && <div className="search-explain">{p.match.direct.map(r => <span key={r.field}><strong>{fieldLabel(r.field)}：{valueLabel(r)}</strong><small>{verification(r.verification)}{r.verification.reviewedAt ? ` · ${date(r.verification.reviewedAt)}` : ''}</small></span>)}{applied.actualProject && <span><strong>实际项目：当前可见 {p.match.actualProjectCount} 个</strong><small>{p.match.actualProjects.map(x => x.title).join(' / ')}</small></span>}{(applied.workQ || applied.workOrigin) && <span><strong>署名作品：命中 {p.match.matchedWorks.length} 个示例</strong><small>{p.match.matchedWorks.map(x => x.title).join(' / ')}</small></span>}{p.match.unknownFields.length > 0 && <span><strong>仍未确认</strong><small>{p.match.unknownFields.map(unknownLabel).join(' / ')}</small></span>}</div>}<footer><span>当前可见实际项目 {p.match.actualProjectCount}</span><span>查看档案 ↗</span></footer></button>)}</div> : <Empty title="没有找到符合当前条件的资料">未知值不会被当成匹配；可以放宽结构化条件后重新查询。</Empty>}<Pager page={page} pageSize={20} total={load.data.total} setPage={setPage}/></>}
+        {creating && <PersonForm onClose={() => setCreating(false)} onSaved={id => { setCreating(false); setRefresh(x => x + 1); setModal(id); }}/>} {modal && <PersonDetail id={modal} onClose={() => setModal(null)} onChange={() => setRefresh(x => x + 1)}/>}</>;
 }
+
 function PersonForm({ person, onClose, onSaved }: {
     person?: Person;
     onClose: () => void;

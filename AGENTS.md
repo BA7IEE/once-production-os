@@ -2,13 +2,13 @@
 
 ## 事实顺序
 
-先读 `docs/release/SL1_INTERNAL_SHORTLISTS.md` → `docs/release/WP1_WORKS_PROJECTS.md` → `docs/release/IMPLEMENTATION_STATUS.md` → `docs/release/TEST_REPORT.md` → 当前 PR 最终提交对应 CI，再读 M1/H1/A1/R1 历史说明与 `docs/spec/06_DEVELOPMENT.md`。源代码、生成契约和真实测试优先；旧报告保留当时结果，不能当作当前测试状态。
+先读 `docs/release/SR1_STRUCTURED_SEARCH.md` → `docs/release/SL1_INTERNAL_SHORTLISTS.md` → `docs/release/WP1_WORKS_PROJECTS.md` → `docs/release/IMPLEMENTATION_STATUS.md` → `docs/release/TEST_REPORT.md` → 当前 PR 最终提交对应 CI，再读 M1/H1/A1/R1 历史说明与 `docs/spec/06_DEVELOPMENT.md`。源代码、生成契约和真实测试优先；旧报告保留当时结果，不能当作当前测试状态。
 
 `docs/spec/` 是未改写的 v0.3 输入规格，其“尚未实现”是原文历史状态。当前已做和未做以 release 状态表及实际代码为准；这不是把未实现功能从一期删除的授权。
 
 ## 本轮范围
 
-独立 ONCE 工程；原 SRVF 仓库、数据库、账号、密钥均未改动。现有身份/来源/人才/导入/受控交接/私有图片/作品/项目上，新增项目绑定的内部候选清单、人才/作品排序分组和协作备注。AI 仍属于完整一期，下一阶段必须继续；不新增网站接口或占位商业模块。
+独立 ONCE 工程；原 SRVF 仓库、数据库、账号、密钥均未改动。现有身份/来源/人才/导入/受控交接/私有图片/作品/项目/内部候选清单上，新增结构化人才检索与命中依据。检索只解释当前有权读取的事实，不做黑盒评分，不推断档期、预算或国籍。AI 仍属于完整一期；不新增网站接口或占位商业模块。
 
 ## 代码与安全边界
 
@@ -25,12 +25,12 @@
 
 ## 当前开发入口与验收
 
-本批 SL1 基线 c349af4，独立 feat/internal-shortlists 分支，依赖 PR #5；不要合入作品分支。上游 PR 依次合并后再调整目标到 main，重新核对最终 CI。不自动部署或清用户开发库。
+本批 SR1 输入基线 `b2654b2`（PR #6 固定验收 head），后续独立 `feat/structured-search` 分支依赖 PR #6；不要合入候选分支。上游 PR 依次合并后再调整目标到 main，重新核对最终 CI。不自动部署或清用户开发库。
 
-新增8项候选清单 MemoryStore 测试已在隔离编辑副本通过；完整核心/传输、类型/构建、PG及浏览器最终以本PR固定head CI为准。通过不是完整一期或生产验收。
+新增 `GET /people/search`，组合姓名/角色/城市/语言/技能/状态/作品关键词与归属/当前可见 ACTUAL 项目及核验时效。未知字段不匹配；核验必须对应当前字段值和当前来源 revision。H1 基本资料交接不能借搜索读取隐藏作品/项目。
 
-本批新增第六条迁移。前五条迁移冻结；候选人才/作品位置唯一性为延迟检查，不能用 db push 重建。无新的包依赖，锁文件保持不变。
+本批不新增迁移。现有六条迁移冻结；无新包依赖，锁文件保持不变。完整核心/传输、类型/构建、PostgreSQL 与 Chromium 最终只认本 PR 固定 head 的 CI；本地分批 MemoryStore 测试不能冒充完整环境通过。
 
-Work/Project 根有独立来源与范围；关联只引用、不扩权。H1只授基本档案，不能借作品署名或项目人员入口使用私有人才。条目变化必须经过父CAS。客户/品牌主体与生产存储等缺口见状态表，不要制造假客户字段或公开链接。
+当前明确不支持 availability / budget / nationality；不要通过姓名、照片、语言或城市推断。ACTUAL 计数仅表示“当前可见且系统已记录”的实际参与，不证明系统外经历。
 
-后续优先完成结构化检索解释；媒体能力继续补齐。DEV-07 导出/删除、DEV-09恢复必须在真实资料接管前完成。AI仍在一期；不要为了未来官网发布扩张本期。
+后续补行业 taxonomy、SQL 授权分页/负载，再继续媒体、DEV-07 导出/删除、DEV-09 恢复和 DEV-08 有界 AI。AI parse_search 将来必须解析到同一结构化条件，不能另造排序体系。

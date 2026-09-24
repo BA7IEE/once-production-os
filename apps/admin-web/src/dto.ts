@@ -72,6 +72,29 @@ export interface Person {
         reviewedAt: string;
     }[];
 }
+
+export interface SearchVerification {
+    state: 'CURRENT' | 'OLD' | 'NONE';
+    reviewedAt: string | null;
+}
+export interface SearchPerson extends Person {
+    match: {
+        direct: Array<{ field: 'role' | 'cityCode' | 'languageCode' | 'skillCode'; value: string; verification: SearchVerification }>;
+        actualProjectCount: number;
+        actualProjects: Array<{ id: string; title: string; roleCodes: string[] }>;
+        visibleWorkCount: number;
+        matchedWorks: Array<{ id: string; title: string; origin: 'ONCE' | 'EXTERNAL' | 'UNKNOWN'; roleCodes: string[] }>;
+        unknownFields: Array<'cityCode' | 'languageCodes' | 'skillCodes'>;
+    };
+}
+export interface PeopleSearchPage extends Page<SearchPerson> {
+    semantics: {
+        sort: 'UPDATED_DESC';
+        scoring: false;
+        actualProject: 'VISIBLE_RECORDED_ACTUAL_ONLY';
+        unsupported: string[];
+    };
+}
 export interface Source {
     id: string;
     title: string;

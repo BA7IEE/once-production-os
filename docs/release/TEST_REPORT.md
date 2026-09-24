@@ -1,5 +1,11 @@
 # 实际测试与验证记录
 
+## SR1｜结构化人才检索（当前开发切片）
+
+输入基线 `b2654b2`。新增 `GET /people/search`、解释型匹配 DTO、真实 PostgreSQL 合约及 Chromium 旅程。当前本地隔离环境已运行新增 `search.test.ts` **6/6** 通过，并分批复跑既有核心测试通过；请求契约生成到 **88 routes**。统一 `run-core-tests.mjs` 两次被当前工具外层执行时限在前八个文件后中断，因此这里不把分批结果记成一次完整 229/229。
+
+完整 frozen install、Prisma、类型检查、API/Web 构建、统一核心测试、PG 和浏览器结果必须绑定后续 PR 最终 head 的 GitHub Actions；在 CI 实跑前保持 NOT_RUN，不沿用 SL1 的绿色结果。详细语义与反例见 [SR1_STRUCTURED_SEARCH.md](SR1_STRUCTURED_SEARCH.md)。
+
 ## WP1｜当前分支
 
 详见 [WP1_WORKS_PROJECTS.md](WP1_WORKS_PROJECTS.md)。基线 d775111；新迁移第五条、六张关系表、19条API，总请求契约76条。
