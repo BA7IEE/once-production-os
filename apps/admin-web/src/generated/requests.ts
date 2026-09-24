@@ -478,6 +478,26 @@ export const ENDPOINTS = {
     "path": "/audit-events",
     "mode": "READ"
   },
+  "deletion.preview": {
+    "method": "POST",
+    "path": "/deletion-requests/preview",
+    "mode": "READ"
+  },
+  "deletion.list": {
+    "method": "GET",
+    "path": "/deletion-requests",
+    "mode": "READ"
+  },
+  "deletion.create": {
+    "method": "POST",
+    "path": "/deletion-requests",
+    "mode": "COMMAND"
+  },
+  "deletion.get": {
+    "method": "GET",
+    "path": "/deletion-requests/{id}",
+    "mode": "READ"
+  },
   "usePermission.list": {
     "method": "GET",
     "path": "/use-permissions",
