@@ -155,6 +155,19 @@ export async function runProductionContracts(t: TestContext, c: Context) {
             }
         });
     }
+    await t.test('DEV-06 PG work facts are constrained and power visible credited-work search', async () => {
+        await ok(ownerA.cmd('POST', '/catalog/items', { namespace: 'industry', code: 'furniture', labelZh: '家具', labelEn: 'Furniture' }), 201);
+        await ok(ownerA.cmd('POST', '/catalog/items', { namespace: 'workType', code: 'product_photo', labelZh: '产品摄影', labelEn: 'Product photography' }), 201);
+        const w = await root('works', { industryCode: 'furniture', workTypeCodes: ['product_photo'] });
+        await modify('/works/' + w, '/credits', { personId, roleCode: 'model', note: 'synthetic fact credit' });
+        const search = result(await ownerA.raw('GET', '/talent-search?industryCode=furniture&workTypeCode=product_photo'));
+        assert.ok(search.items.some((x: any) => x.id === personId));
+        assert.ok(search.items.find((x: any) => x.id === personId).match.some((x: any) => x.field === 'industryCode'));
+        const before = await a.work.findUniqueOrThrow({ where: { id: w } });
+        await assert.rejects(a.work.update({ where: { id: w }, data: { industryCode: 'INVALID SPACE' } }));
+        await assert.rejects(a.work.update({ where: { id: w }, data: { workTypeCodes: Array.from({ length: 11 }, (_, i) => 'type_' + i) } }));
+        assert.deepEqual(await a.work.findUniqueOrThrow({ where: { id: w } }), before);
+    });
     await t.test('DEV-06 PG shortlist exact work-asset FK rejects cross-work selections', async () => {
         let work = await get('/works/' + workId);
         if (!work.items.length)

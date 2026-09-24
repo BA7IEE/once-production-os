@@ -207,7 +207,7 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
             assert.equal((await ownerA.cmd('POST', '/jobs/' + jobId + '/resume', input, key)).status, 202);
             assert.equal(await a.person.count(), before + 2);
         });
-        await t.test('PG query count stays bounded for 100/1000 people and a 100-row preview', async () => {
+        await t.test('PG query count stays bounded for 100/1000 people across preview and structured talent search', async () => {
             const measured = new PrismaClient({ datasources: { db: { url } }, log: [{ emit: 'event', level: 'query' }] });
             const measuredStore = new PrismaStore(measured);
             let queries = 0;
@@ -218,6 +218,7 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
                 c.jar = { ...ownerA.jar };
                 c.csrf = ownerA.csrf;
                 const template = await a.person.findUniqueOrThrow({ where: { id: personId } });
+                const searchCounts: number[] = [];
                 for (const target of [100, 1000]) {
                     const existing = await a.person.count();
                     if (existing < target)
@@ -225,13 +226,21 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
                                 ...template, id: randomUUID(), displayName: 'PG scale ' + target + ':' + i
                             })) });
                     queries = 0;
-                    const started = performance.now();
+                    let started = performance.now();
                     const res = await c.cmd('POST', '/imports/preview', { sourceId: template.sourceId,
                         rows: Array.from({ length: 100 }, (_, i) => ({ displayName: 'PG preview ' + i, roles: ['model'] })) });
                     assert.equal(res.status, 201);
-                    assert.ok(queries <= 50, 'query budget exceeded: ' + queries);
+                    assert.ok(queries <= 50, 'preview query budget exceeded: ' + queries);
                     console.log(JSON.stringify({ metric: 'PG-preview', people: target, rows: 100, queries, elapsedMs: performance.now() - started }));
+                    queries = 0;
+                    started = performance.now();
+                    const search = await c.raw('GET', '/talent-search?page=1&pageSize=20');
+                    assert.equal(search.status, 200, JSON.stringify(search.body));
+                    searchCounts.push(queries);
+                    assert.ok(queries <= 25, 'talent search query budget exceeded: ' + queries);
+                    console.log(JSON.stringify({ metric: 'PG-talent-search', people: target, pageSize: 20, queries, elapsedMs: performance.now() - started }));
                 }
+                assert.equal(searchCounts[0], searchCounts[1], 'structured search query count must not grow with 100 -> 1000 people');
             }
             finally {
                 await measuredStore.close();

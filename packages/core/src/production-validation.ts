@@ -6,8 +6,8 @@ const workStatus = v.enum(['DRAFT', 'ACTIVE', 'ARCHIVED']);
 const projectStatus = v.enum(['DRAFT', 'ACTIVE', 'COMPLETED', 'ARCHIVED']);
 const participantState = v.enum(['NOMINATED', 'CONFIRMED', 'ACTUAL']);
 export const ProductionSchemas = {
-    workCreate: v.object({ ...root, description: v.optional(v.string(5000)), origin: v.optional(origin), originNote: v.optional(v.string(2000)) }),
-    workPatch: v.object({ expectedRevision: revision, title: v.optional(v.string(160, 1)), description: v.optional(v.string(5000)), origin: v.optional(origin), originNote: v.optional(v.string(2000)), status: v.optional(workStatus) }),
+    workCreate: v.object({ ...root, description: v.optional(v.string(5000)), industryCode: v.optional(v.nullable(code)), workTypeCodes: v.optional(v.array(code, 10)), origin: v.optional(origin), originNote: v.optional(v.string(2000)) }),
+    workPatch: v.object({ expectedRevision: revision, title: v.optional(v.string(160, 1)), description: v.optional(v.string(5000)), industryCode: v.optional(v.nullable(code)), workTypeCodes: v.optional(v.array(code, 10)), origin: v.optional(origin), originNote: v.optional(v.string(2000)), status: v.optional(workStatus) }),
     workAsset: v.object({ expectedRevision: revision, assetId: uuid }),
     remove: v.object({ expectedRevision: revision, entryId: uuid }),
     order: v.object({ expectedRevision: revision, entryIds: v.array(uuid, L.assets), coverEntryId: v.nullable(uuid) }),

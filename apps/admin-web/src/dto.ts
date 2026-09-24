@@ -23,7 +23,7 @@ export interface Receipt {
 }
 export interface CatalogItem {
     id: string;
-    namespace: 'role' | 'city' | 'language' | 'skill';
+    namespace: 'role' | 'city' | 'language' | 'skill' | 'industry' | 'workType';
     code: string;
     labelZh: string;
     labelEn: string;

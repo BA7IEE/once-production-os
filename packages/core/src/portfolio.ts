@@ -13,13 +13,20 @@ export class Portfolio {
     clock: Clock;
     talent: Talent;
     constructor(clock: Clock, talent: Talent) { this.clock = clock; this.talent = talent; }
+    private async validateFacts(tx: Tx, workspaceId: string, data: { industryCode?: string | null; workTypeCodes?: string[] }, previous?: Work) {
+        if (data.industryCode)
+            await this.talent.validateCatalog(tx, workspaceId, 'industry', [data.industryCode], previous?.industryCode ? [previous.industryCode] : []);
+        if (data.workTypeCodes)
+            await this.talent.validateCatalog(tx, workspaceId, 'workType', data.workTypeCodes, previous?.workTypeCodes ?? []);
+    }
     async create(tx: Tx, actor: Actor, input: unknown) {
         requirePermission(actor, 'records.write');
         const d = S.workCreate.parse(input);
         invariant(!!d.sourceId !== !!d.inlineSource, 'SOURCE_REQUIRED', '请选择来源或填写内联来源，不能同时提供', 400);
         const s = d.sourceId ? await sourceFor(tx, actor, d.sourceId, this.clock) : await this.talent.createSource(tx, actor, d.inlineSource);
+        await this.validateFacts(tx, actor.workspaceId, d);
         const w: Work = { ...base(actor.workspaceId, this.clock), sourceId: s.id, scopeId: s.scopeId, maintainerId: actor.membershipId,
-            title: d.title.trim(), description: d.description ?? '', origin: d.origin ?? 'UNKNOWN', originNote: d.originNote ?? '', status: 'DRAFT', coverEntryId: null };
+            title: d.title.trim(), description: d.description ?? '', industryCode: d.industryCode ?? null, workTypeCodes: d.workTypeCodes ?? [], origin: d.origin ?? 'UNKNOWN', originNote: d.originNote ?? '', status: 'DRAFT', coverEntryId: null };
         this.checkHeader(w);
         await tx.insert('works', w);
         return w;
@@ -34,6 +41,7 @@ export class Portfolio {
         cas(w, d.expectedRevision);
         if (w.status === 'ARCHIVED')
             invariant(d.status === 'DRAFT' && Object.keys(d).length === 2, 'RECORD_ARCHIVED', '归档作品只能单独恢复为草稿', 409);
+        await this.validateFacts(tx, actor.workspaceId, d, w);
         const { expectedRevision: _, ...patch } = d;
         const n = patchDefined(touch(w, this.clock), patch);
         n.title = n.title.trim();
@@ -50,18 +58,18 @@ export class Portfolio {
     }
     async list(tx: Tx, actor: Actor, query: Record<string, string>) {
         requirePermission(actor, 'records.read');
-        page([], query, ['q', 'origin', 'status']);
-        invariant((query.q?.length ?? 0) <= 160 && (!query.origin || ['ONCE', 'EXTERNAL', 'UNKNOWN'].includes(query.origin)) && (!query.status || ['DRAFT', 'ACTIVE', 'ARCHIVED'].includes(query.status)), 'QUERY_INVALID', '作品筛选条件不正确', 400);
+        page([], query, ['q', 'origin', 'status', 'industryCode', 'workTypeCode']);
+        invariant((query.q?.length ?? 0) <= 160 && (!query.origin || ['ONCE', 'EXTERNAL', 'UNKNOWN'].includes(query.origin)) && (!query.status || ['DRAFT', 'ACTIVE', 'ARCHIVED'].includes(query.status)) && (!query.industryCode || /^[a-z0-9][a-z0-9_-]{0,59}$/.test(query.industryCode)) && (!query.workTypeCode || /^[a-z0-9][a-z0-9_-]{0,59}$/.test(query.workTypeCode)), 'QUERY_INVALID', '作品筛选条件不正确', 400);
         const rows = [];
         for (const w of await tx.find('works', { workspaceId: actor.workspaceId })) {
             if (query.q && !w.title.toLocaleLowerCase().includes(query.q.toLocaleLowerCase()))
                 continue;
-            if (query.origin && w.origin !== query.origin || query.status && w.status !== query.status)
+            if (query.origin && w.origin !== query.origin || query.status && w.status !== query.status || query.industryCode && w.industryCode !== query.industryCode || query.workTypeCode && !w.workTypeCodes.includes(query.workTypeCode))
                 continue;
             if (await visibleOrNull(() => workFor(tx, actor, w.id, this.clock)))
                 rows.push(workHeader(w));
         }
-        return page(rows.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.id.localeCompare(b.id)), query, ['q', 'origin', 'status']);
+        return page(rows.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.id.localeCompare(b.id)), query, ['q', 'origin', 'status', 'industryCode', 'workTypeCode']);
     }
     async get(tx: Tx, actor: Actor, id: string) {
         requirePermission(actor, 'records.read');
@@ -84,7 +92,7 @@ export class Portfolio {
                 projects.push({ ...projectHeader(p), relation: link.relation });
         }
         return { ...workHeader(w), sourceId: w.sourceId, scopeId: w.scopeId, maintainerId: w.maintainerId,
-            description: w.description, originNote: w.originNote, items, credits: credits.sort((a, b) => a.id.localeCompare(b.id)), projects,
+            description: w.description, industryCode: w.industryCode, workTypeCodes: w.workTypeCodes, originNote: w.originNote, items, credits: credits.sort((a, b) => a.id.localeCompare(b.id)), projects,
             canEdit: actor.permissions.includes('records.write') && w.status !== 'ARCHIVED' };
     }
     private async edit(tx: Tx, actor: Actor, id: string, expected: number) {

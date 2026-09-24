@@ -8,7 +8,9 @@ export function visibilityIndex(actor: Actor, clock: Clock, scopes: Scope[], mem
     const granted = new Set(members.filter(m => m.workspaceId === actor.workspaceId && m.membershipId === actor.membershipId).map(m => m.scopeId));
     const scopeVisible = (id: string) => { const s = scopeById.get(id); return !!s && (s.mode === 'WORKSPACE' || granted.has(id)); };
     const sourceById = new Map(sources.filter(s => s.workspaceId === actor.workspaceId).map(s => [s.id, s]));
-    return { scopeVisible, sourceVisible(id: string): boolean { const s = sourceById.get(id); return !!s && sourceCurrent(s, clock) && scopeVisible(s.scopeId); }, personVisible(person: Person): boolean {
+    const visibleScopeIds = [...scopeById.values()].filter(s => s.mode === 'WORKSPACE' || granted.has(s.id)).map(s => s.id);
+    const visibleSourceIds = [...sourceById.values()].filter(s => sourceCurrent(s, clock) && scopeVisible(s.scopeId)).map(s => s.id);
+    return { visibleScopeIds, visibleSourceIds, source(id: string): Source | null { return sourceById.get(id) ?? null; }, scopeVisible, sourceVisible(id: string): boolean { const s = sourceById.get(id); return !!s && sourceCurrent(s, clock) && scopeVisible(s.scopeId); }, personVisible(person: Person): boolean {
             const source = sourceById.get(person.sourceId);
             return person.workspaceId === actor.workspaceId && scopeVisible(person.scopeId)
                 && !!source && sourceCurrent(source, clock) && scopeVisible(source.scopeId);

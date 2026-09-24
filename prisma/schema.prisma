@@ -580,6 +580,8 @@ model Work {
   maintainerId String @db.Uuid
   title String @db.Text
   description String @db.Text
+  industryCode String? @db.Text
+  workTypeCodes String[] @default([])
   origin String @db.Text
   originNote String @db.Text
   status String @db.Text
@@ -592,6 +594,7 @@ model Work {
   maintainerIdRef Membership @relation("Work_maintainerIdRef", fields: [workspaceId, maintainerId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "works_maintainerIdRef_fkey")
   cover WorkAsset? @relation("Work_cover", fields: [workspaceId, id, coverEntryId], references: [workspaceId, workId, id], onDelete: NoAction, onUpdate: NoAction, map: "works_cover_parent_fkey")
   @@index([workspaceId, sourceId], map: "works_wp1_sourceId_idx")
+  @@index([workspaceId, industryCode], map: "works_search_industry_idx")
   @@map("works")
 }
 

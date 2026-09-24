@@ -49,6 +49,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "industryCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workTypeCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "security": [
@@ -183,6 +199,30 @@
                     "minLength": 0,
                     "maxLength": 5000
                   },
+                  "industryCode": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 60,
+                        "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "workTypeCodes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 60,
+                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                    },
+                    "minItems": 0,
+                    "maxItems": 10
+                  },
                   "origin": {
                     "type": "string",
                     "enum": [
@@ -312,6 +352,30 @@
                     "type": "string",
                     "minLength": 0,
                     "maxLength": 5000
+                  },
+                  "industryCode": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 60,
+                        "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "workTypeCodes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 60,
+                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                    },
+                    "minItems": 0,
+                    "maxItems": 10
                   },
                   "origin": {
                     "type": "string",
@@ -2692,7 +2756,9 @@
                       "role",
                       "city",
                       "language",
-                      "skill"
+                      "skill",
+                      "industry",
+                      "workType"
                     ]
                   },
                   "code": {
@@ -5528,6 +5594,22 @@
           },
           {
             "name": "skillCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "industryCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workTypeCode",
             "in": "query",
             "required": false,
             "schema": {

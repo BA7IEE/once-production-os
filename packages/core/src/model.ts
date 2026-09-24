@@ -115,7 +115,7 @@ export interface FieldEvidence extends Base {
     reviewedAt: string;
 }
 export interface DictionaryItem extends Base {
-    namespace: 'role' | 'city' | 'language' | 'skill';
+    namespace: 'role' | 'city' | 'language' | 'skill' | 'industry' | 'workType';
     code: string;
     labelZh: string;
     labelEn: string;

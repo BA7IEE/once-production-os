@@ -7,6 +7,8 @@ export type Selection = {
 export interface WorkSummary {
     id: string;
     title: string;
+    industryCode: string | null;
+    workTypeCodes: string[];
     origin: 'ONCE' | 'EXTERNAL' | 'UNKNOWN';
     status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
     revision: number;

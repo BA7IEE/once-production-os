@@ -1,4 +1,5 @@
 import type { Table, TableMap } from './model.ts';
+import type { TalentQueryFilters, TalentQueryResult } from './search-query-model.ts';
 /** A short database transaction. All implementations must atomically commit or roll back. */
 export interface Tx {
     get<K extends Table>(table: K, id: string): Promise<TableMap[K] | null>;
@@ -6,6 +7,8 @@ export interface Tx {
     insert<K extends Table>(table: K, row: TableMap[K]): Promise<void>;
     replace<K extends Table>(table: K, row: TableMap[K]): Promise<void>;
     remove<K extends Table>(table: K, id: string): Promise<void>;
+    /** Bounded internal talent search adapter. Authorization inputs are computed by core policy first. */
+    talentQuery(input: TalentQueryFilters): Promise<TalentQueryResult>;
 }
 export interface Store {
     /** The first single-workspace slice serializes writes and authorization-sensitive reads.
