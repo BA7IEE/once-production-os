@@ -213,6 +213,15 @@ try {
  assert.equal(await getStatus(owner,'/works/'+privateWork.resourceId),404);assert.ok(!(await json(owner,'/works')).items.some(x=>x.id===privateWork.resourceId));assert.ok(!(await json(owner,'/audit-events')).items.some(x=>x.resourceId===privateWork.resourceId));
  const before=await prisma.project.findUniqueOrThrow({where:{id:projectId}}),foreignEntry=(await prisma.workCredit.findFirstOrThrow({where:{workId:wid}})).id;
  await cmd(owner,'POST',ppath+'/participants/remove',{expectedRevision:before.revision,entryId:foreignEntry},404);assert.deepEqual(await prisma.project.findUniqueOrThrow({where:{id:projectId}}),before);
- assert.deepEqual(errors,[]);
  console.log('PASS WP1 privacy: suspended dependencies redact identities/previews; private roots and audits stay hidden; wrong-parent command writes nothing');
+
+ const exportPerson=await prisma.person.findUniqueOrThrow({where:{id:pid}}),exportSource=await prisma.sourceRecord.findUniqueOrThrow({where:{id:exportPerson.sourceId}});
+ await cmd(owner,'POST','/sources/'+exportSource.id+'/suspend',{expectedRevision:exportSource.revision,reason:'合成测试：使旧导出依赖失效'});
+ await owner.getByRole('button',{name:/内部导出/}).click();
+ const exportRow=owner.locator('tr').filter({hasText:exportId});await exportRow.getByRole('button',{name:'查看',exact:true}).click();
+ await owner.getByText('依赖已失效',{exact:true}).waitFor();
+ assert.equal(await owner.getByRole('button',{name:'下载 JSON',exact:true}).count(),0);
+ assert.equal((await json(owner,'/exports/'+exportId)).downloadable,false);
+ console.log('PASS DEV-07A privacy: source suspension makes the whole old export non-downloadable');
+ assert.deepEqual(errors,[]);
 } finally {if(browser)await browser.close();await stop(worker);await stop(api);await prisma.$disconnect();rmSync(tmp,{recursive:true,force:true});}
