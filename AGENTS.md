@@ -2,41 +2,43 @@
 
 ## 事实顺序
 
-先读 `docs/release/WP2B_SEARCH_FACTS_SQL.md` → `docs/release/IMPLEMENTATION_STATUS.md` → `docs/release/TEST_REPORT.md` → 当前 PR 最终 head 对应 Actions，再读 WP2/WP1/M1/H1/A1/R1 历史说明与 `docs/spec/06_DEVELOPMENT.md`。
+先读 `docs/release/WP3_EXPORT_DEPENDENCIES.md` → `docs/release/IMPLEMENTATION_STATUS.md` → `docs/release/TEST_REPORT.md` → 当前 PR 最终 head 对应 Actions，再读 WP2B/WP2/WP1/M1/H1/A1/R1 历史说明与 `docs/spec/06_DEVELOPMENT.md`。
 
 规格文档是输入事实，不自动等于当前实现状态；当前代码、迁移、生成契约和真实 CI 优先。
 
 ## 当前分支
 
-- 分支：`feat/search-facts-sql`
-- PR：#8，基于 `feat/search-shortlists` / PR #7
-- 功能代码固定 head：`6a7ad1ab184486adaa57edf4295ba13eef905ef0`
-- Actions：35995053306，五个 job 全绿
-- 请求契约：85
-- 核心/传输：223/223
-- PostgreSQL：40/40
+- 分支：`feat/export-dependencies`
+- PR：#10，基于 `feat/search-facts-sql` / PR #8
+- 功能代码固定 head：`19585fb4382ac781d9e2688320ec8e1071340c92`
+- Actions：36005508490，五个 job 全绿
+- 请求契约：92
+- 核心/传输：230/230
+- PostgreSQL：46/46
 - Chromium 表单：6/6
 - browser-resume / handoff / media / production：全部成功
 
-文档收口后的最终 head 必须重新跑同一套 CI；不要拿前一个功能 head 的绿灯替代最终 head。
+文档收口后的最终 head 必须重新跑同一套 CI；不要拿功能 head 的绿灯替代最终 head。
 
-## 本轮新增事实
+## DEV-07A 当前不变量
 
-Work 新增 `industryCode` 和 `workTypeCodes`，由稳定字典 `industry/workType` 约束。人才按行业/作品类型命中时，只计算当前成员可见、来源当前有效、且有该人才真实 WorkCredit 的作品。H1 基本档案交接不参与这条资格。
+1. 可读不等于可导出；`data.export`、精确 UsePermission、`DATA_EGRESS_MODE` 三者缺一不可。
+2. `TEMP_ORGANIZE` 不允许创建 `INTERNAL_EXPORT` 许可。
+3. UsePermission 精确绑定真实 Source + Person/Work/Project/Asset；数据库组合 FK 防止错来源授权。
+4. 导出字段只有显式白名单；联系人、source 原文、Session、密码、密钥、objectToken/签名 URL 不存在可选字段。
+5. ExportDependency 冻结 sourceRevision/protectionEpoch、资源 revision/epoch、许可 id/revision、字段和截止时间。
+6. Worker 生成前和下载时逐依赖复查；任一安全依赖失效整件拒绝，不删除一行后继续发旧文件。
+7. 普通内容 revision 变化只标记 `contentChanged`，旧 payload 保持生成时快照；安全状态变化阻断下载。
+8. 部署出口默认 `DISABLED`；恢复/维护时可看历史元数据，但不能因此下载。
+9. ExportJob 自带有限租约/重试，不复用已有 `durable_jobs.aggregateId -> ImportBatch` 外键，避免破坏导入任务语义。
+10. 已应用迁移不改写；本批新增 `202609240006_export_dependencies` 与 `202609240007_export_payload_json_null`。
 
-普通搜索的结果分页、基础条件和 Facets 聚合已下推 PostgreSQL。核验时效仍由 core 对批量证据重算摘要；不要把“日期在范围内”偷换成“核验仍有效”。
+## 安全边界
 
-## 安全与数据边界
+正式 API 仍只用 PrismaStore。ADMIN 也不能绕过 scope、来源状态或用途许可。只有 `data.export` 但没有 `sources.read` 的成员可以查看最小许可摘要用于执行获准导出，但不能读取来源列表/原文；前端也不会因此主动请求 source.list。
 
-1. 正式入口只使用 PrismaStore；MemoryStore 仅 tests。
-2. ADMIN 不绕过 scope；关联不扩权。
-3. 私有作品、项目、来源不能通过 Facets、计数或联想暴露。
-4. Search adapter 必须参数化，不接受自由 SQL；AI 未来只能产出受限 AST 后调用同一查询。
-5. 写动作继续使用 CAS、幂等回执、审计同事务。
-6. 已应用迁移不改写；本批新增 `202609240004_search_facts_sql` 和 `202609240005_dictionary_search_namespaces`。
-7. 查询次数固定不等于性能 SLA；规格目标需 4vCPU/8GB 参考环境至少三轮 P95。
-8. `loadVisibility` 仍批量读取当前 workspace Source 计算 visibleSourceIds；完整来源授权 SQL 下推尚未关闭。
+内部 JSON 导出是迁移/重建业务动作，不是备份。数据库、媒体对象、密钥、配置的备份恢复必须走 DEV-09 独立运维路径。
 
 ## 下一步
 
-优先进入 DEV-07 维护：内部 JSON 导出、依赖追踪、受控删除/合并；并同步设计 DEV-09 恢复。正式资料接管前必须补齐生产存储与恢复/删除能力。DEV-08 AI 仍在一期，但不能先于这些安全门槛进入正式使用。
+进入 **DEV-07B**：先做删除/合并前的精确依赖影响预览，再做“先阻断、后清理”的受控删除和人物合并。并同步准备 T29 的隔离重建工具；没有重建验证前，不宣告 FR-29/T29 完成。DEV-08 AI 仍不得绕过删除/恢复安全门槛。
