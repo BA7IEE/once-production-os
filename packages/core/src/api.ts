@@ -1,6 +1,7 @@
 import { Portfolio } from './portfolio.ts';
 import { Projects } from './projects.ts';
 import { Shortlists } from './shortlists.ts';
+import { TalentSearch } from './search.ts';
 import { shortlistFor } from './shortlist-policy.ts';
 import { workFor, projectFor } from './production-policy.ts';
 import { Media, assetFor, uploadFor } from './media.ts';
@@ -62,6 +63,7 @@ export class Application {
     portfolio: Portfolio;
     projects: Projects;
     shortlists: Shortlists;
+    search: TalentSearch;
     constructor(store: Store, config: Config, clock: Clock = { now: () => new Date() }) {
         invariant(config.contactKey.length === 32 && config.csrfKey.length === 32, 'CONFIG_INVALID', '密钥必须为 32 字节', 503);
         const origin = new URL(config.origin);
@@ -76,6 +78,7 @@ export class Application {
         this.portfolio = new Portfolio(clock, this.talent);
         this.projects = new Projects(clock, this.talent);
         this.shortlists = new Shortlists(clock);
+        this.search = new TalentSearch(clock, this.talent);
         this.handoffs = new Handoffs(clock);
         this.media = new Media(store, clock, config);
         this.commands = new Commands(clock);
@@ -203,6 +206,7 @@ export class Application {
                     case 'shortlist.workAdd': return command('shortlist', () => this.shortlists.addWork(tx, actor, id, data));
                     case 'shortlist.workRemove': return command('shortlist', () => this.shortlists.removeWork(tx, actor, id, data));
                     case 'shortlist.worksReorder': return command('shortlist', () => this.shortlists.reorderWorks(tx, actor, id, data));
+                    case 'search.people': return this.search.people(tx, actor, data);
                     case 'work.list': return this.portfolio.list(tx, actor, query);
                     case 'work.create': return command('work', () => this.portfolio.create(tx, actor, data));
                     case 'work.get': return this.portfolio.get(tx, actor, id);

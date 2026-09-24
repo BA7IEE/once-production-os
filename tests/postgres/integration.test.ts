@@ -1,5 +1,6 @@
 import { runProductionContracts } from "./production-contracts.ts";
 import { runShortlistContracts } from "./shortlist-contracts.ts";
+import { runSearchContracts } from "./search-contracts.ts";
 /** Real PostgreSQL tests. NOT executed in the offline development environment.
  * This suite deliberately leaves its synthetic records in a disposable database.
  * It never deletes, truncates, drops or restores a database.
@@ -369,6 +370,7 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
         }
         await runProductionContracts(t, { a, b, storeA, ownerA, ownerB, appA, config, clock, identity });
         await runShortlistContracts(t, { a, b, storeA, ownerA, ownerB, appA, config, clock, identity });
+        await runSearchContracts(t, { a, ownerA, sender, personId });
     }
     finally {
         await Promise.all([storeA.close(), storeB.close()]);

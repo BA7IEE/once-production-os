@@ -5284,6 +5284,214 @@
         "x-mode": "COMMAND"
       }
     },
+    "/api/v1/search/people": {
+      "post": {
+        "operationId": "search.people",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "q": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "roles": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "codes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 1,
+                        "maxItems": 20
+                      },
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "ANY",
+                          "ALL"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "codes",
+                      "mode"
+                    ]
+                  },
+                  "cityCode": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60,
+                    "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                  },
+                  "languages": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "codes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 1,
+                        "maxItems": 20
+                      },
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "ANY",
+                          "ALL"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "codes",
+                      "mode"
+                    ]
+                  },
+                  "skills": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "codes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 1,
+                        "maxItems": 20
+                      },
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "ANY",
+                          "ALL"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "codes",
+                      "mode"
+                    ]
+                  },
+                  "minHeightCm": {
+                    "type": "number",
+                    "minimum": 50,
+                    "maximum": 250
+                  },
+                  "maxHeightCm": {
+                    "type": "number",
+                    "minimum": 50,
+                    "maximum": 250
+                  },
+                  "workOrigins": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "ONCE",
+                        "EXTERNAL",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "minItems": 1,
+                    "maxItems": 3
+                  },
+                  "minVisibleWorks": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 30
+                  },
+                  "minActualProjects": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50
+                  },
+                  "verifiedWithinDays": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 3650
+                  },
+                  "statuses": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "DRAFT",
+                        "ACTIVE",
+                        "ARCHIVED"
+                      ]
+                    },
+                    "minItems": 1,
+                    "maxItems": 3
+                  },
+                  "page": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100000
+                  },
+                  "pageSize": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  }
+                },
+                "required": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.read",
+        "x-mode": "READ"
+      }
+    },
     "/api/v1/people": {
       "get": {
         "operationId": "person.list",

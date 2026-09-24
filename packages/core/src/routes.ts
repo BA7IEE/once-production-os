@@ -1,5 +1,6 @@
 import { ProductionSchemas as PS } from './production-validation.ts';
 import { ShortlistSchemas as SS } from './shortlist-validation.ts';
+import { SearchSchemas } from './search-validation.ts';
 import { MediaSchemas } from './media-validation.ts';
 import type { Permission } from './model.ts';
 import { Schemas, type Schema } from './validation.ts';
@@ -85,6 +86,7 @@ export const ROUTES: RouteDefinition[] = [
     { method: 'POST', path: '/handoffs/{id}/accept', operation: 'handoff.accept', mode: 'COMMAND', permission: 'records.read', schema: Schemas.revision },
     { method: 'POST', path: '/handoffs/{id}/decline', operation: 'handoff.decline', mode: 'COMMAND', permission: 'records.read', schema: Schemas.revision },
     { method: 'POST', path: '/handoffs/{id}/revoke', operation: 'handoff.revoke', mode: 'COMMAND', permission: 'records.read', schema: Schemas.revision },
+    { method: 'POST', path: '/search/people', operation: 'search.people', mode: 'READ', permission: 'records.read', schema: SearchSchemas.people },
     { method: 'GET', path: '/people', operation: 'person.list', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/people', operation: 'person.create', mode: 'COMMAND', permission: 'records.write', schema: Schemas.personCreate },
     { method: 'GET', path: '/people/{id}', operation: 'person.get', mode: 'READ', permission: 'records.read' },

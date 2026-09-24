@@ -25,9 +25,15 @@ FR15/T15：项目内候选人才与参考作品、排序、协作备注、当前
 
 SL1说明见 [SL1_INTERNAL_SHORTLISTS.md](SL1_INTERNAL_SHORTLISTS.md)。
 
-## WP1 需求锚点
+## SR1 需求锚点
 
-FR08/T08：顺序、同作品封面、多角色署名及外部归属。FR09/T09：无商业模块建项目、实际参与、内部复盘。FR12/T12/FR24：来源失效、范围过滤、最小审计和原样重放。FR14/T14：当前可见的基础反向经历；不代表完整筛选能力。
+FR14/T14：当前可见人才可按角色、城市、语言、技能、身高、作品关系、实际项目和核验时效组合检索；结果解释命中事实与缺口，不产生评分。行业/作品类型、报价、档期仍未建模，不能伪匹配。FR12/T12/FR26：来源失效、范围收窄或会话权限变化会同步影响结果、计数和解释。FR15/T15：检索结果可用于后续内部候选清单，但搜索本身不写入清单或项目参与。
+
+对应代码与测试：`search*.ts`、`search-ui.tsx`、`tests/core/search.test.ts`、`tests/postgres/search-contracts.ts`、`tests/acceptance/browser-search.mjs`。范围说明见 [SR1_STRUCTURED_SEARCH.md](SR1_STRUCTURED_SEARCH.md)。
+
+## 历史 WP1 需求锚点
+
+FR08/T08：顺序、同作品封面、多角色署名及外部归属。FR09/T09：无商业模块建项目、实际参与、内部复盘。
 
 对应代码与测试：production*.ts / portfolio.ts / projects.ts；tests/core/production.test.ts；tests/postgres/production-contracts.ts；tests/acceptance/browser-production.mjs。WP1范围和反例详见 [WP1_WORKS_PROJECTS.md](WP1_WORKS_PROJECTS.md)。
 

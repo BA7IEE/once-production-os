@@ -73,6 +73,7 @@ export interface Inputs {
   "handoff.accept": { "expectedRevision": number };
   "handoff.decline": { "expectedRevision": number };
   "handoff.revoke": { "expectedRevision": number };
+  "search.people": { "q"?: string; "roles"?: { "codes": Array<string>; "mode": "ANY" | "ALL" }; "cityCode"?: string; "languages"?: { "codes": Array<string>; "mode": "ANY" | "ALL" }; "skills"?: { "codes": Array<string>; "mode": "ANY" | "ALL" }; "minHeightCm"?: number; "maxHeightCm"?: number; "workOrigins"?: Array<"ONCE" | "EXTERNAL" | "UNKNOWN">; "minVisibleWorks"?: number; "minActualProjects"?: number; "verifiedWithinDays"?: number; "statuses"?: Array<"DRAFT" | "ACTIVE" | "ARCHIVED">; "page"?: number; "pageSize"?: number };
   "person.list": undefined;
   "person.create": { "displayName": string; "roles": Array<string>; "sourceId"?: string; "inlineSource"?: { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string }; "aliases"?: Array<string>; "cityCode"?: string | null; "languageCodes"?: Array<string>; "skillCodes"?: Array<string>; "heightCm"?: number | null; "intro"?: string };
   "person.get": undefined;
@@ -453,6 +454,11 @@ export const ENDPOINTS = {
     "method": "POST",
     "path": "/handoffs/{id}/revoke",
     "mode": "COMMAND"
+  },
+  "search.people": {
+    "method": "POST",
+    "path": "/search/people",
+    "mode": "READ"
   },
   "person.list": {
     "method": "GET",
