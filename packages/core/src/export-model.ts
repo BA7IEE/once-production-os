@@ -69,6 +69,6 @@ export const EXPORT_LIMITS = Object.freeze({
     works: 30,
     projects: 30,
     fields: EXPORT_FIELD_CODES.length,
-    permissionRefs: 100,
+    permissionRefs: 1000,
     ttlMs: 24 * 60 * 60000
 });
