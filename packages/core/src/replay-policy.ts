@@ -1,3 +1,4 @@
+import { Deletions } from './deletions.ts';
 import { shortlistFor } from './shortlists.ts';
 import { workFor, projectFor } from './production-policy.ts';
 import { uploadFor, assetFor } from './media.ts';
@@ -12,6 +13,9 @@ import { personFor, sourceFor, sourceCurrent, requireScope, requirePermission } 
 export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandReceipt, clock: Clock, config?: Config): Promise<void> {
     const id = receipt.resourceId;
     switch (receipt.resourceKind) {
+        case 'deletion':
+            await new Deletions(clock).get(tx, actor, id);
+            return;
         case 'usePermission': {
             requirePermission(actor, 'sources.review');
             const row = await workspaceRow(tx, 'usePermissions', id, actor.workspaceId);

@@ -1,3 +1,4 @@
+import { Deletions } from './deletions.ts';
 import { Exports } from './exports.ts';
 import { TalentSearch } from './talent-search.ts';
 import { Shortlists, shortlistFor } from './shortlists.ts';
@@ -65,6 +66,7 @@ export class Application {
     shortlists: Shortlists;
     search: TalentSearch;
     exports: Exports;
+    deletions: Deletions;
     constructor(store: Store, config: Config, clock: Clock = { now: () => new Date() }) {
         invariant(config.contactKey.length === 32 && config.csrfKey.length === 32, 'CONFIG_INVALID', '密钥必须为 32 字节', 503);
         const origin = new URL(config.origin);
@@ -81,6 +83,7 @@ export class Application {
         this.shortlists = new Shortlists(clock);
         this.search = new TalentSearch(clock);
         this.exports = new Exports(store, clock, config);
+        this.deletions = new Deletions(clock);
         this.handoffs = new Handoffs(clock);
         this.media = new Media(store, clock, config);
         this.commands = new Commands(clock);
@@ -197,6 +200,10 @@ export class Application {
                     revision: number;
                 }>, target = id || null) => this.commands.execute(tx, actor, route.operation, request.headers['idempotency-key'] ?? '', target, data, kind, meta, execute, receipt => authorizeReceipt(tx, actor, receipt, this.clock, this.config), ['import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation) ? 'ACCEPTED' : 'SUCCEEDED');
                 switch (route.operation) {
+                    case 'deletion.preview': return this.deletions.preview(tx, actor, data);
+                    case 'deletion.list': return this.deletions.list(tx, actor, query);
+                    case 'deletion.create': return command('deletion', () => this.deletions.create(tx, actor, data));
+                    case 'deletion.get': return this.deletions.get(tx, actor, id);
                     case 'usePermission.list': return this.exports.listPermissions(tx, actor, query);
                     case 'usePermission.create': return command('usePermission', () => this.exports.createPermission(tx, actor, data));
                     case 'usePermission.revoke': return command('usePermission', () => this.exports.revokePermission(tx, actor, id, data));
@@ -291,7 +298,7 @@ export class Application {
             });
             if (['import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation))
                 response.status = 202;
-            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
+            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
                 response.status = 201;
             return response;
         }
@@ -329,6 +336,8 @@ export class Application {
                     await assetFor(tx, actor, row.resourceId, this.clock);
                 if (row.resourceKind === 'handoff')
                     await handoffParticipant(tx, actor, row.resourceId);
+                if (row.resourceKind === 'deletion')
+                    await this.deletions.get(tx, actor, row.resourceId);
                 if (row.resourceKind === 'shortlist')
                     await shortlistFor(tx, actor, row.resourceId);
                 if (row.resourceKind === 'work')
