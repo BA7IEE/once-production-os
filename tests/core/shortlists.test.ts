@@ -55,6 +55,7 @@ test('DEV-06 verification freshness uses current field evidence and never treats
     assert.equal(q.total, 1);
     assert.equal(q.items[0].verification.state, 'CURRENT');
     f.clock.advance(31 * 86400000);
+    assert.equal((await f.owner.login()).status, 200, 'session expiry remains enforced after advancing 31 days');
     q = await get(f.owner, '/talent-search?verifiedWithinDays=30&status=ACTIVE');
     assert.equal(q.total, 0);
 });
