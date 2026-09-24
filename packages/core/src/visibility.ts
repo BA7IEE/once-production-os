@@ -1,5 +1,6 @@
 import type { Actor, Clock, Person, Scope, ScopeMember, Source } from './model.ts';
 import type { DeletionRequest, DeletionTargetKind } from './deletion-model.ts';
+import { DELETION_RESTRICTED_STATES } from './deletion-model.ts';
 import type { Tx } from './store.ts';
 import { sourceCurrent } from './policy.ts';
 /** Pure equivalent of scopeVisible/personVisible, from one short transaction's batch reads.
@@ -11,7 +12,7 @@ export function visibilityIndex(actor: Actor, clock: Clock, scopes: Scope[], mem
     const sourceById = new Map(sources.filter(s => s.workspaceId === actor.workspaceId).map(s => [s.id, s]));
     const blocked = new Map<DeletionTargetKind, Set<string>>();
     for (const row of blocks)
-        if (row.workspaceId === actor.workspaceId && row.state === 'BLOCKED_FOR_USE') {
+        if (row.workspaceId === actor.workspaceId && (DELETION_RESTRICTED_STATES as readonly string[]).includes(row.state)) {
             const set = blocked.get(row.targetKind) ?? new Set<string>();
             set.add(row.targetId); blocked.set(row.targetKind, set);
         }
@@ -31,6 +32,6 @@ export async function loadVisibility(tx: Tx, actor: Actor, clock: Clock) {
     const scopes = await tx.find('scopes', { workspaceId: actor.workspaceId });
     const members = await tx.find('scopeMembers', { workspaceId: actor.workspaceId, membershipId: actor.membershipId });
     const sources = await tx.find('sources', { workspaceId: actor.workspaceId });
-    const blocks = await tx.find('deletionRequests', { workspaceId: actor.workspaceId, state: 'BLOCKED_FOR_USE' });
+    const blocks = (await tx.find('deletionRequests', { workspaceId: actor.workspaceId })).filter(row => (DELETION_RESTRICTED_STATES as readonly string[]).includes(row.state));
     return visibilityIndex(actor, clock, scopes, members, sources, blocks);
 }
