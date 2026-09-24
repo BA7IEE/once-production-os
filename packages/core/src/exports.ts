@@ -160,9 +160,9 @@ export class Exports {
         invariant(peopleIds.length + workIds.length + projectIds.length > 0, 'EXPORT_EMPTY', '至少选择一条记录', 400);
         const personFields = fieldsFor('PERSON', d.fields), workFields = fieldsFor('WORK', d.fields), projectFields = fieldsFor('PROJECT', d.fields);
         const sourceFields = fieldsFor('SOURCE', d.fields), mediaFields = fieldsFor('ASSET', d.fields);
-        invariant(!peopleIds.length || personFields.length > 0, 'EXPORT_FIELDS_REQUIRED', '已选人才但没有选择人才字段', 422);
-        invariant(!workIds.length || workFields.length > 0, 'EXPORT_FIELDS_REQUIRED', '已选作品但没有选择作品字段', 422);
-        invariant(!projectIds.length || projectFields.length > 0, 'EXPORT_FIELDS_REQUIRED', '已选项目但没有选择项目字段', 422);
+        invariant((peopleIds.length > 0) === (personFields.length > 0), 'EXPORT_FIELDS_REQUIRED', '人才选择与人才字段必须同时存在', 422);
+        invariant((workIds.length > 0) === (workFields.length > 0), 'EXPORT_FIELDS_REQUIRED', '作品选择与作品字段必须同时存在', 422);
+        invariant((projectIds.length > 0) === (projectFields.length > 0), 'EXPORT_FIELDS_REQUIRED', '项目选择与项目字段必须同时存在', 422);
         invariant(mediaFields.length === 0 || workIds.length > 0, 'EXPORT_MEDIA_REQUIRES_WORK', '媒体身份清单只能随已选作品导出', 422);
 
         const permissions: UsePermission[] = [];
@@ -213,7 +213,7 @@ export class Exports {
             }
         }
 
-        const media: unknown[] = [];
+        const media: unknown[] = [], mediaDependencies = new Set<string>();
         if (mediaFields.length) {
             for (const work of works) {
                 const entries = (await tx.find('workAssets', { workspaceId: actor.workspaceId, workId: work.id })).sort((a, b) => a.position - b.position);
@@ -222,7 +222,10 @@ export class Exports {
                     const source = await sourceFor(tx, actor, asset.sourceId, this.clock);
                     sources.set(source.id, source);
                     const permission = this.choosePermission(permissions, used, 'ASSET', asset.id, asset.sourceId, mediaFields);
-                    dependencies.push(this.dependency(actor.workspaceId, job.id, 'ASSET', asset.id, mediaFields, source, asset.revision, null, permission, initialExpiry));
+                    if (!mediaDependencies.has(asset.id)) {
+                        dependencies.push(this.dependency(actor.workspaceId, job.id, 'ASSET', asset.id, mediaFields, source, asset.revision, null, permission, initialExpiry));
+                        mediaDependencies.add(asset.id);
+                    }
                     media.push({ id: asset.id, workId: work.id, position: entry.position, isCover: entry.id === work.coverEntryId, sourceId: asset.sourceId,
                         revision: asset.revision, fileName: asset.fileName, mime: asset.mime, bytes: asset.bytes, sha256: asset.sha256, width: asset.width, height: asset.height });
                 }
