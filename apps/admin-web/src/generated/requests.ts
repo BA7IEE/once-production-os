@@ -76,6 +76,15 @@ export interface Inputs {
   "job.resume": { "expectedRevision": number };
   "job.get": undefined;
   "audit.list": undefined;
+  "talent.search": undefined;
+  "shortlist.list": undefined;
+  "shortlist.create": { "title": string; "brief"?: string; "scopeId": string };
+  "shortlist.get": undefined;
+  "shortlist.update": { "expectedRevision": number; "title"?: string; "brief"?: string };
+  "shortlist.itemAdd": { "expectedRevision": number; "personId": string; "workId"?: string; "workAssetIds": Array<string>; "note": string };
+  "shortlist.itemUpdate": { "expectedRevision": number; "entryId": string; "note": string };
+  "shortlist.itemRemove": { "expectedRevision": number; "entryId": string };
+  "shortlist.reorder": { "expectedRevision": number; "entryIds": Array<string> };
 }
 export const ENDPOINTS = {
   "work.list": {
@@ -457,5 +466,50 @@ export const ENDPOINTS = {
     "method": "GET",
     "path": "/audit-events",
     "mode": "READ"
+  },
+  "talent.search": {
+    "method": "GET",
+    "path": "/talent-search",
+    "mode": "READ"
+  },
+  "shortlist.list": {
+    "method": "GET",
+    "path": "/shortlists",
+    "mode": "READ"
+  },
+  "shortlist.create": {
+    "method": "POST",
+    "path": "/shortlists",
+    "mode": "COMMAND"
+  },
+  "shortlist.get": {
+    "method": "GET",
+    "path": "/shortlists/{id}",
+    "mode": "READ"
+  },
+  "shortlist.update": {
+    "method": "PATCH",
+    "path": "/shortlists/{id}",
+    "mode": "COMMAND"
+  },
+  "shortlist.itemAdd": {
+    "method": "POST",
+    "path": "/shortlists/{id}/items",
+    "mode": "COMMAND"
+  },
+  "shortlist.itemUpdate": {
+    "method": "POST",
+    "path": "/shortlists/{id}/items/update",
+    "mode": "COMMAND"
+  },
+  "shortlist.itemRemove": {
+    "method": "POST",
+    "path": "/shortlists/{id}/items/remove",
+    "mode": "COMMAND"
+  },
+  "shortlist.reorder": {
+    "method": "POST",
+    "path": "/shortlists/{id}/items/reorder",
+    "mode": "COMMAND"
   }
 } as const;
