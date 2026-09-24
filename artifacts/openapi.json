@@ -5540,6 +5540,44 @@
         "x-mode": "READ"
       }
     },
+    "/api/v1/maintenance/deletion-impact": {
+      "get": {
+        "operationId": "maintenance.impact",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.write",
+        "x-mode": "READ"
+      }
+    },
     "/api/v1/talent-search": {
       "get": {
         "operationId": "talent.search",
