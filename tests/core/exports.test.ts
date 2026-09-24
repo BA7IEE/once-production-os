@@ -43,6 +43,17 @@ test('DEV-07A export needs explicit action permission and deployment egress gate
     assert.equal(f.store.rows('exports').length, 0);
 });
 
+test('DEV-07A export-only member can read minimal permission summaries without gaining source-read access', async () => {
+    const f = await fixture(), personId = await createPerson(f.owner, '最小许可摘要');
+    const person = f.store.rows('people').find(x => x.id === personId)!;
+    const permit = await permission(f, 'PERSON', personId, person.sourceId, ['person.displayName']);
+    const viewer = await member(f, 'export_only_viewer', 'VIEWER', ['data.export']);
+    assert.equal((await viewer.client.raw('GET', '/sources')).status, 403);
+    const list = await ok(viewer.client.raw('GET', '/use-permissions?pageSize=100'));
+    assert.ok(list.items.some((x: any) => x.id === permit && x.subjectId === personId));
+    assert.ok(!JSON.stringify(list).includes('evidenceNote'));
+});
+
 test('DEV-07A TEMP_ORGANIZE never becomes INTERNAL_EXPORT permission', async () => {
     const f = await fixture(), pid = await createPerson(f.owner, '临时整理候选', true);
     const person = f.store.rows('people').find(x => x.id === pid)!;
