@@ -63,7 +63,7 @@ export class Maintenance {
             const row = await workspaceRow(tx, 'assets', id, actor.workspaceId);
             if (!row) missing();
             const person = row.personId ? await workspaceRow(tx, 'people', row.personId, actor.workspaceId) : null;
-            await scoped([row.scopeId, await this.sourceScope(tx, actor, row.sourceId), person?.scopeId]);
+            await scoped([row.scopeId, await this.sourceScope(tx, actor, row.sourceId), ...(person ? [person.scopeId] : [])]);
             return { kind, id, revision: row.revision, label: row.fileName, state: row.state };
         }
         if (kind === 'work') {
