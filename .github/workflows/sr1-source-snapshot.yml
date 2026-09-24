@@ -1,0 +1,25 @@
+name: SR1 read-only source snapshot
+
+on:
+  push:
+    branches: [dev/sr1-source-snapshot]
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sr1-source-b2654b2
+          path: |
+            .
+            !.git/**
+            !.github/workflows/sr1-source-snapshot.yml
+          include-hidden-files: true
+          retention-days: 1
+          if-no-files-found: error
