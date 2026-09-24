@@ -163,6 +163,8 @@ try {
  const w=await json(owner,wpath);assert.equal(w.items.length,2);assert.ok(w.items.every(x=>x.asset===null));for(const aid of assetIds){assert.ok(!JSON.stringify(w).includes(aid));assert.equal(await getStatus(owner,'/assets/'+aid+'/preview'),404);}
  d=await reloadDetail(owner,'WP1外部家具作品');await until(async()=>await d.locator('img').count()===0);assert.equal(await d.getByText('该图片当前不可用',{exact:true}).count(),2);
  await d.getByRole('button',{name:'关闭',exact:true}).last().click();
+ const personDialog=await dialogReady(owner,'WP1摄影剪辑人员');
+ await personDialog.getByRole('button',{name:'关闭',exact:true}).last().click();
  await owner.getByRole('button',{name:/候选工作台/}).click();
  await owner.getByRole('heading',{name:'WP1内部候选清单',exact:true}).waitFor();
  const shortlistPanel=owner.locator('.sl-detail');
