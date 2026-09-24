@@ -242,5 +242,25 @@ try {
  assert.equal(await owner.getByRole('button',{name:'下载 JSON',exact:true}).count(),0);
  assert.equal((await json(owner,'/exports/'+exportId)).downloadable,false);
  console.log('PASS DEV-07A privacy: source suspension makes the whole old export non-downloadable');
+
+ // DEV-07C: real browser DRAFT -> explicit BLOCKED_FOR_USE; no physical cleanup exists.
+ await owner.getByRole('button',{name:/删除影响评估/}).click();
+ await owner.getByLabel('删除目标类型',{exact:true}).selectOption('PROJECT');
+ await owner.getByLabel('删除目标',{exact:true}).selectOption(projectId);
+ await writeUI(owner,'POST','/deletion-requests/preview',()=>owner.getByRole('button',{name:'预览影响',exact:true}).click());
+ await owner.getByLabel('申请原因',{exact:true}).fill('合成测试：阻断项目正常使用，但当前不执行物理删除');
+ const blockDraft=await writeUI(owner,'POST','/deletion-requests',()=>owner.getByRole('button',{name:'创建 DRAFT 申请',exact:true}).click(),201),blockRequestId=blockDraft.resourceId;
+ const blockDetail=owner.locator('.deletion-request-detail');
+ await blockDetail.getByRole('heading',{name:'删除申请',exact:true}).waitFor();
+ assert.equal(await getStatus(owner,'/projects/'+projectId),200);
+ owner.once('dialog',dialog=>void dialog.accept());
+ await writeUI(owner,'POST','/deletion-requests/'+blockRequestId+'/block',()=>blockDetail.getByRole('button',{name:'阻断正常使用',exact:true}).click());
+ await blockDetail.getByText('已阻断正常使用，尚未物理清理',{exact:true}).waitFor();
+ assert.equal(await prisma.deletionRequest.count({where:{id:blockRequestId,state:'BLOCKED_FOR_USE'}}),1);
+ assert.equal(await getStatus(owner,'/projects/'+projectId),404);
+ assert.ok(!(await json(owner,'/projects')).items.some(x=>x.id===projectId));
+ assert.equal(await prisma.project.count({where:{id:projectId}}),1);
+ assert.equal(await owner.getByRole('button',{name:/开始清理|立即删除|执行删除/}).count(),0);
+ console.log('PASS DEV-07C browser: DRAFT -> BLOCKED_FOR_USE hides project while preserving underlying row and no cleanup action exists');
  assert.deepEqual(errors,[]);
 } finally {if(browser)await browser.close();await stop(worker);await stop(api);await prisma.$disconnect();rmSync(tmp,{recursive:true,force:true});}
