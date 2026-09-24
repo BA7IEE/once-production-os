@@ -38,6 +38,27 @@ for (const kind of ['works', 'projects'] as const) {
     test('WP1 ' + kind + ' audit failure rolls back inline source, root and receipt', async () => { const f = await fixture(), before = structuredClone(f.store.data); f.store.failNextAudit = true; assert.equal((await f.owner.cmd('POST', '/' + kind, { title: '不能半成功', inlineSource: sourceInput() })).status, 500); for (const t of ['works', 'projects', 'sources', 'sourceHistory', 'receipts'] as const)
         assert.deepEqual(f.store.data[t], before[t]); });
 }
+test('DEV-06 work facts use stable catalogs; inactive values remain historical but cannot be newly assigned', async () => {
+    const f = await fixture();
+    const industry = await ok(f.owner.cmd('POST', '/catalog/items', { namespace: 'industry', code: 'furniture', labelZh: '家具', labelEn: 'Furniture' }), 201);
+    const workType = await ok(f.owner.cmd('POST', '/catalog/items', { namespace: 'workType', code: 'product_photo', labelZh: '产品摄影', labelEn: 'Product photography' }), 201);
+    const id = await root(f, 'works', f.owner, { industryCode: 'furniture', workTypeCodes: ['product_photo'] });
+    let w = await detail(f.owner, '/works/' + id);
+    assert.equal(w.industryCode, 'furniture');
+    assert.deepEqual(w.workTypeCodes, ['product_photo']);
+    const industryRow = f.store.rows('dictionary').find(x => x.id === industry.resourceId)!;
+    const typeRow = f.store.rows('dictionary').find(x => x.id === workType.resourceId)!;
+    await ok(f.owner.cmd('PATCH', '/catalog/items/' + industryRow.id, { expectedRevision: industryRow.revision, status: 'INACTIVE' }));
+    await ok(f.owner.cmd('PATCH', '/catalog/items/' + typeRow.id, { expectedRevision: typeRow.revision, status: 'INACTIVE' }));
+    await mutate(f.owner, '/works/' + id, '', { title: '保留历史分类', industryCode: 'furniture', workTypeCodes: ['product_photo'] });
+    w = await detail(f.owner, '/works/' + id);
+    assert.equal(w.industryCode, 'furniture');
+    assert.deepEqual(w.workTypeCodes, ['product_photo']);
+    assert.equal((await f.owner.cmd('POST', '/works', { title: '不得新用停用行业', industryCode: 'furniture', inlineSource: sourceInput() })).status, 422);
+    assert.equal((await f.owner.cmd('POST', '/works', { title: '不得新用停用类型', workTypeCodes: ['product_photo'], inlineSource: sourceInput() })).status, 422);
+    assert.equal((await f.owner.cmd('POST', '/works', { title: '不存在分类', industryCode: 'invented', inlineSource: sourceInput() })).status, 422);
+});
+
 test('WP1 ONCE attribution requires explicit basis; uploader never becomes a credit', async () => { const f = await fixture(); assert.equal((await f.owner.cmd('POST', '/works', { title: '冒充作品', origin: 'ONCE', inlineSource: sourceInput() })).status, 422); const id = await root(f, 'works', f.owner, { origin: 'ONCE', originNote: '合成测试：团队负责拍摄制作' }); assert.deepEqual((await detail(f.owner, '/works/' + id)).credits, []); assert.equal(f.store.rows('projectParticipants').length, 0); });
 test('WP1 order/cover updates are whole-work CAS, same-key replay and exact permutations', async () => { const f = await fixture(), id = await root(f), path = '/works/' + id, a = await image(f), b = await image(f); await mutate(f.owner, path, '/assets', { assetId: a.id }); await mutate(f.owner, path, '/assets', { assetId: b.id }); const w = await detail(f.owner, path), ids = w.items.map((e: any) => e.id), key = randomUUID(), body = { expectedRevision: w.revision, entryIds: ids.slice().reverse(), coverEntryId: ids[1] }; await ok(f.owner.cmd('POST', path + '/assets/reorder', body, key)); assert.equal((await ok(f.owner.cmd('POST', path + '/assets/reorder', body, key))).replayed, true); const now = await detail(f.owner, path); assert.equal(now.items[0].asset.id, b.id); assert.equal(now.items[0].isCover, true); assert.equal(now.revision, w.revision + 1); assert.equal((await f.owner.cmd('POST', path + '/assets/reorder', body)).status, 409); for (const entryIds of [[ids[0], ids[0]], [randomUUID(), ids[1]], [ids[0]]])
     assert.equal((await f.owner.cmd('POST', path + '/assets/reorder', { ...body, expectedRevision: now.revision, entryIds })).status, 409); });

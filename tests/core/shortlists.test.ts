@@ -42,8 +42,39 @@ test('DEV-06 structured search combines deterministic facts and visible ACTUAL p
     assert.equal(q.items[0].actualProjectCount, 1);
     assert.ok(q.items[0].match.some((m: any) => m.field === 'actualProject'));
     assert.equal('score' in q.items[0], false);
-    assert.deepEqual(q.capabilities.unsupported, ['industry', 'workType', 'quote', 'availability']);
+    assert.deepEqual(q.capabilities.unsupported, ['quote', 'availability']);
     assert.equal((await f.owner.raw('GET', '/talent-search?quote=1000')).status, 400);
+});
+
+test('DEV-06 industry and work type come only from current visible credited works', async () => {
+    const f = await fixture();
+    for (const item of [
+        { namespace: 'industry', code: 'furniture', labelZh: '家具', labelEn: 'Furniture' },
+        { namespace: 'workType', code: 'product_photo', labelZh: '产品摄影', labelEn: 'Product photography' }
+    ])
+        await ok(f.owner.cmd('POST', '/catalog/items', item), 201);
+    const visiblePerson = await person(f, '可见作品候选');
+    const hiddenFactPerson = await person(f, '隐藏作品候选');
+    const visibleWork = (await ok(f.owner.cmd('POST', '/works', { title: '可见家具作品', industryCode: 'furniture',
+        workTypeCodes: ['product_photo'], inlineSource: sourceInput() }), 201)).resourceId as string;
+    await ok(f.owner.cmd('POST', '/works/' + visibleWork + '/credits', { expectedRevision: 1, personId: visiblePerson, roleCode: 'model', note: '合成署名' }));
+    const editor = await member(f, 'fact_editor');
+    const hiddenWork = (await ok(editor.client.cmd('POST', '/works', { title: '私有家具作品', industryCode: 'furniture',
+        workTypeCodes: ['product_photo'], inlineSource: sourceInput(true) }), 201)).resourceId as string;
+    await ok(editor.client.cmd('POST', '/works/' + hiddenWork + '/credits', { expectedRevision: 1, personId: hiddenFactPerson, roleCode: 'model', note: '私有合成署名' }));
+    let q = await get(f.owner, '/talent-search?industryCode=furniture&workTypeCode=product_photo&status=ACTIVE');
+    assert.equal(q.total, 1);
+    assert.equal(q.items[0].id, visiblePerson);
+    assert.deepEqual(q.items[0].industryCodes, ['furniture']);
+    assert.deepEqual(q.items[0].workTypeCodes, ['product_photo']);
+    assert.ok(q.items[0].match.some((m: any) => m.field === 'industryCode'));
+    assert.ok(q.items[0].match.some((m: any) => m.field === 'workTypeCode'));
+    assert.deepEqual(q.facets.industries, [{ code: 'furniture', count: 1 }]);
+    assert.deepEqual(q.facets.workTypes, [{ code: 'product_photo', count: 1 }]);
+    const source = f.store.rows('sources').find(s => s.id === f.store.rows('works').find(w => w.id === visibleWork)!.sourceId)!;
+    await ok(f.owner.cmd('POST', '/sources/' + source.id + '/suspend', { expectedRevision: source.revision, reason: '合成测试停止作品依据' }));
+    q = await get(f.owner, '/talent-search?industryCode=furniture&workTypeCode=product_photo&status=ACTIVE');
+    assert.equal(q.total, 0);
 });
 
 test('DEV-06 verification freshness uses current field evidence and never treats unknown as a match', async () => {
