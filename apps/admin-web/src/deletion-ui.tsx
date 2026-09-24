@@ -3,9 +3,9 @@ import { call, read } from './api.ts';
 import type { Me, Page, Person, Receipt, Source } from './dto.ts';
 import type { WorkSummary, ProjectSummary } from './production-dto.ts';
 import type { AssetDto } from './media-ui.tsx';
-import type { DeletionPreview, DeletionRequestDetail, DeletionRequestSummary } from './deletion-dto.ts';
+import type { DeletionDecisionItem, DeletionPreview, DeletionRequestDetail, DeletionRequestSummary } from './deletion-dto.ts';
 import type { DeletionTargetKind } from '../../../packages/core/src/deletion-model.ts';
-import { Empty, ErrorBox, Field, PageTitle, Pager, Submit, Tag, date, useAction, useLoad } from './ui.tsx';
+import { Empty, ErrorBox, Field, Modal, PageTitle, Pager, Submit, Tag, date, useAction, useLoad } from './ui.tsx';
 
 const kindLabel: Record<DeletionTargetKind, string> = { SOURCE: '资料来源', PERSON: '人才', WORK: '作品', PROJECT: '项目', ASSET: '图片' };
 const actionLabel: Record<string, string> = {
@@ -49,10 +49,53 @@ const unresolvedLabel: Record<string, string> = {
 };
 
 type Option = { id: string; name: string; revision: number };
-function RequestDetail({ id, onChanged }: { id: string; onChanged: () => void }) {
-    const [tick, setTick] = useState(0);
-    const block = useAction();
+function DecisionModal({ request, item, sources, canRetain, onClose, onDone }: {
+    request: DeletionRequestDetail;
+    item: DeletionDecisionItem;
+    sources: Source[];
+    canRetain: boolean;
+    onClose: () => void;
+    onDone: () => void;
+}) {
+    const [decision, setDecision] = useState<'APPLY_PROPOSED' | 'RETAIN_WITH_BASIS'>('APPLY_PROPOSED');
+    const [reason, setReason] = useState(''), [retentionSourceId, setRetentionSourceId] = useState('');
+    const action = useAction();
+    return <Modal title="记录保留决定" onClose={onClose}>
+        <form onSubmit={e => { e.preventDefault(); void action.run(async () => {
+            await call('deletion.decision', {
+                expectedRevision: request.revision,
+                entryId: item.id,
+                decision,
+                decisionReason: reason,
+                ...(decision === 'RETAIN_WITH_BASIS' ? { retentionSourceId } : {})
+            }, { id: request.id });
+            onDone();
+        }); }}>
+            <div className="modal-body"><ErrorBox error={action.error}/>
+                <div className="notice"><strong>{evidenceLabel[item.evidenceState] ?? item.evidenceState}</strong><p>{detailLabel[item.detailCode] ?? item.detailCode}</p></div>
+                <dl className="detail-grid"><div><dt>依赖类型</dt><dd><code>{item.dependencyKind}</code></dd></div><div><dt>系统建议</dt><dd>{actionLabel[item.proposedAction] ?? item.proposedAction}</dd></div></dl>
+                <Field label="本项决定">
+                    <select value={decision} onChange={e => { setDecision(e.target.value as 'APPLY_PROPOSED' | 'RETAIN_WITH_BASIS'); setRetentionSourceId(''); }}>
+                        <option value="APPLY_PROPOSED">按系统建议处置</option>
+                        {canRetain && <option value="RETAIN_WITH_BASIS">有独立依据，保留</option>}
+                    </select>
+                </Field>
+                {decision === 'RETAIN_WITH_BASIS' && <Field label="独立保留依据" hint="必须是另一份当前有效的正式 INTERNAL_USE 来源；目标原来源不能自证保留。">
+                    <select required value={retentionSourceId} onChange={e => setRetentionSourceId(e.target.value)}><option value="">请选择当前可见来源</option>{sources.map(s => <option key={s.id} value={s.id}>{s.title} · v{s.revision}</option>)}</select>
+                </Field>}
+                <Field label="决定说明" hint="记录为何按建议处置，或为何存在独立依据；不要粘贴完整敏感原文。"><textarea required minLength={4} maxLength={2000} rows={5} value={reason} onChange={e => setReason(e.target.value)}/></Field>
+            </div>
+            <footer className="modal-footer"><button type="button" disabled={action.busy} onClick={onClose}>取消</button><Submit busy={action.busy}>保存决定</Submit></footer>
+        </form>
+    </Modal>;
+}
+
+function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sources: Source[]; canRetain: boolean; onChanged: () => void }) {
+    const [tick, setTick] = useState(0), [itemPage, setItemPage] = useState(1), [editing, setEditing] = useState<DeletionDecisionItem | null>(null);
+    const block = useAction(), freeze = useAction();
     const load = useLoad(() => read<DeletionRequestDetail>('deletion.get', { id }), id + ':' + tick);
+    const items = useLoad(() => read<Page<DeletionDecisionItem>>('deletion.items', { id }, { page: String(itemPage), pageSize: '20' }), id + ':items:' + itemPage + ':' + tick);
+
     async function blockUse() {
         if (!load.data?.blockAvailable) return;
         if (!confirm('确认阻断该目标的正常使用？这不会物理删除数据，但正常读取、搜索、候选和导出将立即失效。')) return;
@@ -63,7 +106,14 @@ function RequestDetail({ id, onChanged }: { id: string; onChanged: () => void })
         }, { id });
         setTick(x => x + 1); onChanged();
     }
-    return <section className="panel padded deletion-request-detail"><ErrorBox error={load.error ?? block.error}/>
+    async function freezePlan() {
+        if (!load.data || load.data.state !== 'BLOCKED_FOR_USE' || load.data.planFrozen) return;
+        if (!confirm('确认冻结当前保留决定和清理计划？这一步仍不会执行物理删除，但冻结后不能再修改决定。')) return;
+        await call('deletion.planFreeze', { expectedRevision: load.data.revision, acknowledgePlan: true }, { id });
+        setTick(x => x + 1); onChanged();
+    }
+
+    return <section className="panel padded deletion-request-detail"><ErrorBox error={load.error ?? items.error ?? block.error ?? freeze.error}/>
         {load.busy && !load.data ? <p>正在读取删除申请摘要…</p> : load.data && <>
             <div className="panel-heading"><div><h2>删除申请</h2><p><code>{load.data.id}</code></p></div><Tag value={load.data.state}/></div>
             <dl className="detail-grid">
@@ -71,14 +121,39 @@ function RequestDetail({ id, onChanged }: { id: string; onChanged: () => void })
                 <div><dt>目标版本</dt><dd>{load.data.targetRevision}</dd></div>
                 <div><dt>冻结影响项</dt><dd>{load.data.impactCount}</dd></div>
                 <div><dt>需人工判断</dt><dd>{load.data.reviewRequiredCount}</dd></div>
+                <div><dt>待决定</dt><dd>{load.data.pendingDecisionCount}</dd></div>
+                <div><dt>计划状态</dt><dd>{load.data.planFrozen ? '已冻结' : '未冻结'}</dd></div>
                 <div><dt>未解析</dt><dd>{load.data.unresolvedCount}</dd></div>
                 <div><dt>创建时间</dt><dd>{date(load.data.createdAt)}</dd></div>
             </dl>
             <p className="pre-line">{load.data.reason}</p>
-            <div className="notice"><strong>{load.data.state === 'DRAFT' ? '尚未阻断正常使用' : '已阻断正常使用，尚未物理清理'}</strong><p>{load.data.executionNote}</p></div>
+            <div className="notice"><strong>{load.data.state === 'DRAFT' ? '尚未阻断正常使用' : load.data.planFrozen ? '已阻断；清理计划已冻结，但尚未执行' : '已阻断正常使用；正在做保留决定'}</strong><p>{load.data.executionNote}</p></div>
+
             {load.data.blockAvailable && <div className="button-row"><button className="danger" disabled={block.busy} onClick={() => void block.run(blockUse)}>阻断正常使用</button></div>}
-            {!load.data.cleanupAvailable && load.data.state === 'BLOCKED_FOR_USE' && <p className="muted">当前没有清理执行按钮；底层数据仍保留，等待后续受控清理阶段。</p>}
+
+            {load.data.state === 'BLOCKED_FOR_USE' && <div className="deletion-decision-workspace">
+                <div className="panel-heading"><div><h3>保留决定</h3><p>这里不显示被冻结依赖的底层对象 ID。PROVEN 项自动采用系统建议；只有 REVIEW_REQUIRED 项需要人工判断。</p></div></div>
+                {items.busy && !items.data ? <p>正在读取安全决策槽…</p> : items.data && <>
+                    <div className="table-wrap"><table><thead><tr><th>依赖类型</th><th>系统建议</th><th>证据</th><th>当前决定</th><th>说明</th><th/></tr></thead><tbody>{items.data.items.map(item => <tr key={item.id}>
+                        <td><code>{item.dependencyKind}</code></td>
+                        <td>{actionLabel[item.proposedAction] ?? item.proposedAction}</td>
+                        <td>{evidenceLabel[item.evidenceState] ?? item.evidenceState}</td>
+                        <td>{item.decision === 'PENDING' ? '待决定' : item.decision === 'RETAIN_WITH_BASIS' ? '有独立依据保留' : '按建议处置'}</td>
+                        <td>{item.decisionReason || (item.retentionBasisPresent ? '已记录独立保留依据' : detailLabel[item.detailCode] ?? item.detailCode)}</td>
+                        <td>{item.decision === 'PENDING' && !load.data.planFrozen && <button onClick={() => setEditing(item)}>做决定</button>}</td>
+                    </tr>)}</tbody></table></div>
+                    <Pager page={itemPage} pageSize={20} total={items.data.total} setPage={setItemPage}/>
+                </>}
+                {!load.data.planFrozen && <div className="deletion-freeze-box">
+                    <h3>冻结清理计划</h3>
+                    <p className="muted">待决定为 0 后才可冻结。冻结只锁定“未来要做什么”，不会进入 CLEANING，也不会删除任何行、媒体或导出 payload。</p>
+                    <button className="danger" disabled={freeze.busy || load.data.pendingDecisionCount > 0} onClick={() => void freeze.run(freezePlan)}>{load.data.pendingDecisionCount > 0 ? `仍有 ${load.data.pendingDecisionCount} 项待决定` : '冻结清理计划'}</button>
+                </div>}
+                {load.data.planFrozen && <div className="notice"><strong>计划已冻结</strong><p>冻结时间：{date(load.data.planFrozenAt)}。Plan Digest：<code>{load.data.planDigest}</code></p><p>当前仍没有物理清理按钮。</p></div>}
+            </div>}
+            {!load.data.cleanupAvailable && load.data.state === 'BLOCKED_FOR_USE' && <p className="muted">底层数据仍保留；不可逆清理执行将在后续独立阶段实现。</p>}
         </>}
+        {editing && load.data && <DecisionModal request={load.data} item={editing} sources={sources} canRetain={canRetain} onClose={() => setEditing(null)} onDone={() => { setEditing(null); setTick(x => x + 1); onChanged(); }}/>}
     </section>;
 }
 
@@ -158,6 +233,6 @@ export function DeletionImpactPanel({ me }: { me: Me }) {
             {requests.data?.items.length ? <div className="table-wrap"><table><thead><tr><th>时间</th><th>目标</th><th>影响项</th><th>需人工判断</th><th>状态</th><th/></tr></thead><tbody>{requests.data.items.map(x => <tr key={x.id}><td>{date(x.createdAt)}</td><td>{kindLabel[x.targetKind]}<small>{x.targetId}</small></td><td>{x.impactCount}</td><td>{x.reviewRequiredCount}</td><td><Tag value={x.state}/></td><td><button onClick={() => setSelectedRequest(x.id)}>查看摘要</button></td></tr>)}</tbody></table></div> : <Empty title="还没有删除申请">先完成影响预览；只有影响图完整时才能冻结 DRAFT。</Empty>}
             {requests.data && <Pager page={page} pageSize={20} total={requests.data.total} setPage={setPage}/>}
         </section>
-        {selectedRequest && <RequestDetail id={selectedRequest} onChanged={() => setRefresh(x => x + 1)}/>}
+        {selectedRequest && <RequestDetail id={selectedRequest} sources={sources.data?.items ?? []} canRetain={me.permissions.includes('sources.review')} onChanged={() => setRefresh(x => x + 1)}/>}
     </>;
 }
