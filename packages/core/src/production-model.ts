@@ -5,6 +5,8 @@ export interface Work extends Base {
     maintainerId: string;
     title: string;
     description: string;
+    industryCode: string | null;
+    workTypeCodes: string[];
     origin: 'ONCE' | 'EXTERNAL' | 'UNKNOWN';
     originNote: string;
     status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';

@@ -113,7 +113,7 @@ export const Schemas = {
     personCreate: PersonInput, personPatch: PersonPatch,
     contacts: v.object({ expectedRevision: revision, contacts: v.array(v.object({ kind: v.enum(['PHONE', 'WECHAT', 'EMAIL', 'OTHER']), value: v.string(200, 1), sourceId: uuid }), 10) }),
     evidence: v.object({ personId: uuid, expectedRevision: revision, fieldPath: v.enum(['displayName', 'aliases', 'roles', 'cityCode', 'languageCodes', 'skillCodes', 'heightCm', 'intro']), sourceId: uuid, sourceRevision: revision }),
-    dictionaryCreate: v.object({ namespace: v.enum(['role', 'city', 'language', 'skill']), code, labelZh: v.string(120, 1), labelEn: v.string(120) }),
+    dictionaryCreate: v.object({ namespace: v.enum(['role', 'city', 'language', 'skill', 'industry', 'workType']), code, labelZh: v.string(120, 1), labelEn: v.string(120) }),
     dictionaryPatch: v.object({ expectedRevision: revision, labelZh: v.optional(v.string(120, 1)), labelEn: v.optional(v.string(120)), status: v.optional(v.enum(['ACTIVE', 'INACTIVE'])) }),
     importPreview: v.object({ sourceId: uuid, rows: v.array(v.unknown(), 100, 1) }),
     importCommit: v.object({ expectedRevision: revision, selectedRows: v.array(v.number(0, 99), 100, 1) })

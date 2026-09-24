@@ -141,7 +141,7 @@ export class Talent {
         await appendSourceHistory(tx, actor, next, 'SUSPENDED', this.clock, data.reason);
         return next;
     }
-    async validateCatalog(tx: Tx, workspaceId: string, namespace: 'role' | 'city' | 'language' | 'skill', codes: string[], previous: string[] = []): Promise<void> {
+    async validateCatalog(tx: Tx, workspaceId: string, namespace: 'role' | 'city' | 'language' | 'skill' | 'industry' | 'workType', codes: string[], previous: string[] = []): Promise<void> {
         invariant(unique(codes).length === codes.length, 'DUPLICATE_CODE', '同一分类不能重复', 400);
         for (const code of codes) {
             const item = (await tx.find('dictionary', { workspaceId, namespace, code }))[0];
