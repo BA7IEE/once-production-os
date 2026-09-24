@@ -47,5 +47,5 @@ export async function checkRole(tx: Tx, actor: Actor, roleCode: string) {
     invariant(!!item, 'ROLE_UNAVAILABLE', '请选择当前启用的贡献角色', 422);
 }
 export function editable(row: Work | Project) { invariant(row.status !== 'ARCHIVED', 'RECORD_ARCHIVED', '请先恢复为草稿再修改内容', 409); }
-export function workHeader(w: Work) { return { id: w.id, title: w.title, origin: w.origin, status: w.status, revision: w.revision, updatedAt: w.updatedAt }; }
+export function workHeader(w: Work) { return { id: w.id, title: w.title, industryCode: w.industryCode, workTypeCodes: w.workTypeCodes, origin: w.origin, status: w.status, revision: w.revision, updatedAt: w.updatedAt }; }
 export function projectHeader(p: Project) { return { id: p.id, title: p.title, status: p.status, revision: p.revision, updatedAt: p.updatedAt }; }

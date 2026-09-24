@@ -44,6 +44,36 @@ export class MemoryStore implements Store {
                 if (table === 'sourceHistory')
                     throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加');
                 draft[table].delete(id);
+            },
+            talentQuery: async input => {
+                const scopeIds = new Set(input.visibleScopeIds), sourceIds = new Set(input.visibleSourceIds);
+                const works = [...draft.works.values()].filter(w => w.workspaceId === input.workspaceId && scopeIds.has(w.scopeId) && sourceIds.has(w.sourceId));
+                const workById = new Map(works.map(w => [w.id, w]));
+                const credits = [...draft.workCredits.values()].filter(c => c.workspaceId === input.workspaceId && workById.has(c.workId));
+                const projects = new Map([...draft.projects.values()].filter(p => p.workspaceId === input.workspaceId && scopeIds.has(p.scopeId) && sourceIds.has(p.sourceId)).map(p => [p.id, p]));
+                const actual = [...draft.projectParticipants.values()].filter(p => p.workspaceId === input.workspaceId && p.state === 'ACTUAL' && projects.has(p.projectId));
+                const facts = (personId: string) => {
+                    const linked = credits.filter(c => c.personId === personId).map(c => workById.get(c.workId)!).filter(Boolean);
+                    return { industryCodes: [...new Set(linked.flatMap(w => w.industryCode ? [w.industryCode] : []))].sort(),
+                        workTypeCodes: [...new Set(linked.flatMap(w => w.workTypeCodes))].sort() };
+                };
+                const projectCount = (personId: string) => new Set(actual.filter(p => p.personId === personId).map(p => p.projectId)).size;
+                const all = [...draft.people.values()].filter(p => p.workspaceId === input.workspaceId && scopeIds.has(p.scopeId) && sourceIds.has(p.sourceId)).map(person => {
+                    const f = facts(person.id); return { person, actualProjectCount: projectCount(person.id), ...f };
+                }).filter(row => {
+                    const p = row.person;
+                    return (!input.q || [p.displayName, ...p.aliases].some(x => x.toLocaleLowerCase().includes(input.q)))
+                        && (!input.role || p.roles.includes(input.role)) && (!input.cityCode || p.cityCode === input.cityCode)
+                        && (!input.languageCode || p.languageCodes.includes(input.languageCode)) && (!input.skillCode || p.skillCodes.includes(input.skillCode))
+                        && (!input.status || p.status === input.status) && (!input.actualProject || row.actualProjectCount > 0)
+                        && (!input.industryCode || row.industryCodes.includes(input.industryCode)) && (!input.workTypeCode || row.workTypeCodes.includes(input.workTypeCode));
+                }).sort((a, b) => b.person.updatedAt.localeCompare(a.person.updatedAt) || a.person.id.localeCompare(b.person.id));
+                const chosen = input.scanForVerification ? all : all.slice((input.page - 1) * input.pageSize, input.page * input.pageSize);
+                const ids = new Set(chosen.map(r => r.person.id));
+                return { rows: structuredClone(chosen), baseTotal: all.length, alreadyPaged: !input.scanForVerification,
+                    facets: structuredClone(all.map(r => ({ personId: r.person.id, roles: r.person.roles, cityCode: r.person.cityCode,
+                        languageCodes: r.person.languageCodes, skillCodes: r.person.skillCodes, industryCodes: r.industryCodes, workTypeCodes: r.workTypeCodes }))),
+                    evidence: structuredClone([...draft.evidence.values()].filter(e => e.workspaceId === input.workspaceId && ids.has(e.personId) && sourceIds.has(e.sourceId))) };
             }
         };
         try {
