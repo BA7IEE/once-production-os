@@ -5600,7 +5600,7 @@
             "description": "Sanitized error with code, message, requestId"
           }
         },
-        "x-permission": "sources.read",
+        "x-permission": "records.read",
         "x-mode": "READ"
       },
       "post": {
