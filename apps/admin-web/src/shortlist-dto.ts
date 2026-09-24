@@ -13,6 +13,8 @@ export interface TalentSearchPerson {
     cityCode: string | null;
     languageCodes: string[];
     skillCodes: string[];
+    industryCodes: string[];
+    workTypeCodes: string[];
     status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
     revision: number;
     updatedAt: string;
@@ -29,6 +31,8 @@ export interface TalentSearchResponse extends Page<TalentSearchPerson> {
         cities: Array<{ code: string; count: number }>;
         languages: Array<{ code: string; count: number }>;
         skills: Array<{ code: string; count: number }>;
+        industries: Array<{ code: string; count: number }>;
+        workTypes: Array<{ code: string; count: number }>;
     };
     capabilities: {
         supported: string[];
