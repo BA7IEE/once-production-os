@@ -9,6 +9,9 @@ datasource db {
 }
 
 model Workspace {
+  Shortlist_workspace Shortlist[] @relation("Shortlist_workspace")
+  ShortlistItem_workspace ShortlistItem[] @relation("ShortlistItem_workspace")
+  ShortlistItemAsset_workspace ShortlistItemAsset[] @relation("ShortlistItemAsset_workspace")
   ProjectWork_workspace ProjectWork[] @relation("ProjectWork_workspace")
   ProjectParticipant_workspace ProjectParticipant[] @relation("ProjectParticipant_workspace")
   Project_workspace Project[] @relation("Project_workspace")
@@ -63,6 +66,7 @@ model User {
 }
 
 model Membership {
+  Shortlist_maintainerIdRef Shortlist[] @relation("Shortlist_maintainerIdRef")
   Project_maintainerIdRef Project[] @relation("Project_maintainerIdRef")
   Work_maintainerIdRef Work[] @relation("Work_maintainerIdRef")
   MediaUpload_actorIdRef MediaUpload[] @relation("MediaUpload_actorIdRef")
@@ -139,6 +143,7 @@ model Activation {
 }
 
 model AccessScope {
+  Shortlist_scopeIdRef Shortlist[] @relation("Shortlist_scopeIdRef")
   Project_scopeIdRef Project[] @relation("Project_scopeIdRef")
   Work_scopeIdRef Work[] @relation("Work_scopeIdRef")
   MediaUpload_scopeIdRef MediaUpload[] @relation("MediaUpload_scopeIdRef")
@@ -223,6 +228,7 @@ model SourceRecord {
 }
 
 model Person {
+  ShortlistItem_personIdRef ShortlistItem[] @relation("ShortlistItem_personIdRef")
   ProjectParticipant_personIdRef ProjectParticipant[] @relation("ProjectParticipant_personIdRef")
   WorkCredit_personIdRef WorkCredit[] @relation("WorkCredit_personIdRef")
   MediaUpload_personIdRef MediaUpload[] @relation("MediaUpload_personIdRef")
@@ -560,6 +566,7 @@ model MediaAsset {
 
 
 model Work {
+  ShortlistItem_workIdRef ShortlistItem[] @relation("ShortlistItem_workIdRef")
   ProjectWork_workIdRef ProjectWork[] @relation("ProjectWork_workIdRef")
   WorkCredit_workIdRef WorkCredit[] @relation("WorkCredit_workIdRef")
   WorkAsset_workIdRef WorkAsset[] @relation("WorkAsset_workIdRef")
@@ -589,6 +596,7 @@ model Work {
 }
 
 model WorkAsset {
+  ShortlistItemAsset_workAssetRef ShortlistItemAsset[] @relation("ShortlistItemAsset_workAssetRef")
   coveringWorks Work[] @relation("Work_cover")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
@@ -601,6 +609,7 @@ model WorkAsset {
   workspace Workspace @relation("WorkAsset_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "workAssets_workspace_fkey")
   @@unique([workspaceId, id])
   @@unique([workspaceId, workId, id], map: "workAssets_workspaceId_workId_id_key")
+  @@unique([workspaceId, workId, id, assetId], map: "workAssets_workspaceId_workId_id_assetId_key")
   @@unique([workspaceId, workId, assetId], map: "workAssets_workspaceId_workId_assetId_key")
   @@unique([workspaceId, workId, position], map: "workAssets_workspaceId_workId_position_key")
   @@index([workspaceId, createdAt], map: "workAssets_wp1_created_idx")
@@ -696,3 +705,72 @@ model ProjectWork {
   @@index([workspaceId, workId], map: "projectWorks_wp1_workId_idx")
   @@map("projectWorks")
 }
+
+model Shortlist {
+  ShortlistItem_shortlistIdRef ShortlistItem[] @relation("ShortlistItem_shortlistIdRef")
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  scopeId String @db.Uuid
+  maintainerId String @db.Uuid
+  title String @db.Text
+  brief String @db.Text
+  workspace Workspace @relation("Shortlist_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "shortlists_workspace_fkey")
+  scopeIdRef AccessScope @relation("Shortlist_scopeIdRef", fields: [workspaceId, scopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "shortlists_scopeIdRef_fkey")
+  maintainerIdRef Membership @relation("Shortlist_maintainerIdRef", fields: [workspaceId, maintainerId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "shortlists_maintainerIdRef_fkey")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, scopeId, updatedAt], map: "shortlists_dev06_scope_idx")
+  @@map("shortlists")
+}
+
+model ShortlistItem {
+  ShortlistItemAsset_itemRef ShortlistItemAsset[] @relation("ShortlistItemAsset_itemRef")
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  shortlistId String @db.Uuid
+  personId String @db.Uuid
+  workId String? @db.Uuid
+  position Int
+  note String @db.Text
+  addedPersonRevision Int
+  addedPersonSourceRevision Int
+  addedWorkRevision Int?
+  addedWorkSourceRevision Int?
+  workspace Workspace @relation("ShortlistItem_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "shortlistItems_workspace_fkey")
+  shortlistIdRef Shortlist @relation("ShortlistItem_shortlistIdRef", fields: [workspaceId, shortlistId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "shortlistItems_shortlistIdRef_fkey")
+  personIdRef Person @relation("ShortlistItem_personIdRef", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "shortlistItems_personIdRef_fkey")
+  workIdRef Work? @relation("ShortlistItem_workIdRef", fields: [workspaceId, workId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "shortlistItems_workIdRef_fkey")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, id, workId], map: "shortlistItems_workspaceId_id_workId_key")
+  @@unique([workspaceId, shortlistId, position], map: "shortlistItems_workspaceId_shortlistId_position_key")
+  @@index([workspaceId, personId], map: "shortlistItems_dev06_person_idx")
+  @@index([workspaceId, workId], map: "shortlistItems_dev06_work_idx")
+  @@map("shortlistItems")
+}
+
+model ShortlistItemAsset {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  itemId String @db.Uuid
+  assetId String @db.Uuid
+  workId String @db.Uuid
+  workAssetId String @db.Uuid
+  position Int
+  workspace Workspace @relation("ShortlistItemAsset_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "shortlistItemAssets_workspace_fkey")
+  itemRef ShortlistItem @relation("ShortlistItemAsset_itemRef", fields: [workspaceId, itemId, workId], references: [workspaceId, id, workId], onDelete: Restrict, onUpdate: Cascade, map: "shortlistItemAssets_itemRef_fkey")
+  workAssetRef WorkAsset @relation("ShortlistItemAsset_workAssetRef", fields: [workspaceId, workId, workAssetId, assetId], references: [workspaceId, workId, id, assetId], onDelete: Cascade, onUpdate: Cascade, map: "shortlistItemAssets_workAssetRef_fkey")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, itemId, workAssetId], map: "shortlistItemAssets_workspaceId_itemId_workAssetId_key")
+  @@unique([workspaceId, itemId, position], map: "shortlistItemAssets_workspaceId_itemId_position_key")
+  @@index([workspaceId, assetId], map: "shortlistItemAssets_dev06_asset_idx")
+  @@map("shortlistItemAssets")
+}
+

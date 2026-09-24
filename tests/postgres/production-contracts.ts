@@ -155,4 +155,98 @@ export async function runProductionContracts(t: TestContext, c: Context) {
             }
         });
     }
+    await t.test('DEV-06 PG shortlist exact work-asset FK rejects cross-work selections', async () => {
+        let work = await get('/works/' + workId);
+        if (!work.items.length)
+            await modify('/works/' + workId, '/assets', { assetId: asset1 });
+        work = await get('/works/' + workId);
+        const scope = await a.accessScope.findFirstOrThrow({ where: { workspaceId: identity.workspaceId, mode: 'WORKSPACE' } });
+        const listId = (await ok(ownerA.cmd('POST', '/shortlists', { title: 'DEV06 PG exact FK', brief: 'synthetic', scopeId: scope.id }), 201)).resourceId as string;
+        await ok(ownerA.cmd('POST', '/shortlists/' + listId + '/items', { expectedRevision: 1, personId, workId,
+            workAssetIds: [work.items[0].id], note: 'synthetic shortlist selection' }));
+        const item = await a.shortlistItem.findFirstOrThrow({ where: { shortlistId: listId } });
+        const second = await root('works');
+        await modify('/works/' + second, '/credits', { personId, roleCode: 'model', note: 'synthetic second credit' });
+        await modify('/works/' + second, '/assets', { assetId: asset1 });
+        const alien = await a.workAsset.findFirstOrThrow({ where: { workId: second } });
+        await assert.rejects(a.shortlistItemAsset.create({ data: {
+            id: randomUUID(), workspaceId: identity.workspaceId, createdAt: clock.now(), updatedAt: clock.now(), revision: 1,
+            itemId: item.id, assetId: alien.assetId, workId, workAssetId: alien.id, position: 1
+        } }));
+        assert.equal(await a.shortlistItemAsset.count({ where: { itemId: item.id } }), 1);
+    });
+    await t.test('DEV-06 PG unlinking a work image removes only derived shortlist selection and preserves media/item', async () => {
+        const scope = await a.accessScope.findFirstOrThrow({ where: { workspaceId: identity.workspaceId, mode: 'WORKSPACE' } });
+        const w = await root('works');
+        await modify('/works/' + w, '/credits', { personId, roleCode: 'model', note: 'synthetic shortlist unlink credit' });
+        await modify('/works/' + w, '/assets', { assetId: asset2 });
+        const beforeWork = await get('/works/' + w);
+        const workEntry = beforeWork.items[0];
+        const listId = (await ok(ownerA.cmd('POST', '/shortlists', { title: 'DEV06 PG unlink', brief: '', scopeId: scope.id }), 201)).resourceId as string;
+        await ok(ownerA.cmd('POST', '/shortlists/' + listId + '/items', { expectedRevision: 1, personId, workId: w,
+            workAssetIds: [workEntry.id], note: 'derived selection should disappear on unlink' }));
+        const item = await a.shortlistItem.findFirstOrThrow({ where: { shortlistId: listId } });
+        assert.equal(await a.shortlistItemAsset.count({ where: { itemId: item.id } }), 1);
+        assert.equal(await a.mediaAsset.count({ where: { id: asset2 } }), 1);
+        await modify('/works/' + w, '/assets/remove', { entryId: workEntry.id });
+        assert.equal(await a.workAsset.count({ where: { id: workEntry.id } }), 0);
+        assert.equal(await a.shortlistItemAsset.count({ where: { itemId: item.id } }), 0);
+        assert.equal(await a.mediaAsset.count({ where: { id: asset2 } }), 1);
+        assert.equal(await a.shortlistItem.count({ where: { id: item.id } }), 1);
+        const view = await get('/shortlists/' + listId);
+        assert.equal(view.items[0].unavailable, false);
+        assert.deepEqual(view.items[0].selectedAssets, []);
+        assert.equal(view.items[0].updatedSinceAdded, true);
+    });
+    await t.test('DEV-06 PG concurrent shortlist mutations serialize on root CAS', async () => {
+        const scope = await a.accessScope.findFirstOrThrow({ where: { workspaceId: identity.workspaceId, mode: 'WORKSPACE' } });
+        const listId = (await ok(ownerA.cmd('POST', '/shortlists', { title: 'DEV06 PG CAS', brief: '', scopeId: scope.id }), 201)).resourceId as string;
+        const body = { expectedRevision: 1, personId, workAssetIds: [], note: 'concurrent synthetic candidate' };
+        const [x, y] = await Promise.all([ownerA.cmd('POST', '/shortlists/' + listId + '/items', body), ownerB.cmd('POST', '/shortlists/' + listId + '/items', body)]);
+        assert.deepEqual([x.status, y.status].sort(), [200, 409]);
+        assert.equal(await a.shortlistItem.count({ where: { shortlistId: listId } }), 1);
+        assert.equal((await a.shortlist.findUniqueOrThrow({ where: { id: listId } })).revision, 2);
+    });
+    for (const stage of ['shortlistItems', 'shortlistItemAssets', 'audits', 'receipts'] as const) {
+        await t.test('DEV-06 PG candidate command rolls back after ' + stage, async () => {
+            const scope = await a.accessScope.findFirstOrThrow({ where: { workspaceId: identity.workspaceId, mode: 'WORKSPACE' } });
+            const listId = (await ok(ownerA.cmd('POST', '/shortlists', { title: 'DEV06 rollback ' + stage, brief: '', scopeId: scope.id }), 201)).resourceId as string;
+            let work = await get('/works/' + workId);
+            if (!work.items.length)
+                await modify('/works/' + workId, '/assets', { assetId: asset1 });
+            work = await get('/works/' + workId);
+            const before = {
+                root: await a.shortlist.findUniqueOrThrow({ where: { id: listId } }),
+                items: await a.shortlistItem.count({ where: { shortlistId: listId } }),
+                assets: await a.shortlistItemAsset.count(),
+                audits: await a.auditEvent.count(),
+                receipts: await a.commandReceipt.count()
+            };
+            const faults = new FaultStore(storeA);
+            let fired = false;
+            faults.afterInsert = table => {
+                if (table === stage && !fired) {
+                    fired = true;
+                    throw new Error('DEV06 deliberate post-write failure');
+                }
+            };
+            const app = new Application(faults, config, clock), client = new Client(app);
+            client.jar = { ...ownerA.jar };
+            client.csrf = ownerA.csrf;
+            const body = { expectedRevision: 1, personId, workId, workAssetIds: [work.items[0].id], note: 'rollback synthetic' };
+            const key = randomUUID();
+            const failed = await client.cmd('POST', '/shortlists/' + listId + '/items', body, key);
+            assert.ok(failed.status >= 500, JSON.stringify(failed.body));
+            assert.ok(fired);
+            assert.deepEqual(await a.shortlist.findUniqueOrThrow({ where: { id: listId } }), before.root);
+            assert.equal(await a.shortlistItem.count({ where: { shortlistId: listId } }), before.items);
+            assert.equal(await a.shortlistItemAsset.count(), before.assets);
+            assert.equal(await a.auditEvent.count(), before.audits);
+            assert.equal(await a.commandReceipt.count(), before.receipts);
+            await ok(ownerA.cmd('POST', '/shortlists/' + listId + '/items', body, key));
+            assert.equal(await a.shortlistItem.count({ where: { shortlistId: listId } }), 1);
+            assert.equal(await a.commandReceipt.count({ where: { commandKey: key } }), 1);
+        });
+    }
+
 }

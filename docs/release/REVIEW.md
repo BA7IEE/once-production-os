@@ -1,6 +1,16 @@
-> 当前媒体增量见 [M1_PRIVATE_IMAGES.md](M1_PRIVATE_IMAGES.md)。下文保留先前版本证据，不将历史结果覆盖到新代码。当前 CI 状态以当前 PR 的最终提交对应 Actions 为准。
+> 当前增量见 [WP2_SEARCH_SHORTLISTS.md](WP2_SEARCH_SHORTLISTS.md)。历史记录保留其原提交证据；当前结果以 PR #7 最终 head 和对应 Actions 为准。
 
 # 第一批源码 Review
+
+## 2026-09-24 WP2 检索/候选清单 Review
+
+以 WP1 固定 head `c349af4` 为输入，新增确定性人才检索与内部 Shortlist。H1 基本资料交接不进入搜索/清单原生资格；清单根可见不扩张人物、作品或图片范围；任一必需依赖不可读时整个候选条目只保留不可用占位。搜索没有自由 SQL、模型评分或向量能力，行业/作品类型/报价/档期缺失时明确不支持。
+
+数据库用组合 FK 保证候选选图确实属于声明 Work。真实浏览器回归发现该引用最初用 RESTRICT 会阻断 WP1 的作品图片解绑，导致旧 API 422；没有把测试改成接受 422，而是追加 `202609240003_shortlist_asset_unlink`，只级联删除派生 shortlistItemAsset。新的 PG 用例证明 WorkAsset 删除成功、Shortlist 选图被清理、MediaAsset/ShortlistItem 保留，且清单通过 Work revision 显示依赖变化。
+
+功能代码 head `3db6b1810ac46423eedf6f8ff91b57f1b766d95f` 的 Actions 35985423108 五个 job 全绿：85 请求契约、221/221 核心、39/39 PostgreSQL、表单 Chromium 6/6，以及四条真实浏览器链路。此前测试曾因 31 天 FakeClock 正确使会话过期、错误 Playwright locator、父详情 overlay 未关闭而失败；均按真实安全/交互语义修测试，没有放宽权限或删业务断言。
+
+仍未关闭：FR-14 的行业/作品类型、SQL 授权分页/查询下推和负载目标；DEV-07 导出/合并/删除；DEV-09 备份恢复；正式存储及一期 AI。WP2 不批准生产上线或正式资料接管。
 
 ## 2026-09-23 验收切片 A1
 

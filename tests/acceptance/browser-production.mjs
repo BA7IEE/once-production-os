@@ -128,12 +128,53 @@ try {
  d=await dialogReady(owner,'WP1家具拍摄项目');await writeUI(owner,'POST',ppath+'/works',()=>d.getByRole('button',{name:'改为交付',exact:true}).click());await until(async()=>(await json(owner,ppath)).works[0].relation==='DELIVERABLE');assert.equal((await prisma.work.findUniqueOrThrow({where:{id:wid}})).origin,'EXTERNAL');assert.equal(await prisma.projectParticipant.count({where:{projectId}}),1);
  await d.getByRole('button',{name:'编辑项目',exact:true}).click();f=await dialogReady(owner,'编辑项目');await f.getByLabel('内部复盘',{exact:true}).fill('合成复盘：第一次合作注意素材统一命名');await writeUI(owner,'PATCH',ppath,()=>f.getByRole('button',{name:'保存项目',exact:true}).click());await owner.getByRole('heading',{name:'项目人员',exact:true}).waitFor();d=await dialogReady(owner,'WP1家具拍摄项目');await writeUI(owner,'PATCH',ppath,()=>d.getByRole('button',{name:'标记项目完成',exact:true}).click());await until(async()=>(await prisma.project.findUniqueOrThrow({where:{id:projectId}})).status==='COMPLETED');
  await d.getByRole('button',{name:'关闭',exact:true}).last().click();
+
+ // DEV-06: real browser internal shortlist flow. No share link/client state is created.
+ await owner.getByRole('button',{name:/候选工作台/}).click();
+ await owner.getByRole('button',{name:'＋ 新建清单',exact:true}).click();
+ f=await dialogReady(owner,'新建内部候选清单');
+ await f.getByLabel('清单标题',{exact:true}).fill('WP1内部候选清单');
+ await f.getByLabel('需求简述',{exact:true}).fill('合成内部选人需求，不是客户确认或预订');
+ const shortlistCreate=await writeUI(owner,'POST','/shortlists',()=>f.getByRole('button',{name:'建立清单',exact:true}).click(),201),shortlistId=shortlistCreate.resourceId,slpath='/shortlists/'+shortlistId;
+ await owner.getByRole('heading',{name:'WP1内部候选清单',exact:true}).waitFor();
+ await owner.getByLabel('档案状态',{exact:true}).selectOption('DRAFT');
+ await owner.getByLabel('搜索人才姓名或别名',{exact:true}).fill('WP1摄影剪辑人员');
+ await owner.getByRole('button',{name:'搜索姓名',exact:true}).click();
+ const candidateCard=owner.locator('article.person-card').filter({has:owner.getByRole('heading',{name:'WP1摄影剪辑人员',exact:true})});
+ await candidateCard.getByRole('button',{name:'加入当前清单',exact:true}).click();
+ f=await dialogReady(owner,'加入候选 · WP1摄影剪辑人员');
+ await f.getByLabel('关联署名作品（可选）',{exact:true}).selectOption(wid);
+ await f.getByAltText(/WP1-image-/).first().waitFor();
+ await f.getByAltText(/WP1-image-/).first().locator('..').click();
+ await f.getByLabel('内部协作备注',{exact:true}).fill('PRIVATE_BROWSER_SHORTLIST_NOTE');
+ await writeUI(owner,'POST',slpath+'/items',()=>f.getByRole('button',{name:'加入当前清单',exact:true}).click());
+ await owner.getByRole('heading',{name:'WP1内部候选清单',exact:true}).waitFor();
+ await owner.getByText('WP1摄影剪辑人员',{exact:true}).last().waitFor();
+ await owner.getByText('PRIVATE_BROWSER_SHORTLIST_NOTE',{exact:true}).waitFor();
+ assert.equal(await prisma.shortlistItem.count({where:{shortlistId}}),1);
+ assert.equal(await prisma.shortlistItemAsset.count({where:{itemId:(await prisma.shortlistItem.findFirstOrThrow({where:{shortlistId}})).id}}),1);
+ assert.equal(await owner.getByRole('button',{name:/分享|预订|客户确认/}).count(),0);
+ console.log('PASS DEV-06 browser: structured search -> internal shortlist -> credited work -> selected image -> collaboration note');
+
  await owner.getByRole('button',{name:/人才档案/}).click();await owner.getByRole('button').filter({has:owner.getByRole('heading',{name:'WP1摄影剪辑人员',exact:true})}).click();await owner.getByRole('heading',{name:'作品与项目经历',exact:true}).waitFor();await owner.getByText('当前可见的实际参与项目：1 个。',{exact:false}).waitFor();await owner.getByRole('button',{name:/WP1外部家具作品 ·/}).click();await owner.getByRole('heading',{name:'作品图片',exact:true}).waitFor();
  console.log('PASS WP1 browser/API/PG: nominated and confirmed are not actual; reference/delivery preserves EXTERNAL attribution; internal review and reverse talent links persist');
  // A source may be suspended independently of the Work. Its assets must not leak in a reused collection.
  const s=await prisma.sourceRecord.findUniqueOrThrow({where:{id:imagePerson.sourceId}});await cmd(owner,'POST','/sources/'+s.id+'/suspend',{expectedRevision:s.revision,reason:'合成停止图片使用'});
  const w=await json(owner,wpath);assert.equal(w.items.length,2);assert.ok(w.items.every(x=>x.asset===null));for(const aid of assetIds){assert.ok(!JSON.stringify(w).includes(aid));assert.equal(await getStatus(owner,'/assets/'+aid+'/preview'),404);}
  d=await reloadDetail(owner,'WP1外部家具作品');await until(async()=>await d.locator('img').count()===0);assert.equal(await d.getByText('该图片当前不可用',{exact:true}).count(),2);
+ await d.getByRole('button',{name:'关闭',exact:true}).last().click();
+ const personDialog=await dialogReady(owner,'WP1摄影剪辑人员');
+ await personDialog.getByRole('button',{name:'关闭',exact:true}).last().click();
+ await owner.getByRole('button',{name:/候选工作台/}).click();
+ await owner.getByRole('heading',{name:'WP1内部候选清单',exact:true}).waitFor();
+ const shortlistPanel=owner.locator('.sl-detail');
+ await shortlistPanel.getByText('该条目当前不可用',{exact:true}).waitFor();
+ assert.equal(await shortlistPanel.getByText('PRIVATE_BROWSER_SHORTLIST_NOTE',{exact:true}).count(),0);
+ assert.equal(await shortlistPanel.getByText('WP1摄影剪辑人员',{exact:true}).count(),0);
+ console.log('PASS DEV-06 privacy: selected image source loss redacts the entire shortlist item in the browser');
+ await owner.getByRole('button',{name:/作品库/}).click();
+ await owner.getByRole('button').filter({has:owner.getByRole('heading',{name:'WP1外部家具作品',exact:true})}).click();
+ d=await dialogReady(owner,'WP1外部家具作品');
  const current=await json(owner,wpath);await cmd(owner,'POST',wpath+'/assets/remove',{expectedRevision:current.revision,entryId:current.items[0].id});assert.equal(await prisma.mediaAsset.count({where:{id:{in:assetIds}}}),2);
  const privateWork=await cmd(editor,'POST','/works',{title:'WP1私有作品不可枚举',inlineSource:{title:'WP1私人记录',type:'MANUAL',providerClaim:'合成编辑',basisMode:'TEMP_ORGANIZE',basisDescription:'仅供本人内部整理的合成记录'}},201);
  assert.equal(await getStatus(owner,'/works/'+privateWork.resourceId),404);assert.ok(!(await json(owner,'/works')).items.some(x=>x.id===privateWork.resourceId));assert.ok(!(await json(owner,'/audit-events')).items.some(x=>x.resourceId===privateWork.resourceId));

@@ -3,7 +3,7 @@ name: ONCE acceptance
 on:
   pull_request:
     # Stacked feature PRs can validate before the already-tested A1 PR is merged.
-    branches: [main, acceptance/browser-resume-ci, feat/controlled-handoff, feat/private-media]
+    branches: [main, acceptance/browser-resume-ci, feat/controlled-handoff, feat/private-media, feat/works-projects]
   push:
     branches: [main]
 
