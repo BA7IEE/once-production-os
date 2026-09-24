@@ -194,8 +194,8 @@ try {
  await owner.getByLabel('删除目标类型',{exact:true}).selectOption('PERSON');
  await owner.getByLabel('删除目标',{exact:true}).selectOption(pid);
  await writeUI(owner,'POST','/deletion-requests/preview',()=>owner.getByRole('button',{name:'预览影响',exact:true}).click());
- await owner.getByText('PERSON_EXPORT_DEPENDENCY',{exact:true}).waitFor();
- await owner.getByText('PERSON_SHORTLIST_ITEM',{exact:true}).waitFor();
+ await owner.getByText('PERSON_EXPORT_DEPENDENCY',{exact:true}).first().waitFor();
+ await owner.getByText('PERSON_SHORTLIST_ITEM',{exact:true}).first().waitFor();
  await owner.getByLabel('申请原因',{exact:true}).fill('合成测试：只冻结删除影响草稿，不执行任何清理');
  const deletionCreate=await writeUI(owner,'POST','/deletion-requests',()=>owner.getByRole('button',{name:'创建 DRAFT 申请',exact:true}).click(),201),deletionRequestId=deletionCreate.resourceId;
  const deletionDetail=owner.locator('.deletion-request-detail');
