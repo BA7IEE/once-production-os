@@ -1,5 +1,20 @@
 # 实际测试与验证记录
 
+## WP4｜DEV-07B 删除影响预览与 DRAFT 申请
+
+详见 [WP4_DELETION_IMPACT_PREVIEW.md](WP4_DELETION_IMPACT_PREVIEW.md)。功能 head `9ef5a6fbdc5c78e4ad0fbd10fc3e5e758efdd273`，PR #11。
+
+Actions [36019151162](https://github.com/BA7IEE/once-production-os/actions/runs/36019151162) 五个 job 全绿：96 条请求契约；237/237 核心/传输；52/52 PostgreSQL；原生表单 Chromium 6/6；browser-resume / handoff / media / production 均 success。
+
+新增核心测试覆盖：预览零写入；DRAFT 不阻断目标；预览后新增依赖使旧 digest 失效；隐藏 Work 依赖只计 unresolved 且不泄露 ID；可见 Source 下隐藏 scope 子对象同样不被枚举；Source 预览能追到人物/作品/用途许可/旧导出；持久化申请只返回摘要；无 data.delete 成员不能预览或枚举申请。
+
+真实 PostgreSQL 另验证：typed target/source FK；unresolvedCount 不能持久化；DRAFT 冻结具体影响但目标仍存在；DeletionRequest / DeletionItem / Audit / Receipt 四类写后故障整事务回滚。
+
+Chromium 实际通过“删除影响评估 → 选择人才 → 预览作品/项目/Shortlist/旧导出依赖 → 创建 DRAFT”，随后确认人才仍返回 200，页面没有执行删除/清理按钮。
+
+当前没有 BLOCKED_FOR_USE、protectionEpoch 阻断、清理 Worker、ERASED 头、保留决定执行或 Person merge，因此 FR-13/T13 仍未完成。
+
+
 ## WP3｜DEV-07A 内部 JSON 导出与依赖
 
 详见 [WP3_EXPORT_DEPENDENCIES.md](WP3_EXPORT_DEPENDENCIES.md)。功能 head `19585fb4382ac781d9e2688320ec8e1071340c92`，PR #10。

@@ -37,7 +37,7 @@ for (const route of ROUTES) {
         params.push({ name: 'Origin', in: 'header', required: true, schema: { type: 'string' } }, { name: 'X-CSRF-Token', in: 'header', required: true, schema: { type: 'string' } });
     if (route.mode === 'COMMAND')
         params.push({ name: 'Idempotency-Key', in: 'header', required: true, schema: { type: 'string', minLength: 8, maxLength: 128 } });
-    const code = ['import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation) ? '202' : ['usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'member.create', 'handoff.create', 'upload.create'].includes(route.operation) ? '201' : '200';
+    const code = ['import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation) ? '202' : ['deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'member.create', 'handoff.create', 'upload.create'].includes(route.operation) ? '201' : '200';
     paths[path][route.method.toLowerCase()] = { operationId: route.operation, parameters: params, security: route.mode === 'AUTH' ? [] : [{ sessionCookie: [] }],
         ...(route.operation === 'upload.content' ? { requestBody: { required: true, content: { 'application/octet-stream': { schema: { type: 'string', format: 'binary' } } } } } : {}),
         ...(route.schema ? { requestBody: { required: true, content: { 'application/json': { schema: route.schema.json } } } } : {}),

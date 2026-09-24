@@ -2992,11 +2992,12 @@
                       "enum": [
                         "sensitive.read",
                         "sensitive.write",
-                        "data.export"
+                        "data.export",
+                        "data.delete"
                       ]
                     },
                     "minItems": 0,
-                    "maxItems": 3
+                    "maxItems": 4
                   }
                 },
                 "required": [
@@ -3173,11 +3174,12 @@
                       "enum": [
                         "sensitive.read",
                         "sensitive.write",
-                        "data.export"
+                        "data.export",
+                        "data.delete"
                       ]
                     },
                     "minItems": 0,
-                    "maxItems": 3
+                    "maxItems": 4
                   }
                 },
                 "required": [
@@ -5539,6 +5541,233 @@
           }
         },
         "x-permission": "audit.read",
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/deletion-requests/preview": {
+      "post": {
+        "operationId": "deletion.preview",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "targetKind": {
+                    "type": "string",
+                    "enum": [
+                      "SOURCE",
+                      "PERSON",
+                      "WORK",
+                      "PROJECT",
+                      "ASSET"
+                    ]
+                  },
+                  "targetId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "targetKind",
+                  "targetId",
+                  "expectedRevision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "data.delete",
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/deletion-requests": {
+      "get": {
+        "operationId": "deletion.list",
+        "parameters": [],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "data.delete",
+        "x-mode": "READ"
+      },
+      "post": {
+        "operationId": "deletion.create",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "targetKind": {
+                    "type": "string",
+                    "enum": [
+                      "SOURCE",
+                      "PERSON",
+                      "WORK",
+                      "PROJECT",
+                      "ASSET"
+                    ]
+                  },
+                  "targetId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "previewDigest": {
+                    "type": "string",
+                    "minLength": 64,
+                    "maxLength": 64,
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 2000
+                  }
+                },
+                "required": [
+                  "targetKind",
+                  "targetId",
+                  "expectedRevision",
+                  "previewDigest",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "data.delete",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/deletion-requests/{id}": {
+      "get": {
+        "operationId": "deletion.get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "data.delete",
         "x-mode": "READ"
       }
     },

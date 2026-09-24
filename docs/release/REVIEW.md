@@ -1,6 +1,18 @@
-> 当前增量详见 [WP3_EXPORT_DEPENDENCIES.md](WP3_EXPORT_DEPENDENCIES.md)。以下历史 Review 保留当时证据；当前结论以 PR #10 最终 head 与对应 Actions 为准。
+> 当前增量详见 [WP4_DELETION_IMPACT_PREVIEW.md](WP4_DELETION_IMPACT_PREVIEW.md)。以下历史 Review 保留当时证据；当前结论以 PR #11 最终 head 与对应 Actions 为准。
 
 # 第一批源码 Review
+
+## 2026-09-24 WP4 / DEV-07B 删除影响预览 Review
+
+在 DEV-07A 的 ExportDependency 基础上新增 data.delete、DeletionRequest/DeletionItem 和零写入影响扫描。对抗审查明确否决“创建删除申请就直接 BLOCKED_FOR_USE”的做法：本批尚未实现实际阻断，因此状态只允许 DRAFT，目标继续按原权限读写，避免状态撒谎。
+
+影响扫描覆盖当前已实现关系、用途许可和派生导出。首轮隐私审查发现“Source 可见”不能推出同 Source 下后来被收窄 scope 的 Work/Project/Asset 可见；已修为 hidden dependency 只计 unresolved，不返回对象 ID。Asset→Shortlist 也重新检查 Shortlist 根权限。
+
+创建 DRAFT 时重新扫描并比较 previewDigest；新增依赖会拒绝旧预览。存在 hidden/unresolved 或超过 1000 项时不允许创建申请。持久化申请详情只返回摘要，不回显 frozen DeletionItem ID。
+
+功能 head `9ef5a6fbdc5c78e4ad0fbd10fc3e5e758efdd273` 的 Actions 36019151162 五项全绿：96 routes、237/237 core、52/52 PG、四条浏览器回归全部成功。browser-production 实际完成影响预览→DRAFT，并确认目标仍可读且没有执行删除按钮。
+
+仍未关闭：BLOCKED_FOR_USE、protectionEpoch 阻断、清理 Worker、ERASED 最小头、保留决定执行、Person merge、T29 重建和 DEV-09 恢复。FR-13/T13 不能标完成。
 
 ## 2026-09-24 WP3 / DEV-07A 导出与依赖 Review
 

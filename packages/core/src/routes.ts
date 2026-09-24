@@ -1,3 +1,4 @@
+import { DeletionSchemas as DS } from './deletion-validation.ts';
 import { ExportSchemas as ES } from './export-validation.ts';
 import { ShortlistSchemas as SS } from './shortlist-validation.ts';
 import { ProductionSchemas as PS } from './production-validation.ts';
@@ -89,6 +90,10 @@ export const ROUTES: RouteDefinition[] = [
     { method: 'POST', path: '/jobs/{id}/resume', operation: 'job.resume', mode: 'COMMAND', permission: 'records.write', schema: Schemas.revision },
     { method: 'GET', path: '/jobs/{id}', operation: 'job.get', mode: 'READ', permission: 'records.write' },
     { method: 'GET', path: '/audit-events', operation: 'audit.list', mode: 'READ', permission: 'audit.read' },
+    { method: 'POST', path: '/deletion-requests/preview', operation: 'deletion.preview', mode: 'READ', permission: 'data.delete', schema: DS.preview },
+    { method: 'GET', path: '/deletion-requests', operation: 'deletion.list', mode: 'READ', permission: 'data.delete' },
+    { method: 'POST', path: '/deletion-requests', operation: 'deletion.create', mode: 'COMMAND', permission: 'data.delete', schema: DS.create },
+    { method: 'GET', path: '/deletion-requests/{id}', operation: 'deletion.get', mode: 'READ', permission: 'data.delete' },
     { method: 'GET', path: '/use-permissions', operation: 'usePermission.list', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/use-permissions', operation: 'usePermission.create', mode: 'COMMAND', permission: 'sources.review', schema: ES.permissionCreate },
     { method: 'POST', path: '/use-permissions/{id}/revoke', operation: 'usePermission.revoke', mode: 'COMMAND', permission: 'sources.review', schema: ES.permissionRevoke },

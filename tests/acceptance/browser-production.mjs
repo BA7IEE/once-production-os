@@ -189,6 +189,23 @@ try {
  assert.equal(await owner.getByRole('button',{name:/分享|预订|客户确认/}).count(),0);
  console.log('PASS DEV-06 browser: industry/work-type search -> internal shortlist -> credited work -> selected image -> collaboration note');
 
+ // DEV-07B: preview real dependencies and freeze DRAFT only; no destructive execution exists.
+ await owner.getByRole('button',{name:/删除影响评估/}).click();
+ await owner.getByLabel('删除目标类型',{exact:true}).selectOption('PERSON');
+ await owner.getByLabel('删除目标',{exact:true}).selectOption(pid);
+ await writeUI(owner,'POST','/deletion-requests/preview',()=>owner.getByRole('button',{name:'预览影响',exact:true}).click());
+ await owner.getByText('PERSON_EXPORT_DEPENDENCY',{exact:true}).first().waitFor();
+ await owner.getByText('PERSON_SHORTLIST_ITEM',{exact:true}).first().waitFor();
+ await owner.getByLabel('申请原因',{exact:true}).fill('合成测试：只冻结删除影响草稿，不执行任何清理');
+ const deletionCreate=await writeUI(owner,'POST','/deletion-requests',()=>owner.getByRole('button',{name:'创建 DRAFT 申请',exact:true}).click(),201),deletionRequestId=deletionCreate.resourceId;
+ const deletionDetail=owner.locator('.deletion-request-detail');
+ await deletionDetail.getByRole('heading',{name:'删除申请草稿',exact:true}).waitFor();
+ await deletionDetail.getByText('当前不会执行删除',{exact:true}).waitFor();
+ assert.equal(await prisma.deletionRequest.count({where:{id:deletionRequestId,state:'DRAFT'}}),1);
+ assert.equal(await getStatus(owner,'/people/'+pid),200);
+ assert.equal(await owner.getByRole('button',{name:/执行删除|立即删除|开始清理/}).count(),0);
+ console.log('PASS DEV-07B browser: impact preview -> DRAFT request; target remains readable and no delete execution exists');
+
  await owner.getByRole('button',{name:/人才档案/}).click();await owner.getByRole('button').filter({has:owner.getByRole('heading',{name:'WP1摄影剪辑人员',exact:true})}).click();await owner.getByRole('heading',{name:'作品与项目经历',exact:true}).waitFor();await owner.getByText('当前可见的实际参与项目：1 个。',{exact:false}).waitFor();await owner.getByRole('button',{name:/WP1外部家具作品 ·/}).click();await owner.getByRole('heading',{name:'作品图片',exact:true}).waitFor();
  console.log('PASS WP1 browser/API/PG: nominated and confirmed are not actual; reference/delivery preserves EXTERNAL attribution; internal review and reverse talent links persist');
  // A source may be suspended independently of the Work. Its assets must not leak in a reused collection.

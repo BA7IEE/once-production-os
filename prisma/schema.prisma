@@ -9,6 +9,8 @@ datasource db {
 }
 
 model Workspace {
+  DeletionRequest_workspace DeletionRequest[] @relation("DeletionRequest_workspace")
+  DeletionItem_workspace DeletionItem[] @relation("DeletionItem_workspace")
   UsePermission_workspace UsePermission[] @relation("UsePermission_workspace")
   ExportJob_workspace ExportJob[] @relation("ExportJob_workspace")
   ExportDependency_workspace ExportDependency[] @relation("ExportDependency_workspace")
@@ -69,6 +71,7 @@ model User {
 }
 
 model Membership {
+  DeletionRequest_actorIdRef DeletionRequest[] @relation("DeletionRequest_actorIdRef")
   UsePermission_reviewerIdRef UsePermission[] @relation("UsePermission_reviewerIdRef")
   ExportJob_actorIdRef ExportJob[] @relation("ExportJob_actorIdRef")
   Shortlist_maintainerIdRef Shortlist[] @relation("Shortlist_maintainerIdRef")
@@ -192,6 +195,8 @@ model ScopeMember {
 }
 
 model SourceRecord {
+  DeletionRequest_targetSourceIdRef DeletionRequest[] @relation("DeletionRequest_targetSourceIdRef")
+  DeletionRequest_targetSourceSubjectRef DeletionRequest[] @relation("DeletionRequest_targetSourceSubjectRef")
   UsePermission_sourceIdRef UsePermission[] @relation("UsePermission_sourceIdRef")
   UsePermission_subjectSourceRef UsePermission[] @relation("UsePermission_subjectSourceRef")
   ExportDependency_sourceIdRef ExportDependency[] @relation("ExportDependency_sourceIdRef")
@@ -237,6 +242,7 @@ model SourceRecord {
 }
 
 model Person {
+  DeletionRequest_targetPersonRef DeletionRequest[] @relation("DeletionRequest_targetPersonRef")
   UsePermission_subjectPersonRef UsePermission[] @relation("UsePermission_subjectPersonRef")
   ExportDependency_personRef ExportDependency[] @relation("ExportDependency_personRef")
   ShortlistItem_personIdRef ShortlistItem[] @relation("ShortlistItem_personIdRef")
@@ -546,6 +552,7 @@ model MediaUpload {
 }
 
 model MediaAsset {
+  DeletionRequest_targetAssetRef DeletionRequest[] @relation("DeletionRequest_targetAssetRef")
   UsePermission_subjectAssetRef UsePermission[] @relation("UsePermission_subjectAssetRef")
   ExportDependency_assetRef ExportDependency[] @relation("ExportDependency_assetRef")
   WorkAsset_assetIdRef WorkAsset[] @relation("WorkAsset_assetIdRef")
@@ -581,6 +588,7 @@ model MediaAsset {
 
 
 model Work {
+  DeletionRequest_targetWorkRef DeletionRequest[] @relation("DeletionRequest_targetWorkRef")
   UsePermission_subjectWorkRef UsePermission[] @relation("UsePermission_subjectWorkRef")
   ExportDependency_workRef ExportDependency[] @relation("ExportDependency_workRef")
   ShortlistItem_workIdRef ShortlistItem[] @relation("ShortlistItem_workIdRef")
@@ -661,6 +669,7 @@ model WorkCredit {
 }
 
 model Project {
+  DeletionRequest_targetProjectRef DeletionRequest[] @relation("DeletionRequest_targetProjectRef")
   UsePermission_subjectProjectRef UsePermission[] @relation("UsePermission_subjectProjectRef")
   ExportDependency_projectRef ExportDependency[] @relation("ExportDependency_projectRef")
   ProjectWork_projectIdRef ProjectWork[] @relation("ProjectWork_projectIdRef")
@@ -904,5 +913,64 @@ model ExportDependency {
   @@index([workspaceId, sourceId, exportId], map: "exportDependencies_source_idx")
   @@index([workspaceId, usePermissionId], map: "exportDependencies_permission_idx")
   @@map("exportDependencies")
+}
+
+model DeletionRequest {
+  DeletionItem_requestRef DeletionItem[] @relation("DeletionItem_requestRef")
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  actorId String @db.Uuid
+  targetKind String @db.Text
+  targetId String @db.Uuid
+  targetSourceId String @db.Uuid
+  targetRevision Int
+  targetProtectionEpoch Int?
+  state String @db.Text
+  reason String @db.Text
+  previewDigest String @db.Text
+  impactCount Int
+  reviewRequiredCount Int
+  unresolvedCount Int
+  targetPersonId String? @db.Uuid
+  targetWorkId String? @db.Uuid
+  targetProjectId String? @db.Uuid
+  targetAssetId String? @db.Uuid
+  targetSourceSubjectId String? @db.Uuid
+  workspace Workspace @relation("DeletionRequest_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_workspace_fkey")
+  actorIdRef Membership @relation("DeletionRequest_actorIdRef", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_actorIdRef_fkey")
+  targetSourceIdRef SourceRecord @relation("DeletionRequest_targetSourceIdRef", fields: [workspaceId, targetSourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_targetSourceIdRef_fkey")
+  targetPersonRef Person? @relation("DeletionRequest_targetPersonRef", fields: [workspaceId, targetPersonId, targetSourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_targetPersonRef_fkey")
+  targetWorkRef Work? @relation("DeletionRequest_targetWorkRef", fields: [workspaceId, targetWorkId, targetSourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_targetWorkRef_fkey")
+  targetProjectRef Project? @relation("DeletionRequest_targetProjectRef", fields: [workspaceId, targetProjectId, targetSourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_targetProjectRef_fkey")
+  targetAssetRef MediaAsset? @relation("DeletionRequest_targetAssetRef", fields: [workspaceId, targetAssetId, targetSourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_targetAssetRef_fkey")
+  targetSourceSubjectRef SourceRecord? @relation("DeletionRequest_targetSourceSubjectRef", fields: [workspaceId, targetSourceSubjectId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_targetSourceSubjectRef_fkey")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, actorId, createdAt], map: "deletionRequests_actor_idx")
+  @@index([workspaceId, targetKind, targetId], map: "deletionRequests_target_idx")
+  @@map("deletionRequests")
+}
+
+model DeletionItem {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  requestId String @db.Uuid
+  resourceKind String @db.Text
+  resourceId String @db.Uuid
+  dependencyKind String @db.Text
+  proposedAction String @db.Text
+  evidenceState String @db.Text
+  detailCode String @db.Text
+  workspace Workspace @relation("DeletionItem_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "deletionItems_workspace_fkey")
+  requestRef DeletionRequest @relation("DeletionItem_requestRef", fields: [workspaceId, requestId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "deletionItems_requestRef_fkey")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, requestId, resourceKind, resourceId, dependencyKind, proposedAction], map: "deletionItems_exact_impact_key")
+  @@index([workspaceId, requestId, evidenceState], map: "deletionItems_request_idx")
+  @@map("deletionItems")
 }
 
