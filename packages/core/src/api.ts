@@ -1,3 +1,4 @@
+import { Maintenance } from './maintenance.ts';
 import { TalentSearch } from './talent-search.ts';
 import { Shortlists, shortlistFor } from './shortlists.ts';
 import { Portfolio } from './portfolio.ts';
@@ -63,6 +64,7 @@ export class Application {
     projects: Projects;
     shortlists: Shortlists;
     search: TalentSearch;
+    maintenance: Maintenance;
     constructor(store: Store, config: Config, clock: Clock = { now: () => new Date() }) {
         invariant(config.contactKey.length === 32 && config.csrfKey.length === 32, 'CONFIG_INVALID', '密钥必须为 32 字节', 503);
         const origin = new URL(config.origin);
@@ -78,6 +80,7 @@ export class Application {
         this.projects = new Projects(clock, this.talent);
         this.shortlists = new Shortlists(clock);
         this.search = new TalentSearch(clock);
+        this.maintenance = new Maintenance(clock);
         this.handoffs = new Handoffs(clock);
         this.media = new Media(store, clock, config);
         this.commands = new Commands(clock);
@@ -194,6 +197,7 @@ export class Application {
                     revision: number;
                 }>, target = id || null) => this.commands.execute(tx, actor, route.operation, request.headers['idempotency-key'] ?? '', target, data, kind, meta, execute, receipt => authorizeReceipt(tx, actor, receipt, this.clock), ['import.commit', 'job.resume', 'upload.complete'].includes(route.operation) ? 'ACCEPTED' : 'SUCCEEDED');
                 switch (route.operation) {
+                    case 'maintenance.impact': return this.maintenance.impact(tx, actor, query, meta);
                     case 'talent.search': return this.search.search(tx, actor, query);
                     case 'shortlist.list': return this.shortlists.list(tx, actor, query);
                     case 'shortlist.create': return command('shortlist', () => this.shortlists.create(tx, actor, data));
