@@ -354,9 +354,10 @@ test('DEV-07D manual proposed-action decision completes and freezes a non-execut
     const f = await fixture(), pid = await createPerson(f.owner, '按建议处置候选');
     const person = await get(f.owner, '/people/' + pid);
     const workId = (await ok(f.owner.cmd('POST', '/works', { title: '人工判断作品', inlineSource: sourceInput() }), 201)).resourceId as string;
-    const creditId = (await ok(f.owner.cmd('POST', '/works/' + workId + '/credits', {
+    await ok(f.owner.cmd('POST', '/works/' + workId + '/credits', {
         expectedRevision: 1, personId: pid, roleCode: 'model', note: '人工判断后按建议移除关系'
-    }))).resourceId as string;
+    }));
+    const creditId = f.store.rows('workCredits').find(x => x.workId === workId && x.personId === pid)!.id;
     const p = await preview(f, 'PERSON', pid, person.revision);
     const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
         targetKind: 'PERSON', targetId: pid, expectedRevision: person.revision,
