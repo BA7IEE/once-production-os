@@ -87,6 +87,12 @@ test('DEV-07A frozen JSON excludes unselected/sensitive fields and survives ordi
     const second = await ok(f.owner.raw('POST', '/exports/' + id + '/download', {}));
     assert.ok(JSON.stringify(second.payload).includes('导出候选甲'));
     assert.ok(!JSON.stringify(second.payload).includes('导出候选甲·后来改名'));
+    f.app.config.dataEgressMode = 'DISABLED';
+    state = await get(f.owner, '/exports/' + id);
+    assert.equal(state.effectiveState, 'READY');
+    assert.equal(state.downloadable, false);
+    assert.equal(state.blockedReason, 'EGRESS_DISABLED');
+    assert.equal((await f.owner.raw('POST', '/exports/' + id + '/download', {})).status, 503);
 });
 
 test('DEV-07A source suspension invalidates the entire old export download', async () => {
