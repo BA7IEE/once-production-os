@@ -28,6 +28,9 @@ export interface DeletionRequest extends Base {
     targetProjectId: string | null;
     targetAssetId: string | null;
     targetSourceSubjectId: string | null;
+    planDigest: string | null;
+    planFrozenAt: string | null;
+    planFrozenById: string | null;
 }
 
 export interface DeletionItem extends Base {
@@ -38,6 +41,13 @@ export interface DeletionItem extends Base {
     proposedAction: DeletionAction;
     evidenceState: DeletionEvidenceState;
     detailCode: string;
+    decision: 'PENDING' | 'APPLY_PROPOSED' | 'RETAIN_WITH_BASIS';
+    decisionReason: string;
+    retentionSourceId: string | null;
+    retentionSourceRevision: number | null;
+    retentionSourceProtectionEpoch: number | null;
+    decidedById: string | null;
+    decidedAt: string | null;
 }
 
 export const DELETION_LIMITS = Object.freeze({
