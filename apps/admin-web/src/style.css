@@ -18,3 +18,12 @@ fieldset{border:0;padding:0;margin:0;min-width:0}.wp-picker{padding:12px;border:
 .export-detail .detail-grid{margin:14px 0}.export-detail code{overflow-wrap:anywhere}
 @media(max-width:780px){.export-create-bar{align-items:stretch;flex-direction:column}.export-create-bar .primary{width:100%}}
 
+/* DEV-07B deletion impact preview; no destructive execution controls in this slice. */
+.deletion-target-row{grid-template-columns:minmax(150px,.7fr) minmax(260px,2fr) auto}
+.deletion-impact-results{display:grid;gap:18px;margin-top:20px}
+.deletion-impact-table small{display:block;overflow-wrap:anywhere}
+.deletion-freeze-box{border-top:1px solid var(--line);padding-top:18px}
+.deletion-freeze-box .primary{margin-top:8px}
+.deletion-request-detail{margin-top:18px}
+@media(max-width:780px){.deletion-target-row{grid-template-columns:1fr}.deletion-target-row .primary{width:100%}}
+
