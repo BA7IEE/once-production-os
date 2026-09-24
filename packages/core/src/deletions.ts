@@ -336,7 +336,7 @@ export class Deletions {
             detailCode: item.detailCode,
             decision: item.decision,
             decisionReason: item.decisionReason === 'AUTO_PROVEN' ? '' : item.decisionReason,
-            retentionSourceId: item.retentionSourceId,
+            retentionBasisPresent: item.retentionSourceId !== null,
             decidedAt: item.decidedAt
         }));
         return page(safe, query);
