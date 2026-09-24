@@ -1,6 +1,19 @@
 # 实际测试与验证记录
 
-## WP1｜当前分支
+## WP2｜结构化检索与内部候选清单
+
+详见 [WP2_SEARCH_SHORTLISTS.md](WP2_SEARCH_SHORTLISTS.md)。基线 `c349af4`（PR #5）；功能代码固定 head `3db6b1810ac46423eedf6f8ff91b57f1b766d95f`，PR #7。
+
+GitHub Actions [35985423108](https://github.com/BA7IEE/once-production-os/actions/runs/35985423108) 五项 job 全部实际成功：85 条请求契约；server/web/transport 类型检查与 API/Web 构建通过；核心/传输 **221/221**（MemoryStore）；真实 PostgreSQL **39/39**；原生表单 Chromium **6/6**；browser-resume、browser-handoff、browser-media、browser-production 均 success。
+
+browser-production 使用真实 Nest API、独立 Worker、PostgreSQL、Chromium 和真实 PNG 解码，跑通作品/项目既有链路，并新增“结构化搜索 → 内部清单 → 署名作品 → 作品图 → 协作备注”；暂停被选图片来源后整条候选变不可用占位，不回显姓名/备注；随后作品仍可解绑该图片，派生 shortlist 选图关系被清除而原 MediaAsset 与候选条目保留。
+
+本批新增 6 条 MemoryStore 核心用例和 7 条 PostgreSQL 子测试（含后续 FK 回归修复后的解绑语义）。首轮核验时效用例因 FakeClock 同时使 12 小时会话过期得到 401，改为重新登录后继续验证，不放宽会话。浏览器先后修正错误 locator 和父详情未关闭的测试步骤；随后真实 PG/浏览器发现 Shortlist FK 会阻断旧 WorkAsset 解绑，新增前向迁移修复并重新全链验证。
+
+没有访问用户本机数据库/密钥/真实人才资料，没有正式 COS、旧业务库升级、备份恢复或生产部署。FR-14 的行业/作品类型和 SQL 查询下推/负载仍未完成，不能把本节写成完整 DEV-06/M1 验收。
+
+
+## WP1｜历史作品/项目切片
 
 详见 [WP1_WORKS_PROJECTS.md](WP1_WORKS_PROJECTS.md)。基线 d775111；新迁移第五条、六张关系表、19条API，总请求契约76条。
 
