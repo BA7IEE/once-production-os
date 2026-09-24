@@ -84,6 +84,31 @@ test('DEV-07B hidden dependency is counted but not enumerated, and request creat
     assert.equal(result(create).error.code, 'DELETION_IMPACT_UNRESOLVED');
 });
 
+test('DEV-07B visible source does not enumerate child records whose own scope is hidden', async () => {
+    const f = await fixture(), other = await member(f, 'hidden_child_member');
+    const sourceId = (await ok(f.owner.cmd('POST', '/sources', sourceInput()), 201)).resourceId as string;
+    const workId = (await ok(f.owner.cmd('POST', '/works', { title: '同源但后来收窄的作品', sourceId }), 201)).resourceId as string;
+    const hiddenScopeId = randomUUID(), now = f.clock.now().toISOString();
+    await f.store.transaction(async tx => {
+        await tx.insert('scopes', { id: hiddenScopeId, workspaceId: f.workspaceId, createdAt: now, updatedAt: now, revision: 1, name: '仅其他成员', mode: 'RESTRICTED' });
+        await tx.insert('scopeMembers', { id: randomUUID(), workspaceId: f.workspaceId, createdAt: now, updatedAt: now, revision: 1, scopeId: hiddenScopeId, membershipId: other.membershipId });
+        const work = await tx.get('works', workId);
+        assert.ok(work);
+        await tx.replace('works', { ...work, scopeId: hiddenScopeId, revision: work.revision + 1, updatedAt: now });
+    });
+    const source = await get(f.owner, '/sources/' + sourceId);
+    const p = await preview(f, 'SOURCE', sourceId, source.revision);
+    assert.equal(p.complete, false);
+    assert.ok(p.unresolved.some((x: any) => x.code === 'HIDDEN_WORK_DEPENDENCY'));
+    assert.ok(!JSON.stringify(p).includes(workId));
+    const create = await f.owner.cmd('POST', '/deletion-requests', {
+        targetKind: 'SOURCE', targetId: sourceId, expectedRevision: source.revision,
+        previewDigest: p.previewDigest, reason: '合成测试：隐藏子对象存在时不能冻结删除申请'
+    });
+    assert.equal(create.status, 409);
+    assert.equal(result(create).error.code, 'DELETION_IMPACT_UNRESOLVED');
+});
+
 test('DEV-07B source preview reaches owned records, relations, permissions and frozen exports', async () => {
     const f = await fixture();
     const sourceId = (await ok(f.owner.cmd('POST', '/sources', sourceInput()), 201)).resourceId as string;
