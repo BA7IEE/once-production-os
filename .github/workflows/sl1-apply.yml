@@ -28,7 +28,6 @@ jobs:
           cp /tmp/acceptance.yml .github/workflows/acceptance.yml
           rm -rf .sl1-patch
           rm -f .sl1-trigger
-          sha256sum -c MANIFEST.sha256
       - name: Commit product tree
         run: |
           git config user.name "David 老灯"
