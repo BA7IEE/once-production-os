@@ -1,3 +1,4 @@
+import { shortlistFor } from './shortlists.ts';
 import { workFor, projectFor } from './production-policy.ts';
 import { uploadFor, assetFor } from './media.ts';
 import type { Actor, Clock, CommandReceipt } from './model.ts';
@@ -11,6 +12,9 @@ import { personFor, sourceFor, sourceCurrent, requireScope, requirePermission } 
 export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandReceipt, clock: Clock): Promise<void> {
     const id = receipt.resourceId;
     switch (receipt.resourceKind) {
+        case 'shortlist':
+            await shortlistFor(tx, actor, id);
+            return;
         case 'work':
             await workFor(tx, actor, id, clock);
             return;
