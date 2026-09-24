@@ -766,7 +766,7 @@ model ShortlistItemAsset {
   position Int
   workspace Workspace @relation("ShortlistItemAsset_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "shortlistItemAssets_workspace_fkey")
   itemRef ShortlistItem @relation("ShortlistItemAsset_itemRef", fields: [workspaceId, itemId, workId], references: [workspaceId, id, workId], onDelete: Restrict, onUpdate: Cascade, map: "shortlistItemAssets_itemRef_fkey")
-  workAssetRef WorkAsset @relation("ShortlistItemAsset_workAssetRef", fields: [workspaceId, workId, workAssetId, assetId], references: [workspaceId, workId, id, assetId], onDelete: Restrict, onUpdate: Cascade, map: "shortlistItemAssets_workAssetRef_fkey")
+  workAssetRef WorkAsset @relation("ShortlistItemAsset_workAssetRef", fields: [workspaceId, workId, workAssetId, assetId], references: [workspaceId, workId, id, assetId], onDelete: Cascade, onUpdate: Cascade, map: "shortlistItemAssets_workAssetRef_fkey")
   @@unique([workspaceId, id])
   @@unique([workspaceId, itemId, workAssetId], map: "shortlistItemAssets_workspaceId_itemId_workAssetId_key")
   @@unique([workspaceId, itemId, position], map: "shortlistItemAssets_workspaceId_itemId_position_key")
