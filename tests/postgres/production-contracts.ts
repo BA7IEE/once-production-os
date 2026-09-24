@@ -357,4 +357,85 @@ export async function runProductionContracts(t: TestContext, c: Context) {
         });
     }
 
+    await t.test('DEV-07B PG deletion target/source shape and unresolved-count constraints are enforced by DB', async () => {
+        const person = await a.person.findUniqueOrThrow({ where: { id: personId } });
+        const foreignSource = (await ok(ownerA.cmd('POST', '/sources', sourceInput()), 201)).resourceId as string;
+        const now = clock.now();
+        const base = {
+            id: randomUUID(), workspaceId: identity.workspaceId, createdAt: now, updatedAt: now, revision: 1,
+            actorId: identity.membershipId, targetKind: 'PERSON', targetId: personId, targetSourceId: foreignSource,
+            targetRevision: person.revision, targetProtectionEpoch: person.protectionEpoch, state: 'DRAFT',
+            reason: 'synthetic wrong-source deletion request', previewDigest: 'a'.repeat(64),
+            impactCount: 0, reviewRequiredCount: 0, unresolvedCount: 0,
+            targetPersonId: personId, targetWorkId: null, targetProjectId: null, targetAssetId: null, targetSourceSubjectId: null
+        };
+        await assert.rejects(a.deletionRequest.create({ data: base }));
+        await assert.rejects(a.deletionRequest.create({ data: { ...base, id: randomUUID(), targetSourceId: person.sourceId, unresolvedCount: 1 } }));
+    });
+
+    await t.test('DEV-07B PG preview freezes exact visible impacts without blocking the target', async () => {
+        const person = await a.person.findUniqueOrThrow({ where: { id: personId } });
+        const w = await root('works');
+        await modify('/works/' + w, '/credits', { personId, roleCode: 'model', note: 'synthetic deletion impact note' });
+        const previewResponse = await ownerA.raw('POST', '/deletion-requests/preview', {
+            targetKind: 'PERSON', targetId: personId, expectedRevision: person.revision
+        });
+        assert.equal(previewResponse.status, 200, JSON.stringify(previewResponse.body));
+        const preview = result(previewResponse);
+        assert.equal(preview.complete, true);
+        assert.ok(preview.impactCount >= 1);
+        const created = await ok(ownerA.cmd('POST', '/deletion-requests', {
+            targetKind: 'PERSON', targetId: personId, expectedRevision: person.revision,
+            previewDigest: preview.previewDigest, reason: 'synthetic freeze deletion impact only'
+        }), 201);
+        const requestId = created.resourceId as string;
+        const row = await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } });
+        assert.equal(row.state, 'DRAFT');
+        assert.equal(row.unresolvedCount, 0);
+        assert.equal(await a.deletionItem.count({ where: { requestId } }), preview.impactCount);
+        assert.ok(await a.person.findUnique({ where: { id: personId } }));
+        const detail = result(await ownerA.raw('GET', '/deletion-requests/' + requestId));
+        assert.equal(detail.executionAvailable, false);
+        assert.ok(!JSON.stringify(detail).includes(w));
+    });
+
+    for (const stage of ['deletionRequests', 'deletionItems', 'audits', 'receipts'] as const) {
+        await t.test('DEV-07B PG draft deletion create rolls back after ' + stage, async () => {
+            const person = await a.person.findUniqueOrThrow({ where: { id: personId } });
+            const p = result(await ownerA.raw('POST', '/deletion-requests/preview', {
+                targetKind: 'PERSON', targetId: personId, expectedRevision: person.revision
+            }));
+            assert.ok(p.impactCount > 0);
+            const before = {
+                requests: await a.deletionRequest.count(),
+                items: await a.deletionItem.count(),
+                audits: await a.auditEvent.count(),
+                receipts: await a.commandReceipt.count()
+            };
+            const faults = new FaultStore(storeA);
+            let fired = false;
+            faults.afterInsert = table => {
+                if (table === stage && !fired) {
+                    fired = true;
+                    throw new Error('DEV07B deliberate draft deletion failure');
+                }
+            };
+            const app = new Application(faults, config, clock), client = new Client(app);
+            client.jar = { ...ownerA.jar }; client.csrf = ownerA.csrf;
+            const body = { targetKind: 'PERSON', targetId: personId, expectedRevision: person.revision,
+                previewDigest: p.previewDigest, reason: 'synthetic rollback draft deletion ' + stage };
+            const key = randomUUID(), failed = await client.cmd('POST', '/deletion-requests', body, key);
+            assert.ok(failed.status >= 500, JSON.stringify(failed.body));
+            assert.ok(fired);
+            assert.equal(await a.deletionRequest.count(), before.requests);
+            assert.equal(await a.deletionItem.count(), before.items);
+            assert.equal(await a.auditEvent.count(), before.audits);
+            assert.equal(await a.commandReceipt.count(), before.receipts);
+            const success = await ok(ownerA.cmd('POST', '/deletion-requests', body, key), 201);
+            assert.ok(success.resourceId);
+            assert.equal(await a.deletionRequest.count(), before.requests + 1);
+            assert.equal(await a.commandReceipt.count({ where: { commandKey: key, operation: 'deletion.create' } }), 1);
+        });
+    }
+
 }
