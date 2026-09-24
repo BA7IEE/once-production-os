@@ -255,12 +255,33 @@ try {
  assert.equal(await getStatus(owner,'/projects/'+projectId),200);
  owner.once('dialog',dialog=>void dialog.accept());
  await writeUI(owner,'POST','/deletion-requests/'+blockRequestId+'/block',()=>blockDetail.getByRole('button',{name:'阻断正常使用',exact:true}).click());
- await blockDetail.getByText('已阻断正常使用，尚未物理清理',{exact:true}).waitFor();
+ await blockDetail.getByText('已阻断正常使用；正在做保留决定',{exact:true}).waitFor();
  assert.equal(await prisma.deletionRequest.count({where:{id:blockRequestId,state:'BLOCKED_FOR_USE'}}),1);
  assert.equal(await getStatus(owner,'/projects/'+projectId),404);
  assert.ok(!(await json(owner,'/projects')).items.some(x=>x.id===projectId));
  assert.equal(await prisma.project.count({where:{id:projectId}}),1);
  assert.equal(await owner.getByRole('button',{name:/开始清理|立即删除|执行删除/}).count(),0);
  console.log('PASS DEV-07C browser: DRAFT -> BLOCKED_FOR_USE hides project while preserving underlying row and no cleanup action exists');
+
+ // DEV-07D: resolve REVIEW_REQUIRED slots and freeze a cleanup plan without executing it.
+ await blockDetail.getByRole('button',{name:'做决定',exact:true}).first().click();
+ f=await dialogReady(owner,'记录保留决定');
+ await f.getByLabel('本项决定',{exact:true}).selectOption('APPLY_PROPOSED');
+ await f.getByLabel('决定说明',{exact:true}).fill('合成测试：已核对项目参与备注，按系统建议处理，不保留该关系');
+ await writeUI(owner,'POST','/deletion-requests/'+blockRequestId+'/decisions',()=>f.getByRole('button',{name:'保存决定',exact:true}).click());
+ await blockDetail.getByText('按建议处置',{exact:true}).first().waitFor();
+ assert.equal((await json(owner,'/deletion-requests/'+blockRequestId)).pendingDecisionCount,0);
+ owner.once('dialog',dialog=>void dialog.accept());
+ await writeUI(owner,'POST','/deletion-requests/'+blockRequestId+'/plan/freeze',()=>blockDetail.getByRole('button',{name:'冻结清理计划',exact:true}).click());
+ await blockDetail.getByText('计划已冻结',{exact:true}).waitFor();
+ const frozenPlan=await prisma.deletionRequest.findUniqueOrThrow({where:{id:blockRequestId}});
+ assert.equal(frozenPlan.state,'BLOCKED_FOR_USE');
+ assert.equal(frozenPlan.planDigest?.length,64);
+ assert.ok(frozenPlan.planFrozenAt);
+ assert.equal(await prisma.project.count({where:{id:projectId}}),1);
+ assert.equal(await prisma.projectParticipant.count({where:{projectId}}),1);
+ assert.equal(await prisma.projectWork.count({where:{projectId}}),1);
+ assert.equal(await owner.getByRole('button',{name:/开始清理|立即删除|执行删除/}).count(),0);
+ console.log('PASS DEV-07D browser: REVIEW_REQUIRED decision -> frozen plan; underlying project relations remain and no cleanup execution exists');
  assert.deepEqual(errors,[]);
 } finally {if(browser)await browser.close();await stop(worker);await stop(api);await prisma.$disconnect();rmSync(tmp,{recursive:true,force:true});}
