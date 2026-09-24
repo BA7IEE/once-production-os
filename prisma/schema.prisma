@@ -9,6 +9,9 @@ datasource db {
 }
 
 model Workspace {
+  UsePermission_workspace UsePermission[] @relation("UsePermission_workspace")
+  ExportJob_workspace ExportJob[] @relation("ExportJob_workspace")
+  ExportDependency_workspace ExportDependency[] @relation("ExportDependency_workspace")
   Shortlist_workspace Shortlist[] @relation("Shortlist_workspace")
   ShortlistItem_workspace ShortlistItem[] @relation("ShortlistItem_workspace")
   ShortlistItemAsset_workspace ShortlistItemAsset[] @relation("ShortlistItemAsset_workspace")
@@ -66,6 +69,8 @@ model User {
 }
 
 model Membership {
+  UsePermission_reviewerIdRef UsePermission[] @relation("UsePermission_reviewerIdRef")
+  ExportJob_actorIdRef ExportJob[] @relation("ExportJob_actorIdRef")
   Shortlist_maintainerIdRef Shortlist[] @relation("Shortlist_maintainerIdRef")
   Project_maintainerIdRef Project[] @relation("Project_maintainerIdRef")
   Work_maintainerIdRef Work[] @relation("Work_maintainerIdRef")
@@ -187,6 +192,10 @@ model ScopeMember {
 }
 
 model SourceRecord {
+  UsePermission_sourceIdRef UsePermission[] @relation("UsePermission_sourceIdRef")
+  UsePermission_subjectSourceRef UsePermission[] @relation("UsePermission_subjectSourceRef")
+  ExportDependency_sourceIdRef ExportDependency[] @relation("ExportDependency_sourceIdRef")
+  ExportDependency_sourceSubjectRef ExportDependency[] @relation("ExportDependency_sourceSubjectRef")
   Project_sourceIdRef Project[] @relation("Project_sourceIdRef")
   Work_sourceIdRef Work[] @relation("Work_sourceIdRef")
   MediaUpload_sourceIdRef MediaUpload[] @relation("MediaUpload_sourceIdRef")
@@ -228,6 +237,8 @@ model SourceRecord {
 }
 
 model Person {
+  UsePermission_subjectPersonRef UsePermission[] @relation("UsePermission_subjectPersonRef")
+  ExportDependency_personRef ExportDependency[] @relation("ExportDependency_personRef")
   ShortlistItem_personIdRef ShortlistItem[] @relation("ShortlistItem_personIdRef")
   ProjectParticipant_personIdRef ProjectParticipant[] @relation("ProjectParticipant_personIdRef")
   WorkCredit_personIdRef WorkCredit[] @relation("WorkCredit_personIdRef")
@@ -259,6 +270,7 @@ model Person {
   Contact_personIdRef Contact[] @relation("Contact_personIdRef")
   FieldEvidence_personIdRef FieldEvidence[] @relation("FieldEvidence_personIdRef")
   @@unique([workspaceId, id])
+  @@unique([workspaceId, id, sourceId], map: "people_workspaceId_id_sourceId_key")
   @@index([workspaceId, createdAt], map: "people_idx_0")
   @@index([workspaceId, sourceId], map: "people_idx_1")
   @@index([workspaceId, scopeId], map: "people_idx_2")
@@ -534,6 +546,8 @@ model MediaUpload {
 }
 
 model MediaAsset {
+  UsePermission_subjectAssetRef UsePermission[] @relation("UsePermission_subjectAssetRef")
+  ExportDependency_assetRef ExportDependency[] @relation("ExportDependency_assetRef")
   WorkAsset_assetIdRef WorkAsset[] @relation("WorkAsset_assetIdRef")
   id String @db.Uuid @id
   workspaceId String @db.Uuid
@@ -560,12 +574,15 @@ model MediaAsset {
   scopeIdRef AccessScope @relation("MediaAsset_scopeIdRef", fields: [workspaceId, scopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "assets_scopeIdRef_fkey")
   personIdRef Person? @relation("MediaAsset_personIdRef", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "assets_personIdRef_fkey")
   @@unique([workspaceId, id])
+  @@unique([workspaceId, id, sourceId], map: "assets_workspaceId_id_sourceId_key")
   @@index([workspaceId, sourceId, personId], map: "assets_lookup_idx")
   @@map("assets")
 }
 
 
 model Work {
+  UsePermission_subjectWorkRef UsePermission[] @relation("UsePermission_subjectWorkRef")
+  ExportDependency_workRef ExportDependency[] @relation("ExportDependency_workRef")
   ShortlistItem_workIdRef ShortlistItem[] @relation("ShortlistItem_workIdRef")
   ProjectWork_workIdRef ProjectWork[] @relation("ProjectWork_workIdRef")
   WorkCredit_workIdRef WorkCredit[] @relation("WorkCredit_workIdRef")
@@ -588,6 +605,7 @@ model Work {
   coverEntryId String? @db.Uuid
   workspace Workspace @relation("Work_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "works_workspace_fkey")
   @@unique([workspaceId, id])
+  @@unique([workspaceId, id, sourceId], map: "works_workspaceId_id_sourceId_key")
   @@index([workspaceId, createdAt], map: "works_wp1_created_idx")
   sourceIdRef SourceRecord @relation("Work_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "works_sourceIdRef_fkey")
   scopeIdRef AccessScope @relation("Work_scopeIdRef", fields: [workspaceId, scopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "works_scopeIdRef_fkey")
@@ -643,6 +661,8 @@ model WorkCredit {
 }
 
 model Project {
+  UsePermission_subjectProjectRef UsePermission[] @relation("UsePermission_subjectProjectRef")
+  ExportDependency_projectRef ExportDependency[] @relation("ExportDependency_projectRef")
   ProjectWork_projectIdRef ProjectWork[] @relation("ProjectWork_projectIdRef")
   ProjectParticipant_projectIdRef ProjectParticipant[] @relation("ProjectParticipant_projectIdRef")
   id String @id @db.Uuid
@@ -661,6 +681,7 @@ model Project {
   status String @db.Text
   workspace Workspace @relation("Project_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "projects_workspace_fkey")
   @@unique([workspaceId, id])
+  @@unique([workspaceId, id, sourceId], map: "projects_workspaceId_id_sourceId_key")
   @@index([workspaceId, createdAt], map: "projects_wp1_created_idx")
   sourceIdRef SourceRecord @relation("Project_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "projects_sourceIdRef_fkey")
   scopeIdRef AccessScope @relation("Project_scopeIdRef", fields: [workspaceId, scopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "projects_scopeIdRef_fkey")
@@ -775,5 +796,113 @@ model ShortlistItemAsset {
   @@unique([workspaceId, itemId, position], map: "shortlistItemAssets_workspaceId_itemId_position_key")
   @@index([workspaceId, assetId], map: "shortlistItemAssets_dev06_asset_idx")
   @@map("shortlistItemAssets")
+}
+
+model UsePermission {
+  ExportDependency_usePermissionRef ExportDependency[] @relation("ExportDependency_usePermissionRef")
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  sourceId String @db.Uuid
+  subjectKind String @db.Text
+  subjectId String @db.Uuid
+  purpose String @db.Text
+  fields String[]
+  validFrom DateTime @db.Timestamptz(3)
+  validUntil DateTime @db.Timestamptz(3)
+  status String @db.Text
+  evidenceNote String @db.Text
+  reviewerId String @db.Uuid
+  subjectPersonId String? @db.Uuid
+  subjectWorkId String? @db.Uuid
+  subjectProjectId String? @db.Uuid
+  subjectAssetId String? @db.Uuid
+  subjectSourceId String? @db.Uuid
+  workspace Workspace @relation("UsePermission_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_workspace_fkey")
+  sourceIdRef SourceRecord @relation("UsePermission_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_sourceIdRef_fkey")
+  reviewerIdRef Membership @relation("UsePermission_reviewerIdRef", fields: [workspaceId, reviewerId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_reviewerIdRef_fkey")
+  subjectPersonRef Person? @relation("UsePermission_subjectPersonRef", fields: [workspaceId, subjectPersonId, sourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_subjectPersonRef_fkey")
+  subjectWorkRef Work? @relation("UsePermission_subjectWorkRef", fields: [workspaceId, subjectWorkId, sourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_subjectWorkRef_fkey")
+  subjectProjectRef Project? @relation("UsePermission_subjectProjectRef", fields: [workspaceId, subjectProjectId, sourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_subjectProjectRef_fkey")
+  subjectAssetRef MediaAsset? @relation("UsePermission_subjectAssetRef", fields: [workspaceId, subjectAssetId, sourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_subjectAssetRef_fkey")
+  subjectSourceRef SourceRecord? @relation("UsePermission_subjectSourceRef", fields: [workspaceId, subjectSourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_subjectSourceRef_fkey")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, id, sourceId], map: "usePermissions_workspaceId_id_sourceId_key")
+  @@index([workspaceId, sourceId, status], map: "usePermissions_export_source_idx")
+  @@index([workspaceId, subjectKind, subjectId], map: "usePermissions_export_subject_idx")
+  @@map("usePermissions")
+}
+
+model ExportJob {
+  ExportDependency_exportRef ExportDependency[] @relation("ExportDependency_exportRef")
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  actorId String @db.Uuid
+  format String @db.Text
+  schemaVersion String @db.Text
+  state String @db.Text
+  recordManifest Json @db.JsonB
+  fields String[]
+  usePermissionRefs String[]
+  payload Json? @db.JsonB
+  payloadDigest String? @db.Text
+  expiresAt DateTime @db.Timestamptz(3)
+  errorCode String? @db.Text
+  leaseToken String? @db.Uuid
+  leaseUntil DateTime? @db.Timestamptz(3)
+  attempts Int
+  workspace Workspace @relation("ExportJob_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "exports_workspace_fkey")
+  actorIdRef Membership @relation("ExportJob_actorIdRef", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "exports_actorIdRef_fkey")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, actorId, createdAt], map: "exports_actor_idx")
+  @@index([workspaceId, state, leaseUntil], map: "exports_worker_idx")
+  @@map("exports")
+}
+
+model ExportDependency {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  exportId String @db.Uuid
+  kind String @db.Text
+  sourceId String @db.Uuid
+  sourceRevision Int
+  sourceProtectionEpoch Int
+  resourceRevision Int
+  resourceProtectionEpoch Int?
+  fields String[]
+  usePermissionId String @db.Uuid
+  usePermissionRevision Int
+  validUntil DateTime @db.Timestamptz(3)
+  personId String? @db.Uuid
+  workId String? @db.Uuid
+  projectId String? @db.Uuid
+  assetId String? @db.Uuid
+  sourceSubjectId String? @db.Uuid
+  workspace Workspace @relation("ExportDependency_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "exportDependencies_workspace_fkey")
+  exportRef ExportJob @relation("ExportDependency_exportRef", fields: [workspaceId, exportId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "exportDependencies_exportRef_fkey")
+  sourceIdRef SourceRecord @relation("ExportDependency_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "exportDependencies_sourceIdRef_fkey")
+  usePermissionRef UsePermission @relation("ExportDependency_usePermissionRef", fields: [workspaceId, usePermissionId, sourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "exportDependencies_usePermissionRef_fkey")
+  personRef Person? @relation("ExportDependency_personRef", fields: [workspaceId, personId, sourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "exportDependencies_personRef_fkey")
+  workRef Work? @relation("ExportDependency_workRef", fields: [workspaceId, workId, sourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "exportDependencies_workRef_fkey")
+  projectRef Project? @relation("ExportDependency_projectRef", fields: [workspaceId, projectId, sourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "exportDependencies_projectRef_fkey")
+  assetRef MediaAsset? @relation("ExportDependency_assetRef", fields: [workspaceId, assetId, sourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "exportDependencies_assetRef_fkey")
+  sourceSubjectRef SourceRecord? @relation("ExportDependency_sourceSubjectRef", fields: [workspaceId, sourceSubjectId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "exportDependencies_sourceSubjectRef_fkey")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, exportId, personId], map: "exportDependencies_export_person_key")
+  @@unique([workspaceId, exportId, workId], map: "exportDependencies_export_work_key")
+  @@unique([workspaceId, exportId, projectId], map: "exportDependencies_export_project_key")
+  @@unique([workspaceId, exportId, assetId], map: "exportDependencies_export_asset_key")
+  @@unique([workspaceId, exportId, sourceSubjectId], map: "exportDependencies_export_source_key")
+  @@index([workspaceId, sourceId, exportId], map: "exportDependencies_source_idx")
+  @@index([workspaceId, usePermissionId], map: "exportDependencies_permission_idx")
+  @@map("exportDependencies")
 }
 

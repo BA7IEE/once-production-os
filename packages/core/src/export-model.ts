@@ -21,6 +21,11 @@ export interface UsePermission extends Base {
     status: 'ACTIVE' | 'REVOKED';
     evidenceNote: string;
     reviewerId: string;
+    subjectPersonId: string | null;
+    subjectWorkId: string | null;
+    subjectProjectId: string | null;
+    subjectAssetId: string | null;
+    subjectSourceId: string | null;
 }
 
 export interface ExportJob extends Base {
@@ -35,6 +40,9 @@ export interface ExportJob extends Base {
     payloadDigest: string | null;
     expiresAt: string;
     errorCode: string | null;
+    leaseToken: string | null;
+    leaseUntil: string | null;
+    attempts: number;
 }
 
 export interface ExportDependency extends Base {

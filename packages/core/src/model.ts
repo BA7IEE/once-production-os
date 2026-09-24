@@ -170,7 +170,7 @@ export interface ImportRow {
     personId: string | null;
 }
 export interface DurableJob extends Base {
-    type: 'IMPORT_PEOPLE' | 'EXPORT_JSON';
+    type: 'IMPORT_PEOPLE';
     actorId: string;
     aggregateId: string;
     selectedRows: number[];
