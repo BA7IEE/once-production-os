@@ -34,10 +34,10 @@ function targetRefs(kind: DeletionTargetKind, id: string) {
 function impactKey(i: Impact) { return [i.resourceKind, i.resourceId, i.dependencyKind, i.proposedAction].join(':'); }
 
 export class Deletions {
-    store: Store;
+    store: Store | null;
     clock: Clock;
-    config: Config;
-    constructor(store: Store, clock: Clock, config: Config) { this.store = store; this.clock = clock; this.config = config; }
+    config: Config | null;
+    constructor(store: Store | null, clock: Clock, config: Config | null) { this.store = store; this.clock = clock; this.config = config; }
 
     private async target(tx: Tx, actor: Actor, kind: DeletionTargetKind, id: string) {
         if (kind === 'SOURCE') {
