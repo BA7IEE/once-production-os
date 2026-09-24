@@ -113,6 +113,24 @@ function AddCandidate({ person, list, catalog, onClose, onDone }: {
     </Modal>;
 }
 
+function EditShortlist({ list, onClose, onDone }: {
+    list: ShortlistDetail;
+    onClose: () => void;
+    onDone: () => void;
+}) {
+    const [title, setTitle] = useState(list.title), [brief, setBrief] = useState(list.brief);
+    const command = useCommand(() => onDone());
+    return <Modal title="编辑候选清单" onClose={() => { if (!command.busy && !command.unknown) onClose(); }}>
+        <form onSubmit={e => { e.preventDefault(); void command.submit('shortlist.update', { expectedRevision: list.revision, title, brief }, { id: list.id }); }}>
+            <div className="modal-body"><CommandState command={command}/><fieldset disabled={command.busy || command.unknown}>
+                <Field label="清单标题"><input required maxLength={160} value={title} onChange={e => setTitle(e.target.value)}/></Field>
+                <Field label="需求简述" hint="只写内部筛选需求；报价、档期、客户确认和预订不属于本清单。"><textarea maxLength={5000} rows={6} value={brief} onChange={e => setBrief(e.target.value)}/></Field>
+            </fieldset></div>
+            <footer className="modal-footer"><button type="button" disabled={command.busy || command.unknown} onClick={onClose}>取消</button><Submit busy={command.busy}>保存清单</Submit></footer>
+        </form>
+    </Modal>;
+}
+
 function EditNote({ list, item, onClose, onDone }: {
     list: ShortlistDetail;
     item: Exclude<ShortlistItem, { unavailable: true }>;
@@ -130,7 +148,7 @@ function EditNote({ list, item, onClose, onDone }: {
 }
 
 function ShortlistDetailPanel({ id, catalog, onChanged }: { id: string; catalog: CatalogItem[]; onChanged: () => void }) {
-    const [tick, setTick] = useState(0), [edit, setEdit] = useState<Exclude<ShortlistItem, { unavailable: true }> | null>(null);
+    const [tick, setTick] = useState(0), [edit, setEdit] = useState<Exclude<ShortlistItem, { unavailable: true }> | null>(null), [editingRoot, setEditingRoot] = useState(false);
     const load = useLoad(() => read<ShortlistDetail>('shortlist.get', { id }), id + ':' + tick);
     const command = useCommand(() => { setTick(x => x + 1); onChanged(); });
     const list = load.data;
@@ -143,7 +161,7 @@ function ShortlistDetailPanel({ id, catalog, onChanged }: { id: string; catalog:
         [ids[index], ids[target]] = [ids[target]!, ids[index]!];
         void command.submit('shortlist.reorder', { expectedRevision: list.revision, entryIds: ids }, { id: list.id });
     };
-    return <section className="panel sl-detail"><div className="panel-heading"><div><h2>{list?.title ?? '候选清单'}</h2><p>{list?.brief || '暂无需求简述'}</p></div><button onClick={() => setTick(x => x + 1)}>刷新</button></div>
+    return <section className="panel sl-detail"><div className="panel-heading"><div><h2>{list?.title ?? '候选清单'}</h2><p>{list?.brief || '暂无需求简述'}</p></div><div className="button-row">{list?.canEdit && <button onClick={() => setEditingRoot(true)}>编辑清单</button>}<button onClick={() => setTick(x => x + 1)}>刷新</button></div></div>
         <div className="padded"><CommandState command={command}/><ErrorBox error={load.error}/>{load.busy && <p>正在按当前权限读取候选条目…</p>}
             {list && !list.items.length && <Empty title="这份清单还没有候选人">从上方检索结果中加入人才，可以只加人，也可以同时挑选署名作品和作品图。</Empty>}
             {list?.items.map((item, index) => item.unavailable ? <article className="sl-item unavailable" key={item.id}>
@@ -156,7 +174,8 @@ function ShortlistDetailPanel({ id, catalog, onChanged }: { id: string; catalog:
                 <p className="pre-line">{item.note || '暂无内部备注'}</p>
                 {list.canEdit && <div className="wp-buttons"><button disabled={command.busy || index === 0} onClick={() => reorder(index, -1)}>上移</button><button disabled={command.busy || index === list.items.length - 1} onClick={() => reorder(index, 1)}>下移</button><button disabled={command.busy} onClick={() => setEdit(item)}>编辑备注</button><button className="danger" disabled={command.busy} onClick={() => void command.submit('shortlist.itemRemove', { expectedRevision: list.revision, entryId: item.id }, { id: list.id })}>移除</button></div>}
             </article>)}
-        </div>{edit && list && <EditNote list={list} item={edit} onClose={() => setEdit(null)} onDone={() => { setEdit(null); setTick(x => x + 1); onChanged(); }}/>}
+        </div>{editingRoot && list && <EditShortlist list={list} onClose={() => setEditingRoot(false)} onDone={() => { setEditingRoot(false); setTick(x => x + 1); onChanged(); }}/>}
+        {edit && list && <EditNote list={list} item={edit} onClose={() => setEdit(null)} onDone={() => { setEdit(null); setTick(x => x + 1); onChanged(); }}/>}
     </section>;
 }
 
