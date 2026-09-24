@@ -1,0 +1,45 @@
+name: SL1 apply reviewed patch
+
+on:
+  push:
+    branches: [dev/sl1-source-snapshot]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: contains(github.event.head_commit.message, 'trigger SL1 apply')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22.22.3
+      - name: Reassemble reviewed patch
+        run: |
+          cat .sl1/patch.00 .sl1/patch.01 .sl1/patch.02 .sl1/patch.03 .sl1/patch.04 > /tmp/sl1.patch.gz.b64
+          echo "69d1be2c6fe88e5b5a29768bf677d8a0ba4777e528d2f46bfd9570c483ade8ee  /tmp/sl1.patch.gz.b64" | sha256sum -c -
+          base64 -d /tmp/sl1.patch.gz.b64 | gunzip > /tmp/sl1.patch
+          echo "55bd90f2092c00844df025af76c3fa5311b10f5160e2c57f950850fbff4af8c0  /tmp/sl1.patch" | sha256sum -c -
+      - name: Apply only onto pinned WP1 head
+        run: |
+          git fetch origin feat/internal-shortlists
+          git switch -C feat/internal-shortlists origin/feat/internal-shortlists
+          test "$(git rev-parse HEAD)" = "c349af4f3cb8515c619f50836d79bac828aad34b"
+          patch -p1 --forward --batch < /tmp/sl1.patch
+          node --experimental-strip-types scripts/generate-contract.ts --check
+          node --experimental-strip-types --test --test-concurrency=1 tests/core/shortlists.test.ts
+      - name: Refresh fingerprints, commit and push
+        run: |
+          find . -type f ! -path './MANIFEST.sha256' ! -path './node_modules/*' ! -path './.git/*' -print0 | sort -z | xargs -0 sha256sum > MANIFEST.sha256
+          sha256sum -c MANIFEST.sha256
+          git add -A
+          git diff --cached --check
+          git config user.name "David 老灯"
+          git config user.email "32892836+BA7IEE@users.noreply.github.com"
+          git commit -m "feat(shortlists): add internal project candidate lists"
+          git push origin HEAD:feat/internal-shortlists
