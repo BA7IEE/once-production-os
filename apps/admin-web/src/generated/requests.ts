@@ -1,5 +1,16 @@
 // Generated from packages/core/src/routes.ts and validation.ts. Do not edit.
 export interface Inputs {
+  "shortlist.list": undefined;
+  "shortlist.create": { "projectId": string; "title": string; "brief"?: string };
+  "shortlist.get": undefined;
+  "shortlist.update": { "expectedRevision": number; "title"?: string; "brief"?: string; "status"?: "DRAFT" | "ACTIVE" | "ARCHIVED" };
+  "shortlist.personAdd": { "expectedRevision": number; "personId": string; "groupLabel"?: string; "state"?: "CANDIDATE" | "PRIORITY" | "CONTACTED" | "NOT_SUITABLE"; "note"?: string };
+  "shortlist.personUpdate": { "expectedRevision": number; "entryId": string; "groupLabel"?: string; "state"?: "CANDIDATE" | "PRIORITY" | "CONTACTED" | "NOT_SUITABLE"; "note"?: string };
+  "shortlist.personRemove": { "expectedRevision": number; "entryId": string };
+  "shortlist.peopleReorder": { "expectedRevision": number; "entryIds": Array<string> };
+  "shortlist.workAdd": { "expectedRevision": number; "workId": string; "note"?: string };
+  "shortlist.workRemove": { "expectedRevision": number; "entryId": string };
+  "shortlist.worksReorder": { "expectedRevision": number; "entryIds": Array<string> };
   "work.list": undefined;
   "work.create": { "title": string; "sourceId"?: string; "inlineSource"?: { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string }; "description"?: string; "origin"?: "ONCE" | "EXTERNAL" | "UNKNOWN"; "originNote"?: string };
   "work.get": undefined;
@@ -78,6 +89,61 @@ export interface Inputs {
   "audit.list": undefined;
 }
 export const ENDPOINTS = {
+  "shortlist.list": {
+    "method": "GET",
+    "path": "/shortlists",
+    "mode": "READ"
+  },
+  "shortlist.create": {
+    "method": "POST",
+    "path": "/shortlists",
+    "mode": "COMMAND"
+  },
+  "shortlist.get": {
+    "method": "GET",
+    "path": "/shortlists/{id}",
+    "mode": "READ"
+  },
+  "shortlist.update": {
+    "method": "PATCH",
+    "path": "/shortlists/{id}",
+    "mode": "COMMAND"
+  },
+  "shortlist.personAdd": {
+    "method": "POST",
+    "path": "/shortlists/{id}/people",
+    "mode": "COMMAND"
+  },
+  "shortlist.personUpdate": {
+    "method": "POST",
+    "path": "/shortlists/{id}/people/update",
+    "mode": "COMMAND"
+  },
+  "shortlist.personRemove": {
+    "method": "POST",
+    "path": "/shortlists/{id}/people/remove",
+    "mode": "COMMAND"
+  },
+  "shortlist.peopleReorder": {
+    "method": "POST",
+    "path": "/shortlists/{id}/people/reorder",
+    "mode": "COMMAND"
+  },
+  "shortlist.workAdd": {
+    "method": "POST",
+    "path": "/shortlists/{id}/works",
+    "mode": "COMMAND"
+  },
+  "shortlist.workRemove": {
+    "method": "POST",
+    "path": "/shortlists/{id}/works/remove",
+    "mode": "COMMAND"
+  },
+  "shortlist.worksReorder": {
+    "method": "POST",
+    "path": "/shortlists/{id}/works/reorder",
+    "mode": "COMMAND"
+  },
   "work.list": {
     "method": "GET",
     "path": "/works",

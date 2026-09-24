@@ -1,5 +1,7 @@
 import { Portfolio } from './portfolio.ts';
 import { Projects } from './projects.ts';
+import { Shortlists } from './shortlists.ts';
+import { shortlistFor } from './shortlist-policy.ts';
 import { workFor, projectFor } from './production-policy.ts';
 import { Media, assetFor, uploadFor } from './media.ts';
 import { randomUUID } from 'node:crypto';
@@ -59,6 +61,7 @@ export class Application {
     media: Media;
     portfolio: Portfolio;
     projects: Projects;
+    shortlists: Shortlists;
     constructor(store: Store, config: Config, clock: Clock = { now: () => new Date() }) {
         invariant(config.contactKey.length === 32 && config.csrfKey.length === 32, 'CONFIG_INVALID', '密钥必须为 32 字节', 503);
         const origin = new URL(config.origin);
@@ -72,6 +75,7 @@ export class Application {
         this.talent = new Talent(clock, config);
         this.portfolio = new Portfolio(clock, this.talent);
         this.projects = new Projects(clock, this.talent);
+        this.shortlists = new Shortlists(clock);
         this.handoffs = new Handoffs(clock);
         this.media = new Media(store, clock, config);
         this.commands = new Commands(clock);
@@ -188,6 +192,17 @@ export class Application {
                     revision: number;
                 }>, target = id || null) => this.commands.execute(tx, actor, route.operation, request.headers['idempotency-key'] ?? '', target, data, kind, meta, execute, receipt => authorizeReceipt(tx, actor, receipt, this.clock), ['import.commit', 'job.resume', 'upload.complete'].includes(route.operation) ? 'ACCEPTED' : 'SUCCEEDED');
                 switch (route.operation) {
+                    case 'shortlist.list': return this.shortlists.list(tx, actor, query);
+                    case 'shortlist.create': return command('shortlist', () => this.shortlists.create(tx, actor, data));
+                    case 'shortlist.get': return this.shortlists.get(tx, actor, id);
+                    case 'shortlist.update': return command('shortlist', () => this.shortlists.update(tx, actor, id, data));
+                    case 'shortlist.personAdd': return command('shortlist', () => this.shortlists.addPerson(tx, actor, id, data));
+                    case 'shortlist.personUpdate': return command('shortlist', () => this.shortlists.updatePerson(tx, actor, id, data));
+                    case 'shortlist.personRemove': return command('shortlist', () => this.shortlists.removePerson(tx, actor, id, data));
+                    case 'shortlist.peopleReorder': return command('shortlist', () => this.shortlists.reorderPeople(tx, actor, id, data));
+                    case 'shortlist.workAdd': return command('shortlist', () => this.shortlists.addWork(tx, actor, id, data));
+                    case 'shortlist.workRemove': return command('shortlist', () => this.shortlists.removeWork(tx, actor, id, data));
+                    case 'shortlist.worksReorder': return command('shortlist', () => this.shortlists.reorderWorks(tx, actor, id, data));
                     case 'work.list': return this.portfolio.list(tx, actor, query);
                     case 'work.create': return command('work', () => this.portfolio.create(tx, actor, data));
                     case 'work.get': return this.portfolio.get(tx, actor, id);
@@ -266,7 +281,7 @@ export class Application {
             });
             if (['import.commit', 'job.resume', 'upload.complete'].includes(route.operation))
                 response.status = 202;
-            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
+            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
                 response.status = 201;
             return response;
         }
@@ -304,6 +319,8 @@ export class Application {
                     await assetFor(tx, actor, row.resourceId, this.clock);
                 if (row.resourceKind === 'handoff')
                     await handoffParticipant(tx, actor, row.resourceId);
+                if (row.resourceKind === 'shortlist')
+                    await shortlistFor(tx, actor, row.resourceId, this.clock);
                 if (row.resourceKind === 'work')
                     await workFor(tx, actor, row.resourceId, this.clock);
                 if (row.resourceKind === 'project')

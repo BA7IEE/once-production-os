@@ -2,7 +2,7 @@ import { PrismaClient, Prisma } from '@prisma/client';
 import type { Table, TableMap } from '../../../packages/core/src/model.ts';
 import type { Store, Tx } from '../../../packages/core/src/store.ts';
 import { AppError } from '../../../packages/core/src/errors.ts';
-const DELEGATE: Record<Table, string> = { works: 'work', workAssets: 'workAsset', workCredits: 'workCredit', projects: 'project', projectParticipants: 'projectParticipant', projectWorks: 'projectWork', workspaces: 'workspace', users: 'user', memberships: 'membership', sessions: 'session', activations: 'activation',
+const DELEGATE: Record<Table, string> = { shortlists: 'shortlist', shortlistPeople: 'shortlistPerson', shortlistWorks: 'shortlistWork', works: 'work', workAssets: 'workAsset', workCredits: 'workCredit', projects: 'project', projectParticipants: 'projectParticipant', projectWorks: 'projectWork', workspaces: 'workspace', users: 'user', memberships: 'membership', sessions: 'session', activations: 'activation',
     scopes: 'accessScope', scopeMembers: 'scopeMember', sources: 'sourceRecord', sourceHistory: 'sourceHistory', people: 'person', contacts: 'contact', evidence: 'fieldEvidence',
     dictionary: 'dictionaryItem', receipts: 'commandReceipt', audits: 'auditEvent', rateBuckets: 'rateBucket', imports: 'importBatch', jobs: 'durableJob', handoffs: 'recordHandoff', uploads: 'mediaUpload', assets: 'mediaAsset' };
 const DATES = new Set(['createdAt', 'updatedAt', 'idleUntil', 'absoluteUntil', 'revokedAt', 'expiresAt', 'consumedAt', 'validFrom', 'validUntil', 'reviewedAt', 'until', 'leaseUntil', 'acceptedAt', 'closedAt', 'purgedAt']);
