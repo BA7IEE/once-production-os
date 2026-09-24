@@ -1,12 +1,13 @@
-import type { Actor, Clock, Person, Source } from './model.ts';
-import type { Tx } from './store.ts';
+import { randomUUID } from 'node:crypto';
+import type { Actor, Clock, Config, Person, Source } from './model.ts';
+import type { Store, Tx } from './store.ts';
 import type { DeletionAction, DeletionEvidenceState, DeletionItem, DeletionRequest, DeletionTargetKind } from './deletion-model.ts';
 import { DELETION_LIMITS as L } from './deletion-model.ts';
 import { DeletionSchemas as S } from './deletion-validation.ts';
 import { AppError, invariant, missing } from './errors.ts';
 import { base, cas, page, touch, workspaceRow } from './helpers.ts';
 import { digest } from './json.ts';
-import { deletionBlocked, requirePermission, requireScope, scopeVisible, sourceFor } from './policy.ts';
+import { deletionBlocked, requirePermission, requireScope, scopeVisible, sourceCurrent, sourceFor } from './policy.ts';
 import { appendSourceHistory } from './source-history.ts';
 import { shortlistFor } from './shortlists.ts';
 import { projectFor, workFor } from './production-policy.ts';
@@ -33,8 +34,10 @@ function targetRefs(kind: DeletionTargetKind, id: string) {
 function impactKey(i: Impact) { return [i.resourceKind, i.resourceId, i.dependencyKind, i.proposedAction].join(':'); }
 
 export class Deletions {
+    store: Store;
     clock: Clock;
-    constructor(clock: Clock) { this.clock = clock; }
+    config: Config;
+    constructor(store: Store, clock: Clock, config: Config) { this.store = store; this.clock = clock; this.config = config; }
 
     private async target(tx: Tx, actor: Actor, kind: DeletionTargetKind, id: string) {
         if (kind === 'SOURCE') {
