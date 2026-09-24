@@ -1,6 +1,7 @@
 /** DEV-07 deletion-impact preview. Read-only planning only; no records are erased here. */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
 import { fixture, member, createPerson, sourceInput, result, Client } from '../support/fixtures.ts';
 
 type F = Awaited<ReturnType<typeof fixture>>;
@@ -85,6 +86,23 @@ test('DEV-07 source impact requires review authority and H1 delegation never gra
     assert.equal((await f.owner.raw('GET', '/people/' + privatePerson)).status, 200, 'basic H1 profile remains readable');
     assert.equal((await f.owner.raw('GET', '/maintenance/deletion-impact?kind=person&id=' + privatePerson)).status, 404,
         'maintenance requires native scope, not H1 delegation');
+});
+
+test('DEV-07 unowned asset can be inspected without inventing a person scope dependency', async () => {
+    const f = await fixture();
+    const sourceId = (await ok(f.owner.cmd('POST', '/sources', sourceInput()), 201)).resourceId as string;
+    const source = f.store.rows('sources').find(s => s.id === sourceId)!;
+    const assetId = randomUUID(), now = f.clock.now().toISOString();
+    f.store.data.assets.set(assetId, {
+        id: assetId, workspaceId: source.workspaceId, createdAt: now, updatedAt: now, revision: 1,
+        uploadId: randomUUID(), sourceId, scopeId: source.scopeId, objectToken: randomUUID(), personId: null,
+        fileName: 'unowned-synthetic.png', mime: 'image/png', sha256: 'a'.repeat(64), previewHash: 'b'.repeat(64),
+        state: 'READY', bytes: 12, width: 2, height: 3, previewBytes: 10
+    });
+    const view = await impact(f.owner, 'asset', assetId);
+    assert.equal(view.target.id, assetId);
+    assert.equal(view.target.label, 'unowned-synthetic.png');
+    assert.equal(view.impactComplete, true);
 });
 
 test('DEV-07 impact rejects unknown target kinds and malformed ids without scanning dependencies', async () => {
