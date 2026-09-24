@@ -200,7 +200,7 @@ try {
  const deletionCreate=await writeUI(owner,'POST','/deletion-requests',()=>owner.getByRole('button',{name:'创建 DRAFT 申请',exact:true}).click(),201),deletionRequestId=deletionCreate.resourceId;
  const deletionDetail=owner.locator('.deletion-request-detail');
  await deletionDetail.getByRole('heading',{name:'删除申请',exact:true}).waitFor();
- await deletionDetail.getByText('当前不会执行删除',{exact:true}).waitFor();
+ await deletionDetail.getByText('尚未阻断正常使用',{exact:true}).waitFor();
  assert.equal(await prisma.deletionRequest.count({where:{id:deletionRequestId,state:'DRAFT'}}),1);
  assert.equal(await getStatus(owner,'/people/'+pid),200);
  assert.equal(await owner.getByRole('button',{name:/执行删除|立即删除|开始清理/}).count(),0);
