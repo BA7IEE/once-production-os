@@ -74,6 +74,9 @@ try {
  api=spawn('node',['dist/apps/api/src/main.js'],{env,stdio:['ignore','pipe','pipe']});api.stdout.resume();api.stderr.resume();await until(async()=>(await fetch(base+'/health/ready')).status===200);
  browser=await chromium.launch({headless:true,...(process.env.CHROME_EXECUTABLE?{executablePath:process.env.CHROME_EXECUTABLE}:{})});
  const owner=await browser.newPage(),editor=await browser.newPage();for(const p of[owner,editor])p.on('pageerror',e=>errors.push(e.message));await login(owner,'owner');
+ await cmd(owner,'POST','/catalog/items',{namespace:'industry',code:'furniture',labelZh:'家具',labelEn:'Furniture'},201);
+ await cmd(owner,'POST','/catalog/items',{namespace:'workType',code:'product_photo',labelZh:'产品摄影',labelEn:'Product photography'},201);
+ await owner.reload({waitUntil:'networkidle'});await owner.getByRole('button',{name:/概览/}).waitFor();
  const added=await cmd(owner,'POST','/memberships',{loginName:'wp_editor',displayName:'WP1合成编辑',role:'EDITOR',extraPermissions:[]},201);
  await editor.goto(base+'/activate',{waitUntil:'networkidle'});await editor.getByLabel('激活凭证').fill(added.activationToken);await editor.getByLabel('设置密码（至少 12 个字符）').fill(password);await editor.getByRole('button',{name:'激活账号',exact:true}).click();await editor.getByText('账号已激活').waitFor();await login(editor,'wp_editor');
  const source=title=>({title,type:'MANUAL',providerClaim:'WP1合成记录',basisMode:'INTERNAL_USE',basisDescription:'隔离自动化测试资料，不代表真实授权',validUntil:new Date(Date.now()+86400000*7).toISOString()});
@@ -90,9 +93,10 @@ try {
   await until(async()=>await prisma.mediaAsset.count({where:{id:upload.resourceId,state:'READY'}})===1);assetIds.push(upload.resourceId);
  }
  await owner.getByRole('button',{name:/作品库/}).click();await owner.getByRole('button',{name:'新增作品',exact:true}).click();let d=await dialogReady(owner,'新增作品');
- await d.getByLabel('作品标题',{exact:true}).fill('WP1外部家具作品');await d.getByLabel('作品说明',{exact:true}).fill('合成家具商业摄影作品，非ONCE制作');await d.getByLabel('制作归属',{exact:true}).selectOption('EXTERNAL');
+ await d.getByLabel('作品标题',{exact:true}).fill('WP1外部家具作品');await d.getByLabel('作品说明',{exact:true}).fill('合成家具商业摄影作品，非ONCE制作');await d.getByLabel('行业',{exact:true}).selectOption('furniture');await d.getByLabel('产品摄影',{exact:true}).check();await d.getByLabel('制作归属',{exact:true}).selectOption('EXTERNAL');
  await d.getByRole('button',{name:'WP1作品来源',exact:true}).click();
  const wr=await writeUI(owner,'POST','/works',()=>d.getByRole('button',{name:'保存作品',exact:true}).click(),201),wid=wr.resourceId,wpath='/works/'+wid;
+ const workFacts=await prisma.work.findUniqueOrThrow({where:{id:wid}});assert.equal(workFacts.industryCode,'furniture');assert.deepEqual(workFacts.workTypeCodes,['product_photo']);
  await owner.getByRole('heading',{name:'作品图片',exact:true}).waitFor();
  for(let i=0;i<2;i++){
   d=await dialogReady(owner,'WP1外部家具作品');await d.getByRole('button',{name:'添加已有图片',exact:true}).click();const f=await dialogReady(owner,'添加作品图片');
@@ -138,6 +142,8 @@ try {
  const shortlistCreate=await writeUI(owner,'POST','/shortlists',()=>f.getByRole('button',{name:'建立清单',exact:true}).click(),201),shortlistId=shortlistCreate.resourceId,slpath='/shortlists/'+shortlistId;
  await owner.getByRole('heading',{name:'WP1内部候选清单',exact:true}).waitFor();
  await owner.getByLabel('档案状态',{exact:true}).selectOption('DRAFT');
+ await owner.getByLabel('行业',{exact:true}).selectOption('furniture');
+ await owner.getByLabel('作品类型',{exact:true}).selectOption('product_photo');
  await owner.getByLabel('搜索人才姓名或别名',{exact:true}).fill('WP1摄影剪辑人员');
  await owner.getByRole('button',{name:'搜索姓名',exact:true}).click();
  const candidateCard=owner.locator('article.person-card').filter({has:owner.getByRole('heading',{name:'WP1摄影剪辑人员',exact:true})});
@@ -154,7 +160,7 @@ try {
  assert.equal(await prisma.shortlistItem.count({where:{shortlistId}}),1);
  assert.equal(await prisma.shortlistItemAsset.count({where:{itemId:(await prisma.shortlistItem.findFirstOrThrow({where:{shortlistId}})).id}}),1);
  assert.equal(await owner.getByRole('button',{name:/分享|预订|客户确认/}).count(),0);
- console.log('PASS DEV-06 browser: structured search -> internal shortlist -> credited work -> selected image -> collaboration note');
+ console.log('PASS DEV-06 browser: industry/work-type search -> internal shortlist -> credited work -> selected image -> collaboration note');
 
  await owner.getByRole('button',{name:/人才档案/}).click();await owner.getByRole('button').filter({has:owner.getByRole('heading',{name:'WP1摄影剪辑人员',exact:true})}).click();await owner.getByRole('heading',{name:'作品与项目经历',exact:true}).waitFor();await owner.getByText('当前可见的实际参与项目：1 个。',{exact:false}).waitFor();await owner.getByRole('button',{name:/WP1外部家具作品 ·/}).click();await owner.getByRole('heading',{name:'作品图片',exact:true}).waitFor();
  console.log('PASS WP1 browser/API/PG: nominated and confirmed are not actual; reference/delivery preserves EXTERNAL attribution; internal review and reverse talent links persist');
