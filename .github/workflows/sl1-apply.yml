@@ -21,7 +21,7 @@ jobs:
           node-version: 22.22.3
       - name: Reassemble reviewed patch
         run: |
-          cat .sl1/patch.00 .sl1/patch.01 .sl1/patch.02 .sl1/patch.03 .sl1/patch.04 > /tmp/sl1.patch.gz.b64
+          cat .sl1/patch.00 .sl1/patch.01 .sl1/patch.02a .sl1/patch.02b .sl1/patch.03 .sl1/patch.04 > /tmp/sl1.patch.gz.b64
           echo "69d1be2c6fe88e5b5a29768bf677d8a0ba4777e528d2f46bfd9570c483ade8ee  /tmp/sl1.patch.gz.b64" | sha256sum -c -
           base64 -d /tmp/sl1.patch.gz.b64 | gunzip > /tmp/sl1.patch
           echo "55bd90f2092c00844df025af76c3fa5311b10f5160e2c57f950850fbff4af8c0  /tmp/sl1.patch" | sha256sum -c -
