@@ -36,7 +36,12 @@ CREATE TABLE "usePermissions" (
   CONSTRAINT "usePermissions_dev07_check_1" CHECK ("purpose" = 'INTERNAL_EXPORT'),
   CONSTRAINT "usePermissions_dev07_check_2" CHECK ("status" IN ('ACTIVE','REVOKED')),
   CONSTRAINT "usePermissions_dev07_check_3" CHECK ("validFrom" < "validUntil"),
-  CONSTRAINT "usePermissions_dev07_check_4" CHECK (cardinality("fields") BETWEEN 1 AND 34),
+  CONSTRAINT "usePermissions_dev07_check_4" CHECK (cardinality("fields") BETWEEN 1 AND 33 AND "fields" <@ ARRAY[
+'person.displayName','person.aliases','person.roles','person.cityCode','person.languageCodes','person.skillCodes','person.heightCm','person.intro','person.status',
+'work.title','work.description','work.industryCode','work.workTypeCodes','work.origin','work.originNote','work.status','work.relations',
+'project.title','project.brief','project.locationNote','project.dateNote','project.reviewNote','project.status','project.relations',
+'source.title','source.type','source.providerClaim','source.basisMode','source.basisDescription','source.validFrom','source.validUntil','source.status',
+'media.identity']::text[]),
   CONSTRAINT "usePermissions_dev07_check_5" CHECK (length("evidenceNote") BETWEEN 4 AND 2000),
   CONSTRAINT "usePermissions_dev07_subject_shape" CHECK (
     ("subjectKind"='PERSON' AND "subjectPersonId"="subjectId" AND "subjectWorkId" IS NULL AND "subjectProjectId" IS NULL AND "subjectAssetId" IS NULL AND "subjectSourceId" IS NULL) OR
@@ -76,6 +81,13 @@ CREATE TABLE "exports" (
   CONSTRAINT "exports_dev07_check_2" CHECK ("state" IN ('QUEUED','READY','STALE','FAILED','ERASED')),
   CONSTRAINT "exports_dev07_check_3" CHECK ("attempts" BETWEEN 0 AND 3),
   CONSTRAINT "exports_dev07_check_4" CHECK ("expiresAt" > "createdAt"),
+  CONSTRAINT "exports_dev07_check_5" CHECK (cardinality("fields") BETWEEN 1 AND 33 AND "fields" <@ ARRAY[
+'person.displayName','person.aliases','person.roles','person.cityCode','person.languageCodes','person.skillCodes','person.heightCm','person.intro','person.status',
+'work.title','work.description','work.industryCode','work.workTypeCodes','work.origin','work.originNote','work.status','work.relations',
+'project.title','project.brief','project.locationNote','project.dateNote','project.reviewNote','project.status','project.relations',
+'source.title','source.type','source.providerClaim','source.basisMode','source.basisDescription','source.validFrom','source.validUntil','source.status',
+'media.identity']::text[]),
+  CONSTRAINT "exports_dev07_check_6" CHECK (cardinality("usePermissionRefs") BETWEEN 1 AND 1000),
   CONSTRAINT "exports_dev07_payload_shape" CHECK (
     ("state"='READY' AND "payload" IS NOT NULL AND length("payloadDigest")=64 AND "leaseToken" IS NULL AND "leaseUntil" IS NULL) OR
     ("state"<>'READY' AND (("payload" IS NULL AND "payloadDigest" IS NULL) OR "state"='ERASED'))
@@ -108,7 +120,12 @@ CREATE TABLE "exportDependencies" (
   "assetId" UUID,
   "sourceSubjectId" UUID,
   CONSTRAINT "exportDependencies_dev07_check_0" CHECK ("revision" > 0 AND "sourceRevision" > 0 AND "sourceProtectionEpoch" > 0 AND "resourceRevision" > 0 AND "usePermissionRevision" > 0),
-  CONSTRAINT "exportDependencies_dev07_check_1" CHECK (cardinality("fields") BETWEEN 1 AND 34),
+  CONSTRAINT "exportDependencies_dev07_check_1" CHECK (cardinality("fields") BETWEEN 1 AND 33 AND "fields" <@ ARRAY[
+'person.displayName','person.aliases','person.roles','person.cityCode','person.languageCodes','person.skillCodes','person.heightCm','person.intro','person.status',
+'work.title','work.description','work.industryCode','work.workTypeCodes','work.origin','work.originNote','work.status','work.relations',
+'project.title','project.brief','project.locationNote','project.dateNote','project.reviewNote','project.status','project.relations',
+'source.title','source.type','source.providerClaim','source.basisMode','source.basisDescription','source.validFrom','source.validUntil','source.status',
+'media.identity']::text[]),
   CONSTRAINT "exportDependencies_dev07_subject_shape" CHECK (
     ("kind"='PERSON' AND "personId" IS NOT NULL AND "workId" IS NULL AND "projectId" IS NULL AND "assetId" IS NULL AND "sourceSubjectId" IS NULL) OR
     ("kind"='WORK' AND "workId" IS NOT NULL AND "personId" IS NULL AND "projectId" IS NULL AND "assetId" IS NULL AND "sourceSubjectId" IS NULL) OR
