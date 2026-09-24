@@ -62,7 +62,7 @@ export class PrismaStore implements Store {
                             Prisma.sql`p."sourceId" IN (${sourceList})`,
                             Prisma.sql`NOT EXISTS (
                                 SELECT 1 FROM "deletionRequests" dr
-                                WHERE dr."workspaceId" = p."workspaceId" AND dr."state" = 'BLOCKED_FOR_USE'
+                                WHERE dr."workspaceId" = p."workspaceId" AND dr."state" <> 'DRAFT'
                                   AND dr."targetKind" = 'PERSON' AND dr."targetId" = p."id"
                             )`
                         ];
@@ -86,7 +86,7 @@ export class PrismaStore implements Store {
                                   AND pr."scopeId" IN (${scopeList}) AND pr."sourceId" IN (${sourceList})
                                   AND NOT EXISTS (
                                       SELECT 1 FROM "deletionRequests" dr
-                                      WHERE dr."workspaceId" = pr."workspaceId" AND dr."state" = 'BLOCKED_FOR_USE'
+                                      WHERE dr."workspaceId" = pr."workspaceId" AND dr."state" <> 'DRAFT'
                                         AND dr."targetKind" = 'PROJECT' AND dr."targetId" = pr."id"
                                   )
                             )`);
@@ -98,7 +98,7 @@ export class PrismaStore implements Store {
                                   AND w."scopeId" IN (${scopeList}) AND w."sourceId" IN (${sourceList})
                                   AND NOT EXISTS (
                                       SELECT 1 FROM "deletionRequests" dr
-                                      WHERE dr."workspaceId" = w."workspaceId" AND dr."state" = 'BLOCKED_FOR_USE'
+                                      WHERE dr."workspaceId" = w."workspaceId" AND dr."state" <> 'DRAFT'
                                         AND dr."targetKind" = 'WORK' AND dr."targetId" = w."id"
                                   )
                                   AND w."industryCode" = ${input.industryCode}
@@ -111,7 +111,7 @@ export class PrismaStore implements Store {
                                   AND w."scopeId" IN (${scopeList}) AND w."sourceId" IN (${sourceList})
                                   AND NOT EXISTS (
                                       SELECT 1 FROM "deletionRequests" dr
-                                      WHERE dr."workspaceId" = w."workspaceId" AND dr."state" = 'BLOCKED_FOR_USE'
+                                      WHERE dr."workspaceId" = w."workspaceId" AND dr."state" <> 'DRAFT'
                                         AND dr."targetKind" = 'WORK' AND dr."targetId" = w."id"
                                   )
                                   AND ${input.workTypeCode} = ANY(w."workTypeCodes")
@@ -132,7 +132,7 @@ export class PrismaStore implements Store {
                                 AND pr."scopeId" IN (${scopeList}) AND pr."sourceId" IN (${sourceList})
                                 AND NOT EXISTS (
                                     SELECT 1 FROM "deletionRequests" dr
-                                    WHERE dr."workspaceId" = pr."workspaceId" AND dr."state" = 'BLOCKED_FOR_USE'
+                                    WHERE dr."workspaceId" = pr."workspaceId" AND dr."state" <> 'DRAFT'
                                       AND dr."targetKind" = 'PROJECT' AND dr."targetId" = pr."id"
                                 )) AS "actualProjectCount",
                             COALESCE((SELECT array_agg(DISTINCT w."industryCode" ORDER BY w."industryCode") FILTER (WHERE w."industryCode" IS NOT NULL)
@@ -141,7 +141,7 @@ export class PrismaStore implements Store {
                                 AND w."scopeId" IN (${scopeList}) AND w."sourceId" IN (${sourceList})
                                 AND NOT EXISTS (
                                     SELECT 1 FROM "deletionRequests" dr
-                                    WHERE dr."workspaceId" = w."workspaceId" AND dr."state" = 'BLOCKED_FOR_USE'
+                                    WHERE dr."workspaceId" = w."workspaceId" AND dr."state" <> 'DRAFT'
                                       AND dr."targetKind" = 'WORK' AND dr."targetId" = w."id"
                                 )), ARRAY[]::text[]) AS "industryCodes",
                             COALESCE((SELECT array_agg(DISTINCT wt.code ORDER BY wt.code)
@@ -151,7 +151,7 @@ export class PrismaStore implements Store {
                                 AND w."scopeId" IN (${scopeList}) AND w."sourceId" IN (${sourceList})
                                 AND NOT EXISTS (
                                     SELECT 1 FROM "deletionRequests" dr
-                                    WHERE dr."workspaceId" = w."workspaceId" AND dr."state" = 'BLOCKED_FOR_USE'
+                                    WHERE dr."workspaceId" = w."workspaceId" AND dr."state" <> 'DRAFT'
                                       AND dr."targetKind" = 'WORK' AND dr."targetId" = w."id"
                                 )), ARRAY[]::text[]) AS "workTypeCodes"
                             FROM "people" p WHERE ${where}`;
@@ -173,7 +173,7 @@ export class PrismaStore implements Store {
                                 WHERE w."scopeId" IN (${scopeList}) AND w."sourceId" IN (${sourceList})
                                   AND NOT EXISTS (
                                       SELECT 1 FROM "deletionRequests" dr
-                                      WHERE dr."workspaceId" = w."workspaceId" AND dr."state" = 'BLOCKED_FOR_USE'
+                                      WHERE dr."workspaceId" = w."workspaceId" AND dr."state" <> 'DRAFT'
                                         AND dr."targetKind" = 'WORK' AND dr."targetId" = w."id"
                                   )
                             )
