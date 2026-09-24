@@ -2,6 +2,7 @@ import type { Base } from './model.ts';
 
 export type DeletionTargetKind = 'SOURCE' | 'PERSON' | 'WORK' | 'PROJECT' | 'ASSET';
 export type DeletionEvidenceState = 'PROVEN' | 'REVIEW_REQUIRED';
+export const DELETION_RESTRICTED_STATES = ['BLOCKED_FOR_USE', 'CLEANING', 'COMPLETED', 'RETAINED_WITH_BASIS', 'FAILED'] as const;
 export type DeletionAction =
     | 'ERASE_PAYLOAD'
     | 'REMOVE_RELATION'
