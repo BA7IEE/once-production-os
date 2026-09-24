@@ -4,9 +4,10 @@ import type { DeletionAction, DeletionEvidenceState, DeletionItem, DeletionReque
 import { DELETION_LIMITS as L } from './deletion-model.ts';
 import { DeletionSchemas as S } from './deletion-validation.ts';
 import { AppError, invariant, missing } from './errors.ts';
-import { base, page, workspaceRow } from './helpers.ts';
+import { base, cas, page, touch, workspaceRow } from './helpers.ts';
 import { digest } from './json.ts';
-import { requirePermission, requireScope, scopeVisible, sourceFor } from './policy.ts';
+import { deletionBlocked, requirePermission, requireScope, scopeVisible, sourceFor } from './policy.ts';
+import { appendSourceHistory } from './source-history.ts';
 import { shortlistFor } from './shortlists.ts';
 
 type Impact = {
@@ -36,34 +37,34 @@ export class Deletions {
 
     private async target(tx: Tx, actor: Actor, kind: DeletionTargetKind, id: string) {
         if (kind === 'SOURCE') {
-            const row = await sourceFor(tx, actor, id, this.clock, false);
+            const row = await sourceFor(tx, actor, id, this.clock, false, true);
             return { source: row, revision: row.revision, protectionEpoch: row.protectionEpoch };
         }
         if (kind === 'PERSON') {
             const row = await workspaceRow(tx, 'people', id, actor.workspaceId);
             if (!row) missing();
             await requireScope(tx, actor, row.scopeId);
-            const source = await sourceFor(tx, actor, row.sourceId, this.clock, false);
+            const source = await sourceFor(tx, actor, row.sourceId, this.clock, false, true);
             return { source, revision: row.revision, protectionEpoch: row.protectionEpoch };
         }
         if (kind === 'WORK') {
             const row = await workspaceRow(tx, 'works', id, actor.workspaceId);
             if (!row) missing();
             await requireScope(tx, actor, row.scopeId);
-            const source = await sourceFor(tx, actor, row.sourceId, this.clock, false);
+            const source = await sourceFor(tx, actor, row.sourceId, this.clock, false, true);
             return { source, revision: row.revision, protectionEpoch: null };
         }
         if (kind === 'PROJECT') {
             const row = await workspaceRow(tx, 'projects', id, actor.workspaceId);
             if (!row) missing();
             await requireScope(tx, actor, row.scopeId);
-            const source = await sourceFor(tx, actor, row.sourceId, this.clock, false);
+            const source = await sourceFor(tx, actor, row.sourceId, this.clock, false, true);
             return { source, revision: row.revision, protectionEpoch: null };
         }
         const row = await workspaceRow(tx, 'assets', id, actor.workspaceId);
         if (!row) missing();
         await requireScope(tx, actor, row.scopeId);
-        const source = await sourceFor(tx, actor, row.sourceId, this.clock, false);
+        const source = await sourceFor(tx, actor, row.sourceId, this.clock, false, true);
         return { source, revision: row.revision, protectionEpoch: null };
     }
 
@@ -74,7 +75,7 @@ export class Deletions {
             const row = await workspaceRow(tx, table, id, actor.workspaceId);
             if (!row) return false;
             await requireScope(tx, actor, row.scopeId);
-            await sourceFor(tx, actor, row.sourceId, this.clock, false);
+            await sourceFor(tx, actor, row.sourceId, this.clock, false, true);
             return true;
         }
         catch (error) {
@@ -285,6 +286,40 @@ export class Deletions {
         return row;
     }
 
+    async block(tx: Tx, actor: Actor, id: string, input: unknown): Promise<DeletionRequest> {
+        requirePermission(actor, 'data.delete');
+        const d = S.block.parse(input);
+        const row = await workspaceRow(tx, 'deletionRequests', id, actor.workspaceId);
+        if (!row) missing();
+        cas(row, d.expectedRevision);
+        invariant(row.state === 'DRAFT', 'DELETION_STATE_CONFLICT', '删除申请已不在草稿状态', 409);
+        invariant(d.acknowledgeBlock === true, 'DELETION_BLOCK_ACK_REQUIRED', '请确认本操作只阻断使用，尚不会真正删除数据', 400);
+        invariant(d.previewDigest === row.previewDigest, 'DELETION_PREVIEW_STALE', '提交的影响摘要与申请不一致，请刷新', 409);
+        invariant(!(await deletionBlocked(tx, actor.workspaceId, row.targetKind, row.targetId)), 'DELETION_ALREADY_BLOCKED', '该目标已经被其他删除申请阻断', 409);
+        const preview = await this.scan(tx, actor, row.targetKind, row.targetId);
+        invariant(preview.complete && preview.previewDigest === row.previewDigest
+            && preview.target.revision === row.targetRevision && preview.target.protectionEpoch === row.targetProtectionEpoch,
+            'DELETION_PREVIEW_STALE', '目标或依赖已经变化，请重新预览并建立申请', 409);
+
+        if (row.targetKind === 'SOURCE') {
+            const source = await workspaceRow(tx, 'sources', row.targetId, actor.workspaceId);
+            if (!source) missing();
+            await requireScope(tx, actor, source.scopeId);
+            const next = { ...touch(source, this.clock), protectionEpoch: source.protectionEpoch + 1 };
+            await tx.replace('sources', next);
+            await appendSourceHistory(tx, actor, next, 'DELETION_BLOCKED', this.clock, row.reason);
+        }
+        else if (row.targetKind === 'PERSON') {
+            const person = await workspaceRow(tx, 'people', row.targetId, actor.workspaceId);
+            if (!person) missing();
+            await requireScope(tx, actor, person.scopeId);
+            await tx.replace('people', { ...touch(person, this.clock), protectionEpoch: person.protectionEpoch + 1 });
+        }
+        const next: DeletionRequest = { ...touch(row, this.clock), state: 'BLOCKED_FOR_USE' };
+        await tx.replace('deletionRequests', next);
+        return next;
+    }
+
     private async requestFor(tx: Tx, actor: Actor, id: string) {
         requirePermission(actor, 'data.delete');
         const row = await workspaceRow(tx, 'deletionRequests', id, actor.workspaceId);
@@ -298,7 +333,8 @@ export class Deletions {
         return { id: row.id, targetKind: row.targetKind, targetId: row.targetId, targetRevision: row.targetRevision,
             state: row.state, reason: row.reason, previewDigest: row.previewDigest, impactCount: row.impactCount,
             reviewRequiredCount: row.reviewRequiredCount, unresolvedCount: row.unresolvedCount, createdAt: row.createdAt, revision: row.revision,
-            executionAvailable: false, executionNote: '本批仅冻结删除申请和影响清单；尚未启用阻断/清理执行。' };
+            blockAvailable: row.state === 'DRAFT', cleanupAvailable: false,
+            executionAvailable: false, executionNote: row.state === 'DRAFT' ? '可进入阻断使用；尚不会真正删除数据。' : '目标已阻断正常使用；物理清理仍未启用。' };
     }
 
     async list(tx: Tx, actor: Actor, query: Record<string, string>) {
