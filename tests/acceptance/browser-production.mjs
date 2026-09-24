@@ -165,9 +165,10 @@ try {
  await d.getByRole('button',{name:'关闭',exact:true}).last().click();
  await owner.getByRole('button',{name:/候选工作台/}).click();
  await owner.getByRole('heading',{name:'WP1内部候选清单',exact:true}).waitFor();
- await owner.getByText('该条目当前不可用',{exact:true}).waitFor();
- assert.equal(await owner.getByText('PRIVATE_BROWSER_SHORTLIST_NOTE',{exact:true}).count(),0);
- assert.equal(await owner.getByText('WP1摄影剪辑人员',{exact:true}).count(),0);
+ const shortlistPanel=owner.locator('.sl-detail');
+ await shortlistPanel.getByText('该条目当前不可用',{exact:true}).waitFor();
+ assert.equal(await shortlistPanel.getByText('PRIVATE_BROWSER_SHORTLIST_NOTE',{exact:true}).count(),0);
+ assert.equal(await shortlistPanel.getByText('WP1摄影剪辑人员',{exact:true}).count(),0);
  console.log('PASS DEV-06 privacy: selected image source loss redacts the entire shortlist item in the browser');
  await owner.getByRole('button',{name:/作品库/}).click();
  await owner.getByRole('button').filter({has:owner.getByRole('heading',{name:'WP1外部家具作品',exact:true})}).click();
