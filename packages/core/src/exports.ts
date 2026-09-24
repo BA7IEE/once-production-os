@@ -107,7 +107,7 @@ export class Exports {
     }
 
     async listPermissions(tx: Tx, actor: Actor, query: Record<string, string>) {
-        requirePermission(actor, 'sources.read');
+        invariant(actor.permissions.includes('sources.read') || actor.permissions.includes('data.export'), 'FORBIDDEN', '当前账号没有查看导出许可的权限', 403);
         page([], query, ['sourceId', 'subjectKind', 'status']);
         const rows = [];
         for (const row of await tx.find('usePermissions', { workspaceId: actor.workspaceId })) {
