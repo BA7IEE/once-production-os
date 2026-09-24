@@ -47,7 +47,7 @@ export class MemoryStore implements Store {
             },
             talentQuery: async input => {
                 const scopeIds = new Set(input.visibleScopeIds), sourceIds = new Set(input.visibleSourceIds);
-                const blocks = [...draft.deletionRequests.values()].filter(d => d.workspaceId === input.workspaceId && d.state === 'BLOCKED_FOR_USE');
+                const blocks = [...draft.deletionRequests.values()].filter(d => d.workspaceId === input.workspaceId && d.state !== 'DRAFT');
                 const blocked = (kind: string) => new Set(blocks.filter(d => d.targetKind === kind).map(d => d.targetId));
                 const blockedPeople = blocked('PERSON'), blockedWorks = blocked('WORK'), blockedProjects = blocked('PROJECT');
                 const works = [...draft.works.values()].filter(w => w.workspaceId === input.workspaceId && !blockedWorks.has(w.id) && scopeIds.has(w.scopeId) && sourceIds.has(w.sourceId));
