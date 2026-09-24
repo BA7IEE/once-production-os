@@ -473,3 +473,34 @@ test('DEV-07D delete-only member may apply proposed action but cannot authorize 
     }));
 });
 
+test('DEV-07D source reviewer may approve retention and delete-only operator may freeze the completed plan', async () => {
+    const f = await fixture(), cleaner = await member(f, 'delete_plan_cleaner', 'EDITOR', ['data.delete']);
+    const pid = await createPerson(f.owner, '分权保留计划候选');
+    const person = await get(f.owner, '/people/' + pid);
+    const workId = (await ok(f.owner.cmd('POST', '/works', { title: '分权保留作品', inlineSource: sourceInput() }), 201)).resourceId as string;
+    await ok(f.owner.cmd('POST', '/works/' + workId + '/credits', {
+        expectedRevision: 1, personId: pid, roleCode: 'model', note: '保留由来源审核者批准，计划由清理负责人冻结'
+    }));
+    const p = await preview(f, 'PERSON', pid, person.revision);
+    const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
+        targetKind: 'PERSON', targetId: pid, expectedRevision: person.revision,
+        previewDigest: p.previewDigest, reason: '合成测试：审核与清理职责分离'
+    }), 201);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/block', {
+        expectedRevision: 1, previewDigest: p.previewDigest, acknowledgeBlock: true
+    }));
+    const slot = (await get(f.owner, '/deletion-requests/' + created.resourceId + '/items')).items.find((x: any) => x.decision === 'PENDING');
+    assert.ok(slot);
+    const basisId = (await ok(f.owner.cmd('POST', '/sources', { ...sourceInput(), title: '独立正式保留依据' }), 201)).resourceId as string;
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/decisions', {
+        expectedRevision: 2, entryId: slot.id, decision: 'RETAIN_WITH_BASIS',
+        decisionReason: '来源审核者确认独立正式依据成立', retentionSourceId: basisId
+    }));
+    await ok(cleaner.client.cmd('POST', '/deletion-requests/' + created.resourceId + '/plan/freeze', {
+        expectedRevision: 3, acknowledgePlan: true
+    }));
+    const detail = await get(cleaner.client, '/deletion-requests/' + created.resourceId);
+    assert.equal(detail.planFrozen, true);
+    assert.equal(detail.cleanupAvailable, false);
+});
+
