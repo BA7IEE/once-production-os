@@ -268,6 +268,7 @@ export class Deletions {
     async create(tx: Tx, actor: Actor, input: unknown): Promise<DeletionRequest> {
         requirePermission(actor, 'data.delete');
         const d = S.create.parse(input);
+        invariant(!(await deletionBlocked(tx, actor.workspaceId, d.targetKind, d.targetId)), 'DELETION_ALREADY_BLOCKED', '该目标已经处于删除阻断状态', 409);
         const preview = await this.preview(tx, actor, { targetKind: d.targetKind, targetId: d.targetId, expectedRevision: d.expectedRevision });
         invariant(preview.previewDigest === d.previewDigest, 'DELETION_PREVIEW_STALE', '影响清单已经变化，请重新预览', 409);
         invariant(preview.complete, 'DELETION_IMPACT_UNRESOLVED', '仍有无法证明的依赖，不能创建删除申请', 409);
