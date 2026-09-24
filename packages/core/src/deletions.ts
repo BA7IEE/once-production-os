@@ -9,6 +9,7 @@ import { digest } from './json.ts';
 import { deletionBlocked, requirePermission, requireScope, scopeVisible, sourceFor } from './policy.ts';
 import { appendSourceHistory } from './source-history.ts';
 import { shortlistFor } from './shortlists.ts';
+import { projectFor, workFor } from './production-policy.ts';
 
 type Impact = {
     resourceKind: string;
@@ -70,12 +71,9 @@ export class Deletions {
 
     private async rootVisible(tx: Tx, actor: Actor, kind: 'WORK' | 'PROJECT' | 'SHORTLIST', id: string) {
         try {
-            if (kind === 'SHORTLIST') { await shortlistFor(tx, actor, id); return true; }
-            const table = kind === 'WORK' ? 'works' : 'projects';
-            const row = await workspaceRow(tx, table, id, actor.workspaceId);
-            if (!row) return false;
-            await requireScope(tx, actor, row.scopeId);
-            await sourceFor(tx, actor, row.sourceId, this.clock, false, true);
+            if (kind === 'SHORTLIST') await shortlistFor(tx, actor, id);
+            else if (kind === 'WORK') await workFor(tx, actor, id, this.clock);
+            else await projectFor(tx, actor, id, this.clock);
             return true;
         }
         catch (error) {
