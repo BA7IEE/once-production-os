@@ -164,7 +164,7 @@ test('DEV-07B non-delete member cannot preview or enumerate draft deletion reque
 
 test('DEV-07C blocking a person removes normal reads/search/handoff but preserves underlying data', async () => {
     const f = await fixture();
-    const sender = await member(f, 'block_sender');
+    const sender = await member(f, 'block_sender', 'EDITOR', ['data.delete']);
     const personId = await createPerson(sender.client, '待阻断人才', true);
     const person = f.store.rows('people').find(x => x.id === personId)!;
     const source = f.store.rows('sources').find(x => x.id === person.sourceId)!;
