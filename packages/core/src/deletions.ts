@@ -432,9 +432,12 @@ export class Deletions {
 
     async get(tx: Tx, actor: Actor, id: string) {
         const row = await this.requestFor(tx, actor, id);
+        const pendingDecisionCount = row.state === 'BLOCKED_FOR_USE'
+            ? (await tx.find('deletionItems', { workspaceId: actor.workspaceId, requestId: row.id, decision: 'PENDING' })).length : 0;
         return { id: row.id, targetKind: row.targetKind, targetId: row.targetId, targetRevision: row.targetRevision,
             state: row.state, reason: row.reason, previewDigest: row.previewDigest, impactCount: row.impactCount,
-            reviewRequiredCount: row.reviewRequiredCount, unresolvedCount: row.unresolvedCount, createdAt: row.createdAt, revision: row.revision,
+            reviewRequiredCount: row.reviewRequiredCount, unresolvedCount: row.unresolvedCount, pendingDecisionCount,
+            createdAt: row.createdAt, revision: row.revision,
             blockAvailable: row.state === 'DRAFT', planFrozen: row.planDigest !== null, planDigest: row.planDigest,
             planFrozenAt: row.planFrozenAt, cleanupAvailable: false,
             executionAvailable: false, executionNote: row.state === 'DRAFT' ? '可进入阻断使用；尚不会真正删除数据。'
