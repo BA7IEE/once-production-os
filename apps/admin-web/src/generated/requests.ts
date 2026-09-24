@@ -41,9 +41,9 @@ export interface Inputs {
   "catalog.create": { "namespace": "role" | "city" | "language" | "skill" | "industry" | "workType"; "code": string; "labelZh": string; "labelEn": string };
   "catalog.update": { "expectedRevision": number; "labelZh"?: string; "labelEn"?: string; "status"?: "ACTIVE" | "INACTIVE" };
   "member.list": undefined;
-  "member.create": { "loginName": string; "displayName": string; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write" | "data.export"> };
+  "member.create": { "loginName": string; "displayName": string; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write" | "data.export" | "data.delete"> };
   "member.disable": { "expectedRevision": number };
-  "member.permissions": { "expectedRevision": number; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write" | "data.export"> };
+  "member.permissions": { "expectedRevision": number; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write" | "data.export" | "data.delete"> };
   "member.resetAccess": { "expectedRevision": number };
   "scope.list": undefined;
   "scope.create": { "name": string; "membershipIds": Array<string> };
@@ -76,6 +76,10 @@ export interface Inputs {
   "job.resume": { "expectedRevision": number };
   "job.get": undefined;
   "audit.list": undefined;
+  "deletion.preview": { "targetKind": "SOURCE" | "PERSON" | "WORK" | "PROJECT" | "ASSET"; "targetId": string; "expectedRevision": number };
+  "deletion.list": undefined;
+  "deletion.create": { "targetKind": "SOURCE" | "PERSON" | "WORK" | "PROJECT" | "ASSET"; "targetId": string; "expectedRevision": number; "previewDigest": string; "reason": string };
+  "deletion.get": undefined;
   "usePermission.list": undefined;
   "usePermission.create": { "sourceId": string; "subjectKind": "SOURCE" | "PERSON" | "WORK" | "PROJECT" | "ASSET"; "subjectId": string; "fields": Array<"person.displayName" | "person.aliases" | "person.roles" | "person.cityCode" | "person.languageCodes" | "person.skillCodes" | "person.heightCm" | "person.intro" | "person.status" | "work.title" | "work.description" | "work.industryCode" | "work.workTypeCodes" | "work.origin" | "work.originNote" | "work.status" | "work.relations" | "project.title" | "project.brief" | "project.locationNote" | "project.dateNote" | "project.reviewNote" | "project.status" | "project.relations" | "source.title" | "source.type" | "source.providerClaim" | "source.basisMode" | "source.basisDescription" | "source.validFrom" | "source.validUntil" | "source.status" | "media.identity">; "validUntil": string; "evidenceNote": string };
   "usePermission.revoke": { "expectedRevision": number };
