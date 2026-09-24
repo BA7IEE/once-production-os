@@ -214,6 +214,7 @@ try {
  const before=await prisma.project.findUniqueOrThrow({where:{id:projectId}}),foreignEntry=(await prisma.workCredit.findFirstOrThrow({where:{workId:wid}})).id;
  await cmd(owner,'POST',ppath+'/participants/remove',{expectedRevision:before.revision,entryId:foreignEntry},404);assert.deepEqual(await prisma.project.findUniqueOrThrow({where:{id:projectId}}),before);
  console.log('PASS WP1 privacy: suspended dependencies redact identities/previews; private roots and audits stay hidden; wrong-parent command writes nothing');
+ await d.getByRole('button',{name:'关闭',exact:true}).last().click();
 
  const exportPerson=await prisma.person.findUniqueOrThrow({where:{id:pid}}),exportSource=await prisma.sourceRecord.findUniqueOrThrow({where:{id:exportPerson.sourceId}});
  await cmd(owner,'POST','/sources/'+exportSource.id+'/suspend',{expectedRevision:exportSource.revision,reason:'合成测试：使旧导出依赖失效'});
