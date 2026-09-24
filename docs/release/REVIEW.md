@@ -2,6 +2,17 @@
 
 # 第一批源码 Review
 
+## 2026-09-24 WP2B 搜索事实 / SQL 下推 Review
+
+本批新增 Work.industryCode / workTypeCodes 和 industry/workType 字典，不将行业事实回写 Person。人才只因当前可见且有本人署名的作品获得行业/类型命中；私有作品不进入他人的结果、Facets或计数。
+
+首轮真实 PG/Chromium 发现数据库 `dictionary_namespace_check` 未随应用 Schema 扩展，industry/workType 创建失败。追加 `202609240005_dictionary_search_namespaces` 后重新全链验证通过，没有修改初始迁移。
+
+查询实现使用 bounded `talentQuery` + 参数化 Prisma SQL。对抗审查后继续把 Facets 从“取回全部匹配人员后在 Node 计数”改为 PG 聚合；100/1000 人均记录 16 次 SQL。核验时效没有简化成 reviewedAt 日期，而是继续重算 Person 字段摘要与 Source revision。
+
+功能 head `6a7ad1ab184486adaa57edf4295ba13eef905ef0` 的 Actions 35995053306 五项全绿。仍不关闭来源 visible IDs 的完整 SQL 下推、规格 P95、AI parse_search 等价、生产数据升级与正式上线。
+
+
 ## 2026-09-24 WP2 检索/候选清单 Review
 
 以 WP1 固定 head `c349af4` 为输入，新增确定性人才检索与内部 Shortlist。H1 基本资料交接不进入搜索/清单原生资格；清单根可见不扩张人物、作品或图片范围；任一必需依赖不可读时整个候选条目只保留不可用占位。搜索没有自由 SQL、模型评分或向量能力，行业/作品类型/报价/档期缺失时明确不支持。

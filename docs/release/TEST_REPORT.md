@@ -1,5 +1,16 @@
 # 实际测试与验证记录
 
+## WP2B｜行业/作品类型与 SQL 查询下推
+
+详见 [WP2B_SEARCH_FACTS_SQL.md](WP2B_SEARCH_FACTS_SQL.md)。功能 head `6a7ad1ab184486adaa57edf4295ba13eef905ef0`，PR #8。
+
+Actions [35995053306](https://github.com/BA7IEE/once-production-os/actions/runs/35995053306) 五个 job 全绿：85 条请求契约；223/223 核心/传输；40/40 PostgreSQL；原生表单 Chromium 6/6；browser-resume / handoff / media / production 均 success。
+
+新增真实验证包括 Work 行业/作品类型字典与数据库 CHECK、私有作品不贡献他人搜索命中、当前可见署名作品驱动行业/类型命中、普通结果分页与 Facets PostgreSQL 聚合、100/1000 人搜索均 16 次 SQL，以及浏览器从作品事实录入到候选工作台筛选的完整链路。
+
+CI 本轮 PG 观察值约 19ms / 16ms，仅用于回归，不等于 4vCPU/8GB 三轮 P95 规格验收。核验时效仍由 core 批量复算 valueDigest/sourceRevision；来源 visible IDs 仍通过 loadVisibility 批量计算，因此不宣告完整 SQL 授权下推。
+
+
 ## WP2｜结构化检索与内部候选清单
 
 详见 [WP2_SEARCH_SHORTLISTS.md](WP2_SEARCH_SHORTLISTS.md)。基线 `c349af4`（PR #5）；功能代码固定 head `3db6b1810ac46423eedf6f8ff91b57f1b766d95f`，PR #7。
