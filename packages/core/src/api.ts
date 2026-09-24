@@ -83,7 +83,7 @@ export class Application {
         this.shortlists = new Shortlists(clock);
         this.search = new TalentSearch(clock);
         this.exports = new Exports(store, clock, config);
-        this.deletions = new Deletions(clock);
+        this.deletions = new Deletions(store, clock, config);
         this.handoffs = new Handoffs(clock);
         this.media = new Media(store, clock, config);
         this.commands = new Commands(clock);
