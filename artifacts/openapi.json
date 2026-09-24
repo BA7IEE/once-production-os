@@ -5771,6 +5771,95 @@
         "x-mode": "READ"
       }
     },
+    "/api/v1/deletion-requests/{id}/block": {
+      "post": {
+        "operationId": "deletion.block",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "previewDigest": {
+                    "type": "string",
+                    "minLength": 64,
+                    "maxLength": 64,
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "acknowledgeBlock": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "previewDigest",
+                  "acknowledgeBlock"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "data.delete",
+        "x-mode": "COMMAND"
+      }
+    },
     "/api/v1/deletion-requests/{id}/items": {
       "get": {
         "operationId": "deletion.items",
@@ -5995,95 +6084,6 @@
                 "required": [
                   "expectedRevision",
                   "acknowledgePlan"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
-          },
-          "default": {
-            "description": "Sanitized error with code, message, requestId"
-          }
-        },
-        "x-permission": "data.delete",
-        "x-mode": "COMMAND"
-      }
-    },
-    "/api/v1/deletion-requests/{id}/block": {
-      "post": {
-        "operationId": "deletion.block",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "Origin",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "X-CSRF-Token",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 8,
-              "maxLength": 128
-            }
-          }
-        ],
-        "security": [
-          {
-            "sessionCookie": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": false,
-                "properties": {
-                  "expectedRevision": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 9007199254740991
-                  },
-                  "previewDigest": {
-                    "type": "string",
-                    "minLength": 64,
-                    "maxLength": 64,
-                    "pattern": "^[0-9a-f]{64}$"
-                  },
-                  "acknowledgeBlock": {
-                    "type": "boolean"
-                  }
-                },
-                "required": [
-                  "expectedRevision",
-                  "previewDigest",
-                  "acknowledgeBlock"
                 ]
               }
             }
