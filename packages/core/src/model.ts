@@ -2,8 +2,9 @@ import type { Work, WorkAsset, WorkCredit, Project, ProjectParticipant, ProjectW
 import type { Shortlist, ShortlistItem, ShortlistItemAsset } from './shortlist-model.ts';
 import type { MediaUpload, MediaAsset } from './media-model.ts';
 import type { UsePermission, ExportJob, ExportDependency } from './export-model.ts';
+import type { DeletionRequest, DeletionItem } from './deletion-model.ts';
 export type Role = 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'VIEWER';
-export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write', 'data.export'] as const;
+export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write', 'data.export', 'data.delete'] as const;
 export type ExtraPermission = typeof EXTRA_PERMISSIONS[number];
 export type Permission = 'records.read' | 'records.write' | 'sources.read' | 'sources.write' | 'sources.review' | 'catalog.manage' | 'members.manage' | 'audit.read' | 'assets.read' | 'assets.upload' | ExtraPermission;
 export interface Base {
@@ -127,7 +128,7 @@ export interface CommandReceipt extends Base {
     operation: string;
     commandKey: string;
     requestDigest: string;
-    resourceKind: 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export';
+    resourceKind: 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion';
     resourceId: string;
     result: ReceiptResult;
 }
@@ -204,6 +205,8 @@ export interface RecordHandoff extends Base {
     closedById: string | null;
 }
 export interface TableMap {
+    deletionRequests: DeletionRequest;
+    deletionItems: DeletionItem;
     usePermissions: UsePermission;
     exports: ExportJob;
     exportDependencies: ExportDependency;
