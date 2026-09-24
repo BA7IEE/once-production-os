@@ -1,4 +1,5 @@
 import { ProductionSchemas as PS } from './production-validation.ts';
+import { ShortlistSchemas as SS } from './shortlist-validation.ts';
 import { MediaSchemas } from './media-validation.ts';
 import type { Permission } from './model.ts';
 import { Schemas, type Schema } from './validation.ts';
@@ -11,6 +12,17 @@ export interface RouteDefinition {
     schema?: Schema<unknown>;
 }
 export const ROUTES: RouteDefinition[] = [
+    { method: 'GET', path: '/shortlists', operation: 'shortlist.list', mode: 'READ', permission: 'records.read' },
+    { method: 'POST', path: '/shortlists', operation: 'shortlist.create', mode: 'COMMAND', permission: 'records.write', schema: SS.create },
+    { method: 'GET', path: '/shortlists/{id}', operation: 'shortlist.get', mode: 'READ', permission: 'records.read' },
+    { method: 'PATCH', path: '/shortlists/{id}', operation: 'shortlist.update', mode: 'COMMAND', permission: 'records.write', schema: SS.patch },
+    { method: 'POST', path: '/shortlists/{id}/people', operation: 'shortlist.personAdd', mode: 'COMMAND', permission: 'records.write', schema: SS.personAdd },
+    { method: 'POST', path: '/shortlists/{id}/people/update', operation: 'shortlist.personUpdate', mode: 'COMMAND', permission: 'records.write', schema: SS.personUpdate },
+    { method: 'POST', path: '/shortlists/{id}/people/remove', operation: 'shortlist.personRemove', mode: 'COMMAND', permission: 'records.write', schema: SS.personRemove },
+    { method: 'POST', path: '/shortlists/{id}/people/reorder', operation: 'shortlist.peopleReorder', mode: 'COMMAND', permission: 'records.write', schema: SS.personOrder },
+    { method: 'POST', path: '/shortlists/{id}/works', operation: 'shortlist.workAdd', mode: 'COMMAND', permission: 'records.write', schema: SS.workAdd },
+    { method: 'POST', path: '/shortlists/{id}/works/remove', operation: 'shortlist.workRemove', mode: 'COMMAND', permission: 'records.write', schema: SS.workRemove },
+    { method: 'POST', path: '/shortlists/{id}/works/reorder', operation: 'shortlist.worksReorder', mode: 'COMMAND', permission: 'records.write', schema: SS.workOrder },
     { method: 'GET', path: '/works', operation: 'work.list', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/works', operation: 'work.create', mode: 'COMMAND', permission: 'records.write', schema: PS.workCreate },
     { method: 'GET', path: '/works/{id}', operation: 'work.get', mode: 'READ', permission: 'records.read' },
