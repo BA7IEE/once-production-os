@@ -199,19 +199,6 @@
                     "minLength": 0,
                     "maxLength": 5000
                   },
-                  "origin": {
-                    "type": "string",
-                    "enum": [
-                      "ONCE",
-                      "EXTERNAL",
-                      "UNKNOWN"
-                    ]
-                  },
-                  "originNote": {
-                    "type": "string",
-                    "minLength": 0,
-                    "maxLength": 2000
-                  },
                   "industryCode": {
                     "anyOf": [
                       {
@@ -235,6 +222,19 @@
                     },
                     "minItems": 0,
                     "maxItems": 10
+                  },
+                  "origin": {
+                    "type": "string",
+                    "enum": [
+                      "ONCE",
+                      "EXTERNAL",
+                      "UNKNOWN"
+                    ]
+                  },
+                  "originNote": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 2000
                   }
                 },
                 "required": [
@@ -353,27 +353,6 @@
                     "minLength": 0,
                     "maxLength": 5000
                   },
-                  "origin": {
-                    "type": "string",
-                    "enum": [
-                      "ONCE",
-                      "EXTERNAL",
-                      "UNKNOWN"
-                    ]
-                  },
-                  "originNote": {
-                    "type": "string",
-                    "minLength": 0,
-                    "maxLength": 2000
-                  },
-                  "status": {
-                    "type": "string",
-                    "enum": [
-                      "DRAFT",
-                      "ACTIVE",
-                      "ARCHIVED"
-                    ]
-                  },
                   "industryCode": {
                     "anyOf": [
                       {
@@ -397,6 +376,27 @@
                     },
                     "minItems": 0,
                     "maxItems": 10
+                  },
+                  "origin": {
+                    "type": "string",
+                    "enum": [
+                      "ONCE",
+                      "EXTERNAL",
+                      "UNKNOWN"
+                    ]
+                  },
+                  "originNote": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 2000
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DRAFT",
+                      "ACTIVE",
+                      "ARCHIVED"
+                    ]
                   }
                 },
                 "required": [
