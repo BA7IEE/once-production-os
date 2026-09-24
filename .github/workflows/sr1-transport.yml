@@ -19,23 +19,10 @@ jobs:
           fetch-depth: 0
       - name: Remove temporary transfer file and rebuild manifest
         run: |
-          test "$(cat .sr1-trigger)" = "cleanup"
+          test "$(head -n 1 .sr1-trigger)" = "cleanup"
           rm -rf .sl1-transfer .sr1-patch
           rm -f .sr1-trigger
-          python3 - <<'PY'
-from pathlib import Path
-import subprocess, hashlib
-skip={'MANIFEST.sha256','.github/workflows/sr1-transport.yml','.sr1-trigger'}
-files=[]
-for file in subprocess.check_output(['git','ls-files'],text=True).splitlines():
-    if file in skip or file.startswith('.sl1-transfer/') or file.startswith('.sr1-patch/'):
-        continue
-    p=Path(file)
-    if p.is_file():
-        files.append(file)
-files.sort()
-Path('MANIFEST.sha256').write_text('\n'.join(f"{hashlib.sha256(Path(f).read_bytes()).hexdigest()}  {f}" for f in files)+'\n')
-PY
+          python3 -c 'from pathlib import Path; import subprocess,hashlib; skip={"MANIFEST.sha256",".github/workflows/sr1-transport.yml",".sr1-trigger"}; fs=sorted(f for f in subprocess.check_output(["git","ls-files"],text=True).splitlines() if f not in skip and not f.startswith(".sl1-transfer/") and not f.startswith(".sr1-patch/") and Path(f).is_file()); Path("MANIFEST.sha256").write_text("\\n".join(f"{hashlib.sha256(Path(x).read_bytes()).hexdigest()}  {x}" for x in fs)+"\\n")'
           sha256sum -c MANIFEST.sha256
       - name: Commit final product fingerprints
         run: |
