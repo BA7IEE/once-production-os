@@ -14,7 +14,7 @@ export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandRec
     const id = receipt.resourceId;
     switch (receipt.resourceKind) {
         case 'deletion':
-            await new Deletions(clock).get(tx, actor, id);
+            await new Deletions(null, clock, config ?? null).get(tx, actor, id);
             return;
         case 'usePermission': {
             requirePermission(actor, 'sources.review');
