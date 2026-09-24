@@ -175,6 +175,29 @@ export async function runProductionContracts(t: TestContext, c: Context) {
         } }));
         assert.equal(await a.shortlistItemAsset.count({ where: { itemId: item.id } }), 1);
     });
+    await t.test('DEV-06 PG unlinking a work image removes only derived shortlist selection and preserves media/item', async () => {
+        const scope = await a.accessScope.findFirstOrThrow({ where: { workspaceId: identity.workspaceId, mode: 'WORKSPACE' } });
+        const w = await root('works');
+        await modify('/works/' + w, '/credits', { personId, roleCode: 'model', note: 'synthetic shortlist unlink credit' });
+        await modify('/works/' + w, '/assets', { assetId: asset2 });
+        const beforeWork = await get('/works/' + w);
+        const workEntry = beforeWork.items[0];
+        const listId = (await ok(ownerA.cmd('POST', '/shortlists', { title: 'DEV06 PG unlink', brief: '', scopeId: scope.id }), 201)).resourceId as string;
+        await ok(ownerA.cmd('POST', '/shortlists/' + listId + '/items', { expectedRevision: 1, personId, workId: w,
+            workAssetIds: [workEntry.id], note: 'derived selection should disappear on unlink' }));
+        const item = await a.shortlistItem.findFirstOrThrow({ where: { shortlistId: listId } });
+        assert.equal(await a.shortlistItemAsset.count({ where: { itemId: item.id } }), 1);
+        assert.equal(await a.mediaAsset.count({ where: { id: asset2 } }), 1);
+        await modify('/works/' + w, '/assets/remove', { entryId: workEntry.id });
+        assert.equal(await a.workAsset.count({ where: { id: workEntry.id } }), 0);
+        assert.equal(await a.shortlistItemAsset.count({ where: { itemId: item.id } }), 0);
+        assert.equal(await a.mediaAsset.count({ where: { id: asset2 } }), 1);
+        assert.equal(await a.shortlistItem.count({ where: { id: item.id } }), 1);
+        const view = await get('/shortlists/' + listId);
+        assert.equal(view.items[0].unavailable, false);
+        assert.deepEqual(view.items[0].selectedAssets, []);
+        assert.equal(view.items[0].updatedSinceAdded, true);
+    });
     await t.test('DEV-06 PG concurrent shortlist mutations serialize on root CAS', async () => {
         const scope = await a.accessScope.findFirstOrThrow({ where: { workspaceId: identity.workspaceId, mode: 'WORKSPACE' } });
         const listId = (await ok(ownerA.cmd('POST', '/shortlists', { title: 'DEV06 PG CAS', brief: '', scopeId: scope.id }), 201)).resourceId as string;
