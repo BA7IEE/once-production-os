@@ -156,7 +156,9 @@ export function ExportPanel({ me }: { me: Me }) {
     const people = useLoad(() => read<Page<Person>>('person.list', {}, { pageSize: '100' }), 'export-people:' + refresh);
     const works = useLoad(() => read<Page<WorkSummary>>('work.list', {}, { pageSize: '100' }), 'export-works:' + refresh);
     const projects = useLoad(() => read<Page<ProjectSummary>>('project.list', {}, { pageSize: '100' }), 'export-projects:' + refresh);
-    const sources = useLoad(() => read<Page<Source>>('source.list', {}, { pageSize: '100' }), 'export-sources:' + refresh);
+    const sources = useLoad(() => me.permissions.includes('sources.read')
+        ? read<Page<Source>>('source.list', {}, { pageSize: '100' })
+        : Promise.resolve({ items: [], total: 0, page: 1, pageSize: 100 } as Page<Source>), 'export-sources:' + refresh);
     const assets = useLoad(() => read<Page<AssetDto>>('asset.list', {}, { pageSize: '100' }), 'export-assets:' + refresh);
     const permissions = useLoad(() => read<Page<UsePermissionDto>>('usePermission.list', {}, { pageSize: '100' }), 'export-permissions:' + refresh);
     const exports = useLoad(() => canExport ? read<Page<ExportSummary>>('export.list', {}, { page: String(page), pageSize: '20' }) : Promise.resolve({ items: [], total: 0, page: 1, pageSize: 20 }), 'exports:' + page + ':' + refresh);
