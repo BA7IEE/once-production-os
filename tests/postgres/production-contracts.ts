@@ -543,7 +543,7 @@ export async function runProductionContracts(t: TestContext, c: Context) {
         }), 201)).resourceId as string;
         const person = await a.person.findUniqueOrThrow({ where: { id: personId2 } });
         const workId2 = await root('works');
-        const credit = await modify('/works/' + workId2, '/credits', {
+        await modify('/works/' + workId2, '/credits', {
             personId: personId2, roleCode: 'model', note: 'synthetic retention review note'
         });
         const preview = result(await ownerA.raw('POST', '/deletion-requests/preview', {
@@ -574,7 +574,7 @@ export async function runProductionContracts(t: TestContext, c: Context) {
         assert.ok(request.planFrozenAt);
         assert.equal(request.planFrozenById, identity.membershipId);
         assert.equal(await a.person.count({ where: { id: personId2 } }), 1);
-        assert.equal(await a.workCredit.count({ where: { id: credit.resourceId } }), 1);
+        assert.equal(await a.workCredit.count({ where: { workId: workId2, personId: personId2, roleCode: 'model' } }), 1);
     });
 
     await t.test('DEV-07D PG invalid retention decision shapes are rejected by DB', async () => {
