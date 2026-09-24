@@ -244,7 +244,7 @@ export class Deletions {
             const key = row.dependencyKind + '|' + row.proposedAction + '|' + row.evidenceState;
             acc[key] = (acc[key] ?? 0) + 1; return acc;
         }, {} as Record<string, number>)).map(([key, count]) => {
-            const [dependencyKind, proposedAction, evidenceState] = key.split('|');
+            const [dependencyKind = 'UNKNOWN', proposedAction = 'UNKNOWN', evidenceState = 'UNKNOWN'] = key.split('|');
             return { dependencyKind, proposedAction, evidenceState, count };
         }).sort((a, b) => a.dependencyKind.localeCompare(b.dependencyKind));
         const result = {
