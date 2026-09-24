@@ -155,7 +155,7 @@ export class Media {
         // Reuse the existing native-scope batch index; never multiply permission queries by image count.
         const visibleIndex = await loadVisibility(tx, actor, this.clock);
         const people = new Map((await tx.find('people', { workspaceId: actor.workspaceId })).map(p => [p.id, p]));
-        const visible = rows.filter(a => visibleIndex.scopeVisible(a.scopeId) && visibleIndex.sourceVisible(a.sourceId) && (!a.personId || (() => { const p = people.get(a.personId!); return !!p && p.sourceId === a.sourceId && visibleIndex.personVisible(p); })()));
+        const visible = rows.filter(a => !visibleIndex.blocked('ASSET', a.id) && visibleIndex.scopeVisible(a.scopeId) && visibleIndex.sourceVisible(a.sourceId) && (!a.personId || (() => { const p = people.get(a.personId!); return !!p && p.sourceId === a.sourceId && visibleIndex.personVisible(p); })()));
         return page(visible.sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id)).map(assetDto), query, ['personId', 'sourceId']);
     }
     async getAsset(tx: Tx, actor: Actor, id: string) { requirePermission(actor, 'assets.read'); return assetDto(await assetFor(tx, actor, id, this.clock)); }
