@@ -537,4 +537,113 @@ export async function runProductionContracts(t: TestContext, c: Context) {
         });
     }
 
+    await t.test('DEV-07D PG review decisions freeze a plan without cleaning underlying rows', async () => {
+        const personId2 = (await ok(ownerA.cmd('POST', '/people', {
+            displayName: 'DEV07D PG retention person', roles: ['model'], inlineSource: sourceInput()
+        }), 201)).resourceId as string;
+        const person = await a.person.findUniqueOrThrow({ where: { id: personId2 } });
+        const workId2 = await root('works');
+        await modify('/works/' + workId2, '/credits', {
+            personId: personId2, roleCode: 'model', note: 'synthetic retention review note'
+        });
+        const preview = result(await ownerA.raw('POST', '/deletion-requests/preview', {
+            targetKind: 'PERSON', targetId: personId2, expectedRevision: person.revision
+        }));
+        const requestId = (await ok(ownerA.cmd('POST', '/deletion-requests', {
+            targetKind: 'PERSON', targetId: personId2, expectedRevision: person.revision,
+            previewDigest: preview.previewDigest, reason: 'synthetic retention plan'
+        }), 201)).resourceId as string;
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/block', {
+            expectedRevision: 1, previewDigest: preview.previewDigest, acknowledgeBlock: true
+        }));
+        const creditRow = await a.workCredit.findFirstOrThrow({ where: { workId: workId2, personId: personId2, roleCode: 'model' } });
+        const slots = result(await ownerA.raw('GET', '/deletion-requests/' + requestId + '/items'));
+        const pending = slots.items.find((x: any) => x.decision === 'PENDING');
+        assert.ok(pending);
+        assert.ok(!JSON.stringify(slots).includes(workId2));
+        assert.ok(!JSON.stringify(slots).includes(creditRow.id));
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/decisions', {
+            expectedRevision: 2, entryId: pending.id, decision: 'APPLY_PROPOSED',
+            decisionReason: 'synthetic review confirms proposed action'
+        }));
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/plan/freeze', {
+            expectedRevision: 3, acknowledgePlan: true
+        }));
+        const request = await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } });
+        assert.equal(request.state, 'BLOCKED_FOR_USE');
+        assert.equal(request.planDigest?.length, 64);
+        assert.ok(request.planFrozenAt);
+        assert.equal(request.planFrozenById, identity.membershipId);
+        assert.equal(await a.person.count({ where: { id: personId2 } }), 1);
+        assert.equal(await a.workCredit.count({ where: { id: creditRow.id } }), 1);
+    });
+
+    await t.test('DEV-07D PG invalid retention decision shapes are rejected by DB', async () => {
+        const item = await a.deletionItem.findFirstOrThrow({ where: { evidenceState: 'REVIEW_REQUIRED', decision: 'APPLY_PROPOSED' } });
+        await assert.rejects(a.deletionItem.update({ where: { id: item.id }, data: {
+            decision: 'RETAIN_WITH_BASIS', decisionReason: 'synthetic invalid retention',
+            retentionSourceId: null, retentionSourceRevision: null, retentionSourceProtectionEpoch: null
+        } }));
+        const request = await a.deletionRequest.findUniqueOrThrow({ where: { id: item.requestId } });
+        await assert.rejects(a.deletionRequest.update({ where: { id: request.id }, data: {
+            planDigest: 'a'.repeat(64), planFrozenAt: null, planFrozenById: identity.membershipId
+        } }));
+    });
+
+    await t.test('DEV-07D PG decision and freeze rollback with audit/receipt failures', async () => {
+        const personId2 = (await ok(ownerA.cmd('POST', '/people', {
+            displayName: 'DEV07D rollback person', roles: ['model'], inlineSource: sourceInput()
+        }), 201)).resourceId as string;
+        const person = await a.person.findUniqueOrThrow({ where: { id: personId2 } });
+        const workId2 = await root('works');
+        await modify('/works/' + workId2, '/credits', {
+            personId: personId2, roleCode: 'model', note: 'synthetic rollback retention note'
+        });
+        const preview = result(await ownerA.raw('POST', '/deletion-requests/preview', {
+            targetKind: 'PERSON', targetId: personId2, expectedRevision: person.revision
+        }));
+        const requestId = (await ok(ownerA.cmd('POST', '/deletion-requests', {
+            targetKind: 'PERSON', targetId: personId2, expectedRevision: person.revision,
+            previewDigest: preview.previewDigest, reason: 'synthetic rollback retention plan'
+        }), 201)).resourceId as string;
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/block', {
+            expectedRevision: 1, previewDigest: preview.previewDigest, acknowledgeBlock: true
+        }));
+        const pending = result(await ownerA.raw('GET', '/deletion-requests/' + requestId + '/items')).items.find((x: any) => x.decision === 'PENDING');
+        assert.ok(pending);
+
+        const faultsA = new FaultStore(storeA);
+        let firedA = false;
+        faultsA.afterInsert = table => {
+            if (table === 'audits' && !firedA) { firedA = true; throw new Error('DEV07D decision audit failure'); }
+        };
+        const appDecision = new Application(faultsA, config, clock), decisionClient = new Client(appDecision);
+        decisionClient.jar = { ...ownerA.jar }; decisionClient.csrf = ownerA.csrf;
+        const decisionBody = { expectedRevision: 2, entryId: pending.id, decision: 'APPLY_PROPOSED',
+            decisionReason: 'synthetic rollback decision' };
+        const decisionKey = randomUUID();
+        const failedDecision = await decisionClient.cmd('POST', '/deletion-requests/' + requestId + '/decisions', decisionBody, decisionKey);
+        assert.ok(failedDecision.status >= 500);
+        assert.ok(firedA);
+        assert.equal((await a.deletionItem.findUniqueOrThrow({ where: { id: pending.id } })).decision, 'PENDING');
+        assert.equal((await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } })).revision, 2);
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/decisions', decisionBody, decisionKey));
+        assert.equal((await a.deletionItem.findUniqueOrThrow({ where: { id: pending.id } })).decision, 'APPLY_PROPOSED');
+
+        const faultsB = new FaultStore(storeA);
+        let firedB = false;
+        faultsB.afterInsert = table => {
+            if (table === 'receipts' && !firedB) { firedB = true; throw new Error('DEV07D freeze receipt failure'); }
+        };
+        const appFreeze = new Application(faultsB, config, clock), freezeClient = new Client(appFreeze);
+        freezeClient.jar = { ...ownerA.jar }; freezeClient.csrf = ownerA.csrf;
+        const freezeBody = { expectedRevision: 3, acknowledgePlan: true }, freezeKey = randomUUID();
+        const failedFreeze = await freezeClient.cmd('POST', '/deletion-requests/' + requestId + '/plan/freeze', freezeBody, freezeKey);
+        assert.ok(failedFreeze.status >= 500);
+        assert.ok(firedB);
+        assert.equal((await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } })).planDigest, null);
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/plan/freeze', freezeBody, freezeKey));
+        assert.equal((await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } })).planDigest?.length, 64);
+    });
+
 }

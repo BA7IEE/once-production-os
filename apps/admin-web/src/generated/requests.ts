@@ -81,6 +81,9 @@ export interface Inputs {
   "deletion.create": { "targetKind": "SOURCE" | "PERSON" | "WORK" | "PROJECT" | "ASSET"; "targetId": string; "expectedRevision": number; "previewDigest": string; "reason": string };
   "deletion.get": undefined;
   "deletion.block": { "expectedRevision": number; "previewDigest": string; "acknowledgeBlock": boolean };
+  "deletion.items": undefined;
+  "deletion.decision": { "expectedRevision": number; "entryId": string; "decision": "APPLY_PROPOSED" | "RETAIN_WITH_BASIS"; "decisionReason": string; "retentionSourceId"?: string | null };
+  "deletion.planFreeze": { "expectedRevision": number; "acknowledgePlan": boolean };
   "usePermission.list": undefined;
   "usePermission.create": { "sourceId": string; "subjectKind": "SOURCE" | "PERSON" | "WORK" | "PROJECT" | "ASSET"; "subjectId": string; "fields": Array<"person.displayName" | "person.aliases" | "person.roles" | "person.cityCode" | "person.languageCodes" | "person.skillCodes" | "person.heightCm" | "person.intro" | "person.status" | "work.title" | "work.description" | "work.industryCode" | "work.workTypeCodes" | "work.origin" | "work.originNote" | "work.status" | "work.relations" | "project.title" | "project.brief" | "project.locationNote" | "project.dateNote" | "project.reviewNote" | "project.status" | "project.relations" | "source.title" | "source.type" | "source.providerClaim" | "source.basisMode" | "source.basisDescription" | "source.validFrom" | "source.validUntil" | "source.status" | "media.identity">; "validUntil": string; "evidenceNote": string };
   "usePermission.revoke": { "expectedRevision": number };
@@ -502,6 +505,21 @@ export const ENDPOINTS = {
   "deletion.block": {
     "method": "POST",
     "path": "/deletion-requests/{id}/block",
+    "mode": "COMMAND"
+  },
+  "deletion.items": {
+    "method": "GET",
+    "path": "/deletion-requests/{id}/items",
+    "mode": "READ"
+  },
+  "deletion.decision": {
+    "method": "POST",
+    "path": "/deletion-requests/{id}/decisions",
+    "mode": "COMMAND"
+  },
+  "deletion.planFreeze": {
+    "method": "POST",
+    "path": "/deletion-requests/{id}/plan/freeze",
     "mode": "COMMAND"
   },
   "usePermission.list": {

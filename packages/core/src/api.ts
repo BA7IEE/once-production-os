@@ -205,6 +205,9 @@ export class Application {
                     case 'deletion.create': return command('deletion', () => this.deletions.create(tx, actor, data));
                     case 'deletion.get': return this.deletions.get(tx, actor, id);
                     case 'deletion.block': return command('deletion', () => this.deletions.block(tx, actor, id, data));
+                    case 'deletion.items': return this.deletions.reviewItems(tx, actor, id, query);
+                    case 'deletion.decision': return command('deletion', () => this.deletions.decide(tx, actor, id, data));
+                    case 'deletion.planFreeze': return command('deletion', () => this.deletions.freezePlan(tx, actor, id, data));
                     case 'usePermission.list': return this.exports.listPermissions(tx, actor, query);
                     case 'usePermission.create': return command('usePermission', () => this.exports.createPermission(tx, actor, data));
                     case 'usePermission.revoke': return command('usePermission', () => this.exports.revokePermission(tx, actor, id, data));
