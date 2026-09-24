@@ -3,7 +3,8 @@ name: SR1 transport
 on:
   push:
     branches: [feat/structured-search]
-    paths: [.sr1-trigger]
+    paths:
+      - .sr1-trigger
 
 permissions:
   contents: write
@@ -18,6 +19,7 @@ jobs:
           ref: feat/structured-search
           fetch-depth: 0
       - name: Apply prepared product patch or rebuild manifest
+        shell: bash
         run: |
           phase="$(cat .sr1-trigger)"
           git config user.name "David 老灯"
@@ -32,14 +34,16 @@ jobs:
             git commit -m "feat(search): add structured talent search explanations"
             git push origin HEAD:feat/structured-search
           elif [ "$phase" = "manifest" ]; then
-            python3 - <<'PY'
-from pathlib import Path
-import subprocess, hashlib
-files=subprocess.check_output(['git','ls-files'],text=True).splitlines()
-skip={'MANIFEST.sha256','.github/workflows/sr1-transport.yml','.sr1-trigger'}
-files=sorted(f for f in files if f not in skip and Path(f).is_file())
-Path('MANIFEST.sha256').write_text('\n'.join(f"{hashlib.sha256(Path(f).read_bytes()).hexdigest()}  {f}" for f in files)+'\n')
-PY
+            : > /tmp/newmanifest
+            while IFS= read -r file; do
+              case "$file" in
+                MANIFEST.sha256|.github/workflows/sr1-transport.yml|.sr1-trigger) continue ;;
+              esac
+              if [ -f "$file" ]; then
+                sha256sum "$file" >> /tmp/newmanifest
+              fi
+            done < <(git ls-files)
+            sort -k2 /tmp/newmanifest > MANIFEST.sha256
             sha256sum -c MANIFEST.sha256
             git add MANIFEST.sha256
             git commit -m "chore(search): refresh delivery fingerprints"
