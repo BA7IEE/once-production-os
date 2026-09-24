@@ -14,7 +14,7 @@ e9bfd5d9ae0d62a04a5b1ef26b2eaa0b418e647840a1193bafe9b114688a02e1  AGENTS.md
 6a14e53146b7c67b4405529fe43160bae338e50f1cbbfbb0581f199641e8b682  apps/admin-web/src/export-dto.ts
 a73537c272e47f4b19c61922534f491d48efcb37e21e26f7dad1eb84f5294bb5  apps/admin-web/src/export-ui.tsx
 dad944fad32c24515b07603d661c2f9401c170967206e502b740e2f8f9661c11  apps/admin-web/src/field.ts
-f7ad4536a178ae1f07fc87bfb14a29a9b6ea1ab546571483d9ee3deaaf8c4aac  apps/admin-web/src/generated/requests.ts
+a9622d5d85bd2a04a83d8282c253d8b1173c3421fbf36c10fe80700473b47044  apps/admin-web/src/generated/requests.ts
 8b700df74bf870a0675935f55c07937f78d5856d009dc929e7ff0aae2b04fdc7  apps/admin-web/src/handoff-ui.tsx
 45fc858f0908f5042c89b3ff17b7b12ea1fc4b2041bf22d8a60ffb8cf83682dc  apps/admin-web/src/main.tsx
 0fc1152318834812081f53d47c455de592b2c9470858815a3b84715c87e6ee80  apps/admin-web/src/media-ui.tsx
