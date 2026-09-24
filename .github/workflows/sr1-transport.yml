@@ -21,7 +21,7 @@ jobs:
       - name: Apply prepared product patch or rebuild manifest
         shell: bash
         run: |
-          phase="$(cat .sr1-trigger)"
+          phase="$(head -n 1 .sr1-trigger)"
           git config user.name "David 老灯"
           git config user.email "32892836+BA7IEE@users.noreply.github.com"
           if [ "$phase" = "apply" ]; then
