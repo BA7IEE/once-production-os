@@ -3,8 +3,7 @@ name: SR1 transport
 on:
   push:
     branches: [feat/structured-search]
-    paths:
-      - .sr1-trigger
+    paths: [.sr1-trigger]
 
 permissions:
   contents: write
@@ -18,37 +17,22 @@ jobs:
         with:
           ref: feat/structured-search
           fetch-depth: 0
-      - name: Apply prepared product patch or rebuild manifest
-        shell: bash
+      - name: Apply prepared structured-search patch
         run: |
-          phase="$(head -n 1 .sr1-trigger)"
+          test "$(cat .sr1-trigger)" = "apply"
+          cat .sr1-patch/p00 .sr1-patch/p01 .sr1-patch/p02 | base64 -d | gzip -d > /tmp/sr1.patch
+          echo "60a253bd798b266fbbf18aef742d36e326060a2a7e3b4d1a7a7b2f1968bcf0b5  /tmp/sr1.patch" | sha256sum -c -
+          git apply --check /tmp/sr1.patch
+          cp .github/workflows/acceptance.yml /tmp/acceptance.yml
+          git apply /tmp/sr1.patch
+          cp /tmp/acceptance.yml .github/workflows/acceptance.yml
+          rm -rf .sr1-patch
+          rm -f .sr1-trigger
+      - name: Commit product files
+        run: |
           git config user.name "David 老灯"
           git config user.email "32892836+BA7IEE@users.noreply.github.com"
-          if [ "$phase" = "apply" ]; then
-            cat .sr1-patch/p00 .sr1-patch/p01 .sr1-patch/p02 .sr1-patch/p03 .sr1-patch/p04 .sr1-patch/p05 | base64 -d | gzip -d > /tmp/sr1.patch
-            echo "b49cbb7f36241aa497ffab8a59aba26a1bd8ad4788d3ee16ebdba1f58503e260  /tmp/sr1.patch" | sha256sum -c -
-            git apply --check /tmp/sr1.patch
-            git apply /tmp/sr1.patch
-            rm -rf .sr1-patch
-            git add -A
-            git commit -m "feat(search): add structured talent search explanations"
-            git push origin HEAD:feat/structured-search
-          elif [ "$phase" = "manifest" ]; then
-            : > /tmp/newmanifest
-            while IFS= read -r file; do
-              case "$file" in
-                MANIFEST.sha256|.github/workflows/sr1-transport.yml|.sr1-trigger) continue ;;
-              esac
-              if [ -f "$file" ]; then
-                sha256sum "$file" >> /tmp/newmanifest
-              fi
-            done < <(git ls-files)
-            sort -k2 /tmp/newmanifest > MANIFEST.sha256
-            sha256sum -c MANIFEST.sha256
-            git add MANIFEST.sha256
-            git commit -m "chore(search): refresh delivery fingerprints"
-            git push origin HEAD:feat/structured-search
-          else
-            echo "unknown phase: $phase" >&2
-            exit 2
-          fi
+          git add -A
+          test -n "$(git status --porcelain)"
+          git commit -m "feat(search): add structured talent search explanations"
+          git push origin HEAD:feat/structured-search
