@@ -408,7 +408,6 @@ export class Deletions {
 
         for (const item of items) {
             if (item.decision !== 'RETAIN_WITH_BASIS') continue;
-            requirePermission(actor, 'sources.review');
             invariant(!!item.retentionSourceId && !!item.retentionSourceRevision && !!item.retentionSourceProtectionEpoch,
                 'RETENTION_BASIS_MISSING', '保留依据快照不完整', 409);
             const basis = await sourceFor(tx, actor, item.retentionSourceId, this.clock);
