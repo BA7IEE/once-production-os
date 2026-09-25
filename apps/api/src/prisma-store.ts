@@ -73,6 +73,10 @@ export class PrismaStore implements Store {
                                 SELECT 1 FROM "deletionRequests" dr
                                 WHERE dr."workspaceId" = p."workspaceId" AND dr."state" <> 'DRAFT'
                                   AND dr."targetKind" = 'PERSON' AND dr."targetId" = p."id"
+                            )`,
+                            Prisma.sql`NOT EXISTS (
+                                SELECT 1 FROM "personAliases" pa
+                                WHERE pa."workspaceId" = p."workspaceId" AND pa."oldPersonId" = p."id"
                             )`
                         ];
                         if (input.q)

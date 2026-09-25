@@ -8,6 +8,9 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     REVIEWER: ['assets.read', 'records.read', 'sources.read', 'sources.review'], VIEWER: ['assets.read', 'records.read']
 };
 export const permissionsFor = (member: Membership): Permission[] => [...new Set([...ROLE_PERMISSIONS[member.role], ...member.extraPermissions])];
+export async function personAliasFor(tx: Tx, workspaceId: string, oldPersonId: string) {
+    return (await tx.find('personAliases', { workspaceId, oldPersonId }))[0] ?? null;
+}
 export async function deletionBlocked(tx: Tx, workspaceId: string, kind: 'SOURCE' | 'PERSON' | 'WORK' | 'PROJECT' | 'ASSET', id: string): Promise<boolean> {
     return (await tx.find('deletionRequests', { workspaceId, targetKind: kind, targetId: id })).some(row => row.state !== 'DRAFT');
 }
@@ -48,12 +51,15 @@ export async function sourceFor(tx: Tx, actor: Actor, id: string, clock: Clock, 
     return source;
 }
 export async function personVisible(tx: Tx, actor: Actor, person: Person, clock: Clock): Promise<boolean> {
+    if (await personAliasFor(tx, actor.workspaceId, person.id)) return false;
     if (person.workspaceId !== actor.workspaceId || await deletionBlocked(tx, actor.workspaceId, 'PERSON', person.id) || !(await scopeVisible(tx, actor, person.scopeId)))
         return false;
     const source = await workspaceRow(tx, 'sources', person.sourceId, actor.workspaceId);
     return !!source && await sourceVisible(tx, actor, source, clock);
 }
 export async function personFor(tx: Tx, actor: Actor, id: string, clock: Clock, activeSource = true): Promise<Person> {
+    const alias = await personAliasFor(tx, actor.workspaceId, id);
+    invariant(!alias, 'MERGED_ID_READ_ONLY', '该人才ID已合并，只允许通过详情只读解析到主档案', 409);
     const person = await workspaceRow(tx, 'people', id, actor.workspaceId);
     if (!person)
         missing();

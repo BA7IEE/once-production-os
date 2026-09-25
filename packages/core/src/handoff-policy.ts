@@ -2,7 +2,7 @@ import type { Actor, Clock, Membership, Person, RecordHandoff } from './model.ts
 import type { Tx } from './store.ts';
 import { workspaceRow } from './helpers.ts';
 import { missing } from './errors.ts';
-import { deletionBlocked, permissionsFor, personVisible, sourceCurrent, scopeVisible } from './policy.ts';
+import { deletionBlocked, personAliasFor, permissionsFor, personVisible, sourceCurrent, scopeVisible } from './policy.ts';
 
 export type ProfileAction = 'read' | 'edit' | 'review';
 export function recipientEligible(member: Membership, purpose: RecordHandoff['purpose']): boolean {
@@ -24,7 +24,7 @@ export async function handoffCurrent(tx: Tx, h: RecordHandoff, clock: Clock): Pr
     if (!['PENDING', 'ACCEPTED'].includes(h.state) || Date.parse(h.expiresAt) <= clock.now().getTime()) return false;
     const person = await workspaceRow(tx, 'people', h.personId, h.workspaceId);
     const source = await workspaceRow(tx, 'sources', h.sourceId, h.workspaceId);
-    if (!person || !source || person.sourceId !== source.id || person.status === 'ARCHIVED' || !sourceCurrent(source, clock)
+    if (!person || !source || await personAliasFor(tx, h.workspaceId, person.id) || person.sourceId !== source.id || person.status === 'ARCHIVED' || !sourceCurrent(source, clock)
         || await deletionBlocked(tx, h.workspaceId, 'PERSON', person.id) || await deletionBlocked(tx, h.workspaceId, 'SOURCE', source.id)) return false;
     if (person.maintainerId !== h.senderId || source.maintainerId !== h.senderId
         || person.protectionEpoch !== h.personEpoch || source.protectionEpoch !== h.sourceEpoch
