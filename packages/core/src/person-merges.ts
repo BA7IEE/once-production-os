@@ -105,11 +105,16 @@ export class PersonMerges {
                 blocker(blockers, 'ACTIVE_DELETION_DEPENDENCY');
 
         const fieldConflicts: FieldConflict[] = [];
+        const sameProfileSource = canonical.sourceId === duplicate.sourceId;
         for (const field of F) {
             const a = readField(canonical, field), d = readField(duplicate, field);
             if (!same(a,d))
                 fieldConflicts.push({ field, canonicalValue: a, duplicateValue: d,
-                    choices: ARRAY_FIELDS.has(field) ? ['CANONICAL','DUPLICATE','UNION'] : ['CANONICAL','DUPLICATE'] });
+                    // Person has one primary source. Never copy a conflicting profile value across
+                    // source identities and then silently attribute it to the canonical source.
+                    // The operator can reverse canonical/duplicate and preview again instead.
+                    choices: !sameProfileSource ? ['CANONICAL']
+                        : ARRAY_FIELDS.has(field) ? ['CANONICAL','DUPLICATE','UNION'] : ['CANONICAL','DUPLICATE'] });
         }
         invariant(fieldConflicts.length <= L.conflicts, 'MERGE_FIELD_LIMIT', '字段冲突超过当前安全处理上限', 409);
 
@@ -283,8 +288,11 @@ export class PersonMerges {
         }
         invariant(fieldMap.size === plan.fieldConflicts.length && plan.fieldConflicts.every(c=>fieldMap.has(c.field)),
             'MERGE_FIELD_DECISIONS_INCOMPLETE', '必须逐项处理全部字段冲突', 422);
-        for (const [field,choice] of fieldMap)
-            if (choice === 'UNION') invariant(ARRAY_FIELDS.has(field), 'MERGE_FIELD_CHOICE_INVALID', '该字段不能使用并集', 422);
+        for (const conflict of plan.fieldConflicts) {
+            const choice = fieldMap.get(conflict.field)!;
+            invariant(conflict.choices.includes(choice), 'MERGE_FIELD_CHOICE_INVALID', '该字段选择不符合当前来源边界，请重新预览', 422);
+            if (choice === 'UNION') invariant(ARRAY_FIELDS.has(conflict.field), 'MERGE_FIELD_CHOICE_INVALID', '该字段不能使用并集', 422);
+        }
 
         const collisionMap = new Map<string,PersonMergeCollisionChoice>();
         for (const row of d.collisionDecisions) {
@@ -385,7 +393,10 @@ export class PersonMerges {
         let nextCanonical: Person = { ...touch(plan.canonical, this.clock), ...patch, protectionEpoch: plan.canonical.protectionEpoch + 1 };
         const nameAliases = unique([...(nextCanonical.aliases ?? []),
             ...(plan.canonical.displayName !== nextCanonical.displayName ? [plan.canonical.displayName] : []),
-            ...(plan.duplicate.displayName !== nextCanonical.displayName ? [plan.duplicate.displayName] : [])]).filter(x=>x && x !== nextCanonical.displayName);
+            // A display name from another Source is profile data too; do not smuggle it into
+            // canonical aliases merely because the identity rows were merged.
+            ...(plan.canonicalSource.id === plan.duplicateSource.id && plan.duplicate.displayName !== nextCanonical.displayName
+                ? [plan.duplicate.displayName] : [])]).filter(x=>x && x !== nextCanonical.displayName);
         nextCanonical = { ...nextCanonical, aliases: nameAliases };
         const nextDuplicate: Person = { ...touch(plan.duplicate, this.clock), status: 'ARCHIVED', protectionEpoch: plan.duplicate.protectionEpoch + 1 };
         await tx.replace('people', nextCanonical);
