@@ -696,3 +696,109 @@ test('DEV-07E cleanup start rechecks retained-basis revision after plan freeze',
     assert.equal(f.store.rows('deletionRequests').find(x => x.id === created.resourceId)!.state, 'BLOCKED_FOR_USE');
 });
 
+test('DEV-07F finalizes a source to an erased root and redacted history only after specialized cleanup proves completion', async () => {
+    const f = await fixture();
+    const sourceId = (await ok(f.owner.cmd('POST', '/sources', {
+        ...sourceInput(), title: '最终擦除来源', textPayload: 'PRIVATE_SOURCE_HISTORY_PAYLOAD'
+    }), 201)).resourceId as string;
+    const source = await get(f.owner, '/sources/' + sourceId);
+    const p = await preview(f, 'SOURCE', sourceId, source.revision);
+    const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
+        targetKind: 'SOURCE', targetId: sourceId, expectedRevision: source.revision,
+        previewDigest: p.previewDigest, reason: '合成测试：完成来源专用最终化'
+    }), 201);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/block', {
+        expectedRevision: 1, previewDigest: p.previewDigest, acknowledgeBlock: true
+    }));
+    let detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/plan/freeze', {
+        expectedRevision: detail.revision, acknowledgePlan: true
+    }));
+    detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/cleaning/start', {
+        expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
+    }));
+    const cleanupClaim = await f.app.deletionCleanup.claim(); assert.ok(cleanupClaim);
+    await f.app.deletionCleanup.process(cleanupClaim);
+    assert.equal(f.store.rows('deletionRequests').find(x => x.id === created.resourceId)!.state, 'CLEANING');
+    assert.ok(f.store.rows('deletionItems').some(x => x.requestId === created.resourceId && x.cleanupState === 'WAITING_EXTERNAL'));
+
+    const finalClaim = await f.app.deletionFinalization.claim(); assert.ok(finalClaim);
+    assert.equal(finalClaim.id, created.resourceId);
+    assert.deepEqual(await f.app.deletionFinalization.mediaTasks(finalClaim), []);
+    await f.app.deletionFinalization.finish(finalClaim);
+
+    const request = f.store.rows('deletionRequests').find(x => x.id === created.resourceId)!;
+    assert.equal(request.state, 'COMPLETED');
+    assert.equal(request.finalizationDigest?.length, 64);
+    assert.ok(request.finalizedAt);
+    const erased = f.store.rows('sources').find(x => x.id === sourceId)!;
+    assert.equal(erased.status, 'ERASED');
+    assert.equal(erased.title, '[ERASED]');
+    assert.equal(erased.textPayload, '');
+    assert.equal(erased.providerClaim, '');
+    const history = f.store.rows('sourceHistory').filter(x => x.sourceId === sourceId);
+    assert.ok(history.length > 0);
+    assert.ok(history.every(x => (x.snapshot as any).erased === true));
+    assert.ok(!JSON.stringify(history).includes('PRIVATE_SOURCE_HISTORY_PAYLOAD'));
+    assert.equal((await f.owner.raw('GET', '/sources/' + sourceId)).status, 404);
+    const admin = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    assert.equal(admin.state, 'COMPLETED');
+    assert.equal(admin.finalizationDigest.length, 64);
+});
+
+test('DEV-07F retained source-owned person rebinds to independent basis before old source is erased', async () => {
+    const f = await fixture();
+    const sourceId = (await ok(f.owner.cmd('POST', '/sources', { ...sourceInput(), title: '待删除来源' }), 201)).resourceId as string;
+    const personId = (await ok(f.owner.cmd('POST', '/people', {
+        displayName: '有独立依据保留的人才', roles: ['model'], sourceId
+    }), 201)).resourceId as string;
+    const basisId = (await ok(f.owner.cmd('POST', '/sources', { ...sourceInput(), title: '独立保留来源' }), 201)).resourceId as string;
+    const source = await get(f.owner, '/sources/' + sourceId);
+    const p = await preview(f, 'SOURCE', sourceId, source.revision);
+    const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
+        targetKind: 'SOURCE', targetId: sourceId, expectedRevision: source.revision,
+        previewDigest: p.previewDigest, reason: '合成测试：来源删除但保留有独立依据的人才'
+    }), 201);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/block', {
+        expectedRevision: 1, previewDigest: p.previewDigest, acknowledgeBlock: true
+    }));
+    let detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    const items = await get(f.owner, '/deletion-requests/' + created.resourceId + '/items');
+    const personSlot = items.items.find((x: any) => x.dependencyKind === 'SOURCE_OWNS_PERSON');
+    assert.ok(personSlot);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/decisions', {
+        expectedRevision: detail.revision, entryId: personSlot.id, decision: 'RETAIN_WITH_BASIS',
+        decisionReason: '已核对另一份正式来源，可独立支撑该人才资料', retentionSourceId: basisId
+    }));
+    detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    for (const item of (await get(f.owner, '/deletion-requests/' + created.resourceId + '/items')).items.filter((x: any) => x.decision === 'PENDING')) {
+        await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/decisions', {
+            expectedRevision: detail.revision, entryId: item.id, decision: 'APPLY_PROPOSED',
+            decisionReason: '其余待审项无独立保留依据，按建议处置'
+        }));
+        detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    }
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/plan/freeze', {
+        expectedRevision: detail.revision, acknowledgePlan: true
+    }));
+    detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/cleaning/start', {
+        expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
+    }));
+    const cleanupClaim = await f.app.deletionCleanup.claim(); assert.ok(cleanupClaim);
+    await f.app.deletionCleanup.process(cleanupClaim);
+    assert.equal(f.store.rows('people').find(x => x.id === personId)!.sourceId, basisId);
+
+    const finalClaim = await f.app.deletionFinalization.claim(); assert.ok(finalClaim);
+    await f.app.deletionFinalization.finish(finalClaim);
+    const request = f.store.rows('deletionRequests').find(x => x.id === created.resourceId)!;
+    assert.equal(request.state, 'RETAINED_WITH_BASIS');
+    assert.equal(request.finalizationDigest?.length, 64);
+    const person = await get(f.owner, '/people/' + personId);
+    assert.equal(person.sourceId, basisId);
+    assert.equal(person.displayName, '有独立依据保留的人才');
+    assert.equal((await f.owner.raw('GET', '/sources/' + sourceId)).status, 404);
+    assert.equal(f.store.rows('sources').find(x => x.id === sourceId)!.status, 'ERASED');
+});
+
