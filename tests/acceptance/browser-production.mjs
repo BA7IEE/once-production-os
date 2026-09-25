@@ -281,7 +281,7 @@ try {
  assert.equal(await prisma.project.count({where:{id:projectId}}),1);
  assert.equal(await prisma.projectParticipant.count({where:{projectId}}),1);
  assert.equal(await prisma.projectWork.count({where:{projectId}}),1);
- assert.equal(await owner.getByRole('button',{name:/开始清理|立即删除|执行删除/}).count(),0);
- console.log('PASS DEV-07D browser: REVIEW_REQUIRED decision -> frozen plan; underlying project relations remain and no cleanup execution exists');
+ await blockDetail.getByRole('button',{name:'开始不可逆依赖清理',exact:true}).waitFor();
+ console.log('PASS DEV-07D browser: REVIEW_REQUIRED decision -> frozen plan; underlying project relations remain before cleanup');
  assert.deepEqual(errors,[]);
 } finally {if(browser)await browser.close();await stop(worker);await stop(api);await prisma.$disconnect();rmSync(tmp,{recursive:true,force:true});}
