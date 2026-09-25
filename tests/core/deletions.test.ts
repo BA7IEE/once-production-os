@@ -698,6 +698,7 @@ test('DEV-07E cleanup start rechecks retained-basis revision after plan freeze',
 
 test('DEV-07F Person root becomes ERASED minimal header after dependency cleanup', async () => {
     const f = await fixture(), pid = await createPerson(f.owner, '最终擦除人才');
+    const beforeEpoch = f.store.rows('people').find(x => x.id === pid)!.protectionEpoch;
     const before = await get(f.owner, '/people/' + pid);
     const p = await preview(f, 'PERSON', pid, before.revision);
     const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
@@ -731,7 +732,7 @@ test('DEV-07F Person root becomes ERASED minimal header after dependency cleanup
     assert.deepEqual(erased.skillCodes, []);
     assert.equal(erased.heightCm, null);
     assert.equal(erased.intro, '');
-    assert.equal(erased.protectionEpoch, before.protectionEpoch + 2);
+    assert.equal(erased.protectionEpoch, beforeEpoch + 2);
     assert.equal((await f.owner.raw('GET', '/people/' + pid)).status, 404);
     detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
     assert.equal(detail.state, 'COMPLETED');
