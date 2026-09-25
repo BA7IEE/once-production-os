@@ -295,5 +295,10 @@ try {
  assert.equal(await prisma.project.count({where:{id:projectId}}),1);
  assert.equal(await prisma.projectParticipant.count({where:{projectId}}),0);
  assert.equal(await prisma.projectWork.count({where:{projectId}}),0);
+ const cleaningItems=await prisma.deletionItem.findMany({where:{requestId:blockRequestId}});
+ assert.ok(cleaningItems.length>0);
+ assert.ok(cleaningItems.every(x=>x.cleanupState==='DONE'&&x.cleanupEvidenceDigest?.length===64));
+ assert.equal(await getStatus(owner,'/projects/'+projectId),404);
+ console.log('PASS DEV-07E browser: frozen plan -> CLEANING -> dependency cleanup evidence; project root remains blocked and preserved');
  assert.deepEqual(errors,[]);
 } finally {if(browser)await browser.close();await stop(worker);await stop(api);await prisma.$disconnect();rmSync(tmp,{recursive:true,force:true});}
