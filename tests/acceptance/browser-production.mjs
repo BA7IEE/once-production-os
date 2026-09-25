@@ -285,5 +285,7 @@ try {
  console.log('PASS DEV-07D browser: REVIEW_REQUIRED decision -> frozen plan; underlying project relations remain before cleanup');
  owner.once('dialog',dialog=>void dialog.accept());
  await writeUI(owner,'POST','/deletion-requests/'+blockRequestId+'/cleaning/start',()=>blockDetail.getByRole('button',{name:'开始不可逆依赖清理',exact:true}).click());
+ await until(async()=>!!(await prisma.deletionRequest.findUnique({where:{id:blockRequestId}}))?.dependencyCleanupCompletedAt);
+ await blockDetail.getByText('已完成本阶段依赖清理',{exact:true}).waitFor();
  assert.deepEqual(errors,[]);
 } finally {if(browser)await browser.close();await stop(worker);await stop(api);await prisma.$disconnect();rmSync(tmp,{recursive:true,force:true});}
