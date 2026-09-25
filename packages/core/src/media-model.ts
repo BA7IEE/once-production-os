@@ -4,7 +4,7 @@ export const MEDIA_LIMITS = Object.freeze({ imageBytes: 30000000, pixels: 600000
     uploadMs: 5 * 60000, renewals: 2, processingMs: 60 * 60000, leaseMs: 30000,
     receiveMs: 60000, receiveLeaseMs: 90000, parseMs: 60000, attempts: 3, cleanupMs: 24 * 60 * 60000 });
 export type ImageMime = 'image/jpeg' | 'image/png' | 'image/webp';
-export type UploadState = 'OPEN' | 'RECEIVING' | 'UPLOADED' | 'QUEUED' | 'PROCESSING' | 'READY' | 'FAILED' | 'CANCELLED';
+export type UploadState = 'OPEN' | 'RECEIVING' | 'UPLOADED' | 'QUEUED' | 'PROCESSING' | 'READY' | 'FAILED' | 'CANCELLED' | 'ERASED';
 export interface MediaUpload extends Base {
     actorId: string;
     actorRevision: number;
@@ -46,7 +46,7 @@ export interface MediaAsset extends Base {
     previewBytes: number;
     previewHash: string;
     objectToken: string;
-    state: 'READY' | 'QUARANTINED';
+    state: 'READY' | 'QUARANTINED' | 'ERASED';
 }
 export interface MediaResult {
     mime: ImageMime;
@@ -57,4 +57,4 @@ export interface MediaResult {
     previewBytes: number;
     previewHash: string;
 }
-export const terminalUpload = (state: UploadState) => ['READY', 'FAILED', 'CANCELLED'].includes(state);
+export const terminalUpload = (state: UploadState) => ['READY', 'FAILED', 'CANCELLED', 'ERASED'].includes(state);

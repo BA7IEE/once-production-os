@@ -15,7 +15,9 @@ export type DeletionResolvedAction =
     | 'REVOKE_PERMISSION'
     | 'ERASE_DERIVATIVE'
     | 'RETAIN_MINIMAL_HEADER'
-    | 'RETAIN_WITH_BASIS';
+    | 'RETAIN_WITH_BASIS'
+    | 'REBIND_SOURCE'
+    | 'DETACH_PERSON';
 export type DeletionCleanupState = 'NOT_STARTED' | 'PENDING' | 'DONE' | 'WAITING_EXTERNAL' | 'FAILED';
 
 export interface DeletionRequest extends Base {
@@ -25,7 +27,7 @@ export interface DeletionRequest extends Base {
     targetSourceId: string;
     targetRevision: number;
     targetProtectionEpoch: number | null;
-    state: 'DRAFT' | 'BLOCKED_FOR_USE' | 'CLEANING';
+    state: 'DRAFT' | 'BLOCKED_FOR_USE' | 'CLEANING' | 'COMPLETED' | 'RETAINED_WITH_BASIS' | 'FAILED';
     reason: string;
     previewDigest: string;
     impactCount: number;
@@ -46,6 +48,12 @@ export interface DeletionRequest extends Base {
     cleanupLeaseUntil: string | null;
     dependencyCleanupCompletedAt: string | null;
     cleanupErrorCode: string | null;
+    finalizationDigest: string | null;
+    finalizedAt: string | null;
+    finalizationLeaseToken: string | null;
+    finalizationLeaseUntil: string | null;
+    finalizationAttempts: number;
+    finalizationErrorCode: string | null;
 }
 
 export interface DeletionItem extends Base {
@@ -76,8 +84,16 @@ export const DELETION_LIMITS = Object.freeze({
     reason: 2000
 });
 
-export function resolveDeletionAction(item: Pick<DeletionItem, 'decision' | 'proposedAction'>): DeletionResolvedAction {
-    if (item.decision === 'RETAIN_WITH_BASIS') return 'RETAIN_WITH_BASIS';
+export function resolveDeletionAction(item: Pick<DeletionItem, 'decision' | 'proposedAction' | 'dependencyKind' | 'resourceKind'>): DeletionResolvedAction {
+    if (item.decision === 'RETAIN_WITH_BASIS') {
+        if (['SOURCE_OWNS_PERSON','SOURCE_OWNS_WORK','SOURCE_OWNS_PROJECT','SOURCE_FIELD_EVIDENCE','PERSON_FIELD_EVIDENCE'].includes(item.dependencyKind))
+            return 'REBIND_SOURCE';
+        if (['PERSON_MEDIA_UPLOAD','PERSON_MEDIA_ASSET'].includes(item.dependencyKind))
+            return 'DETACH_PERSON';
+        if (item.proposedAction === 'RETAIN_MINIMAL_HEADER')
+            return 'RETAIN_MINIMAL_HEADER';
+        return 'RETAIN_WITH_BASIS';
+    }
     if (item.proposedAction === 'REVIEW_RETENTION') return 'ERASE_PAYLOAD';
     return item.proposedAction;
 }

@@ -67,7 +67,7 @@ export interface Source extends Base {
     basisDescription: string;
     validFrom: string;
     validUntil: string;
-    status: 'RECEIVED' | 'CONFIRMED' | 'SUSPENDED';
+    status: 'RECEIVED' | 'CONFIRMED' | 'SUSPENDED' | 'ERASED';
     protectionEpoch: number;
     reviewedBy: string | null;
     reviewedAt: string | null;
@@ -83,7 +83,7 @@ export interface SourceHistory extends Base {
     decisionReason: string | null;
     baselineOnly: boolean;
     basisAmbiguous: boolean;
-    snapshot: Source;
+    snapshot: Source | { id: string; workspaceId: string; revision: number; scopeId: string; erased: true };
 }
 export interface Person extends Base {
     scopeId: string;
@@ -97,7 +97,7 @@ export interface Person extends Base {
     skillCodes: string[];
     heightCm: number | null;
     intro: string;
-    status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
+    status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED' | 'ERASED';
     protectionEpoch: number;
 }
 export interface Contact extends Base {
