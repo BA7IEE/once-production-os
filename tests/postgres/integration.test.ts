@@ -39,7 +39,7 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
         const clock = new FakeClock();
         const config: Config = { origin: 'https://postgres.test.invalid', secureCookies: true,
             contactKey: randomBytes(32), csrfKey: randomBytes(32), recoveryEpoch: randomBytes(24).toString('hex'),
-            accessMode: 'INTERNAL', dataEgressMode: 'INTERNAL_APPROVED', dataCleanupMode: 'INTERNAL_APPROVED', environment: 'test', mediaEnabled: true };
+            accessMode: 'INTERNAL', dataEgressMode: 'INTERNAL_APPROVED', dataCleanupMode: 'INTERNAL_APPROVED', dataMergeMode: 'INTERNAL_APPROVED', environment: 'test', mediaEnabled: true };
         const appA = new Application(storeA, config, clock);
         const appB = new Application(storeB, config, clock);
         const identity = await appA.identity.bootstrap('owner', '仅限合成测试管理员', SYNTHETIC_PASSWORD);
