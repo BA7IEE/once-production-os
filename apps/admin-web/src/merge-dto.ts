@@ -23,8 +23,8 @@ export interface PersonMergePreview {
     }>;
     blockers: Array<{ code: string; count: number }>;
     complete: boolean;
-    revocations: { handoffs: number; usePermissions: number };
-    contactsToReencrypt: number;
+    revocations: { handoffs: number; usePermissions: number | null };
+    contactsToReencrypt: number | null;
     media: { uploadsToDetach: number; assetsToReassign: number; assetsToDetach: number };
     moves: { workCredits: number; projectParticipants: number; shortlistItems: number };
     previewDigest: string;
