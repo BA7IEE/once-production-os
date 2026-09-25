@@ -121,8 +121,10 @@ BEGIN
        AND NEW."actorId" IS NOT DISTINCT FROM OLD."actorId" AND NEW."action"=OLD."action"
        AND NEW."baselineOnly"=OLD."baselineOnly" AND NEW."basisAmbiguous"=OLD."basisAmbiguous"
        AND NEW."createdAt"=OLD."createdAt"
-       AND NEW."decisionReason" IS NOT DISTINCT FROM CASE WHEN OLD."decisionReason" IS NULL THEN NULL ELSE '[ERASED]' END
-    THEN RETURN NEW;
+       AND NEW."decisionReason" IS NOT DISTINCT FROM
+            (CASE WHEN OLD."decisionReason" IS NULL THEN NULL::text ELSE '[ERASED]' END)
+    THEN
+        RETURN NEW;
     END IF;
     RAISE EXCEPTION 'sourceHistory is append-only; only reviewed one-way payload redaction is allowed'
         USING ERRCODE = '55000';
