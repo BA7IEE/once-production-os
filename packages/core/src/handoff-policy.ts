@@ -1,8 +1,8 @@
 import type { Actor, Clock, Membership, Person, RecordHandoff } from './model.ts';
 import type { Tx } from './store.ts';
 import { workspaceRow } from './helpers.ts';
-import { missing } from './errors.ts';
-import { deletionBlocked, personAliasFor, permissionsFor, personVisible, sourceCurrent, scopeVisible } from './policy.ts';
+import { AppError, missing } from './errors.ts';
+import { deletionBlocked, personAliasFor, permissionsFor, personVisible, requireScope, sourceCurrent, scopeVisible } from './policy.ts';
 
 export type ProfileAction = 'read' | 'edit' | 'review';
 export function recipientEligible(member: Membership, purpose: RecordHandoff['purpose']): boolean {
@@ -60,6 +60,13 @@ export async function handoffForAction(tx: Tx, actor: Actor, personId: string, c
 export async function profileAccess(tx: Tx, actor: Actor, id: string, clock: Clock, action: ProfileAction = 'read') {
     const person = await workspaceRow(tx, 'people', id, actor.workspaceId);
     if (!person) missing();
+    const alias = await personAliasFor(tx, actor.workspaceId, id);
+    if (alias) {
+        // An old identity is never writable/delegable. Check its original scope first so the
+        // alias itself cannot be discovered by members who could not see that identity.
+        await requireScope(tx, actor, person.scopeId);
+        throw new AppError(409, 'MERGED_ID_READ_ONLY', '该人才ID已合并，只允许通过详情只读解析到主档案');
+    }
     if (await personVisible(tx, actor, person, clock)) return { person, native: true, handoff: null };
     const handoff = await handoffForAction(tx, actor, id, clock, action);
     if (!handoff) missing();
