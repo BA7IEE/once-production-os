@@ -132,6 +132,47 @@ export class DeletionCleanup {
             await this.validateRetentionSources(tx, [item]);
             return { outcome: 'DONE' };
         }
+        if (action === 'REBIND_SOURCE') {
+            await this.validateRetentionSources(tx, [item]);
+            invariant(!!item.retentionSourceId && !!item.retentionSourceRevision && !!item.retentionSourceProtectionEpoch,
+                'RETENTION_BASIS_MISSING', '重绑来源缺少冻结依据', 409);
+            if (item.resourceKind === 'person') {
+                const row = await tx.get('people', item.resourceId);
+                if (row) await tx.replace('people', { ...touch(row, this.clock), sourceId: item.retentionSourceId });
+                return { outcome: 'DONE' };
+            }
+            if (item.resourceKind === 'work') {
+                const row = await tx.get('works', item.resourceId);
+                if (row) await tx.replace('works', { ...touch(row, this.clock), sourceId: item.retentionSourceId });
+                return { outcome: 'DONE' };
+            }
+            if (item.resourceKind === 'project') {
+                const row = await tx.get('projects', item.resourceId);
+                if (row) await tx.replace('projects', { ...touch(row, this.clock), sourceId: item.retentionSourceId });
+                return { outcome: 'DONE' };
+            }
+            if (item.resourceKind === 'evidence') {
+                const row = await tx.get('evidence', item.resourceId);
+                if (row) await tx.replace('evidence', { ...touch(row, this.clock), sourceId: item.retentionSourceId, sourceRevision: item.retentionSourceRevision });
+                return { outcome: 'DONE' };
+            }
+            throw new AppError(409, 'CLEANUP_ACTION_UNSUPPORTED', '来源重绑对象类型尚未注册');
+        }
+        if (action === 'DETACH_PERSON') {
+            await this.validateRetentionSources(tx, [item]);
+            if (item.resourceKind === 'asset') {
+                const row = await tx.get('assets', item.resourceId);
+                if (row) await tx.replace('assets', { ...touch(row, this.clock), personId: null });
+                return { outcome: 'DONE' };
+            }
+            if (item.resourceKind === 'upload') {
+                const row = await tx.get('uploads', item.resourceId);
+                if (row) await tx.replace('uploads', { ...touch(row, this.clock), personId: null, personScopeId: null,
+                    personEpoch: null, personScopeRevision: null });
+                return { outcome: 'DONE' };
+            }
+            throw new AppError(409, 'CLEANUP_ACTION_UNSUPPORTED', '人物解绑对象类型尚未注册');
+        }
         if (action === 'REMOVE_RELATION') {
             const table = relationTable[item.resourceKind];
             invariant(table, 'CLEANUP_ACTION_UNSUPPORTED', '关系清理类型尚未注册', 409);
