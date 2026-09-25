@@ -812,4 +812,143 @@ export async function runProductionContracts(t: TestContext, c: Context) {
         } }));
     });
 
+
+    await t.test('DEV-07F PG source finalization redacts history and writes strict ERASED root', async () => {
+        const sourceId = (await ok(ownerA.cmd('POST', '/sources', {
+            ...sourceInput(), title: 'DEV07F PG source', textPayload: 'PRIVATE_PG_SOURCE_HISTORY_PAYLOAD'
+        }), 201)).resourceId as string;
+        const source = await a.sourceRecord.findUniqueOrThrow({ where: { id: sourceId } });
+        const historyBefore = await a.sourceHistory.findFirstOrThrow({ where: { sourceId } });
+        await assert.rejects(a.sourceHistory.update({ where: { id: historyBefore.id }, data: { decisionReason: 'forbidden generic update' } }));
+
+        const preview = result(await ownerA.raw('POST', '/deletion-requests/preview', {
+            targetKind: 'SOURCE', targetId: sourceId, expectedRevision: source.revision
+        }));
+        const requestId = (await ok(ownerA.cmd('POST', '/deletion-requests', {
+            targetKind: 'SOURCE', targetId: sourceId, expectedRevision: source.revision,
+            previewDigest: preview.previewDigest, reason: 'synthetic PG source finalization'
+        }), 201)).resourceId as string;
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/block', {
+            expectedRevision: 1, previewDigest: preview.previewDigest, acknowledgeBlock: true
+        }));
+        let detail = result(await ownerA.raw('GET', '/deletion-requests/' + requestId));
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/plan/freeze', {
+            expectedRevision: detail.revision, acknowledgePlan: true
+        }));
+        detail = result(await ownerA.raw('GET', '/deletion-requests/' + requestId));
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/cleaning/start', {
+            expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
+        }));
+        for (let i = 0; i < 50; i++) {
+            const row = await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } });
+            if (row.dependencyCleanupCompletedAt || row.cleanupErrorCode === 'WAITING_EXTERNAL_CLEANUP') break;
+            const claim = await appA.deletionCleanup.claim();
+            if (claim) await appA.deletionCleanup.process(claim);
+        }
+        for (let i = 0; i < 50; i++) {
+            const row = await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } });
+            if (['COMPLETED','RETAINED_WITH_BASIS','FAILED'].includes(row.state)) break;
+            const claim = await appA.deletionFinalization.claim();
+            assert.ok(claim, 'expected finalization claim while target request is unfinished');
+            assert.deepEqual(await appA.deletionFinalization.mediaTasks(claim), []);
+            await appA.deletionFinalization.finish(claim);
+        }
+        const request = await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } });
+        assert.equal(request.state, 'COMPLETED');
+        assert.equal(request.finalizationDigest?.length, 64);
+        assert.ok(request.finalizedAt);
+        const erased = await a.sourceRecord.findUniqueOrThrow({ where: { id: sourceId } });
+        assert.equal(erased.status, 'ERASED');
+        assert.equal(erased.title, '[ERASED]');
+        assert.equal(erased.textPayload, '');
+        assert.equal(erased.providerClaim, '');
+        const history = await a.sourceHistory.findMany({ where: { sourceId } });
+        assert.ok(history.length > 0);
+        assert.ok(history.every((row: any) => row.snapshot?.erased === true));
+        assert.ok(!JSON.stringify(history).includes('PRIVATE_PG_SOURCE_HISTORY_PAYLOAD'));
+        await assert.rejects(a.sourceHistory.update({ where: { id: history[0].id }, data: { decisionReason: 'second mutation forbidden' } }));
+    });
+
+    await t.test('DEV-07F PG erased/final states cannot be forged without strict tombstone evidence', async () => {
+        const person = await a.person.findFirstOrThrow({ where: { status: { not: 'ERASED' } } });
+        await assert.rejects(a.person.update({ where: { id: person.id }, data: { status: 'ERASED' } }));
+        const source = await a.sourceRecord.findFirstOrThrow({ where: { status: { not: 'ERASED' } } });
+        await assert.rejects(a.sourceRecord.update({ where: { id: source.id }, data: { status: 'ERASED' } }));
+        const request = await a.deletionRequest.findFirstOrThrow({ where: { state: 'CLEANING' } });
+        await assert.rejects(a.deletionRequest.update({ where: { id: request.id }, data: {
+            state: 'COMPLETED', finalizationAttempts: 1, finalizationDigest: null, finalizedAt: null
+        } }));
+        const asset = await a.mediaAsset.findFirst();
+        if (asset) await assert.rejects(a.mediaAsset.update({ where: { id: asset.id }, data: { state: 'ERASED' } }));
+    });
+
+    await t.test('DEV-07F PG finalization audit failure rolls back root tombstone and final state, then retries safely', async () => {
+        // Drain any earlier specialized finalizations first so the fault-injected claim deterministically owns this request.
+        for (let i = 0; i < 50; i++) {
+            const claim = await appA.deletionFinalization.claim();
+            if (!claim) break;
+            if ((await appA.deletionFinalization.mediaTasks(claim)).length) {
+                await appA.deletionFinalization.fail(claim, 'TEST_MEDIA_PROVIDER_UNAVAILABLE');
+                continue;
+            }
+            await appA.deletionFinalization.finish(claim);
+        }
+
+        const personId2 = (await ok(ownerA.cmd('POST', '/people', {
+            displayName: 'DEV07F rollback root', roles: ['model'], inlineSource: sourceInput()
+        }), 201)).resourceId as string;
+        const person = await a.person.findUniqueOrThrow({ where: { id: personId2 } });
+        const preview = result(await ownerA.raw('POST', '/deletion-requests/preview', {
+            targetKind: 'PERSON', targetId: personId2, expectedRevision: person.revision
+        }));
+        const requestId = (await ok(ownerA.cmd('POST', '/deletion-requests', {
+            targetKind: 'PERSON', targetId: personId2, expectedRevision: person.revision,
+            previewDigest: preview.previewDigest, reason: 'synthetic finalization rollback'
+        }), 201)).resourceId as string;
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/block', {
+            expectedRevision: 1, previewDigest: preview.previewDigest, acknowledgeBlock: true
+        }));
+        let detail = result(await ownerA.raw('GET', '/deletion-requests/' + requestId));
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/plan/freeze', {
+            expectedRevision: detail.revision, acknowledgePlan: true
+        }));
+        detail = result(await ownerA.raw('GET', '/deletion-requests/' + requestId));
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/cleaning/start', {
+            expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
+        }));
+        for (let i = 0; i < 20; i++) {
+            const row = await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } });
+            if (row.dependencyCleanupCompletedAt) break;
+            const claim = await appA.deletionCleanup.claim();
+            if (claim) await appA.deletionCleanup.process(claim);
+        }
+
+        const faults = new FaultStore(storeA);
+        let fired = false;
+        faults.afterInsert = table => {
+            if (table === 'audits' && !fired) { fired = true; throw new Error('DEV07F finalization audit failure'); }
+        };
+        const faultApp = new Application(faults, config, clock);
+        const claim = await faultApp.deletionFinalization.claim();
+        assert.ok(claim);
+        assert.equal(claim.id, requestId);
+        await faultApp.deletionFinalization.finish(claim);
+        assert.ok(fired);
+        const afterFailPerson = await a.person.findUniqueOrThrow({ where: { id: personId2 } });
+        assert.equal(afterFailPerson.status, person.status);
+        assert.equal(afterFailPerson.displayName, person.displayName);
+        const afterFailRequest = await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } });
+        assert.equal(afterFailRequest.state, 'CLEANING');
+        assert.equal(afterFailRequest.finalizationDigest, null);
+
+        const retry = await appA.deletionFinalization.claim();
+        assert.ok(retry);
+        assert.equal(retry.id, requestId);
+        await appA.deletionFinalization.finish(retry);
+        const done = await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } });
+        assert.equal(done.state, 'COMPLETED');
+        assert.equal(done.finalizationDigest?.length, 64);
+        assert.equal((await a.person.findUniqueOrThrow({ where: { id: personId2 } })).status, 'ERASED');
+    });
+
 }
