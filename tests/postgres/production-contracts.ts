@@ -646,4 +646,170 @@ export async function runProductionContracts(t: TestContext, c: Context) {
         assert.equal((await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } })).planDigest?.length, 64);
     });
 
+    await t.test('DEV-07E PG executes frozen dependency cleanup and keeps blocked root', async () => {
+        const personId2 = (await ok(ownerA.cmd('POST', '/people', {
+            displayName: 'DEV07E PG cleanup person', roles: ['model'], cityCode: 'shenzhen', inlineSource: sourceInput()
+        }), 201)).resourceId as string;
+        let person = result(await ownerA.raw('GET', '/people/' + personId2));
+        const sourceId = person.sourceId as string;
+        await ok(ownerA.cmd('PUT', '/people/' + personId2 + '/contacts', {
+            expectedRevision: person.revision,
+            contacts: [{ kind: 'PHONE', value: '13800138000', sourceId }]
+        }));
+        person = result(await ownerA.raw('GET', '/people/' + personId2));
+        await ok(ownerA.cmd('POST', '/field-evidence', {
+            personId: personId2, expectedRevision: person.revision, fieldPath: 'cityCode',
+            sourceId, sourceRevision: person.source.revision
+        }));
+        person = result(await ownerA.raw('GET', '/people/' + personId2));
+
+        const workId2 = await root('works');
+        await modify('/works/' + workId2, '/credits', {
+            personId: personId2, roleCode: 'model', note: ''
+        });
+        const credit = await a.workCredit.findFirstOrThrow({ where: { workId: workId2, personId: personId2 } });
+
+        const permit = (await ok(ownerA.cmd('POST', '/use-permissions', {
+            sourceId, subjectKind: 'PERSON', subjectId: personId2,
+            fields: ['person.displayName'], validUntil: new Date(clock.now().getTime() + 86400000).toISOString(),
+            evidenceNote: 'synthetic cleanup export permission'
+        }), 201)).resourceId as string;
+        const exportId = (await ok(ownerA.cmd('POST', '/exports', {
+            format: 'JSON', selectedIds: { people: [personId2], works: [], projects: [] },
+            fields: ['person.displayName'], usePermissionRefs: [permit]
+        }), 202)).resourceId as string;
+        for (let i = 0; i < 20 && (await a.exportJob.findUniqueOrThrow({ where: { id: exportId } })).state !== 'READY'; i++) {
+            const exportClaim = await appA.exports.claim();
+            assert.ok(exportClaim, 'expected queued export work while target export is not READY');
+            await appA.exports.process(exportClaim);
+        }
+        assert.equal((await a.exportJob.findUniqueOrThrow({ where: { id: exportId } })).state, 'READY');
+
+        const current = result(await ownerA.raw('GET', '/people/' + personId2));
+        const preview = result(await ownerA.raw('POST', '/deletion-requests/preview', {
+            targetKind: 'PERSON', targetId: personId2, expectedRevision: current.revision
+        }));
+        const requestId = (await ok(ownerA.cmd('POST', '/deletion-requests', {
+            targetKind: 'PERSON', targetId: personId2, expectedRevision: current.revision,
+            previewDigest: preview.previewDigest, reason: 'synthetic PG irreversible dependency cleanup'
+        }), 201)).resourceId as string;
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/block', {
+            expectedRevision: 1, previewDigest: preview.previewDigest, acknowledgeBlock: true
+        }));
+
+        let detail = result(await ownerA.raw('GET', '/deletion-requests/' + requestId));
+        const slots = result(await ownerA.raw('GET', '/deletion-requests/' + requestId + '/items'));
+        for (const item of slots.items.filter((x: any) => x.decision === 'PENDING')) {
+            await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/decisions', {
+                expectedRevision: detail.revision, entryId: item.id, decision: 'APPLY_PROPOSED',
+                decisionReason: 'synthetic PG no independent retention basis'
+            }));
+            detail = result(await ownerA.raw('GET', '/deletion-requests/' + requestId));
+        }
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/plan/freeze', {
+            expectedRevision: detail.revision, acknowledgePlan: true
+        }));
+        detail = result(await ownerA.raw('GET', '/deletion-requests/' + requestId));
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/cleaning/start', {
+            expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
+        }));
+
+        const cleanupClaim = await appA.deletionCleanup.claim();
+        assert.ok(cleanupClaim);
+        assert.equal(cleanupClaim.id, requestId);
+        await appA.deletionCleanup.process(cleanupClaim);
+
+        const request = await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } });
+        assert.equal(request.state, 'CLEANING');
+        assert.equal(request.executionPlanDigest?.length, 64);
+        assert.ok(request.dependencyCleanupCompletedAt);
+        assert.equal(request.cleanupErrorCode, null);
+        assert.equal(await a.person.count({ where: { id: personId2 } }), 1);
+        assert.equal(await a.workCredit.count({ where: { id: credit.id } }), 0);
+        assert.equal(await a.contact.count({ where: { personId: personId2 } }), 0);
+        assert.equal(await a.fieldEvidence.count({ where: { personId: personId2 } }), 0);
+        assert.equal((await a.usePermission.findUniqueOrThrow({ where: { id: permit } })).status, 'REVOKED');
+        const erased = await a.exportJob.findUniqueOrThrow({ where: { id: exportId } });
+        assert.equal(erased.state, 'ERASED');
+        assert.deepEqual(erased.fields, []);
+        assert.deepEqual(erased.usePermissionRefs, []);
+        assert.equal(erased.payload, null);
+        assert.equal(erased.payloadDigest, null);
+        assert.deepEqual(erased.recordManifest, { schemaVersion: 'once-export-v1', erased: true });
+        assert.equal(await a.exportDependency.count({ where: { exportId } }), 0);
+        const items = await a.deletionItem.findMany({ where: { requestId } });
+        assert.ok(items.length > 0);
+        assert.ok(items.every(item => item.cleanupState === 'DONE'));
+        assert.ok(items.every(item => item.cleanupEvidenceDigest?.length === 64));
+    });
+
+    await t.test('DEV-07E PG cleanup item delete rolls back when audit insert fails, then retries safely', async () => {
+        const personId2 = (await ok(ownerA.cmd('POST', '/people', {
+            displayName: 'DEV07E PG cleanup rollback person', roles: ['model'], inlineSource: sourceInput()
+        }), 201)).resourceId as string;
+        const person = await a.person.findUniqueOrThrow({ where: { id: personId2 } });
+        const workId2 = await root('works');
+        await modify('/works/' + workId2, '/credits', { personId: personId2, roleCode: 'model', note: '' });
+        const credit = await a.workCredit.findFirstOrThrow({ where: { workId: workId2, personId: personId2 } });
+        const preview = result(await ownerA.raw('POST', '/deletion-requests/preview', {
+            targetKind: 'PERSON', targetId: personId2, expectedRevision: person.revision
+        }));
+        const requestId = (await ok(ownerA.cmd('POST', '/deletion-requests', {
+            targetKind: 'PERSON', targetId: personId2, expectedRevision: person.revision,
+            previewDigest: preview.previewDigest, reason: 'synthetic cleanup item rollback'
+        }), 201)).resourceId as string;
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/block', {
+            expectedRevision: 1, previewDigest: preview.previewDigest, acknowledgeBlock: true
+        }));
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/plan/freeze', {
+            expectedRevision: 2, acknowledgePlan: true
+        }));
+        let detail = result(await ownerA.raw('GET', '/deletion-requests/' + requestId));
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/cleaning/start', {
+            expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
+        }));
+
+        const faults = new FaultStore(storeA);
+        let fired = false;
+        faults.afterInsert = table => {
+            if (table === 'audits' && !fired) {
+                fired = true;
+                throw new Error('DEV07E deliberate cleanup audit failure');
+            }
+        };
+        const faulty = new Application(faults, config, clock);
+        const claim = await faulty.deletionCleanup.claim();
+        assert.ok(claim);
+        assert.equal(claim.id, requestId);
+        await faulty.deletionCleanup.process(claim);
+        assert.ok(fired);
+        assert.equal(await a.workCredit.count({ where: { id: credit.id } }), 1);
+        const failedItem = await a.deletionItem.findFirstOrThrow({ where: { requestId, resourceKind: 'workCredit', resourceId: credit.id } });
+        assert.equal(failedItem.cleanupState, 'FAILED');
+        assert.equal(failedItem.cleanupAttempts, 1);
+        assert.equal(failedItem.cleanupEvidenceDigest, null);
+
+        const retry = await appA.deletionCleanup.claim();
+        assert.ok(retry);
+        assert.equal(retry.id, requestId);
+        await appA.deletionCleanup.process(retry);
+        assert.equal(await a.workCredit.count({ where: { id: credit.id } }), 0);
+        const doneItem = await a.deletionItem.findUniqueOrThrow({ where: { id: failedItem.id } });
+        assert.equal(doneItem.cleanupState, 'DONE');
+        assert.equal(doneItem.cleanupAttempts, 2);
+        assert.equal(doneItem.cleanupEvidenceDigest?.length, 64);
+        assert.ok(doneItem.cleanedAt);
+    });
+
+    await t.test('DEV-07E PG cleanup state constraints reject forged completion evidence', async () => {
+        const item = await a.deletionItem.findFirstOrThrow({ where: { cleanupState: 'DONE' } });
+        await assert.rejects(a.deletionItem.update({ where: { id: item.id }, data: {
+            cleanupEvidenceDigest: null
+        } }));
+        const request = await a.deletionRequest.findFirstOrThrow({ where: { state: 'CLEANING' } });
+        await assert.rejects(a.deletionRequest.update({ where: { id: request.id }, data: {
+            executionPlanDigest: null
+        } }));
+    });
+
 }

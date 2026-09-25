@@ -98,6 +98,7 @@ export const ROUTES: RouteDefinition[] = [
     { method: 'GET', path: '/deletion-requests/{id}/items', operation: 'deletion.items', mode: 'READ', permission: 'data.delete' },
     { method: 'POST', path: '/deletion-requests/{id}/decisions', operation: 'deletion.decision', mode: 'COMMAND', permission: 'data.delete', schema: DS.decision },
     { method: 'POST', path: '/deletion-requests/{id}/plan/freeze', operation: 'deletion.planFreeze', mode: 'COMMAND', permission: 'data.delete', schema: DS.freezePlan },
+    { method: 'POST', path: '/deletion-requests/{id}/cleaning/start', operation: 'deletion.cleanupStart', mode: 'COMMAND', permission: 'data.delete', schema: DS.cleanupStart },
     { method: 'GET', path: '/use-permissions', operation: 'usePermission.list', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/use-permissions', operation: 'usePermission.create', mode: 'COMMAND', permission: 'sources.review', schema: ES.permissionCreate },
     { method: 'POST', path: '/use-permissions/{id}/revoke', operation: 'usePermission.revoke', mode: 'COMMAND', permission: 'sources.review', schema: ES.permissionRevoke },

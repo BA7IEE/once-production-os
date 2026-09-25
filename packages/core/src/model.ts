@@ -269,6 +269,7 @@ export interface Config {
     accessMode: 'MAINTENANCE' | 'INTERNAL';
     environment: 'local' | 'test' | 'staging' | 'production';
     dataEgressMode: 'DISABLED' | 'INTERNAL_APPROVED';
+    dataCleanupMode: 'DISABLED' | 'INTERNAL_APPROVED';
 }
 export const LIMITS = Object.freeze({ idleMs: 30 * 60000, absoluteMs: 12 * 60 * 60000,
     activationMs: 24 * 60 * 60000, temporaryMs: 7 * 24 * 60 * 60000, pageSize: 20, maxPageSize: 100,

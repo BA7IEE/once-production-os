@@ -92,9 +92,14 @@ function DecisionModal({ request, item, sources, canRetain, onClose, onDone }: {
 
 function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sources: Source[]; canRetain: boolean; onChanged: () => void }) {
     const [tick, setTick] = useState(0), [itemPage, setItemPage] = useState(1), [editing, setEditing] = useState<DeletionDecisionItem | null>(null);
-    const block = useAction(), freeze = useAction();
+    const block = useAction(), freeze = useAction(), cleanup = useAction();
     const load = useLoad(() => read<DeletionRequestDetail>('deletion.get', { id }), id + ':' + tick);
     const items = useLoad(() => read<Page<DeletionDecisionItem>>('deletion.items', { id }, { page: String(itemPage), pageSize: '20' }), id + ':items:' + itemPage + ':' + tick);
+    useEffect(() => {
+        if (load.data?.state !== 'CLEANING' || load.data.dependencyCleanupCompletedAt) return;
+        const timer = setInterval(() => setTick(x => x + 1), 1500);
+        return () => clearInterval(timer);
+    }, [load.data?.state, load.data?.dependencyCleanupCompletedAt]);
 
     async function blockUse() {
         if (!load.data?.blockAvailable) return;
@@ -112,8 +117,18 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
         await call('deletion.planFreeze', { expectedRevision: load.data.revision, acknowledgePlan: true }, { id });
         setTick(x => x + 1); onChanged();
     }
+    async function startCleanup() {
+        if (!load.data?.cleanupStartAvailable || !load.data.planDigest) return;
+        if (!confirm('确认开始不可逆依赖清理？这会真实移除已冻结计划中的关系、联系方式、核验证据，并撤销许可/擦除旧导出。根对象、媒体文件和来源历史仍不会在本阶段删除。')) return;
+        await call('deletion.cleanupStart', {
+            expectedRevision: load.data.revision,
+            planDigest: load.data.planDigest,
+            acknowledgeIrreversible: true
+        }, { id });
+        setTick(x => x + 1); onChanged();
+    }
 
-    return <section className="panel padded deletion-request-detail"><ErrorBox error={load.error ?? items.error ?? block.error ?? freeze.error}/>
+    return <section className="panel padded deletion-request-detail"><ErrorBox error={load.error ?? items.error ?? block.error ?? freeze.error ?? cleanup.error}/>
         {load.busy && !load.data ? <p>正在读取删除申请摘要…</p> : load.data && <>
             <div className="panel-heading"><div><h2>删除申请</h2><p><code>{load.data.id}</code></p></div><Tag value={load.data.state}/></div>
             <dl className="detail-grid">
@@ -123,11 +138,18 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
                 <div><dt>需人工判断</dt><dd>{load.data.reviewRequiredCount}</dd></div>
                 <div><dt>待决定</dt><dd>{load.data.pendingDecisionCount}</dd></div>
                 <div><dt>计划状态</dt><dd>{load.data.planFrozen ? '已冻结' : '未冻结'}</dd></div>
+                <div><dt>依赖清理</dt><dd>{load.data.state === 'CLEANING' ? `${load.data.cleanupDoneCount} / ${load.data.impactCount}` : '未启动'}</dd></div>
+                <div><dt>等待专用清理</dt><dd>{load.data.cleanupWaitingCount}</dd></div>
+                <div><dt>执行失败</dt><dd>{load.data.cleanupFailedCount}</dd></div>
                 <div><dt>未解析</dt><dd>{load.data.unresolvedCount}</dd></div>
                 <div><dt>创建时间</dt><dd>{date(load.data.createdAt)}</dd></div>
             </dl>
             <p className="pre-line">{load.data.reason}</p>
-            <div className="notice"><strong>{load.data.state === 'DRAFT' ? '尚未阻断正常使用' : load.data.planFrozen ? '已阻断；清理计划已冻结，但尚未执行' : '已阻断正常使用；正在做保留决定'}</strong><p>{load.data.executionNote}</p></div>
+            <div className="notice"><strong>{load.data.state === 'DRAFT' ? '尚未阻断正常使用'
+                : load.data.state === 'CLEANING' ? (load.data.dependencyCleanupCompletedAt ? '已完成本阶段依赖清理' : '正在执行不可逆依赖清理')
+                : load.data.planFrozen ? '已阻断；清理计划已冻结' : '已阻断正常使用；正在做保留决定'}</strong><p>{load.data.executionNote}</p>
+                {load.data.cleanupErrorCode && <p><strong>清理状态：</strong><code>{load.data.cleanupErrorCode}</code></p>}
+            </div>
 
             {load.data.blockAvailable && <div className="button-row"><button className="danger" disabled={block.busy} onClick={() => void block.run(blockUse)}>阻断正常使用</button></div>}
 
@@ -149,9 +171,22 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
                     <p className="muted">待决定为 0 后才可冻结。冻结只锁定“未来要做什么”，不会进入 CLEANING，也不会删除任何行、媒体或导出 payload。</p>
                     <button className="danger" disabled={freeze.busy || load.data.pendingDecisionCount > 0} onClick={() => void freeze.run(freezePlan)}>{load.data.pendingDecisionCount > 0 ? `仍有 ${load.data.pendingDecisionCount} 项待决定` : '冻结清理计划'}</button>
                 </div>}
-                {load.data.planFrozen && <div className="notice"><strong>计划已冻结</strong><p>冻结时间：{date(load.data.planFrozenAt)}。Plan Digest：<code>{load.data.planDigest}</code></p><p>当前仍没有物理清理按钮。</p></div>}
+                {load.data.planFrozen && <div className="notice"><strong>计划已冻结</strong><p>冻结时间：{date(load.data.planFrozenAt)}。Plan Digest：<code>{load.data.planDigest}</code></p>
+                    {load.data.cleanupStartAvailable ? <><p>下一步将真实执行依赖清理；部署侧仍需明确启用 DATA_CLEANUP_MODE。</p><button className="danger" disabled={cleanup.busy} onClick={() => void cleanup.run(startCleanup)}>开始不可逆依赖清理</button></>
+                        : <p>当前不能再次启动清理。</p>}
+                </div>}
             </div>}
-            {!load.data.cleanupAvailable && load.data.state === 'BLOCKED_FOR_USE' && <p className="muted">底层数据仍保留；不可逆清理执行将在后续独立阶段实现。</p>}
+            {load.data.state === 'CLEANING' && <div className="deletion-cleanup-progress">
+                <h3>依赖清理进度</h3>
+                <div className="stats">
+                    <div className="stat"><span>已完成</span><strong>{load.data.cleanupDoneCount}</strong><small>有清理证据</small></div>
+                    <div className="stat"><span>等待专用清理</span><strong>{load.data.cleanupWaitingCount}</strong><small>媒体 / 历史 / 根对象等</small></div>
+                    <div className="stat"><span>失败</span><strong>{load.data.cleanupFailedCount}</strong><small>可由 Worker 安全重试</small></div>
+                </div>
+                {load.data.dependencyCleanupCompletedAt && <p className="muted">本阶段依赖清理完成时间：{date(load.data.dependencyCleanupCompletedAt)}。根对象终结仍未启用。</p>}
+                {!load.data.dependencyCleanupCompletedAt && <p className="muted">Worker 正在按冻结计划执行。目标持续保持不可见，不会因为清理中断而恢复正常使用。</p>}
+            </div>}
+            {!load.data.cleanupAvailable && load.data.state !== 'CLEANING' && <p className="muted">根对象终结、媒体物理删除和来源历史专用清理仍未启用。</p>}
         </>}
         {editing && load.data && <DecisionModal request={load.data} item={editing} sources={sources} canRetain={canRetain} onClose={() => setEditing(null)} onDone={() => { setEditing(null); setTick(x => x + 1); onChanged(); }}/>}
     </section>;
@@ -199,9 +234,9 @@ export function DeletionImpactPanel({ me }: { me: Me }) {
         setSelectedRequest(receipt.resourceId); setPreview(null); setReason(''); setRefresh(x => x + 1);
     }
 
-    return <><PageTitle overline="CONTROLLED DELETION / BLOCK BEFORE CLEANUP" title="删除影响评估" description="先证明影响，再冻结 DRAFT；只有再次确认后才进入阻断使用。当前仍不执行物理删除、媒体清理或 payload 擦除。" action={<button onClick={() => setRefresh(x => x + 1)}>刷新</button>}/>
+    return <><PageTitle overline="CONTROLLED DELETION / PLAN BEFORE CLEANUP" title="删除影响与清理" description="先证明影响并阻断使用，再完成保留决定、冻结计划；只有显式确认后才执行不可逆依赖清理。根对象终结、媒体物理清理和来源历史专用清理仍分阶段处理。" action={<button onClick={() => setRefresh(x => x + 1)}>刷新</button>}/>
         <ErrorBox error={people.error ?? works.error ?? projects.error ?? sources.error ?? assets.error ?? requests.error ?? inspect.error ?? create.error}/>
-        <div className="notice"><strong>当前只有“阻断使用”，没有物理删除</strong><p>阻断前会重新验证冻结影响图；存在隐藏依赖、扫描超限或新增依赖时不会进入 BLOCKED_FOR_USE。</p></div>
+        <div className="notice"><strong>不可逆动作必须来自冻结计划</strong><p>阻断前重新验证影响图；清理前再次验证 planDigest 与保留依据。CLEANING 只处理已注册依赖动作，不会把待专用处理项假报完成。</p></div>
 
         <section className="panel padded deletion-preview">
             <h2>1. 选择目标并做零写入预览</h2>

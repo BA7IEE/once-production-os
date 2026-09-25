@@ -52,7 +52,7 @@ export function newSystem() {
     const store = new MemoryStore();
     const clock = new FakeClock();
     const app = new Application(store, { origin: 'https://os.test.invalid', secureCookies: true,
-        contactKey: randomBytes(32), csrfKey: randomBytes(32), recoveryEpoch: randomBytes(24).toString('hex'), accessMode: 'INTERNAL', dataEgressMode: 'INTERNAL_APPROVED', environment: 'test' }, clock);
+        contactKey: randomBytes(32), csrfKey: randomBytes(32), recoveryEpoch: randomBytes(24).toString('hex'), accessMode: 'INTERNAL', dataEgressMode: 'INTERNAL_APPROVED', dataCleanupMode: 'INTERNAL_APPROVED', environment: 'test' }, clock);
     return { store, clock, app, owner: new Client(app) };
 }
 export async function fixture() { const f = newSystem(); const ids = await f.app.identity.bootstrap('owner', '测试管理员', SYNTHETIC_PASSWORD); await f.owner.login(); return { ...f, ...ids }; }

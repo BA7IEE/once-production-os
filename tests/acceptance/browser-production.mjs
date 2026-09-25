@@ -21,7 +21,7 @@ const prisma = new PrismaClient({ datasources: { db: { url: raw } }, log: [] });
 const tmp = mkdtempSync(join(tmpdir(), 'once-works-projects-'));
 const password = 'Synthetic-' + randomBytes(20).toString('base64url') + '!';
 const put = (name, text) => { const path = join(tmp, name); writeFileSync(path, text, { mode: 0o600 }); return path; };
-const env = { ...process.env, DATABASE_URL: raw, APP_ENV: 'test', ACCESS_MODE: 'INTERNAL', DATA_EGRESS_MODE: 'INTERNAL_APPROVED', COOKIE_SECURE: 'false', HOST: '127.0.0.1',
+const env = { ...process.env, DATABASE_URL: raw, APP_ENV: 'test', ACCESS_MODE: 'INTERNAL', DATA_EGRESS_MODE: 'INTERNAL_APPROVED', DATA_CLEANUP_MODE: 'INTERNAL_APPROVED', COOKIE_SECURE: 'false', HOST: '127.0.0.1',
     CONTACT_KEY_FILE: put('contact.hex', randomBytes(32).toString('hex')), CSRF_KEY_FILE: put('csrf.hex', randomBytes(32).toString('hex')),
     RECOVERY_EPOCH_FILE: put('recovery.epoch', randomBytes(24).toString('hex')), BOOTSTRAP_LOGIN: 'owner', BOOTSTRAP_NAME: 'WP1合成管理员',
     BOOTSTRAP_PASSWORD_FILE: put('bootstrap.password', password) };
@@ -281,7 +281,24 @@ try {
  assert.equal(await prisma.project.count({where:{id:projectId}}),1);
  assert.equal(await prisma.projectParticipant.count({where:{projectId}}),1);
  assert.equal(await prisma.projectWork.count({where:{projectId}}),1);
- assert.equal(await owner.getByRole('button',{name:/开始清理|立即删除|执行删除/}).count(),0);
- console.log('PASS DEV-07D browser: REVIEW_REQUIRED decision -> frozen plan; underlying project relations remain and no cleanup execution exists');
+ await blockDetail.getByRole('button',{name:'开始不可逆依赖清理',exact:true}).waitFor();
+ console.log('PASS DEV-07D browser: REVIEW_REQUIRED decision -> frozen plan; underlying project relations remain before cleanup');
+ owner.once('dialog',dialog=>void dialog.accept());
+ await writeUI(owner,'POST','/deletion-requests/'+blockRequestId+'/cleaning/start',()=>blockDetail.getByRole('button',{name:'开始不可逆依赖清理',exact:true}).click());
+ await until(async()=>!!(await prisma.deletionRequest.findUnique({where:{id:blockRequestId}}))?.dependencyCleanupCompletedAt);
+ await blockDetail.getByText('已完成本阶段依赖清理',{exact:true}).waitFor();
+ const cleaning=await prisma.deletionRequest.findUniqueOrThrow({where:{id:blockRequestId}});
+ assert.equal(cleaning.state,'CLEANING');
+ assert.equal(cleaning.executionPlanDigest?.length,64);
+ assert.ok(cleaning.dependencyCleanupCompletedAt);
+ assert.equal(cleaning.cleanupErrorCode,null);
+ assert.equal(await prisma.project.count({where:{id:projectId}}),1);
+ assert.equal(await prisma.projectParticipant.count({where:{projectId}}),0);
+ assert.equal(await prisma.projectWork.count({where:{projectId}}),0);
+ const cleaningItems=await prisma.deletionItem.findMany({where:{requestId:blockRequestId}});
+ assert.ok(cleaningItems.length>0);
+ assert.ok(cleaningItems.every(x=>x.cleanupState==='DONE'&&x.cleanupEvidenceDigest?.length===64));
+ assert.equal(await getStatus(owner,'/projects/'+projectId),404);
+ console.log('PASS DEV-07E browser: frozen plan -> CLEANING -> dependency cleanup evidence; project root remains blocked and preserved');
  assert.deepEqual(errors,[]);
 } finally {if(browser)await browser.close();await stop(worker);await stop(api);await prisma.$disconnect();rmSync(tmp,{recursive:true,force:true});}
