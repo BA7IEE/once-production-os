@@ -228,3 +228,35 @@ test('DEV-07G scope mismatch blocks execution and keeps both identities intact',
     assert.equal(f.store.rows('personAliases').length, 0);
     assert.equal(result(await f.owner.raw('GET', '/people')).total, 2);
 });
+
+
+test('DEV-07G shortlist rebind uses canonical pre-merge baseline so identity change is never reported as unchanged', async () => {
+    const f = await fixture();
+    const canonicalId = await createPerson(f.owner, '候选主档案');
+    const duplicateId = await createPerson(f.owner, '候选重复档案');
+    const canonicalBefore = await person(f, canonicalId);
+    const scopeId = f.store.rows('scopes')[0]!.id;
+
+    const shortlist = await ok(f.owner.cmd('POST', '/shortlists', {
+        title: '合并候选清单', brief: '验证旧身份关系迁移后的更新标记', scopeId
+    }), 201);
+    await ok(f.owner.cmd('POST', '/shortlists/' + shortlist.resourceId + '/items', {
+        expectedRevision: 1, personId: duplicateId, workAssetIds: [], note: '重复档案加入时的候选备注'
+    }));
+
+    const p = await preview(f, canonicalId, duplicateId);
+    assert.equal(p.complete, true);
+    assert.equal(p.moves.shortlistItems, 1);
+    const merged = await f.owner.cmd('POST', '/people/merge', executeInput(p));
+    assert.equal(merged.status, 200, JSON.stringify(merged.body));
+
+    const stored = f.store.rows('shortlistItems').find(x => x.shortlistId === shortlist.resourceId)!;
+    assert.equal(stored.personId, canonicalId);
+    assert.equal(stored.addedPersonRevision, canonicalBefore.revision);
+    assert.equal(stored.addedPersonSourceRevision, canonicalBefore.source.revision);
+
+    const detail = result(await f.owner.raw('GET', '/shortlists/' + shortlist.resourceId));
+    assert.equal(detail.items.length, 1);
+    assert.equal(detail.items[0].person.id, canonicalId);
+    assert.equal(detail.items[0].updatedSinceAdded, true);
+});
