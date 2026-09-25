@@ -345,9 +345,9 @@ try {
  assert.equal(await prisma.person.count({where:{id:{in:[mergeCanonicalId,mergeDuplicateId]}}}),2);
  await owner.getByRole('button',{name:/人才合并/}).click();
  const mergeHeading=owner.getByRole('heading',{name:'人才合并',exact:true});await mergeHeading.waitFor();
- await owner.getByLabel('主档案（保留）搜索',{exact:true}).fill('DEV07G主档案');
+ await owner.getByLabel('主档案（保留）',{exact:true}).fill('DEV07G主档案');
  await owner.getByRole('button',{name:/DEV07G主档案/}).click();
- await owner.getByLabel('重复档案（归档并建立旧 ID 映射）搜索',{exact:true}).fill('DEV07G重复档案');
+ await owner.getByLabel('重复档案（归档并建立旧 ID 映射）',{exact:true}).fill('DEV07G重复档案');
  await owner.getByRole('button',{name:/DEV07G重复档案/}).click();
  await writeUI(owner,'POST','/people/merge-preview',()=>owner.getByRole('button',{name:'预览合并影响',exact:true}).click());
  await owner.getByText('影响扫描完整，可以继续人工决策',{exact:true}).waitFor();
