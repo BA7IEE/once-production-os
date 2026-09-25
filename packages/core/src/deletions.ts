@@ -280,7 +280,8 @@ export class Deletions {
             reviewRequiredCount: preview.reviewRequiredCount, unresolvedCount: preview.unresolvedCount, ...targetRefs(d.targetKind, d.targetId),
             planDigest: null, planFrozenAt: null, planFrozenById: null,
             executionPlanDigest: null, cleanupStartedAt: null, cleanupStartedById: null,
-            cleanupLeaseToken: null, cleanupLeaseUntil: null, dependencyCleanupCompletedAt: null, cleanupErrorCode: null };
+            cleanupLeaseToken: null, cleanupLeaseUntil: null, dependencyCleanupCompletedAt: null, cleanupErrorCode: null,
+            rootFinalizedAt: null, rootFinalizationEvidenceDigest: null };
         await tx.insert('deletionRequests', row);
         for (const impact of preview.items) {
             const item: DeletionItem = { ...base(actor.workspaceId, this.clock), requestId: row.id, ...impact,
@@ -430,9 +431,12 @@ export class Deletions {
             planFrozenAt: row.planFrozenAt, cleanupStartAvailable: row.state === 'BLOCKED_FOR_USE' && row.planDigest !== null,
             cleanupDoneCount, cleanupWaitingCount, cleanupFailedCount,
             dependencyCleanupCompletedAt: row.dependencyCleanupCompletedAt, cleanupErrorCode: row.cleanupErrorCode,
+            rootFinalizedAt: row.rootFinalizedAt, rootFinalizationEvidenceDigest: row.rootFinalizationEvidenceDigest,
             cleanupAvailable: false, executionAvailable: false,
             executionNote: row.state === 'DRAFT' ? '可进入阻断使用；尚不会真正删除数据。'
-                : row.state === 'CLEANING' ? '依赖清理正在执行；根对象终结和专用媒体/历史清理仍未启用。'
+                : row.state === 'CLEANING' ? (row.dependencyCleanupCompletedAt ? '依赖清理已完成；等待根对象终结。' : '依赖清理正在执行；专用媒体/历史清理不会被假报完成。')
+                : row.state === 'COMPLETED' ? '依赖清理和根对象最小头终结已完成。'
+                : row.state === 'RETAINED_WITH_BASIS' ? '根对象已终结；部分依赖依据独立有效来源保留。'
                 : row.planDigest ? '目标已阻断，保留决定和清理计划已冻结；可显式启动不可逆依赖清理。'
                 : '目标已阻断正常使用；请先完成保留决定并冻结清理计划。' };
     }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode, type FormEvent } from 'react';
 import { ApiError } from './api.ts';
-export const labels: Record<string, string> = { DRAFT: '草稿', ACTIVE: '在库', ARCHIVED: '已归档', RECEIVED: '临时整理', CONFIRMED: '已核验', SUSPENDED: '已暂停', PENDING: '待激活', DISABLED: '已停用', ADMIN: '管理员', EDITOR: '资料维护', REVIEWER: '资料核验', VIEWER: '只读成员', QUEUED: '排队中', RUNNING: '处理中', SUCCEEDED: '已完成', READY: '可下载', REVOKED: '已撤销', ERASED: '已擦除', BLOCKED_FOR_USE: '已阻断使用', CLEANING: '清理中', FAILED: '失败', VALID: '可导入', INVALID: '需修正', IMPORTED: '已导入', VERIFIED: '已确认', STALE: '需重新确认' };
+export const labels: Record<string, string> = { DRAFT: '草稿', ACTIVE: '在库', ARCHIVED: '已归档', RECEIVED: '临时整理', CONFIRMED: '已核验', SUSPENDED: '已暂停', PENDING: '待激活', DISABLED: '已停用', ADMIN: '管理员', EDITOR: '资料维护', REVIEWER: '资料核验', VIEWER: '只读成员', QUEUED: '排队中', RUNNING: '处理中', SUCCEEDED: '已完成', READY: '可下载', REVOKED: '已撤销', ERASED: '已擦除', BLOCKED_FOR_USE: '已阻断使用', CLEANING: '清理中', RETAINED_WITH_BASIS: '有据保留后完成', FAILED: '失败', VALID: '可导入', INVALID: '需修正', IMPORTED: '已导入', VERIFIED: '已确认', STALE: '需重新确认' };
 export function date(value: string | null | undefined) {
     if (!value)
         return '—';
