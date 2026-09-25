@@ -696,3 +696,193 @@ test('DEV-07E cleanup start rechecks retained-basis revision after plan freeze',
     assert.equal(f.store.rows('deletionRequests').find(x => x.id === created.resourceId)!.state, 'BLOCKED_FOR_USE');
 });
 
+test('DEV-07F Person root becomes ERASED minimal header after dependency cleanup', async () => {
+    const f = await fixture(), pid = await createPerson(f.owner, '最终擦除人才');
+    const before = await get(f.owner, '/people/' + pid);
+    const p = await preview(f, 'PERSON', pid, before.revision);
+    const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
+        targetKind: 'PERSON', targetId: pid, expectedRevision: before.revision,
+        previewDigest: p.previewDigest, reason: '合成测试：依赖清理后终结人才最小头'
+    }), 201);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/block', {
+        expectedRevision: 1, previewDigest: p.previewDigest, acknowledgeBlock: true
+    }));
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/plan/freeze', {
+        expectedRevision: 2, acknowledgePlan: true
+    }));
+    let detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/cleaning/start', {
+        expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
+    }));
+    assert.equal(await f.app.deletionCleanup.claim(), null, 'empty dependency set should be marked complete without a worker claim');
+    const finalized = await f.app.deletionCleanup.finalizeNext();
+    assert.ok(finalized);
+    assert.equal(finalized.id, created.resourceId);
+    assert.equal(finalized.state, 'COMPLETED');
+    assert.equal(finalized.rootFinalizationEvidenceDigest?.length, 64);
+
+    const erased = f.store.rows('people').find(x => x.id === pid)!;
+    assert.equal(erased.status, 'ERASED');
+    assert.equal(erased.displayName, '[ERASED]');
+    assert.deepEqual(erased.aliases, []);
+    assert.deepEqual(erased.roles, []);
+    assert.equal(erased.cityCode, null);
+    assert.deepEqual(erased.languageCodes, []);
+    assert.deepEqual(erased.skillCodes, []);
+    assert.equal(erased.heightCm, null);
+    assert.equal(erased.intro, '');
+    assert.equal(erased.protectionEpoch, before.protectionEpoch + 2);
+    assert.equal((await f.owner.raw('GET', '/people/' + pid)).status, 404);
+    detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    assert.equal(detail.state, 'COMPLETED');
+    assert.ok(detail.rootFinalizedAt);
+    assert.equal(detail.rootFinalizationEvidenceDigest.length, 64);
+});
+
+test('DEV-07F Work finalization safely clears a blocked cover relation before ERASED header', async () => {
+    const f = await fixture();
+    const workId = (await ok(f.owner.cmd('POST', '/works', { title: '最终擦除作品', inlineSource: sourceInput() }), 201)).resourceId as string;
+    const entryId = randomUUID(), fakeAssetId = randomUUID();
+    await f.store.transaction(async tx => {
+        const work = await tx.get('works', workId); assert.ok(work);
+        await tx.insert('workAssets', {
+            id: entryId, workspaceId: work.workspaceId, createdAt: f.clock.now().toISOString(), updatedAt: f.clock.now().toISOString(),
+            revision: 1, workId, assetId: fakeAssetId, position: 0
+        });
+        await tx.replace('works', { ...work, revision: work.revision + 1, updatedAt: f.clock.now().toISOString(), coverEntryId: entryId });
+    });
+    const work = f.store.rows('works').find(x => x.id === workId)!;
+    const p = await preview(f, 'WORK', workId, work.revision);
+    const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
+        targetKind: 'WORK', targetId: workId, expectedRevision: work.revision,
+        previewDigest: p.previewDigest, reason: '合成测试：封面关系先清理再终结作品'
+    }), 201);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/block', {
+        expectedRevision: 1, previewDigest: p.previewDigest, acknowledgeBlock: true
+    }));
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/plan/freeze', {
+        expectedRevision: 2, acknowledgePlan: true
+    }));
+    let detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/cleaning/start', {
+        expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
+    }));
+    const claim = await f.app.deletionCleanup.claim(); assert.ok(claim); await f.app.deletionCleanup.process(claim);
+    assert.equal(f.store.rows('workAssets').some(x => x.id === entryId), false);
+    const afterDependency = f.store.rows('works').find(x => x.id === workId)!;
+    assert.equal(afterDependency.coverEntryId, null);
+    assert.equal(afterDependency.revision, work.revision + 1);
+    const finalized = await f.app.deletionCleanup.finalizeNext(); assert.ok(finalized);
+    assert.equal(finalized.state, 'COMPLETED');
+    const erased = f.store.rows('works').find(x => x.id === workId)!;
+    assert.equal(erased.status, 'ERASED');
+    assert.equal(erased.title, '[ERASED]');
+    assert.equal(erased.description, '');
+    assert.equal(erased.industryCode, null);
+    assert.deepEqual(erased.workTypeCodes, []);
+    assert.equal(erased.origin, 'UNKNOWN');
+    assert.equal(erased.originNote, '');
+    assert.equal(erased.coverEntryId, null);
+});
+
+test('DEV-07F Project root finalizes only after all project relations are cleaned', async () => {
+    const f = await fixture(), pid = await createPerson(f.owner, '项目终结参与者');
+    const projectId = (await ok(f.owner.cmd('POST', '/projects', { title: '最终擦除项目', inlineSource: sourceInput() }), 201)).resourceId as string;
+    await ok(f.owner.cmd('POST', '/projects/' + projectId + '/participants', {
+        expectedRevision: 1, personId: pid, roleCode: 'model', state: 'NOMINATED', note: ''
+    }));
+    const project = f.store.rows('projects').find(x => x.id === projectId)!;
+    const p = await preview(f, 'PROJECT', projectId, project.revision);
+    const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
+        targetKind: 'PROJECT', targetId: projectId, expectedRevision: project.revision,
+        previewDigest: p.previewDigest, reason: '合成测试：关系清理完成后终结项目'
+    }), 201);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/block', {
+        expectedRevision: 1, previewDigest: p.previewDigest, acknowledgeBlock: true
+    }));
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/plan/freeze', {
+        expectedRevision: 2, acknowledgePlan: true
+    }));
+    let detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/cleaning/start', {
+        expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
+    }));
+    const claim = await f.app.deletionCleanup.claim(); assert.ok(claim); await f.app.deletionCleanup.process(claim);
+    assert.equal(f.store.rows('projectParticipants').some(x => x.projectId === projectId), false);
+    const finalized = await f.app.deletionCleanup.finalizeNext(); assert.ok(finalized);
+    assert.equal(finalized.state, 'COMPLETED');
+    const erased = f.store.rows('projects').find(x => x.id === projectId)!;
+    assert.equal(erased.status, 'ERASED');
+    assert.equal(erased.title, '[ERASED]');
+    assert.equal(erased.brief, '');
+    assert.equal(erased.locationNote, '');
+    assert.equal(erased.dateNote, '');
+    assert.equal(erased.reviewNote, '');
+});
+
+test('DEV-07F retained independent relation yields RETAINED_WITH_BASIS while Person root is erased', async () => {
+    const f = await fixture(), pid = await createPerson(f.owner, '有据保留根终结人才');
+    const person = await get(f.owner, '/people/' + pid);
+    const workId = (await ok(f.owner.cmd('POST', '/works', { title: '有据保留关系作品', inlineSource: sourceInput() }), 201)).resourceId as string;
+    await ok(f.owner.cmd('POST', '/works/' + workId + '/credits', {
+        expectedRevision: 1, personId: pid, roleCode: 'model', note: '独立依据证明这条历史关系仍可保留'
+    }));
+    const creditId = f.store.rows('workCredits').find(x => x.workId === workId && x.personId === pid)!.id;
+    const p = await preview(f, 'PERSON', pid, person.revision);
+    const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
+        targetKind: 'PERSON', targetId: pid, expectedRevision: person.revision,
+        previewDigest: p.previewDigest, reason: '合成测试：根个人信息擦除但独立历史关系保留'
+    }), 201);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/block', {
+        expectedRevision: 1, previewDigest: p.previewDigest, acknowledgeBlock: true
+    }));
+    const slot = (await get(f.owner, '/deletion-requests/' + created.resourceId + '/items')).items.find((x: any) => x.decision === 'PENDING');
+    assert.ok(slot);
+    const basisId = (await ok(f.owner.cmd('POST', '/sources', { ...sourceInput(), title: '独立保留依据·终结测试' }), 201)).resourceId as string;
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/decisions', {
+        expectedRevision: 2, entryId: slot.id, decision: 'RETAIN_WITH_BASIS',
+        decisionReason: '另一份当前正式来源支持保留历史关系', retentionSourceId: basisId
+    }));
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/plan/freeze', {
+        expectedRevision: 3, acknowledgePlan: true
+    }));
+    let detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/cleaning/start', {
+        expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
+    }));
+    const claim = await f.app.deletionCleanup.claim(); assert.ok(claim); await f.app.deletionCleanup.process(claim);
+    const finalized = await f.app.deletionCleanup.finalizeNext(); assert.ok(finalized);
+    assert.equal(finalized.state, 'RETAINED_WITH_BASIS');
+    assert.equal(f.store.rows('workCredits').some(x => x.id === creditId), true);
+    assert.equal(f.store.rows('people').find(x => x.id === pid)!.status, 'ERASED');
+});
+
+test('DEV-07F unexpected blocked-root mutation prevents finalization instead of claiming completion', async () => {
+    const f = await fixture();
+    const projectId = (await ok(f.owner.cmd('POST', '/projects', { title: '异常改写项目', inlineSource: sourceInput() }), 201)).resourceId as string;
+    const project = f.store.rows('projects').find(x => x.id === projectId)!;
+    const p = await preview(f, 'PROJECT', projectId, project.revision);
+    const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
+        targetKind: 'PROJECT', targetId: projectId, expectedRevision: project.revision,
+        previewDigest: p.previewDigest, reason: '合成测试：终结前验证冻结根版本'
+    }), 201);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/block', {
+        expectedRevision: 1, previewDigest: p.previewDigest, acknowledgeBlock: true
+    }));
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/plan/freeze', {
+        expectedRevision: 2, acknowledgePlan: true
+    }));
+    let detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/cleaning/start', {
+        expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
+    }));
+    assert.equal(await f.app.deletionCleanup.claim(), null);
+    await f.store.transaction(async tx => {
+        const row = await tx.get('projects', projectId); assert.ok(row);
+        await tx.replace('projects', { ...row, revision: row.revision + 1, updatedAt: f.clock.now().toISOString(), reviewNote: '异常后台改写' });
+    });
+    await assert.rejects(() => f.app.deletionCleanup.finalizeNext(), (error: any) => error?.code === 'ROOT_FINALIZATION_CHANGED');
+    assert.equal(f.store.rows('deletionRequests').find(x => x.id === created.resourceId)!.state, 'CLEANING');
+    assert.notEqual(f.store.rows('projects').find(x => x.id === projectId)!.status, 'ERASED');
+});
+
