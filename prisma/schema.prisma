@@ -9,6 +9,8 @@ datasource db {
 }
 
 model Workspace {
+  PersonMergeDecision_workspace PersonMergeDecision[] @relation("PersonMergeDecision_workspace")
+  PersonAlias_workspace PersonAlias[] @relation("PersonAlias_workspace")
   DeletionRequest_workspace DeletionRequest[] @relation("DeletionRequest_workspace")
   DeletionItem_workspace DeletionItem[] @relation("DeletionItem_workspace")
   UsePermission_workspace UsePermission[] @relation("UsePermission_workspace")
@@ -71,6 +73,7 @@ model User {
 }
 
 model Membership {
+  PersonMergeDecision_actorIdRef PersonMergeDecision[] @relation("PersonMergeDecision_actorIdRef")
   DeletionRequest_cleanupStartedByRef DeletionRequest[] @relation("DeletionRequest_cleanupStartedByRef")
   DeletionRequest_planFrozenByRef DeletionRequest[] @relation("DeletionRequest_planFrozenByRef")
   DeletionItem_decidedByRef DeletionItem[] @relation("DeletionItem_decidedByRef")
@@ -198,6 +201,8 @@ model ScopeMember {
 }
 
 model SourceRecord {
+  PersonMergeDecision_canonicalSourceRef PersonMergeDecision[] @relation("PersonMergeDecision_canonicalSourceRef")
+  PersonMergeDecision_duplicateSourceRef PersonMergeDecision[] @relation("PersonMergeDecision_duplicateSourceRef")
   DeletionItem_retentionSourceRef DeletionItem[] @relation("DeletionItem_retentionSourceRef")
   DeletionRequest_targetSourceIdRef DeletionRequest[] @relation("DeletionRequest_targetSourceIdRef")
   DeletionRequest_targetSourceSubjectRef DeletionRequest[] @relation("DeletionRequest_targetSourceSubjectRef")
@@ -246,6 +251,10 @@ model SourceRecord {
 }
 
 model Person {
+  PersonMergeDecision_canonicalPersonRef PersonMergeDecision[] @relation("PersonMergeDecision_canonicalPersonRef")
+  PersonMergeDecision_duplicatePersonRef PersonMergeDecision[] @relation("PersonMergeDecision_duplicatePersonRef")
+  PersonAlias_oldPersonRef PersonAlias[] @relation("PersonAlias_oldPersonRef")
+  PersonAlias_canonicalPersonRef PersonAlias[] @relation("PersonAlias_canonicalPersonRef")
   DeletionRequest_targetPersonRef DeletionRequest[] @relation("DeletionRequest_targetPersonRef")
   UsePermission_subjectPersonRef UsePermission[] @relation("UsePermission_subjectPersonRef")
   ExportDependency_personRef ExportDependency[] @relation("ExportDependency_personRef")
@@ -1009,5 +1018,63 @@ model DeletionItem {
   @@unique([workspaceId, requestId, resourceKind, resourceId, dependencyKind, proposedAction], map: "deletionItems_exact_impact_key")
   @@index([workspaceId, requestId, evidenceState], map: "deletionItems_request_idx")
   @@map("deletionItems")
+}
+
+model PersonMergeDecision {
+  PersonAlias_mergeDecisionRef PersonAlias[] @relation("PersonAlias_mergeDecisionRef")
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  actorId String @db.Uuid
+  canonicalPersonId String @db.Uuid
+  duplicatePersonId String @db.Uuid
+  canonicalRevisionBefore Int
+  duplicateRevisionBefore Int
+  canonicalRevisionAfter Int
+  canonicalSourceId String @db.Uuid
+  duplicateSourceId String @db.Uuid
+  canonicalSourceRevision Int
+  duplicateSourceRevision Int
+  canonicalSourceEpoch Int
+  duplicateSourceEpoch Int
+  previewDigest String @db.Text
+  decisionManifest Json @db.JsonB
+  revokedHandoffCount Int
+  revokedUsePermissionCount Int
+  detachedMediaCount Int
+  resultDigest String @db.Text
+  completedAt DateTime @db.Timestamptz(3)
+  workspace Workspace @relation("PersonMergeDecision_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "personMerges_workspace_fkey")
+  actorIdRef Membership @relation("PersonMergeDecision_actorIdRef", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "personMerges_actorIdRef_fkey")
+  canonicalPersonRef Person @relation("PersonMergeDecision_canonicalPersonRef", fields: [workspaceId, canonicalPersonId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "personMerges_canonicalPersonRef_fkey")
+  duplicatePersonRef Person @relation("PersonMergeDecision_duplicatePersonRef", fields: [workspaceId, duplicatePersonId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "personMerges_duplicatePersonRef_fkey")
+  canonicalSourceRef SourceRecord @relation("PersonMergeDecision_canonicalSourceRef", fields: [workspaceId, canonicalSourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "personMerges_canonicalSourceRef_fkey")
+  duplicateSourceRef SourceRecord @relation("PersonMergeDecision_duplicateSourceRef", fields: [workspaceId, duplicateSourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "personMerges_duplicateSourceRef_fkey")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, duplicatePersonId], map: "personMerges_duplicate_once_key")
+  @@index([workspaceId, canonicalPersonId, completedAt], map: "personMerges_canonical_idx")
+  @@map("personMerges")
+}
+
+model PersonAlias {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  oldPersonId String @db.Uuid
+  canonicalPersonId String @db.Uuid
+  mergeDecisionId String @db.Uuid
+  workspace Workspace @relation("PersonAlias_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "personAliases_workspace_fkey")
+  oldPersonRef Person @relation("PersonAlias_oldPersonRef", fields: [workspaceId, oldPersonId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "personAliases_oldPersonRef_fkey")
+  canonicalPersonRef Person @relation("PersonAlias_canonicalPersonRef", fields: [workspaceId, canonicalPersonId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "personAliases_canonicalPersonRef_fkey")
+  mergeDecisionRef PersonMergeDecision @relation("PersonAlias_mergeDecisionRef", fields: [workspaceId, mergeDecisionId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "personAliases_mergeDecisionRef_fkey")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, oldPersonId], map: "personAliases_oldPersonId_key")
+  @@unique([workspaceId, mergeDecisionId], map: "personAliases_mergeDecisionId_key")
+  @@index([workspaceId, canonicalPersonId], map: "personAliases_canonical_idx")
+  @@map("personAliases")
 }
 
