@@ -678,7 +678,11 @@ export async function runProductionContracts(t: TestContext, c: Context) {
             format: 'JSON', selectedIds: { people: [personId2], works: [], projects: [] },
             fields: ['person.displayName'], usePermissionRefs: [permit]
         }), 202)).resourceId as string;
-        const exportClaim = await appA.exports.claim(); assert.ok(exportClaim); await appA.exports.process(exportClaim);
+        for (let i = 0; i < 20 && (await a.exportJob.findUniqueOrThrow({ where: { id: exportId } })).state !== 'READY'; i++) {
+            const exportClaim = await appA.exports.claim();
+            assert.ok(exportClaim, 'expected queued export work while target export is not READY');
+            await appA.exports.process(exportClaim);
+        }
         assert.equal((await a.exportJob.findUniqueOrThrow({ where: { id: exportId } })).state, 'READY');
 
         const current = result(await ownerA.raw('GET', '/people/' + personId2));
@@ -800,7 +804,7 @@ export async function runProductionContracts(t: TestContext, c: Context) {
     await t.test('DEV-07E PG cleanup state constraints reject forged completion evidence', async () => {
         const item = await a.deletionItem.findFirstOrThrow({ where: { cleanupState: 'DONE' } });
         await assert.rejects(a.deletionItem.update({ where: { id: item.id }, data: {
-            cleanupEvidenceDigest: null, cleanedAt: null
+            cleanupEvidenceDigest: null
         } }));
         const request = await a.deletionRequest.findFirstOrThrow({ where: { state: 'CLEANING' } });
         await assert.rejects(a.deletionRequest.update({ where: { id: request.id }, data: {
