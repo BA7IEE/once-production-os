@@ -1,10 +1,10 @@
-import type { Actor, Clock, Config, Contact, Person, RequestMeta, Source } from './model.ts';
+import type { Actor, Clock, Config, Contact, Person, Source } from './model.ts';
 import type { Tx } from './store.ts';
 import type { PersonMergeCollisionChoice, PersonMergeDecision, PersonMergeField, PersonMergeFieldChoice } from './merge-model.ts';
 import { MERGE_LIMITS as L, PERSON_MERGE_FIELDS as F } from './merge-model.ts';
 import { MergeSchemas as S } from './merge-validation.ts';
 import { AppError, invariant, missing } from './errors.ts';
-import { audit, base, cas, page, touch, unique, workspaceRow } from './helpers.ts';
+import { base, cas, page, touch, unique, workspaceRow } from './helpers.ts';
 import { digest } from './json.ts';
 import { decryptContact, encryptContact } from './crypto.ts';
 import { deletionBlocked, personAliasFor, personFor, requirePermission, requireScope, sourceFor } from './policy.ts';
@@ -261,7 +261,7 @@ export class PersonMerges {
         }
     }
 
-    async execute(tx: Tx, actor: Actor, input: unknown, meta: RequestMeta): Promise<PersonMergeDecision> {
+    async execute(tx: Tx, actor: Actor, input: unknown): Promise<PersonMergeDecision> {
         this.permissions(actor); this.executionGate();
         const d = S.execute.parse(input);
         const plan = await this.scan(tx, actor, d.canonicalId, d.duplicateId, d.expectedCanonicalRevision, d.expectedDuplicateRevision);
@@ -403,8 +403,6 @@ export class PersonMerges {
         await tx.insert('personMerges', decision);
         await tx.insert('personAliases', { ...base(actor.workspaceId, this.clock), oldPersonId: plan.duplicate.id,
             canonicalPersonId: plan.canonical.id, mergeDecisionId: decision.id });
-        await audit(tx, actor, actor.workspaceId, 'person.merge', 'merge', decision.id,
-            ['canonicalPersonId','duplicatePersonId','relations','profile'], meta, this.clock);
         return decision;
     }
 
