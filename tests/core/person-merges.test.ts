@@ -260,3 +260,34 @@ test('DEV-07G shortlist rebind uses canonical pre-merge baseline so identity cha
     assert.equal(detail.items[0].person.id, canonicalId);
     assert.equal(detail.items[0].updatedSinceAdded, true);
 });
+
+
+test('DEV-07G merged-id resolution does not reveal an alias outside the old identity scope', async () => {
+    const f = await fixture();
+    const scope = await ok(f.owner.cmd('POST', '/scopes', {
+        name: '仅管理员可见的合并范围', membershipIds: [f.membershipId]
+    }), 201);
+    const inline = { ...sourceInput(), scopeId: scope.resourceId };
+    const a = await ok(f.owner.cmd('POST', '/people', {
+        displayName: '受限主档案', roles: ['model'], inlineSource: inline
+    }), 201);
+    const b = await ok(f.owner.cmd('POST', '/people', {
+        displayName: '受限重复档案', roles: ['model'], inlineSource: inline
+    }), 201);
+    const p = await preview(f, a.resourceId, b.resourceId);
+    assert.equal(p.complete, true);
+    assert.equal((await f.owner.cmd('POST', '/people/merge', executeInput(p))).status, 200);
+
+    const outsider = await member(f, 'merge_scope_outsider', 'EDITOR');
+    assert.equal((await outsider.client.raw('GET', '/people/' + b.resourceId)).status, 404);
+    const old = f.store.rows('people').find(x => x.id === b.resourceId)!;
+    const write = await outsider.client.cmd('PATCH', '/people/' + b.resourceId, {
+        expectedRevision: old.revision, intro: '不应借错误码探测旧ID'
+    });
+    assert.equal(write.status, 404);
+    assert.equal(result(write).error.code, 'NOT_FOUND');
+
+    const ownerRead = await ok(f.owner.raw('GET', '/people/' + b.resourceId));
+    assert.equal(ownerRead.id, a.resourceId);
+    assert.equal(ownerRead.resolvedFromId, b.resourceId);
+});
