@@ -523,6 +523,11 @@ export const ENDPOINTS = {
     "path": "/deletion-requests/{id}/plan/freeze",
     "mode": "COMMAND"
   },
+  "deletion.cleanupStart": {
+    "method": "POST",
+    "path": "/deletion-requests/{id}/cleaning/start",
+    "mode": "COMMAND"
+  },
   "usePermission.list": {
     "method": "GET",
     "path": "/use-permissions",
