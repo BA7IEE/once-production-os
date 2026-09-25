@@ -432,16 +432,39 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
             assert.equal(await a.personAlias.count({ where: { workspaceId: identity.workspaceId, oldPersonId: duplicateId } }), 1);
 
             const alias = await a.personAlias.findFirstOrThrow({ where: { workspaceId: identity.workspaceId, oldPersonId: duplicateId } });
-            await assert.rejects(a.personAlias.update({ where: { id: alias.id }, data: { canonicalPersonId: duplicateId } }));
+            await assert.rejects(a.personAlias.update({ where: { id: alias.id }, data: { canonicalPersonId: duplicateId } }), /person merge history is append-only/);
+            await assert.rejects(a.personAlias.delete({ where: { id: alias.id } }), /person merge history is append-only/);
             assert.equal((await a.personAlias.findUniqueOrThrow({ where: { id: alias.id } })).canonicalPersonId, canonicalId);
 
             const decision = await a.personMergeDecision.findUniqueOrThrow({ where: { id: decisionId } });
+            await assert.rejects(a.personMergeDecision.update({ where: { id: decision.id }, data: { resultDigest: '0'.repeat(64) } }), /person merge history is append-only/);
+            await assert.rejects(a.personMergeDecision.delete({ where: { id: decision.id } }), /person merge history is append-only/);
             await assert.rejects(a.personMergeDecision.create({ data: {
                 ...decision,
                 id: randomUUID(),
                 decisionManifest: decision.decisionManifest as Prisma.InputJsonValue
             } }));
             assert.equal(await a.personMergeDecision.count({ where: { workspaceId: identity.workspaceId, duplicatePersonId: duplicateId } }), 1);
+
+            const forgedCreated = await ownerA.cmd('POST', '/people', {
+                displayName: 'PG forged merge identity', roles: ['model'], inlineSource: sourceInput()
+            });
+            assert.equal(forgedCreated.status, 201);
+            const forgedId = String(result(forgedCreated).resourceId);
+            await a.person.update({ where: { id: forgedId }, data: { status: 'ARCHIVED' } });
+            const now = clock.now();
+            await assert.rejects(a.personAlias.create({ data: {
+                id: randomUUID(), workspaceId: identity.workspaceId, createdAt: now, updatedAt: now, revision: 1,
+                oldPersonId: forgedId, canonicalPersonId: canonicalId, mergeDecisionId: decisionId
+            } }));
+            await assert.rejects(a.personMergeDecision.create({ data: {
+                ...decision,
+                id: randomUUID(),
+                duplicatePersonId: forgedId,
+                duplicateSourceId: decision.canonicalSourceId,
+                decisionManifest: decision.decisionManifest as Prisma.InputJsonValue
+            } }));
+            assert.equal(await a.personAlias.count({ where: { workspaceId: identity.workspaceId, oldPersonId: forgedId } }), 0);
 
             const search = result(await ownerA.raw('GET', '/talent-search?q=' + encodeURIComponent('PG merge duplicate')));
             const encoded = JSON.stringify(search);
