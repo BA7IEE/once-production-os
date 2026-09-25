@@ -340,7 +340,9 @@ export class PersonMerges {
         }
         for (const id of plan.shortlistItemMoveIds) {
             const row = await workspaceRow(tx, 'shortlistItems', id, actor.workspaceId);
-            if (row?.personId === plan.duplicate.id) await tx.replace('shortlistItems', { ...touch(row, this.clock), personId: plan.canonical.id });
+            if (row?.personId === plan.duplicate.id) await tx.replace('shortlistItems', { ...touch(row, this.clock),
+                personId: plan.canonical.id, addedPersonRevision: plan.canonical.revision,
+                addedPersonSourceRevision: plan.canonicalSource.revision });
         }
 
         for (const collision of plan.collisions) {
@@ -367,7 +369,9 @@ export class PersonMerges {
                 else {
                     await this.deleteShortlistItem(tx, actor.workspaceId, keep.id);
                     const stillOld = await workspaceRow(tx, 'shortlistItems', old.id, actor.workspaceId);
-                    if (stillOld) await tx.replace('shortlistItems', { ...touch(stillOld, this.clock), personId: plan.canonical.id });
+                    if (stillOld) await tx.replace('shortlistItems', { ...touch(stillOld, this.clock),
+                        personId: plan.canonical.id, addedPersonRevision: plan.canonical.revision,
+                        addedPersonSourceRevision: plan.canonicalSource.revision });
                 }
             }
         }
