@@ -104,6 +104,7 @@ test('DEV-07G explicit merge creates one decision, hides duplicate from lists an
     const duplicateId = await createPerson(f.owner, '重复档案 Alice');
     const p = await preview(f, canonicalId, duplicateId);
     assert.equal(p.complete, true);
+    assert.deepEqual(p.fieldConflicts.find((x: any) => x.field === 'displayName')?.choices, ['CANONICAL']);
 
     const key = randomUUID();
     const input = executeInput(p);
@@ -121,11 +122,10 @@ test('DEV-07G explicit merge creates one decision, hides duplicate from lists an
     const oldRead = await ok(f.owner.raw('GET', '/people/' + duplicateId));
     assert.equal(oldRead.id, canonicalId);
     assert.equal(oldRead.resolvedFromId, duplicateId);
-    assert.ok(oldRead.aliases.includes('重复档案 Alice'));
+    assert.equal(oldRead.aliases.includes('重复档案 Alice'), false);
 
     const list = result(await f.owner.raw('GET', '/people?q=' + encodeURIComponent('重复档案 Alice')));
-    assert.equal(list.total, 1);
-    assert.equal(list.items[0].id, canonicalId);
+    assert.equal(list.total, 0, 'a name supported only by another Source must not be copied into canonical aliases');
 
     const writeOld = await f.owner.cmd('PATCH', '/people/' + duplicateId, {
         expectedRevision: f.store.rows('people').find(x => x.id === duplicateId)!.revision,
