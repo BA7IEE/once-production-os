@@ -28,6 +28,16 @@ export async function runProductionContracts(t: TestContext, c: Context) {
     const get = (path: string) => ok(ownerA.raw('GET', path));
     const root = async (kind: 'works' | 'projects', extra: Record<string, unknown> = {}) => (await ok(ownerA.cmd('POST', '/' + kind, { title: 'WP1 PG ' + kind, inlineSource: sourceInput(), ...extra }), 201)).resourceId as string;
     const modify = async (path: string, suffix: string, body: Record<string, unknown>) => { const row = await get(path); return ok(ownerA.cmd(suffix ? 'POST' : 'PATCH', path + suffix, { expectedRevision: row.revision, ...body })); };
+    const finalizeUntil = async (requestId: string) => {
+        for (let i = 0; i < 20; i++) {
+            const row = await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } });
+            if (row.state === 'COMPLETED' || row.state === 'RETAINED_WITH_BASIS')
+                return row;
+            const next = await appA.deletionCleanup.finalizeNext();
+            assert.ok(next, 'expected a finalizable deletion request while target is not final');
+        }
+        assert.fail('target deletion request did not reach a final state');
+    };
     const workId = await root('works'), projectId = await root('projects');
     const personId = (await ok(ownerA.cmd('POST', '/people', { displayName: 'WP1 PG contributor', roles: ['model', 'editor'], inlineSource: sourceInput() }), 201)).resourceId as string;
     const image = async () => {
@@ -844,8 +854,7 @@ export async function runProductionContracts(t: TestContext, c: Context) {
         assert.equal(claim.id, requestId);
         await appA.deletionCleanup.process(claim);
         assert.equal(await a.projectParticipant.count({ where: { projectId: projectId2 } }), 0);
-        const finalized = await appA.deletionCleanup.finalizeNext();
-        assert.ok(finalized);
+        const finalized = await finalizeUntil(requestId);
         assert.equal(finalized.id, requestId);
         assert.equal(finalized.state, 'COMPLETED');
         assert.equal(finalized.rootFinalizationEvidenceDigest?.length, 64);
@@ -892,8 +901,7 @@ export async function runProductionContracts(t: TestContext, c: Context) {
         assert.equal(afterDependencies.coverEntryId, null);
         assert.equal(afterDependencies.revision, before.revision + 1);
         assert.equal(await a.mediaAsset.count({ where: { id: asset1 } }), 1);
-        const finalized = await appA.deletionCleanup.finalizeNext();
-        assert.ok(finalized);
+        const finalized = await finalizeUntil(requestId);
         assert.equal(finalized.state, 'COMPLETED');
         const erased = await a.work.findUniqueOrThrow({ where: { id: workId2 } });
         assert.equal(erased.status, 'ERASED');
