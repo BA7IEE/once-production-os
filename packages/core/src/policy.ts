@@ -58,12 +58,13 @@ export async function personVisible(tx: Tx, actor: Actor, person: Person, clock:
     return !!source && await sourceVisible(tx, actor, source, clock);
 }
 export async function personFor(tx: Tx, actor: Actor, id: string, clock: Clock, activeSource = true): Promise<Person> {
-    const alias = await personAliasFor(tx, actor.workspaceId, id);
-    invariant(!alias, 'MERGED_ID_READ_ONLY', '该人才ID已合并，只允许通过详情只读解析到主档案', 409);
     const person = await workspaceRow(tx, 'people', id, actor.workspaceId);
     if (!person)
         missing();
+    // Never let a guessed UUID reveal that a hidden record became an alias.
     await requireScope(tx, actor, person.scopeId);
+    const alias = await personAliasFor(tx, actor.workspaceId, id);
+    invariant(!alias, 'MERGED_ID_READ_ONLY', '该人才ID已合并，只允许通过详情只读解析到主档案', 409);
     if (await deletionBlocked(tx, actor.workspaceId, 'PERSON', person.id)) missing();
     await sourceFor(tx, actor, person.sourceId, clock, activeSource);
     return person;
