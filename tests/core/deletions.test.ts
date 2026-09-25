@@ -591,6 +591,9 @@ test('DEV-07E worker irreversibly cleans registered DB dependencies but preserve
     await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/cleaning/start', {
         expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
     }));
+    assert.equal((await f.owner.raw('GET', '/people/' + personId)).status, 404);
+    assert.ok(!(await get(f.owner, '/people')).items.some((x: any) => x.id === personId));
+    assert.equal((await get(f.owner, '/talent-search?q=' + encodeURIComponent('依赖清理候选'))).total, 0);
 
     const cleanupClaim = await f.app.deletionCleanup.claim(); assert.ok(cleanupClaim);
     assert.equal(cleanupClaim.id, created.resourceId);
