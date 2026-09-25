@@ -34,7 +34,7 @@ export interface DeletionRequestSummary {
     id: string;
     targetKind: DeletionTargetKind;
     targetId: string;
-    state: 'DRAFT' | 'BLOCKED_FOR_USE' | 'CLEANING';
+    state: 'DRAFT' | 'BLOCKED_FOR_USE' | 'CLEANING' | 'COMPLETED' | 'RETAINED_WITH_BASIS' | 'FAILED';
     impactCount: number;
     reviewRequiredCount: number;
     planFrozen?: boolean;
@@ -57,6 +57,10 @@ export interface DeletionRequestDetail extends DeletionRequestSummary {
     cleanupFailedCount: number;
     dependencyCleanupCompletedAt: string | null;
     cleanupErrorCode: string | null;
+    finalizationDigest: string | null;
+    finalizedAt: string | null;
+    finalizationAttempts: number;
+    finalizationErrorCode: string | null;
     cleanupAvailable: false;
     executionAvailable: false;
     executionNote: string;

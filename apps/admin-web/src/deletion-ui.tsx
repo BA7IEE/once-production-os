@@ -96,7 +96,7 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
     const load = useLoad(() => read<DeletionRequestDetail>('deletion.get', { id }), id + ':' + tick);
     const items = useLoad(() => read<Page<DeletionDecisionItem>>('deletion.items', { id }, { page: String(itemPage), pageSize: '20' }), id + ':items:' + itemPage + ':' + tick);
     useEffect(() => {
-        if (load.data?.state !== 'CLEANING' || load.data.dependencyCleanupCompletedAt) return;
+        if (load.data?.state !== 'CLEANING') return;
         const timer = setInterval(() => setTick(x => x + 1), 1500);
         return () => clearInterval(timer);
     }, [load.data?.state, load.data?.dependencyCleanupCompletedAt]);
@@ -146,9 +146,13 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
             </dl>
             <p className="pre-line">{load.data.reason}</p>
             <div className="notice"><strong>{load.data.state === 'DRAFT' ? '尚未阻断正常使用'
-                : load.data.state === 'CLEANING' ? (load.data.dependencyCleanupCompletedAt ? '已完成本阶段依赖清理' : '正在执行不可逆依赖清理')
-                : load.data.planFrozen ? '已阻断；清理计划已冻结' : '已阻断正常使用；正在做保留决定'}</strong><p>{load.data.executionNote}</p>
+                : load.data.state === 'BLOCKED_FOR_USE' ? (load.data.planFrozen ? '已阻断；清理计划已冻结' : '已阻断正常使用；正在做保留决定')
+                : load.data.state === 'CLEANING' ? '正在执行依赖清理与专用最终化'
+                : load.data.state === 'COMPLETED' ? '删除流程已完成'
+                : load.data.state === 'RETAINED_WITH_BASIS' ? '删除完成，部分依赖有据保留'
+                : '最终化失败，目标继续保持阻断'}</strong><p>{load.data.executionNote}</p>
                 {load.data.cleanupErrorCode && <p><strong>清理状态：</strong><code>{load.data.cleanupErrorCode}</code></p>}
+                {load.data.finalizationErrorCode && <p><strong>最终化状态：</strong><code>{load.data.finalizationErrorCode}</code></p>}
             </div>
 
             {load.data.blockAvailable && <div className="button-row"><button className="danger" disabled={block.busy} onClick={() => void block.run(blockUse)}>阻断正常使用</button></div>}
@@ -186,7 +190,12 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
                 {load.data.dependencyCleanupCompletedAt && <p className="muted">本阶段依赖清理完成时间：{date(load.data.dependencyCleanupCompletedAt)}。根对象终结仍未启用。</p>}
                 {!load.data.dependencyCleanupCompletedAt && <p className="muted">Worker 正在按冻结计划执行。目标持续保持不可见，不会因为清理中断而恢复正常使用。</p>}
             </div>}
-            {!load.data.cleanupAvailable && load.data.state !== 'CLEANING' && <p className="muted">根对象终结、媒体物理删除和来源历史专用清理仍未启用。</p>}
+            {['COMPLETED','RETAINED_WITH_BASIS','FAILED'].includes(load.data.state) && <div className="deletion-cleanup-progress">
+                <h3>最终结果</h3>
+                <dl className="detail-grid"><div><dt>最终化时间</dt><dd>{date(load.data.finalizedAt)}</dd></div><div><dt>最终化尝试</dt><dd>{load.data.finalizationAttempts}</dd></div><div><dt>Finalization Digest</dt><dd><small>{load.data.finalizationDigest ?? '—'}</small></dd></div></dl>
+                <p className="muted">正常业务入口继续保持不可见；删除管理仅保留审计所需的最小头和清理证据。</p>
+            </div>}
+            {!load.data.cleanupAvailable && ['DRAFT','BLOCKED_FOR_USE'].includes(load.data.state) && <p className="muted">不可逆动作只会按冻结计划执行。</p>}
         </>}
         {editing && load.data && <DecisionModal request={load.data} item={editing} sources={sources} canRetain={canRetain} onClose={() => setEditing(null)} onDone={() => { setEditing(null); setTick(x => x + 1); onChanged(); }}/>}
     </section>;

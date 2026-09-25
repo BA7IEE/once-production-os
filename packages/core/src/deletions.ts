@@ -420,7 +420,8 @@ export class Deletions {
         const row = await this.requestFor(tx, actor, id);
         const pendingDecisionCount = row.state === 'BLOCKED_FOR_USE'
             ? (await tx.find('deletionItems', { workspaceId: actor.workspaceId, requestId: row.id, decision: 'PENDING' })).length : 0;
-        const cleanupItems = row.state === 'CLEANING' ? await tx.find('deletionItems', { workspaceId: actor.workspaceId, requestId: row.id }) : [];
+        const cleanupItems = ['CLEANING','COMPLETED','RETAINED_WITH_BASIS','FAILED'].includes(row.state)
+            ? await tx.find('deletionItems', { workspaceId: actor.workspaceId, requestId: row.id }) : [];
         const cleanupDoneCount = cleanupItems.filter(item => item.cleanupState === 'DONE').length;
         const cleanupWaitingCount = cleanupItems.filter(item => item.cleanupState === 'WAITING_EXTERNAL').length;
         const cleanupFailedCount = cleanupItems.filter(item => item.cleanupState === 'FAILED').length;
@@ -432,11 +433,15 @@ export class Deletions {
             planFrozenAt: row.planFrozenAt, cleanupStartAvailable: row.state === 'BLOCKED_FOR_USE' && row.planDigest !== null,
             cleanupDoneCount, cleanupWaitingCount, cleanupFailedCount,
             dependencyCleanupCompletedAt: row.dependencyCleanupCompletedAt, cleanupErrorCode: row.cleanupErrorCode,
+            finalizationDigest: row.finalizationDigest, finalizedAt: row.finalizedAt,
+            finalizationAttempts: row.finalizationAttempts, finalizationErrorCode: row.finalizationErrorCode,
             cleanupAvailable: false, executionAvailable: false,
             executionNote: row.state === 'DRAFT' ? '可进入阻断使用；尚不会真正删除数据。'
-                : row.state === 'CLEANING' ? '依赖清理正在执行；根对象终结和专用媒体/历史清理仍未启用。'
-                : row.planDigest ? '目标已阻断，保留决定和清理计划已冻结；可显式启动不可逆依赖清理。'
-                : '目标已阻断正常使用；请先完成保留决定并冻结清理计划。' };
+                : row.state === 'BLOCKED_FOR_USE' ? (row.planDigest ? '目标已阻断，保留决定和清理计划已冻结；可显式启动不可逆依赖清理。' : '目标已阻断正常使用；请先完成保留决定并冻结清理计划。')
+                : row.state === 'CLEANING' ? '清理/最终化正在执行；目标持续不可见。'
+                : row.state === 'COMPLETED' ? '删除流程已完成；根对象仅保留不可恢复的最小审计头。'
+                : row.state === 'RETAINED_WITH_BASIS' ? '删除流程已完成；部分依赖基于独立依据保留，目标根对象已最小化。'
+                : '最终化失败；目标仍保持阻断，需人工检查错误证据。' };
     }
 
     async list(tx: Tx, actor: Actor, query: Record<string, string>) {
