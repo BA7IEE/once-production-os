@@ -90,9 +90,10 @@ test('DEV-07G merge preview needs data.merge and never exposes restricted contac
     });
     assert.equal(visible.status, 200, JSON.stringify(visible.body));
     const body = result(visible);
-    assert.equal(body.contactsToReencrypt, 1);
+    assert.equal(body.contactsToReencrypt, null);
     assert.equal(body.complete, false);
     assert.ok(body.blockers.some((x: any) => x.code === 'SENSITIVE_WRITE_REQUIRED'));
+    assert.equal(body.revocations.usePermissions, null);
     assert.equal(JSON.stringify(body).includes(secret), false);
     assert.equal(JSON.stringify(body).includes('merge-secret'), false);
 });
