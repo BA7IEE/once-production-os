@@ -50,6 +50,15 @@ export class PrismaStore implements Store {
                             throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加');
                         await delegate(t).delete({ where: { id } });
                     },
+                    redactSourceHistory: async (id, at) => {
+                        await p.$executeRaw`UPDATE "sourceHistory"
+                            SET "updatedAt"=${new Date(at)},
+                                "decisionReason"=CASE WHEN "decisionReason" IS NULL THEN NULL ELSE '[ERASED]' END,
+                                "snapshot"=jsonb_build_object(
+                                    'id',"sourceId"::text,'workspaceId',"workspaceId"::text,
+                                    'revision',"sourceRevision",'scopeId',"scopeId"::text,'erased',true)
+                            WHERE "id"=${id}::uuid AND ("snapshot"->>'erased') IS DISTINCT FROM 'true'`;
+                    },
                     talentQuery: async (input: TalentQueryFilters): Promise<TalentQueryResult> => {
                         if (!input.visibleScopeIds.length || !input.visibleSourceIds.length)
                             return { rows: [], baseTotal: 0, alreadyPaged: !input.scanForVerification,
