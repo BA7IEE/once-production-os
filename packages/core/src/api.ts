@@ -1,3 +1,5 @@
+import { PersonMerges } from './person-merges.ts';
+import { resolvePersonReadId } from './merge-policy.ts';
 import { DeletionFinalization } from './deletion-finalization.ts';
 import { DeletionCleanup } from './deletion-cleanup.ts';
 import { Deletions } from './deletions.ts';
@@ -21,7 +23,7 @@ import { Handoffs, handoffParticipant } from './handoffs.ts';
 import { Imports } from './imports.ts';
 import { csrfFor, equalSecret, randomSecret } from './crypto.ts';
 import { parseStrictJson } from './json.ts';
-import { page } from './helpers.ts';
+import { page, workspaceRow } from './helpers.ts';
 import { requirePermission, scopeVisible, personFor, sourceFor } from './policy.ts';
 import { ROUTES, type RouteDefinition } from './routes.ts';
 import { uuid } from './validation.ts';
@@ -71,6 +73,7 @@ export class Application {
     deletions: Deletions;
     deletionCleanup: DeletionCleanup;
     deletionFinalization: DeletionFinalization;
+    personMerges: PersonMerges;
     constructor(store: Store, config: Config, clock: Clock = { now: () => new Date() }) {
         invariant(config.contactKey.length === 32 && config.csrfKey.length === 32, 'CONFIG_INVALID', '密钥必须为 32 字节', 503);
         const origin = new URL(config.origin);
@@ -90,6 +93,7 @@ export class Application {
         this.deletions = new Deletions(clock);
         this.deletionCleanup = new DeletionCleanup(store, clock, config);
         this.deletionFinalization = new DeletionFinalization(store, clock, config);
+        this.personMerges = new PersonMerges(clock, config);
         this.handoffs = new Handoffs(clock);
         this.media = new Media(store, clock, config);
         this.commands = new Commands(clock);
@@ -290,8 +294,14 @@ export class Application {
                     case 'handoff.accept': return command('handoff', () => this.handoffs.act(tx, actor, id, data, 'accept'));
                     case 'handoff.decline': return command('handoff', () => this.handoffs.act(tx, actor, id, data, 'decline'));
                     case 'handoff.revoke': return command('handoff', () => this.handoffs.act(tx, actor, id, data, 'revoke'));
+                    case 'person.mergePreview': return this.personMerges.preview(tx, actor, data);
+                    case 'person.merge': return command('merge', () => this.personMerges.execute(tx, actor, data));
                     case 'person.list': return this.talent.listPeople(tx, actor, query);
-                    case 'person.get': return this.talent.getPerson(tx, actor, id);
+                    case 'person.get': {
+                        const resolved = await resolvePersonReadId(tx, actor, id, this.clock);
+                        const profile = await this.talent.getPerson(tx, actor, resolved.id) as Record<string, unknown>;
+                        return resolved.resolvedFromId ? { ...profile, resolvedFromId: resolved.resolvedFromId } : profile;
+                    }
                     case 'person.create': return command('person', () => this.talent.createPerson(tx, actor, data));
                     case 'person.update': return command('person', () => this.talent.updatePerson(tx, actor, id, data));
                     case 'contact.get': return this.talent.contacts(tx, actor, id, meta);
@@ -355,8 +365,17 @@ export class Application {
                     await workFor(tx, actor, row.resourceId, this.clock);
                 if (row.resourceKind === 'project')
                     await projectFor(tx, actor, row.resourceId, this.clock);
-                if (row.resourceKind === 'person')
-                    await personFor(tx, actor, row.resourceId, this.clock, false);
+                if (row.resourceKind === 'person') {
+                    const resolved = await resolvePersonReadId(tx, actor, row.resourceId, this.clock);
+                    await personFor(tx, actor, resolved.id, this.clock, false);
+                }
+                if (row.resourceKind === 'merge') {
+                    requirePermission(actor, 'data.merge');
+                    const merge = await workspaceRow(tx, 'personMerges', row.resourceId, actor.workspaceId);
+                    if (!merge)
+                        continue;
+                    await personFor(tx, actor, merge.canonicalPersonId, this.clock, false);
+                }
                 if (row.resourceKind === 'source')
                     await sourceFor(tx, actor, row.resourceId, this.clock, false);
                 if (row.resourceKind === 'scope' && !(await scopeVisible(tx, actor, row.resourceId)))
