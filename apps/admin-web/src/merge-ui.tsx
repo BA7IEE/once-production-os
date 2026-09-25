@@ -71,6 +71,10 @@ function PreviewPanel({ preview, fieldChoices, collisionChoices, setFieldChoice,
             <strong>{preview.complete ? '影响扫描完整，可以继续人工决策' : '当前不能执行合并'}</strong>
             <p>{preview.complete ? '系统只冻结当前可见、可证明的影响；执行前仍会重新扫描并校验 Digest。' : '存在无法安全处理的依赖。先解决以下阻断项，不会自动降级或跳过。'}</p>
         </div>
+        {preview.canonical.sourceId !== preview.duplicate.sourceId && <div className="notice">
+            <strong>两条档案的主来源不同</strong>
+            <p>为避免把一份来源支持的资料静默改写成另一份来源支持，本次字段冲突只能保留主档案值。若应保留重复档案的资料，请交换“主档案 / 重复档案”后重新预览。关系、联系方式与核验证据仍按各自来源规则处理。</p>
+        </div>}
         {!!preview.blockers.length && <section className="panel padded"><h2>阻断项</h2><div className="merge-blockers">{preview.blockers.map(x =>
             <div key={x.code}><strong>{blockerLabel[x.code] ?? x.code}</strong><span>{x.count} 项</span></div>
         )}</div></section>}
