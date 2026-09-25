@@ -178,12 +178,21 @@ export class DeletionFinalization {
         }
     }
 
+    private async redactAllTargetSourceHistory(tx: Tx, request: DeletionRequest) {
+        if (request.targetKind !== 'SOURCE') return;
+        for (const row of await tx.find('sourceHistory', { workspaceId: request.workspaceId, sourceId: request.targetId }))
+            await tx.redactSourceHistory(row.id, this.clock.now().toISOString());
+    }
+
     async finish(claim: DeletionRequest): Promise<void> {
         try {
             await this.store.transaction(async tx => {
                 await this.enabled(tx, claim.workspaceId);
                 const request = await this.owned(tx, claim);
                 await this.databaseSpecials(tx, request);
+                // Deletion blocking itself may append history after the original impact preview.
+                // Final SOURCE erasure must redact the complete current history chain.
+                await this.redactAllTargetSourceHistory(tx, request);
                 const items = await tx.find('deletionItems', { workspaceId: request.workspaceId, requestId: request.id });
                 invariant(items.every(item => item.cleanupState === 'DONE'), 'SPECIALIZED_CLEANUP_UNRESOLVED', '仍有专用清理未完成', 409);
                 const root = await this.tombstone(tx, request.targetKind, request.targetId);
