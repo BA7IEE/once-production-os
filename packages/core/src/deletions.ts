@@ -1,6 +1,7 @@
 import type { Actor, Clock, Person, Source } from './model.ts';
 import type { Tx } from './store.ts';
 import type { DeletionAction, DeletionEvidenceState, DeletionItem, DeletionRequest, DeletionTargetKind } from './deletion-model.ts';
+import { frozenDeletionPlan } from './deletion-model.ts';
 import { DELETION_LIMITS as L } from './deletion-model.ts';
 import { DeletionSchemas as S } from './deletion-validation.ts';
 import { AppError, invariant, missing } from './errors.ts';
@@ -277,14 +278,17 @@ export class Deletions {
             targetRevision: preview.target.revision, targetProtectionEpoch: preview.target.protectionEpoch, state: 'DRAFT',
             reason: d.reason, previewDigest: d.previewDigest, impactCount: preview.impactCount,
             reviewRequiredCount: preview.reviewRequiredCount, unresolvedCount: preview.unresolvedCount, ...targetRefs(d.targetKind, d.targetId),
-            planDigest: null, planFrozenAt: null, planFrozenById: null };
+            planDigest: null, planFrozenAt: null, planFrozenById: null,
+            executionPlanDigest: null, cleanupStartedAt: null, cleanupStartedById: null,
+            cleanupLeaseToken: null, cleanupLeaseUntil: null, dependencyCleanupCompletedAt: null, cleanupErrorCode: null };
         await tx.insert('deletionRequests', row);
         for (const impact of preview.items) {
             const item: DeletionItem = { ...base(actor.workspaceId, this.clock), requestId: row.id, ...impact,
                 decision: impact.evidenceState === 'PROVEN' ? 'APPLY_PROPOSED' : 'PENDING',
                 decisionReason: impact.evidenceState === 'PROVEN' ? 'AUTO_PROVEN' : '',
                 retentionSourceId: null, retentionSourceRevision: null, retentionSourceProtectionEpoch: null,
-                decidedById: null, decidedAt: null };
+                decidedById: null, decidedAt: null, resolvedAction: null, cleanupState: 'NOT_STARTED',
+                cleanupAttempts: 0, cleanupEvidenceDigest: null, cleanupErrorCode: null, cleanedAt: null };
             await tx.insert('deletionItems', item);
         }
         return row;
@@ -374,26 +378,6 @@ export class Deletions {
         return next;
     }
 
-    private cleanupPlan(row: DeletionRequest, items: DeletionItem[]) {
-        return {
-            requestId: row.id,
-            targetKind: row.targetKind,
-            targetId: row.targetId,
-            previewDigest: row.previewDigest,
-            items: [...items].sort((a, b) => a.id.localeCompare(b.id)).map(item => ({
-                itemId: item.id,
-                dependencyKind: item.dependencyKind,
-                proposedAction: item.proposedAction,
-                evidenceState: item.evidenceState,
-                decision: item.decision,
-                decisionReason: item.decisionReason,
-                retentionSourceId: item.retentionSourceId,
-                retentionSourceRevision: item.retentionSourceRevision,
-                retentionSourceProtectionEpoch: item.retentionSourceProtectionEpoch
-            }))
-        };
-    }
-
     async freezePlan(tx: Tx, actor: Actor, id: string, input: unknown): Promise<DeletionRequest> {
         requirePermission(actor, 'data.delete');
         const d = S.freezePlan.parse(input);
@@ -415,7 +399,7 @@ export class Deletions {
                 && basis.protectionEpoch === item.retentionSourceProtectionEpoch,
                 'RETENTION_BASIS_CHANGED', '保留依据已经变化，请重新作出保留决定', 409);
         }
-        const planDigest = digest(this.cleanupPlan(row, items));
+        const planDigest = digest(frozenDeletionPlan(row, items));
         const next: DeletionRequest = { ...touch(row, this.clock), planDigest,
             planFrozenAt: this.clock.now().toISOString(), planFrozenById: actor.membershipId };
         await tx.replace('deletionRequests', next);

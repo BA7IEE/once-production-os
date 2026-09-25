@@ -93,3 +93,23 @@ export function executionPlan(request: Pick<DeletionRequest, 'id' | 'targetKind'
         }))
     };
 }
+
+export function frozenDeletionPlan(request: Pick<DeletionRequest, 'id' | 'targetKind' | 'targetId' | 'previewDigest'>, items: DeletionItem[]) {
+    return {
+        requestId: request.id,
+        targetKind: request.targetKind,
+        targetId: request.targetId,
+        previewDigest: request.previewDigest,
+        items: [...items].sort((a, b) => a.id.localeCompare(b.id)).map(item => ({
+            itemId: item.id,
+            dependencyKind: item.dependencyKind,
+            proposedAction: item.proposedAction,
+            evidenceState: item.evidenceState,
+            decision: item.decision,
+            decisionReason: item.decisionReason,
+            retentionSourceId: item.retentionSourceId,
+            retentionSourceRevision: item.retentionSourceRevision,
+            retentionSourceProtectionEpoch: item.retentionSourceProtectionEpoch
+        }))
+    };
+}
