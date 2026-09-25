@@ -505,3 +505,191 @@ test('DEV-07D source reviewer may approve retention and delete-only operator may
     assert.equal(detail.cleanupAvailable, false);
 });
 
+test('DEV-07E cleanup gate is independent and disabled mode cannot enter CLEANING', async () => {
+    const f = await fixture(), pid = await createPerson(f.owner, '清理闸门候选');
+    const person = await get(f.owner, '/people/' + pid);
+    const p = await preview(f, 'PERSON', pid, person.revision);
+    const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
+        targetKind: 'PERSON', targetId: pid, expectedRevision: person.revision,
+        previewDigest: p.previewDigest, reason: '合成测试：不可逆清理必须有部署闸门'
+    }), 201);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/block', {
+        expectedRevision: 1, previewDigest: p.previewDigest, acknowledgeBlock: true
+    }));
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/plan/freeze', {
+        expectedRevision: 2, acknowledgePlan: true
+    }));
+    const detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    f.app.config.dataCleanupMode = 'DISABLED';
+    const response = await f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/cleaning/start', {
+        expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
+    });
+    assert.equal(response.status, 503);
+    assert.equal(result(response).error.code, 'CLEANUP_DISABLED');
+    assert.equal(f.store.rows('deletionRequests').find(x => x.id === created.resourceId)!.state, 'BLOCKED_FOR_USE');
+});
+
+test('DEV-07E worker irreversibly cleans registered DB dependencies but preserves blocked root', async () => {
+    const f = await fixture();
+    const personId = await createPerson(f.owner, '依赖清理候选');
+    let person = await get(f.owner, '/people/' + personId);
+    const sourceId = person.sourceId as string;
+
+    await ok(f.owner.cmd('PUT', '/people/' + personId + '/contacts', {
+        expectedRevision: person.revision,
+        contacts: [{ kind: 'PHONE', value: '13800138000', sourceId }]
+    }));
+    person = await get(f.owner, '/people/' + personId);
+    await ok(f.owner.cmd('POST', '/field-evidence', {
+        personId, expectedRevision: person.revision, fieldPath: 'cityCode',
+        sourceId, sourceRevision: person.source.revision
+    }));
+    person = await get(f.owner, '/people/' + personId);
+
+    const workId = (await ok(f.owner.cmd('POST', '/works', {
+        title: '清理关系作品', inlineSource: sourceInput()
+    }), 201)).resourceId as string;
+    await ok(f.owner.cmd('POST', '/works/' + workId + '/credits', {
+        expectedRevision: 1, personId, roleCode: 'model', note: ''
+    }));
+    const creditId = f.store.rows('workCredits').find(x => x.workId === workId && x.personId === personId)!.id;
+
+    const permit = (await ok(f.owner.cmd('POST', '/use-permissions', {
+        sourceId, subjectKind: 'PERSON', subjectId: personId,
+        fields: ['person.displayName'], validUntil: '2026-10-15T00:00:00.000Z',
+        evidenceNote: '合成测试：清理前合法内部导出'
+    }), 201)).resourceId as string;
+    const exportId = (await ok(f.owner.cmd('POST', '/exports', {
+        format: 'JSON', selectedIds: { people: [personId], works: [], projects: [] },
+        fields: ['person.displayName'], usePermissionRefs: [permit]
+    }), 202)).resourceId as string;
+    const exportClaim = await f.app.exports.claim(); assert.ok(exportClaim); await f.app.exports.process(exportClaim);
+    assert.equal(f.store.rows('exports').find(x => x.id === exportId)!.state, 'READY');
+
+    const current = await get(f.owner, '/people/' + personId);
+    const p = await preview(f, 'PERSON', personId, current.revision);
+    const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
+        targetKind: 'PERSON', targetId: personId, expectedRevision: current.revision,
+        previewDigest: p.previewDigest, reason: '合成测试：执行冻结计划中的数据库依赖清理'
+    }), 201);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/block', {
+        expectedRevision: 1, previewDigest: p.previewDigest, acknowledgeBlock: true
+    }));
+    let detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    const slots = await get(f.owner, '/deletion-requests/' + created.resourceId + '/items');
+    for (const item of slots.items.filter((x: any) => x.decision === 'PENDING')) {
+        await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/decisions', {
+            expectedRevision: detail.revision, entryId: item.id, decision: 'APPLY_PROPOSED',
+            decisionReason: '合成测试：无独立保留依据，按建议进入清理'
+        }));
+        detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    }
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/plan/freeze', {
+        expectedRevision: detail.revision, acknowledgePlan: true
+    }));
+    detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/cleaning/start', {
+        expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
+    }));
+
+    const cleanupClaim = await f.app.deletionCleanup.claim(); assert.ok(cleanupClaim);
+    assert.equal(cleanupClaim.id, created.resourceId);
+    await f.app.deletionCleanup.process(cleanupClaim);
+
+    const request = f.store.rows('deletionRequests').find(x => x.id === created.resourceId)!;
+    assert.equal(request.state, 'CLEANING');
+    assert.ok(request.executionPlanDigest?.length === 64);
+    assert.ok(request.dependencyCleanupCompletedAt);
+    assert.equal(request.cleanupErrorCode, null);
+    assert.equal(f.store.rows('people').some(x => x.id === personId), true);
+    assert.equal(f.store.rows('workCredits').some(x => x.id === creditId), false);
+    assert.equal(f.store.rows('contacts').some(x => x.personId === personId), false);
+    assert.equal(f.store.rows('evidence').some(x => x.personId === personId), false);
+    assert.equal(f.store.rows('usePermissions').find(x => x.id === permit)!.status, 'REVOKED');
+    const erasedExport = f.store.rows('exports').find(x => x.id === exportId)!;
+    assert.equal(erasedExport.state, 'ERASED');
+    assert.deepEqual(erasedExport.fields, []);
+    assert.deepEqual(erasedExport.usePermissionRefs, []);
+    assert.equal(erasedExport.payload, null);
+    assert.equal(erasedExport.payloadDigest, null);
+    assert.deepEqual(erasedExport.recordManifest, { schemaVersion: 'once-export-v1', erased: true });
+    assert.equal(f.store.rows('exportDependencies').some(x => x.exportId === exportId), false);
+    const cleanupItems = f.store.rows('deletionItems').filter(x => x.requestId === created.resourceId);
+    assert.ok(cleanupItems.every(x => x.cleanupState === 'DONE'));
+    assert.ok(cleanupItems.every(x => x.cleanupEvidenceDigest?.length === 64));
+});
+
+test('DEV-07E source cleanup stops at explicit external/specialized work instead of claiming completion', async () => {
+    const f = await fixture();
+    const sourceId = (await ok(f.owner.cmd('POST', '/sources', sourceInput()), 201)).resourceId as string;
+    const source = await get(f.owner, '/sources/' + sourceId);
+    const p = await preview(f, 'SOURCE', sourceId, source.revision);
+    const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
+        targetKind: 'SOURCE', targetId: sourceId, expectedRevision: source.revision,
+        previewDigest: p.previewDigest, reason: '合成测试：来源历史必须走专用保留/擦除过程'
+    }), 201);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/block', {
+        expectedRevision: 1, previewDigest: p.previewDigest, acknowledgeBlock: true
+    }));
+    let detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    const slots = await get(f.owner, '/deletion-requests/' + created.resourceId + '/items');
+    for (const item of slots.items.filter((x: any) => x.decision === 'PENDING')) {
+        await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/decisions', {
+            expectedRevision: detail.revision, entryId: item.id, decision: 'APPLY_PROPOSED',
+            decisionReason: '合成测试：无独立保留依据'
+        }));
+        detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    }
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/plan/freeze', {
+        expectedRevision: detail.revision, acknowledgePlan: true
+    }));
+    detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/cleaning/start', {
+        expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
+    }));
+    const claim = await f.app.deletionCleanup.claim(); assert.ok(claim); await f.app.deletionCleanup.process(claim);
+    const request = f.store.rows('deletionRequests').find(x => x.id === created.resourceId)!;
+    assert.equal(request.state, 'CLEANING');
+    assert.equal(request.dependencyCleanupCompletedAt, null);
+    assert.equal(request.cleanupErrorCode, 'WAITING_EXTERNAL_CLEANUP');
+    const historyItems = f.store.rows('deletionItems').filter(x => x.requestId === created.resourceId && x.resourceKind === 'sourceHistory');
+    assert.ok(historyItems.length > 0);
+    assert.ok(historyItems.every(x => x.cleanupState === 'WAITING_EXTERNAL' && x.cleanupErrorCode === 'SOURCE_HISTORY_RETENTION_PROCEDURE_REQUIRED'));
+    assert.ok(f.store.rows('sourceHistory').some(x => x.sourceId === sourceId));
+});
+
+test('DEV-07E cleanup start rechecks retained-basis revision after plan freeze', async () => {
+    const f = await fixture(), pid = await createPerson(f.owner, '清理前保留依据变化');
+    const person = await get(f.owner, '/people/' + pid);
+    const workId = (await ok(f.owner.cmd('POST', '/works', { title: '保留依据关系', inlineSource: sourceInput() }), 201)).resourceId as string;
+    await ok(f.owner.cmd('POST', '/works/' + workId + '/credits', {
+        expectedRevision: 1, personId: pid, roleCode: 'model', note: '需要独立依据保留'
+    }));
+    const p = await preview(f, 'PERSON', pid, person.revision);
+    const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
+        targetKind: 'PERSON', targetId: pid, expectedRevision: person.revision,
+        previewDigest: p.previewDigest, reason: '合成测试：执行前再次核验保留依据'
+    }), 201);
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/block', {
+        expectedRevision: 1, previewDigest: p.previewDigest, acknowledgeBlock: true
+    }));
+    const slot = (await get(f.owner, '/deletion-requests/' + created.resourceId + '/items')).items.find((x: any) => x.decision === 'PENDING');
+    const basisId = (await ok(f.owner.cmd('POST', '/sources', { ...sourceInput(), title: '执行前保留依据' }), 201)).resourceId as string;
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/decisions', {
+        expectedRevision: 2, entryId: slot.id, decision: 'RETAIN_WITH_BASIS',
+        decisionReason: '合成测试：另一份正式来源支持保留', retentionSourceId: basisId
+    }));
+    await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/plan/freeze', {
+        expectedRevision: 3, acknowledgePlan: true
+    }));
+    let detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
+    const basis = await get(f.owner, '/sources/' + basisId);
+    await ok(f.owner.cmd('PATCH', '/sources/' + basisId, { expectedRevision: basis.revision, title: '执行前保留依据·已变化' }));
+    const response = await f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/cleaning/start', {
+        expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
+    });
+    assert.equal(response.status, 409);
+    assert.equal(result(response).error.code, 'RETENTION_BASIS_CHANGED');
+    assert.equal(f.store.rows('deletionRequests').find(x => x.id === created.resourceId)!.state, 'BLOCKED_FOR_USE');
+});
+
