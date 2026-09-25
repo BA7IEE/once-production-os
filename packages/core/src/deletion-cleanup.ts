@@ -274,10 +274,11 @@ export class DeletionCleanup {
         return next.revision;
     }
 
-    private async finalizeWork(tx: Tx, request: DeletionRequest) {
+    private async finalizeWork(tx: Tx, request: DeletionRequest, hadAssetRelations: boolean) {
         const row = await tx.get('works', request.targetId);
         invariant(row && row.workspaceId === request.workspaceId, 'ROOT_FINALIZATION_MISSING', '待终结作品不存在', 409);
-        invariant(row.revision === request.targetRevision || row.revision === request.targetRevision + 1,
+        const expectedRevision = request.targetRevision + (hadAssetRelations ? 1 : 0);
+        invariant(row.revision === expectedRevision,
             'ROOT_FINALIZATION_CHANGED', '作品在阻断后发生了未预期变化，禁止终结', 409);
         invariant((await tx.find('workAssets', { workspaceId: request.workspaceId, workId: row.id })).length === 0,
             'ROOT_FINALIZATION_DEPENDENCY', '作品仍有图片关系，禁止终结', 409);
@@ -317,7 +318,8 @@ export class DeletionCleanup {
 
             let rootRevision: number;
             if (row.targetKind === 'PERSON') rootRevision = await this.finalizePerson(tx, row);
-            else if (row.targetKind === 'WORK') rootRevision = await this.finalizeWork(tx, row);
+            else if (row.targetKind === 'WORK') rootRevision = await this.finalizeWork(tx, row,
+                items.some(item => item.resourceKind === 'workAsset' && item.cleanupState === 'DONE'));
             else rootRevision = await this.finalizeProject(tx, row);
 
             const retained = items.filter(item => item.decision === 'RETAIN_WITH_BASIS').length;
