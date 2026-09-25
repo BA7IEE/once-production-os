@@ -287,5 +287,13 @@ try {
  await writeUI(owner,'POST','/deletion-requests/'+blockRequestId+'/cleaning/start',()=>blockDetail.getByRole('button',{name:'开始不可逆依赖清理',exact:true}).click());
  await until(async()=>!!(await prisma.deletionRequest.findUnique({where:{id:blockRequestId}}))?.dependencyCleanupCompletedAt);
  await blockDetail.getByText('已完成本阶段依赖清理',{exact:true}).waitFor();
+ const cleaning=await prisma.deletionRequest.findUniqueOrThrow({where:{id:blockRequestId}});
+ assert.equal(cleaning.state,'CLEANING');
+ assert.equal(cleaning.executionPlanDigest?.length,64);
+ assert.ok(cleaning.dependencyCleanupCompletedAt);
+ assert.equal(cleaning.cleanupErrorCode,null);
+ assert.equal(await prisma.project.count({where:{id:projectId}}),1);
+ assert.equal(await prisma.projectParticipant.count({where:{projectId}}),0);
+ assert.equal(await prisma.projectWork.count({where:{projectId}}),0);
  assert.deepEqual(errors,[]);
 } finally {if(browser)await browser.close();await stop(worker);await stop(api);await prisma.$disconnect();rmSync(tmp,{recursive:true,force:true});}
