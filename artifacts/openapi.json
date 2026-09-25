@@ -2993,11 +2993,12 @@
                         "sensitive.read",
                         "sensitive.write",
                         "data.export",
-                        "data.delete"
+                        "data.delete",
+                        "data.merge"
                       ]
                     },
                     "minItems": 0,
-                    "maxItems": 4
+                    "maxItems": 5
                   }
                 },
                 "required": [
@@ -3175,11 +3176,12 @@
                         "sensitive.read",
                         "sensitive.write",
                         "data.export",
-                        "data.delete"
+                        "data.delete",
+                        "data.merge"
                       ]
                     },
                     "minItems": 0,
-                    "maxItems": 4
+                    "maxItems": 5
                   }
                 },
                 "required": [
