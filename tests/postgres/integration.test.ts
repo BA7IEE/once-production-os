@@ -432,7 +432,9 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
             assert.equal(await a.personAlias.count({ where: { workspaceId: identity.workspaceId, oldPersonId: duplicateId } }), 1);
 
             const alias = await a.personAlias.findFirstOrThrow({ where: { workspaceId: identity.workspaceId, oldPersonId: duplicateId } });
-            await assert.rejects(a.personAlias.update({ where: { id: alias.id }, data: { canonicalPersonId: duplicateId } }), /person merge history is append-only/);
+            await assert.rejects(a.personAlias.update({ where: { id: alias.id }, data: {
+                updatedAt: new Date(alias.updatedAt.getTime() + 1000)
+            } }), /person merge history is append-only/);
             await assert.rejects(a.personAlias.delete({ where: { id: alias.id } }), /person merge history is append-only/);
             assert.equal((await a.personAlias.findUniqueOrThrow({ where: { id: alias.id } })).canonicalPersonId, canonicalId);
 
