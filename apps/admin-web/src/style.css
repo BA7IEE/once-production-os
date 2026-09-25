@@ -30,3 +30,5 @@ fieldset{border:0;padding:0;margin:0;min-width:0}.wp-picker{padding:12px;border:
 .deletion-decision-workspace .panel-heading{padding-left:0;padding-right:0;border-bottom:0}
 .deletion-decision-workspace table td:nth-child(5){white-space:normal;min-width:220px}
 
+.deletion-cleanup-progress{margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
+.deletion-cleanup-progress .stats{margin-top:12px}
