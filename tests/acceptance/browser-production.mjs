@@ -359,6 +359,7 @@ try {
  await duplicatePicker.getByRole('button',{name:/DEV07G重复档案/}).click();
  await writeUI(owner,'POST','/people/merge-preview',()=>owner.getByRole('button',{name:'预览合并影响',exact:true}).click());
  await owner.getByText('影响扫描完整，可以继续人工决策',{exact:true}).waitFor();
+ await owner.getByText('两条档案的主来源不同',{exact:true}).waitFor();
  await owner.getByRole('heading',{name:'字段冲突',exact:true}).waitFor();
  await owner.getByLabel('字段决定 displayName',{exact:true}).selectOption('CANONICAL');
  await owner.getByLabel('合并依据 *',{exact:true}).fill('合成测试：人工核对两条档案属于同一人才，只保留主档案身份');
@@ -373,7 +374,7 @@ try {
  const oldWrite=await cmd(owner,'PATCH','/people/'+mergeDuplicateId,{expectedRevision:(await prisma.person.findUniqueOrThrow({where:{id:mergeDuplicateId}})).revision,intro:'must not write through merged id'},409);
  assert.equal(oldWrite.error.code,'MERGED_ID_READ_ONLY');
  assert.ok(!(await json(owner,'/people')).items.some(x=>x.id===mergeDuplicateId));
- assert.ok((await json(owner,'/people?q='+encodeURIComponent('DEV07G重复档案'))).items.some(x=>x.id===mergeCanonicalId));
+ assert.equal((await json(owner,'/people?q='+encodeURIComponent('DEV07G重复档案'))).items.some(x=>x.id===mergeCanonicalId),false);
  console.log('PASS DEV-07G browser: explicit preview/decision/merge -> one alias; old Person id resolves read-only and disappears from normal lists');
 
  assert.deepEqual(errors,[]);
