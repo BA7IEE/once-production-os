@@ -28,6 +28,16 @@ export async function runProductionContracts(t: TestContext, c: Context) {
     const get = (path: string) => ok(ownerA.raw('GET', path));
     const root = async (kind: 'works' | 'projects', extra: Record<string, unknown> = {}) => (await ok(ownerA.cmd('POST', '/' + kind, { title: 'WP1 PG ' + kind, inlineSource: sourceInput(), ...extra }), 201)).resourceId as string;
     const modify = async (path: string, suffix: string, body: Record<string, unknown>) => { const row = await get(path); return ok(ownerA.cmd(suffix ? 'POST' : 'PATCH', path + suffix, { expectedRevision: row.revision, ...body })); };
+    const finalizeUntil = async (requestId: string) => {
+        for (let i = 0; i < 20; i++) {
+            const row = await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } });
+            if (row.state === 'COMPLETED' || row.state === 'RETAINED_WITH_BASIS')
+                return row;
+            const next = await appA.deletionCleanup.finalizeNext();
+            assert.ok(next, 'expected a finalizable deletion request while target is not final');
+        }
+        assert.fail('target deletion request did not reach a final state');
+    };
     const workId = await root('works'), projectId = await root('projects');
     const personId = (await ok(ownerA.cmd('POST', '/people', { displayName: 'WP1 PG contributor', roles: ['model', 'editor'], inlineSource: sourceInput() }), 201)).resourceId as string;
     const image = async () => {
@@ -810,6 +820,152 @@ export async function runProductionContracts(t: TestContext, c: Context) {
         await assert.rejects(a.deletionRequest.update({ where: { id: request.id }, data: {
             executionPlanDigest: null
         } }));
+    });
+
+
+    await t.test('DEV-07F PG Project dependencies clean then root becomes COMPLETED ERASED minimal header', async () => {
+        const personId2 = (await ok(ownerA.cmd('POST', '/people', {
+            displayName: 'DEV07F project participant', roles: ['model'], inlineSource: sourceInput()
+        }), 201)).resourceId as string;
+        const projectId2 = await root('projects');
+        await modify('/projects/' + projectId2, '/participants', {
+            personId: personId2, roleCode: 'model', state: 'NOMINATED', note: ''
+        });
+        const project = await a.project.findUniqueOrThrow({ where: { id: projectId2 } });
+        const preview = result(await ownerA.raw('POST', '/deletion-requests/preview', {
+            targetKind: 'PROJECT', targetId: projectId2, expectedRevision: project.revision
+        }));
+        const requestId = (await ok(ownerA.cmd('POST', '/deletion-requests', {
+            targetKind: 'PROJECT', targetId: projectId2, expectedRevision: project.revision,
+            previewDigest: preview.previewDigest, reason: 'synthetic PG final Project root'
+        }), 201)).resourceId as string;
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/block', {
+            expectedRevision: 1, previewDigest: preview.previewDigest, acknowledgeBlock: true
+        }));
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/plan/freeze', {
+            expectedRevision: 2, acknowledgePlan: true
+        }));
+        let detail = result(await ownerA.raw('GET', '/deletion-requests/' + requestId));
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/cleaning/start', {
+            expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
+        }));
+        const claim = await appA.deletionCleanup.claim();
+        assert.ok(claim);
+        assert.equal(claim.id, requestId);
+        await appA.deletionCleanup.process(claim);
+        assert.equal(await a.projectParticipant.count({ where: { projectId: projectId2 } }), 0);
+        const finalized = await finalizeUntil(requestId);
+        assert.equal(finalized.id, requestId);
+        assert.equal(finalized.state, 'COMPLETED');
+        assert.equal(finalized.rootFinalizationEvidenceDigest?.length, 64);
+        const erased = await a.project.findUniqueOrThrow({ where: { id: projectId2 } });
+        assert.equal(erased.status, 'ERASED');
+        assert.equal(erased.title, '[ERASED]');
+        assert.equal(erased.brief, '');
+        assert.equal(erased.locationNote, '');
+        assert.equal(erased.dateNote, '');
+        assert.equal(erased.reviewNote, '');
+        assert.equal((await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } })).state, 'COMPLETED');
+        assert.equal((await ownerA.raw('GET', '/projects/' + projectId2)).status, 404);
+    });
+
+    await t.test('DEV-07F PG Work cover relation is removed before ERASED root while media survives', async () => {
+        const workId2 = await root('works');
+        await modify('/works/' + workId2, '/assets', { assetId: asset1 });
+        const before = await a.work.findUniqueOrThrow({ where: { id: workId2 } });
+        const entry = await a.workAsset.findFirstOrThrow({ where: { workId: workId2, assetId: asset1 } });
+        assert.equal(before.coverEntryId, entry.id);
+        const preview = result(await ownerA.raw('POST', '/deletion-requests/preview', {
+            targetKind: 'WORK', targetId: workId2, expectedRevision: before.revision
+        }));
+        const requestId = (await ok(ownerA.cmd('POST', '/deletion-requests', {
+            targetKind: 'WORK', targetId: workId2, expectedRevision: before.revision,
+            previewDigest: preview.previewDigest, reason: 'synthetic PG final Work root with cover'
+        }), 201)).resourceId as string;
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/block', {
+            expectedRevision: 1, previewDigest: preview.previewDigest, acknowledgeBlock: true
+        }));
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/plan/freeze', {
+            expectedRevision: 2, acknowledgePlan: true
+        }));
+        let detail = result(await ownerA.raw('GET', '/deletion-requests/' + requestId));
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/cleaning/start', {
+            expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
+        }));
+        const claim = await appA.deletionCleanup.claim();
+        assert.ok(claim);
+        assert.equal(claim.id, requestId);
+        await appA.deletionCleanup.process(claim);
+        assert.equal(await a.workAsset.count({ where: { id: entry.id } }), 0);
+        const afterDependencies = await a.work.findUniqueOrThrow({ where: { id: workId2 } });
+        assert.equal(afterDependencies.coverEntryId, null);
+        assert.equal(afterDependencies.revision, before.revision + 1);
+        assert.equal(await a.mediaAsset.count({ where: { id: asset1 } }), 1);
+        const finalized = await finalizeUntil(requestId);
+        assert.equal(finalized.state, 'COMPLETED');
+        const erased = await a.work.findUniqueOrThrow({ where: { id: workId2 } });
+        assert.equal(erased.status, 'ERASED');
+        assert.equal(erased.title, '[ERASED]');
+        assert.equal(erased.description, '');
+        assert.equal(erased.origin, 'UNKNOWN');
+        assert.equal(erased.originNote, '');
+        assert.equal(erased.coverEntryId, null);
+        assert.equal(await a.mediaAsset.count({ where: { id: asset1 } }), 1);
+    });
+
+    await t.test('DEV-07F PG database rejects forged non-minimal ERASED roots', async () => {
+        const personId2 = (await ok(ownerA.cmd('POST', '/people', {
+            displayName: 'forged erased person', roles: ['model'], inlineSource: sourceInput()
+        }), 201)).resourceId as string;
+        const workId2 = await root('works');
+        const projectId2 = await root('projects');
+        await assert.rejects(a.person.update({ where: { id: personId2 }, data: { status: 'ERASED' } }));
+        await assert.rejects(a.work.update({ where: { id: workId2 }, data: { status: 'ERASED' } }));
+        await assert.rejects(a.project.update({ where: { id: projectId2 }, data: { status: 'ERASED' } }));
+    });
+
+    await t.test('DEV-07F PG root finalization audit failure rolls back root and final request state', async () => {
+        const projectId2 = await root('projects');
+        const project = await a.project.findUniqueOrThrow({ where: { id: projectId2 } });
+        const preview = result(await ownerA.raw('POST', '/deletion-requests/preview', {
+            targetKind: 'PROJECT', targetId: projectId2, expectedRevision: project.revision
+        }));
+        const requestId = (await ok(ownerA.cmd('POST', '/deletion-requests', {
+            targetKind: 'PROJECT', targetId: projectId2, expectedRevision: project.revision,
+            previewDigest: preview.previewDigest, reason: 'synthetic PG finalization rollback'
+        }), 201)).resourceId as string;
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/block', {
+            expectedRevision: 1, previewDigest: preview.previewDigest, acknowledgeBlock: true
+        }));
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/plan/freeze', {
+            expectedRevision: 2, acknowledgePlan: true
+        }));
+        const detail = result(await ownerA.raw('GET', '/deletion-requests/' + requestId));
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + requestId + '/cleaning/start', {
+            expectedRevision: detail.revision, planDigest: detail.planDigest, acknowledgeIrreversible: true
+        }));
+        assert.equal(await appA.deletionCleanup.claim(), null, 'empty dependency set should mark dependency cleanup complete without a claim');
+        const beforeRoot = await a.project.findUniqueOrThrow({ where: { id: projectId2 } });
+        const beforeRequest = await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } });
+
+        const faults = new FaultStore(storeA);
+        let fired = false;
+        faults.afterInsert = table => {
+            if (table === 'audits' && !fired) {
+                fired = true;
+                throw new Error('DEV07F deliberate root-finalization audit failure');
+            }
+        };
+        const faulty = new Application(faults, config, clock);
+        await assert.rejects(() => faulty.deletionCleanup.finalizeNext());
+        assert.ok(fired);
+        assert.deepEqual(await a.project.findUniqueOrThrow({ where: { id: projectId2 } }), beforeRoot);
+        assert.deepEqual(await a.deletionRequest.findUniqueOrThrow({ where: { id: requestId } }), beforeRequest);
+
+        const finalized = await appA.deletionCleanup.finalizeNext();
+        assert.ok(finalized);
+        assert.equal(finalized.state, 'COMPLETED');
+        assert.equal((await a.project.findUniqueOrThrow({ where: { id: projectId2 } })).status, 'ERASED');
     });
 
 }

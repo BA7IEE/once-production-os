@@ -27,8 +27,9 @@ async function run() {
                 const deletionClaim = await core.deletionCleanup.claim();
                 if (deletionClaim)
                     await core.deletionCleanup.process(deletionClaim);
+                const finalizedDeletion = await core.deletionCleanup.finalizeNext();
                 const didMedia = media ? await media.cycle(stopController.signal) : false;
-                if (!claim && !exportClaim && !deletionClaim && !didMedia)
+                if (!claim && !exportClaim && !deletionClaim && !finalizedDeletion && !didMedia)
                     await sleep(1000);
             }
             catch {

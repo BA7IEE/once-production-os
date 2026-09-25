@@ -9,7 +9,7 @@ export interface Work extends Base {
     workTypeCodes: string[];
     origin: 'ONCE' | 'EXTERNAL' | 'UNKNOWN';
     originNote: string;
-    status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
+    status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED' | 'ERASED';
     coverEntryId: string | null;
 }
 export interface WorkAsset extends Base {
@@ -33,7 +33,7 @@ export interface Project extends Base {
     locationNote: string;
     dateNote: string;
     reviewNote: string;
-    status: 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
+    status: 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED' | 'ERASED';
 }
 export interface ProjectParticipant extends Base {
     projectId: string;

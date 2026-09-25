@@ -25,7 +25,7 @@ export interface DeletionRequest extends Base {
     targetSourceId: string;
     targetRevision: number;
     targetProtectionEpoch: number | null;
-    state: 'DRAFT' | 'BLOCKED_FOR_USE' | 'CLEANING';
+    state: 'DRAFT' | 'BLOCKED_FOR_USE' | 'CLEANING' | 'COMPLETED' | 'RETAINED_WITH_BASIS';
     reason: string;
     previewDigest: string;
     impactCount: number;
@@ -46,6 +46,8 @@ export interface DeletionRequest extends Base {
     cleanupLeaseUntil: string | null;
     dependencyCleanupCompletedAt: string | null;
     cleanupErrorCode: string | null;
+    rootFinalizedAt: string | null;
+    rootFinalizationEvidenceDigest: string | null;
 }
 
 export interface DeletionItem extends Base {

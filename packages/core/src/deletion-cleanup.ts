@@ -135,6 +135,16 @@ export class DeletionCleanup {
         if (action === 'REMOVE_RELATION') {
             const table = relationTable[item.resourceKind];
             invariant(table, 'CLEANUP_ACTION_UNSUPPORTED', '关系清理类型尚未注册', 409);
+            if (item.resourceKind === 'workAsset') {
+                const link = await tx.get('workAssets', item.resourceId);
+                if (link) {
+                    const work = await tx.get('works', link.workId);
+                    if (work?.coverEntryId === link.id)
+                        await tx.replace('works', { ...touch(work, this.clock), coverEntryId: null, status: work.status === 'ACTIVE' ? 'DRAFT' : work.status });
+                    await tx.remove('workAssets', link.id);
+                }
+                return { outcome: 'DONE' };
+            }
             if (await tx.get(table as never, item.resourceId)) await tx.remove(table as never, item.resourceId);
             return { outcome: 'DONE' };
         }
@@ -248,6 +258,81 @@ export class DeletionCleanup {
                 dependencyCleanupCompletedAt: done ? this.clock.now().toISOString() : request.dependencyCleanupCompletedAt,
                 cleanupLeaseToken: null, cleanupLeaseUntil: null,
                 cleanupErrorCode: done ? null : waiting ? 'WAITING_EXTERNAL_CLEANUP' : exhausted ? 'CLEANUP_ITEM_FAILED' : request.cleanupErrorCode });
+        });
+    }
+
+    private async finalizePerson(tx: Tx, request: DeletionRequest) {
+        const row = await tx.get('people', request.targetId);
+        invariant(row && row.workspaceId === request.workspaceId, 'ROOT_FINALIZATION_MISSING', '待终结人才不存在', 409);
+        invariant(row.revision === request.targetRevision + 1
+            && row.protectionEpoch === (request.targetProtectionEpoch ?? 0) + 1,
+            'ROOT_FINALIZATION_CHANGED', '人才在阻断后发生了未预期变化，禁止终结', 409);
+        const next = { ...touch(row, this.clock), displayName: '[ERASED]', aliases: [], roles: [], cityCode: null,
+            languageCodes: [], skillCodes: [], heightCm: null, intro: '', status: 'ERASED' as const,
+            protectionEpoch: row.protectionEpoch + 1 };
+        await tx.replace('people', next);
+        return next.revision;
+    }
+
+    private async finalizeWork(tx: Tx, request: DeletionRequest, hadAssetRelations: boolean) {
+        const row = await tx.get('works', request.targetId);
+        invariant(row && row.workspaceId === request.workspaceId, 'ROOT_FINALIZATION_MISSING', '待终结作品不存在', 409);
+        const expectedRevision = request.targetRevision + (hadAssetRelations ? 1 : 0);
+        invariant(row.revision === expectedRevision,
+            'ROOT_FINALIZATION_CHANGED', '作品在阻断后发生了未预期变化，禁止终结', 409);
+        invariant((await tx.find('workAssets', { workspaceId: request.workspaceId, workId: row.id })).length === 0,
+            'ROOT_FINALIZATION_DEPENDENCY', '作品仍有图片关系，禁止终结', 409);
+        const next = { ...touch(row, this.clock), title: '[ERASED]', description: '', industryCode: null, workTypeCodes: [],
+            origin: 'UNKNOWN' as const, originNote: '', status: 'ERASED' as const, coverEntryId: null };
+        await tx.replace('works', next);
+        return next.revision;
+    }
+
+    private async finalizeProject(tx: Tx, request: DeletionRequest) {
+        const row = await tx.get('projects', request.targetId);
+        invariant(row && row.workspaceId === request.workspaceId, 'ROOT_FINALIZATION_MISSING', '待终结项目不存在', 409);
+        invariant(row.revision === request.targetRevision,
+            'ROOT_FINALIZATION_CHANGED', '项目在阻断后发生了未预期变化，禁止终结', 409);
+        const next = { ...touch(row, this.clock), title: '[ERASED]', brief: '', locationNote: '', dateNote: '', reviewNote: '',
+            status: 'ERASED' as const };
+        await tx.replace('projects', next);
+        return next.revision;
+    }
+
+    async finalizeNext(): Promise<DeletionRequest | null> {
+        if (this.config.accessMode !== 'INTERNAL' || this.config.dataCleanupMode !== 'INTERNAL_APPROVED') return null;
+        return this.store.transaction(async tx => {
+            const rows = (await tx.find('deletionRequests')).filter(row => row.state === 'CLEANING'
+                && !!row.dependencyCleanupCompletedAt && !row.cleanupErrorCode && !row.rootFinalizedAt
+                && ['PERSON','WORK','PROJECT'].includes(row.targetKind))
+                .sort((a,b)=>a.createdAt.localeCompare(b.createdAt)||a.id.localeCompare(b.id));
+            const row = rows[0];
+            if (!row) return null;
+            await this.enabled(tx, row.workspaceId);
+            const items = await tx.find('deletionItems', { workspaceId: row.workspaceId, requestId: row.id });
+            invariant(items.length === row.impactCount && items.every(item => item.cleanupState === 'DONE'),
+                'ROOT_FINALIZATION_DEPENDENCIES_PENDING', '依赖清理尚未全部完成', 409);
+            invariant(!!row.executionPlanDigest && digest(executionPlan(row, items)) === row.executionPlanDigest,
+                'CLEANUP_PLAN_CHANGED', '执行计划摘要不一致，禁止根对象终结', 409);
+            await this.validateRetentionSources(tx, items);
+
+            let rootRevision: number;
+            if (row.targetKind === 'PERSON') rootRevision = await this.finalizePerson(tx, row);
+            else if (row.targetKind === 'WORK') rootRevision = await this.finalizeWork(tx, row,
+                items.some(item => item.resourceKind === 'workAsset' && item.cleanupState === 'DONE'));
+            else rootRevision = await this.finalizeProject(tx, row);
+
+            const retained = items.filter(item => item.decision === 'RETAIN_WITH_BASIS').length;
+            const finalState = retained > 0 ? 'RETAINED_WITH_BASIS' as const : 'COMPLETED' as const;
+            const rootFinalizedAt = this.clock.now().toISOString();
+            const rootFinalizationEvidenceDigest = digest({ schemaVersion: 'once-root-finalization-v1', requestId: row.id,
+                targetKind: row.targetKind, targetId: row.targetId, finalState, rootRevision, retained, rootFinalizedAt });
+            const next: DeletionRequest = { ...touch(row, this.clock), state: finalState, rootFinalizedAt,
+                rootFinalizationEvidenceDigest, cleanupLeaseToken: null, cleanupLeaseUntil: null, cleanupErrorCode: null };
+            await tx.replace('deletionRequests', next);
+            await audit(tx, null, row.workspaceId, 'deletion.root-finalized', 'deletion', row.id,
+                [row.targetKind, finalState], { requestId: randomUUID(), ip: 'worker' }, this.clock);
+            return next;
         });
     }
 

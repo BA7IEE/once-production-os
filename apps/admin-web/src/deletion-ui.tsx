@@ -96,10 +96,10 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
     const load = useLoad(() => read<DeletionRequestDetail>('deletion.get', { id }), id + ':' + tick);
     const items = useLoad(() => read<Page<DeletionDecisionItem>>('deletion.items', { id }, { page: String(itemPage), pageSize: '20' }), id + ':items:' + itemPage + ':' + tick);
     useEffect(() => {
-        if (load.data?.state !== 'CLEANING' || load.data.dependencyCleanupCompletedAt) return;
+        if (load.data?.state !== 'CLEANING') return;
         const timer = setInterval(() => setTick(x => x + 1), 1500);
         return () => clearInterval(timer);
-    }, [load.data?.state, load.data?.dependencyCleanupCompletedAt]);
+    }, [load.data?.state]);
 
     async function blockUse() {
         if (!load.data?.blockAvailable) return;
@@ -119,7 +119,7 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
     }
     async function startCleanup() {
         if (!load.data?.cleanupStartAvailable || !load.data.planDigest) return;
-        if (!confirm('确认开始不可逆依赖清理？这会真实移除已冻结计划中的关系、联系方式、核验证据，并撤销许可/擦除旧导出。根对象、媒体文件和来源历史仍不会在本阶段删除。')) return;
+        if (!confirm('确认开始不可逆清理？这会真实执行冻结计划。Person / Work / Project 在依赖清理完成后会收敛为 ERASED 最小头；Source / Asset 仍等待专用历史/媒体清理。')) return;
         await call('deletion.cleanupStart', {
             expectedRevision: load.data.revision,
             planDigest: load.data.planDigest,
@@ -138,7 +138,7 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
                 <div><dt>需人工判断</dt><dd>{load.data.reviewRequiredCount}</dd></div>
                 <div><dt>待决定</dt><dd>{load.data.pendingDecisionCount}</dd></div>
                 <div><dt>计划状态</dt><dd>{load.data.planFrozen ? '已冻结' : '未冻结'}</dd></div>
-                <div><dt>依赖清理</dt><dd>{load.data.state === 'CLEANING' ? `${load.data.cleanupDoneCount} / ${load.data.impactCount}` : '未启动'}</dd></div>
+                <div><dt>依赖清理</dt><dd>{['CLEANING','COMPLETED','RETAINED_WITH_BASIS'].includes(load.data.state) ? `${load.data.cleanupDoneCount} / ${load.data.impactCount}` : '未启动'}</dd></div>
                 <div><dt>等待专用清理</dt><dd>{load.data.cleanupWaitingCount}</dd></div>
                 <div><dt>执行失败</dt><dd>{load.data.cleanupFailedCount}</dd></div>
                 <div><dt>未解析</dt><dd>{load.data.unresolvedCount}</dd></div>
@@ -146,7 +146,9 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
             </dl>
             <p className="pre-line">{load.data.reason}</p>
             <div className="notice"><strong>{load.data.state === 'DRAFT' ? '尚未阻断正常使用'
-                : load.data.state === 'CLEANING' ? (load.data.dependencyCleanupCompletedAt ? '已完成本阶段依赖清理' : '正在执行不可逆依赖清理')
+                : load.data.state === 'CLEANING' ? (load.data.dependencyCleanupCompletedAt ? '依赖清理完成，正在等待根对象终结' : '正在执行不可逆依赖清理')
+                : load.data.state === 'COMPLETED' ? '删除流程已完成'
+                : load.data.state === 'RETAINED_WITH_BASIS' ? '删除流程完成；部分独立事实有据保留'
                 : load.data.planFrozen ? '已阻断；清理计划已冻结' : '已阻断正常使用；正在做保留决定'}</strong><p>{load.data.executionNote}</p>
                 {load.data.cleanupErrorCode && <p><strong>清理状态：</strong><code>{load.data.cleanupErrorCode}</code></p>}
             </div>
@@ -183,10 +185,16 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
                     <div className="stat"><span>等待专用清理</span><strong>{load.data.cleanupWaitingCount}</strong><small>媒体 / 历史 / 根对象等</small></div>
                     <div className="stat"><span>失败</span><strong>{load.data.cleanupFailedCount}</strong><small>可由 Worker 安全重试</small></div>
                 </div>
-                {load.data.dependencyCleanupCompletedAt && <p className="muted">本阶段依赖清理完成时间：{date(load.data.dependencyCleanupCompletedAt)}。根对象终结仍未启用。</p>}
+                {load.data.dependencyCleanupCompletedAt && <p className="muted">依赖清理完成时间：{date(load.data.dependencyCleanupCompletedAt)}。{load.data.rootFinalizedAt ? '根对象已经终结。' : ['PERSON','WORK','PROJECT'].includes(load.data.targetKind) ? 'Worker 正在终结 ERASED 最小头。' : '等待 Source / Asset 专用终结流程。'}</p>}
                 {!load.data.dependencyCleanupCompletedAt && <p className="muted">Worker 正在按冻结计划执行。目标持续保持不可见，不会因为清理中断而恢复正常使用。</p>}
             </div>}
-            {!load.data.cleanupAvailable && load.data.state !== 'CLEANING' && <p className="muted">根对象终结、媒体物理删除和来源历史专用清理仍未启用。</p>}
+            {['COMPLETED','RETAINED_WITH_BASIS'].includes(load.data.state) && <div className="notice deletion-final-evidence">
+                <strong>最终处置证据</strong>
+                <p>根对象终结时间：{date(load.data.rootFinalizedAt)}</p>
+                <p>Evidence Digest：<code>{load.data.rootFinalizationEvidenceDigest}</code></p>
+                <p>原业务对象 ID 仅作为不可用最小头继续存在；不会恢复正常读取、搜索或候选使用。</p>
+            </div>}
+            {!load.data.cleanupAvailable && !['CLEANING','COMPLETED','RETAINED_WITH_BASIS'].includes(load.data.state) && <p className="muted">Person / Work / Project 根终结由后续 Worker 执行；Source / Asset 仍需专用历史/媒体清理。</p>}
         </>}
         {editing && load.data && <DecisionModal request={load.data} item={editing} sources={sources} canRetain={canRetain} onClose={() => setEditing(null)} onDone={() => { setEditing(null); setTick(x => x + 1); onChanged(); }}/>}
     </section>;
@@ -234,7 +242,7 @@ export function DeletionImpactPanel({ me }: { me: Me }) {
         setSelectedRequest(receipt.resourceId); setPreview(null); setReason(''); setRefresh(x => x + 1);
     }
 
-    return <><PageTitle overline="CONTROLLED DELETION / PLAN BEFORE CLEANUP" title="删除影响与清理" description="先证明影响并阻断使用，再完成保留决定、冻结计划；只有显式确认后才执行不可逆依赖清理。根对象终结、媒体物理清理和来源历史专用清理仍分阶段处理。" action={<button onClick={() => setRefresh(x => x + 1)}>刷新</button>}/>
+    return <><PageTitle overline="CONTROLLED DELETION / PLAN BEFORE CLEANUP" title="删除影响与清理" description="先证明影响并阻断使用，再完成保留决定、冻结计划和不可逆依赖清理。Person / Work / Project 可收敛为 ERASED 最小头；Source / Asset 仍走专用历史/媒体清理。" action={<button onClick={() => setRefresh(x => x + 1)}>刷新</button>}/>
         <ErrorBox error={people.error ?? works.error ?? projects.error ?? sources.error ?? assets.error ?? requests.error ?? inspect.error ?? create.error}/>
         <div className="notice"><strong>不可逆动作必须来自冻结计划</strong><p>阻断前重新验证影响图；清理前再次验证 planDigest 与保留依据。CLEANING 只处理已注册依赖动作，不会把待专用处理项假报完成。</p></div>
 
