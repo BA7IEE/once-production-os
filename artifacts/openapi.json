@@ -4440,6 +4440,261 @@
         "x-mode": "COMMAND"
       }
     },
+    "/api/v1/people/merge-preview": {
+      "post": {
+        "operationId": "person.mergePreview",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "canonicalId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "duplicateId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "expectedCanonicalRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "expectedDuplicateRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "canonicalId",
+                  "duplicateId",
+                  "expectedCanonicalRevision",
+                  "expectedDuplicateRevision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "data.merge",
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/people/merge": {
+      "post": {
+        "operationId": "person.merge",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "canonicalId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "duplicateId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "expectedCanonicalRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "expectedDuplicateRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "previewDigest": {
+                    "type": "string",
+                    "minLength": 64,
+                    "maxLength": 64,
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "fieldDecisions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "enum": [
+                            "displayName",
+                            "aliases",
+                            "roles",
+                            "cityCode",
+                            "languageCodes",
+                            "skillCodes",
+                            "heightCm",
+                            "intro"
+                          ]
+                        },
+                        "choice": {
+                          "type": "string",
+                          "enum": [
+                            "CANONICAL",
+                            "DUPLICATE",
+                            "UNION"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "field",
+                        "choice"
+                      ]
+                    },
+                    "minItems": 0,
+                    "maxItems": 100
+                  },
+                  "collisionDecisions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "collisionId": {
+                          "type": "string",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                        },
+                        "choice": {
+                          "type": "string",
+                          "enum": [
+                            "KEEP_CANONICAL",
+                            "KEEP_DUPLICATE"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "collisionId",
+                        "choice"
+                      ]
+                    },
+                    "minItems": 0,
+                    "maxItems": 500
+                  },
+                  "acknowledgeRevocations": {
+                    "type": "boolean"
+                  },
+                  "acknowledgeMediaDetach": {
+                    "type": "boolean"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 2000
+                  }
+                },
+                "required": [
+                  "canonicalId",
+                  "duplicateId",
+                  "expectedCanonicalRevision",
+                  "expectedDuplicateRevision",
+                  "previewDigest",
+                  "fieldDecisions",
+                  "collisionDecisions",
+                  "acknowledgeRevocations",
+                  "acknowledgeMediaDetach",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "data.merge",
+        "x-mode": "COMMAND"
+      }
+    },
     "/api/v1/people": {
       "get": {
         "operationId": "person.list",
