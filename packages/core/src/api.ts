@@ -1,3 +1,4 @@
+import { DeletionCleanup } from './deletion-cleanup.ts';
 import { Deletions } from './deletions.ts';
 import { Exports } from './exports.ts';
 import { TalentSearch } from './talent-search.ts';
@@ -67,6 +68,7 @@ export class Application {
     search: TalentSearch;
     exports: Exports;
     deletions: Deletions;
+    deletionCleanup: DeletionCleanup;
     constructor(store: Store, config: Config, clock: Clock = { now: () => new Date() }) {
         invariant(config.contactKey.length === 32 && config.csrfKey.length === 32, 'CONFIG_INVALID', '密钥必须为 32 字节', 503);
         const origin = new URL(config.origin);
@@ -84,6 +86,7 @@ export class Application {
         this.search = new TalentSearch(clock);
         this.exports = new Exports(store, clock, config);
         this.deletions = new Deletions(clock);
+        this.deletionCleanup = new DeletionCleanup(store, clock, config);
         this.handoffs = new Handoffs(clock);
         this.media = new Media(store, clock, config);
         this.commands = new Commands(clock);
@@ -208,6 +211,7 @@ export class Application {
                     case 'deletion.items': return this.deletions.reviewItems(tx, actor, id, query);
                     case 'deletion.decision': return command('deletion', () => this.deletions.decide(tx, actor, id, data));
                     case 'deletion.planFreeze': return command('deletion', () => this.deletions.freezePlan(tx, actor, id, data));
+                    case 'deletion.cleanupStart': return command('deletion', () => this.deletionCleanup.start(tx, actor, id, data));
                     case 'usePermission.list': return this.exports.listPermissions(tx, actor, query);
                     case 'usePermission.create': return command('usePermission', () => this.exports.createPermission(tx, actor, data));
                     case 'usePermission.revoke': return command('usePermission', () => this.exports.revokePermission(tx, actor, id, data));

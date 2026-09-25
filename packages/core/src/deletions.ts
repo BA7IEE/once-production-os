@@ -418,14 +418,22 @@ export class Deletions {
         const row = await this.requestFor(tx, actor, id);
         const pendingDecisionCount = row.state === 'BLOCKED_FOR_USE'
             ? (await tx.find('deletionItems', { workspaceId: actor.workspaceId, requestId: row.id, decision: 'PENDING' })).length : 0;
+        const cleanupItems = row.state === 'CLEANING' ? await tx.find('deletionItems', { workspaceId: actor.workspaceId, requestId: row.id }) : [];
+        const cleanupDoneCount = cleanupItems.filter(item => item.cleanupState === 'DONE').length;
+        const cleanupWaitingCount = cleanupItems.filter(item => item.cleanupState === 'WAITING_EXTERNAL').length;
+        const cleanupFailedCount = cleanupItems.filter(item => item.cleanupState === 'FAILED').length;
         return { id: row.id, targetKind: row.targetKind, targetId: row.targetId, targetRevision: row.targetRevision,
             state: row.state, reason: row.reason, previewDigest: row.previewDigest, impactCount: row.impactCount,
             reviewRequiredCount: row.reviewRequiredCount, unresolvedCount: row.unresolvedCount, pendingDecisionCount,
             createdAt: row.createdAt, revision: row.revision,
             blockAvailable: row.state === 'DRAFT', planFrozen: row.planDigest !== null, planDigest: row.planDigest,
-            planFrozenAt: row.planFrozenAt, cleanupAvailable: false,
-            executionAvailable: false, executionNote: row.state === 'DRAFT' ? '可进入阻断使用；尚不会真正删除数据。'
-                : row.planDigest ? '目标已阻断，保留决定和清理计划已冻结；物理清理仍未启用。'
+            planFrozenAt: row.planFrozenAt, cleanupStartAvailable: row.state === 'BLOCKED_FOR_USE' && row.planDigest !== null,
+            cleanupDoneCount, cleanupWaitingCount, cleanupFailedCount,
+            dependencyCleanupCompletedAt: row.dependencyCleanupCompletedAt, cleanupErrorCode: row.cleanupErrorCode,
+            cleanupAvailable: false, executionAvailable: false,
+            executionNote: row.state === 'DRAFT' ? '可进入阻断使用；尚不会真正删除数据。'
+                : row.state === 'CLEANING' ? '依赖清理正在执行；根对象终结和专用媒体/历史清理仍未启用。'
+                : row.planDigest ? '目标已阻断，保留决定和清理计划已冻结；可显式启动不可逆依赖清理。'
                 : '目标已阻断正常使用；请先完成保留决定并冻结清理计划。' };
     }
 

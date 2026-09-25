@@ -24,8 +24,11 @@ async function run() {
                 const exportClaim = await core.exports.claim();
                 if (exportClaim)
                     await core.exports.process(exportClaim);
+                const deletionClaim = await core.deletionCleanup.claim();
+                if (deletionClaim)
+                    await core.deletionCleanup.process(deletionClaim);
                 const didMedia = media ? await media.cycle(stopController.signal) : false;
-                if (!claim && !exportClaim && !didMedia)
+                if (!claim && !exportClaim && !deletionClaim && !didMedia)
                     await sleep(1000);
             }
             catch {
