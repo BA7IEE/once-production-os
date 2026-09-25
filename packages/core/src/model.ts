@@ -97,7 +97,7 @@ export interface Person extends Base {
     skillCodes: string[];
     heightCm: number | null;
     intro: string;
-    status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
+    status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED' | 'ERASED';
     protectionEpoch: number;
 }
 export interface Contact extends Base {
