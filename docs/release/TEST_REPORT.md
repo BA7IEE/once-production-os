@@ -1,5 +1,17 @@
 # 实际测试与验证记录
 
+## WP5｜DEV-07C～07E 删除阻断、保留决定与依赖清理
+
+详见 [WP5_DELETION_CLEANING.md](WP5_DELETION_CLEANING.md)。功能 head `32316937b91c7f66c9ed14a368ac74c2b58eed5b`，PR #14。
+
+Actions 36096878872 五项全绿：101 条请求契约；251/251 核心/传输；63/63 PostgreSQL；原生表单 Chromium 6/6；browser-resume / handoff / media / production 全部 success。
+
+真实 Chromium 完成 DRAFT → BLOCKED_FOR_USE → REVIEW_REQUIRED 人工决定 → planDigest → CLEANING，并证明 ProjectParticipant / ProjectWork 被实际删除、每个 cleanup item 有 cleanupEvidenceDigest，而 Project 根仍在数据库且持续 404。
+
+真实 PostgreSQL 另验证：Contact / FieldEvidence 真删除、UsePermission 真撤销、Export 真收敛为 ERASED 最小头、ExportDependency 真删除；cleanup item 删除后的 audit 写失败会使关系删除整事务回滚，随后 Worker 可安全重试；012 前向迁移封堵 PostgreSQL CHECK 的 NULL/UNKNOWN 绕过。
+
+当前 SourceHistory、媒体物理对象和根实体专用清理仍会停在 WAITING_EXTERNAL / CLEANING，因此 FR-13/T13 未完整完成。
+
 ## WP4｜DEV-07B 删除影响预览与 DRAFT 申请
 
 详见 [WP4_DELETION_IMPACT_PREVIEW.md](WP4_DELETION_IMPACT_PREVIEW.md)。功能 head `9ef5a6fbdc5c78e4ad0fbd10fc3e5e758efdd273`，PR #11。

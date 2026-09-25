@@ -1,6 +1,23 @@
-> 当前增量详见 [WP4_DELETION_IMPACT_PREVIEW.md](WP4_DELETION_IMPACT_PREVIEW.md)。以下历史 Review 保留当时证据；当前结论以 PR #11 最终 head 与对应 Actions 为准。
+> 当前增量详见 [WP5_DELETION_CLEANING.md](WP5_DELETION_CLEANING.md)。以下历史 Review 保留当时证据；当前结论以 PR #14 最终 head 与对应 Actions 为准。
 
 # 第一批源码 Review
+
+## 2026-09-25 WP5 / DEV-07C～07E 受控删除 Review
+
+在 DEV-07B 影响预览基础上，删除链继续分成“阻断、保留决定、冻结计划、依赖清理”，没有做一键删除。对抗审查明确要求 BLOCKED_FOR_USE 和 CLEANING 都进入正常读取阻断；删除管理自己才允许受控读取被冻结目标。
+
+保留决定不允许普通 data.delete 成员凭空扩大用途：RETAIN_WITH_BASIS 需要 sources.review，并绑定另一份当前有效 INTERNAL_USE Source 的 revision/protectionEpoch。planDigest 冻结后决定不可再改；CLEANING 前再次核对保留依据。
+
+不可逆执行另有 DATA_CLEANUP_MODE，默认 DISABLED。Worker 只执行注册动作，并为 DONE item 写 cleanupEvidenceDigest + worker audit。Media/Upload、SourceHistory、根对象等专用步骤明确 WAITING_EXTERNAL；请求保持 CLEANING，不把未知动作写成完成。
+
+真实 PG 加测时发现两类重要问题：
+
+1. PostgreSQL CHECK 的 NULL/UNKNOWN 三值语义允许缺失 executionPlanDigest 等字段绕过仅正则约束。追加 012 前向迁移，显式 IS NOT NULL；不改写 011。
+2. 共享队列测试不能假设一次 Export claim 就是目标任务，改为按真实 Worker 语义持续消费直到目标 READY。
+
+最终功能 head `32316937b91c7f66c9ed14a368ac74c2b58eed5b` 的 Actions 36096878872 五项全绿：101 routes、251/251 core、63/63 PG，真实 Chromium 完成计划冻结→CLEANING→依赖清理证据；根 Project 仍保留且不可正常读取。
+
+仍未关闭：媒体物理清理、SourceHistory 专用处置、根对象最终 ERASED/最小头、删除请求最终 COMPLETED / RETAINED_WITH_BASIS / FAILED、Person merge、T29、DEV-09。FR-13/T13 不能标完成。
 
 ## 2026-09-24 WP4 / DEV-07B 删除影响预览 Review
 
