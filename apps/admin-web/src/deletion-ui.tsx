@@ -96,10 +96,10 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
     const load = useLoad(() => read<DeletionRequestDetail>('deletion.get', { id }), id + ':' + tick);
     const items = useLoad(() => read<Page<DeletionDecisionItem>>('deletion.items', { id }, { page: String(itemPage), pageSize: '20' }), id + ':items:' + itemPage + ':' + tick);
     useEffect(() => {
-        if (load.data?.state !== 'CLEANING' || load.data.dependencyCleanupCompletedAt) return;
+        if (load.data?.state !== 'CLEANING') return;
         const timer = setInterval(() => setTick(x => x + 1), 1500);
         return () => clearInterval(timer);
-    }, [load.data?.state, load.data?.dependencyCleanupCompletedAt]);
+    }, [load.data?.state]);
 
     async function blockUse() {
         if (!load.data?.blockAvailable) return;
@@ -119,7 +119,7 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
     }
     async function startCleanup() {
         if (!load.data?.cleanupStartAvailable || !load.data.planDigest) return;
-        if (!confirm('确认开始不可逆依赖清理？这会真实移除已冻结计划中的关系、联系方式、核验证据，并撤销许可/擦除旧导出。根对象、媒体文件和来源历史仍不会在本阶段删除。')) return;
+        if (!confirm('确认开始不可逆清理？这会真实执行冻结计划。Person / Work / Project 在依赖清理完成后会收敛为 ERASED 最小头；Source / Asset 仍等待专用历史/媒体清理。')) return;
         await call('deletion.cleanupStart', {
             expectedRevision: load.data.revision,
             planDigest: load.data.planDigest,
@@ -185,7 +185,7 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
                     <div className="stat"><span>等待专用清理</span><strong>{load.data.cleanupWaitingCount}</strong><small>媒体 / 历史 / 根对象等</small></div>
                     <div className="stat"><span>失败</span><strong>{load.data.cleanupFailedCount}</strong><small>可由 Worker 安全重试</small></div>
                 </div>
-                {load.data.dependencyCleanupCompletedAt && <p className="muted">依赖清理完成时间：{date(load.data.dependencyCleanupCompletedAt)}。{load.data.rootFinalizedAt ? '根对象已经终结。' : '等待适用的根对象终结流程。'}</p>}
+                {load.data.dependencyCleanupCompletedAt && <p className="muted">依赖清理完成时间：{date(load.data.dependencyCleanupCompletedAt)}。{load.data.rootFinalizedAt ? '根对象已经终结。' : ['PERSON','WORK','PROJECT'].includes(load.data.targetKind) ? 'Worker 正在终结 ERASED 最小头。' : '等待 Source / Asset 专用终结流程。'}</p>}
                 {!load.data.dependencyCleanupCompletedAt && <p className="muted">Worker 正在按冻结计划执行。目标持续保持不可见，不会因为清理中断而恢复正常使用。</p>}
             </div>}
             {['COMPLETED','RETAINED_WITH_BASIS'].includes(load.data.state) && <div className="notice deletion-final-evidence">
