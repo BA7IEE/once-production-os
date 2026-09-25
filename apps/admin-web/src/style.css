@@ -32,3 +32,29 @@ fieldset{border:0;padding:0;margin:0;min-width:0}.wp-picker{padding:12px;border:
 
 .deletion-cleanup-progress{margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
 .deletion-cleanup-progress .stats{margin-top:12px}
+
+
+/* DEV-07G controlled Person identity merge. */
+.merge-pickers{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:20px 0}
+.merge-picker{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px;min-width:0}
+.merge-picker .field{margin-bottom:12px}
+.merge-picker-results{display:grid;gap:7px;max-height:330px;overflow:auto}
+.merge-picker-results>button{text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 12px;border-color:#e1e7e4}
+.merge-picker-results>button strong{font-size:12px}
+.merge-picker-results>button small{font-size:10px;text-align:right}
+.merge-selected{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border:1px solid #bcd4c8;background:#f2f8f4;border-radius:8px}
+.merge-selected strong,.merge-selected small{display:block}
+.merge-selected small{margin-top:5px}
+.merge-scan-bar{display:flex;justify-content:space-between;align-items:center;gap:18px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:22px}
+.merge-scan-bar strong,.merge-scan-bar small{display:block}
+.merge-scan-bar small{margin-top:5px}
+.merge-preview{margin-top:22px}
+.merge-blockers{display:grid;gap:8px}
+.merge-blockers>div{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--line);font-size:12px}
+.merge-blockers>div:last-child{border-bottom:0}
+.merge-value{white-space:normal;min-width:180px;max-width:360px;overflow-wrap:anywhere}
+.merge-preview table select{min-width:165px}
+.merge-execute .check-chip{margin:10px 0;width:fit-content}
+.merge-execute .field{margin-top:18px}
+.merge-execute .success p{margin:7px 0 0}
+@media(max-width:900px){.merge-pickers{grid-template-columns:1fr}.merge-scan-bar{align-items:stretch;flex-direction:column}.merge-scan-bar .primary{width:100%}}
