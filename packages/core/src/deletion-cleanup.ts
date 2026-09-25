@@ -138,17 +138,35 @@ export class DeletionCleanup {
                 'RETENTION_BASIS_MISSING', '重绑来源缺少冻结依据', 409);
             if (item.resourceKind === 'person') {
                 const row = await tx.get('people', item.resourceId);
-                if (row) await tx.replace('people', { ...touch(row, this.clock), sourceId: item.retentionSourceId });
+                if (row) {
+                    for (const permission of await tx.find('usePermissions', { workspaceId: row.workspaceId, subjectPersonId: row.id, sourceId: row.sourceId })) {
+                        invariant(permission.status === 'REVOKED', 'RETENTION_PERMISSION_ACTIVE', '旧来源仍有未撤销的人才用途许可', 409);
+                        await tx.remove('usePermissions', permission.id);
+                    }
+                    await tx.replace('people', { ...touch(row, this.clock), sourceId: item.retentionSourceId });
+                }
                 return { outcome: 'DONE' };
             }
             if (item.resourceKind === 'work') {
                 const row = await tx.get('works', item.resourceId);
-                if (row) await tx.replace('works', { ...touch(row, this.clock), sourceId: item.retentionSourceId });
+                if (row) {
+                    for (const permission of await tx.find('usePermissions', { workspaceId: row.workspaceId, subjectWorkId: row.id, sourceId: row.sourceId })) {
+                        invariant(permission.status === 'REVOKED', 'RETENTION_PERMISSION_ACTIVE', '旧来源仍有未撤销的作品用途许可', 409);
+                        await tx.remove('usePermissions', permission.id);
+                    }
+                    await tx.replace('works', { ...touch(row, this.clock), sourceId: item.retentionSourceId });
+                }
                 return { outcome: 'DONE' };
             }
             if (item.resourceKind === 'project') {
                 const row = await tx.get('projects', item.resourceId);
-                if (row) await tx.replace('projects', { ...touch(row, this.clock), sourceId: item.retentionSourceId });
+                if (row) {
+                    for (const permission of await tx.find('usePermissions', { workspaceId: row.workspaceId, subjectProjectId: row.id, sourceId: row.sourceId })) {
+                        invariant(permission.status === 'REVOKED', 'RETENTION_PERMISSION_ACTIVE', '旧来源仍有未撤销的项目用途许可', 409);
+                        await tx.remove('usePermissions', permission.id);
+                    }
+                    await tx.replace('projects', { ...touch(row, this.clock), sourceId: item.retentionSourceId });
+                }
                 return { outcome: 'DONE' };
             }
             if (item.resourceKind === 'evidence') {
