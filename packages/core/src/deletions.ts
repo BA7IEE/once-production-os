@@ -280,7 +280,9 @@ export class Deletions {
             reviewRequiredCount: preview.reviewRequiredCount, unresolvedCount: preview.unresolvedCount, ...targetRefs(d.targetKind, d.targetId),
             planDigest: null, planFrozenAt: null, planFrozenById: null,
             executionPlanDigest: null, cleanupStartedAt: null, cleanupStartedById: null,
-            cleanupLeaseToken: null, cleanupLeaseUntil: null, dependencyCleanupCompletedAt: null, cleanupErrorCode: null };
+            cleanupLeaseToken: null, cleanupLeaseUntil: null, dependencyCleanupCompletedAt: null, cleanupErrorCode: null,
+            finalizationDigest: null, finalizedAt: null, finalizationLeaseToken: null, finalizationLeaseUntil: null,
+            finalizationAttempts: 0, finalizationErrorCode: null };
         await tx.insert('deletionRequests', row);
         for (const impact of preview.items) {
             const item: DeletionItem = { ...base(actor.workspaceId, this.clock), requestId: row.id, ...impact,

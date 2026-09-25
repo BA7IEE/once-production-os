@@ -957,7 +957,7 @@ model DeletionRequest {
   finalizedAt DateTime? @db.Timestamptz(3)
   finalizationLeaseToken String? @db.Uuid
   finalizationLeaseUntil DateTime? @db.Timestamptz(3)
-  finalizationAttempts Int
+  finalizationAttempts Int @default(0)
   finalizationErrorCode String? @db.Text
   workspace Workspace @relation("DeletionRequest_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_workspace_fkey")
   actorIdRef Membership @relation("DeletionRequest_actorIdRef", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_actorIdRef_fkey")
