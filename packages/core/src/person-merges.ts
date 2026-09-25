@@ -114,8 +114,11 @@ export class PersonMerges {
         invariant(fieldConflicts.length <= L.conflicts, 'MERGE_FIELD_LIMIT', '字段冲突超过当前安全处理上限', 409);
 
         const contactRows = await tx.find('contacts', { workspaceId: actor.workspaceId, personId: duplicate.id });
-        if (contactRows.length && !actor.permissions.includes('sensitive.write')) blocker(blockers, 'SENSITIVE_WRITE_REQUIRED');
-        for (const row of contactRows)
+        const canWriteSensitive = actor.permissions.includes('sensitive.write');
+        if (contactRows.length && !canWriteSensitive) blocker(blockers, 'SENSITIVE_WRITE_REQUIRED');
+        // Do not enumerate contact-source visibility until the actor is allowed to maintain
+        // contact values. A merge preview must not become a contact metadata oracle.
+        if (canWriteSensitive) for (const row of contactRows)
             try { await sourceFor(tx, actor, row.sourceId, this.clock); } catch(e) { if(e instanceof AppError && e.status===404) blocker(blockers,'HIDDEN_CONTACT_SOURCE'); else throw e; }
 
         const evidenceRows = await tx.find('evidence', { workspaceId: actor.workspaceId, personId: duplicate.id });
@@ -224,8 +227,9 @@ export class PersonMerges {
             canonical: { id: plan.canonical.id, displayName: plan.canonical.displayName, sourceId: plan.canonical.sourceId, scopeId: plan.canonical.scopeId, revision: plan.canonical.revision },
             duplicate: { id: plan.duplicate.id, displayName: plan.duplicate.displayName, sourceId: plan.duplicate.sourceId, scopeId: plan.duplicate.scopeId, revision: plan.duplicate.revision },
             fieldConflicts: plan.fieldConflicts, collisions: plan.collisions, blockers: plan.blockers, complete: plan.blockers.length === 0,
-            revocations: { handoffs: plan.activeHandoffIds.length, usePermissions: plan.activePermissionIds.length },
-            contactsToReencrypt: plan.contactIds.length,
+            revocations: { handoffs: plan.activeHandoffIds.length,
+                usePermissions: actor.permissions.includes('sources.review') ? plan.activePermissionIds.length : null },
+            contactsToReencrypt: actor.permissions.includes('sensitive.write') ? plan.contactIds.length : null,
             media: { uploadsToDetach: plan.uploadIds.length, assetsToReassign: plan.assetReassignIds.length, assetsToDetach: plan.assetDetachIds.length },
             moves: { workCredits: plan.workCreditMoveIds.length, projectParticipants: plan.projectParticipantMoveIds.length, shortlistItems: plan.shortlistItemMoveIds.length },
             previewDigest: plan.previewDigest
