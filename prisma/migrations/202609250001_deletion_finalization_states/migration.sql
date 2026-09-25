@@ -21,7 +21,29 @@ ALTER TABLE "deletionRequests"
       AND "cleanupErrorCode" IS NULL)
     OR
     ("state"='CLEANING'
-      AND "planDigest" IS NOT NULL AND "planDigest" ~ '^[0-9a-f]{64}ALTER TABLE "deletionRequests"
+      AND "planDigest" IS NOT NULL AND "planDigest" ~ '^[0-9a-f]{64}$'
+      AND "executionPlanDigest" IS NOT NULL AND "executionPlanDigest" ~ '^[0-9a-f]{64}$'
+      AND "cleanupStartedAt" IS NOT NULL AND "cleanupStartedById" IS NOT NULL
+      AND (("cleanupLeaseToken" IS NULL AND "cleanupLeaseUntil" IS NULL)
+        OR ("cleanupLeaseToken" IS NOT NULL AND "cleanupLeaseUntil" IS NOT NULL)))
+    OR
+    ("state" IN ('COMPLETED','RETAINED_WITH_BASIS')
+      AND "planDigest" IS NOT NULL AND "planDigest" ~ '^[0-9a-f]{64}$'
+      AND "executionPlanDigest" IS NOT NULL AND "executionPlanDigest" ~ '^[0-9a-f]{64}$'
+      AND "cleanupStartedAt" IS NOT NULL AND "cleanupStartedById" IS NOT NULL
+      AND "cleanupLeaseToken" IS NULL AND "cleanupLeaseUntil" IS NULL
+      AND "dependencyCleanupCompletedAt" IS NOT NULL
+      AND "cleanupErrorCode" IS NULL)
+    OR
+    ("state"='FAILED'
+      AND "planDigest" IS NOT NULL AND "planDigest" ~ '^[0-9a-f]{64}$'
+      AND "executionPlanDigest" IS NOT NULL AND "executionPlanDigest" ~ '^[0-9a-f]{64}$'
+      AND "cleanupStartedAt" IS NOT NULL AND "cleanupStartedById" IS NOT NULL
+      AND "cleanupLeaseToken" IS NULL AND "cleanupLeaseUntil" IS NULL
+      AND "cleanupErrorCode" IS NOT NULL AND length("cleanupErrorCode") BETWEEN 1 AND 120)
+  );
+
+ALTER TABLE "deletionRequests"
   ADD COLUMN "finalizationDigest" TEXT,
   ADD COLUMN "finalizedAt" TIMESTAMPTZ(3),
   ADD COLUMN "finalizationLeaseToken" UUID,
@@ -29,21 +51,38 @@ ALTER TABLE "deletionRequests"
   ADD COLUMN "finalizationAttempts" INTEGER NOT NULL DEFAULT 0,
   ADD COLUMN "finalizationErrorCode" TEXT,
   ADD CONSTRAINT "deletionRequests_dev07f_finalization_shape" CHECK (
-    ("state" IN ('DRAFT','BLOCKED_FOR_USE') AND "finalizationDigest" IS NULL AND "finalizedAt" IS NULL
-      AND "finalizationLeaseToken" IS NULL AND "finalizationLeaseUntil" IS NULL AND "finalizationAttempts"=0 AND "finalizationErrorCode" IS NULL)
+    ("state" IN ('DRAFT','BLOCKED_FOR_USE')
+      AND "finalizationDigest" IS NULL
+      AND "finalizedAt" IS NULL
+      AND "finalizationLeaseToken" IS NULL
+      AND "finalizationLeaseUntil" IS NULL
+      AND "finalizationAttempts"=0
+      AND "finalizationErrorCode" IS NULL)
     OR
-    ("state"='CLEANING' AND "finalizationDigest" IS NULL AND "finalizedAt" IS NULL
+    ("state"='CLEANING'
+      AND "finalizationDigest" IS NULL
+      AND "finalizedAt" IS NULL
       AND "finalizationAttempts" BETWEEN 0 AND 3
       AND (("finalizationLeaseToken" IS NULL AND "finalizationLeaseUntil" IS NULL)
         OR ("finalizationLeaseToken" IS NOT NULL AND "finalizationLeaseUntil" IS NOT NULL)))
     OR
-    ("state" IN ('COMPLETED','RETAINED_WITH_BASIS') AND "finalizationDigest" ~ '^[0-9a-f]{64}$'
-      AND "finalizedAt" IS NOT NULL AND "finalizationLeaseToken" IS NULL AND "finalizationLeaseUntil" IS NULL
-      AND "finalizationAttempts" BETWEEN 1 AND 3 AND "finalizationErrorCode" IS NULL)
+    ("state" IN ('COMPLETED','RETAINED_WITH_BASIS')
+      AND "finalizationDigest" IS NOT NULL
+      AND "finalizationDigest" ~ '^[0-9a-f]{64}$'
+      AND "finalizedAt" IS NOT NULL
+      AND "finalizationLeaseToken" IS NULL
+      AND "finalizationLeaseUntil" IS NULL
+      AND "finalizationAttempts" BETWEEN 1 AND 3
+      AND "finalizationErrorCode" IS NULL)
     OR
-    ("state"='FAILED' AND "finalizationDigest" IS NULL AND "finalizedAt" IS NULL
-      AND "finalizationLeaseToken" IS NULL AND "finalizationLeaseUntil" IS NULL
-      AND "finalizationAttempts"=3 AND length("finalizationErrorCode") BETWEEN 1 AND 120)
+    ("state"='FAILED'
+      AND "finalizationDigest" IS NULL
+      AND "finalizedAt" IS NULL
+      AND "finalizationLeaseToken" IS NULL
+      AND "finalizationLeaseUntil" IS NULL
+      AND "finalizationAttempts"=3
+      AND "finalizationErrorCode" IS NOT NULL
+      AND length("finalizationErrorCode") BETWEEN 1 AND 120)
   );
 
 CREATE INDEX "deletionRequests_finalization_worker_idx"
