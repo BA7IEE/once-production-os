@@ -419,7 +419,8 @@ export class Deletions {
         const row = await this.requestFor(tx, actor, id);
         const pendingDecisionCount = row.state === 'BLOCKED_FOR_USE'
             ? (await tx.find('deletionItems', { workspaceId: actor.workspaceId, requestId: row.id, decision: 'PENDING' })).length : 0;
-        const cleanupItems = row.state === 'CLEANING' ? await tx.find('deletionItems', { workspaceId: actor.workspaceId, requestId: row.id }) : [];
+        const cleanupItems = ['CLEANING','COMPLETED','RETAINED_WITH_BASIS'].includes(row.state)
+            ? await tx.find('deletionItems', { workspaceId: actor.workspaceId, requestId: row.id }) : [];
         const cleanupDoneCount = cleanupItems.filter(item => item.cleanupState === 'DONE').length;
         const cleanupWaitingCount = cleanupItems.filter(item => item.cleanupState === 'WAITING_EXTERNAL').length;
         const cleanupFailedCount = cleanupItems.filter(item => item.cleanupState === 'FAILED').length;
