@@ -46,7 +46,7 @@ export async function readSourceHistory(tx: Tx, actor: Actor, id: string, query:
             actorId: row.actorId, recordedAt: row.createdAt, decisionReason: row.decisionReason,
             baselineOnly: row.baselineOnly,
             legacyBasisAmbiguous: row.basisAmbiguous,
-            snapshot: sourceSnapshot(row.snapshot) });
+            snapshot: 'erased' in row.snapshot ? row.snapshot : sourceSnapshot(row.snapshot) });
     }
     visible.sort((a, b) => b.sourceRevision - a.sourceRevision);
     await audit(tx, actor, actor.workspaceId, 'source.history-read', 'source', id, [], meta, clock);

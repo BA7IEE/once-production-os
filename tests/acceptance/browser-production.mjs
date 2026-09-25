@@ -2,7 +2,7 @@
  * Never reads a .env target, resets a DB, or sends requests to a production host. */
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID, createHash } from 'node:crypto';
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
@@ -285,20 +285,58 @@ try {
  console.log('PASS DEV-07D browser: REVIEW_REQUIRED decision -> frozen plan; underlying project relations remain before cleanup');
  owner.once('dialog',dialog=>void dialog.accept());
  await writeUI(owner,'POST','/deletion-requests/'+blockRequestId+'/cleaning/start',()=>blockDetail.getByRole('button',{name:'开始不可逆依赖清理',exact:true}).click());
- await until(async()=>!!(await prisma.deletionRequest.findUnique({where:{id:blockRequestId}}))?.dependencyCleanupCompletedAt);
- await blockDetail.getByText('已完成本阶段依赖清理',{exact:true}).waitFor();
- const cleaning=await prisma.deletionRequest.findUniqueOrThrow({where:{id:blockRequestId}});
- assert.equal(cleaning.state,'CLEANING');
- assert.equal(cleaning.executionPlanDigest?.length,64);
- assert.ok(cleaning.dependencyCleanupCompletedAt);
- assert.equal(cleaning.cleanupErrorCode,null);
- assert.equal(await prisma.project.count({where:{id:projectId}}),1);
+ await until(async()=>['COMPLETED','RETAINED_WITH_BASIS','FAILED'].includes((await prisma.deletionRequest.findUniqueOrThrow({where:{id:blockRequestId}})).state));
+ const finalizedProjectRequest=await prisma.deletionRequest.findUniqueOrThrow({where:{id:blockRequestId}});
+ assert.equal(finalizedProjectRequest.state,'COMPLETED');
+ assert.equal(finalizedProjectRequest.executionPlanDigest?.length,64);
+ assert.equal(finalizedProjectRequest.finalizationDigest?.length,64);
+ assert.ok(finalizedProjectRequest.finalizedAt);
+ assert.equal(finalizedProjectRequest.cleanupErrorCode,null);
  assert.equal(await prisma.projectParticipant.count({where:{projectId}}),0);
  assert.equal(await prisma.projectWork.count({where:{projectId}}),0);
  const cleaningItems=await prisma.deletionItem.findMany({where:{requestId:blockRequestId}});
  assert.ok(cleaningItems.length>0);
  assert.ok(cleaningItems.every(x=>x.cleanupState==='DONE'&&x.cleanupEvidenceDigest?.length===64));
+ const erasedProject=await prisma.project.findUniqueOrThrow({where:{id:projectId}});
+ assert.equal(erasedProject.status,'ERASED');assert.equal(erasedProject.title,'[ERASED]');assert.equal(erasedProject.brief,'');
  assert.equal(await getStatus(owner,'/projects/'+projectId),404);
- console.log('PASS DEV-07E browser: frozen plan -> CLEANING -> dependency cleanup evidence; project root remains blocked and preserved');
+ await blockDetail.getByText('删除流程已完成',{exact:true}).waitFor();
+ console.log('PASS DEV-07E browser: frozen plan -> CLEANING -> dependency cleanup evidence');
+ console.log('PASS DEV-07F browser: project root finalized to ERASED minimal header and request COMPLETED');
+
+ // DEV-07F real filesystem proof: disposable private image is physically purged before Asset/Upload tombstones finalize.
+ const purgePersonId=(await cmd(owner,'POST','/people',{displayName:'DEV07F物理清理图片人物',roles:['model'],inlineSource:source('DEV07F物理清理图片来源')},201)).resourceId;
+ const purgePerson=await prisma.person.findUniqueOrThrow({where:{id:purgePersonId}});
+ const purgeBytes=await sharp({create:{width:72,height:54,channels:3,background:'#2468ac'}}).png().toBuffer();
+ const purgeUpload=await prepare(owner,purgePerson,purgeBytes,'DEV07F-purge.png');
+ assert.equal((await binary(owner,purgeUpload.resourceId,purgeBytes)).status(),200);await queue(owner,purgeUpload.resourceId);
+ await until(async()=>await prisma.mediaAsset.count({where:{id:purgeUpload.resourceId,state:'READY'}})===1);
+ const purgeDir=join(env.MEDIA_ROOT,'uploads',purgeUpload.resourceId);assert.equal(existsSync(purgeDir),true);
+
+ await owner.getByRole('button',{name:/删除影响评估/}).click();
+ await owner.getByRole('button',{name:'刷新',exact:true}).click();
+ await owner.getByLabel('删除目标类型',{exact:true}).selectOption('ASSET');
+ await owner.getByLabel('删除目标',{exact:true}).selectOption(purgeUpload.resourceId);
+ await writeUI(owner,'POST','/deletion-requests/preview',()=>owner.getByRole('button',{name:'预览影响',exact:true}).click());
+ await owner.getByLabel('申请原因',{exact:true}).fill('合成测试：验证图片原件和预览被真实物理清理');
+ const purgeDraft=await writeUI(owner,'POST','/deletion-requests',()=>owner.getByRole('button',{name:'创建 DRAFT 申请',exact:true}).click(),201),purgeRequestId=purgeDraft.resourceId;
+ const purgeDetail=owner.locator('.deletion-request-detail');
+ await purgeDetail.getByRole('heading',{name:'删除申请',exact:true}).waitFor();
+ owner.once('dialog',dialog=>void dialog.accept());
+ await writeUI(owner,'POST','/deletion-requests/'+purgeRequestId+'/block',()=>purgeDetail.getByRole('button',{name:'阻断正常使用',exact:true}).click());
+ owner.once('dialog',dialog=>void dialog.accept());
+ await writeUI(owner,'POST','/deletion-requests/'+purgeRequestId+'/plan/freeze',()=>purgeDetail.getByRole('button',{name:'冻结清理计划',exact:true}).click());
+ owner.once('dialog',dialog=>void dialog.accept());
+ await writeUI(owner,'POST','/deletion-requests/'+purgeRequestId+'/cleaning/start',()=>purgeDetail.getByRole('button',{name:'开始不可逆依赖清理',exact:true}).click());
+ await until(async()=>['COMPLETED','RETAINED_WITH_BASIS','FAILED'].includes((await prisma.deletionRequest.findUniqueOrThrow({where:{id:purgeRequestId}})).state));
+ const purgeRequest=await prisma.deletionRequest.findUniqueOrThrow({where:{id:purgeRequestId}});
+ assert.equal(purgeRequest.state,'COMPLETED');assert.equal(purgeRequest.finalizationDigest?.length,64);assert.equal(existsSync(purgeDir),false);
+ const erasedAsset=await prisma.mediaAsset.findUniqueOrThrow({where:{id:purgeUpload.resourceId}});
+ const erasedUpload=await prisma.mediaUpload.findUniqueOrThrow({where:{id:purgeUpload.resourceId}});
+ assert.equal(erasedAsset.state,'ERASED');assert.equal(erasedAsset.fileName,'[ERASED]');assert.equal(erasedAsset.bytes,0);assert.equal(erasedAsset.previewBytes,0);
+ assert.equal(erasedUpload.state,'ERASED');assert.equal(erasedUpload.fileName,'[ERASED]');assert.equal(erasedUpload.expectedBytes,0);assert.ok(erasedUpload.purgedAt);
+ assert.equal(await getStatus(owner,'/assets/'+purgeUpload.resourceId),404);
+ await purgeDetail.getByText('删除流程已完成',{exact:true}).waitFor();
+ console.log('PASS DEV-07F media: local original/preview directory physically purged before ERASED media headers and COMPLETED request');
  assert.deepEqual(errors,[]);
 } finally {if(browser)await browser.close();await stop(worker);await stop(api);await prisma.$disconnect();rmSync(tmp,{recursive:true,force:true});}

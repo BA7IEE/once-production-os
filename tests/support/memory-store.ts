@@ -45,6 +45,14 @@ export class MemoryStore implements Store {
                     throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加');
                 draft[table].delete(id);
             },
+            redactSourceHistory: async (id, at) => {
+                const row = draft.sourceHistory.get(id);
+                if (!row) return;
+                if ((row.snapshot as any)?.erased === true) return;
+                draft.sourceHistory.set(id, { ...row, updatedAt: at,
+                    decisionReason: row.decisionReason === null ? null : '[ERASED]',
+                    snapshot: { id: row.sourceId, workspaceId: row.workspaceId, revision: row.sourceRevision, scopeId: row.scopeId, erased: true } });
+            },
             talentQuery: async input => {
                 const scopeIds = new Set(input.visibleScopeIds), sourceIds = new Set(input.visibleSourceIds);
                 const blocks = [...draft.deletionRequests.values()].filter(d => d.workspaceId === input.workspaceId && d.state !== 'DRAFT');

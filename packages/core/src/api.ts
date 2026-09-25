@@ -1,3 +1,4 @@
+import { DeletionFinalization } from './deletion-finalization.ts';
 import { DeletionCleanup } from './deletion-cleanup.ts';
 import { Deletions } from './deletions.ts';
 import { Exports } from './exports.ts';
@@ -69,6 +70,7 @@ export class Application {
     exports: Exports;
     deletions: Deletions;
     deletionCleanup: DeletionCleanup;
+    deletionFinalization: DeletionFinalization;
     constructor(store: Store, config: Config, clock: Clock = { now: () => new Date() }) {
         invariant(config.contactKey.length === 32 && config.csrfKey.length === 32, 'CONFIG_INVALID', '密钥必须为 32 字节', 503);
         const origin = new URL(config.origin);
@@ -87,6 +89,7 @@ export class Application {
         this.exports = new Exports(store, clock, config);
         this.deletions = new Deletions(clock);
         this.deletionCleanup = new DeletionCleanup(store, clock, config);
+        this.deletionFinalization = new DeletionFinalization(store, clock, config);
         this.handoffs = new Handoffs(clock);
         this.media = new Media(store, clock, config);
         this.commands = new Commands(clock);

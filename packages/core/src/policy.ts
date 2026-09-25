@@ -29,7 +29,7 @@ export async function requireScope(tx: Tx, actor: Actor, scopeId: string): Promi
 }
 export function sourceCurrent(source: Source, clock: Clock): boolean {
     const now = clock.now().getTime();
-    return source.status !== 'SUSPENDED' && Date.parse(source.validFrom) <= now && now < Date.parse(source.validUntil)
+    return !['SUSPENDED','ERASED'].includes(source.status) && Date.parse(source.validFrom) <= now && now < Date.parse(source.validUntil)
         && (source.basisMode === 'TEMP_ORGANIZE' || source.status === 'CONFIRMED');
 }
 export async function sourceVisible(tx: Tx, actor: Actor, source: Source, clock: Clock): Promise<boolean> {

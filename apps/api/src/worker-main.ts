@@ -1,4 +1,5 @@
 import { LocalMediaProvider } from './media/local-provider.ts';
+import { DeletionFinalizer } from './deletion/finalizer.ts';
 import { MediaWorker } from './media/worker.ts';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { Application } from '../../../packages/core/src/api.ts';
@@ -13,7 +14,9 @@ async function run() {
     const config = loadConfig();
     store = new PrismaStore();
     const core = new Application(store, config);
-    const media = config.mediaEnabled ? new MediaWorker(core, await LocalMediaProvider.create(process.env.MEDIA_ROOT!)) : null;
+    const mediaProvider = config.mediaEnabled ? await LocalMediaProvider.create(process.env.MEDIA_ROOT!) : null;
+    const media = mediaProvider ? new MediaWorker(core, mediaProvider) : null;
+    const deletionFinalizer = new DeletionFinalizer(core, mediaProvider);
     console.log('ONCE internal worker starting');
     try {
         while (!stopping) {
@@ -27,8 +30,9 @@ async function run() {
                 const deletionClaim = await core.deletionCleanup.claim();
                 if (deletionClaim)
                     await core.deletionCleanup.process(deletionClaim);
+                const didFinalize = await deletionFinalizer.cycle(stopController.signal);
                 const didMedia = media ? await media.cycle(stopController.signal) : false;
-                if (!claim && !exportClaim && !deletionClaim && !didMedia)
+                if (!claim && !exportClaim && !deletionClaim && !didFinalize && !didMedia)
                     await sleep(1000);
             }
             catch {
