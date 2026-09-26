@@ -11,6 +11,7 @@ import { PrismaStore } from '../../apps/api/src/prisma-store.ts';
 import { Application } from '../../packages/core/src/api.ts';
 import { Client, FakeClock, SYNTHETIC_PASSWORD, result, sourceInput } from '../support/fixtures.ts';
 import { LocalMediaProvider } from '../../apps/api/src/media/local-provider.ts';
+import { SafetyJournalWriter, readSafetyJournal } from '../../apps/api/src/recovery/safety-journal.ts';
 import { base } from '../../packages/core/src/helpers.ts';
 
 function url(name: string) {
@@ -62,11 +63,12 @@ test('DEV-09C real backup/restore approves only zero post-backup safety deltas',
     try{
         await sourceClient.$connect();
         const clock=new FakeClock();
+        const safetyWriter=await SafetyJournalWriter.open(journal);
         const sourceApp=new Application(sourceStore,{
             origin:'https://backup-source.test.invalid',secureCookies:true,contactKey,csrfKey,recoveryEpoch:oldEpoch,
             accessMode:'INTERNAL',environment:'test',mediaEnabled:false,
             dataEgressMode:'INTERNAL_APPROVED',dataCleanupMode:'INTERNAL_APPROVED',dataMergeMode:'INTERNAL_APPROVED'
-        },clock);
+        },clock,safetyWriter);
         await sourceApp.identity.bootstrap('owner','备份源管理员',SYNTHETIC_PASSWORD);
         const owner=new Client(sourceApp);assert.equal((await owner.login()).status,200);
         const sourceCreated=await owner.cmd('POST','/sources',sourceInput());
@@ -138,17 +140,19 @@ test('DEV-09C real backup/restore approves only zero post-backup safety deltas',
         assert.equal(manifest.media.assetCount,1);
         assert.equal(manifest.media.assets[0].id,uploadId);
 
-        // Same journal id, one real post-backup safety action -> approval must block.
+        // Freeze a clean backup-head copy, then prove the live journal changes synchronously
+        // before relying on the later AuditEvent sync.
         copyFileSync(journal,deltaJournal);chmodSync(deltaJournal,0o600);
+        const beforeIntent=(await readSafetyJournal(journal)).snapshot.sequence;
         const currentSource=await sourceClient.sourceRecord.findUniqueOrThrow({where:{id:sourceId}});
         const suspended=await owner.cmd('POST','/sources/'+sourceId+'/suspend',{
             expectedRevision:currentSource.revision,reason:'post backup safety change for recovery approval test'
         });
         assert.equal(suspended.status,200,JSON.stringify(suspended.body));
-        const sync=run('pnpm',['--silent','safety-journal'],{
-            ...process.env,DATABASE_URL_JOURNAL:sourceUrl,SAFETY_JOURNAL_FILE:deltaJournal
-        });
-        assert.ok(JSON.parse(sync.stdout).sequence>manifest.safetyJournal.sequence);
+        const afterIntent=await readSafetyJournal(journal);
+        assert.ok(afterIntent.snapshot.sequence>beforeIntent);
+        assert.ok(afterIntent.entries.slice(beforeIntent).some(x=>x.action==='intent.source.suspend'));
+        assert.ok(afterIntent.snapshot.sequence>manifest.safetyJournal.sequence);
 
         // Restore the actual custom pg_dump into a different fresh database.
         const restored=run('pg_restore',['--no-owner','--no-privileges','--dbname',decodeURIComponent(new URL(restoreUrl).pathname.slice(1)),dumpPath],{
@@ -192,7 +196,7 @@ test('DEV-09C real backup/restore approves only zero post-backup safety deltas',
         const deltaApproval=run('pnpm',['--silent','recovery:approve','--',
             '--actor-login','owner','--recovery-run-id',preparedRow.id,
             '--backup-manifest',manifestPath,'--database-dump',dumpPath],{
-            ...common,SAFETY_JOURNAL_FILE:deltaJournal
+            ...common,SAFETY_JOURNAL_FILE:journal
         },3);
         const blocked=JSON.parse(deltaApproval.stdout);
         assert.equal(blocked.eligible,false);
@@ -202,14 +206,14 @@ test('DEV-09C real backup/restore approves only zero post-backup safety deltas',
         const eligible=run('pnpm',['--silent','recovery:approve','--',
             '--actor-login','owner','--recovery-run-id',preparedRow.id,
             '--backup-manifest',manifestPath,'--database-dump',dumpPath],{
-            ...common,SAFETY_JOURNAL_FILE:journal
+            ...common,SAFETY_JOURNAL_FILE:deltaJournal
         });
         assert.equal(JSON.parse(eligible.stdout).eligible,true);
 
         const approved=run('pnpm',['--silent','recovery:approve','--',
             '--actor-login','owner','--recovery-run-id',preparedRow.id,
             '--backup-manifest',manifestPath,'--database-dump',dumpPath,'--apply'],{
-            ...common,SAFETY_JOURNAL_FILE:journal,ALLOW_RECOVERY_APPROVE:'yes'
+            ...common,SAFETY_JOURNAL_FILE:deltaJournal,ALLOW_RECOVERY_APPROVE:'yes'
         });
         const approvedResult=JSON.parse(approved.stdout);
         assert.equal(approvedResult.state,'APPROVED');
