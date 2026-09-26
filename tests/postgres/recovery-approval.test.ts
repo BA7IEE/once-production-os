@@ -69,7 +69,7 @@ test('DEV-09C real backup/restore approves only zero post-backup safety deltas',
             accessMode:'INTERNAL',environment:'test',mediaEnabled:false,
             dataEgressMode:'INTERNAL_APPROVED',dataCleanupMode:'INTERNAL_APPROVED',dataMergeMode:'INTERNAL_APPROVED'
         },clock,safetyWriter);
-        await sourceApp.identity.bootstrap('owner','备份源管理员',SYNTHETIC_PASSWORD);
+        const sourceIds=await sourceApp.identity.bootstrap('owner','备份源管理员',SYNTHETIC_PASSWORD);
         const owner=new Client(sourceApp);assert.equal((await owner.login()).status,200);
         const sourceCreated=await owner.cmd('POST','/sources',sourceInput());
         assert.equal(sourceCreated.status,201,JSON.stringify(sourceCreated.body));
@@ -86,7 +86,7 @@ test('DEV-09C real backup/restore approves only zero post-backup safety deltas',
         const provider=await LocalMediaProvider.create(sourceMediaRoot);
         const sourceRow=await sourceClient.sourceRecord.findUniqueOrThrow({where:{id:sourceId}});
         const personRow=await sourceClient.person.findUniqueOrThrow({where:{id:personId}});
-        const ownerMembership=await sourceClient.membership.findFirstOrThrow({where:{workspaceId:personRow.workspaceId,userId:{not:''}}});
+        const ownerMembership=await sourceClient.membership.findUniqueOrThrow({where:{id:sourceIds.membershipId}});
         const workspaceScope=await sourceClient.accessScope.findFirstOrThrow({where:{workspaceId:personRow.workspaceId,mode:'WORKSPACE'}});
         const uploadId=randomUUID(),objectToken=randomUUID();
         const originalBody=Buffer.from('DEV-09D-private-media-original');
