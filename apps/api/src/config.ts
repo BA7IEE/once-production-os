@@ -39,6 +39,11 @@ export function loadConfig(): Config {
         throw new Error('MEDIA_PROVIDER not supported');
     if (media === 'local' && (!['local', 'test'].includes(environment) || !isAbsolute(process.env.MEDIA_ROOT ?? '')))
         throw new Error('Local media requires local/test and an absolute MEDIA_ROOT; production provider is not approved');
+    if (['staging', 'production'].includes(environment) && accessMode === 'INTERNAL') {
+        const journal = process.env.SAFETY_JOURNAL_FILE ?? '';
+        if (!isAbsolute(journal))
+            throw new Error('SAFETY_JOURNAL_FILE must be an absolute path for staging/production INTERNAL mode');
+    }
     const recoveryEpoch = readFileSync(required('RECOVERY_EPOCH_FILE'), 'utf8').trim();
     if (!/^[A-Za-z0-9_-]{32,128}$/.test(recoveryEpoch))
         throw new Error('RECOVERY_EPOCH_FILE must contain a 32-128 character base64url-style epoch');
