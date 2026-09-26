@@ -142,6 +142,36 @@ test('DEV-07G explicit merge creates one decision, hides duplicate from lists an
     assert.equal(f.store.rows('audits').filter(x => x.action === 'person.merge').length, 1);
 });
 
+test('DEV-07G same-source merge may explicitly adopt duplicate values or union arrays without losing provenance', async () => {
+    const f = await fixture();
+    const source = await ok(f.owner.cmd('POST', '/sources', sourceInput()), 201);
+    const sourceId = source.resourceId as string;
+    const canonical = await ok(f.owner.cmd('POST', '/people', {
+        displayName: '同源主档案', roles: ['model'], sourceId
+    }), 201);
+    const duplicate = await ok(f.owner.cmd('POST', '/people', {
+        displayName: '同源重复档案', roles: ['photographer'], sourceId
+    }), 201);
+    const canonicalId = canonical.resourceId as string, duplicateId = duplicate.resourceId as string;
+    const p = await preview(f, canonicalId, duplicateId);
+    assert.deepEqual(p.fieldConflicts.find((x: any) => x.field === 'displayName')?.choices, ['CANONICAL','DUPLICATE']);
+    assert.deepEqual(p.fieldConflicts.find((x: any) => x.field === 'roles')?.choices, ['CANONICAL','DUPLICATE','UNION']);
+
+    const input = executeInput(p);
+    input.fieldDecisions = p.fieldConflicts.map((x: any) => ({
+        field: x.field,
+        choice: x.field === 'displayName' ? 'DUPLICATE' : x.field === 'roles' ? 'UNION' : 'CANONICAL'
+    }));
+    const merged = await f.owner.cmd('POST', '/people/merge', input);
+    assert.equal(merged.status, 200, JSON.stringify(merged.body));
+
+    const current = await ok(f.owner.raw('GET', '/people/' + canonicalId));
+    assert.equal(current.displayName, '同源重复档案');
+    assert.deepEqual([...current.roles].sort(), ['model','photographer']);
+    assert.ok(current.aliases.includes('同源主档案'));
+    assert.equal(current.sourceId, sourceId);
+});
+
 test('DEV-07G preview digest becomes stale when a relation appears after preview', async () => {
     const f = await fixture();
     const canonicalId = await createPerson(f.owner, '关系主档案');
