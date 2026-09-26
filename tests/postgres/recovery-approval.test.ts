@@ -100,7 +100,7 @@ test('DEV-09C real backup/restore approves only zero post-backup safety deltas',
         assert.ok(JSON.parse(sync.stdout).sequence>manifest.safetyJournal.sequence);
 
         // Restore the actual custom pg_dump into a different fresh database.
-        const restored=run('pg_restore',['--no-owner','--no-privileges',dumpPath],{
+        const restored=run('pg_restore',['--no-owner','--no-privileges','--dbname',decodeURIComponent(new URL(restoreUrl).pathname.slice(1)),dumpPath],{
             ...process.env,...pgEnv(restoreUrl)
         });
         assert.equal(restored.status,0);
