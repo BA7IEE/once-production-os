@@ -1,10 +1,10 @@
 # ONCE Production OS｜内部 API、权限与交互契约
 
-版本：v0.3｜日期：2026-09-22｜当前范围：一期内部 OS + AI｜状态：文档已修订，产品实现和运行测试未执行
+版本：v0.5｜日期：2026-09-27｜当前范围：一期内部 OS + Talent Domain 2.0 R1 + AI｜状态：R1 SPEC_FROZEN，尚未实现
 
 ## 1. 接口面
 
-所有业务路径相对 `/api/v1`，只允许内部成员认证后的入口。匿名仅登录/激活这类认证动作；没有公开、客户分享或人才自助业务路由。健康检查由部署入口限制，不暴露内部配置。
+所有业务路径相对 `/api/v1`。浏览器业务入口只允许内部成员会话；Talent R1 另允许受限 ServicePrincipal 通过独立机器凭证访问明确白名单路由。匿名仅登录/激活等认证动作；没有公开、客户分享或人才自助业务路由。健康检查由部署入口限制，不暴露内部配置。
 
 四种角色模板ADMIN/EDITOR/REVIEWER/VIEWER。ADMIN是当前空间管理人，不是绕过用途检查的系统超级用户；敏感权限在配置里显式可见。角色与权限表只管理一期功能，不提供任意策略编程。
 
@@ -15,7 +15,7 @@
 | REVIEWER | 基本资料和必要来源读取、依据核验、用途许可/暂停 | 不自动获得全部联系人、配置和导出能力 |
 | VIEWER | 获准基本资料、作品预览和内部清单读取 | 不可写、AI外送、下载原件或导出 |
 
-`目标域write`由subjectRef确定：人物records.write、作品portfolio.write、项目projects.write；它不是任意客户端传入的权限字符串。`原申请人`仍须当前账号/成员有效、拥有原业务权限和当前记录范围。
+`目标域write`由subjectRef确定：人物records.write、作品portfolio.write、项目projects.write；它不是任意客户端传入的权限字符串。人类原申请人须当前成员有效；ServicePrincipal 则须 status/scope/permission/credential 都有效。Machine Actor 的 defaultMaintainer 只是业务责任人，不替代真实 actor。
 
 ## 2. 字段、Cookie与请求
 
@@ -24,6 +24,14 @@
 服务端不透明Session，Host-only、Secure、HttpOnly Cookie；Origin精确白名单和写入CSRF保护；无通配CORS。口令/激活secret、签名URL、AI密钥不进请求日志或通用回执。登录、重置限流；停用/改权使旧会话失效。首次管理员只能由空库维护CLI创建。
 
 普通读使用分页（12参数）及稳定排序，计数与联想同权限过滤。跨范围不存在/无权统一不透露对象。写Schema拒绝未知字段；workspaceId由服务端确定；字符串长度、数组数目、JSON大小均限定。
+
+### 2.1 ServicePrincipal 机器认证
+
+ServicePrincipal 使用独立不透明机器凭证，例如 `Authorization: Bearer <opaque>`；服务端只保存 hash/keyVersion，不与人类 Session/Cookie 混用。机器请求不依赖浏览器 CSRF，但必须走独立 rate limit、Origin 不作为授权依据、逐请求检查 scope/permission/status/expiry。
+
+机器凭证只允许访问注册白名单。默认禁止 `members.manage`、`data.merge`、`data.delete`、用途批准、权限修改和生产运维等高危动作。revoke/rotate 后旧凭证下一请求立即失效。
+
+所有 CommandReceipt/Audit/Job requester 保存真实 actor kind；Machine Actor 不得伪装成 defaultMaintainer。
 
 ## 3. 协议和错误
 
@@ -70,10 +78,10 @@ C=正式命令，A=命令接受后异步执行，Q=查询，QPOST=使用POST承�
 | POST | /use-permissions/{id}/revoke | usePermission.revoke | sources.review | C | expectedRevision；立即限制新使用 |
 | POST | /use-restrictions | useRestriction.create | sources.review | C | 用途/主体/原因，明确禁止优先 |
 | POST | /use-restrictions/{id}/resolve | useRestriction.resolve | sources.review | C | 处理依据+expectedRevision；不能当重新授权 |
-| GET | /people | person.list | records.read | Q | 角色/城市/语言/技能/行业/核验时效；同范围total |
+| GET | /people | person.list | records.read | Q | Person/Talent边界；Role/Capability/Language/Location等结构化筛选；同范围total |
 | GET | /people/{id} | person.get | records.read | Q | 明确字段白名单；不包含contacts原文 |
-| POST | /people | person.create | records.write | C | displayName/roles/maintainer；sourceId或inlineSource二选一 |
-| PATCH | /people/{id} | person.update | records.write | C | expectedRevision；允许字段/角色；scope单独受管理权限 |
+| POST | /people | person.create | records.write | C | 只建自然人Person；displayName/maintainer/originSource；不强制TalentProfile |
+| PATCH | /people/{id} | person.update | records.write | C | expectedRevision；只改Person身份层字段；Role/Capability等走专用命令；scope单独受管理权限 |
 | GET | /people/{id}/contacts | contact.get | sensitive.read | R | 字段/来源用途与范围复核，敏感读取审计 |
 | PUT | /people/{id}/contacts | contact.replace | sensitive.write | C | 精确联系信息/来源+expectedRevision，不写普通日志 |
 | PATCH | /records/{kind}/{id}/scope | record.scope | members.manage | C | kind有限枚举；scope成员同空间；保护版本递增 |
@@ -85,6 +93,34 @@ C=正式命令，A=命令接受后异步执行，Q=查询，QPOST=使用POST承�
 | GET | /brands/{id} | brand.get | records.read | Q | 当前可读主体详情 |
 | POST | /brands | brand.create | records.write | C | 名称/来源/关联主体，不建CRM流程 |
 | PATCH | /brands/{id} | brand.update | records.write | C | 允许字段+expectedRevision |
+| POST | /people/{id}/talent-profile | talentProfile.create | records.write | C | 仅为已有Person启用Talent；expectedPersonRevision；一人0..1 |
+| PATCH | /people/{id}/talent-profile | talentProfile.update | records.write | C | 内部摘要/状态白名单；不塞Role/Language/尺寸数组 |
+| GET | /people/{id}/roles | personRole.list | records.read | Q | 当前/历史Role，按scope/source过滤 |
+| POST | /people/{id}/roles | personRole.create | records.write | C | 已注册roleCode/source/validity；Person必须有TalentProfile |
+| PATCH | /people/{id}/roles/{roleId} | personRole.update | records.write | C | status/validity+expectedRevision；不静默改roleCode |
+| PUT | /people/{id}/capabilities | capability.set | records.write | C | 注册capabilityCode；personRoleId可空且须属于Person；未知code拒绝 |
+| PUT | /people/{id}/languages | personLanguage.set | records.write | C | language+听说读写level可空+source；旧code迁移不猜级别 |
+| PUT | /people/{id}/locations | talentLocation.set | records.write | C | BASE/SERVICE+location+validity+source；不把档期当location |
+| POST | /people/{id}/external-refs | externalRef.create | records.write | C | provider/namespace或issuer/externalKey/source；exact唯一；不触发merge |
+| POST | /people/{id}/casting-profile | castingProfile.upsert | records.write | C | hair/eyes/currentMeasurement引用；有来源；不是MODEL专属 |
+| POST | /people/{id}/measurements | measurement.create | records.write | C | 时间快照+单位+size system；CONFIRMED历史不原地覆盖 |
+| POST | /people/{id}/adult-eligibility | adultEligibility.record | sources.review | C | UNKNOWN/SELF_DECLARED/VERIFIED/RESTRICTED；不要求完整证件 |
+| POST | /people/{id}/representations | representation.create | records.write | C | 可选personRole/agency/agent/territory/validity+source |
+| POST | /people/{id}/credentials | credential.create | records.write | C | type/issuer/期限/来源；敏感编号加密并普通DTO掩码 |
+| POST | /people/{id}/media-collections | mediaCollection.create | portfolio.write | C | type只表形式；可选personRole；source |
+| PUT | /media-collections/{id}/tags | mediaCollection.tags | portfolio.write | C | 内容tag字典；FASHION/LINGERIE等不混入type |
+| PUT | /media-collections/{id}/items | mediaCollection.items | portfolio.write | C | READY Asset有序引用；删除关系不删Asset |
+| PUT | /people/{id}/translator/language-pairs | translator.languagePairs | records.write | C | TRANSLATOR role下方向明确；不从PersonLanguage猜 |
+| PUT | /people/{id}/translator/service-modes | translator.serviceModes | records.write | C | 注册modeCode；TRANSLATOR role限定 |
+| GET | /talent-schema | talentSchema.get | records.read或service-principal | Q | schemaVersion、Role/Capability/Field/enum/sensitivity/direct-write规则 |
+| GET | /service-principals | servicePrincipal.list | members.manage | Q | 机器身份摘要，无credential原值 |
+| POST | /service-principals | servicePrincipal.create | members.manage | SECRET | scope/permissions/defaultMaintainer；credential只返回一次 |
+| POST | /service-principals/{id}/rotate | servicePrincipal.rotate | members.manage | SECRET | 旧credential立即失效；新secret一次返回 |
+| POST | /service-principals/{id}/revoke | servicePrincipal.revoke | members.manage | C | expectedRevision；立即拒绝新机器请求 |
+| POST | /field-proposals | fieldProposal.create | talent.propose或ai.use | C | typed target/注册field/source/baseRevision/schemaVersion；无自由JSON字段 |
+| GET | /field-proposals/{id} | fieldProposal.get | 目标域read | Q | 当前可见差异/来源/STALE原因 |
+| POST | /field-proposals/{id}/apply | fieldProposal.apply | 目标域write | C | 人类或获准actor；调用目标域命令，不直接改表 |
+| POST | /field-proposals/{id}/reject | fieldProposal.reject | 目标域write | C | 终态，不修改事实 |
 | POST | /uploads | upload.create | assets.upload | SIGN | sourceId/类型/大小；原子配额+会话；短时staging签名，不进回执 |
 | GET | /uploads/{id} | upload.get | assets.upload | Q | 仅本人或有管理资格者，状态与失败原因 |
 | POST | /uploads/{id}/renew | upload.renew | assets.upload | SIGN | 未结束、同主体、续签上限、同一预算预留 |
@@ -111,7 +147,7 @@ C=正式命令，A=命令接受后异步执行，Q=查询，QPOST=使用POST承�
 | PUT | /projects/{id}/participants | project.participants | projects.write | C | 实际/确认/提名+来源；不是订档 |
 | PUT | /projects/{id}/works | project.works | projects.write | C | DELIVERABLE/REFERENCE+来源，精确关系 |
 | PUT | /projects/{id}/recap | project.recap | projects.write | C | 内部复盘正文/证据+expectedRevision；无公开案例 |
-| PUT | /shortlists/{id}/items | shortlist.items | shortlists.write | C | 人物/作品/素材/顺序/备注+expectedRevision；无客户反馈 |
+| PUT | /shortlists/{id}/items | shortlist.items | shortlists.write | C | **personId+personRoleId**/作品/素材/顺序/备注+expectedRevision；Role必须属于Person，失效不静默换Role |
 | GET | /locale-texts/{id} | locale.get | records.read | Q | 内部语言文本、来源版本、需复核状态 |
 | POST | /locale-texts | locale.create | 目标域write | C | 有限subjectRef/locale/text/sourceRefs；非公开稿 |
 | PATCH | /locale-texts/{id} | locale.update | 目标域write | C | text+expectedRevision；人工确认依赖更新，不自动覆盖另一语言 |
@@ -143,7 +179,7 @@ C=正式命令，A=命令接受后异步执行，Q=查询，QPOST=使用POST承�
 
 ## 5. 创建/更新Schema的关键闭合
 
-person.create的来源输入必须是`sourceId`或`inlineSource`之一；inlineSource包含type、providerClaim、basisDescription、basisMode、期限和范围。不得要求证据已是媒体，允许人工说明。内联创建在talent应用编排事务调用sources入口，避免前端两个成功条件无法对齐。
+person.create 的来源输入改为 `originSourceId` 或 `inlineOriginSource` 之一；它只说明自然人身份最初如何进入系统，不再证明 TalentProfile/Role/Language/Capability 等事实。具体事实走各自 Source/Evidence。创建人才时可以在同一应用命令中创建 TalentProfile + 初始Role，但 Person 本身仍可独立存在。
 
 source创建以后再upload；Asset.sourceId沿UploadSession固定，complete不接受另一个sourceId。work资产和credits的parent沿路径固定；shortlist条目的素材若声明来自某work，必须验证该work_asset的实际归属，不能只有同workspace检查。
 
@@ -160,7 +196,7 @@ source创建以后再upload；Asset.sourceId沿UploadSession固定，complete不
 
 提交时对实际文字内容检查最小化/用途；用户自由输入的检索句也可能有私密信息，不能因无sourceId就全量外送。无法自动判定的真实业务信息先提示用户删去非必要信息；外送须显式确认。默认检索解析只发查询句与公共字段字典，不发送候选整库。
 
-AI成功不等于可采纳。apply仅PENDING，选中多个字段一次事务接受；未选项记discarded。配置和源保护版本变化时不沿旧建议继续写。模型输出JSON严格验证且按普通文本渲染，不执行HTML/Markdown里的主动内容。
+AI成功不等于可采纳。Talent R1 的 AIProposal 与通用 FieldProposal 都绑定 schemaVersion/baseRevision/sourceRevision；配置、源、目标或Schema变化后 STALE。未知字段/code拒绝。AI 不得从图片推断 AdultEligibility、国籍、健康或宗教。apply 调用目标域命令一次原子确认，不直接改表。模型输出JSON严格验证并按普通文本渲染。
 
 ## 7. 导出与临时读取
 

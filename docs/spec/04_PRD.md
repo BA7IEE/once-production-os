@@ -1,6 +1,6 @@
 # ONCE Production OS｜PRD｜内部 OS 产品规格
 
-版本：v0.3｜日期：2026-09-22｜当前范围：一期内部 OS + AI｜状态：文档已修订，产品实现和运行测试未执行
+版本：v0.5｜日期：2026-09-27｜当前范围：一期内部 OS + Talent Domain 2.0 R1 + AI｜状态：R1 SPEC_FROZEN，新增能力未实现
 
 ## 1. 范围和编号
 
@@ -28,43 +28,61 @@
 
 ## 4. 数据与不变量
 
-Person与登录User分开；Organization与Brand分开；Work与Project分开；Asset与物理StorageObject分开。内部合作关系来自真实项目参与，不来自“上传过作品”。
+Person与登录User分开；Organization与Brand分开；Work与Project分开；Asset与物理StorageObject分开。内部合作关系来自真实项目参与，不来自“上传过作品”。**Person 是现实人物主身份；Role、Capability、专属职业资料均不能复制出第二个 Person。**
 
 可变对象有revision；影响用途资格的状态另有protectionEpoch。普通文字更新提示衍生文本陈旧；权限/用途/隔离/删除变化影响访问。关系有外键和明确父子约束，不只检查“在同一workspace”。
 
 原始数据、AI输入、导出、审计都由显式字段集合构造。新增内部字段不会自动进入这些派生面。具体模型/API/时序见07/08/09，只有12定义参数。
 
+### 4.1 Talent Domain 2.0 R1
+
+详细冻结规格见 [15_TALENT_DOMAIN_2.md](15_TALENT_DOMAIN_2.md)。
+
+- **Person 不等于 Talent**：经纪人、客户联系人等可以只有 Person；TalentProfile 是可选 0..1。
+- 同一现实人物只有一个 Person；MODEL + ACTOR + KOL 用多个 PersonRole。
+- Role 表达职业，Capability 表达能力；Capability 必须来自版本化定义，不允许 Agent 自造 code。
+- Person 的来源只表示身份 origin；字段、能力、关系允许多来源 Evidence，冲突不静默覆盖。
+- 城市/服务地区、语言熟练度、尺寸、代表关系、证书等可变化事实必须带来源与时间。
+- R1 不建“大而全 ModelProfile”表；Model UI 是 MODEL Role + CastingProfile + MeasurementSet + Capability + Collection + Work + Representation 的组合视图。
+- MediaCollection 的资料形式与内容标签分开；Asset 是文件、Collection 是组织、Work 是真实作品。
+- ShortlistItem 必须保存 personRoleId。
+- ExternalRef 用于外部系统精确身份映射；姓名/头像不得自动 merge。
+- 外部 Agent 使用独立 ServicePrincipal/Machine Actor，不能冒充员工。
+- Schema Registry 定义 Role/Capability/Field/敏感级别/直写或 proposal 规则；未知字段/code/schemaVersion fail closed。
+- 成人资格使用最小 AdultEligibility，不通过图片猜年龄，不默认长期保存完整证件。
+- Talent Domain 2.0 R1 Gate 在 DEV-08 正式人才 AI 前完成。
+
 ## 5. 功能需求与验收
 
 ### FR-01｜快速建档与多角色｜IN_SCOPE
 
-一人一个Person，多工种是角色集合；人物不自动有登录账号。快速建档只要展示名/内部代号、角色、来源说明和维护人。城市、英文、作品可后补。前端提供单页入口；来源可在同一应用命令内创建，不必先跑多个管理菜单。
+Person 先表示自然人；只有作为制作人才时才创建可选 TalentProfile 与 PersonRole。快速人才建档只要展示名/内部代号、TalentProfile、至少一个角色、origin来源说明和维护人；城市、语言水平、作品等可后补。经纪人/客户联系人可只建 Person 而不成为 Talent。多工种不得复制 Person；新增/停用 Role 不改变 Person 主身份。
 
-验收T01：同人添加摄影/剪辑两个角色后只产生一个ID；不填英文和文件仍可保存；未知不自动变成已核验。
+验收T01：普通联系人可有 Person 无 TalentProfile；创建 Role 前必须有 TalentProfile；同人添加摄影/剪辑/模特等多个角色后只产生一个 Person ID；重复有效 Role 被约束拒绝；未知不自动变成已核验。
 
 对应：DEV-03；B01/B02；J01。状态：NOT_RUN。
 
 ### FR-02｜来源、接收依据与字段核验｜IN_SCOPE
 
-来源记录类型、提供者声明、接收时间、文字或后续文件，以及内部接收依据和期限。先无assetId也可成立。临时整理与正式使用分开；字段核验绑定字段值、来源版本和核验人。来源不能因附件尚未上传而无法创建。
+来源记录类型、提供者声明、接收时间、文字或后续文件，以及内部接收依据和期限。Person.originSource 只表示身份最初进入系统；字段/Role/Capability/Language/Location/Representation 等使用各自 Evidence，允许同一事实有多个来源。先无assetId也可成立。临时整理与正式使用分开；冲突来源不得自动覆盖当前事实。
 
-验收T02：从空库先建文字/人工来源，再建人，再上传；无循环前置；源文修改不会自动核验新值；到期有据限制访问和处理。
+验收T02：从空库先建来源再建Person/Talent；originSource 不被当作全部字段依据；同值可追加多个 Evidence；冲突新值进入 Proposal/复核而不静默覆盖；源文修改不会自动核验新值。
 
 对应：DEV-03；B02/B03；J01/J04。状态：NOT_RUN。
 
 ### FR-03｜导入预览、去重与受控合并｜IN_SCOPE
 
-支持有Schema的JSON及UTF-8表格文本导入预览，逐行诊断，确认后逐行事务提交。重名、同电话仅提示候选，不自动合并。合并必须显式决定冲突，不合并账号，不自动扩张用途和可见范围；有无法处理的依赖时保留两条并标重复待处理。
+支持有Schema的JSON及UTF-8表格文本导入预览，逐行诊断，确认后逐行事务提交。PersonExternalRef 的精确 active 映射可以定位既有人物；重名、同电话、头像相似仅提示候选，不自动合并。无确定身份时可建 DRAFT/重复候选；合并仍走显式 Person Merge，不自动扩张用途和可见范围。
 
-验收T03：重复提交同一批次不重复建人；部分失败可定位；同名不误合并；旧ID只读解析；无权者不可利用预览枚举联系人。
+验收T03：重复提交同一批次不重复建人；exact ExternalRef 唯一解析；同名/相似头像不误合并；ExternalRef 冲突阻断；部分失败可定位；无权者不可利用预览枚举联系人。
 
 对应：DEV-03/DEV-07；B01/B02；J01。状态：NOT_RUN。
 
 ### FR-04｜字典、状态与资料新鲜度｜IN_SCOPE
 
-角色/城市/语言/技能/行业使用稳定code和可读标签，别名可查。字典停用保留历史；核验时间显示缺失或陈旧，不推导“有档期”。按角色显示少量专属字段，其余经Schema评审再加。
+Role、Capability、语言等级、Location、Collection Type/Tag、Credential Type 等使用稳定 code 和版本化定义。字典停用保留历史；核验时间显示缺失或陈旧，不推导“有档期”。PersonLanguage 表达可空的听说读写熟练度；TalentLocation 表达 BASE/SERVICE 与有效期。R1 不建一职业一套 Profile；镜头人才共用 Casting/Measurement。
 
-验收T04：停用角色后旧项目仍可读；90天复核提醒按参数可调；历史作品不因时间长就自动变假；尺寸未知不是0。
+验收T04：停用角色后旧项目仍可读；旧 languageCodes 迁移不猜熟练度；旧 cityCode 能转为 BASE location；MeasurementSet 保留历史且鞋/服装尺寸有 size system；摄影/剪辑等仅依赖 Role + Capability + Work/Credential 也能正常工作。
 
 对应：DEV-03；B02；J02。状态：NOT_RUN。
 
@@ -138,17 +156,17 @@ T10：DEFERRED；没有当前工作包，不创建替代假实现。
 
 ### FR-14｜结构化检索与证据解释｜IN_SCOPE
 
-筛选角色、城市、语言、技能、行业、作品类型、实际合作和核验时效；查询/统计/联想同一权限条件。结果显示命中依据与未知条件，不给未校准的百分比评分。缺报价/档期则说明当前不支持该筛选。
+筛选 Role、Capability、BASE/SERVICE Location、PersonLanguage及熟练度、行业/作品类型、MediaCollection type/tag、Credential当前状态、ONCE ACTUAL合作和核验时效；AdultEligibility/Measurement 只有在明确业务必要且有权时参与。查询/统计/联想使用同一权限条件。结果显示命中依据与未知条件，不给未校准百分比评分。
 
-验收T14：手工筛选与AI解析后的相同条件结果一致；无权限人才不出现在计数和联想；不以空值满足预算和档期。
+验收T14：Role + Capability + Language level + Location + Work/Project + Collection 的组合筛选可解释；facet/计数/结果权限一致；UNKNOWN adult 不满足需 VERIFIED_ADULT 的条件；External Work 不被算成 ONCE 实际合作。
 
 对应：DEV-06；B01/B04；J02。状态：NOT_RUN。
 
 ### FR-15｜内部候选清单与协作备注｜IN_SCOPE
 
-本期将原客户候选包收窄为内部Shortlist：选人/作品、排序、需求说明和协作备注，保存revision和编辑人；读时取当前允许的资料并提示相较加入时已更新。不建立BoardVersion/ShareGrant/客户快照。历史文件需求由FR-29受控导出承担。
+本期将原客户候选包收窄为内部Shortlist：每个条目必须选择 Person + PersonRole，可再选 Work/Asset/Collection；保存排序、需求说明、协作备注、Person/Role/Source revision 基线。若人才只有一个 active Role，UI可自动选，但持久层仍保存 roleId；Role失效不能静默换成另一个。
 
-验收T15：两个内部成员在各自范围协作；无权条目不泄露内容；冲突不覆盖；没有分享按钮/匿名URL/客户已确认/已预订状态。
+验收T15：多Role人物加入Shortlist时Role上下文明确；选图/Capability/Collection按该Role解释；Role失效后条目不可用而不是换Role；两个内部成员在各自范围协作且无权条目不泄露内容。
 
 对应：DEV-06；B01/B04；J03。状态：NOT_RUN。
 
@@ -166,15 +184,15 @@ T17：DEFERRED；没有当前工作包，不创建替代假实现。
 
 ### FR-18｜四类有界 AI 辅助任务｜IN_SCOPE
 
-固定四任务：extract_profile、suggest_tags、draft_locale、parse_search。首版均可用已获准文字/PDF提取文本运行，扫描PDF可人工补文字；图片视觉理解暂不作为必需能力。模型无Shell、自由HTTP、数据库或自动业务写权限。
+固定四任务：extract_profile、suggest_tags、draft_locale、parse_search。正式人才任务必须在 Talent Domain 2.0 R1 Gate 后使用版本化 Talent Schema。AI/Agent 未知字段/code/schemaVersion 拒绝；无直接事实权限或发生冲突时进入 FieldProposal/AIProposal，不直接覆盖事实。首版均可用获准文字/PDF提取文本运行；图片视觉理解不是必需能力。
 
-验收T18：四任务输入输出都有Schema；来源缺失/虚构事实拒绝；没有AI Key时手工路径正常；不根据照片推断身份、国籍或敏感属性。
+验收T18：四任务输入输出都有版本化 Schema；未知字段/Role/Capability/Collection/Credential code 与 stale schema 被拒绝；来源缺失/虚构事实拒绝；AdultEligibility 不由照片推断；没有AI Key时人工路径正常。
 
 对应：DEV-08；B01/B06；J01/J02/J05。状态：NOT_RUN。
 
 ### FR-19｜有证据的 AI 建议与一次原子采纳｜IN_SCOPE
 
-建议与事实分离。PENDING时可勾选多个字段，然后一次原子确认；该次提交后整份建议APPLIED并记录已选/丢弃项。不支持一份APPLIED建议反复继续采纳。必须检查当前权限、依赖和源revision。
+建议与事实分离。AIProposal 与通用 FieldProposal 都必须绑定 target/baseRevision/sourceRevision/schemaVersion；无直写权限的 ServicePrincipal 只能提交 Proposal。PENDING 建议经目标域命令一次原子确认；来源、目标或Schema变化后 STALE，不允许静默覆盖。
 
 验收T19：AI运行期间人工改城市，旧提议不可覆盖；第一次只选城市后，另一新key再接受余项被拒；同key安全重放；删除建议不影响已确认业务事实。
 
@@ -222,15 +240,15 @@ T25：DEFERRED；没有当前工作包，不创建替代假实现。
 
 ### FR-26｜内部账号、权限及运行主体｜IN_SCOPE
 
-单ONCE工作空间。服务端会话、管理员创建与激活、停用、密码重置、角色及敏感权限。首次Owner由空库本地CLI创建，不存在默认密码和公开注册。内部Worker用固定任务能力，不先建服务账号管理/OAuth/SSO产品。
+单ONCE工作空间。人类账号继续用服务端会话；外部 Agent 新增窄 ServicePrincipal/Machine Actor：scope、permission、defaultMaintainer、credential rotation、到期/撤销。它不是User，不建通用OAuth平台，也不默认拥有admin/data.merge/data.delete/批准权限。内部Worker仍使用固定任务能力。
 
-验收T26：停用账号下一请求拒绝；改变权限使旧会话失效；非空库不能重新bootstrap；人有资料不自动能登录；字段白名单由后端执行。
+验收T26：停用人类账号下一请求拒绝；ServicePrincipal revoke/rotate 后旧credential失效；机器越scope/permission拒绝；审计显示真实Machine Actor而非defaultMaintainer；Person/Talent不自动有登录权；字段白名单由后端执行。
 
 对应：DEV-01；B03/B05；J07。状态：NOT_RUN。
 
 ### FR-27｜审计、敏感读取与变更记录｜IN_SCOPE
 
-业务写与最小审计同事务，敏感联系信息读取、导出、用途确认、删除、配置变化和AI采纳另有明确事件。记录谁在什么范围做了什么，不记录密码、密钥、签名URL或任意完整before/after。
+业务写与最小审计同事务，敏感读取、导出、用途确认、删除、配置变化、Proposal采纳、Machine Actor写入另有明确事件。actor 必须 human Membership / ServicePrincipal exactly-one；defaultMaintainer 是责任人，不可伪装成机器操作人。日志不得记录密码、机器credential、签名URL或任意完整before/after。
 
 验收T27：回滚事务没有成功审计；错误/拒绝进入安全日志；敏感哨兵不出现在应用/代理日志；可追溯提议与人类采纳。
 

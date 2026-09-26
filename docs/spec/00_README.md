@@ -1,16 +1,16 @@
-# ONCE Production OS｜v0.3 内部 OS 开发基线
+# ONCE Production OS｜v0.5 内部 OS + Talent Domain 2.0 R1 开发基线
 
-版本：v0.3｜日期：2026-09-22｜当前范围：一期内部 OS + AI｜状态：文档已修订，产品实现和运行测试未执行
+版本：v0.5｜日期：2026-09-27｜当前范围：一期内部 OS + Talent Domain 2.0 R1 + AI｜状态：R1 SPEC_FROZEN，相关实现尚未执行
 
 ## 1. 这版做什么
 
 **先交付 ONCE 自己每天使用的工作系统，不建设官网发布系统。**
 
-当前一期只有一条主线：收到资料 → 建人才档案 → 整理图片/视频与作品 → 关联真实项目 → 检索和建立内部候选清单 → AI 辅助整理/写中英草稿 → 人工确认 → 内部持续复用。
+当前一期主线调整为：收到资料 → 建 Person（自然人）→ 需要时启用 TalentProfile → Role/Capability/Language/Location/Casting/Measurement/Representation/ExternalRef/Credential 等有据事实 → 作品/项目/媒体 → 按 Person+Role 建内部候选 → **先完成 Talent Domain 2.0 R1 Gate** → Agent/AI 按版本化 Schema 提议/写入 → 人工确认 → 持续复用。
 
-AI 是一期的明确工作，不是“未来再说”；但它是可关闭的辅助能力。没有 AI Key、没有外网或模型故障，人工建档、找人、看作品、做项目记录仍能完成。内部用途说明、账号权限、素材私有访问和必要审计继续保留，不再要求先解决全球官网授权、CMS 同步、公开缓存与远端撤回。
+AI 仍是一期的明确工作，但正式人才抽取/标签/搜索契约必须在 Talent Domain 2.0 R1 完成后启动；外部 Agent 也必须使用 ServicePrincipal、ExternalRef、Schema Registry 与 Proposal/领域命令，不能围绕旧过渡字段另造事实模型。没有 AI Key、没有外网或模型故障，人工建档、找人、看作品、做项目记录仍能完成。内部用途说明、账号权限、素材私有访问和必要审计继续保留。
 
-本版取代 v0.2 主文档及 R1 候选修订的**当前实施口径**。旧文件保留为历史证据，不与本版同时生效。不必把旧压缩包一起交给开发 Agent。
+本版在 v0.4 R0 基础上完成 **Talent Domain 2.0 R1 对抗审查回填**：Person≠Talent、多来源、时间事实、ExternalRef、Machine Actor、Shortlist Role Context、Casting/Measurement、成人资格、Credential、Collection type/tag、Proposal 等成为正式冻结契约。现有实现状态仍以 `docs/release/` 与当前代码/CI 为准。
 
 ## 2. 明确移出一期
 
@@ -41,17 +41,18 @@ CRM、财务、商业合同、排期、报价继续不做。场地/设备管理�
 | [11_OPERATIONS.md](11_OPERATIONS.md) | 内部部署、AI开关、备份恢复和接管 |
 | [12_DECISIONS_CHANGELOG.md](12_DECISIONS_CHANGELOG.md) | 唯一阶段门、默认参数与决策表 |
 | [13_SOURCES.md](13_SOURCES.md) | 本轮输入指纹及继承的研究证据 |
-| [14_DOC_QA.md](14_DOC_QA.md) | 本轮实际文档检查，不冒充产品测试 |
+| [14_DOC_QA.md](14_DOC_QA.md) | 文档检查，不冒充产品测试 |
+| [15_TALENT_DOMAIN_2.md](15_TALENT_DOMAIN_2.md) | Talent 2.0 R1 冻结规格：Person/Talent边界、多来源、Role/Capability、时间事实、ExternalRef、Machine Actor、Agent Schema |
 | [AGENTS.md](AGENTS.md) | 编程 Agent 的阅读顺序和修改边界 |
 
-共16份Markdown（含本页）。旧 `09_STATES_PUBLISHING.md` 被 `09_STATES_WORKFLOWS.md` 替代；这是消除发布主线，不是只换标题。
+共17份Markdown（含本页）。Talent 2.0 R1 是 v0.5 的强制规格，不是另起一套模特/摄影/翻译系统。
 
 ## 5. 阅读与开始开发
 
-先读本页、PRD、开发文档、工作包；再读当前任务涉及的模型/API/状态章节。业务范围以本页和PRD为准；参数与阶段门只在12定义。发现矛盾先同步修正，不选择对自己更方便的一份执行。
+先读本页、PRD、开发文档、工作包与 `15_TALENT_DOMAIN_2.md`；再读当前任务涉及的模型/API/状态章节。业务范围以本页和PRD为准；参数与阶段门只在12定义。发现矛盾先同步修正，不选择对自己更方便的一份执行。
 
-开始 `DEV-00`，使用合成资料。代码复用资格仅约束来源代码移植；真实资料依据仅约束真实数据；AI供应商验证仅约束第三方真实调用。**没有任何官网条件阻止内部 OS 开发或一期验收。**
+历史 DEV-00～09 的实际完成情况只看 release 证据。当前顺序是：完成 DEV-09 恢复链 → 执行 R1 定义的 TD2-01～06 并通过 TD2-T01～18 → 再启动 DEV-08 AI。代码复用资格仅约束来源代码移植；真实资料依据仅约束真实数据；AI供应商验证仅约束第三方真实调用。**没有任何官网条件阻止内部 OS 开发或一期验收。**
 
 ## 6. 交付状态
 
-本轮只修改文档、建立映射并执行文档静态检查。没有新建ONCE仓库、修改SRVF、连接生产服务器、测试真实存储/AI、运行产品用例或部署。`SPEC_UPDATED` 表示规格已改；全部产品验收仍为 `NOT_RUN`。
+Talent 2.0 本轮是规格升级，不代表 schema migration、API、页面或产品测试已完成。已有产品实现证据不因本次规格修改失效；新增 TD2 能力均为 `NOT_IMPLEMENTED/NOT_RUN`，直到各实现 PR 提供真实数据库、浏览器、rebuild 与 recovery 证据。

@@ -1,3 +1,17 @@
+# Talent Domain 2.0 R1 规格变更验证｜2026-09-27
+
+本批仅文档/开发契约 R1 回填，没有运行新的 schema、PostgreSQL、浏览器或产品验收。状态：
+
+- TD2-01～06：NOT_IMPLEMENTED
+- TD2-T01～18：NOT_RUN
+- Person≠Talent / ExternalRef / ServicePrincipal / Casting/Measurement / Eligibility / Credential / Proposal 等：SPEC_ONLY
+- 既有测试结果：不重标、不扩大
+- 本批不得声称 Talent 2.0 R1 已实现
+
+实现阶段必须在指定 commit 上补真实 migration、旧库升级、新空库、PostgreSQL、浏览器、ServicePrincipal/ExternalRef/Proposal、Shortlist Role Context、merge/delete/export/rebuild/recovery 与 Agent Schema 测试证据。
+
+---
+
 # 实际测试与验证记录
 
 ## WP7｜DEV-07H / T29 隔离 JSON 重建

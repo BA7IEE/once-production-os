@@ -1,14 +1,14 @@
 # ONCE Production OS｜开发任务、追踪与内部验收
 
-版本：v0.3｜日期：2026-09-22｜当前范围：一期内部 OS + AI｜状态：文档已修订，产品实现和运行测试未执行
+版本：v0.5｜日期：2026-09-27｜当前范围：一期内部 OS + Talent Domain 2.0 R1 + AI｜状态：R1 新增能力未实现；历史实现状态以 release 证据为准
 
 ## 1. 当前开发节奏
 
-本版用DEV-00～DEV-11替代旧D00～D20，里程碑定义只在12。不是要求一次完成全部表和页面；每工作包拆成可演示的贯穿切片。所有工作包NOT_STARTED、产品用例NOT_RUN。
+DEV-00～DEV-11保留既有追踪编号。v0.5 对 TD2-01～06 做 R1 重定义，不增加第二套人才项目。规格状态不覆盖既有 release/CI 证据；TD2 R1 新增能力均为 NOT_IMPLEMENTED / NOT_RUN。
 
-M1验收包含DEV-07和DEV-09，因此内部试用前有必要维护/导出/恢复；M2是明确的内部AI，不是官网阶段。DEV-08与DEV-09在条件具备时可并行。没有任何站点调查或公开发布任务。
+M1验收包含DEV-07和DEV-09，因此内部试用前有必要维护/导出/恢复；M2仍是明确的内部AI，不是官网阶段。**v0.5 继续要求：先完成 DEV-09 当前恢复链，再通过 TD2-01～06 / TD2-T01～18 Gate，之后启动 DEV-08。**没有任何站点调查或公开发布任务。
 
-## 2. 当前12个工作包
+## 2. 既有12个工作包与TD2升级线
 
 | ID | 里程碑 | 交付 | 依赖 | 改动面 | 完成断言 | 状态 |
 |---|---|---|---|---|---|---|
@@ -20,14 +20,50 @@ M1验收包含DEV-07和DEV-09，因此内部试用前有必要维护/导出/恢�
 | DEV-05 | M1 | 作品、轻量项目与内部双语文本 | DEV-03, DEV-04 | works/projects/locale/admin | 署名正确；参考不计制作；内部复盘；中英修改不互相覆盖 | NOT_STARTED |
 | DEV-06 | M1 | 查询、内部候选清单与日常工作台 | DEV-05 | queries/shortlists/admin | 列表与统计同权限；候选清单不生成分享链接/预订/网站内容 | NOT_STARTED |
 | DEV-07 | M1 | 维护、内部导出、合并删除及依赖失效 | DEV-02, DEV-05, DEV-06 | maintenance/exports/use-policy | 旧导出逐依赖复查；JSON重建；删除不因快照不可变而失败 | NOT_STARTED |
-| DEV-08 | M2 | 有界 AI、建议采纳与成本控制 | DEV-02, DEV-05, DEV-06, DEV-07 | ai-assist/provider/admin | 四种任务；发送前Attempt落库；未知不重发；原子多选采纳 | NOT_STARTED |
+| DEV-08 | M2 | 有界 AI、建议采纳与成本控制 | DEV-02, DEV-05, DEV-06, DEV-07, TD2-06 | ai-assist/provider/admin | 四种任务；使用版本化Talent Schema；发送前Attempt落库；未知不重发；原子多选采纳 | NOT_STARTED |
 | DEV-09 | M1 | 部署、备份、恢复隔离与运行手册 | DEV-02, DEV-04, DEV-07 | ops/monitoring/runbooks | 无CMS配置启动；旧库恢复先隔离；账号停用/删除不自动复活 | NOT_STARTED |
-| DEV-10 | M3 | 端到端、故障与范围回归 | DEV-08, DEV-09 | tests/evidence | 22组当前需求+内部风险用例；关闭AI仍可完整人工工作 | NOT_STARTED |
+| DEV-10 | M3 | 端到端、故障与范围回归 | DEV-08, DEV-09, TD2-06 | tests/evidence | 22组当前FR + TD2-T01～18 + 内部风险用例；关闭AI仍可完整人工Talent R1工作 | NOT_STARTED |
 | DEV-11 | M3 | 真实样本试点、接管与文档交付 | DEV-10 | docs/release/measurement | 净用时实测；维护人能接管；无外部发布验收项 | NOT_STARTED |
+
+### Talent Domain 2.0 R1 必做切片
+
+| ID | 阶段 | 交付 | 依赖 | 完成断言 | 状态 |
+|---|---|---|---|---|---|
+| TD2-01 | M1扩展 | **Identity & Actor Foundation**：Person≠Talent、originSource、TalentProfile optional、ExternalRef、ServicePrincipal/ActorRef、前向迁移骨架 | DEV-07, DEV-09 | 普通联系人无需Talent；exact ref解析；Machine Actor不冒充人；稳定ID不变 | NOT_IMPLEMENTED |
+| TD2-02 | M1扩展 | **Role & Common Facts**：PersonRole、CapabilityDefinition/Capability、PersonLanguage、TalentLocation、AdultEligibility、Credential | TD2-01 | Role/Capability分离；语言等级/地点/资格有来源和时间；unknown code fail closed | NOT_IMPLEMENTED |
+| TD2-03 | M1扩展 | **Casting & Representation**：CastingProfile、MeasurementSet、size system、Representation | TD2-01, TD2-02 | MODEL/ACTOR/KOL共享casting事实；尺寸保留历史；代表关系可按Role/territory | NOT_IMPLEMENTED |
+| TD2-04 | M1扩展 | **Media & Role Context**：Collection type/tag、Shortlist.personRoleId、Translator语言对/服务模式、Crew组合模型 | TD2-02, TD2-03, DEV-04 | type/tag不混；Shortlist不丢Role；Translator可筛；不做一职业一表 | NOT_IMPLEMENTED |
+| TD2-05 | M1扩展 | **Search & Maintenance Wiring**：Search 2.0、Merge/Delete/Export/Rebuild/Recovery全接线 | TD2-02, TD2-03, TD2-04 | Role+Capability+Language+Location+Work+Collection查询；维护/恢复无盲区 | NOT_IMPLEMENTED |
+| TD2-06 | AI前置门 | **Schema & Agent Contract Gate**：Schema Registry、FieldProposal、Agent API/MCP契约、完整R1 Gate | TD2-05 | schemaVersion固定；unknown field/code拒绝；冲突不静默覆盖；TD2-T01～18全通过 | NOT_IMPLEMENTED |
 
 每项交付前端动作、后端契约、迁移/索引、权限/审计和失败路径；不得只交CRUD截图。责任为产品/全栈/测试/维护职责，不代表已指定人员或承诺固定工期。
 
 回滚原则：骨架可撤销；认证/权限不能回退到无鉴权；文件回滚不能全桶删除；业务关系用前滚修正；已删/受限状态不能被旧库恢复；AI停止新请求但保留未知费用。精确迁移回滚须每个PR附实际方案。
+
+## 2.1 TD2 R1 Gate 追加验收
+
+TD2 不复用旧 T01/T04/T14 冒充通过。R1 实现必须追加：
+
+- **TD2-T01｜Person ≠ Talent**：普通经纪人/客户联系人可有 Person 无 TalentProfile；创建Role前必须有TalentProfile。
+- **TD2-T02｜一人多Role**：MODEL+ACTOR+KOL始终一个Person；重复有效Role受约束。
+- **TD2-T03｜多来源与冲突**：originSource不是字段主来源；同值可多Evidence；冲突进入Proposal而非覆盖。
+- **TD2-T04｜ExternalRef**：exact ref唯一解析；姓名/头像不自动merge；冲突/撤回可处理。
+- **TD2-T05｜Machine Actor**：ServicePrincipal受scope/permission/default maintainer限制；revoke/rotate立即失效；审计显示机器身份。
+- **TD2-T06｜Capability Registry**：unknown capability/stale schema拒绝；GENERAL skill迁移不猜Role。
+- **TD2-T07｜Language / Location**：旧languageCodes不猜熟练度；BASE/SERVICE有来源与时间。
+- **TD2-T08｜Casting / Measurement**：Model/Actor共享CastingProfile；MeasurementSet保留历史；鞋/服装尺寸有system；旧height不反推MODEL。
+- **TD2-T09｜AdultEligibility**：UNKNOWN不满足成人限定；不从照片推断；最小证据不要求完整身份证/生日。
+- **TD2-T10｜Representation**：可按PersonRole+territory表达；历史不覆盖；Agent Person不自动变Talent。
+- **TD2-T11｜MediaCollection**：type与tag分离；Asset跨Collection/Work/Shortlist复用；删Collection不删Asset。
+- **TD2-T12｜Shortlist Role Context**：ShortlistItem保存personRoleId；多Role不猜；Role失效不静默切换。
+- **TD2-T13｜Translator / Crew**：Translator可按语言对/服务模式筛；摄影/剪辑等无需一职业一表。
+- **TD2-T14｜Credential**：Capability与Credential分离；过期不删历史；敏感编号不泄露普通DTO。
+- **TD2-T15｜Search 2.0**：Role+Capability+Language level+Location+Work+Collection组合查询；facet/计数/结果权限一致。
+- **TD2-T16｜Maintenance**：Merge/Delete/Export覆盖全部新关系，有真实PG preview/execute/rollback证据。
+- **TD2-T17｜Rebuild / Recovery**：旧库升级、新空库、T29 rebuild、DEV-09 DB+media backup/restore包含新模型。
+- **TD2-T18｜Agent Schema / Proposal**：unknown field/code/schemaVersion拒绝；无直写权只能proposal；source/target/schema变化使proposal stale。
+
+只有 TD2-T01～18 在指定实现 commit 上有真实证据，TD2-06 才可标记 Gate PASS。
 
 ## 3. FR与当前验收完整追踪
 
