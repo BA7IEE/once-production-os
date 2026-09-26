@@ -64,8 +64,14 @@ export function analyzeSafetyDeltas(state: SafetyJournalState, backupSequence: n
         const workspaceId=intent?.workspaceId??commit?.workspaceId??abort!.workspaceId;
         invariant([intent,commit,abort].filter(Boolean).every(x=>x!.workspaceId===workspaceId),
             'SAFETY_DELTA_INVALID','同一安全意图的 marker workspace 不一致',503);
-        if(intent&&abort) invariant(intent.resourceId===abort.resourceId,
-            'SAFETY_DELTA_INVALID','abort marker 资源标识与 intent 不一致',503);
+        if(intent&&commit) invariant(intent.seq < commit.seq,
+            'SAFETY_DELTA_INVALID','commit marker 不能早于对应 intent',503);
+        if(intent&&abort) {
+            invariant(intent.seq < abort.seq,
+                'SAFETY_DELTA_INVALID','abort marker 不能早于对应 intent',503);
+            invariant(intent.resourceId===abort.resourceId,
+                'SAFETY_DELTA_INVALID','abort marker 资源标识与 intent 不一致',503);
+        }
         const resourceId=commit?.resourceId??intent?.resourceId??abort!.resourceId;
 
         if(commit){
