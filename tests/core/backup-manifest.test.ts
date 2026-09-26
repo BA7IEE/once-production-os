@@ -53,5 +53,8 @@ test('DEV-09C backup manifest detects JSON tampering and unsafe permissions',asy
 
         writeFileSync(path,JSON.stringify(manifest)+'\n',{mode:0o600});chmodSync(path,0o644);
         await assert.rejects(readBackupManifest(path));
+        chmodSync(path,0o600);
+        chmodSync(dump,0o644);
+        await assert.rejects(sha256File(dump));
     }finally{rmSync(root,{recursive:true,force:true});}
 });
