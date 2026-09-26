@@ -89,9 +89,16 @@ export class JsonRebuild {
         }
         for (const row of [...people, ...works, ...projects])
             invariant(sourceIds.has(row.sourceId), 'REBUILD_SOURCE_MISSING', '业务对象引用的来源没有包含在重建清单中', 422);
+        const assetIdentity = new Map<string,string>();
         for (const row of media) {
             invariant(workIds.has(row.workId) && sourceIds.has(row.sourceId), 'REBUILD_MEDIA_REFERENCE_INVALID',
                 '媒体身份必须引用本次导出的作品和来源', 422);
+            const identityDigest = digest({ sourceId: row.sourceId, revision: row.revision, fileName: row.fileName,
+                mime: row.mime, bytes: row.bytes, sha256: row.sha256, width: row.width, height: row.height });
+            const previous = assetIdentity.get(row.id);
+            invariant(!previous || previous === identityDigest, 'REBUILD_MEDIA_IDENTITY_CONFLICT',
+                '同一媒体 ID 在不同作品中的身份元数据不一致', 422);
+            assetIdentity.set(row.id, identityDigest);
         }
 
         const referencedSources = new Set([
@@ -101,12 +108,19 @@ export class JsonRebuild {
             '来源清单包含没有被本次业务图引用的记录', 422);
 
         for (const row of people) {
+            invariant(unique(row.data.roles).length === row.data.roles.length
+                && unique(row.data.languageCodes ?? []).length === (row.data.languageCodes ?? []).length
+                && unique(row.data.skillCodes ?? []).length === (row.data.skillCodes ?? []).length,
+                'REBUILD_DUPLICATE_CODE', '人才分类字段包含重复代码，不能静默归一化重建', 422);
             await this.catalog(tx, actor, 'role', row.data.roles);
             if (row.data.cityCode) await this.catalog(tx, actor, 'city', [row.data.cityCode]);
             await this.catalog(tx, actor, 'language', row.data.languageCodes ?? []);
             await this.catalog(tx, actor, 'skill', row.data.skillCodes ?? []);
         }
         for (const row of works) {
+            invariant(row.data.title.trim().length > 0, 'REBUILD_TITLE_REQUIRED', '作品标题去除空白后不能为空', 422);
+            invariant(unique(row.data.workTypeCodes ?? []).length === (row.data.workTypeCodes ?? []).length,
+                'REBUILD_DUPLICATE_CODE', '作品类型包含重复代码，不能静默归一化重建', 422);
             invariant(row.data.status !== 'ACTIVE', 'REBUILD_MEDIA_BYTES_REQUIRED',
                 'ACTIVE 作品需要真实媒体字节与封面；当前 JSON 只有媒体身份清单，不能伪造 ACTIVE 作品', 409);
             invariant(row.data.origin !== 'ONCE' || (row.data.originNote ?? '').trim().length >= 4,
@@ -114,6 +128,9 @@ export class JsonRebuild {
             if (row.data.industryCode) await this.catalog(tx, actor, 'industry', [row.data.industryCode]);
             await this.catalog(tx, actor, 'workType', row.data.workTypeCodes ?? []);
         }
+
+        for (const row of projects)
+            invariant(row.data.title.trim().length > 0, 'REBUILD_TITLE_REQUIRED', '项目标题去除空白后不能为空', 422);
 
         uniqueBy(relations.workCredits, x => x.workId + ':' + x.personId + ':' + x.roleCode,
             'REBUILD_DUPLICATE_RELATION', '作品署名关系重复');
