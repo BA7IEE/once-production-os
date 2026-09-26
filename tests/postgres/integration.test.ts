@@ -471,7 +471,7 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
             const search = result(await ownerA.raw('GET', '/talent-search?q=' + encodeURIComponent('PG merge duplicate')));
             const encoded = JSON.stringify(search);
             assert.equal(encoded.includes(duplicateId), false, 'old alias id must not re-enter SQL talent search');
-            assert.equal(encoded.includes(canonicalId), true, 'canonical identity remains searchable by merged name alias');
+            assert.equal(encoded.includes(canonicalId), false, 'a name supported only by the duplicate Source must not be re-attributed to canonical search aliases');
         });
 
         await runProductionContracts(t, { a, b, storeA, ownerA, ownerB, appA, config, clock, identity });
