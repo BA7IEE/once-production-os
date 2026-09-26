@@ -36,3 +36,18 @@ test('per-attempt final paths prevent delayed worker from replacing successful p
 test('atomic terminal purge prevents an old worker from recreating final group',async()=>{const f=await setup();try{const claim=await f.app.media.claim();await f.owner.cmd('POST','/uploads/'+f.id+'/cancel',{expectedRevision:claim.revision});f.clock.advance(86400001);await f.worker.cycle(new AbortController().signal);assert.ok(f.store.rows('uploads')[0].purgedAt);await assert.rejects(f.provider.seal(claim,new AbortController().signal));await assert.rejects(stat(f.provider.group(f.id)));}finally{await f.cleanup();}});
 test('provider rejects path traversal IDs and symlink roots',async()=>{const root=await mkdtemp(join(tmpdir(),'once-media-paths-'));try{const p=await LocalMediaProvider.create(join(root,'store'));assert.throws(()=>p.group('../../outside'));await symlink(join(root,'store'),join(root,'link'));await assert.rejects(LocalMediaProvider.create(join(root,'link')));}finally{await rm(root,{recursive:true,force:true});}});
 test('stream byte limit cuts oversize receive and cannot rewrite the same staging key',async()=>{const f=await setup();try{await assert.rejects(f.provider.receive(f.receiving,Readable.from([f.bytes]),new AbortController().signal));const u={...f.receiving,id:randomUUID(),expectedBytes:2,expectedHash:digest(Buffer.from('ok'))};await assert.rejects(f.provider.receive(u,Readable.from([Buffer.from('overflow')]),new AbortController().signal));assert.ok((await stat(f.provider.staging(u))).size<=2);}finally{await f.cleanup();}});
+
+test('restore-check opens existing media read-only and verifies original plus preview digests',async()=>{const f=await setup();try{
+ await f.worker.cycle(new AbortController().signal);const a=f.store.rows('assets')[0];assert.ok(a);
+ const before=(await stat(join(f.root,'.once-private-media-v1'))).mtimeMs;
+ const reopened=await LocalMediaProvider.openExisting(f.root);
+ await reopened.verifyAsset(a);
+ assert.equal((await stat(join(f.root,'.once-private-media-v1'))).mtimeMs,before);
+ const original=join(reopened.work(a.uploadId,a.objectToken),'original.bin');
+ await chmod(original,0o600);await writeFile(original,Buffer.alloc(a.bytes));
+ await assert.rejects(reopened.verifyAsset(a));
+}finally{await f.cleanup();}});
+test('restore-check opener refuses an unregistered root without initializing it',async()=>{const root=await mkdtemp(join(tmpdir(),'once-media-restore-empty-'));try{
+ await assert.rejects(LocalMediaProvider.openExisting(root));
+ await assert.rejects(stat(join(root,'.once-private-media-v1')));
+}finally{await rm(root,{recursive:true,force:true});}});
