@@ -1,3 +1,21 @@
+# v0.4 Talent Domain 2.0 规格状态｜2026-09-26
+
+本分支 `spec/talent-domain-2` 基于 DEV-09D / PR #22 head `c0768330d21f0fddf2853e96417d101eaa2bfbe9`。本批只冻结 Talent Domain 2.0 产品/数据/开发契约，**没有修改 Prisma schema、迁移、API、页面或运行时**。
+
+新增实现状态：
+
+| 项目 | 状态 |
+|---|---|
+| Talent 2.0 规格 | SPEC_UPDATED |
+| TD2-01～06 | NOT_IMPLEMENTED |
+| TD2-T01～12 | NOT_RUN |
+| DEV-08 人才AI | 保持未启动；TD2-06 Gate 前不得启动正式契约 |
+| 既有 DEV-00～09 证据 | 不因本规格变更扩大或失效；以各自 release/PR/CI 为准 |
+
+当前顺序冻结为：**完成 DEV-09 恢复链 → TD2-01～06 → DEV-08 AI**。详细见 `docs/spec/15_TALENT_DOMAIN_2.md` 与 `TALENT_DOMAIN_2_PLAN.md`。
+
+---
+
 # 当前实现状态｜DEV-07H / T29 隔离 JSON 重建完成
 
 应用 `0.1.0-dev.1`。当前分支 `feat/json-rebuild`，PR #18，基于 `feat/person-merge` / PR #17。
