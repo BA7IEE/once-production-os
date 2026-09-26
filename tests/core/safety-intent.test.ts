@@ -66,6 +66,23 @@ test('DEV-09D safety-critical API fails closed before DB mutation when intent fs
     assert.equal(sink.rows[1]!.resourceId,sourceId);
 });
 
+test('DEV-09D every authenticated COMMAND/SECRET mutation is write-ahead protected by default',async()=>{
+    const sink=new IntentSink(),f=await system(sink);
+    const person=await f.owner.cmd('POST','/people',{
+        displayName:'write-ahead default person',roles:['model'],inlineSource:sourceInput()
+    });
+    assert.equal(person.status,201,JSON.stringify(person.body));
+    const work=await f.owner.cmd('POST','/works',{
+        title:'write-ahead default work',inlineSource:sourceInput()
+    });
+    assert.equal(work.status,201,JSON.stringify(work.body));
+    assert.ok(sink.rows.some(x=>x.operation==='person.create'));
+    assert.ok(sink.rows.some(x=>x.operation==='work.create'));
+    const before=sink.rows.length;
+    await f.owner.raw('GET','/people/'+result(person).resourceId);
+    assert.equal(sink.rows.length,before,'READ route must remain outside write-ahead journal');
+});
+
 test('DEV-09D idempotent command retries derive the same write-ahead intent id',async()=>{
     const sink=new IntentSink(),f=await system(sink),key=randomUUID(),body=sourceInput();
     const first=await f.owner.cmd('POST','/sources',body,key);
