@@ -2,21 +2,35 @@
 
 ## 事实顺序
 
-先读 `docs/release/WP9_RECOVERY_WRITEAHEAD_MEDIA.md` → `WP8_RECOVERY_ZERO_DELTA.md` → `WP7_JSON_REBUILD.md` → `WP6_PERSON_MERGE.md` → `IMPLEMENTATION_STATUS.md` → `TEST_REPORT.md` → 当前 PR 最终 head 对应 Actions，再读历史 WP 与 `docs/spec/06_DEVELOPMENT.md`。
+先读 `docs/release/TALENT_DOMAIN_2_PLAN.md` → `docs/spec/15_TALENT_DOMAIN_2.md` → `docs/release/WP9_RECOVERY_WRITEAHEAD_MEDIA.md` → `WP8_RECOVERY_ZERO_DELTA.md` → `WP7_JSON_REBUILD.md` → `WP6_PERSON_MERGE.md` → `IMPLEMENTATION_STATUS.md` → `TEST_REPORT.md` → 当前 PR 最终 head 对应 Actions，再读历史 WP 与 `docs/spec/06_DEVELOPMENT.md`。
 
 规格文档是输入事实，不自动等于实现状态；当前代码、前向迁移、生成契约和真实 CI 优先。
 
 ## 当前冻结点
 
-- 分支：`feat/recovery-writeahead-media`
-- PR：#22
-- 功能冻结 head：`9cc30cf71dc4e6fc97bd81f2308dd884a267c230`
+- 规格分支：`spec/talent-domain-2-v2`
+- 规格 PR：待创建，基于 `feat/recovery-writeahead-media` / PR #22
+- DEV-09D 功能冻结 head：`9cc30cf71dc4e6fc97bd81f2308dd884a267c230`
 - Actions：`36249594313`，5/5 全绿
 - routes：103
 - core / transport：295/295
 - 原 PG：67/67
 - 真 pg_dump/pg_restore + private media：PASS
 - browser-resume / handoff / media / production：全部 success
+- Talent Domain 2.0：SPEC_UPDATED；TD2-01～06 NOT_IMPLEMENTED；TD2-T01～12 NOT_RUN
+
+## Talent Domain 2.0 新不变量
+
+1. 一个现实人物只有一个 Person；多职业使用 PersonRole，不复制人物。
+2. Role 表达职业，Capability 表达能力，不能用无限细分 Role 代替能力模型。
+3. 所有人共用 TalentProfile；专属 profile 只按真实结构化需求增加。
+4. 首批完整专属结构为 ModelProfile；Translator 使用语言对/服务模式；Creative/Crew 优先 Role + Capability + Work。
+5. Asset 是文件、MediaCollection 是组织方式、Work 是真实作品；同一 Asset 可复用但不复制物理对象。
+6. Agent/Agency/booking 使用 Representation 类型化关系，不塞进备注。
+7. Agent/AI 必须读取版本化 Talent Schema；未知字段/code/schemaVersion fail closed。
+8. 当前 Person.roles[] / skillCodes[] / heightCm 只是迁移输入；只允许追加前向迁移，稳定 Person/Work/Project/Asset ID 不变。
+9. TD2-01～06 未完成前，不启动正式 extract_profile / suggest_tags / parse_search 人才写入契约。
+10. Merge/Delete/Export/Rebuild/Recovery 必须覆盖所有新增 TD2 关系，不能形成维护盲区。
 
 ## DEV-09D 不变量
 
@@ -46,9 +60,9 @@ post-backup intent 目前只用于**保守阻断**，还没有形成完整 resol
 - 哪些需要人工处理/重新执行；
 - 如何将处理结果纳入 approval evidence。
 
-## 下一步：DEV-09E Safety Delta Resolution
+## 下一步：先 DEV-09E，再 Talent Domain 2.0，再 AI
 
-目标：
+DEV-09E Safety Delta Resolution 目标：
 
 1. Safety Journal 为 write-ahead intent 增加可验证 completion marker；
 2. 事务成功后记录 COMMITTED；失败不伪造 commit；
@@ -59,4 +73,6 @@ post-backup intent 目前只用于**保守阻断**，还没有形成完整 resol
 7. unresolved intent（没有 commit marker）同样 blocker；
 8. 非零 delta approval 必须绑定 resolution digest。
 
-不要提前启动 DEV-08 AI，也不要把 unresolved journal delta 人工勾选为忽略。
+DEV-09 整体 Gate 关闭后，按 `TD2-01 → TD2-02/03/04 → TD2-05 → TD2-06` 推进，完成 TD2-T01～12，再进入 DEV-08 AI。
+
+不要提前启动 DEV-08 AI，不要把 unresolved journal delta 人工勾选为忽略，也不要为了新职业建立“一职业一套人才库”。
