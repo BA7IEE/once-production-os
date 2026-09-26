@@ -1,0 +1,31 @@
+name: TD2 source snapshot
+on:
+  push:
+    branches: [feat/talent-domain-2]
+    paths: [.github/workflows/td2-review-source.yml]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          path: implementation
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          ref: 54166a6f0f6753863d17f083a533b2cad5a9b3c2
+          path: specification
+      - name: Archive tracked sources only
+        run: |
+          mkdir -p "$RUNNER_TEMP/td2-source"
+          git -C implementation archive --format=zip HEAD -o "$RUNNER_TEMP/td2-source/implementation.zip"
+          git -C specification archive --format=zip HEAD docs -o "$RUNNER_TEMP/td2-source/specification.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: td2-pinned-sources
+          path: ${{ runner.temp }}/td2-source/
+          retention-days: 1
