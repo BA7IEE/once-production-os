@@ -7,10 +7,12 @@ export interface SafetyIntent {
 }
 export interface SafetyIntentSink {
     writeAhead(intent: SafetyIntent): Promise<void>;
+    committed(intent: SafetyIntent, resourceId: string): Promise<void>;
+    aborted(intent: SafetyIntent): Promise<void>;
 }
 
 /**
- * Recovery zero-delta approval is conservative by design: every authenticated mutation must
+ * Recovery delta accounting is conservative by design: every authenticated mutation must
  * be represented outside the database before the mutation starts. This avoids a brittle
  * operation allowlist and automatically protects future COMMAND/SECRET routes.
  */
