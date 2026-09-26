@@ -230,6 +230,27 @@ test('DEV-07H T29 refuses to merge into an already-used target', async () => {
     assert.deepEqual(businessCounts(f), before);
 });
 
+test('DEV-07H T29 allows target-local catalog preparation through normal commands', async () => {
+    const f = await fixture();
+    const industry = await f.owner.cmd('POST', '/catalog/items', {
+        namespace: 'industry', code: 'rebuild_industry', labelZh: '重建行业', labelEn: 'Rebuild industry'
+    });
+    const workType = await f.owner.cmd('POST', '/catalog/items', {
+        namespace: 'workType', code: 'rebuild_work_type', labelZh: '重建作品类型', labelEn: 'Rebuild work type'
+    });
+    assert.equal(industry.status, 201);
+    assert.equal(workType.status, 201);
+    assert.ok(f.store.rows('receipts').length >= 2, 'normal catalog preparation writes command receipts');
+
+    const payload: any = rebuildablePayload();
+    payload.manifest.works[0].data.industryCode = 'rebuild_industry';
+    payload.manifest.works[0].data.workTypeCodes = ['rebuild_work_type'];
+    const summary = await apply(f, payload);
+    assert.equal(summary.counts.works, 3);
+    assert.equal(f.store.rows('works')[0]!.industryCode, 'rebuild_industry');
+    assert.deepEqual(f.store.rows('works')[0]!.workTypeCodes, ['rebuild_work_type']);
+});
+
 test('DEV-07H T29 audit failure rolls the complete rebuild transaction back', async () => {
     const f = await fixture();
     const beforeAudits = f.store.rows('audits').length;
