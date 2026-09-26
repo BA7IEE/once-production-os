@@ -17,6 +17,9 @@ function args() {
     const list = process.argv.slice(2);
     for (let i = 0; i < list.length; i++) {
         const arg = list[i];
+        // pnpm/npm use a standalone "--" as the script-argument separator. Depending on
+        // invocation/version it may still appear in process.argv; treat it as syntax, not input.
+        if (arg === '--') continue;
         if (arg === '--apply') out.apply = true;
         else if (arg === '--input') out.input = list[++i];
         else if (arg === '--actor-login') out.actorLogin = list[++i];
