@@ -25,7 +25,8 @@ export interface BackupManifest extends BackupManifestBody {
 
 export async function sha256File(path: string): Promise<{ bytes: number; sha256: string }> {
     const info = await stat(path);
-    invariant(info.isFile(), 'BACKUP_FILE_INVALID', '备份数据库文件不存在或不是普通文件', 503);
+    invariant(info.isFile() && (info.mode & 0o077) === 0,
+        'BACKUP_FILE_INVALID', '备份数据库文件必须是仅当前账号可访问的普通文件', 503);
     const hash = createHash('sha256');
     let bytes = 0;
     await new Promise<void>((resolvePromise, reject) => {
