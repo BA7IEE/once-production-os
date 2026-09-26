@@ -185,6 +185,8 @@ test('DEV-07H T29 apply preserves exported business ids and relations while rebi
     assert.equal(f.store.rows('receipts').length, 0);
     assert.equal(f.store.rows('audits').length, auditsBefore + 1);
     assert.equal(f.store.rows('audits').at(-1)!.action, 'rebuild.apply');
+    assert.equal(f.store.rows('audits').at(-1)!.resourceKind, 'rebuild-export');
+    assert.equal(f.store.rows('audits').at(-1)!.resourceId, payload.exportId);
 
     const restored = await f.owner.raw('GET', '/people/' + payload.manifest.people[0]!.id);
     assert.equal(restored.status, 200, JSON.stringify(restored.body));
@@ -262,12 +264,6 @@ test('DEV-07H T29 rejects states normal record APIs would not create', async () 
         ['REBUILD_TITLE_REQUIRED', (p: any) => { p.manifest.projects[0].data.title = '   '; }]
     ] as Array<[string, (p: any) => void]>) {
         const f = await fixture();
-        if (code === 'REBUILD_DUPLICATE_CODE' && mutate.toString().includes('product_photo')) {
-            const created = await f.owner.cmd('POST', '/catalog/items', {
-                namespace: 'workType', code: 'product_photo', labelZh: '产品摄影', labelEn: 'Product photo'
-            });
-            assert.equal(created.status, 201);
-        }
         const payload: any = rebuildablePayload();
         mutate(payload);
         await assert.rejects(preview(f, payload), (e: unknown) => e instanceof AppError && e.code === code);
