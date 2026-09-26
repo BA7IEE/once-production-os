@@ -1,16 +1,16 @@
-# v0.4 Talent Domain 2.0 规格状态｜2026-09-26
+# v0.5 Talent Domain 2.0 R1 规格状态｜2026-09-27
 
-本规格分支 `spec/talent-domain-2-v2` 叠加在 DEV-09D / PR #22 最新基线上。本批只冻结 Talent Domain 2.0 产品/数据/开发契约，**没有修改 Prisma schema、迁移、API、页面或运行时**。
+本规格分支 `spec/talent-domain-2-v2` 叠加在 DEV-09 / PR #22 基线上。R1 已把对抗审查发现全部回填进产品/数据/API/状态/运维/Backlog契约，**仍没有修改 Prisma schema、迁移、API、页面或运行时**。
 
 | 项目 | 状态 |
 |---|---|
-| Talent 2.0 规格 | SPEC_UPDATED |
+| Talent 2.0 R1 规格 | SPEC_UPDATED / REFROZEN_CANDIDATE |
 | TD2-01～06 | NOT_IMPLEMENTED |
-| TD2-T01～12 | NOT_RUN |
+| TD2-T01～18 | NOT_RUN |
 | DEV-08 人才AI | 保持未启动；TD2-06 Gate 前不得启动正式契约 |
 | DEV-09 | 继续按当前证据推进 09E，不被本规格PR打断 |
 
-当前顺序冻结为：**完成 DEV-09 恢复链 → TD2-01～06 → DEV-08 AI**。详细见 `docs/spec/15_TALENT_DOMAIN_2.md` 与 `TALENT_DOMAIN_2_PLAN.md`。
+当前顺序重新冻结为：**完成 DEV-09 恢复链 → TD2-01～06 → TD2-T01～18 → DEV-08 AI**。详细见 `docs/spec/15_TALENT_DOMAIN_2.md` 与 `TALENT_DOMAIN_2_PLAN.md`。
 
 ---
 
