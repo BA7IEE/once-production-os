@@ -39,7 +39,7 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
         const clock = new FakeClock();
         const config: Config = { origin: 'https://postgres.test.invalid', secureCookies: true,
             contactKey: randomBytes(32), csrfKey: randomBytes(32), recoveryEpoch: randomBytes(24).toString('hex'),
-            accessMode: 'INTERNAL', dataEgressMode: 'INTERNAL_APPROVED', dataCleanupMode: 'INTERNAL_APPROVED', environment: 'test', mediaEnabled: true };
+            accessMode: 'INTERNAL', dataEgressMode: 'INTERNAL_APPROVED', dataCleanupMode: 'INTERNAL_APPROVED', dataMergeMode: 'INTERNAL_APPROVED', environment: 'test', mediaEnabled: true };
         const appA = new Application(storeA, config, clock);
         const appB = new Application(storeB, config, clock);
         const identity = await appA.identity.bootstrap('owner', '仅限合成测试管理员', SYNTHETIC_PASSWORD);
@@ -375,6 +375,105 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
                 assert.equal(await a.mediaAsset.count({ where: { id } }), 1);
             });
         }
+        await t.test('DEV-07G PG merge persists one decision/alias, replay is singular and old id resolves read-only', async () => {
+            const canonicalCreated = await ownerA.cmd('POST', '/people', {
+                displayName: 'PG merge canonical', roles: ['model'], inlineSource: sourceInput()
+            });
+            const duplicateCreated = await ownerA.cmd('POST', '/people', {
+                displayName: 'PG merge duplicate', roles: ['model'], inlineSource: sourceInput()
+            });
+            assert.equal(canonicalCreated.status, 201);
+            assert.equal(duplicateCreated.status, 201);
+            const canonicalId = String(result(canonicalCreated).resourceId);
+            const duplicateId = String(result(duplicateCreated).resourceId);
+            const canonical = result(await ownerA.raw('GET', '/people/' + canonicalId));
+            const duplicate = result(await ownerA.raw('GET', '/people/' + duplicateId));
+            const previewResponse = await ownerA.raw('POST', '/people/merge-preview', {
+                canonicalId, duplicateId,
+                expectedCanonicalRevision: canonical.revision,
+                expectedDuplicateRevision: duplicate.revision
+            });
+            assert.equal(previewResponse.status, 200, JSON.stringify(previewResponse.body));
+            const preview = result(previewResponse);
+            assert.equal(preview.complete, true);
+            const input = {
+                canonicalId, duplicateId,
+                expectedCanonicalRevision: preview.canonical.revision,
+                expectedDuplicateRevision: preview.duplicate.revision,
+                previewDigest: preview.previewDigest,
+                fieldDecisions: preview.fieldConflicts.map((x: any) => ({ field: x.field, choice: 'CANONICAL' })),
+                collisionDecisions: preview.collisions.map((x: any) => ({ collisionId: x.id, choice: 'KEEP_CANONICAL' })),
+                acknowledgeRevocations: true,
+                acknowledgeMediaDetach: true,
+                reason: 'PG synthetic explicit identity merge'
+            };
+            const key = randomUUID();
+            const merged = await ownerA.cmd('POST', '/people/merge', input, key);
+            assert.equal(merged.status, 200, JSON.stringify(merged.body));
+            const decisionId = String(result(merged).resourceId);
+            assert.equal(await a.personMergeDecision.count({ where: { workspaceId: identity.workspaceId, duplicatePersonId: duplicateId } }), 1);
+            assert.equal(await a.personAlias.count({ where: { workspaceId: identity.workspaceId, oldPersonId: duplicateId, canonicalPersonId: canonicalId } }), 1);
+            assert.equal((await a.person.findUniqueOrThrow({ where: { id: duplicateId } })).status, 'ARCHIVED');
+
+            const oldRead = result(await ownerA.raw('GET', '/people/' + duplicateId));
+            assert.equal(oldRead.id, canonicalId);
+            assert.equal(oldRead.resolvedFromId, duplicateId);
+            const oldWrite = await ownerA.cmd('PATCH', '/people/' + duplicateId, {
+                expectedRevision: (await a.person.findUniqueOrThrow({ where: { id: duplicateId } })).revision,
+                intro: 'must not write through old id'
+            });
+            assert.ok([404, 409].includes(oldWrite.status), JSON.stringify(oldWrite.body));
+
+            const replay = await ownerB.cmd('POST', '/people/merge', input, key);
+            assert.equal(replay.status, 200, JSON.stringify(replay.body));
+            assert.equal(result(replay).resourceId, decisionId);
+            assert.equal(result(replay).replayed, true);
+            assert.equal(await a.personMergeDecision.count({ where: { workspaceId: identity.workspaceId, duplicatePersonId: duplicateId } }), 1);
+            assert.equal(await a.personAlias.count({ where: { workspaceId: identity.workspaceId, oldPersonId: duplicateId } }), 1);
+
+            const alias = await a.personAlias.findFirstOrThrow({ where: { workspaceId: identity.workspaceId, oldPersonId: duplicateId } });
+            await assert.rejects(a.personAlias.update({ where: { id: alias.id }, data: {
+                updatedAt: new Date(alias.updatedAt.getTime() + 1000)
+            } }), /person merge history is append-only/);
+            await assert.rejects(a.personAlias.delete({ where: { id: alias.id } }), /person merge history is append-only/);
+            assert.equal((await a.personAlias.findUniqueOrThrow({ where: { id: alias.id } })).canonicalPersonId, canonicalId);
+
+            const decision = await a.personMergeDecision.findUniqueOrThrow({ where: { id: decisionId } });
+            await assert.rejects(a.personMergeDecision.update({ where: { id: decision.id }, data: { resultDigest: '0'.repeat(64) } }), /person merge history is append-only/);
+            await assert.rejects(a.personMergeDecision.delete({ where: { id: decision.id } }), /person merge history is append-only/);
+            await assert.rejects(a.personMergeDecision.create({ data: {
+                ...decision,
+                id: randomUUID(),
+                decisionManifest: decision.decisionManifest as Prisma.InputJsonValue
+            } }));
+            assert.equal(await a.personMergeDecision.count({ where: { workspaceId: identity.workspaceId, duplicatePersonId: duplicateId } }), 1);
+
+            const forgedCreated = await ownerA.cmd('POST', '/people', {
+                displayName: 'PG forged merge identity', roles: ['model'], inlineSource: sourceInput()
+            });
+            assert.equal(forgedCreated.status, 201);
+            const forgedId = String(result(forgedCreated).resourceId);
+            await a.person.update({ where: { id: forgedId }, data: { status: 'ARCHIVED' } });
+            const now = clock.now();
+            await assert.rejects(a.personAlias.create({ data: {
+                id: randomUUID(), workspaceId: identity.workspaceId, createdAt: now, updatedAt: now, revision: 1,
+                oldPersonId: forgedId, canonicalPersonId: canonicalId, mergeDecisionId: decisionId
+            } }));
+            await assert.rejects(a.personMergeDecision.create({ data: {
+                ...decision,
+                id: randomUUID(),
+                duplicatePersonId: forgedId,
+                duplicateSourceId: decision.canonicalSourceId,
+                decisionManifest: decision.decisionManifest as Prisma.InputJsonValue
+            } }));
+            assert.equal(await a.personAlias.count({ where: { workspaceId: identity.workspaceId, oldPersonId: forgedId } }), 0);
+
+            const search = result(await ownerA.raw('GET', '/talent-search?q=' + encodeURIComponent('PG merge duplicate')));
+            const encoded = JSON.stringify(search);
+            assert.equal(encoded.includes(duplicateId), false, 'old alias id must not re-enter SQL talent search');
+            assert.equal(encoded.includes(canonicalId), false, 'a name supported only by the duplicate Source must not be re-attributed to canonical search aliases');
+        });
+
         await runProductionContracts(t, { a, b, storeA, ownerA, ownerB, appA, config, clock, identity });
     }
     finally {

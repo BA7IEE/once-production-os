@@ -21,7 +21,7 @@ const prisma = new PrismaClient({ datasources: { db: { url: raw } }, log: [] });
 const tmp = mkdtempSync(join(tmpdir(), 'once-works-projects-'));
 const password = 'Synthetic-' + randomBytes(20).toString('base64url') + '!';
 const put = (name, text) => { const path = join(tmp, name); writeFileSync(path, text, { mode: 0o600 }); return path; };
-const env = { ...process.env, DATABASE_URL: raw, APP_ENV: 'test', ACCESS_MODE: 'INTERNAL', DATA_EGRESS_MODE: 'INTERNAL_APPROVED', DATA_CLEANUP_MODE: 'INTERNAL_APPROVED', COOKIE_SECURE: 'false', HOST: '127.0.0.1',
+const env = { ...process.env, DATABASE_URL: raw, APP_ENV: 'test', ACCESS_MODE: 'INTERNAL', DATA_EGRESS_MODE: 'INTERNAL_APPROVED', DATA_CLEANUP_MODE: 'INTERNAL_APPROVED', DATA_MERGE_MODE: 'INTERNAL_APPROVED', COOKIE_SECURE: 'false', HOST: '127.0.0.1',
     CONTACT_KEY_FILE: put('contact.hex', randomBytes(32).toString('hex')), CSRF_KEY_FILE: put('csrf.hex', randomBytes(32).toString('hex')),
     RECOVERY_EPOCH_FILE: put('recovery.epoch', randomBytes(24).toString('hex')), BOOTSTRAP_LOGIN: 'owner', BOOTSTRAP_NAME: 'WP1合成管理员',
     BOOTSTRAP_PASSWORD_FILE: put('bootstrap.password', password) };
@@ -338,5 +338,44 @@ try {
  assert.equal(await getStatus(owner,'/assets/'+purgeUpload.resourceId),404);
  await purgeDetail.getByText('删除流程已完成',{exact:true}).waitFor();
  console.log('PASS DEV-07F media: local original/preview directory physically purged before ERASED media headers and COMPLETED request');
+
+ // DEV-07G: controlled Person merge is an explicit browser workflow; same-name/similar people are never auto-merged.
+ const mergeCanonicalId=(await cmd(owner,'POST','/people',{displayName:'DEV07G主档案',roles:['model'],inlineSource:source('DEV07G主档案来源')},201)).resourceId;
+ const mergeDuplicateId=(await cmd(owner,'POST','/people',{displayName:'DEV07G重复档案',roles:['model'],inlineSource:source('DEV07G重复档案来源')},201)).resourceId;
+ assert.equal(await prisma.person.count({where:{id:{in:[mergeCanonicalId,mergeDuplicateId]}}}),2);
+ await owner.getByRole('button',{name:/人才合并/}).click();
+ const mergeHeading=owner.getByRole('heading',{name:'人才合并',exact:true});await mergeHeading.waitFor();
+ const mergePickers=owner.locator('.merge-picker');
+ const canonicalPicker=mergePickers.nth(0),duplicatePicker=mergePickers.nth(1);
+ const canonicalSearch=owner.waitForResponse(r=>r.request().method()==='GET'&&r.url().includes('/api/v1/people?')&&r.url().includes('q=DEV07G'));
+ await canonicalPicker.getByLabel('主档案（保留）',{exact:true}).fill('DEV07G主档案');
+ const canonicalSearchResponse=await canonicalSearch;assert.equal(canonicalSearchResponse.status(),200);
+ assert.ok((await canonicalSearchResponse.json()).items.some(x=>x.id===mergeCanonicalId));
+ await canonicalPicker.getByRole('button',{name:/DEV07G主档案/}).click();
+ const duplicateSearch=owner.waitForResponse(r=>r.request().method()==='GET'&&r.url().includes('/api/v1/people?')&&r.url().includes('q=DEV07G'));
+ await duplicatePicker.getByLabel('重复档案（归档并建立旧 ID 映射）',{exact:true}).fill('DEV07G重复档案');
+ const duplicateSearchResponse=await duplicateSearch;assert.equal(duplicateSearchResponse.status(),200);
+ assert.ok((await duplicateSearchResponse.json()).items.some(x=>x.id===mergeDuplicateId));
+ await duplicatePicker.getByRole('button',{name:/DEV07G重复档案/}).click();
+ await writeUI(owner,'POST','/people/merge-preview',()=>owner.getByRole('button',{name:'预览合并影响',exact:true}).click());
+ await owner.getByText('影响扫描完整，可以继续人工决策',{exact:true}).waitFor();
+ await owner.getByText('两条档案的主来源不同',{exact:true}).waitFor();
+ await owner.getByRole('heading',{name:'字段冲突',exact:true}).waitFor();
+ await owner.getByLabel('字段决定 displayName',{exact:true}).selectOption('CANONICAL');
+ await owner.getByLabel('合并依据 *',{exact:true}).fill('合成测试：人工核对两条档案属于同一人才，只保留主档案身份');
+ owner.once('dialog',dialog=>void dialog.accept());
+ const mergeReceipt=await writeUI(owner,'POST','/people/merge',()=>owner.getByRole('button',{name:'执行受控合并',exact:true}).click());
+ await owner.getByText('合并已完成',{exact:true}).waitFor();
+ assert.equal(await prisma.personMergeDecision.count({where:{id:mergeReceipt.resourceId,canonicalPersonId:mergeCanonicalId,duplicatePersonId:mergeDuplicateId}}),1);
+ assert.equal(await prisma.personAlias.count({where:{oldPersonId:mergeDuplicateId,canonicalPersonId:mergeCanonicalId}}),1);
+ assert.equal((await prisma.person.findUniqueOrThrow({where:{id:mergeDuplicateId}})).status,'ARCHIVED');
+ const oldResolved=await json(owner,'/people/'+mergeDuplicateId);
+ assert.equal(oldResolved.id,mergeCanonicalId);assert.equal(oldResolved.resolvedFromId,mergeDuplicateId);
+ const oldWrite=await cmd(owner,'PATCH','/people/'+mergeDuplicateId,{expectedRevision:(await prisma.person.findUniqueOrThrow({where:{id:mergeDuplicateId}})).revision,intro:'must not write through merged id'},409);
+ assert.equal(oldWrite.error.code,'MERGED_ID_READ_ONLY');
+ assert.ok(!(await json(owner,'/people')).items.some(x=>x.id===mergeDuplicateId));
+ assert.equal((await json(owner,'/people?q='+encodeURIComponent('DEV07G重复档案'))).items.some(x=>x.id===mergeCanonicalId),false);
+ console.log('PASS DEV-07G browser: explicit preview/decision/merge -> one alias; old Person id resolves read-only and disappears from normal lists');
+
  assert.deepEqual(errors,[]);
 } finally {if(browser)await browser.close();await stop(worker);await stop(api);await prisma.$disconnect();rmSync(tmp,{recursive:true,force:true});}

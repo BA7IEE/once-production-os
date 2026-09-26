@@ -874,7 +874,32 @@ export async function runProductionContracts(t: TestContext, c: Context) {
         await assert.rejects(a.person.update({ where: { id: person.id }, data: { status: 'ERASED' } }));
         const source = await a.sourceRecord.findFirstOrThrow({ where: { status: { not: 'ERASED' } } });
         await assert.rejects(a.sourceRecord.update({ where: { id: source.id }, data: { status: 'ERASED' } }));
-        const request = await a.deletionRequest.findFirstOrThrow({ where: { state: 'CLEANING' } });
+        // Build this test's own CLEANING request. Do not depend on another subtest
+        // leaving a request in a transient state; finalization workers may legitimately drain it.
+        const forgedPersonId = (await ok(ownerA.cmd('POST', '/people', {
+            displayName: 'DEV07F forged terminal state', roles: ['model'], inlineSource: sourceInput()
+        }), 201)).resourceId as string;
+        const forgedPerson = await a.person.findUniqueOrThrow({ where: { id: forgedPersonId } });
+        const forgedPreview = result(await ownerA.raw('POST', '/deletion-requests/preview', {
+            targetKind: 'PERSON', targetId: forgedPersonId, expectedRevision: forgedPerson.revision
+        }));
+        const forgedRequestId = (await ok(ownerA.cmd('POST', '/deletion-requests', {
+            targetKind: 'PERSON', targetId: forgedPersonId, expectedRevision: forgedPerson.revision,
+            previewDigest: forgedPreview.previewDigest, reason: 'synthetic forged terminal state guard'
+        }), 201)).resourceId as string;
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + forgedRequestId + '/block', {
+            expectedRevision: 1, previewDigest: forgedPreview.previewDigest, acknowledgeBlock: true
+        }));
+        let forgedDetail = result(await ownerA.raw('GET', '/deletion-requests/' + forgedRequestId));
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + forgedRequestId + '/plan/freeze', {
+            expectedRevision: forgedDetail.revision, acknowledgePlan: true
+        }));
+        forgedDetail = result(await ownerA.raw('GET', '/deletion-requests/' + forgedRequestId));
+        await ok(ownerA.cmd('POST', '/deletion-requests/' + forgedRequestId + '/cleaning/start', {
+            expectedRevision: forgedDetail.revision, planDigest: forgedDetail.planDigest, acknowledgeIrreversible: true
+        }));
+        const request = await a.deletionRequest.findUniqueOrThrow({ where: { id: forgedRequestId } });
+        assert.equal(request.state, 'CLEANING');
         await assert.rejects(a.deletionRequest.update({ where: { id: request.id }, data: {
             state: 'COMPLETED', finalizationAttempts: 1, finalizationDigest: null, finalizedAt: null
         } }));

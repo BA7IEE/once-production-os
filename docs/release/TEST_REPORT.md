@@ -1,5 +1,24 @@
 # 实际测试与验证记录
 
+## WP6｜DEV-07G 受控 Person merge
+
+详见 [WP6_PERSON_MERGE.md](WP6_PERSON_MERGE.md)。功能冻结 head `1673272979e338ede4ddf09952c941cae7344070`，PR #17。
+
+Actions `36217418690` 五项全绿：103 条请求契约；263/263 core / transport；67/67 PostgreSQL；原生表单 Chromium 6/6；browser-resume / handoff / media / production 全部 success。
+
+browser-production 真实完成“选择 canonical / duplicate → 影响 preview → 字段冲突决定 → execute → PersonMergeDecision + PersonAlias → old ID 详情只读解析 → old ID 写入 409 → normal list/search 不再出现 duplicate”。真实 PostgreSQL 验证 decision/alias 唯一性、append-only/no-chain、身份/来源复合 FK、old ID 只读解析与 SQL talent search 排除。
+
+对抗审查后额外关闭：old-ID scope 探测、Shortlist 身份基线陈旧、无 sensitive.write 时 Contact 数量枚举、不同 Source 的 profile 值被静默重新归因。最后规则是同 Source 可显式采用 duplicate / UNION，不同 Source 的字段冲突只允许 canonical。
+
+Audit 注入失败时整个 merge 回滚，同一 Idempotency-Key 可安全重试；UsePermission / Handoff 撤销而非转移。当前仍未执行正式数据接管。
+
+## DEV-07F 删除专用最终化
+
+功能 head `f3396a6b4585b04896a9e381efac4cc68e968462`，Actions `36112160471` 五项全绿：101 routes、253/253 core、66/66 PostgreSQL、Chromium 表单 6/6，四条 browser 主链 success。
+
+真实验证包括 Project 根 ERASED 最小头与 COMPLETED、local 原件/预览物理 purge、SourceHistory 单向脱敏、伪造 terminal state 被拒、finalization audit rollback + retry。
+
+
 ## WP5｜DEV-07C～07E 删除阻断、保留决定与依赖清理
 
 详见 [WP5_DELETION_CLEANING.md](WP5_DELETION_CLEANING.md)。功能 head `32316937b91c7f66c9ed14a368ac74c2b58eed5b`，PR #14。

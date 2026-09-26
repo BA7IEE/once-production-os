@@ -13,6 +13,13 @@ import { personFor, sourceFor, sourceCurrent, requireScope, requirePermission } 
 export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandReceipt, clock: Clock, config?: Config): Promise<void> {
     const id = receipt.resourceId;
     switch (receipt.resourceKind) {
+        case 'merge': {
+            requirePermission(actor, 'data.merge');
+            const row = await workspaceRow(tx, 'personMerges', id, actor.workspaceId);
+            if (!row) missing();
+            await personFor(tx, actor, row.canonicalPersonId, clock, false);
+            return;
+        }
         case 'deletion':
             await new Deletions(clock).get(tx, actor, id);
             return;

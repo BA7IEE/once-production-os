@@ -41,9 +41,9 @@ export interface Inputs {
   "catalog.create": { "namespace": "role" | "city" | "language" | "skill" | "industry" | "workType"; "code": string; "labelZh": string; "labelEn": string };
   "catalog.update": { "expectedRevision": number; "labelZh"?: string; "labelEn"?: string; "status"?: "ACTIVE" | "INACTIVE" };
   "member.list": undefined;
-  "member.create": { "loginName": string; "displayName": string; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write" | "data.export" | "data.delete"> };
+  "member.create": { "loginName": string; "displayName": string; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write" | "data.export" | "data.delete" | "data.merge"> };
   "member.disable": { "expectedRevision": number };
-  "member.permissions": { "expectedRevision": number; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write" | "data.export" | "data.delete"> };
+  "member.permissions": { "expectedRevision": number; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write" | "data.export" | "data.delete" | "data.merge"> };
   "member.resetAccess": { "expectedRevision": number };
   "scope.list": undefined;
   "scope.create": { "name": string; "membershipIds": Array<string> };
@@ -62,6 +62,8 @@ export interface Inputs {
   "handoff.accept": { "expectedRevision": number };
   "handoff.decline": { "expectedRevision": number };
   "handoff.revoke": { "expectedRevision": number };
+  "person.mergePreview": { "canonicalId": string; "duplicateId": string; "expectedCanonicalRevision": number; "expectedDuplicateRevision": number };
+  "person.merge": { "canonicalId": string; "duplicateId": string; "expectedCanonicalRevision": number; "expectedDuplicateRevision": number; "previewDigest": string; "fieldDecisions": Array<{ "field": "displayName" | "aliases" | "roles" | "cityCode" | "languageCodes" | "skillCodes" | "heightCm" | "intro"; "choice": "CANONICAL" | "DUPLICATE" | "UNION" }>; "collisionDecisions": Array<{ "collisionId": string; "choice": "KEEP_CANONICAL" | "KEEP_DUPLICATE" }>; "acknowledgeRevocations": boolean; "acknowledgeMediaDetach": boolean; "reason": string };
   "person.list": undefined;
   "person.create": { "displayName": string; "roles": Array<string>; "sourceId"?: string; "inlineSource"?: { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string }; "aliases"?: Array<string>; "cityCode"?: string | null; "languageCodes"?: Array<string>; "skillCodes"?: Array<string>; "heightCm"?: number | null; "intro"?: string };
   "person.get": undefined;
@@ -411,6 +413,16 @@ export const ENDPOINTS = {
   "handoff.revoke": {
     "method": "POST",
     "path": "/handoffs/{id}/revoke",
+    "mode": "COMMAND"
+  },
+  "person.mergePreview": {
+    "method": "POST",
+    "path": "/people/merge-preview",
+    "mode": "READ"
+  },
+  "person.merge": {
+    "method": "POST",
+    "path": "/people/merge",
     "mode": "COMMAND"
   },
   "person.list": {

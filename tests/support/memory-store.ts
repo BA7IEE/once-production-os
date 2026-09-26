@@ -1,7 +1,7 @@
 import { AppError } from '../../packages/core/src/errors.ts';
 import type { Store, Tx } from '../../packages/core/src/store.ts';
 import type { Table, TableMap } from '../../packages/core/src/model.ts';
-const tables: Table[] = ['deletionRequests', 'deletionItems', 'usePermissions', 'exports', 'exportDependencies', 'shortlists', 'shortlistItems', 'shortlistItemAssets', 'works', 'workAssets', 'workCredits', 'projects', 'projectParticipants', 'projectWorks', 'workspaces', 'users', 'memberships', 'sessions', 'activations', 'scopes', 'scopeMembers', 'sources', 'sourceHistory', 'people', 'contacts', 'evidence', 'dictionary', 'receipts', 'audits', 'rateBuckets', 'imports', 'jobs', 'handoffs', 'uploads', 'assets'];
+const tables: Table[] = ['personMerges', 'personAliases', 'deletionRequests', 'deletionItems', 'usePermissions', 'exports', 'exportDependencies', 'shortlists', 'shortlistItems', 'shortlistItemAssets', 'works', 'workAssets', 'workCredits', 'projects', 'projectParticipants', 'projectWorks', 'workspaces', 'users', 'memberships', 'sessions', 'activations', 'scopes', 'scopeMembers', 'sources', 'sourceHistory', 'people', 'contacts', 'evidence', 'dictionary', 'receipts', 'audits', 'rateBuckets', 'imports', 'jobs', 'handoffs', 'uploads', 'assets'];
 type Data = {
     [K in Table]: Map<string, TableMap[K]>;
 };
@@ -56,6 +56,7 @@ export class MemoryStore implements Store {
             talentQuery: async input => {
                 const scopeIds = new Set(input.visibleScopeIds), sourceIds = new Set(input.visibleSourceIds);
                 const blocks = [...draft.deletionRequests.values()].filter(d => d.workspaceId === input.workspaceId && d.state !== 'DRAFT');
+                const mergedPeople = new Set([...draft.personAliases.values()].filter(a => a.workspaceId === input.workspaceId).map(a => a.oldPersonId));
                 const blocked = (kind: string) => new Set(blocks.filter(d => d.targetKind === kind).map(d => d.targetId));
                 const blockedPeople = blocked('PERSON'), blockedWorks = blocked('WORK'), blockedProjects = blocked('PROJECT');
                 const works = [...draft.works.values()].filter(w => w.workspaceId === input.workspaceId && !blockedWorks.has(w.id) && scopeIds.has(w.scopeId) && sourceIds.has(w.sourceId));
@@ -69,7 +70,7 @@ export class MemoryStore implements Store {
                         workTypeCodes: [...new Set(linked.flatMap(w => w.workTypeCodes))].sort() };
                 };
                 const projectCount = (personId: string) => new Set(actual.filter(p => p.personId === personId).map(p => p.projectId)).size;
-                const all = [...draft.people.values()].filter(p => p.workspaceId === input.workspaceId && !blockedPeople.has(p.id) && scopeIds.has(p.scopeId) && sourceIds.has(p.sourceId)).map(person => {
+                const all = [...draft.people.values()].filter(p => p.workspaceId === input.workspaceId && !mergedPeople.has(p.id) && !blockedPeople.has(p.id) && scopeIds.has(p.scopeId) && sourceIds.has(p.sourceId)).map(person => {
                     const f = facts(person.id); return { person, actualProjectCount: projectCount(person.id), ...f };
                 }).filter(row => {
                     const p = row.person;

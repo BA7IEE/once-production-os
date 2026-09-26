@@ -1,6 +1,25 @@
-> 当前增量详见 [WP5_DELETION_CLEANING.md](WP5_DELETION_CLEANING.md)。以下历史 Review 保留当时证据；当前结论以 PR #14 最终 head 与对应 Actions 为准。
+> 当前增量详见 [WP6_PERSON_MERGE.md](WP6_PERSON_MERGE.md)。当前结论以 PR #17 最终 head 与对应 Actions 为准。
 
 # 第一批源码 Review
+
+## 2026-09-26 DEV-07G 受控 Person merge Review
+
+本轮没有把“查重”实现成自动合并。合并需要独立 `data.merge`、`records.write` 与部署侧 `DATA_MERGE_MODE`，并经过零写入 preview、字段冲突和关系冲突逐项决策。
+
+对抗审查中实际发现并修复了几类边界：
+
+1. merge receipt replay 最初没有独立领域鉴权，补为重新检查 `data.merge` 和 canonical 可见性；
+2. old ID 只读解析不能因为 canonical scope 更宽而泄漏 alias，补为先检查 old identity 原 scope；
+3. Shortlist Person 改绑必须重写加入时人物/source revision 基线，否则身份变更会被错误显示为“未变化”；
+4. merge history 除 no-chain 外还必须 append-only，并通过复合 FK 固定 alias 与 decision 的 old/canonical 对、Person 与 Source 对；
+5. 无 `sensitive.write` 的 preview 不能枚举 Contact 精确数量或逐条探测 Contact Source；
+6. Person 只有一个 primary Source，不同 Source 的 duplicate profile 值不能被静默写进 canonical 后假装由 canonical Source 支持；跨 Source 冲突现只允许保留 canonical，同 Source 才能选 duplicate / UNION；
+7. 新增维护入口后侧栏高度真实溢出，导致旧“删除影响评估”入口不可点击，已改为导航区域内部滚动；
+8. PostgreSQL/浏览器测试中清除了跨子测试临时状态假设和错误的可访问名称定位，避免测试本身掩盖实现语义。
+
+功能冻结 head `1673272979e338ede4ddf09952c941cae7344070`，Actions `36217418690` 五项全部 success：103 routes、263/263 core/transport、67/67 PG、Chromium 表单 6/6，四条 browser 主链全部通过。
+
+DEV-07F 的删除专用最终化已经在此前 head `f3396a6b4585b04896a9e381efac4cc68e968462` / Actions `36112160471` 通过。因此当前 DEV-07 剩余主要缺口是 FR-29/T29 的隔离 JSON 重建，而不是 Person merge 或删除根终结。
 
 ## 2026-09-25 WP5 / DEV-07C～07E 受控删除 Review
 

@@ -54,8 +54,14 @@ const check = process.argv.includes('--check');
 for (const [file, content] of files) {
     const path = resolve(file);
     if (check) {
-        if (readFileSync(path, 'utf8') !== content)
+        const actual = readFileSync(path, 'utf8');
+        if (actual !== content) {
+            const expectedLines = content.split('\n'), actualLines = actual.split('\n');
+            const index = expectedLines.findIndex((line, i) => line !== actualLines[i]);
+            const line = index >= 0 ? index + 1 : Math.min(expectedLines.length, actualLines.length) + 1;
+            console.error(JSON.stringify({ file, line, expected: expectedLines[index] ?? '<EOF>', actual: actualLines[index] ?? '<EOF>' }));
             throw new Error('Generated contract drift: ' + file);
+        }
     }
     else {
         mkdirSync(dirname(path), { recursive: true });

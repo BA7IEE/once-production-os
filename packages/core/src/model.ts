@@ -3,8 +3,9 @@ import type { Shortlist, ShortlistItem, ShortlistItemAsset } from './shortlist-m
 import type { MediaUpload, MediaAsset } from './media-model.ts';
 import type { UsePermission, ExportJob, ExportDependency } from './export-model.ts';
 import type { DeletionRequest, DeletionItem } from './deletion-model.ts';
+import type { PersonMergeDecision, PersonAlias } from './merge-model.ts';
 export type Role = 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'VIEWER';
-export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write', 'data.export', 'data.delete'] as const;
+export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write', 'data.export', 'data.delete', 'data.merge'] as const;
 export type ExtraPermission = typeof EXTRA_PERMISSIONS[number];
 export type Permission = 'records.read' | 'records.write' | 'sources.read' | 'sources.write' | 'sources.review' | 'catalog.manage' | 'members.manage' | 'audit.read' | 'assets.read' | 'assets.upload' | ExtraPermission;
 export interface Base {
@@ -128,7 +129,7 @@ export interface CommandReceipt extends Base {
     operation: string;
     commandKey: string;
     requestDigest: string;
-    resourceKind: 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion';
+    resourceKind: 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
     resourceId: string;
     result: ReceiptResult;
 }
@@ -205,6 +206,8 @@ export interface RecordHandoff extends Base {
     closedById: string | null;
 }
 export interface TableMap {
+    personMerges: PersonMergeDecision;
+    personAliases: PersonAlias;
     deletionRequests: DeletionRequest;
     deletionItems: DeletionItem;
     usePermissions: UsePermission;
@@ -270,6 +273,7 @@ export interface Config {
     environment: 'local' | 'test' | 'staging' | 'production';
     dataEgressMode: 'DISABLED' | 'INTERNAL_APPROVED';
     dataCleanupMode: 'DISABLED' | 'INTERNAL_APPROVED';
+    dataMergeMode: 'DISABLED' | 'INTERNAL_APPROVED';
 }
 export const LIMITS = Object.freeze({ idleMs: 30 * 60000, absoluteMs: 12 * 60 * 60000,
     activationMs: 24 * 60 * 60000, temporaryMs: 7 * 24 * 60 * 60000, pageSize: 20, maxPageSize: 100,

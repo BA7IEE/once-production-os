@@ -23,10 +23,13 @@ export function loadConfig(): Config {
         throw new Error('ACCESS_MODE invalid');
     const egress = process.env.DATA_EGRESS_MODE ?? 'DISABLED';
     const cleanup = process.env.DATA_CLEANUP_MODE ?? 'DISABLED';
+    const merge = process.env.DATA_MERGE_MODE ?? 'DISABLED';
     if (!['DISABLED', 'INTERNAL_APPROVED'].includes(egress))
         throw new Error('DATA_EGRESS_MODE invalid');
     if (!['DISABLED', 'INTERNAL_APPROVED'].includes(cleanup))
         throw new Error('DATA_CLEANUP_MODE invalid');
+    if (!['DISABLED', 'INTERNAL_APPROVED'].includes(merge))
+        throw new Error('DATA_MERGE_MODE invalid');
     const secure = required('COOKIE_SECURE');
     if (!['true', 'false'].includes(secure))
         throw new Error('COOKIE_SECURE invalid');
@@ -36,6 +39,6 @@ export function loadConfig(): Config {
         throw new Error('MEDIA_PROVIDER not supported');
     if (media === 'local' && (!['local', 'test'].includes(environment) || !isAbsolute(process.env.MEDIA_ROOT ?? '')))
         throw new Error('Local media requires local/test and an absolute MEDIA_ROOT; production provider is not approved');
-    return { mediaEnabled: media === 'local', origin: required('APP_ORIGIN'), secureCookies: secure === 'true', environment: environment as Config['environment'], accessMode: accessMode as Config['accessMode'], dataEgressMode: egress as Config['dataEgressMode'], dataCleanupMode: cleanup as Config['dataCleanupMode'],
+    return { mediaEnabled: media === 'local', origin: required('APP_ORIGIN'), secureCookies: secure === 'true', environment: environment as Config['environment'], accessMode: accessMode as Config['accessMode'], dataEgressMode: egress as Config['dataEgressMode'], dataCleanupMode: cleanup as Config['dataCleanupMode'], dataMergeMode: merge as Config['dataMergeMode'],
         contactKey: key('CONTACT_KEY_FILE'), csrfKey: key('CSRF_KEY_FILE'), recoveryEpoch: readFileSync(required('RECOVERY_EPOCH_FILE'), 'utf8').trim() };
 }
