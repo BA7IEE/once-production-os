@@ -17,20 +17,26 @@
 - 原 PG：67/67
 - 真 pg_dump/pg_restore + private media：PASS
 - browser-resume / handoff / media / production：全部 success
-- Talent Domain 2.0：SPEC_UPDATED；TD2-01～06 NOT_IMPLEMENTED；TD2-T01～12 NOT_RUN
+- Talent Domain 2.0 R1：SPEC_UPDATED；TD2-01～06 NOT_IMPLEMENTED；TD2-T01～18 NOT_RUN
 
-## Talent Domain 2.0 新不变量
+## Talent Domain 2.0 R1 新不变量
 
-1. 一个现实人物只有一个 Person；多职业使用 PersonRole，不复制人物。
-2. Role 表达职业，Capability 表达能力，不能用无限细分 Role 代替能力模型。
-3. 所有人共用 TalentProfile；专属 profile 只按真实结构化需求增加。
-4. 首批完整专属结构为 ModelProfile；Translator 使用语言对/服务模式；Creative/Crew 优先 Role + Capability + Work。
-5. Asset 是文件、MediaCollection 是组织方式、Work 是真实作品；同一 Asset 可复用但不复制物理对象。
-6. Agent/Agency/booking 使用 Representation 类型化关系，不塞进备注。
-7. Agent/AI 必须读取版本化 Talent Schema；未知字段/code/schemaVersion fail closed。
-8. 当前 Person.roles[] / skillCodes[] / heightCm 只是迁移输入；只允许追加前向迁移，稳定 Person/Work/Project/Asset ID 不变。
-9. TD2-01～06 未完成前，不启动正式 extract_profile / suggest_tags / parse_search 人才写入契约。
-10. Merge/Delete/Export/Rebuild/Recovery 必须覆盖所有新增 TD2 关系，不能形成维护盲区。
+1. **Person ≠ Talent**：Person 是自然人唯一主身份；TalentProfile 是可选 0..1；经纪人/客户联系人可只有 Person。
+2. 一个现实人物多职业使用 PersonRole，不复制 Person。
+3. Role 表达职业，CapabilityDefinition/PersonCapability 表达能力；未知 code fail closed。
+4. Person.source 只作 origin；Language/Location/Capability/Measurement/Representation/Credential 等事实各自带 Source/Evidence，冲突不得静默覆盖。
+5. R1 不建“大而全 ModelProfile”；Model UI 由 MODEL Role + CastingProfile + MeasurementSet + Capability + MediaCollection + Work + Representation 组合。
+6. MeasurementSet 保留时间快照，鞋/服装尺寸带 size system；旧 height 不反推 MODEL。
+7. AdultEligibility 不靠图片推断；UNKNOWN 不满足需 VERIFIED_ADULT 的业务条件；默认不长期保存完整身份证/生日。
+8. PersonExternalRef 只做 exact provider/namespace/externalKey 身份解析；姓名/头像/相似度不得自动 merge。
+9. ServicePrincipal 是独立 Machine Actor；scope/permission/credential/default human maintainer 分离，审计不得伪装成人类。
+10. MediaCollection type 只表示资料形式，内容风格用 Tag；Asset 是文件，Work 是真实作品。
+11. Representation 可按 PersonRole / territory 表达；Credential 与 Capability 分离。
+12. ShortlistItem 必须保存 personRoleId，多Role不猜，Role失效不静默切换。
+13. 外部 Agent/AI 读取版本化 Talent Schema；无直写权或冲突时走 FieldProposal；未知 field/code/schemaVersion 拒绝。
+14. 当前 Person.roles[] / skillCodes[] / languageCodes[] / cityCode / heightCm 是迁移输入；只允许追加前向 migration，稳定 Person/Work/Project/Asset ID 不变。
+15. Merge/Delete/Export/T29 Rebuild/DEV-09 Recovery 必须覆盖全部新 TD2 关系。
+16. TD2-01～06 和 TD2-T01～18 未完成前，不启动正式 extract_profile / suggest_tags / parse_search 人才写入契约。
 
 ## DEV-09D 不变量
 
@@ -73,6 +79,6 @@ DEV-09E Safety Delta Resolution 目标：
 7. unresolved intent（没有 commit marker）同样 blocker；
 8. 非零 delta approval 必须绑定 resolution digest。
 
-DEV-09 整体 Gate 关闭后，按 `TD2-01 → TD2-02/03/04 → TD2-05 → TD2-06` 推进，完成 TD2-T01～12，再进入 DEV-08 AI。
+DEV-09 整体 Gate 关闭后，按 R1 的 `TD2-01 → TD2-02 → TD2-03 → TD2-04 → TD2-05 → TD2-06` 推进，完成 TD2-T01～18，再进入 DEV-08 AI。
 
 不要提前启动 DEV-08 AI，不要把 unresolved journal delta 人工勾选为忽略，也不要为了新职业建立“一职业一套人才库”。
