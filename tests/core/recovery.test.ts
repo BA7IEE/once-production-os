@@ -52,15 +52,15 @@ async function seed(f: F) {
             expiresAt: new Date(f.clock.now().getTime() + 86400000).toISOString(),
             acceptedAt: null, closedAt: null, closedById: null
         });
-        await tx.insert('usePermissions', {
-            ...base(f.workspaceId, f.clock), sourceId, subjectKind: 'PERSON', subjectId: personId,
-            purpose: 'INTERNAL_EXPORT', fields: ['person.displayName'],
-            validFrom: now, validUntil: source.validUntil, status: 'ACTIVE',
+        const permission = {
+            ...base(f.workspaceId, f.clock), sourceId, subjectKind: 'PERSON' as const, subjectId: personId,
+            purpose: 'INTERNAL_EXPORT' as const, fields: ['person.displayName'] as const,
+            validFrom: now, validUntil: source.validUntil, status: 'ACTIVE' as const,
             evidenceNote: '恢复测试导出许可', reviewerId: ownerMembership.id,
             subjectPersonId: personId, subjectWorkId: null, subjectProjectId: null,
             subjectAssetId: null, subjectSourceId: null
-        });
-        const permission = f.store.rows('usePermissions')[0]!;
+        };
+        await tx.insert('usePermissions', { ...permission, fields: [...permission.fields] });
         await tx.insert('exports', {
             ...base(f.workspaceId, f.clock), actorId: ownerMembership.id, format: 'JSON',
             schemaVersion: 'once-export-v1', state: 'READY',
