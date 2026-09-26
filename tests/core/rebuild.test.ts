@@ -204,7 +204,7 @@ test('DEV-07H T29 rejects non-rebuildable missing or unknown fields before any w
 
 test('DEV-07H T29 rejects missing source closure, unknown target catalog codes, ACTUAL-without-note and ACTIVE work without bytes', async () => {
     const cases: Array<[string, (p: any) => void]> = [
-        ['REBUILD_SOURCE_MISSING', p => { p.manifest.sources = []; }],
+        ['REBUILD_SOURCE_MISSING', p => { p.manifest.people[0].sourceId = randomUUID(); }],
         ['REBUILD_CATALOG_MISSING', p => { p.manifest.people[0].data.roles = ['unknown_role']; }],
         ['REBUILD_RELATION_DETAIL_MISSING', p => { p.manifest.relations.projectParticipants[0].state = 'ACTUAL'; }],
         ['REBUILD_MEDIA_BYTES_REQUIRED', p => { p.manifest.works[0].data.status = 'ACTIVE'; }]
