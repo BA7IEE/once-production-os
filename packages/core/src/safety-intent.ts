@@ -14,6 +14,6 @@ export interface SafetyIntentSink {
  * be represented outside the database before the mutation starts. This avoids a brittle
  * operation allowlist and automatically protects future COMMAND/SECRET routes.
  */
-export function requiresSafetyIntent(mode: 'READ' | 'COMMAND' | 'SECRET'): boolean {
+export function requiresSafetyIntent(mode: string): boolean {
     return mode === 'COMMAND' || mode === 'SECRET';
 }
