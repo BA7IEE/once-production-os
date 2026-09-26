@@ -7,7 +7,7 @@ import { PrismaClient } from '@prisma/client';
 const raw=process.env.DATABASE_URL_TEST;
 if(process.env.ALLOW_DB_TESTS!=='yes'||!raw){console.error('Requires ALLOW_DB_TESTS=yes and DATABASE_URL_TEST. See docs/release/LOCAL_RUN.md; no database was touched.');process.exit(2);}
 let url;try{url=new URL(raw);}catch{console.error('Invalid test database URL.');process.exit(2);}
-if(!['postgresql:','postgres:'].includes(url.protocol)||!['127.0.0.1','localhost','[::1]'].includes(url.hostname)||!new RegExp('^/once_test_[a-z0-9_]+
+if(!['postgresql:','postgres:'].includes(url.protocol)||!['127.0.0.1','localhost','[::1]'].includes(url.hostname)||!new RegExp('^/once_test_[a-z0-9_]+$').test(url.pathname)||url.search||url.hash||!url.username||!url.password){console.error('Only a named disposable once_test_* database on loopback with explicit credentials is permitted.');process.exit(2);}
 
 function runNode(file, env=process.env, timeout=180000){
  const r=spawnSync(process.execPath,['--experimental-strip-types','--test','--test-concurrency=1',file],{stdio:'inherit',env,timeout});
