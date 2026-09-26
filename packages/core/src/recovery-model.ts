@@ -18,6 +18,8 @@ export interface RecoveryCheckReport {
     checkedAt: string;
     databaseStateDigest: string;
     migrationDigest: string;
+    migrationMatch: boolean;
+    contactKeyDigest: string;
     contactCount: number;
     contactDecryptFailures: number;
     media: RecoveryMediaCheck;
@@ -26,6 +28,7 @@ export interface RecoveryCheckReport {
 
 export interface RecoveryExternalCheck {
     migrationDigest: string;
+    migrationMatch: boolean;
     media: RecoveryMediaCheck;
 }
 
