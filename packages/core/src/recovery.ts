@@ -177,8 +177,8 @@ export class RecoveryOps {
             databaseStateDigest: digest(compact) };
     }
 
-    async inspect(tx: Tx, actor: Actor, recoveryRunId: string, externalInput: RecoveryExternalCheck,
-        meta: { requestId: string; ip: string }): Promise<RecoveryCheckReport> {
+    private async inspection(tx: Tx, actor: Actor, recoveryRunId: string,
+        externalInput: RecoveryExternalCheck): Promise<{ run: RecoveryRun; report: RecoveryCheckReport }> {
         this.gates();
         uuid.parse(recoveryRunId);
         const run = await workspaceRow(tx, 'recoveryRuns', recoveryRunId, actor.workspaceId);
@@ -225,13 +225,12 @@ export class RecoveryOps {
         }
         block(contactDecryptFailures > 0, 'CONTACT_KEY_MISMATCH');
 
-        const checkedAt = this.clock.now().toISOString();
         const report: RecoveryCheckReport = {
             schemaVersion: 'once-recovery-check-v1',
             recoveryRunId: run.id,
             workspaceId: actor.workspaceId,
             targetEpochDigest: run.targetEpochDigest,
-            checkedAt,
+            checkedAt: this.clock.now().toISOString(),
             databaseStateDigest: state.databaseStateDigest,
             migrationDigest: external.migrationDigest,
             migrationMatch: external.migrationMatch,
@@ -241,8 +240,19 @@ export class RecoveryOps {
             media: external.media,
             blockers: unique(blockers).sort()
         };
+        return { run, report };
+    }
+
+    async check(tx: Tx, actor: Actor, recoveryRunId: string,
+        externalInput: RecoveryExternalCheck): Promise<RecoveryCheckReport> {
+        return (await this.inspection(tx, actor, recoveryRunId, externalInput)).report;
+    }
+
+    async inspect(tx: Tx, actor: Actor, recoveryRunId: string, externalInput: RecoveryExternalCheck,
+        meta: { requestId: string; ip: string }): Promise<RecoveryCheckReport> {
+        const { run, report } = await this.inspection(tx, actor, recoveryRunId, externalInput);
         const next: RecoveryRun = {
-            ...touch(run, this.clock), state: 'INSPECTED', checkedAt,
+            ...touch(run, this.clock), state: 'INSPECTED', checkedAt: report.checkedAt,
             approvedAt: null, reportDigest: digest(report), report
         };
         await tx.replace('recoveryRuns', next);
