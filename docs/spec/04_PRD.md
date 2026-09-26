@@ -1,6 +1,6 @@
 # ONCE Production OS｜PRD｜内部 OS 产品规格
 
-版本：v0.3｜日期：2026-09-22｜当前范围：一期内部 OS + AI｜状态：文档已修订，产品实现和运行测试未执行
+版本：v0.4｜日期：2026-09-26｜当前范围：一期内部 OS + Talent Domain 2.0 + AI｜状态：Talent 2.0 规格冻结候选，新增能力未实现
 
 ## 1. 范围和编号
 
@@ -28,19 +28,31 @@
 
 ## 4. 数据与不变量
 
-Person与登录User分开；Organization与Brand分开；Work与Project分开；Asset与物理StorageObject分开。内部合作关系来自真实项目参与，不来自“上传过作品”。
+Person与登录User分开；Organization与Brand分开；Work与Project分开；Asset与物理StorageObject分开。内部合作关系来自真实项目参与，不来自“上传过作品”。**Person 是现实人物主身份；Role、Capability、专属职业资料均不能复制出第二个 Person。**
 
 可变对象有revision；影响用途资格的状态另有protectionEpoch。普通文字更新提示衍生文本陈旧；权限/用途/隔离/删除变化影响访问。关系有外键和明确父子约束，不只检查“在同一workspace”。
 
 原始数据、AI输入、导出、审计都由显式字段集合构造。新增内部字段不会自动进入这些派生面。具体模型/API/时序见07/08/09，只有12定义参数。
 
+### 4.1 Talent Domain 2.0
+
+人才域采用“统一人物 + 多职业身份 + Capability + 按需专属资料”的模型，详细冻结规格见 [15_TALENT_DOMAIN_2.md](15_TALENT_DOMAIN_2.md)。
+
+- 一个现实人物只有一个 Person；同人 Model + Actor + KOL 仍是一个 ID。
+- Role 表达“是什么”，Capability 表达“会什么/擅长什么”；不得用“工业摄影师/产品摄影师/汽车摄影师”无限扩张 Role。
+- 所有职业共用 TalentProfile；只有存在稳定结构化业务字段时才增加专属扩展。首批完整专属结构为 ModelProfile；Translator 使用语言对/服务模式；摄影/剪辑/导演/化妆等先用 Role + Capability + Work。
+- Asset 继续是文件事实；MediaCollection 只是人才职业下的组织方式；Work 继续是真实作品。
+- 经纪人/Agency 使用类型化 Representation，不塞进备注。
+- 外部 Agent 只能按版本化 Talent Schema 写入；未知字段/code 拒绝，不落自由 JSON。
+- Talent Domain 2.0 Gate 在 DEV-08 正式 AI 前完成。
+
 ## 5. 功能需求与验收
 
 ### FR-01｜快速建档与多角色｜IN_SCOPE
 
-一人一个Person，多工种是角色集合；人物不自动有登录账号。快速建档只要展示名/内部代号、角色、来源说明和维护人。城市、英文、作品可后补。前端提供单页入口；来源可在同一应用命令内创建，不必先跑多个管理菜单。
+一人一个Person，多工种使用独立 PersonRole；人物不自动有登录账号。快速建档只要展示名/内部代号、至少一个角色、来源说明和维护人。城市、英文、作品可后补。角色不得通过复制 Person 表达；新增/停用 Role 不改变 Person 主身份。前端提供单页入口；来源可在同一应用命令内创建，不必先跑多个管理菜单。
 
-验收T01：同人添加摄影/剪辑两个角色后只产生一个ID；不填英文和文件仍可保存；未知不自动变成已核验。
+验收T01：同人添加摄影/剪辑/模特等多个角色后只产生一个 Person ID；同一 role 重复添加被唯一约束拒绝；不填英文和文件仍可保存；未知不自动变成已核验。
 
 对应：DEV-03；B01/B02；J01。状态：NOT_RUN。
 
@@ -62,9 +74,9 @@ Person与登录User分开；Organization与Brand分开；Work与Project分开；
 
 ### FR-04｜字典、状态与资料新鲜度｜IN_SCOPE
 
-角色/城市/语言/技能/行业使用稳定code和可读标签，别名可查。字典停用保留历史；核验时间显示缺失或陈旧，不推导“有档期”。按角色显示少量专属字段，其余经Schema评审再加。
+角色/城市/语言/Capability/行业使用稳定code和可读标签，别名可查。字典停用保留历史；核验时间显示缺失或陈旧，不推导“有档期”。Role 与 Capability 分离。所有人才共用 TalentProfile；ModelProfile 等专属结构只在存在稳定筛选/校验需求时新增，不为每个职业预建一套表。
 
-验收T04：停用角色后旧项目仍可读；90天复核提醒按参数可调；历史作品不因时间长就自动变假；尺寸未知不是0。
+验收T04：停用角色后旧项目仍可读；90天复核提醒按参数可调；历史作品不因时间长就自动变假；尺寸未知不是0；非 MODEL Role 不能挂 ModelProfile；摄影/剪辑等可仅依赖 Role + Capability + Work 正常工作。
 
 对应：DEV-03；B02；J02。状态：NOT_RUN。
 
@@ -138,9 +150,9 @@ T10：DEFERRED；没有当前工作包，不创建替代假实现。
 
 ### FR-14｜结构化检索与证据解释｜IN_SCOPE
 
-筛选角色、城市、语言、技能、行业、作品类型、实际合作和核验时效；查询/统计/联想同一权限条件。结果显示命中依据与未知条件，不给未校准的百分比评分。缺报价/档期则说明当前不支持该筛选。
+筛选 Role、Capability、城市/服务地区、语言、行业、作品类型、MediaCollection 是否存在、实际合作和核验时效；Model 等专属字段只有在业务必要且有权时参与筛选。查询/统计/联想使用同一权限条件。结果显示命中依据与未知条件，不给未校准的百分比评分。缺报价/档期则说明当前不支持该筛选。
 
-验收T14：手工筛选与AI解析后的相同条件结果一致；无权限人才不出现在计数和联想；不以空值满足预算和档期。
+验收T14：Role + Capability + Work/Project/Media 的组合筛选结果可解释；手工筛选与后续 AI parse_search 的相同条件结果一致；无权限人才不出现在计数和联想；External Work 不被算成 ONCE 实际合作；不以空值满足预算和档期。
 
 对应：DEV-06；B01/B04；J02。状态：NOT_RUN。
 
@@ -166,9 +178,9 @@ T17：DEFERRED；没有当前工作包，不创建替代假实现。
 
 ### FR-18｜四类有界 AI 辅助任务｜IN_SCOPE
 
-固定四任务：extract_profile、suggest_tags、draft_locale、parse_search。首版均可用已获准文字/PDF提取文本运行，扫描PDF可人工补文字；图片视觉理解暂不作为必需能力。模型无Shell、自由HTTP、数据库或自动业务写权限。
+固定四任务：extract_profile、suggest_tags、draft_locale、parse_search。**正式 extract_profile / suggest_tags / parse_search 必须在 Talent Domain 2.0 Gate 通过后使用版本化 Talent Schema。**首版均可用已获准文字/PDF提取文本运行，扫描PDF可人工补文字；图片视觉理解暂不作为必需能力。模型无Shell、自由HTTP、数据库或自动业务写权限。
 
-验收T18：四任务输入输出都有Schema；来源缺失/虚构事实拒绝；没有AI Key时手工路径正常；不根据照片推断身份、国籍或敏感属性。
+验收T18：四任务输入输出都有版本化 Schema；Talent Profile 中未知字段/Role/Capability code 被拒绝；来源缺失/虚构事实拒绝；没有AI Key时手工路径正常；不根据照片推断身份、国籍或敏感属性。
 
 对应：DEV-08；B01/B06；J01/J02/J05。状态：NOT_RUN。
 
