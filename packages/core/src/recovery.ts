@@ -1,6 +1,6 @@
 import type { Actor, Clock, Config, Source } from './model.ts';
 import type { Tx } from './store.ts';
-import type { RecoveryCheckReport, RecoveryExternalCheck, RecoveryPrepareSummary, RecoveryRun } from './recovery-model.ts';
+import type { RecoveryApprovalEvidence, RecoveryCheckReport, RecoveryExternalCheck, RecoveryPrepareSummary, RecoveryRun } from './recovery-model.ts';
 import { AppError, invariant } from './errors.ts';
 import { audit, base, touch, unique, workspaceRow } from './helpers.ts';
 import { decryptContact, hashSecret } from './crypto.ts';
@@ -264,12 +264,81 @@ export class RecoveryOps {
         const { run, report } = await this.inspection(tx, actor, recoveryRunId, externalInput);
         const next: RecoveryRun = {
             ...touch(run, this.clock), state: 'INSPECTED', checkedAt: report.checkedAt,
-            approvedAt: null, reportDigest: digest(report), report
+            approvedAt: null, reportDigest: digest(report), report,
+            approvalDigest: null, approval: {}
         };
         await tx.replace('recoveryRuns', next);
         await audit(tx, actor, actor.workspaceId, 'recovery.inspect', 'recovery', run.id,
             ['reportDigest','databaseStateDigest','migrationDigest','contacts','media','blockers'], meta, this.clock);
         return report;
+    }
+
+    private approvalEvidence(input: RecoveryApprovalEvidence): RecoveryApprovalEvidence {
+        invariant(input && typeof input === 'object' && input.schemaVersion === 'once-recovery-approval-v1',
+            'RECOVERY_APPROVAL_INVALID', '恢复批准证据格式无效', 400);
+        uuid.parse(input.backupId);
+        for (const value of [input.backupManifestDigest,input.databaseSha256,input.recoveryEpochDigest,
+            input.contactKeyDigest,input.migrationDigest,input.reportDigest,
+            input.safetyJournal?.backupHeadHash,input.safetyJournal?.currentHeadHash])
+            invariant(typeof value === 'string' && /^[a-f0-9]{64}$/.test(value),
+                'RECOVERY_APPROVAL_INVALID', '恢复批准摘要格式无效', 400);
+        uuid.parse(input.safetyJournal.journalId);
+        invariant(Number.isSafeInteger(input.safetyJournal.backupSequence) && input.safetyJournal.backupSequence >= 0
+            && Number.isSafeInteger(input.safetyJournal.currentSequence) && input.safetyJournal.currentSequence >= 0
+            && Number.isSafeInteger(input.safetyJournal.postBackupEntries) && input.safetyJournal.postBackupEntries >= 0,
+            'RECOVERY_APPROVAL_INVALID', '安全日志序号无效', 400);
+        invariant(input.safetyJournal.currentSequence === input.safetyJournal.backupSequence
+            && input.safetyJournal.postBackupEntries === 0
+            && input.safetyJournal.currentHeadHash === input.safetyJournal.backupHeadHash,
+            'RECOVERY_JOURNAL_DELTA_UNRESOLVED',
+            '备份锚点后存在安全状态变化；当前版本不能自动批准，必须保持隔离并逐条核对', 409);
+        return structuredClone(input);
+    }
+
+    private comparableReport(report: RecoveryCheckReport) {
+        const { checkedAt: _checkedAt, ...stable } = report;
+        return stable;
+    }
+
+    async approve(tx: Tx, actor: Actor, recoveryRunId: string, externalInput: RecoveryExternalCheck,
+        approvalInput: RecoveryApprovalEvidence, meta: { requestId: string; ip: string }): Promise<RecoveryRun> {
+        this.gates();
+        uuid.parse(recoveryRunId);
+        const run = await workspaceRow(tx, 'recoveryRuns', recoveryRunId, actor.workspaceId);
+        invariant(run?.state === 'INSPECTED', 'RECOVERY_NOT_INSPECTED', '必须先记录无缺口的 restore-check 报告', 409);
+        invariant(run.actorId === actor.membershipId, 'RECOVERY_ACTOR_MISMATCH', '只能由执行恢复准备的维护管理员批准', 403);
+        const stored = run.report as RecoveryCheckReport;
+        invariant(run.reportDigest === digest(stored), 'RECOVERY_REPORT_TAMPERED', '已记录的 restore-check 摘要不匹配', 409);
+        invariant(Array.isArray(stored.blockers) && stored.blockers.length === 0,
+            'RECOVERY_BLOCKERS_PRESENT', 'restore-check 仍有阻断项，不能批准', 409);
+
+        const evidence = this.approvalEvidence(approvalInput);
+        invariant(evidence.reportDigest === run.reportDigest, 'RECOVERY_APPROVAL_STALE', '批准证据引用了旧 restore-check', 409);
+        invariant(evidence.recoveryEpochDigest === run.sourceEpochDigest, 'RECOVERY_BACKUP_EPOCH_MISMATCH',
+            '备份清单的 recovery epoch 与恢复数据库不一致', 409);
+        invariant(evidence.contactKeyDigest === stored.contactKeyDigest, 'RECOVERY_BACKUP_KEY_MISMATCH',
+            '备份清单的 Contact key 摘要与 restore-check 不一致', 409);
+        invariant(evidence.migrationDigest === stored.migrationDigest, 'RECOVERY_BACKUP_MIGRATION_MISMATCH',
+            '备份清单的迁移摘要与 restore-check 不一致', 409);
+
+        const { report: fresh } = await this.inspection(tx, actor, recoveryRunId, externalInput);
+        invariant(fresh.blockers.length === 0, 'RECOVERY_BLOCKERS_PRESENT', '当前 restore-check 已出现阻断项，不能批准', 409);
+        invariant(digest(this.comparableReport(fresh)) === digest(this.comparableReport(stored)),
+            'RECOVERY_CHECK_STALE', '恢复数据库、密钥或媒体证据在检查后发生变化，请重新记录 restore-check', 409);
+
+        const workspace = await tx.get('workspaces', actor.workspaceId);
+        invariant(workspace && hashSecret(workspace.recoveryEpoch) === run.sourceEpochDigest,
+            'RECOVERY_SOURCE_EPOCH_CHANGED', '恢复数据库中的旧 recovery epoch 已变化', 409);
+        const approvedAt = this.clock.now().toISOString();
+        await tx.replace('workspaces', { ...workspace, recoveryEpoch: this.config.recoveryEpoch });
+        const next: RecoveryRun = {
+            ...touch(run, this.clock), state: 'APPROVED', approvedAt,
+            approvalDigest: digest(evidence), approval: evidence
+        };
+        await tx.replace('recoveryRuns', next);
+        await audit(tx, actor, actor.workspaceId, 'recovery.approve', 'recovery', run.id,
+            ['workspace.recoveryEpoch','approvalDigest','safetyJournal','backupManifest'], meta, this.clock);
+        return next;
     }
 
     async prepare(tx: Tx, actor: Actor, expectedSourceEpochDigest: string,
@@ -340,6 +409,7 @@ export class RecoveryOps {
             ...runBase, actorId: actor.membershipId,
             sourceEpochDigest: plan.sourceEpochDigest, targetEpochDigest: plan.targetEpochDigest,
             state: 'PREPARED', preparedAt: now, checkedAt: null, approvedAt: null, reportDigest: null, report: {},
+            approvalDigest: null, approval: {},
             revokedSessions: plan.counts.sessions, consumedActivations: plan.counts.activations,
             disabledUsers: plan.counts.usersToDisable, disabledMemberships: plan.counts.membershipsToDisable,
             revokedHandoffs: plan.counts.handoffs, revokedUsePermissions: plan.counts.usePermissions,
