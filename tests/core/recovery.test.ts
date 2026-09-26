@@ -351,3 +351,117 @@ test('DEV-09B stale media evidence is rejected and DB safety changes produce a n
     assert.notEqual(changed.databaseStateDigest, clean.databaseStateDigest);
     assert.ok(changed.blockers.includes('OLD_MEMBERSHIP_ACTIVE'));
 });
+
+
+function approvalEvidence(run: any, report: any, overrides: any = {}) {
+    const seq = overrides.backupSequence ?? 7;
+    const head = overrides.backupHeadHash ?? 'e'.repeat(64);
+    return {
+        schemaVersion: 'once-recovery-approval-v1' as const,
+        backupId: overrides.backupId ?? randomUUID(),
+        backupManifestDigest: overrides.backupManifestDigest ?? 'a'.repeat(64),
+        databaseSha256: overrides.databaseSha256 ?? 'b'.repeat(64),
+        recoveryEpochDigest: overrides.recoveryEpochDigest ?? run.sourceEpochDigest,
+        contactKeyDigest: overrides.contactKeyDigest ?? report.contactKeyDigest,
+        migrationDigest: overrides.migrationDigest ?? report.migrationDigest,
+        reportDigest: overrides.reportDigest ?? run.reportDigest,
+        safetyJournal: {
+            journalId: overrides.journalId ?? randomUUID(),
+            backupSequence: seq,
+            backupHeadHash: head,
+            currentSequence: overrides.currentSequence ?? seq,
+            currentHeadHash: overrides.currentHeadHash ?? head,
+            postBackupEntries: overrides.postBackupEntries ?? 0
+        }
+    };
+}
+
+test('DEV-09C zero-delta approval changes only recovery epoch and preserves conservative quarantines', async () => {
+    const f = await fixture();
+    const { sourceId } = await seed(f);
+    const r = recovery(f), a = await actor(f, r);
+    const oldEpoch = f.store.rows('workspaces')[0]!.recoveryEpoch;
+    const prepared = await f.store.transaction(tx => r.prepare(tx, a, hashSecret(oldEpoch),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    const report = await f.store.transaction(tx => r.inspect(tx, a, prepared.id, external(f),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    assert.deepEqual(report.blockers, []);
+    const inspected = f.store.rows('recoveryRuns')[0]!;
+    const evidence = approvalEvidence(inspected, report);
+
+    const approved = await f.store.transaction(tx => r.approve(tx, a, inspected.id, external(f), evidence,
+        { requestId: randomUUID(), ip: 'CLI' }));
+    assert.equal(approved.state, 'APPROVED');
+    assert.equal(f.store.rows('workspaces')[0]!.recoveryEpoch, 'R'.repeat(48));
+    assert.match(approved.approvalDigest ?? '', /^[a-f0-9]{64}$/);
+    assert.equal((approved.approval as any).backupId, evidence.backupId);
+    assert.equal(f.store.rows('sources').find(x => x.id === sourceId)!.status, 'SUSPENDED',
+        'approval must not silently reactivate restored source data');
+    assert.equal(f.store.rows('assets')[0]!.state, 'QUARANTINED',
+        'approval must not silently unquarantine restored media');
+    assert.equal(f.store.rows('audits').at(-1)!.action, 'recovery.approve');
+});
+
+test('DEV-09C any post-backup safety journal entry blocks approval', async () => {
+    const f = await fixture();
+    await seed(f);
+    const r = recovery(f), a = await actor(f, r);
+    const oldEpoch = f.store.rows('workspaces')[0]!.recoveryEpoch;
+    const prepared = await f.store.transaction(tx => r.prepare(tx, a, hashSecret(oldEpoch),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    const report = await f.store.transaction(tx => r.inspect(tx, a, prepared.id, external(f),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    const inspected = f.store.rows('recoveryRuns')[0]!;
+    const before = snapshot(f);
+    const evidence = approvalEvidence(inspected, report, {
+        currentSequence: 8, postBackupEntries: 1, currentHeadHash: 'f'.repeat(64)
+    });
+    await assert.rejects(f.store.transaction(tx => r.approve(tx, a, inspected.id, external(f), evidence,
+        { requestId: randomUUID(), ip: 'CLI' })),
+        (e: unknown) => e instanceof AppError && e.code === 'RECOVERY_JOURNAL_DELTA_UNRESOLVED');
+    assert.deepEqual(snapshot(f), before);
+});
+
+test('DEV-09C stale inspection or mismatched backup evidence cannot approve', async () => {
+    const f = await fixture();
+    const { reviewer } = await seed(f);
+    const r = recovery(f), a = await actor(f, r);
+    const oldEpoch = f.store.rows('workspaces')[0]!.recoveryEpoch;
+    const prepared = await f.store.transaction(tx => r.prepare(tx, a, hashSecret(oldEpoch),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    const report = await f.store.transaction(tx => r.inspect(tx, a, prepared.id, external(f),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    const inspected = f.store.rows('recoveryRuns')[0]!;
+
+    await assert.rejects(f.store.transaction(tx => r.approve(tx, a, inspected.id, external(f),
+        approvalEvidence(inspected, report, { contactKeyDigest: '0'.repeat(64) }),
+        { requestId: randomUUID(), ip: 'CLI' })),
+        (e: unknown) => e instanceof AppError && e.code === 'RECOVERY_BACKUP_KEY_MISMATCH');
+
+    await f.store.transaction(async tx => {
+        const member = (await tx.find('memberships', { id: reviewer.id }))[0]!;
+        await tx.replace('memberships', { ...member, revision: member.revision + 1, status: 'ACTIVE',
+            updatedAt: f.clock.now().toISOString() });
+    });
+    await assert.rejects(f.store.transaction(tx => r.approve(tx, a, inspected.id, external(f),
+        approvalEvidence(inspected, report), { requestId: randomUUID(), ip: 'CLI' })),
+        (e: unknown) => e instanceof AppError && e.code === 'RECOVERY_BLOCKERS_PRESENT');
+    assert.equal(f.store.rows('workspaces')[0]!.recoveryEpoch, oldEpoch);
+});
+
+test('DEV-09C approval audit failure rolls workspace epoch and approval evidence back', async () => {
+    const f = await fixture();
+    await seed(f);
+    const r = recovery(f), a = await actor(f, r);
+    const oldEpoch = f.store.rows('workspaces')[0]!.recoveryEpoch;
+    const prepared = await f.store.transaction(tx => r.prepare(tx, a, hashSecret(oldEpoch),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    const report = await f.store.transaction(tx => r.inspect(tx, a, prepared.id, external(f),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    const inspected = structuredClone(f.store.rows('recoveryRuns')[0]!);
+    f.store.failNextAudit = true;
+    await assert.rejects(f.store.transaction(tx => r.approve(tx, a, inspected.id, external(f),
+        approvalEvidence(inspected, report), { requestId: randomUUID(), ip: 'CLI' })), /injected audit failure/);
+    assert.equal(f.store.rows('workspaces')[0]!.recoveryEpoch, oldEpoch);
+    assert.deepEqual(f.store.rows('recoveryRuns')[0], inspected);
+});
