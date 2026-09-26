@@ -2,21 +2,31 @@
 
 ## 事实顺序
 
-先读 `docs/release/WP7_JSON_REBUILD.md` → `WP6_PERSON_MERGE.md` → `WP5_DELETION_CLEANING.md` → `WP4_DELETION_IMPACT_PREVIEW.md` → `WP3_EXPORT_DEPENDENCIES.md` → `IMPLEMENTATION_STATUS.md` → `TEST_REPORT.md` → 当前 PR 最终 head 对应 Actions，再读历史 WP2B/WP2/WP1/M1/H1/A1/R1 与 `docs/spec/06_DEVELOPMENT.md`。
+先读 `docs/release/TALENT_DOMAIN_2_PLAN.md` → `docs/spec/15_TALENT_DOMAIN_2.md` → 当前 DEV-09 恢复链对应 release 文档/PR → `IMPLEMENTATION_STATUS.md` → `TEST_REPORT.md` → 当前 PR 最终 head 对应 Actions，再读 WP7/WP6/WP5/WP4/WP3/WP2B/WP2/WP1/M1/H1/A1/R1 与 `docs/spec/06_DEVELOPMENT.md`。
 
 规格文档是输入事实，不自动等于实现状态；当前代码、前向迁移、生成契约和真实 CI 优先。
 
 ## 当前分支
 
-- 分支：`feat/json-rebuild`
-- PR：#18，基于 `feat/person-merge` / PR #17
-- 功能冻结 head：`feeab369396bf85536c92e3f8812d2bd50d3be9a`
-- Actions：`36220456451`，五个 job 全绿
-- 请求契约：103
-- core / transport：274/274
-- 原 PostgreSQL 合同：67/67
-- T29 real Export → fresh PostgreSQL rebuild：PASS
-- T29 CLI CHECK/APPLY safety gate：PASS
+- 分支：`spec/talent-domain-2`
+- 基线：`feat/recovery-writeahead-media` / PR #22 head `c0768330d21f0fddf2853e96417d101eaa2bfbe9`
+- 本分支性质：**规格升级，不含 Talent 2.0 产品实现**
+- 新增：`docs/spec/15_TALENT_DOMAIN_2.md`、`docs/release/TALENT_DOMAIN_2_PLAN.md`
+- 决策：完成当前 DEV-09 恢复链后执行 TD2-01～06，再启动 DEV-08 AI
+- 不得把本分支文档更新记作 schema/API/UI/测试已经完成
+
+## Talent Domain 2.0 新不变量
+
+1. 一个现实人物只有一个 Person；多职业使用 PersonRole，不复制人物。
+2. Role 表达职业，Capability 表达能力，不能用无限细分 Role 代替能力模型。
+3. 所有人共用 TalentProfile；专属 profile 只按真实结构化需求增加。
+4. 首批完整专属结构为 ModelProfile；Translator 使用语言对/服务模式；Creative/Crew 优先 Role + Capability + Work。
+5. Asset 是文件、MediaCollection 是组织方式、Work 是真实作品；同一 Asset 可复用但不复制物理对象。
+6. Agent/Agency/booking 使用 Representation 类型化关系，不塞进备注。
+7. Agent/AI 必须读取版本化 Talent Schema；未知字段/code/schemaVersion fail closed。
+8. 当前 Person.roles[] / skillCodes[] / heightCm 只是迁移输入；只允许追加前向迁移，稳定 Person/Work/Project/Asset ID 不变。
+9. TD2-01～06 未完成前，不启动正式 extract_profile / suggest_tags / parse_search 人才写入契约。
+10. Merge/Delete/Export/Rebuild/Recovery 必须覆盖所有新增 TD2 关系，不能形成维护盲区。
 
 ## DEV-07F～07H 当前不变量
 
@@ -41,13 +51,11 @@
 
 ## 下一步
 
-进入 **DEV-09 / FR-30 备份与恢复演练**：
+1. 先完成当前 **DEV-09 / FR-30** 恢复链，不因本规格PR打断其安全闭环；
+2. DEV-09 Gate 通过后启动 **TD2-01**，按 TD2-01 → 02/03/04 → 05 → 06 推进；
+3. 每个 TD2 PR 必须提供前向 migration、旧库升级、新空库、真实 PostgreSQL、浏览器、维护依赖与回滚/前滚证据；
+4. TD2-05 必须把新增关系接入 Shortlist、Export、Person merge、Deletion、T29 rebuild 和 DEV-09 recovery；
+5. TD2-06 固定版本化 Talent Schema / Agent Contract，并跑 TD2-T01～12；
+6. TD2 Gate 通过后才进入 **DEV-08 AI**。
 
-1. 先冻结 backup/restore threat model 和“备份 ≠ T29 JSON rebuild”的边界；
-2. 设计 PostgreSQL + 私有媒体 + 密钥/配置的一致性备份集合；
-3. restore 必须默认 MAINTENANCE，恢复后旧 Session 全失效；
-4. 做 restore-check：来源暂停/删除/用途变化、媒体缺失、密钥不一致、schema/version 不匹配都阻断放行；
-5. 新建 disposable restore DB / storage root 演练，不 drop / reset 现有库；
-6. 完成真实备份→恢复→校验→放行前门槛，再考虑正式升级手册。
-
-不要提前启动 DEV-08 AI，也不要把 T29 的 `once-export-v1` 迁移工具包装成数据库备份。
+不要把 T29 JSON rebuild 当数据库备份；不要因为 Talent 2.0 增加职业需求就创建“一职业一表”的空平台；不要提前启动正式人才 AI。
