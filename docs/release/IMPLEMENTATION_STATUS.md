@@ -1,3 +1,19 @@
+# v0.4 Talent Domain 2.0 规格状态｜2026-09-26
+
+本规格分支 `spec/talent-domain-2-v2` 叠加在 DEV-09D / PR #22 最新基线上。本批只冻结 Talent Domain 2.0 产品/数据/开发契约，**没有修改 Prisma schema、迁移、API、页面或运行时**。
+
+| 项目 | 状态 |
+|---|---|
+| Talent 2.0 规格 | SPEC_UPDATED |
+| TD2-01～06 | NOT_IMPLEMENTED |
+| TD2-T01～12 | NOT_RUN |
+| DEV-08 人才AI | 保持未启动；TD2-06 Gate 前不得启动正式契约 |
+| DEV-09 | 继续按当前证据推进 09E，不被本规格PR打断 |
+
+当前顺序冻结为：**完成 DEV-09 恢复链 → TD2-01～06 → DEV-08 AI**。详细见 `docs/spec/15_TALENT_DOMAIN_2.md` 与 `TALENT_DOMAIN_2_PLAN.md`。
+
+---
+
 # 当前实现状态｜DEV-09D Write-ahead / DB+Media 恢复闭环
 
 应用 `0.1.0-dev.1`。当前分支 `feat/recovery-writeahead-media`，PR #22，基于 DEV-09C / PR #21。
@@ -12,7 +28,7 @@
 | DEV-05 作品项目 | 组图/封面/署名、项目参与、参考/交付、复盘 | 主体关联、内部双语文本 |
 | DEV-06 检索清单 | 结构化检索、命中依据、Shortlist、SQL 下推 | visible IDs 完整 SQL 下推、规格 P95、AI parse_search |
 | DEV-07 维护 | 导出、删除闭环、Person merge、T29 隔离 JSON 重建 | 当前主要规格切片已具备实现证据 |
-| DEV-08 AI | 未开发 | 四类有界任务、预算、证据与采纳 |
+| DEV-08 AI | 未开发 | **先完成 TD2-01～06 Gate**；再做四类有界任务、预算、证据与采纳 |
 | DEV-09 运维恢复 | **09A 隔离准备、09B restore-check、09C zero-delta approve、09D write-ahead + DB/media 同包恢复** | **09E post-backup delta resolution、正式运维长期保留策略** |
 | DEV-10 总体验收 | core / PG / Chromium 多链回归；真实 rebuild/restore drill | 完整性能/生产介质/最终接管门 |
 | DEV-11 接管 | 未执行 | 不得接管正式资料 |
@@ -76,4 +92,4 @@ CI 明确输出：
 - 不允许“管理员勾选忽略”；
 - 只有所有 post-backup delta 都可证明已解决，才允许非零增量 approval。
 
-详见 [WP9_RECOVERY_WRITEAHEAD_MEDIA.md](WP9_RECOVERY_WRITEAHEAD_MEDIA.md)。
+详见 [WP9_RECOVERY_WRITEAHEAD_MEDIA.md](WP9_RECOVERY_WRITEAHEAD_MEDIA.md)。DEV-09 整体 Gate 通过后，下一条产品开发线改为 Talent Domain 2.0，而不是直接启动 DEV-08。
