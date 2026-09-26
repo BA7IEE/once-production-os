@@ -33,6 +33,26 @@ export interface RecoveryExternalCheck {
     media: RecoveryMediaCheck;
 }
 
+
+export interface RecoveryApprovalEvidence {
+    schemaVersion: 'once-recovery-approval-v1';
+    backupId: string;
+    backupManifestDigest: string;
+    databaseSha256: string;
+    recoveryEpochDigest: string;
+    contactKeyDigest: string;
+    migrationDigest: string;
+    reportDigest: string;
+    safetyJournal: {
+        journalId: string;
+        backupSequence: number;
+        backupHeadHash: string;
+        currentSequence: number;
+        currentHeadHash: string;
+        postBackupEntries: number;
+    };
+}
+
 export interface RecoveryRun extends Base {
     actorId: string;
     sourceEpochDigest: string;
@@ -43,6 +63,8 @@ export interface RecoveryRun extends Base {
     approvedAt: string | null;
     reportDigest: string | null;
     report: RecoveryCheckReport | Record<string, never>;
+    approvalDigest: string | null;
+    approval: RecoveryApprovalEvidence | Record<string, never>;
     revokedSessions: number;
     consumedActivations: number;
     disabledUsers: number;
