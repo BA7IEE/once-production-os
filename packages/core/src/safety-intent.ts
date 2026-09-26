@@ -9,19 +9,11 @@ export interface SafetyIntentSink {
     writeAhead(intent: SafetyIntent): Promise<void>;
 }
 
-const SAFETY_OPERATIONS = new Set([
-    'auth.changePassword',
-    'member.resetAccess','member.disable','member.permissions',
-    'scope.create','record.scope',
-    'source.create','source.update','source.review','source.suspend',
-    'handoff.create','handoff.accept','handoff.decline','handoff.revoke',
-    'usePermission.create','usePermission.revoke',
-    'deletion.create','deletion.block','deletion.decision','deletion.planFreeze','deletion.cleanupStart',
-    'person.merge',
-    'contact.replace','evidence.confirm',
-    'asset.quarantine','upload.cancel'
-]);
-
-export function requiresSafetyIntent(operation: string): boolean {
-    return SAFETY_OPERATIONS.has(operation);
+/**
+ * Recovery zero-delta approval is conservative by design: every authenticated mutation must
+ * be represented outside the database before the mutation starts. This avoids a brittle
+ * operation allowlist and automatically protects future COMMAND/SECRET routes.
+ */
+export function requiresSafetyIntent(mode: 'READ' | 'COMMAND' | 'SECRET'): boolean {
+    return mode === 'COMMAND' || mode === 'SECRET';
 }
