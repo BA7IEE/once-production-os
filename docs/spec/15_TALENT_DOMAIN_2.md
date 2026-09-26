@@ -1,6 +1,6 @@
 # ONCE Production OS｜Talent Domain 2.0 R1 Freeze
 
-版本：v0.5｜日期：2026-09-27｜状态：R1 重新冻结候选，尚未实现
+版本：v0.5｜日期：2026-09-27｜状态：R1 SPEC_FROZEN，尚未实现
 
 ## 1. 目的与第一性原理
 
