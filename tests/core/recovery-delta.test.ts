@@ -18,11 +18,11 @@ function intent(operation: string, resourceId=randomUUID()): SafetyIntent {
         operation,requestId:randomUUID(),resourceId
     };
 }
-function audit(operation:string,resourceId:string,at='2026-09-26T10:00:00.000Z'): AuditEvent {
+function audit(operation:string,resourceId:string,requestId=randomUUID(),at='2026-09-26T10:00:00.000Z'): AuditEvent {
     return {
         id:randomUUID(),workspaceId:'11111111-1111-4111-8111-111111111111',
         createdAt:at,updatedAt:at,revision:1,actorId:'22222222-2222-4222-8222-222222222222',
-        action:operation,resourceKind:'test',resourceId,changedFields:['status'],requestId:randomUUID()
+        action:operation,resourceKind:'test',resourceId,changedFields:['status'],requestId
     };
 }
 
@@ -31,7 +31,7 @@ test('DEV-09E aborted intent resolves as NO_COMMIT and covers every post-backup 
     try{
         const writer=await SafetyJournalWriter.open(path),anchor=writer.snapshot().sequence;
         const i=intent('member.disable');
-        await writer.writeAhead(i);await writer.aborted(i);
+        await writer.writeAhead(i);await writer.aborted(i, 'NOT_STARTED');
         const report=analyzeSafetyDeltas(await readSafetyJournal(path),anchor);
         assert.equal(report.postBackupEntries,2);
         assert.equal(report.unresolved,0);
@@ -48,7 +48,7 @@ test('DEV-09E committed prepare-contained delta plus delayed audit is fully reso
         const writer=await SafetyJournalWriter.open(path),anchor=writer.snapshot().sequence;
         const sourceId=randomUUID(),i=intent('source.suspend',sourceId);
         await writer.writeAhead(i);await writer.committed(i,sourceId);
-        await writer.append([audit('source.suspend',sourceId)]);
+        await writer.append([audit('source.suspend',sourceId,i.requestId)]);
         const report=analyzeSafetyDeltas(await readSafetyJournal(path),anchor);
         assert.equal(report.unresolved,0);
         assert.equal(report.resolved,2);
@@ -64,7 +64,7 @@ test('DEV-09E committed non-contained mutation remains blocker',async()=>{
         const writer=await SafetyJournalWriter.open(path),anchor=writer.snapshot().sequence;
         const memberId=randomUUID(),i=intent('member.disable',memberId);
         await writer.writeAhead(i);await writer.committed(i,memberId);
-        await writer.append([audit('member.disable',memberId)]);
+        await writer.append([audit('member.disable',memberId,i.requestId)]);
         const report=analyzeSafetyDeltas(await readSafetyJournal(path),anchor);
         assert.equal(report.unresolved,1);
         assert.equal(report.items.find(x=>x.state==='COMMITTED')!.reasonCode,'COMMITTED_REPLAY_REQUIRED');
@@ -113,7 +113,7 @@ test('DEV-09E delayed audit after pre-backup commit is supplemental, not a false
         const sourceId=randomUUID(),i=intent('source.suspend',sourceId);
         await writer.writeAhead(i);await writer.committed(i,sourceId);
         const anchor=writer.snapshot().sequence;
-        await writer.append([audit('source.suspend',sourceId)]);
+        await writer.append([audit('source.suspend',sourceId,i.requestId)]);
         const report=analyzeSafetyDeltas(await readSafetyJournal(path),anchor);
         assert.equal(report.postBackupEntries,1);
         assert.equal(report.unresolved,0);
@@ -142,7 +142,7 @@ test('DEV-09E unmatched audit and contradictory commit+abort markers are rejecte
         assert.equal(report.items[0]!.reasonCode,'UNMATCHED_COMMITTED_AUDIT');
 
         const i=intent('source.suspend',randomUUID());
-        await writer.writeAhead(i);await writer.committed(i,i.resourceId);await writer.aborted(i);
+        await writer.writeAhead(i);await writer.committed(i,i.resourceId);await writer.aborted(i, 'NOT_STARTED');
         assert.throws(()=>analyzeSafetyDeltas(writer.state,anchor));
     }finally{rmSync(dir,{recursive:true,force:true});}
 });

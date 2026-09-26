@@ -47,7 +47,7 @@ async function run() {
                         if (intent) await safetyJournal!.committed(intent, deletionClaim.id).catch(() => {});
                     }
                     catch (error) {
-                        if (intent) await safetyJournal!.aborted(intent).catch(() => {});
+                        // Cleanup may already have committed some items. Leave completion unresolved.
                         throw error;
                     }
                 }

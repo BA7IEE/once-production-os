@@ -8,7 +8,9 @@ export interface SafetyIntent {
 export interface SafetyIntentSink {
     writeAhead(intent: SafetyIntent): Promise<void>;
     committed(intent: SafetyIntent, resourceId: string): Promise<void>;
-    aborted(intent: SafetyIntent): Promise<void>;
+    /** Only valid before any database transaction or external side effect is attempted.
+     * A rejected transaction promise is NOT proof of rollback. */
+    aborted(intent: SafetyIntent, proof: 'NOT_STARTED'): Promise<void>;
 }
 
 /**

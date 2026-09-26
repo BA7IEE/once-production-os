@@ -121,3 +121,29 @@ test('DEV-09D two journal writers serialize concurrent write-ahead intents into 
         assert.ok(state.entries.every(x=>x.action.startsWith('intent.')));
     }finally{rmSync(root,{recursive:true,force:true});}
 });
+
+test('DEV-09E a transaction acknowledgement failure must not claim the write was aborted', async () => {
+    const sink = new IntentSink(), f = await system(sink);
+    const transaction = f.store.transaction.bind(f.store);
+    let failOnce = true;
+    f.store.transaction = async work => {
+        const before = f.store.rows('sources').length;
+        const value = await transaction(work);
+        if (failOnce && f.store.rows('sources').length > before) {
+            failOnce = false;
+            throw new Error('synthetic connection loss after commit');
+        }
+        return value;
+    };
+    const key = randomUUID(), body = sourceInput();
+    const response = await f.owner.cmd('POST', '/sources', body, key);
+    assert.equal(response.status, 500);
+    assert.equal(f.store.rows('sources').length, 1, 'database really committed');
+    assert.equal(sink.commits.length, 0, 'acknowledgement was unavailable');
+    assert.equal(sink.aborts.length, 0, 'an exception is not proof of rollback');
+    const retry = await f.owner.cmd('POST', '/sources', body, key);
+    assert.equal(retry.status, 201);
+    assert.equal(result(retry).replayed, true);
+    assert.equal(f.store.rows('sources').length, 1);
+    assert.equal(sink.commits.length, 1);
+});

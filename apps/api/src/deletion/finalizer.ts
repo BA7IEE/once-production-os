@@ -21,8 +21,9 @@ export class DeletionFinalizer {
             workspaceId: claim.workspaceId, operation: 'worker.deletion.finalize',
             requestId: claim.id, resourceId: claim.id
         } : null;
+        // A journal failure must not enter the failure-state mutation path.
+        if (intent) await this.safetyIntent!.writeAhead(intent);
         try {
-            if (intent) await this.safetyIntent!.writeAhead(intent);
             const tasks = await this.core.deletionFinalization.mediaTasks(claim);
             if (tasks.length && !this.provider) {
                 await this.core.deletionFinalization.fail(claim, 'MEDIA_PROVIDER_UNAVAILABLE');
@@ -46,7 +47,8 @@ export class DeletionFinalizer {
                 .then(() => true).catch(() => false);
             if (intent) {
                 if (failed) await this.safetyIntent!.committed(intent, claim.id).catch(() => {});
-                else await this.safetyIntent!.aborted(intent).catch(() => {});
+                // If even fail-state persistence failed, physical purge may still have happened.
+                // Never manufacture NO_COMMIT evidence from that exception.
             }
         }
         return true;
