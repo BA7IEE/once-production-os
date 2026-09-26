@@ -1,6 +1,6 @@
 # ONCE Production OS｜开发实施文档｜先把内部 OS 做出来
 
-版本：v0.5｜日期：2026-09-27｜当前范围：一期内部 OS + Talent Domain 2.0 R1 + AI｜状态：R1 重新冻结候选，新增实现未执行
+版本：v0.5｜日期：2026-09-27｜当前范围：一期内部 OS + Talent Domain 2.0 R1 + AI｜状态：R1 SPEC_FROZEN，新增实现未执行
 
 ## 1. 实施目标
 
