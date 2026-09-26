@@ -11,6 +11,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaStore } from '../../apps/api/src/prisma-store.ts';
 import { Application } from '../../packages/core/src/api.ts';
 import { FakeClock, SYNTHETIC_PASSWORD } from '../support/fixtures.ts';
+import { digest } from '../../packages/core/src/json.ts';
 
 const raw = process.env.DATABASE_URL_TEST;
 assert.equal(process.env.ALLOW_DB_TESTS, 'yes');
@@ -109,6 +110,7 @@ try {
     assert.equal(await targetClient.auditEvent.count(), 1);
 
     const value = payload();
+    const expectedDigest = digest(value);
     const input = join(tmp, 't29-export.json');
     writeFileSync(input, JSON.stringify(value), { mode: 0o600 });
 
@@ -130,7 +132,13 @@ try {
     }, 2);
     assert.match(rejected.stderr, /Only an explicit loopback once_rebuild_/);
 
-    const applied = run('pnpm', ['--silent', 'run', 'rebuild:json', '--', '--input', input, '--actor-login', 'owner', '--apply'], {
+    const digestRejected = run('pnpm', ['--silent', 'run', 'rebuild:json', '--', '--input', input, '--actor-login', 'owner',
+        '--expected-sha256', '0'.repeat(64), '--apply'], { ...commonEnv, ALLOW_REBUILD: 'yes' }, 2);
+    assert.match(digestRejected.stderr, /REBUILD_DIGEST_MISMATCH/);
+    assert.equal(await targetClient.sourceRecord.count(), 0, 'digest mismatch must happen before rebuild writes');
+
+    const applied = run('pnpm', ['--silent', 'run', 'rebuild:json', '--', '--input', input, '--actor-login', 'owner',
+        '--expected-sha256', expectedDigest, '--apply'], {
         ...commonEnv, ALLOW_REBUILD: 'yes'
     });
     const summary = JSON.parse(applied.stdout);
@@ -165,9 +173,8 @@ try {
     assert.equal(history.action, 'BASELINE');
     assert.equal(history.baselineOnly, true);
 
-    const second = run('pnpm', ['--silent', 'run', 'rebuild:json', '--', '--input', input, '--actor-login', 'owner', '--apply'], {
-        ...commonEnv, ALLOW_REBUILD: 'yes'
-    }, 1);
+    const second = run('pnpm', ['--silent', 'run', 'rebuild:json', '--', '--input', input, '--actor-login', 'owner',
+        '--expected-sha256', expectedDigest, '--apply'], { ...commonEnv, ALLOW_REBUILD: 'yes' }, 1);
     assert.match(second.stderr, /REBUILD_TARGET_NOT_EMPTY/);
 
     console.log('PASS DEV-07H T29 PG/CLI: CHECK zero-write -> 10 people/3 works/1 project APPLY -> stable ids/relations; unsafe target and replay rejected');
