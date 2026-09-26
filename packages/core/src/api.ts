@@ -103,7 +103,7 @@ export class Application {
         this.imports = new Imports(store, clock, config, this.talent);
     }
     private async writeAhead(actor: Actor, operation: string, requestId: string, resourceId: string, commandKey = ''): Promise<void> {
-        if (!this.safetyIntent || !requiresSafetyIntent(operation)) return;
+        if (!this.safetyIntent) return;
         if (commandKey)
             invariant(/^[A-Za-z0-9_-]{8,128}$/.test(commandKey), 'IDEMPOTENCY_REQUIRED',
                 '写入需要 8–128 位 Idempotency-Key', 400);
@@ -221,7 +221,7 @@ export class Application {
                 response.body = { state: 'PASSWORD_CHANGED' };
                 return response;
             }
-            if (requiresSafetyIntent(route.operation)) {
+            if (requiresSafetyIntent(route.mode)) {
                 const preActor = await this.store.transaction(async tx => {
                     const actor = await this.identity.authenticate(tx, token);
                     if (route.permission) requirePermission(actor, route.permission);
