@@ -22,7 +22,7 @@ M1验收包含DEV-07和DEV-09，因此内部试用前有必要维护/导出/恢�
 | DEV-07 | M1 | 维护、内部导出、合并删除及依赖失效 | DEV-02, DEV-05, DEV-06 | maintenance/exports/use-policy | 旧导出逐依赖复查；JSON重建；删除不因快照不可变而失败 | NOT_STARTED |
 | DEV-08 | M2 | 有界 AI、建议采纳与成本控制 | DEV-02, DEV-05, DEV-06, DEV-07, TD2-06 | ai-assist/provider/admin | 四种任务；使用版本化Talent Schema；发送前Attempt落库；未知不重发；原子多选采纳 | NOT_STARTED |
 | DEV-09 | M1 | 部署、备份、恢复隔离与运行手册 | DEV-02, DEV-04, DEV-07 | ops/monitoring/runbooks | 无CMS配置启动；旧库恢复先隔离；账号停用/删除不自动复活 | NOT_STARTED |
-| DEV-10 | M3 | 端到端、故障与范围回归 | DEV-08, DEV-09 | tests/evidence | 22组当前需求+内部风险用例；关闭AI仍可完整人工工作 | NOT_STARTED |
+| DEV-10 | M3 | 端到端、故障与范围回归 | DEV-08, DEV-09, TD2-06 | tests/evidence | 22组当前FR + TD2-T01～18 + 内部风险用例；关闭AI仍可完整人工Talent R1工作 | NOT_STARTED |
 | DEV-11 | M3 | 真实样本试点、接管与文档交付 | DEV-10 | docs/release/measurement | 净用时实测；维护人能接管；无外部发布验收项 | NOT_STARTED |
 
 ### Talent Domain 2.0 R1 必做切片
