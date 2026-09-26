@@ -1,4 +1,4 @@
-name: Apply TD2 typed foundation
+name: Apply TD2 reviewed business slice
 on:
   push:
     branches: [feat/talent-domain-2]
@@ -33,14 +33,18 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
-      - name: Apply pinned generators only to the isolated checkout
+      - name: Check previous source fingerprint and apply reviewed patch
         run: |
-          python3 .github/td2-apply-reviewed.py
-          git restore --source=HEAD -- .github/workflows/acceptance.yml
           python3 - <<'PY'
-          import gzip,pathlib
-          exec(compile(gzip.decompress(pathlib.Path('.github/td2-foundation-generator.py.gz').read_bytes()), 'reviewed-td2-foundation', 'exec'))
-          p=pathlib.Path('packages/core/src/talent-search.ts');s=p.read_text().replace('for (const evidence of raw.evidence) {','for (const evidence of raw.evidence) {\n            if (!evidence.personId || !evidence.reviewedAt) continue;').replace('if (!source || !visibility.sourceVisible(source.id)','if (!evidence.reviewedAt || !source || !visibility.sourceVisible(source.id)');p.write_text(s)
+          import hashlib,lzma,pathlib,subprocess,os
+          for line in pathlib.Path('MANIFEST.sha256').read_text().splitlines():
+              expected,path=line.split('  ',1)
+              if path=='.github/workflows/td2-review-source.yml': continue
+              assert hashlib.sha256(pathlib.Path(path).read_bytes()).hexdigest()==expected, 'Preimage drift: '+path
+          body=lzma.decompress(b''.join(pathlib.Path(f'.github/td2-business.{i}.xzpart').read_bytes() for i in range(4)))
+          patch=pathlib.Path(os.environ['RUNNER_TEMP'])/'td2-business.patch';patch.write_bytes(body)
+          subprocess.run(['git','apply','--check',str(patch)],check=True)
+          subprocess.run(['git','apply',str(patch)],check=True)
           PY
       - name: Isolated disposable database configuration
         env:
@@ -50,15 +54,15 @@ jobs:
           echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_td2" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - run: pnpm typecheck
+      - run: pnpm contract:generate && pnpm typecheck
       - run: pnpm db:deploy
       - name: Core regressions before source commit
         run: node --experimental-strip-types --test --test-concurrency=4 tests/core/*.test.ts
-      - name: Fast-forward reviewed source without changing any workflow
+      - name: Fast-forward reviewed source only
         run: |
           test "$(git ls-remote origin refs/heads/feat/talent-domain-2 | cut -f1)" = "$GITHUB_SHA"
           test -z "$(git diff --name-only -- .github/workflows)"
-          git add -- apps/api/src/recovery/safety-journal.ts scripts/recovery-approve.ts tests/core/safety-journal.test.ts apps/api/src/prisma-store.ts packages/core/src/model.ts packages/core/src/talent-search.ts packages/core/src/talent-v2-model.ts prisma/schema.prisma prisma/migrations/202609270001_talent_domain_v2/migration.sql tests/support/memory-store.ts artifacts/td2-model-contract.json
+          git add -- packages/core/src scripts/generate-contract.ts tests/core/talent-v2.test.ts apps/admin-web/src/generated/requests.ts artifacts/openapi.json
           python3 - <<'PY'
           import hashlib,pathlib,subprocess
           files=sorted(p for p in subprocess.check_output(['git','ls-files','-z']).decode().split('\0') if p and p!='MANIFEST.sha256')
@@ -69,5 +73,5 @@ jobs:
           git diff --cached --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'feat(td2): typed talent identity, professional facts and forward migration foundation'
+          git commit -m 'feat(td2): professional profiles, field evidence, role-aware selection and machine identity'
           git push origin HEAD:refs/heads/feat/talent-domain-2

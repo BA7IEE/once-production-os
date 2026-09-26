@@ -1,0 +1,62 @@
+name: ONCE Talent 2 acceptance
+on:
+  pull_request:
+    branches: [feat/recovery-delta-resolution, feat/talent-domain-2]
+permissions:
+  contents: read
+concurrency:
+  group: once-td2-acceptance-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  acceptance:
+    name: ${{ matrix.suite }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [browser-resume, browser-handoff, browser-media, browser-production, postgres-contract]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: once_ci
+          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
+          POSTGRES_DB: once_test_td2
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U once_ci -d once_test_td2" --health-interval 5s --health-timeout 3s --health-retries 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Verify committed delivery fingerprints
+        run: sha256sum -c MANIFEST.sha256
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v6
+      - name: Isolated target per runner
+        env:
+          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
+        run: |
+          echo "::add-mask::$CI_DB_PASSWORD"
+          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_td2" >> "$GITHUB_ENV"
+          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_td2" >> "$GITHUB_ENV"
+          echo 'ALLOW_DB_TESTS=yes' >> "$GITHUB_ENV"
+          echo 'ALLOW_BROWSER_TESTS=yes' >> "$GITHUB_ENV"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: pnpm verify && pnpm typecheck:transport
+      - name: PostgreSQL, JSON rebuild and full backup recovery
+        if: matrix.suite == 'postgres-contract'
+        run: pnpm db:deploy && pnpm verify:postgres && node --experimental-strip-types tests/postgres/rebuild-cli.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+        if: matrix.suite != 'postgres-contract'
+      - name: Independent real browser gate
+        if: matrix.suite != 'postgres-contract'
+        env:
+          SUITE: ${{ matrix.suite }}
+        run: |
+          if [ "$SUITE" = browser-resume ]; then node --test tests/acceptance/checkpoint.test.mjs; fi
+          if [ "$SUITE" = browser-media ]; then node --experimental-strip-types --test tests/media/local-images.test.mjs; fi
+          if [ "$SUITE" = browser-production ]; then node --experimental-strip-types --test tests/ui/field-accessibility.test.mjs; fi
+          node "tests/acceptance/$SUITE.mjs"
