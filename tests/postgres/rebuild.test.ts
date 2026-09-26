@@ -250,7 +250,7 @@ test('DEV-07H T29 real once-export-v1 -> PostgreSQL rollback -> CLI rebuild 10/3
         assert.ok(await targetClient.project.findUnique({ where: { id: exportPayload.manifest.projects[0].id } }));
 
         const second = spawnSync(process.execPath, ['--experimental-strip-types', 'scripts/rebuild-export.ts',
-            '--input', file, '--actor-login', 'rebuild_owner', '--apply'], {
+            '--input', file, '--actor-login', 'rebuild_owner', '--expected-sha256', builtExport.payloadDigest, '--apply'], {
             cwd: process.cwd(), encoding: 'utf8', timeout: 120000,
             env: { ...process.env, DATABASE_URL_REBUILD: targetUrl, ALLOW_REBUILD: 'yes' }
         });
