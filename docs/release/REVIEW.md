@@ -1,3 +1,20 @@
+# Talent Domain 2.0 规格 Review｜2026-09-26
+
+本轮为规格层 Review，不是代码 Review。确认以下边界：
+
+1. 一个现实人物一个 Person；多职业用 PersonRole。
+2. Role 与 Capability 分离；不创建“工业摄影师”等爆炸式角色。
+3. Model 首批专属 Profile；Translator 使用语言对/服务模式；Crew 默认复用 Role + Capability + Work。
+4. Asset / MediaCollection / Work 三层分离，同一 Asset 可复用但不复制物理对象。
+5. Representation 类型化表达 Agent/Agency，外部作品与 ONCE 项目继续严格分离。
+6. Agent/AI 必须服从版本化 Talent Schema，未知字段/code fail closed。
+7. 旧 roles[] / skillCodes[] / heightCm 只作为前向迁移输入，稳定业务 ID 不变。
+8. Merge/Delete/Export/Rebuild/Recovery 必须覆盖新增关系，TD2 Gate 先于 DEV-08。
+
+当前没有运行产品测试，因此没有把 SPEC_UPDATED 写成 PASS。
+
+---
+
 > 当前增量详见 [WP7_JSON_REBUILD.md](WP7_JSON_REBUILD.md)。当前结论以 PR #18 最终 head 与对应 Actions 为准。
 
 # 第一批源码 Review
