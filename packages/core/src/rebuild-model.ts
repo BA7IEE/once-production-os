@@ -10,7 +10,7 @@ export const REBUILD_EMPTY_TABLES: Table[] = [
     'projects', 'projectParticipants', 'projectWorks',
     'uploads', 'assets',
     'sources', 'sourceHistory', 'people', 'contacts', 'evidence',
-    'receipts', 'imports', 'jobs', 'handoffs'
+    'imports', 'jobs', 'handoffs'
 ];
 
 export const REBUILD_LIMITS = Object.freeze({
