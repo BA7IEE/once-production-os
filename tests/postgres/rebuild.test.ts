@@ -234,7 +234,8 @@ test('DEV-07H T29 real once-export-v1 -> PostgreSQL rollback -> CLI rebuild 10/3
         const history = await targetClient.sourceHistory.findFirstOrThrow({ where: { sourceId: source.id } });
         assert.equal(history.action, 'BASELINE');
         assert.equal(history.baselineOnly, true);
-        assert.match(history.decisionReason ?? '', /original source history/i);
+        assert.equal(history.decisionReason, null);
+        assert.equal(history.actorId, null);
 
         for (const row of exportPayload.manifest.people)
             assert.ok(await targetClient.person.findUnique({ where: { id: row.id } }));
