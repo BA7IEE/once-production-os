@@ -170,8 +170,9 @@ test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch appro
             if (table === 'audits' && !fired) { fired = true; throw new Error('synthetic recovery audit failure'); }
         };
         await assert.rejects(faults.transaction(tx => recovery.prepare(tx, recoveryActor, hashSecret(oldEpoch),
-            { requestId: randomUUID(), ip: 'CLI' })), /synthetic recovery audit failure/);
-        assert.ok(fired);
+            { requestId: randomUUID(), ip: 'CLI' })),
+            (e: unknown) => e instanceof Error && 'code' in e && (e as { code: string }).code === 'DB_WRITE_FAILED');
+        assert.ok(fired, 'fault must happen after the real recovery audit insert inside the transaction');
         assert.equal(await client.recoveryRun.count(), 0);
         assert.equal((await client.sourceRecord.findUniqueOrThrow({ where: { id: sourceId } })).status, beforeSource.status);
         assert.equal((await client.exportJob.findUniqueOrThrow({ where: { id: result(exportCreated).resourceId as string } })).state, 'READY');
