@@ -1,16 +1,16 @@
-# ONCE Production OS｜v0.4 内部 OS + Talent Domain 2.0 开发基线
+# ONCE Production OS｜v0.5 内部 OS + Talent Domain 2.0 R1 开发基线
 
-版本：v0.4｜日期：2026-09-26｜当前范围：一期内部 OS + Talent Domain 2.0 + AI｜状态：Talent 2.0 规格已冻结候选，相关实现尚未执行
+版本：v0.5｜日期：2026-09-27｜当前范围：一期内部 OS + Talent Domain 2.0 R1 + AI｜状态：R1 已重新冻结候选，相关实现尚未执行
 
 ## 1. 这版做什么
 
 **先交付 ONCE 自己每天使用的工作系统，不建设官网发布系统。**
 
-当前一期主线调整为：收到资料 → 建统一 Person → 维护多职业 Role / Capability / 专属资料 → 整理图片/视频与作品 → 关联真实项目 → 检索和建立内部候选清单 → **先完成 Talent Domain 2.0 Gate** → AI 辅助整理/写中英草稿 → 人工确认 → 内部持续复用。
+当前一期主线调整为：收到资料 → 建 Person（自然人）→ 需要时启用 TalentProfile → Role/Capability/Language/Location/Casting/Measurement/Representation/ExternalRef/Credential 等有据事实 → 作品/项目/媒体 → 按 Person+Role 建内部候选 → **先完成 Talent Domain 2.0 R1 Gate** → Agent/AI 按版本化 Schema 提议/写入 → 人工确认 → 持续复用。
 
-AI 仍是一期的明确工作，但正式人才抽取/标签/搜索契约必须在 Talent Domain 2.0 完成后启动，避免把当前过渡字段固化成 Agent/AI 事实接口。没有 AI Key、没有外网或模型故障，人工建档、找人、看作品、做项目记录仍能完成。内部用途说明、账号权限、素材私有访问和必要审计继续保留。
+AI 仍是一期的明确工作，但正式人才抽取/标签/搜索契约必须在 Talent Domain 2.0 R1 完成后启动；外部 Agent 也必须使用 ServicePrincipal、ExternalRef、Schema Registry 与 Proposal/领域命令，不能围绕旧过渡字段另造事实模型。没有 AI Key、没有外网或模型故障，人工建档、找人、看作品、做项目记录仍能完成。内部用途说明、账号权限、素材私有访问和必要审计继续保留。
 
-本版在 v0.3 内部 OS 基线上新增 **Talent Domain 2.0** 作为 AI 前置冻结门。现有实现状态仍以 `docs/release/` 与当前代码/CI 为准；v0.4 规格不会把未实现能力写成已完成。
+本版在 v0.4 R0 基础上完成 **Talent Domain 2.0 R1 对抗审查回填**：Person≠Talent、多来源、时间事实、ExternalRef、Machine Actor、Shortlist Role Context、Casting/Measurement、成人资格、Credential、Collection type/tag、Proposal 等成为正式冻结契约。现有实现状态仍以 `docs/release/` 与当前代码/CI 为准。
 
 ## 2. 明确移出一期
 
@@ -42,16 +42,16 @@ CRM、财务、商业合同、排期、报价继续不做。场地/设备管理�
 | [12_DECISIONS_CHANGELOG.md](12_DECISIONS_CHANGELOG.md) | 唯一阶段门、默认参数与决策表 |
 | [13_SOURCES.md](13_SOURCES.md) | 本轮输入指纹及继承的研究证据 |
 | [14_DOC_QA.md](14_DOC_QA.md) | 文档检查，不冒充产品测试 |
-| [15_TALENT_DOMAIN_2.md](15_TALENT_DOMAIN_2.md) | Talent 2.0 冻结规格：统一人物、多职业、能力、专属资料、媒体集合与 Agent Schema |
+| [15_TALENT_DOMAIN_2.md](15_TALENT_DOMAIN_2.md) | Talent 2.0 R1 冻结规格：Person/Talent边界、多来源、Role/Capability、时间事实、ExternalRef、Machine Actor、Agent Schema |
 | [AGENTS.md](AGENTS.md) | 编程 Agent 的阅读顺序和修改边界 |
 
-共17份Markdown（含本页）。Talent 2.0 是 v0.4 的新增强制规格，不是另起一套模特系统。
+共17份Markdown（含本页）。Talent 2.0 R1 是 v0.5 的强制规格，不是另起一套模特/摄影/翻译系统。
 
 ## 5. 阅读与开始开发
 
 先读本页、PRD、开发文档、工作包与 `15_TALENT_DOMAIN_2.md`；再读当前任务涉及的模型/API/状态章节。业务范围以本页和PRD为准；参数与阶段门只在12定义。发现矛盾先同步修正，不选择对自己更方便的一份执行。
 
-历史 DEV-00～07 的实际完成情况只看 release 证据。当前顺序是：完成 DEV-09 恢复链 → 执行 TD2-01～06 → 再启动 DEV-08 AI。代码复用资格仅约束来源代码移植；真实资料依据仅约束真实数据；AI供应商验证仅约束第三方真实调用。**没有任何官网条件阻止内部 OS 开发或一期验收。**
+历史 DEV-00～09 的实际完成情况只看 release 证据。当前顺序是：完成 DEV-09 恢复链 → 执行 R1 定义的 TD2-01～06 并通过 TD2-T01～18 → 再启动 DEV-08 AI。代码复用资格仅约束来源代码移植；真实资料依据仅约束真实数据；AI供应商验证仅约束第三方真实调用。**没有任何官网条件阻止内部 OS 开发或一期验收。**
 
 ## 6. 交付状态
 
