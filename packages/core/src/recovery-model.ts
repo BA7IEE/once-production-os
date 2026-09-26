@@ -42,6 +42,7 @@ export interface RecoveryApprovalEvidence {
     recoveryEpochDigest: string;
     contactKeyDigest: string;
     migrationDigest: string;
+    mediaIdentityDigest: string;
     reportDigest: string;
     safetyJournal: {
         journalId: string;
