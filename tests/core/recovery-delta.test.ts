@@ -121,6 +121,17 @@ test('DEV-09E delayed audit after pre-backup commit is supplemental, not a false
     }finally{rmSync(dir,{recursive:true,force:true});}
 });
 
+test('DEV-09E completion marker cannot precede its write-ahead intent',async()=>{
+    const dir=root(),path=join(dir,'journal.jsonl');
+    try{
+        const writer=await SafetyJournalWriter.open(path),i=intent('source.suspend',randomUUID());
+        const anchor=writer.snapshot().sequence;
+        await writer.committed(i,i.resourceId);
+        await writer.writeAhead(i);
+        assert.throws(()=>analyzeSafetyDeltas(writer.state,anchor));
+    }finally{rmSync(dir,{recursive:true,force:true});}
+});
+
 test('DEV-09E unmatched audit and contradictory commit+abort markers are rejected conservatively',async()=>{
     const dir=root(),path=join(dir,'journal.jsonl');
     try{
