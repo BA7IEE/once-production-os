@@ -74,7 +74,9 @@ export class JsonRebuild {
         uniqueBy(people, x => x.id, 'REBUILD_DUPLICATE_ID', '人才清单包含重复 ID');
         uniqueBy(works, x => x.id, 'REBUILD_DUPLICATE_ID', '作品清单包含重复 ID');
         uniqueBy(projects, x => x.id, 'REBUILD_DUPLICATE_ID', '项目清单包含重复 ID');
-        uniqueBy(media, x => x.id, 'REBUILD_DUPLICATE_ID', '媒体身份清单包含重复 ID');
+        // One Asset may legitimately be reused by more than one Work. The exported media list
+        // represents work/asset placements, so uniqueness is per relationship, not global asset id.
+        uniqueBy(media, x => x.workId + ':' + x.id, 'REBUILD_DUPLICATE_MEDIA_LINK', '同一作品的媒体身份关系重复');
 
         const sourceIds = new Set(sources.map(x => x.id));
         const personIds = new Set(people.map(x => x.id));
@@ -139,6 +141,9 @@ export class JsonRebuild {
         for (const row of media) mediaByWork.set(row.workId, [...(mediaByWork.get(row.workId) ?? []), row]);
         for (const [workId, rows] of mediaByWork) {
             uniqueBy(rows, x => String(x.position), 'REBUILD_MEDIA_ORDER_INVALID', '同一作品的媒体位置重复');
+            const positions = rows.map(x => x.position).sort((a,b)=>a-b);
+            invariant(positions.every((position, index) => position === index), 'REBUILD_MEDIA_ORDER_INVALID',
+                '同一作品的媒体位置必须从 0 开始连续排列', 422);
             invariant(rows.filter(x => x.isCover).length <= 1, 'REBUILD_MEDIA_COVER_INVALID', '同一作品存在多个媒体封面标记', 422);
             invariant(workIds.has(workId), 'REBUILD_MEDIA_REFERENCE_INVALID', '媒体身份引用了未导出的作品', 422);
         }
@@ -187,7 +192,8 @@ export class JsonRebuild {
             const history: SourceHistory = {
                 ...base(actor.workspaceId, this.clock), sourceId: source.id, sourceRevision: source.revision,
                 scopeId: source.scopeId, actorId: actor.membershipId, action: 'BASELINE',
-                decisionReason: 'Controlled JSON rebuild baseline; original source history and reviewer identity were intentionally not restored.',
+                decisionReason: 'Controlled JSON rebuild baseline from export ' + payload.exportId + '; input digest ' + summary.inputDigest
+                    + '; original source history and reviewer identity were intentionally not restored.',
                 baselineOnly: true, basisAmbiguous: false, snapshot: sourceSnapshot(source)
             };
             await tx.insert('sourceHistory', history);
