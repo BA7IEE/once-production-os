@@ -1,6 +1,6 @@
 # ONCE Production OS｜数据模型与一致性契约｜仅当前实体
 
-版本：v0.5｜日期：2026-09-27｜当前范围：一期内部 OS + Talent Domain 2.0 R1 + AI｜状态：R1 逻辑模型重新冻结候选，尚未迁移
+版本：v0.5｜日期：2026-09-27｜当前范围：一期内部 OS + Talent Domain 2.0 R1 + AI｜状态：R1 SPEC_FROZEN，尚未迁移
 
 ## 1. 共同约定
 
