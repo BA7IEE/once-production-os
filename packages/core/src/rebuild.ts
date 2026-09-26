@@ -1,9 +1,10 @@
 import type { Actor, Clock, Person, Source, SourceHistory } from './model.ts';
 import type { Work, WorkCredit, Project, ProjectParticipant, ProjectWork } from './production-model.ts';
+import { PRODUCTION_LIMITS as PL } from './production-model.ts';
 import type { Tx } from './store.ts';
 import type { Parsed } from './validation.ts';
 import { RebuildSchemas } from './rebuild-validation.ts';
-import { REBUILD_EMPTY_TABLES, REBUILD_SCHEMA_VERSION, type RebuildSummary } from './rebuild-model.ts';
+import { REBUILD_EMPTY_TABLES, REBUILD_LIMITS as RL, REBUILD_SCHEMA_VERSION, type RebuildSummary } from './rebuild-model.ts';
 import { audit, base, unique, workspaceRow } from './helpers.ts';
 import { digest } from './json.ts';
 import { invariant } from './errors.ts';
@@ -121,6 +122,18 @@ export class JsonRebuild {
         uniqueBy(relations.projectWorks, x => x.projectId + ':' + x.workId,
             'REBUILD_DUPLICATE_RELATION', '项目作品关系重复');
 
+        const relationCount = relations.workCredits.length + relations.projectParticipants.length + relations.projectWorks.length;
+        invariant(relationCount <= RL.relations, 'REBUILD_RELATION_LIMIT', '关系总数超过隔离重建安全上限', 422);
+        for (const workId of workIds)
+            invariant(relations.workCredits.filter(x => x.workId === workId).length <= PL.credits,
+                'REBUILD_ROOT_RELATION_LIMIT', '单个作品的署名关系超过正常业务上限', 422);
+        for (const projectId of projectIds) {
+            invariant(relations.projectParticipants.filter(x => x.projectId === projectId).length <= PL.participants,
+                'REBUILD_ROOT_RELATION_LIMIT', '单个项目的参与关系超过正常业务上限', 422);
+            invariant(relations.projectWorks.filter(x => x.projectId === projectId).length <= PL.works,
+                'REBUILD_ROOT_RELATION_LIMIT', '单个项目的作品关系超过正常业务上限', 422);
+        }
+
         for (const row of relations.workCredits) {
             invariant(workIds.has(row.workId) && personIds.has(row.personId), 'REBUILD_RELATION_REFERENCE_INVALID',
                 '作品署名关系引用了未导出的对象', 422);
@@ -140,6 +153,7 @@ export class JsonRebuild {
         const mediaByWork = new Map<string, typeof media>();
         for (const row of media) mediaByWork.set(row.workId, [...(mediaByWork.get(row.workId) ?? []), row]);
         for (const [workId, rows] of mediaByWork) {
+            invariant(rows.length <= PL.assets, 'REBUILD_ROOT_MEDIA_LIMIT', '单个作品的媒体身份超过正常业务上限', 422);
             uniqueBy(rows, x => String(x.position), 'REBUILD_MEDIA_ORDER_INVALID', '同一作品的媒体位置重复');
             const positions = rows.map(x => x.position).sort((a,b)=>a-b);
             invariant(positions.every((position, index) => position === index), 'REBUILD_MEDIA_ORDER_INVALID',
