@@ -49,6 +49,24 @@ test('DEV-09C safety journal is private, ordered, append-idempotent and excludes
     finally { rmSync(root, { recursive: true, force: true }); }
 });
 
+test('DEV-09D concurrent first open is race-safe and never overwrites the journal header', async () => {
+    const root = dir(), path = join(root, 'journal.jsonl');
+    try {
+        const [a,b] = await Promise.all([SafetyJournalWriter.open(path), SafetyJournalWriter.open(path)]);
+        assert.equal(a.snapshot().journalId, b.snapshot().journalId);
+        await Promise.all([
+            a.writeAhead({ intentId: 'intent:' + randomUUID(), workspaceId: '11111111-1111-4111-8111-111111111111',
+                operation: 'source.suspend', requestId: randomUUID(), resourceId: randomUUID() }),
+            b.writeAhead({ intentId: 'intent:' + randomUUID(), workspaceId: '11111111-1111-4111-8111-111111111111',
+                operation: 'member.disable', requestId: randomUUID(), resourceId: randomUUID() })
+        ]);
+        const state = await readSafetyJournal(path);
+        assert.equal(state.entries.length, 2);
+        assert.equal(state.header.journalId, a.snapshot().journalId);
+    }
+    finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 test('DEV-09C safety journal detects line tampering, truncation and duplicate audit ids', async () => {
     const root = dir(), path = join(root, 'journal.jsonl');
     try {
