@@ -453,6 +453,84 @@ test('DEV-09E unresolved post-backup safety journal entry blocks approval', asyn
     assert.deepEqual(snapshot(f), before);
 });
 
+test('DEV-09E non-zero but fully prepare-contained delta may approve', async () => {
+    const f = await fixture();
+    await seed(f);
+    const r = recovery(f), a = await actor(f, r);
+    const oldEpoch = f.store.rows('workspaces')[0]!.recoveryEpoch;
+    const prepared = await f.store.transaction(tx => r.prepare(tx, a, hashSecret(oldEpoch),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    const report = await f.store.transaction(tx => r.inspect(tx, a, prepared.id, external(f),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    const inspected = f.store.rows('recoveryRuns')[0]!;
+    const sourceId = f.store.rows('sources')[0]!.id;
+    const evidence = approvalEvidence(inspected, report, {
+        currentSequence: 9,
+        postBackupEntries: 2,
+        deltaItems: [{
+            key: 'contained-source-suspend',
+            operation: 'source.suspend',
+            resourceId: sourceId,
+            state: 'COMMITTED',
+            resolution: 'CONTAINED_BY_PREPARE',
+            reasonCode: 'PREPARE_IS_MORE_RESTRICTIVE',
+            evidenceSeqs: [8,9]
+        }]
+    });
+    const approved = await f.store.transaction(tx => r.approve(tx, a, inspected.id, external(f), evidence,
+        { requestId: randomUUID(), ip: 'CLI' }));
+    assert.equal(approved.state, 'APPROVED');
+    assert.equal((approved.approval as any).deltaResolution.postBackupEntries, 2);
+    assert.equal((approved.approval as any).deltaResolution.unresolved, 0);
+});
+
+test('DEV-09E incomplete or forged delta resolution is rejected before epoch approval', async () => {
+    const f = await fixture();
+    await seed(f);
+    const r = recovery(f), a = await actor(f, r);
+    const oldEpoch = f.store.rows('workspaces')[0]!.recoveryEpoch;
+    const prepared = await f.store.transaction(tx => r.prepare(tx, a, hashSecret(oldEpoch),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    const report = await f.store.transaction(tx => r.inspect(tx, a, prepared.id, external(f),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    const inspected = f.store.rows('recoveryRuns')[0]!;
+
+    const missingSequence = approvalEvidence(inspected, report, {
+        currentSequence: 9,
+        postBackupEntries: 2,
+        deltaItems: [{
+            key: 'only-one-sequence',
+            operation: 'source.suspend',
+            resourceId: f.store.rows('sources')[0]!.id,
+            state: 'COMMITTED',
+            resolution: 'CONTAINED_BY_PREPARE',
+            reasonCode: 'PREPARE_IS_MORE_RESTRICTIVE',
+            evidenceSeqs: [8]
+        }]
+    });
+    await assert.rejects(f.store.transaction(tx => r.approve(tx, a, inspected.id, external(f), missingSequence,
+        { requestId: randomUUID(), ip: 'CLI' })),
+        (e: unknown) => e instanceof AppError && e.code === 'RECOVERY_DELTA_INVALID');
+
+    const forgedContained = approvalEvidence(inspected, report, {
+        currentSequence: 8,
+        postBackupEntries: 1,
+        deltaItems: [{
+            key: 'forged-member-disable',
+            operation: 'member.disable',
+            resourceId: randomUUID(),
+            state: 'COMMITTED',
+            resolution: 'CONTAINED_BY_PREPARE',
+            reasonCode: 'PREPARE_IS_MORE_RESTRICTIVE',
+            evidenceSeqs: [8]
+        }]
+    });
+    await assert.rejects(f.store.transaction(tx => r.approve(tx, a, inspected.id, external(f), forgedContained,
+        { requestId: randomUUID(), ip: 'CLI' })),
+        (e: unknown) => e instanceof AppError && e.code === 'RECOVERY_DELTA_INVALID');
+    assert.equal(f.store.rows('workspaces')[0]!.recoveryEpoch, oldEpoch);
+});
+
 test('DEV-09C stale inspection or mismatched backup evidence cannot approve', async () => {
     const f = await fixture();
     const { reviewer } = await seed(f);
