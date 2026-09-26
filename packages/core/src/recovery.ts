@@ -1,13 +1,15 @@
 import type { Actor, Clock, Config, Source } from './model.ts';
 import type { Tx } from './store.ts';
-import type { RecoveryPrepareSummary, RecoveryRun } from './recovery-model.ts';
+import type { RecoveryCheckReport, RecoveryExternalCheck, RecoveryPrepareSummary, RecoveryRun } from './recovery-model.ts';
 import { AppError, invariant } from './errors.ts';
-import { audit, base, touch } from './helpers.ts';
-import { hashSecret } from './crypto.ts';
+import { audit, base, touch, unique, workspaceRow } from './helpers.ts';
+import { decryptContact, hashSecret } from './crypto.ts';
+import { digest } from './json.ts';
+import { uuid } from './validation.ts';
 import { permissionsFor } from './policy.ts';
 import { appendSourceHistory } from './source-history.ts';
 
-type RecoveryConfig = Pick<Config, 'accessMode' | 'dataEgressMode' | 'dataCleanupMode' | 'dataMergeMode' | 'recoveryEpoch'>;
+type RecoveryConfig = Pick<Config, 'accessMode' | 'dataEgressMode' | 'dataCleanupMode' | 'dataMergeMode' | 'recoveryEpoch'> & { contactKey?: Buffer };
 
 const RECOVERY_ERROR = 'RESTORE_REVIEW_REQUIRED';
 
