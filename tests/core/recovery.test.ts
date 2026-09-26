@@ -362,7 +362,28 @@ test('DEV-09B stale media evidence is rejected and DB safety changes produce a n
 
 function approvalEvidence(run: any, report: any, overrides: any = {}) {
     const seq = overrides.backupSequence ?? 7;
+    const currentSequence = overrides.currentSequence ?? seq;
+    const postBackupEntries = overrides.postBackupEntries ?? (currentSequence - seq);
     const head = overrides.backupHeadHash ?? 'e'.repeat(64);
+    const items = overrides.deltaItems ?? Array.from({ length: postBackupEntries }, (_, index) => ({
+        key: 'delta-' + index,
+        operation: 'member.disable',
+        resourceId: randomUUID(),
+        state: 'AUDIT_ONLY',
+        resolution: 'BLOCKER',
+        reasonCode: 'UNMATCHED_COMMITTED_AUDIT',
+        evidenceSeqs: [seq + index + 1]
+    }));
+    const unresolved = items.filter((x: any) => x.resolution === 'BLOCKER').length;
+    const deltaResolution = overrides.deltaResolution ?? {
+        schemaVersion: 'once-recovery-delta-v1',
+        backupSequence: seq,
+        currentSequence,
+        postBackupEntries,
+        resolved: items.length - unresolved,
+        unresolved,
+        items
+    };
     return {
         schemaVersion: 'once-recovery-approval-v1' as const,
         backupId: overrides.backupId ?? randomUUID(),
@@ -373,13 +394,15 @@ function approvalEvidence(run: any, report: any, overrides: any = {}) {
         migrationDigest: overrides.migrationDigest ?? report.migrationDigest,
         mediaIdentityDigest: overrides.mediaIdentityDigest ?? report.media.backupIdentityDigest,
         reportDigest: overrides.reportDigest ?? run.reportDigest,
+        deltaResolutionDigest: overrides.deltaResolutionDigest ?? digest(deltaResolution),
+        deltaResolution,
         safetyJournal: {
             journalId: overrides.journalId ?? randomUUID(),
             backupSequence: seq,
             backupHeadHash: head,
-            currentSequence: overrides.currentSequence ?? seq,
-            currentHeadHash: overrides.currentHeadHash ?? head,
-            postBackupEntries: overrides.postBackupEntries ?? 0
+            currentSequence,
+            currentHeadHash: overrides.currentHeadHash ?? (postBackupEntries === 0 ? head : 'f'.repeat(64)),
+            postBackupEntries
         }
     };
 }
@@ -410,7 +433,7 @@ test('DEV-09C zero-delta approval changes only recovery epoch and preserves cons
     assert.equal(f.store.rows('audits').at(-1)!.action, 'recovery.approve');
 });
 
-test('DEV-09C any post-backup safety journal entry blocks approval', async () => {
+test('DEV-09E unresolved post-backup safety journal entry blocks approval', async () => {
     const f = await fixture();
     await seed(f);
     const r = recovery(f), a = await actor(f, r);
