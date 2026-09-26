@@ -118,6 +118,7 @@ export class RecoveryOps {
         invariant(typeof input.migrationMatch === 'boolean', 'RECOVERY_CHECK_INVALID', '迁移匹配状态无效', 400);
         const media = input.media;
         invariant(media && ['disabled','local'].includes(media.provider), 'RECOVERY_CHECK_INVALID', '媒体检查模式无效', 400);
+        invariant(/^[a-f0-9]{64}$/.test(media.identityDigest), 'RECOVERY_CHECK_INVALID', '媒体身份摘要格式无效', 400);
         const arrays = [media.expectedAssetIds, media.verifiedAssetIds, media.missingAssetIds, media.mismatchAssetIds];
         invariant(arrays.every(Array.isArray), 'RECOVERY_CHECK_INVALID', '媒体检查清单格式无效', 400);
         for (const rows of arrays) for (const id of rows) uuid.parse(id);
@@ -133,6 +134,7 @@ export class RecoveryOps {
             migrationMatch: input.migrationMatch,
             media: {
                 provider: media.provider,
+                identityDigest: media.identityDigest,
                 expectedAssetIds: expected,
                 verifiedAssetIds: [...media.verifiedAssetIds].sort(),
                 missingAssetIds: [...media.missingAssetIds].sort(),
@@ -191,7 +193,16 @@ export class RecoveryOps {
             'restore-check 必须加载恢复后的 CONTACT_KEY_FILE', 503);
         const external = this.external(externalInput);
         const state = await this.safetyState(tx, actor);
-        const expectedAssetIds = state.assets.filter(x => x.state !== 'ERASED').map(x => x.id).sort();
+        const currentAssets = state.assets.filter(x => x.state !== 'ERASED');
+        const expectedAssetIds = currentAssets.map(x => x.id).sort();
+        const currentMediaIdentityDigest = digest(currentAssets.map(x => ({
+            id: x.id, uploadId: x.uploadId, sourceId: x.sourceId, scopeId: x.scopeId, personId: x.personId,
+            revision: x.revision, fileName: x.fileName, mime: x.mime, bytes: x.bytes, sha256: x.sha256,
+            width: x.width, height: x.height, previewBytes: x.previewBytes, previewHash: x.previewHash,
+            objectToken: x.objectToken, state: x.state
+        })).sort((a,b) => a.id.localeCompare(b.id)));
+        invariant(currentMediaIdentityDigest === external.media.identityDigest,
+            'RECOVERY_EXTERNAL_EVIDENCE_STALE', '媒体检查证据与当前数据库身份信息不一致，请重新检查', 409);
         invariant(expectedAssetIds.length === external.media.expectedAssetIds.length
             && expectedAssetIds.every((id, i) => id === external.media.expectedAssetIds[i]),
             'RECOVERY_EXTERNAL_EVIDENCE_STALE', '媒体检查对象与当前恢复数据库不一致，请重新检查', 409);
