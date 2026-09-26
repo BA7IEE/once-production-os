@@ -5,18 +5,46 @@ import { fixture, member, sourceInput, result } from '../support/fixtures.ts';
 import { RecoveryOps } from '../../packages/core/src/recovery.ts';
 import { base } from '../../packages/core/src/helpers.ts';
 import { hashSecret } from '../../packages/core/src/crypto.ts';
+import { digest } from '../../packages/core/src/json.ts';
 import { AppError } from '../../packages/core/src/errors.ts';
 
 type F = Awaited<ReturnType<typeof fixture>>;
 
-function recovery(f: F, epoch = 'R'.repeat(48)) {
+function recovery(f: F, epoch = 'R'.repeat(48), contactKey: Buffer = f.app.config.contactKey) {
     return new RecoveryOps(f.clock, {
         accessMode: 'MAINTENANCE',
         dataEgressMode: 'DISABLED',
         dataCleanupMode: 'DISABLED',
         dataMergeMode: 'DISABLED',
-        recoveryEpoch: epoch
+        recoveryEpoch: epoch,
+        contactKey
     });
+}
+function external(f: F, overrides: Partial<{ migrationMatch: boolean; provider: 'disabled'|'local'; missing: string[]; mismatch: string[] }> = {}) {
+    const assets = f.store.rows('assets').filter(x => x.state !== 'ERASED').sort((a,b) => a.id.localeCompare(b.id));
+    const ids = assets.map(x => x.id);
+    const identityDigest = digest(assets.map(x => ({
+        id: x.id, uploadId: x.uploadId, sourceId: x.sourceId, scopeId: x.scopeId, personId: x.personId,
+        revision: x.revision, fileName: x.fileName, mime: x.mime, bytes: x.bytes, sha256: x.sha256,
+        width: x.width, height: x.height, previewBytes: x.previewBytes, previewHash: x.previewHash,
+        objectToken: x.objectToken, state: x.state
+    })));
+    const provider = overrides.provider ?? 'local';
+    const missing = overrides.missing ?? [];
+    const mismatch = overrides.mismatch ?? [];
+    const bad = new Set([...missing, ...mismatch]);
+    return {
+        migrationDigest: 'd'.repeat(64),
+        migrationMatch: overrides.migrationMatch ?? true,
+        media: {
+            provider,
+            identityDigest,
+            expectedAssetIds: ids,
+            verifiedAssetIds: provider === 'local' ? ids.filter(id => !bad.has(id)) : [],
+            missingAssetIds: provider === 'disabled' ? ids : missing,
+            mismatchAssetIds: mismatch
+        }
+    };
 }
 async function actor(f: F, r: RecoveryOps) {
     return f.store.transaction(tx => r.actorFromRestoredTarget(tx, 'owner'));
@@ -228,4 +256,98 @@ test('DEV-09A audit failure rolls every recovery quarantine write back', async (
     await assert.rejects(f.store.transaction(tx => r.prepare(tx, a, hashSecret(f.app.config.recoveryEpoch),
         { requestId: randomUUID(), ip: 'CLI' })), /injected audit failure/);
     assert.deepEqual(snapshot(f), before);
+});
+
+
+test('DEV-09B restore check is zero-write; record persists an allowlisted INSPECTED report', async () => {
+    const f = await fixture();
+    const { personId, sourceId } = await seed(f);
+    const person = f.store.rows('people').find(x => x.id === personId)!;
+    const contact = await f.owner.cmd('PUT', '/people/' + personId + '/contacts', {
+        expectedRevision: person.revision,
+        contacts: [{ kind: 'EMAIL', value: 'restore-check@example.invalid', sourceId }]
+    });
+    assert.equal(contact.status, 200, JSON.stringify(contact.body));
+
+    const r = recovery(f);
+    const a = await actor(f, r);
+    const run = await f.store.transaction(tx => r.prepare(tx, a, hashSecret(f.app.config.recoveryEpoch),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    const beforeRun = structuredClone(f.store.rows('recoveryRuns')[0]!);
+    const beforeAudits = f.store.rows('audits').length;
+
+    const report = await f.store.transaction(tx => r.check(tx, a, run.id, external(f)));
+    assert.deepEqual(report.blockers, []);
+    assert.equal(report.contactCount, 1);
+    assert.equal(report.contactDecryptFailures, 0);
+    assert.equal(report.migrationMatch, true);
+    assert.equal(report.media.verifiedAssetIds.length, 1);
+    assert.deepEqual(f.store.rows('recoveryRuns')[0], beforeRun, 'CHECK must not persist report state');
+    assert.equal(f.store.rows('audits').length, beforeAudits);
+
+    const recorded = await f.store.transaction(tx => r.inspect(tx, a, run.id, external(f),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    assert.deepEqual(recorded.blockers, []);
+    const saved = f.store.rows('recoveryRuns')[0]!;
+    assert.equal(saved.state, 'INSPECTED');
+    assert.match(saved.reportDigest ?? '', /^[a-f0-9]{64}$/);
+    assert.equal((saved.report as any).databaseStateDigest, recorded.databaseStateDigest);
+    assert.equal(f.store.rows('audits').at(-1)!.action, 'recovery.inspect');
+});
+
+test('DEV-09B wrong contact key and media/migration gaps become explicit blockers', async () => {
+    const f = await fixture();
+    const { personId, sourceId } = await seed(f);
+    const person = f.store.rows('people').find(x => x.id === personId)!;
+    assert.equal((await f.owner.cmd('PUT', '/people/' + personId + '/contacts', {
+        expectedRevision: person.revision,
+        contacts: [{ kind: 'PHONE', value: '+10000000000', sourceId }]
+    })).status, 200);
+
+    const good = recovery(f), a = await actor(f, good);
+    const run = await f.store.transaction(tx => good.prepare(tx, a, hashSecret(f.app.config.recoveryEpoch),
+        { requestId: randomUUID(), ip: 'CLI' }));
+
+    const wrong = recovery(f, 'R'.repeat(48), Buffer.alloc(32, 9));
+    const wrongActor = await actor(f, wrong);
+    const wrongReport = await f.store.transaction(tx => wrong.check(tx, wrongActor, run.id,
+        external(f, { migrationMatch: false, provider: 'disabled' })));
+    assert.ok(wrongReport.blockers.includes('CONTACT_KEY_MISMATCH'));
+    assert.ok(wrongReport.blockers.includes('MIGRATION_MISMATCH'));
+    assert.ok(wrongReport.blockers.includes('MEDIA_PROVIDER_REQUIRED'));
+    assert.ok(wrongReport.blockers.includes('MEDIA_MISSING'));
+    assert.equal(wrongReport.contactDecryptFailures, 1);
+});
+
+test('DEV-09B stale media evidence is rejected and DB safety changes produce a new blocker/digest', async () => {
+    const f = await fixture();
+    const { reviewer } = await seed(f);
+    const r = recovery(f), a = await actor(f, r);
+    const run = await f.store.transaction(tx => r.prepare(tx, a, hashSecret(f.app.config.recoveryEpoch),
+        { requestId: randomUUID(), ip: 'CLI' }));
+
+    const x = external(f);
+    await assert.rejects(f.store.transaction(tx => r.check(tx, a, run.id, {
+        ...x, media: { ...x.media, expectedAssetIds: [] , verifiedAssetIds: [] }
+    })), (e: unknown) => e instanceof AppError && e.code === 'RECOVERY_EXTERNAL_EVIDENCE_STALE');
+
+    await f.store.transaction(async tx => {
+        const asset = (await tx.find('assets'))[0]!;
+        await tx.replace('assets', { ...asset, revision: asset.revision + 1,
+            updatedAt: f.clock.now().toISOString(), fileName: 'metadata-changed.png' });
+    });
+    await assert.rejects(f.store.transaction(tx => r.check(tx, a, run.id, x)),
+        (e: unknown) => e instanceof AppError && e.code === 'RECOVERY_EXTERNAL_EVIDENCE_STALE',
+        'same IDs with changed asset metadata must invalidate old media evidence');
+
+    const clean = await f.store.transaction(tx => r.inspect(tx, a, run.id, external(f),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    await f.store.transaction(async tx => {
+        const member = (await tx.find('memberships', { id: reviewer.id }))[0]!;
+        await tx.replace('memberships', { ...member, revision: member.revision + 1, status: 'ACTIVE',
+            updatedAt: f.clock.now().toISOString() });
+    });
+    const changed = await f.store.transaction(tx => r.check(tx, a, run.id, external(f)));
+    assert.notEqual(changed.databaseStateDigest, clean.databaseStateDigest);
+    assert.ok(changed.blockers.includes('OLD_MEMBERSHIP_ACTIVE'));
 });
