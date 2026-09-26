@@ -9,7 +9,7 @@
 ## 当前冻结点
 
 - 规格分支：`spec/talent-domain-2-v2`
-- 规格 PR：待创建，基于 `feat/recovery-writeahead-media` / PR #22
+- 规格 PR：#24，基于 `feat/recovery-writeahead-media` / PR #22
 - DEV-09D 功能冻结 head：`9cc30cf71dc4e6fc97bd81f2308dd884a267c230`
 - Actions：`36249594313`，5/5 全绿
 - routes：103
