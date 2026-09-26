@@ -318,7 +318,7 @@ export class RecoveryOps {
         const run: RecoveryRun = {
             ...runBase, actorId: actor.membershipId,
             sourceEpochDigest: plan.sourceEpochDigest, targetEpochDigest: plan.targetEpochDigest,
-            state: 'PREPARED', preparedAt: now, approvedAt: null, reportDigest: null,
+            state: 'PREPARED', preparedAt: now, checkedAt: null, approvedAt: null, reportDigest: null, report: {},
             revokedSessions: plan.counts.sessions, consumedActivations: plan.counts.activations,
             disabledUsers: plan.counts.usersToDisable, disabledMemberships: plan.counts.membershipsToDisable,
             revokedHandoffs: plan.counts.handoffs, revokedUsePermissions: plan.counts.usePermissions,
