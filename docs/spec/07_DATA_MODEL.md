@@ -1,6 +1,6 @@
 # ONCE Production OS｜数据模型与一致性契约｜仅当前实体
 
-版本：v0.4｜日期：2026-09-26｜当前范围：一期内部 OS + Talent Domain 2.0 + AI｜状态：Talent 2.0 逻辑模型冻结候选，尚未迁移
+版本：v0.5｜日期：2026-09-27｜当前范围：一期内部 OS + Talent Domain 2.0 R1 + AI｜状态：R1 逻辑模型重新冻结候选，尚未迁移
 
 ## 1. 共同约定
 
@@ -16,30 +16,33 @@
 erDiagram
   USER ||--o{ MEMBERSHIP : has
   WORKSPACE ||--o{ PERSON : contains
-  PERSON ||--|| TALENT_PROFILE : owns
-  PERSON ||--o{ PERSON_ROLE : has
-  PERSON ||--o{ PERSON_CAPABILITY : has
-  PERSON_ROLE ||--o| MODEL_PROFILE : extends
+  PERSON ||--o| TALENT_PROFILE : may_be
+  TALENT_PROFILE ||--o{ PERSON_ROLE : has
+  PERSON ||--o{ PERSON_EXTERNAL_REF : identified_by
+  PERSON ||--o{ PERSON_LANGUAGE : speaks
+  TALENT_PROFILE ||--o{ TALENT_LOCATION : operates_in
+  TALENT_PROFILE ||--o{ PERSON_CAPABILITY : has
+  PERSON_ROLE ||--o{ PERSON_CAPABILITY : scopes
+  PERSON ||--o| CASTING_PROFILE : may_have
+  CASTING_PROFILE ||--o{ MEASUREMENT_SET : records
+  PERSON ||--o{ ADULT_ELIGIBILITY : has
+  PERSON ||--o{ REPRESENTATION : represented
+  PERSON ||--o{ PERSON_CREDENTIAL : holds
+  PERSON ||--o{ MEDIA_COLLECTION : curates
+  PERSON_ROLE ||--o{ MEDIA_COLLECTION : scopes
+  MEDIA_COLLECTION ||--o{ MEDIA_COLLECTION_ITEM : contains
+  MEDIA_COLLECTION ||--o{ MEDIA_COLLECTION_TAG : tagged
+  ASSET ||--o{ MEDIA_COLLECTION_ITEM : reused
   PERSON_ROLE ||--o{ TRANSLATOR_LANGUAGE_PAIR : translates
   PERSON_ROLE ||--o{ TRANSLATOR_SERVICE_MODE : provides
-  PERSON ||--o{ REPRESENTATION : represented
-  PERSON_ROLE ||--o{ MEDIA_COLLECTION : curates
-  MEDIA_COLLECTION ||--o{ MEDIA_COLLECTION_ITEM : contains
-  ASSET ||--o{ MEDIA_COLLECTION_ITEM : reused
-  SOURCE_RECORD ||--o{ ASSET : originates
+  PERSON_ROLE ||--o{ SHORTLIST_ITEM : selected_as
   PERSON ||--o{ WORK_CREDIT : contributes
   WORK ||--o{ WORK_CREDIT : includes
-  WORK ||--o{ WORK_ASSET : includes
-  ASSET ||--o{ WORK_ASSET : linked
-  ASSET ||--o{ RENDITION : derives
   PROJECT ||--o{ PROJECT_PARTICIPANT : includes
   PERSON ||--o{ PROJECT_PARTICIPANT : participates
-  PROJECT ||--o{ PROJECT_WORK : relates
-  WORK ||--o{ PROJECT_WORK : selected
-  SHORTLIST ||--o{ SHORTLIST_ITEM : selects
-  EXPORT_JOB ||--o{ EXPORT_DEPENDENCY : freezes
-  AI_JOB ||--o{ AI_INPUT_DEPENDENCY : reads
-  AI_JOB ||--o{ AI_DISPATCH_ATTEMPT : dispatches
+  SOURCE_RECORD ||--o{ FIELD_EVIDENCE : supports
+  SERVICE_PRINCIPAL ||--o{ AUDIT_EVENT : acts
+  SERVICE_PRINCIPAL ||--o{ FIELD_PROPOSAL : proposes
 ```
 
 人、文件、作品、项目是不同实体。内部候选只保存引用/备注，不复制一份对外人才表；内部语言文本可被删除，不是不可撤销的公开内容资产。
@@ -60,43 +63,47 @@ erDiagram
 
 首次bootstrap是空安装维护操作，不是长期超管后门。内部Worker使用代码注册的任务能力和部署身份；不实现服务账号CRUD/OAuth/委托等额外平台。
 
-## 4. 人物、职业、能力、代表关系与事实
+## 4. 人物、人才、职业与机器身份
 
-Talent Domain 2.0 的完整冻结规则见 [15_TALENT_DOMAIN_2.md](15_TALENT_DOMAIN_2.md)。数据库实现必须遵守“一个现实人物一个 Person”，Role/Capability/专属资料不得通过复制 Person 实现。
+Talent Domain 2.0 R1 的完整冻结规则见 [15_TALENT_DOMAIN_2.md](15_TALENT_DOMAIN_2.md)。核心修订是：**Person 不等于 Talent；来源不再只有一个“主来源”；Agent 不是人类账号。**
 
 | 实体 | 最少字段 | 约束 |
 |---|---|---|
-| person | displayName/aliases/maintainerId/scopeId/sourceId/status/revision/protectionEpoch | 姓名/电话非唯一；DRAFT可不完整；ACTIVE只表示内部可用；不再承载最终形态的roles/skills/height |
-| talent_profile | personId/cityCode/serviceAreaCodes/languageCodes/verifiedAt可空/revision | 一人最多一条；只放跨职业通用事实 |
-| person_role | id/personId/roleCode/status/sourceId/revision | workspace+person+roleCode唯一；同人多工种同Person ID |
-| person_capability | personId/personRoleId可空/capabilityCode/levelCode可空/sourceId/revision | roleId非空时必须属于同一Person；GENERAL能力不得被自动猜到某个Role |
-| model_profile | personRoleId/heightCm/bustCm/waistCm/hipsCm/clothingSizeCode/shoeSize/hairColorCode/eyeColorCode/measuredOn/revision | personRole必须为MODEL；一条MODEL Role最多一条；尺寸未知为null |
-| translator_language_pair | personRoleId/sourceLanguageCode/targetLanguageCode/sourceId/revision | personRole必须为TRANSLATOR；语言对唯一；不从普通languageCodes自动猜方向 |
-| translator_service_mode | personRoleId/modeCode/sourceId/revision | personRole必须为TRANSLATOR；如ON_SET/CONSECUTIVE/SIMULTANEOUS等稳定code |
-| representation | representedPersonId/agencyOrganizationId可空/agentPersonId可空/relationCode/sourceId/validFrom可空/validUntil可空/status/revision | agency/agent至少一个存在；保留历史，不用备注替代 |
-| contact_method | personId或organizationId/kind/encryptedValue/maskedValue/sourceId | exactly-one owner；单独权限；加密密钥版本可恢复 |
-| organization | displayName/legalName可空/roles/sourceId/scopeId | 客户/经纪/供应商为角色，不是CRM流程 |
-| brand | name/organizationId可空/sourceId/scopeId | 品牌不自动是法律主体 |
-| person_organization | personId/organizationId/relation/sourceId/dateRange | 普通机构关系；经纪/booking优先使用representation以保留agent/agency语义 |
-| entity_alias | oldPersonId/canonicalPersonId/mergeDecisionId | 禁自指/环/跨空间；不合并登录账号 |
+| person | displayName/aliases/maintainerId/scopeId/originSourceId/status/revision/protectionEpoch | 自然人主身份；可只是经纪人/客户联系人；不要求TalentProfile |
+| talent_profile | personId/status/internalSummary可空/revision | Person 0..1；存在它才允许人才Role/Capability等 |
+| person_role | id/personId/roleCode/status/sourceId/validFrom/validUntil/revision | Person必须已有TalentProfile；同一Role有效期不可重叠重复 |
+| capability_definition | code/labels/aliases/applicableRoles/levelScheme/status/schemaVersion | code语义稳定；Agent不能自由创建 |
+| person_capability | personId/personRoleId可空/capabilityCode/levelCode/sourceId/validFrom/validUntil/revision | Role非空必须属于同一Person；GENERAL能力不猜Role |
+| person_language | personId/languageCode/speaking/listening/reading/writing/sourceId/verifiedAt/validity/revision | 旧languageCodes只回填“会”，熟练度未知 |
+| talent_location | personId/locationCode/relation=BASE或SERVICE/sourceId/validity/verifiedAt/revision | 当前与历史地点可区分；服务地区不再无来源数组 |
+| person_external_ref | personId/providerCode/namespace或issuer/externalKey/sourceId/state/verifiedAt/revision | 精确Ref唯一解析；姓名/头像不自动merge |
+| casting_profile | personId/currentMeasurementSetId可空/hairColor/eyeColor/observedOn/sourceId/revision | 跨MODEL/ACTOR/KOL复用，不是Model专属 |
+| measurement_set | personId/measuredOn/precision/height/bust/waist/hips/shoeValue+system/clothingValue+system/sourceId/status/revision | 时间快照；CONFIRMED历史不静默覆盖 |
+| adult_eligibility | personId/state/sourceId/verifiedBy/At/validUntil/evidenceAssetId可空/revision | UNKNOWN不等于成年；不要求保存身份证/完整生日 |
+| representation | representedPersonId/personRoleId可空/agencyId可空/agentPersonId可空/relation/territory/sourceId/validity/status/revision | Agency/Agent至少一个；可按Role/地区表达；无佣金合同 |
+| person_credential | personId/personRoleId可空/type/issuer/encrypted或masked identifier/issuedOn/expiresOn/status/sourceId/evidenceAssetId可空/revision | Credential≠Capability；敏感编号默认不出普通DTO |
+| translator_language_pair | personRoleId/sourceLanguage/targetLanguage/sourceId/status/revision | Role必须TRANSLATOR；不从PersonLanguage猜方向 |
+| translator_service_mode | personRoleId/modeCode/sourceId/status/revision | 如ON_SET/CONSECUTIVE/SIMULTANEOUS |
+| service_principal | displayName/status/scopeId/permissionCodes/defaultMaintainerMembershipId/credentialHash/keyVersion/expiresAt/revision | 最小机器身份；不冒充User；默认无admin/merge/delete/批准权限 |
+| field_proposal | typed target/fieldPath/proposedValue/valueDigest/sourceId/sourceRevision/originType/actor/baseRevision/schemaVersion/state | 字段必须Schema注册；冲突/无直写权时走proposal |
 
-### 4.1 Role 与 Capability
+### 4.1 Person ≠ Talent
 
-Role回答“这个人以什么职业参与制作”；Capability回答“在该职业或通用层会什么”。不得用角色字典表达无限细分能力，例如 INDUSTRIAL_PHOTOGRAPHER 应表达为 PHOTOGRAPHER + INDUSTRIAL capability。
+Person 是自然人容器；TalentProfile 才表示“作为 ONCE 制作人才管理”。经纪人、品牌联系人、客户联系人可以仅有 Person。PersonRole、Capability、TalentLocation 等人才事实必须以 TalentProfile 存在为前提。
 
-摄影、摄像、导演、剪辑、调色、灯光、化妆、造型等首版不为每个职业创建专属profile表；使用 PersonRole + PersonCapability + WorkCredit + ProjectParticipant 表达。只有真实业务反复需要结构化筛选、稳定校验且无法由Capability/Work表达时，才新增专属扩展表。
+当前 `Person.sourceId` 在R1语义上收窄为 `originSourceId`：只表示身份最初进入系统的来源，不再作为整个人才资料的“主来源”。
 
-### 4.2 Model 与 Translator
+### 4.2 Role 与 Capability
 
-Model 是首批完整专属profile。旧Person.heightCm只允许在已有MODEL Role时迁入ModelProfile；没有MODEL Role的非空旧值进入迁移审查，不以字段存在推断职业。
+Role回答“以什么职业参与制作”；Capability回答“会什么”。例如 INDUSTRIAL_PHOTOGRAPHER 必须拆为 PHOTOGRAPHER + INDUSTRIAL capability。摄影、剪辑、导演、化妆等不为每个职业建专属表。
 
-Translator 的资料卡由TRANSLATOR Role、通用languageCodes、明确语言对、服务模式、Capability、Work组成，不创建万能JSON。语言对方向不能从“会中文/英语”直接推断。
+### 4.3 Model UI 是组合视图
 
-### 4.3 来源与证据
+R1 取消数据库层“大而全 ModelProfile”。UI 的 Model Profile 由 MODEL Role + CastingProfile + current MeasurementSet + Capability + MediaCollection + Work + Representation 组合。Actor/KOL 可共享 Casting/Measurement，不复制身高/外观事实。
 
-FieldEvidence 必须扩展到Talent 2.0事实目标：Person/TalentProfile、PersonRole、PersonCapability、ModelProfile、TranslatorLanguagePair/ServiceMode、Representation。实现可用一张带受约束typed owner的表或职责等价的拆表，但数据库必须保证exactly-one目标；不能仅存任意targetType+targetId字符串。
+### 4.4 Agent 身份
 
-实体状态可用DRAFT/ACTIVE/ARCHIVED/ERASED；另以blockedAt/reason说明安全限制，不把每种用途失效都塞进人才生命周期。归档保留符合依据的历史查询；删除阻断后按保留决定处置。
+ServicePrincipal 与 Membership 分开。CommandReceipt/Audit/Job requester 需要支持 humanMembershipId 或 servicePrincipalId exactly-one；业务 maintainer 仍是明确人类责任人，Machine Actor 的审计不能伪装成 maintainer。
 
 ## 5. 来源与窄用途记录
 
@@ -125,7 +132,8 @@ source_record在初次接收时无需asset；媒体完成后Asset.sourceId绑定
 | asset | sourceId/objectId/scopeId/originalName/state/revision/protectionEpoch | 逻辑用途与物理对象分开；同字节不同来源不自动合许可 |
 | rendition | assetId/objectId/transformCode/transformVersion/width/height/duration/hash | 唯一asset+变换版本；与source同范围；无public标记 |
 | media_inspection | objectId/checkVersion/result/reasonCode/metadata | 检查最终对象；有资源上限；不把扫描结果当著作权证明 |
-| media_collection | personRoleId/collectionTypeCode/title/status/revision | 人才职业下的组织层；不替代Work；同Role可多集合 |
+| media_collection | personId/personRoleId可空/collectionTypeCode/title/sourceId/status/revision | 只表达资料形式；可Person级或Role级；不替代Work |
+| media_collection_tag | collectionId/tagCode/sourceId/revision | 表达FASHION/BEAUTY/LINGERIE等内容标签，与collection type分离 |
 | media_collection_item | collectionId/assetId/orderIndex/caption可空/featured/revision | 同一Asset可复用；unique(collection,asset)；不复制StorageObject |
 
 封存过程：staging存在且实际大小合限 → 复制/有界流写入全新final位置 → 校验final → 安全预览 → READY。不得向浏览器发final写权限。失败final私有隔离，登记清理；不是直接按整个桶前缀删除。
@@ -134,7 +142,7 @@ source_record在初次接收时无需asset；媒体完成后Asset.sourceId绑定
 
 读取优先鉴权后有界流式转发（视频支持受限Range）；可选短签名时寿命不得超过相关用途剩余时间，日志不得记录完整URL。已经交付的字节和截图不能强制收回。
 
-MediaCollection只引用READY且当前可读的Asset。一个Asset可以同时进入Portfolio、Work和Shortlist；集合删除只删除组织关系，不删除Asset。首批集合code包括MODEL_CARD、POLAROIDS、PORTFOLIO、FASHION、BEAUTY、COMMERCIAL、LINGERIE、RUNWAY、SHOWREEL、INTRO_VIDEO、OTHER。
+MediaCollection只引用READY且当前可读的Asset。一个Asset可以同时进入Portfolio、Work和Shortlist；集合删除只删除组织关系，不删除Asset。CollectionType只表达资料形式：MODEL_CARD、POLAROIDS、PORTFOLIO、SHOWREEL、INTRO_VIDEO、OTHER；FASHION、BEAUTY、COMMERCIAL、LINGERIE、RUNWAY、LIFESTYLE等进入MediaCollectionTag。
 
 ## 7. 作品、项目、语言与内部清单
 
@@ -150,29 +158,31 @@ MediaCollection只引用READY且当前可读的Asset。一个Asset可以同时�
 | locale_text | personId/workId/projectId exactly-one、locale/text/sourceDigest/revision/reviewedBy可空/needsReview | 当前内部中英文本；依赖保存在locale_dependency，更新仅提示陈旧 |
 | locale_dependency | localeTextId/注册主体FK/sourceRevision/protectionEpoch | 源受限时文本同样受限；需重核文本才能继续使用 |
 | shortlist | title/brief/scopeId/maintainerId/revision | 内部编辑对象，不冻结客户发布版本 |
-| shortlist_item | shortlistId/personId/workId可空/selectedAssetIds经关联表/order/note/addedSourceRevision | parent由路径推导；选图属该work（若指定）；人/作品关联需符合所选语义 |
+| shortlist_item | shortlistId/personId/**personRoleId**/workId可空/selectedAssetIds经关联表/order/note/addedPersonRevision/addedRoleRevision/addedSourceRevision | Role上下文必存；多Role不猜；选图/Collection/Capability按该Role解释 |
 
-`selectedAssetIds`在持久层是有外键的shortlist_item_asset关系，不用无约束JSON数组。内部清单读取按当前范围/来源过滤，不能证明某项有效则整项隐藏；只返回“条目不可用”给有清单权限者，不泄露无权名字或原备注。
+`selectedAssetIds`在持久层是有外键的shortlist_item_asset关系，不用无约束JSON数组。ShortlistItem 必须持久化 personRoleId 且确认属于 personId；若人才只有一个 active Role，UI 可自动选择，但数据库不省略上下文。Role 失效后条目不可静默切到另一个Role。内部清单读取按当前范围/来源过滤，不能证明某项有效则整项隐藏；只返回“条目不可用”给有清单权限者，不泄露无权名字或原备注。
 
 locale_text不会按语言创建第二个Person；事实变化导致needsReview，安全状态变化导致禁止继续处理其依赖内容。是否重新核验由明确人类动作决定。
 
-## 8. AI与导出的使用清单
+## 8. AI、Agent、Proposal 与导出的使用清单
 
-AIJob和ExportJob各维护自己的窄Dependency表；不是提前建设通用内容图谱。每行使用类型化外键到Person/Source/Asset/Work/Project/LocaleText/UsePermission等已登记对象，exactly-one；所有关联必须同空间。
+AIJob 和 ExportJob 继续维护自己的窄 Dependency 表。Talent 2.0 R1 另增加版本化 Talent Schema 与 FieldProposal，解决外部 Agent/Import/AI 的结构化建议与冲突写入。
 
-清单保存实际输入/输出涉及的对象、字段、sourceRevision、protectionEpoch、选用许可id/revision、实际媒体版本、截止时间及schemaVersion。只保存查询条件或“有export权限”不能证明生成文件包含哪些字节。
+### 8.1 FieldProposal
 
-| 实体 | 字段/规则 |
-|---|---|
-| ai_job | actor/taskType/inputManifest/inputDigest/providerIdentityHash/configRevision/promptVersion/outputSchemaVersion/status/cancelRequested/costReservation/sourceDependencies |
-| ai_dispatch_attempt | jobId/attemptNo/requestDigest/providerConfigRevision/providerIdempotencyKey可空/state/providerRequestId可空/settlementRef可空；同job最多一条未决Attempt |
-| ai_proposal | jobId/targetRef/baseRevision/state/payload/appliedFields/discardedFields/appliedBy/At；一次采纳后APPLIED |
-| ai_cost_reservation | jobId唯一/budgetPeriod/reservedAmount/settledAmount/usageStatus；未知结果继续占预留 |
-| export_job | actor/format=JSON/schemaVersion/fields/recordManifest/objectId/hash/state/expiresAt/approvedUseManifest |
-| export_dependency | exportId/具体记录FK/fields/sourceRevision/protectionEpoch/usePermissionId/revision；用于执行和下载复查 |
-| deletion_request/item | 目标、清理计划、保留决定、依赖种类、当前处置状态和安全证据 |
+Proposal 只允许指向 Schema Registry 中注册的 typed target/fieldPath。保存 proposedValue、valueDigest、sourceRevision、baseRevision、schemaVersion、originType=IMPORT/AGENT/AI 与真实 actor。source/target/schema变化后为 STALE。
 
-额外许可与执行使用清单分开：许可说明可以做什么；manifest说明这一回真正做什么。AI不得发送未在清单中的联系人或整份原件；内部导出不带密钥/会话/机器凭证。没有公开发布owner或CMS远端字段。
+ServicePrincipal 无 `talent.fact.write` 时只能创建 Proposal；即使有直写权限，和当前受保护事实冲突时也不得静默覆盖。APPLIED 必须调用目标域命令，不直接UPDATE表。
+
+### 8.2 Machine Actor
+
+CommandReceipt、AuditEvent、DurableJob/Requester 等 actor 改为 human Membership / ServicePrincipal exactly-one。ServicePrincipal 有 scope/permission/defaultMaintainer/credential rotation；机器身份不得拥有默认高危管理权。
+
+### 8.3 AI / Export 依赖
+
+AIJob 与 ExportDependency 在 TD2 后可引用 Role、Capability、Language、Location、Casting/Measurement、Eligibility、Credential、Collection 等登记对象/字段；敏感Credential标识、AdultEligibility原证据、Machine credential 默认不进入导出/AI。
+
+额外许可与执行 manifest 分开：许可说明可以做什么；manifest说明这一回真正做什么。没有公开发布owner或CMS远端字段。
 
 ## 9. 平台持久机制
 
@@ -211,8 +221,20 @@ protectionEpoch变化包括范围收窄、用途暂停、资产隔离、源依�
 
 ## 12. 以后再增加的表
 
-本期不创建客户访问/反馈、公开内容审批/发布、站点映射、公开媒体或商业模块表。业务扩展以稳定主体ID、scope、revision和有权限的Query/Command契约接入。新表和权限随新需求兼容迁移，避免现在把假空表误当成熟底座。
+本期仍不创建客户访问/反馈、公开内容审批/发布、站点映射、商业模块表。报价、档期、Booking、合同、佣金、工资、CRM、KOL分析、设备库存不进入Talent。
 
-Talent 2.0 同样禁止为“以后可能出现的职业”预建几十张空profile表。Actor/KOL/Makeup/Stylist等只有在真实数据证明需要独有结构化字段时才增加专属扩展；否则Role + Capability + Work/Project/MediaCollection已经是完整的一等表达。
+Talent 2.0 R1 同样禁止“一职业一张表”。新增职业扩展必须满足：真实高频结构化筛选需求、稳定校验规则、无法由 Role + Capability + Work + Credential + Collection 表达。
 
-当前实现中的Person.roles[]、skillCodes[]、heightCm属于迁移输入。TD2采用追加migration：先新增新结构并回填/双读验证，再切新写，最后另一个前向migration删除旧列；Person/Work/Project/Asset UUID全程不变。
+### 12.1 R1 迁移边界
+
+当前实现中的 Person.roles[] / skillCodes[] / languageCodes[] / cityCode / heightCm 是迁移输入，不是目标模型。迁移顺序：
+
+1. 增加 optional TalentProfile、Role/Capability、Language/Location、Casting/Measurement、Eligibility、Representation、ExternalRef、Credential、MediaCollection、ServicePrincipal/Actor、Proposal；
+2. 回填 roles → PersonRole；skills → GENERAL Capability；languageCodes → PersonLanguage(level=null)；cityCode → BASE TalentLocation；
+3. Person.sourceId 收窄为 originSourceId 语义；
+4. heightCm 只有在明确相关语义时进入 MeasurementSet，否则进入迁移审查，禁止从height反推MODEL；
+5. Shortlist 对单Role可回填personRoleId，多Role进入人工迁移队列；
+6. 双读验证、新写切换、Merge/Delete/Export/Rebuild/Recovery全部接线；
+7. 最后另一个前向migration删除旧列。
+
+稳定 Person/Work/Project/Asset UUID 全程不变。
