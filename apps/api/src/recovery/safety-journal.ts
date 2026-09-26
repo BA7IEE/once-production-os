@@ -153,7 +153,12 @@ export class SafetyJournalWriter {
         try { state = await readSafetyJournal(path); }
         catch (error) {
             if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
-            state = await createSafetyJournal(path);
+            try { state = await createSafetyJournal(path); }
+            catch (createError) {
+                if ((createError as NodeJS.ErrnoException).code !== 'EEXIST') throw createError;
+                // API and Worker may both be the first opener. Never overwrite; validate the winner.
+                state = await readSafetyJournal(path);
+            }
         }
         return new SafetyJournalWriter(path, state);
     }
