@@ -2,6 +2,7 @@ import { SafetyJournalWriter } from './recovery/safety-journal.ts';
 import { LocalMediaProvider } from './media/local-provider.ts';
 import { DeletionFinalizer } from './deletion/finalizer.ts';
 import { MediaWorker } from './media/worker.ts';
+import { randomUUID } from 'node:crypto';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { Application } from '../../../packages/core/src/api.ts';
 import { PrismaStore } from './prisma-store.ts';
@@ -14,13 +15,13 @@ process.once('SIGINT', () => { stopping = true; stopController.abort(); });
 async function run() {
     const config = loadConfig();
     store = new PrismaStore();
-    const core = new Application(store, config);
-    const mediaProvider = config.mediaEnabled ? await LocalMediaProvider.create(process.env.MEDIA_ROOT!) : null;
-    const media = mediaProvider ? new MediaWorker(core, mediaProvider) : null;
-    const deletionFinalizer = new DeletionFinalizer(core, mediaProvider);
     const safetyJournal = process.env.SAFETY_JOURNAL_FILE
         ? await SafetyJournalWriter.open(process.env.SAFETY_JOURNAL_FILE)
         : null;
+    const core = new Application(store, config, undefined, safetyJournal);
+    const mediaProvider = config.mediaEnabled ? await LocalMediaProvider.create(process.env.MEDIA_ROOT!) : null;
+    const media = mediaProvider ? new MediaWorker(core, mediaProvider) : null;
+    const deletionFinalizer = new DeletionFinalizer(core, mediaProvider, safetyJournal);
     let nextJournalSync = 0;
     console.log('ONCE internal worker starting');
     try {
@@ -33,8 +34,13 @@ async function run() {
                 if (exportClaim)
                     await core.exports.process(exportClaim);
                 const deletionClaim = await core.deletionCleanup.claim();
-                if (deletionClaim)
+                if (deletionClaim) {
+                    if (safetyJournal) await safetyJournal.writeAhead({
+                        intentId: 'intent:' + randomUUID(), workspaceId: deletionClaim.workspaceId,
+                        operation: 'worker.deletion.cleanup', requestId: deletionClaim.id, resourceId: deletionClaim.id
+                    });
                     await core.deletionCleanup.process(deletionClaim);
+                }
                 const didFinalize = await deletionFinalizer.cycle(stopController.signal);
                 const didMedia = media ? await media.cycle(stopController.signal) : false;
                 if (safetyJournal && Date.now() >= nextJournalSync) {
