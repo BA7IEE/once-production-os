@@ -2,25 +2,23 @@
 
 ## 事实顺序
 
-先读 `docs/release/WP6_PERSON_MERGE.md` → `WP5_DELETION_CLEANING.md` → `WP4_DELETION_IMPACT_PREVIEW.md` → `WP3_EXPORT_DEPENDENCIES.md` → `IMPLEMENTATION_STATUS.md` → `TEST_REPORT.md` → 当前 PR 最终 head 对应 Actions，再读历史 WP2B/WP2/WP1/M1/H1/A1/R1 与 `docs/spec/06_DEVELOPMENT.md`。
+先读 `docs/release/WP7_JSON_REBUILD.md` → `WP6_PERSON_MERGE.md` → `WP5_DELETION_CLEANING.md` → `WP4_DELETION_IMPACT_PREVIEW.md` → `WP3_EXPORT_DEPENDENCIES.md` → `IMPLEMENTATION_STATUS.md` → `TEST_REPORT.md` → 当前 PR 最终 head 对应 Actions，再读历史 WP2B/WP2/WP1/M1/H1/A1/R1 与 `docs/spec/06_DEVELOPMENT.md`。
 
 规格文档是输入事实，不自动等于实现状态；当前代码、前向迁移、生成契约和真实 CI 优先。
 
 ## 当前分支
 
-- 分支：`feat/person-merge`
-- PR：#17，基于 `feat/deletion-finalization` / PR #15
-- 功能冻结 head：`1673272979e338ede4ddf09952c941cae7344070`
-- Actions：`36217418690`，五个 job 全绿
+- 分支：`feat/json-rebuild`
+- PR：#18，基于 `feat/person-merge` / PR #17
+- 功能冻结 head：`feeab369396bf85536c92e3f8812d2bd50d3be9a`
+- Actions：`36220456451`，五个 job 全绿
 - 请求契约：103
-- 核心/传输：263/263
-- PostgreSQL：67/67
-- Chromium 表单：6/6
-- browser-resume / handoff / media / production：全部成功
+- core / transport：274/274
+- 原 PostgreSQL 合同：67/67
+- T29 real Export → fresh PostgreSQL rebuild：PASS
+- T29 CLI CHECK/APPLY safety gate：PASS
 
-文档收口后的最终 head 必须重跑同一套 CI。
-
-## DEV-07F～07G 当前不变量
+## DEV-07F～07H 当前不变量
 
 1. 删除必须从 impact preview 开始；hidden dependency 只计 unresolved，不能枚举不可见对象。
 2. DEV-07F 已实现专用最终化：只有依赖清理和专用清理均可证明完成时，根对象才进入 ERASED 最小头，请求才进入 COMPLETED / RETAINED_WITH_BASIS；失败保持 FAILED/阻断。
@@ -43,13 +41,13 @@
 
 ## 下一步
 
-进入 **T29 隔离 JSON 重建**：
+进入 **DEV-09 / FR-30 备份与恢复演练**：
 
-1. 只消费受控 `once-export-v1`；
-2. 默认只允许新建隔离工作空间 / 空数据库目标，不覆盖现有业务数据；
-3. 重建稳定 ID、Source / Person / Work / Project 和选中的关系；
-4. 明确不重建 Session、密码、密钥、未导出字段、审计伪历史；
-5. 完成规格 T29 的“10 人 / 3 作品 / 1 项目关系”真实重建验收；
-6. JSON 重建仍不是 DEV-09 备份恢复，二者必须保持独立。
+1. 先冻结 backup/restore threat model 和“备份 ≠ T29 JSON rebuild”的边界；
+2. 设计 PostgreSQL + 私有媒体 + 密钥/配置的一致性备份集合；
+3. restore 必须默认 MAINTENANCE，恢复后旧 Session 全失效；
+4. 做 restore-check：来源暂停/删除/用途变化、媒体缺失、密钥不一致、schema/version 不匹配都阻断放行；
+5. 新建 disposable restore DB / storage root 演练，不 drop / reset 现有库；
+6. 完成真实备份→恢复→校验→放行前门槛，再考虑正式升级手册。
 
-T29 完成后再推进 DEV-09。不要提前启动 DEV-08 AI。
+不要提前启动 DEV-08 AI，也不要把 T29 的 `once-export-v1` 迁移工具包装成数据库备份。
