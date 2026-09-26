@@ -1,33 +1,64 @@
-name: Apply reviewed TD2 prerequisites
+name: Apply TD2 typed foundation
 on:
   push:
     branches: [feat/talent-domain-2]
     paths: [.github/workflows/td2-review-source.yml]
 permissions:
   contents: read
+concurrency:
+  group: once-td2-reviewed-apply
+  cancel-in-progress: false
 jobs:
   apply:
     if: github.repository == 'BA7IEE/once-production-os' && github.ref == 'refs/heads/feat/talent-domain-2'
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 10
     permissions:
       contents: write
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: once_ci
+          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
+          POSTGRES_DB: once_test_td2
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U once_ci -d once_test_td2" --health-interval 5s --health-timeout 3s --health-retries 20
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           ref: ${{ github.sha }}
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
-          node-version: 22.16.0
+          node-version-file: .nvmrc
           package-manager-cache: false
-      - run: python3 .github/td2-apply-reviewed.py
+      - uses: pnpm/action-setup@v6
+      - name: Apply pinned generators only to the isolated checkout
+        run: |
+          python3 .github/td2-apply-reviewed.py
+          git restore --source=HEAD -- .github/workflows/acceptance.yml
+          python3 - <<'PY'
+          import gzip,pathlib
+          exec(compile(gzip.decompress(pathlib.Path('.github/td2-foundation-generator.py.gz').read_bytes()), 'reviewed-td2-foundation', 'exec'))
+          p=pathlib.Path('packages/core/src/talent-search.ts');s=p.read_text().replace('for (const evidence of raw.evidence) {','for (const evidence of raw.evidence) {\n            if (!evidence.personId || !evidence.reviewedAt) continue;').replace('if (!source || !visibility.sourceVisible(source.id)','if (!evidence.reviewedAt || !source || !visibility.sourceVisible(source.id)');p.write_text(s)
+          PY
+      - name: Isolated disposable database configuration
+        env:
+          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
+        run: |
+          echo "::add-mask::$CI_DB_PASSWORD"
+          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_td2" >> "$GITHUB_ENV"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: pnpm typecheck
+      - run: pnpm db:deploy
       - name: Core regressions before source commit
         run: node --experimental-strip-types --test --test-concurrency=4 tests/core/*.test.ts
-      - name: Commit only on unchanged draft development head
+      - name: Fast-forward reviewed source without changing any workflow
         run: |
           test "$(git ls-remote origin refs/heads/feat/talent-domain-2 | cut -f1)" = "$GITHUB_SHA"
-          git rm -- .github/td2-apply-reviewed.py .github/workflows/td2-review-source.yml
-          git add -- apps/api/src/recovery/safety-journal.ts scripts/recovery-approve.ts tests/core/safety-journal.test.ts .github/workflows/acceptance.yml
+          test -z "$(git diff --name-only -- .github/workflows)"
+          git add -- apps/api/src/recovery/safety-journal.ts scripts/recovery-approve.ts tests/core/safety-journal.test.ts apps/api/src/prisma-store.ts packages/core/src/model.ts packages/core/src/talent-search.ts packages/core/src/talent-v2-model.ts prisma/schema.prisma prisma/migrations/202609270001_talent_domain_v2/migration.sql tests/support/memory-store.ts artifacts/td2-model-contract.json
           python3 - <<'PY'
           import hashlib,pathlib,subprocess
           files=sorted(p for p in subprocess.check_output(['git','ls-files','-z']).decode().split('\0') if p and p!='MANIFEST.sha256')
@@ -38,5 +69,5 @@ jobs:
           git diff --cached --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'fix(recovery): hold journal append barrier through approval commit'
+          git commit -m 'feat(td2): typed talent identity, professional facts and forward migration foundation'
           git push origin HEAD:refs/heads/feat/talent-domain-2
