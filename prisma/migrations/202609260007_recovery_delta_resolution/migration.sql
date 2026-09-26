@@ -36,6 +36,6 @@ ALTER TABLE "recoveryRuns"
       AND ("approval"->'deltaResolution'->'currentSequence') = ("approval"->'safetyJournal'->'currentSequence')
       AND ("approval"->'deltaResolution'->'postBackupEntries') = ("approval"->'safetyJournal'->'postBackupEntries')
     )
-  );
+  ) NOT VALID;
 
 COMMIT;
