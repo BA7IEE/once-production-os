@@ -147,7 +147,7 @@ export class SafetyJournalWriter {
         let prev = this.state.snapshot.headHash, seq = this.state.snapshot.sequence;
         const additions: SafetyJournalEntry[] = [];
         for (const audit of rows) {
-            const body = {
+            const body: Omit<SafetyJournalEntry, 'hash'> = {
                 schemaVersion: SAFETY_JOURNAL_ENTRY_VERSION,
                 seq: ++seq, auditId: audit.id, workspaceId: audit.workspaceId,
                 createdAt: audit.createdAt, action: audit.action,
