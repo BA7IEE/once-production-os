@@ -4,7 +4,7 @@
 
 | 项目 | 状态 |
 |---|---|
-| Talent 2.0 R1 规格 | SPEC_UPDATED / REFROZEN_CANDIDATE |
+| Talent 2.0 R1 规格 | SPEC_FROZEN |
 | TD2-01～06 | NOT_IMPLEMENTED |
 | TD2-T01～18 | NOT_RUN |
 | DEV-08 人才AI | 保持未启动；TD2-06 Gate 前不得启动正式契约 |
