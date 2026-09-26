@@ -2,8 +2,8 @@
  * Runs only against a fresh migrated once_restore_* database created by verify-postgres.mjs. */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { randomBytes, randomUUID } from 'node:crypto';
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -46,9 +46,10 @@ test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch appro
     try {
         await client.$connect();
         assert.equal(await client.workspace.count(), 0);
+        const contactKey = randomBytes(32);
         const config = {
             origin: 'https://restore-old.test.invalid', secureCookies: true,
-            contactKey: randomBytes(32), csrfKey: randomBytes(32), recoveryEpoch: oldEpoch,
+            contactKey, csrfKey: randomBytes(32), recoveryEpoch: oldEpoch,
             accessMode: 'INTERNAL' as const, environment: 'test' as const, mediaEnabled: false,
             dataEgressMode: 'INTERNAL_APPROVED' as const,
             dataCleanupMode: 'INTERNAL_APPROVED' as const,
@@ -81,6 +82,10 @@ test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch appro
         });
         assert.equal(personCreated.status, 201);
         const personId = result(personCreated).resourceId as string;
+        assert.equal((await owner.cmd('PUT', '/people/' + personId + '/contacts', {
+            expectedRevision: 1,
+            contacts: [{ kind: 'EMAIL', value: 'restore-pg@example.invalid', sourceId }]
+        })).status, 200);
         const source = await client.sourceRecord.findUniqueOrThrow({ where: { id: sourceId } });
         const person = await client.person.findUniqueOrThrow({ where: { id: personId } });
 
@@ -119,6 +124,11 @@ test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch appro
 
         const ownerMembership = await client.membership.findUniqueOrThrow({ where: { id: ids.membershipId } });
         const workspaceScope = await client.accessScope.findFirstOrThrow({ where: { workspaceId: ids.workspaceId, mode: 'WORKSPACE' } });
+        const readyId = randomUUID(), objectToken = randomUUID();
+        const originalBody = Buffer.from('restore-original-binary-evidence');
+        const previewBody = Buffer.from('restore-preview-evidence');
+        const originalHash = createHash('sha256').update(originalBody).digest('hex');
+        const previewHash = createHash('sha256').update(previewBody).digest('hex');
         await store.transaction(async tx => {
             const queuedId = randomUUID();
             await tx.insert('uploads', {
@@ -133,8 +143,6 @@ test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch appro
                 renewals: 0, attempts: 0, receiveToken: randomUUID(), leaseToken: null, leaseUntil: null,
                 errorCode: null, purgedAt: null
             });
-            const readyId = randomUUID();
-            const objectToken = randomUUID();
             await tx.insert('uploads', {
                 ...base(ids.workspaceId, clock), id: readyId, actorId: ownerMembership.id,
                 actorRevision: ownerMembership.revision, actorEpoch: 1,
@@ -142,7 +150,7 @@ test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch appro
                 scopeId: source.scopeId, scopeRevision: workspaceScope.revision,
                 personId, personEpoch: person.protectionEpoch, personScopeId: person.scopeId,
                 personScopeRevision: workspaceScope.revision, fileName: 'ready.png', mime: 'image/png',
-                expectedBytes: 12, expectedHash: 'b'.repeat(64), state: 'READY',
+                expectedBytes: originalBody.length, expectedHash: originalHash, state: 'READY',
                 expiresAt: new Date(clock.now().getTime() + 86400000).toISOString(),
                 renewals: 0, attempts: 1, receiveToken: randomUUID(), leaseToken: null, leaseUntil: null,
                 errorCode: null, purgedAt: null
@@ -150,8 +158,8 @@ test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch appro
             await tx.insert('assets', {
                 ...base(ids.workspaceId, clock), id: readyId, uploadId: readyId,
                 sourceId, scopeId: source.scopeId, personId, fileName: 'ready.png', mime: 'image/png',
-                bytes: 12, sha256: 'b'.repeat(64), width: 2, height: 3,
-                previewBytes: 10, previewHash: 'c'.repeat(64), objectToken, state: 'READY'
+                bytes: originalBody.length, sha256: originalHash, width: 2, height: 3,
+                previewBytes: previewBody.length, previewHash, objectToken, state: 'READY'
             });
         });
 
@@ -178,10 +186,12 @@ test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch appro
         assert.equal((await client.exportJob.findUniqueOrThrow({ where: { id: result(exportCreated).resourceId as string } })).state, 'READY');
 
         const epochFile = join(tmp, 'recovery.epoch');
+        const contactFile = join(tmp, 'contact.hex');
         writeFileSync(epochFile, newEpoch + '\n', { mode: 0o600 });
+        writeFileSync(contactFile, contactKey.toString('hex') + '\n', { mode: 0o600 });
         const common = {
             ...process.env, DATABASE_URL_RECOVERY: url, DATABASE_URL: 'postgresql://ignored:ignored@127.0.0.1:1/ignored',
-            RECOVERY_EPOCH_FILE: epochFile, ACCESS_MODE: 'MAINTENANCE',
+            RECOVERY_EPOCH_FILE: epochFile, CONTACT_KEY_FILE: contactFile, ACCESS_MODE: 'MAINTENANCE',
             DATA_EGRESS_MODE: 'DISABLED', DATA_CLEANUP_MODE: 'DISABLED', DATA_MERGE_MODE: 'DISABLED'
         };
         const check = run('pnpm', ['--silent', 'recovery:prepare', '--', '--actor-login', 'owner'], common);
