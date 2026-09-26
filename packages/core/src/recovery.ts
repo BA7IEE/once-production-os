@@ -278,7 +278,7 @@ export class RecoveryOps {
             'RECOVERY_APPROVAL_INVALID', '恢复批准证据格式无效', 400);
         uuid.parse(input.backupId);
         for (const value of [input.backupManifestDigest,input.databaseSha256,input.recoveryEpochDigest,
-            input.contactKeyDigest,input.migrationDigest,input.reportDigest,
+            input.contactKeyDigest,input.migrationDigest,input.mediaIdentityDigest,input.reportDigest,
             input.safetyJournal?.backupHeadHash,input.safetyJournal?.currentHeadHash])
             invariant(typeof value === 'string' && /^[a-f0-9]{64}$/.test(value),
                 'RECOVERY_APPROVAL_INVALID', '恢复批准摘要格式无效', 400);
@@ -320,6 +320,8 @@ export class RecoveryOps {
             '备份清单的 Contact key 摘要与 restore-check 不一致', 409);
         invariant(evidence.migrationDigest === stored.migrationDigest, 'RECOVERY_BACKUP_MIGRATION_MISMATCH',
             '备份清单的迁移摘要与 restore-check 不一致', 409);
+        invariant(evidence.mediaIdentityDigest === stored.media.identityDigest, 'RECOVERY_BACKUP_MEDIA_MISMATCH',
+            '备份清单的媒体身份摘要与 restore-check 不一致', 409);
 
         const { report: fresh } = await this.inspection(tx, actor, recoveryRunId, externalInput);
         invariant(fresh.blockers.length === 0, 'RECOVERY_BLOCKERS_PRESENT', '当前 restore-check 已出现阻断项，不能批准', 409);
