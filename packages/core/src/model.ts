@@ -4,6 +4,7 @@ import type { MediaUpload, MediaAsset } from './media-model.ts';
 import type { UsePermission, ExportJob, ExportDependency } from './export-model.ts';
 import type { DeletionRequest, DeletionItem } from './deletion-model.ts';
 import type { PersonMergeDecision, PersonAlias } from './merge-model.ts';
+import type { RecoveryRun } from './recovery-model.ts';
 export type Role = 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'VIEWER';
 export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write', 'data.export', 'data.delete', 'data.merge'] as const;
 export type ExtraPermission = typeof EXTRA_PERMISSIONS[number];
@@ -206,6 +207,7 @@ export interface RecordHandoff extends Base {
     closedById: string | null;
 }
 export interface TableMap {
+    recoveryRuns: RecoveryRun;
     personMerges: PersonMergeDecision;
     personAliases: PersonAlias;
     deletionRequests: DeletionRequest;

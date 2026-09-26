@@ -9,6 +9,7 @@ datasource db {
 }
 
 model Workspace {
+  RecoveryRun_workspace RecoveryRun[] @relation("RecoveryRun_workspace")
   PersonMergeDecision_workspace PersonMergeDecision[] @relation("PersonMergeDecision_workspace")
   PersonAlias_workspace PersonAlias[] @relation("PersonAlias_workspace")
   DeletionRequest_workspace DeletionRequest[] @relation("DeletionRequest_workspace")
@@ -73,6 +74,7 @@ model User {
 }
 
 model Membership {
+  RecoveryRun_actorIdRef RecoveryRun[] @relation("RecoveryRun_actorIdRef")
   PersonMergeDecision_actorIdRef PersonMergeDecision[] @relation("PersonMergeDecision_actorIdRef")
   DeletionRequest_cleanupStartedByRef DeletionRequest[] @relation("DeletionRequest_cleanupStartedByRef")
   DeletionRequest_planFrozenByRef DeletionRequest[] @relation("DeletionRequest_planFrozenByRef")
@@ -1018,6 +1020,39 @@ model DeletionItem {
   @@unique([workspaceId, requestId, resourceKind, resourceId, dependencyKind, proposedAction], map: "deletionItems_exact_impact_key")
   @@index([workspaceId, requestId, evidenceState], map: "deletionItems_request_idx")
   @@map("deletionItems")
+}
+
+
+model RecoveryRun {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  actorId String @db.Uuid
+  sourceEpochDigest String @db.Text
+  targetEpochDigest String @db.Text
+  state String @db.Text
+  preparedAt DateTime @db.Timestamptz(3)
+  approvedAt DateTime? @db.Timestamptz(3)
+  reportDigest String? @db.Text
+  revokedSessions Int
+  consumedActivations Int
+  disabledUsers Int
+  disabledMemberships Int
+  revokedHandoffs Int
+  revokedUsePermissions Int
+  invalidatedExports Int
+  failedJobs Int
+  failedUploads Int
+  quarantinedAssets Int
+  suspendedSources Int
+  workspace Workspace @relation("RecoveryRun_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "recoveryRuns_workspace_fkey")
+  actorIdRef Membership @relation("RecoveryRun_actorIdRef", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "recoveryRuns_actorIdRef_fkey")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, targetEpochDigest])
+  @@index([workspaceId, createdAt], map: "recoveryRuns_idx_0")
+  @@map("recoveryRuns")
 }
 
 model PersonMergeDecision {

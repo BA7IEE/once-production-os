@@ -32,7 +32,8 @@
     "init:local": "node scripts/init-local.mjs",
     "verify:online": "bash scripts/online-verify.sh",
     "review:package": "node scripts/check-package.mjs",
-    "rebuild:json": "node --experimental-strip-types scripts/rebuild-export.ts"
+    "rebuild:json": "node --experimental-strip-types scripts/rebuild-export.ts",
+    "recovery:prepare": "node --experimental-strip-types scripts/recovery-prepare.ts"
   },
   "dependencies": {
     "@nestjs/common": "11.2.5",

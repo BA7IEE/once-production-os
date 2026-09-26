@@ -1,6 +1,6 @@
 /** Explicit disposable-DB gate. No implicit .env fallback, cleanup or deletion.
- * The main integration database is supplied by the caller. T29 additionally creates one
- * fresh sibling once_rebuild_* database, migrates it, tests it, and deliberately leaves it. */
+ * The main integration database is supplied by the caller. T29 and DEV-09A each create one
+ * fresh sibling database, migrate it, test it, and deliberately leave it for evidence. */
 import { spawnSync } from 'node:child_process';
 import { PrismaClient } from '@prisma/client';
 
@@ -14,23 +14,32 @@ function runNode(file, env=process.env, timeout=180000){
  if(r.error){console.error('PostgreSQL verification process did not complete.');return 1;}
  return r.status??1;
 }
+function migrate(target){
+ const r=spawnSync('pnpm',['exec','prisma','migrate','deploy'],{stdio:'inherit',env:{...process.env,DATABASE_URL:target},timeout:120000});
+ return r.error||r.status!==0?1:0;
+}
+
 const mainStatus=runNode('tests/postgres/integration.test.ts');
 if(mainStatus!==0){process.exitCode=mainStatus;}else{
  const testName=url.pathname.slice('/once_test_'.length);
- const rebuildName='once_rebuild_'+testName;
- const rebuildUrl=new URL(url.toString());rebuildUrl.pathname='/'+rebuildName;
  const adminUrl=new URL(url.toString());adminUrl.pathname='/postgres';
  const admin=new PrismaClient({datasources:{db:{url:adminUrl.toString()}},log:[]});
+ async function sibling(prefix,label,file,extraEnv){
+  const name=prefix+testName;
+  const target=new URL(url.toString());target.pathname='/'+name;
+  const exists=await admin.$queryRawUnsafe(`SELECT datname FROM pg_database WHERE datname = '${name}'`);
+  if(Array.isArray(exists)&&exists.length){console.error(`Fresh ${label} database already exists; refusing destructive reuse.`);return 2;}
+  await admin.$executeRawUnsafe(`CREATE DATABASE "${name}"`);
+  if(migrate(target.toString())!==0){console.error(`${label} database migration did not complete.`);return 1;}
+  return runNode(file,{...process.env,...extraEnv(target.toString())},180000);
+ }
  try{
   await admin.$connect();
-  const exists=await admin.$queryRawUnsafe(`SELECT datname FROM pg_database WHERE datname = '${rebuildName}'`);
-  if(Array.isArray(exists)&&exists.length){console.error('Fresh T29 rebuild database already exists; refusing destructive reuse.');process.exitCode=2;}
-  else{
-   await admin.$executeRawUnsafe(`CREATE DATABASE "${rebuildName}"`);
-   const migrated=spawnSync('pnpm',['exec','prisma','migrate','deploy'],{stdio:'inherit',env:{...process.env,DATABASE_URL:rebuildUrl.toString()},timeout:120000});
-   if(migrated.error||migrated.status!==0){console.error('T29 rebuild database migration did not complete.');process.exitCode=1;}
-   else process.exitCode=runNode('tests/postgres/rebuild.test.ts',{...process.env,DATABASE_URL_REBUILD_TEST:rebuildUrl.toString(),ALLOW_REBUILD_TESTS:'yes'},180000);
-  }
- }catch{console.error('Could not create the fresh isolated T29 rebuild database.');process.exitCode=1;}
+  let status=await sibling('once_rebuild_','T29 rebuild','tests/postgres/rebuild.test.ts',
+   target=>({DATABASE_URL_REBUILD_TEST:target,ALLOW_REBUILD_TESTS:'yes'}));
+  if(status===0) status=await sibling('once_restore_','DEV-09A restore','tests/postgres/recovery.test.ts',
+   target=>({DATABASE_URL_RECOVERY_TEST:target,ALLOW_RECOVERY_TESTS:'yes'}));
+  process.exitCode=status;
+ }catch{console.error('Could not create a fresh isolated sibling database.');process.exitCode=1;}
  finally{await admin.$disconnect();}
 }

@@ -39,6 +39,9 @@ export function loadConfig(): Config {
         throw new Error('MEDIA_PROVIDER not supported');
     if (media === 'local' && (!['local', 'test'].includes(environment) || !isAbsolute(process.env.MEDIA_ROOT ?? '')))
         throw new Error('Local media requires local/test and an absolute MEDIA_ROOT; production provider is not approved');
+    const recoveryEpoch = readFileSync(required('RECOVERY_EPOCH_FILE'), 'utf8').trim();
+    if (!/^[A-Za-z0-9_-]{32,128}$/.test(recoveryEpoch))
+        throw new Error('RECOVERY_EPOCH_FILE must contain a 32-128 character base64url-style epoch');
     return { mediaEnabled: media === 'local', origin: required('APP_ORIGIN'), secureCookies: secure === 'true', environment: environment as Config['environment'], accessMode: accessMode as Config['accessMode'], dataEgressMode: egress as Config['dataEgressMode'], dataCleanupMode: cleanup as Config['dataCleanupMode'], dataMergeMode: merge as Config['dataMergeMode'],
-        contactKey: key('CONTACT_KEY_FILE'), csrfKey: key('CSRF_KEY_FILE'), recoveryEpoch: readFileSync(required('RECOVERY_EPOCH_FILE'), 'utf8').trim() };
+        contactKey: key('CONTACT_KEY_FILE'), csrfKey: key('CSRF_KEY_FILE'), recoveryEpoch };
 }
