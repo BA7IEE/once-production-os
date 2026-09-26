@@ -12,10 +12,18 @@ import { SafetyJournalWriter, readSafetyJournal } from '../../apps/api/src/recov
 
 class IntentSink implements SafetyIntentSink {
     rows: SafetyIntent[] = [];
+    commits: Array<{ intent: SafetyIntent; resourceId: string }> = [];
+    aborts: SafetyIntent[] = [];
     fail = false;
     async writeAhead(intent: SafetyIntent) {
         if (this.fail) throw new Error('synthetic write-ahead failure');
         this.rows.push(structuredClone(intent));
+    }
+    async committed(intent: SafetyIntent, resourceId: string) {
+        this.commits.push({ intent: structuredClone(intent), resourceId });
+    }
+    async aborted(intent: SafetyIntent) {
+        this.aborts.push(structuredClone(intent));
     }
 }
 async function system(sink: SafetyIntentSink) {
@@ -112,4 +120,30 @@ test('DEV-09D two journal writers serialize concurrent write-ahead intents into 
         assert.equal(state.entries[1]!.prevHash,state.entries[0]!.hash);
         assert.ok(state.entries.every(x=>x.action.startsWith('intent.')));
     }finally{rmSync(root,{recursive:true,force:true});}
+});
+
+test('DEV-09E a transaction acknowledgement failure must not claim the write was aborted', async () => {
+    const sink = new IntentSink(), f = await system(sink);
+    const transaction = f.store.transaction.bind(f.store);
+    let failOnce = true;
+    f.store.transaction = async work => {
+        const before = f.store.rows('sources').length;
+        const value = await transaction(work);
+        if (failOnce && f.store.rows('sources').length > before) {
+            failOnce = false;
+            throw new Error('synthetic connection loss after commit');
+        }
+        return value;
+    };
+    const key = randomUUID(), body = sourceInput();
+    const response = await f.owner.cmd('POST', '/sources', body, key);
+    assert.equal(response.status, 500);
+    assert.equal(f.store.rows('sources').length, 1, 'database really committed');
+    assert.equal(sink.commits.length, 0, 'acknowledgement was unavailable');
+    assert.equal(sink.aborts.length, 0, 'an exception is not proof of rollback');
+    const retry = await f.owner.cmd('POST', '/sources', body, key);
+    assert.equal(retry.status, 201);
+    assert.equal(result(retry).replayed, true);
+    assert.equal(f.store.rows('sources').length, 1);
+    assert.equal(sink.commits.length, 1);
 });

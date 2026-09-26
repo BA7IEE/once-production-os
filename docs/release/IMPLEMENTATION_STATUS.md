@@ -1,6 +1,8 @@
-# 当前实现状态｜DEV-09D Write-ahead / DB+Media 恢复闭环
+# 当前实现状态｜DEV-09E 增量归并与恢复审批
 
-应用 `0.1.0-dev.1`。当前分支 `feat/recovery-writeahead-media`，PR #22，基于 DEV-09C / PR #21。
+应用 `0.1.0-dev.1`。当前分支 `feat/recovery-delta-resolution`，PR #25，基于 DEV-09D / PR #22。
+
+本批实现与限制详见 [WP10_RECOVERY_DELTA_RESOLUTION.md](WP10_RECOVERY_DELTA_RESOLUTION.md)。隔离本地核心回归 321/321；完整 CI 须查验最终 head，不依据本文件推定通过；main 尚未包含整条开发链。
 
 | 工作包 | 当前实际实现 | 仍缺/未整体验收 |
 |---|---|---|
@@ -13,11 +15,11 @@
 | DEV-06 检索清单 | 结构化检索、命中依据、Shortlist、SQL 下推 | visible IDs 完整 SQL 下推、规格 P95、AI parse_search |
 | DEV-07 维护 | 导出、删除闭环、Person merge、T29 隔离 JSON 重建 | 当前主要规格切片已具备实现证据 |
 | DEV-08 AI | 未开发 | 四类有界任务、预算、证据与采纳 |
-| DEV-09 运维恢复 | **09A 隔离准备、09B restore-check、09C zero-delta approve、09D write-ahead + DB/media 同包恢复** | **09E post-backup delta resolution、正式运维长期保留策略** |
+| DEV-09 运维恢复 | **09A～09D + 09E 逐条 delta resolution、精确请求关联与审批 digest** | **最终 head CI、正式运维长期保留策略、恢复并发/故障 Gate** |
 | DEV-10 总体验收 | core / PG / Chromium 多链回归；真实 rebuild/restore drill | 完整性能/生产介质/最终接管门 |
 | DEV-11 接管 | 未执行 | 不得接管正式资料 |
 
-## DEV-09D 最终证据
+## DEV-09D 历史证据（不替代 DEV-09E 当前 head 验收）
 
 功能冻结 head：
 
@@ -56,7 +58,7 @@ CI 明确输出：
 8. journal 写失败则 fail closed；
 9. deletion cleanup / finalization worker 同样 write-ahead；
 10. staging/production INTERNAL 没有绝对 SAFETY_JOURNAL_FILE 时拒绝启动；
-11. 零 post-backup delta 时可 approve 新 recovery epoch；
+11. 零 delta 或全部由严格规则解决的非零 delta 可 approve 新 recovery epoch；
 12. approve 仍不会自动将部署 ACCESS_MODE 切回 INTERNAL。
 
 ## FR/T 状态边界
@@ -64,16 +66,10 @@ CI 明确输出：
 - FR-03 / T03 / AT-22：受控 Person merge 已完成当前切片。
 - FR-13 / T13：删除闭环已完成当前切片。
 - FR-29 / T29：隔离 JSON 重建已完成当前规格验收。
-- FR-30 / DEV-09：**尚未整体完成**。当前只能对 post-backup delta 做保守阻断，尚未逐条形成 commit/rollback 与 resolution 证据。
+- FR-30 / DEV-09：**尚未整体完成**。09E 已实现逐条归并与证据绑定，但正式运维、长期保留策略、恢复故障审查与最终 CI 尚须关闭。
 
 ## 接下来
 
-进入 **DEV-09E Safety Delta Resolution**：
+先完成 DEV-09 整体 Gate 和开发分支整合，再合入已冻结的 Talent Domain 2.0 R1（PR #24）。
 
-- intent 与最终 committed / failed 状态形成显式外部证据；
-- 自动识别被 recovery prepare 更强地覆盖的安全变化；
-- 其余 delta 必须生成可审计 resolution plan；
-- 不允许“管理员勾选忽略”；
-- 只有所有 post-backup delta 都可证明已解决，才允许非零增量 approval。
-
-详见 [WP9_RECOVERY_WRITEAHEAD_MEDIA.md](WP9_RECOVERY_WRITEAHEAD_MEDIA.md)。
+顺序：DEV-09 → TD2-01～06 → TD2-T01～18 → DEV-08 AI。人才 2.0 仍是 SPEC_ONLY / NOT_IMPLEMENTED，AI 未启动。

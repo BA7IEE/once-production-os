@@ -1,6 +1,6 @@
 import type { Actor, Clock, Config, Source } from './model.ts';
 import type { Tx } from './store.ts';
-import type { RecoveryApprovalEvidence, RecoveryCheckReport, RecoveryExternalCheck, RecoveryPrepareSummary, RecoveryRun } from './recovery-model.ts';
+import { RECOVERY_PREPARE_CONTAINED_OPERATIONS, type RecoveryApprovalEvidence, type RecoveryCheckReport, type RecoveryDeltaResolutionReport, type RecoveryExternalCheck, type RecoveryPrepareSummary, type RecoveryRun } from './recovery-model.ts';
 import { AppError, invariant } from './errors.ts';
 import { audit, base, touch, unique, workspaceRow } from './helpers.ts';
 import { decryptContact, hashSecret } from './crypto.ts';
@@ -274,25 +274,83 @@ export class RecoveryOps {
         return report;
     }
 
+    private deltaResolution(input: RecoveryDeltaResolutionReport, safety: RecoveryApprovalEvidence['safetyJournal']): RecoveryDeltaResolutionReport {
+        invariant(input && typeof input === 'object' && input.schemaVersion === 'once-recovery-delta-v1',
+            'RECOVERY_DELTA_INVALID', '安全增量 resolution 格式无效', 400);
+        invariant(Number.isSafeInteger(input.backupSequence) && input.backupSequence >= 0
+            && Number.isSafeInteger(input.currentSequence) && input.currentSequence >= input.backupSequence
+            && Number.isSafeInteger(input.postBackupEntries) && input.postBackupEntries === input.currentSequence - input.backupSequence
+            && Number.isSafeInteger(input.resolved) && input.resolved >= 0
+            && Number.isSafeInteger(input.unresolved) && input.unresolved >= 0
+            && Array.isArray(input.items) && input.resolved + input.unresolved === input.items.length,
+            'RECOVERY_DELTA_INVALID', '安全增量 resolution 计数无效', 400);
+        invariant(input.backupSequence === safety.backupSequence
+            && input.currentSequence === safety.currentSequence
+            && input.postBackupEntries === safety.postBackupEntries,
+            'RECOVERY_DELTA_INVALID', '安全增量 resolution 与 journal 序号不一致', 400);
+
+        const contained = new Set<string>(RECOVERY_PREPARE_CONTAINED_OPERATIONS);
+        const keys = new Set<string>(), seqs = new Set<number>();
+        for (const row of input.items) {
+            invariant(row && typeof row === 'object'
+                && typeof row.key === 'string' && row.key.length > 0 && row.key.length <= 220
+                && typeof row.operation === 'string' && row.operation.length > 0 && row.operation.length <= 120
+                && typeof row.resourceId === 'string' && row.resourceId.length > 0 && row.resourceId.length <= 180
+                && ['ABORTED','COMMITTED','UNRESOLVED','AUDIT_ONLY'].includes(row.state)
+                && ['NO_COMMIT','CONTAINED_BY_PREPARE','SUPPLEMENTAL_AUDIT','BLOCKER'].includes(row.resolution)
+                && typeof row.reasonCode === 'string' && row.reasonCode.length > 0 && row.reasonCode.length <= 120
+                && Array.isArray(row.evidenceSeqs) && row.evidenceSeqs.length > 0,
+                'RECOVERY_DELTA_INVALID', '安全增量 resolution 条目格式无效', 400);
+            invariant(!keys.has(row.key), 'RECOVERY_DELTA_INVALID', '安全增量 resolution key 重复', 400);
+            keys.add(row.key);
+            for (const seq of row.evidenceSeqs) {
+                invariant(Number.isSafeInteger(seq) && seq > input.backupSequence && seq <= input.currentSequence
+                    && !seqs.has(seq), 'RECOVERY_DELTA_INVALID', '安全增量 evidence sequence 重复或越界', 400);
+                seqs.add(seq);
+            }
+            if (row.resolution === 'NO_COMMIT')
+                invariant(row.state === 'ABORTED' && row.reasonCode === 'ABORT_MARKER',
+                    'RECOVERY_DELTA_INVALID', 'NO_COMMIT resolution 证据不成立', 400);
+            else if (row.resolution === 'CONTAINED_BY_PREPARE')
+                invariant(row.state === 'COMMITTED' && contained.has(row.operation)
+                    && row.reasonCode === 'PREPARE_IS_MORE_RESTRICTIVE',
+                    'RECOVERY_DELTA_INVALID', 'CONTAINED_BY_PREPARE resolution 证据不成立', 400);
+            else if (row.resolution === 'SUPPLEMENTAL_AUDIT')
+                invariant(row.state === 'AUDIT_ONLY' && row.reasonCode === 'MATCHED_COMMIT_MARKER',
+                    'RECOVERY_DELTA_INVALID', 'SUPPLEMENTAL_AUDIT resolution 证据不成立', 400);
+            else
+                invariant(row.resolution === 'BLOCKER',
+                    'RECOVERY_DELTA_INVALID', '未知安全增量 resolution', 400);
+        }
+        const expected: number[] = [];
+        for (let seq=input.backupSequence+1;seq<=input.currentSequence;seq++) expected.push(seq);
+        invariant(seqs.size === expected.length && expected.every(seq=>seqs.has(seq)),
+            'RECOVERY_DELTA_INVALID', '安全增量 resolution 未完整覆盖 post-backup journal', 400);
+        invariant(input.unresolved === input.items.filter(x=>x.resolution === 'BLOCKER').length,
+            'RECOVERY_DELTA_INVALID', '安全增量 unresolved 计数不一致', 400);
+        invariant(input.unresolved === 0, 'RECOVERY_JOURNAL_DELTA_UNRESOLVED',
+            '仍有未解决的 post-backup 安全增量，恢复必须保持隔离', 409);
+        return structuredClone(input);
+    }
+
     private approvalEvidence(input: RecoveryApprovalEvidence): RecoveryApprovalEvidence {
         invariant(input && typeof input === 'object' && input.schemaVersion === 'once-recovery-approval-v1',
             'RECOVERY_APPROVAL_INVALID', '恢复批准证据格式无效', 400);
         uuid.parse(input.backupId);
         for (const value of [input.backupManifestDigest,input.databaseSha256,input.recoveryEpochDigest,
             input.contactKeyDigest,input.migrationDigest,input.mediaIdentityDigest,input.reportDigest,
-            input.safetyJournal?.backupHeadHash,input.safetyJournal?.currentHeadHash])
+            input.deltaResolutionDigest,input.safetyJournal?.backupHeadHash,input.safetyJournal?.currentHeadHash])
             invariant(typeof value === 'string' && /^[a-f0-9]{64}$/.test(value),
                 'RECOVERY_APPROVAL_INVALID', '恢复批准摘要格式无效', 400);
         uuid.parse(input.safetyJournal.journalId);
         invariant(Number.isSafeInteger(input.safetyJournal.backupSequence) && input.safetyJournal.backupSequence >= 0
-            && Number.isSafeInteger(input.safetyJournal.currentSequence) && input.safetyJournal.currentSequence >= 0
-            && Number.isSafeInteger(input.safetyJournal.postBackupEntries) && input.safetyJournal.postBackupEntries >= 0,
+            && Number.isSafeInteger(input.safetyJournal.currentSequence) && input.safetyJournal.currentSequence >= input.safetyJournal.backupSequence
+            && Number.isSafeInteger(input.safetyJournal.postBackupEntries) && input.safetyJournal.postBackupEntries >= 0
+            && input.safetyJournal.postBackupEntries === input.safetyJournal.currentSequence - input.safetyJournal.backupSequence,
             'RECOVERY_APPROVAL_INVALID', '安全日志序号无效', 400);
-        invariant(input.safetyJournal.currentSequence === input.safetyJournal.backupSequence
-            && input.safetyJournal.postBackupEntries === 0
-            && input.safetyJournal.currentHeadHash === input.safetyJournal.backupHeadHash,
-            'RECOVERY_JOURNAL_DELTA_UNRESOLVED',
-            '备份锚点后存在安全状态变化；当前版本不能自动批准，必须保持隔离并逐条核对', 409);
+        const delta = this.deltaResolution(input.deltaResolution, input.safetyJournal);
+        invariant(digest(delta) === input.deltaResolutionDigest,
+            'RECOVERY_DELTA_INVALID', '安全增量 resolution 摘要不匹配', 400);
         return structuredClone(input);
     }
 

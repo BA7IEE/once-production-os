@@ -8,7 +8,8 @@ import { digest } from '../../../../packages/core/src/json.ts';
 import { invariant } from '../../../../packages/core/src/errors.ts';
 
 export const SAFETY_JOURNAL_VERSION = 'once-safety-journal-v1';
-export const SAFETY_JOURNAL_ENTRY_VERSION = 'once-safety-journal-entry-v1';
+export const SAFETY_JOURNAL_ENTRY_VERSION = 'once-safety-journal-entry-v2';
+const LEGACY_ENTRY_VERSION = 'once-safety-journal-entry-v1';
 const ZERO = '0'.repeat(64);
 const NOISY_READ_ACTIONS = new Set([
     'auth.login', 'auth.login-denied', 'auth.logout',
@@ -21,7 +22,10 @@ export interface SafetyJournalHeader {
     createdAt: string;
 }
 export interface SafetyJournalEntry {
-    schemaVersion: typeof SAFETY_JOURNAL_ENTRY_VERSION;
+    schemaVersion: typeof SAFETY_JOURNAL_ENTRY_VERSION | typeof LEGACY_ENTRY_VERSION;
+    /** Absent on immutable legacy v1 entries; never infer it from operation/resource. */
+    requestId?: string;
+    abortProof?: 'NOT_STARTED';
     seq: number;
     auditId: string;
     workspaceId: string;
@@ -63,9 +67,13 @@ function header(value: unknown): SafetyJournalHeader {
 function entry(value: unknown, expectedSeq: number, expectedPrev: string): SafetyJournalEntry {
     invariant(!!value && typeof value === 'object' && !Array.isArray(value), 'SAFETY_JOURNAL_INVALID', '安全日志记录格式无效', 503);
     const row = value as Record<string, unknown>;
-    keys(row, ['schemaVersion','seq','auditId','workspaceId','createdAt','action','resourceKind','resourceId','changedFields','prevHash','hash'],
+    const v2 = row.schemaVersion === SAFETY_JOURNAL_ENTRY_VERSION;
+    keys(row, ['schemaVersion','seq','auditId','workspaceId','createdAt','action','resourceKind','resourceId','changedFields','prevHash','hash',
+        ...(v2 ? ['requestId'] : []), ...(v2 && row.resourceKind === 'intent-abort' ? ['abortProof'] : [])],
         '安全日志记录包含未知字段');
-    invariant(row.schemaVersion === SAFETY_JOURNAL_ENTRY_VERSION
+    invariant((v2 || row.schemaVersion === LEGACY_ENTRY_VERSION)
+        && (!v2 || (typeof row.requestId === 'string' && row.requestId.length > 0 && row.requestId.length <= 200))
+        && (!v2 || row.resourceKind !== 'intent-abort' || row.abortProof === 'NOT_STARTED')
         && row.seq === expectedSeq
         && typeof row.auditId === 'string'
         && typeof row.workspaceId === 'string'
@@ -166,7 +174,7 @@ export class SafetyJournalWriter {
 
     private async appendRows(rows: Array<{
         auditId: string; workspaceId: string; createdAt: string; action: string;
-        resourceKind: string; resourceId: string; changedFields: string[];
+        resourceKind: string; resourceId: string; changedFields: string[]; requestId: string; abortProof?: 'NOT_STARTED';
     }>): Promise<number> {
         return this.withLock(async () => {
             this.state = await readSafetyJournal(this.path);
@@ -179,6 +187,8 @@ export class SafetyJournalWriter {
             for (const input of pending) {
                 const body: Omit<SafetyJournalEntry, 'hash'> = {
                     schemaVersion: SAFETY_JOURNAL_ENTRY_VERSION,
+                    requestId: input.requestId,
+                    ...(input.abortProof ? { abortProof: input.abortProof } : {}),
                     seq: ++seq, auditId: input.auditId, workspaceId: input.workspaceId,
                     createdAt: input.createdAt, action: input.action,
                     resourceKind: input.resourceKind, resourceId: input.resourceId,
@@ -201,17 +211,43 @@ export class SafetyJournalWriter {
         return this.appendRows(audits.filter(safetyCriticalAudit).map(audit => ({
             auditId: audit.id, workspaceId: audit.workspaceId, createdAt: audit.createdAt,
             action: audit.action, resourceKind: audit.resourceKind, resourceId: audit.resourceId,
-            changedFields: audit.changedFields
+            changedFields: audit.changedFields, requestId: audit.requestId
         })));
     }
-    async writeAhead(intent: SafetyIntent): Promise<void> {
-        invariant(intent.operation.length > 0 && intent.operation.length <= 100
-            && intent.resourceId.length > 0 && intent.resourceId.length <= 160,
+    private intentSuffix(intent: SafetyIntent): string {
+        invariant(intent.intentId.startsWith('intent:') && intent.intentId.length > 15 && intent.intentId.length <= 200
+            && intent.operation.length > 0 && intent.operation.length <= 100
+            && intent.resourceId.length > 0 && intent.resourceId.length <= 180
+            && typeof intent.requestId === 'string' && intent.requestId.length > 0 && intent.requestId.length <= 200,
             'SAFETY_INTENT_INVALID', '安全意图元数据无效', 503);
+        return intent.intentId.slice('intent:'.length);
+    }
+    async writeAhead(intent: SafetyIntent): Promise<void> {
+        this.intentSuffix(intent);
         await this.appendRows([{
             auditId: intent.intentId, workspaceId: intent.workspaceId, createdAt: new Date().toISOString(),
             action: 'intent.' + intent.operation, resourceKind: 'intent',
-            resourceId: intent.resourceId, changedFields: []
+            resourceId: intent.resourceId, changedFields: [], requestId: intent.requestId
+        }]);
+    }
+    async committed(intent: SafetyIntent, resourceId: string): Promise<void> {
+        const suffix = this.intentSuffix(intent);
+        invariant(resourceId.length > 0 && resourceId.length <= 180,
+            'SAFETY_INTENT_INVALID', '安全提交资源标识无效', 503);
+        await this.appendRows([{
+            auditId: 'commit:' + suffix, workspaceId: intent.workspaceId, createdAt: new Date().toISOString(),
+            action: 'commit.' + intent.operation, resourceKind: 'intent-commit',
+            resourceId, changedFields: [], requestId: intent.requestId
+        }]);
+    }
+    async aborted(intent: SafetyIntent, proof: 'NOT_STARTED'): Promise<void> {
+        invariant(proof === 'NOT_STARTED', 'SAFETY_ABORT_UNPROVEN',
+            '只有尚未开始事务或外部副作用时才能记录未提交证明', 503);
+        const suffix = this.intentSuffix(intent);
+        await this.appendRows([{
+            auditId: 'abort:' + suffix, workspaceId: intent.workspaceId, createdAt: new Date().toISOString(),
+            action: 'abort.' + intent.operation, resourceKind: 'intent-abort',
+            resourceId: intent.resourceId, changedFields: [], requestId: intent.requestId, abortProof: proof
         }]);
     }
 }

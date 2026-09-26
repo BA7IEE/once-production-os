@@ -36,7 +36,7 @@ function run(command: string,args: string[],env: NodeJS.ProcessEnv,expected=0) {
     return r;
 }
 
-test('DEV-09C real backup/restore approves only zero post-backup safety deltas',async()=>{
+test('DEV-09E real backup/restore resolves contained deltas and blocks unresolved committed mutations',async()=>{
     assert.equal(process.env.ALLOW_RECOVERY_APPROVAL_TESTS,'yes');
     const sourceUrl=url('DATABASE_URL_BACKUP_APPROVAL_TEST');
     const restoreUrl=url('DATABASE_URL_RECOVERY_APPROVAL_TEST');
@@ -51,7 +51,7 @@ test('DEV-09C real backup/restore approves only zero post-backup safety deltas',
     const backupDir=join(tmp,'backup');mkdirSync(backupDir,{mode:0o700});
     const sourceMediaRoot=join(tmp,'source-media');
     const restoredMediaRoot=join(tmp,'restored-media');
-    const journal=join(tmp,'safety.jsonl'),deltaJournal=join(tmp,'safety-delta.jsonl');
+    const journal=join(tmp,'safety.jsonl'),zeroJournal=join(tmp,'safety-zero.jsonl'),containedJournal=join(tmp,'safety-contained.jsonl');
     const oldEpoch='old_approval_epoch_20260926_aaaaaaaaaaaaaaaaaaaa';
     const newEpoch='new_approval_epoch_20260926_bbbbbbbbbbbbbbbbbbbb';
     const contactKey=randomBytes(32),csrfKey=randomBytes(32);
@@ -82,6 +82,11 @@ test('DEV-09C real backup/restore approves only zero post-backup safety deltas',
         assert.equal((await owner.cmd('PUT','/people/'+personId+'/contacts',{
             expectedRevision:1,contacts:[{kind:'EMAIL',value:'approval@example.invalid',sourceId}]
         })).status,200);
+        const memberCreated=await owner.raw('POST','/memberships',{
+            loginName:'post_backup_delta_member',displayName:'Post Backup Delta Member',role:'VIEWER',extraPermissions:[]
+        });
+        assert.equal(memberCreated.status,201,JSON.stringify(memberCreated.body));
+        const deltaMemberId=result(memberCreated).membershipId as string;
 
         const provider=await LocalMediaProvider.create(sourceMediaRoot);
         const sourceRow=await sourceClient.sourceRecord.findUniqueOrThrow({where:{id:sourceId}});
@@ -140,19 +145,36 @@ test('DEV-09C real backup/restore approves only zero post-backup safety deltas',
         assert.equal(manifest.media.assetCount,1);
         assert.equal(manifest.media.assets[0].id,uploadId);
 
-        // Freeze a clean backup-head copy, then prove the live journal changes synchronously
-        // before relying on the later AuditEvent sync.
-        copyFileSync(journal,deltaJournal);chmodSync(deltaJournal,0o600);
+        // Freeze a zero-delta backup-head copy. Then create one prepare-contained committed
+        // delta and one deliberately unresolved committed delta, each with write-ahead markers.
+        copyFileSync(journal,zeroJournal);chmodSync(zeroJournal,0o600);
         const beforeIntent=(await readSafetyJournal(journal)).snapshot.sequence;
         const currentSource=await sourceClient.sourceRecord.findUniqueOrThrow({where:{id:sourceId}});
         const suspended=await owner.cmd('POST','/sources/'+sourceId+'/suspend',{
-            expectedRevision:currentSource.revision,reason:'post backup safety change for recovery approval test'
+            expectedRevision:currentSource.revision,reason:'post backup contained source suspension'
         });
         assert.equal(suspended.status,200,JSON.stringify(suspended.body));
-        const afterIntent=await readSafetyJournal(journal);
-        assert.ok(afterIntent.snapshot.sequence>beforeIntent);
-        assert.ok(afterIntent.entries.slice(beforeIntent).some(x=>x.action==='intent.source.suspend'));
-        assert.ok(afterIntent.snapshot.sequence>manifest.safetyJournal.sequence);
+        run('pnpm',['--silent','safety-journal'],{
+            ...process.env,DATABASE_URL_JOURNAL:sourceUrl,SAFETY_JOURNAL_FILE:journal
+        });
+        const containedState=await readSafetyJournal(journal);
+        assert.ok(containedState.snapshot.sequence>beforeIntent);
+        assert.ok(containedState.entries.slice(beforeIntent).some(x=>x.action==='intent.source.suspend'));
+        assert.ok(containedState.entries.slice(beforeIntent).some(x=>x.action==='commit.source.suspend'));
+        assert.ok(containedState.entries.slice(beforeIntent).some(x=>x.action==='source.suspend'));
+        copyFileSync(journal,containedJournal);chmodSync(containedJournal,0o600);
+
+        const member=await sourceClient.membership.findUniqueOrThrow({where:{id:deltaMemberId}});
+        const disabled=await owner.cmd('POST','/memberships/'+deltaMemberId+'/disable',{expectedRevision:member.revision});
+        assert.equal(disabled.status,200,JSON.stringify(disabled.body));
+        run('pnpm',['--silent','safety-journal'],{
+            ...process.env,DATABASE_URL_JOURNAL:sourceUrl,SAFETY_JOURNAL_FILE:journal
+        });
+        const unresolvedState=await readSafetyJournal(journal);
+        assert.ok(unresolvedState.entries.some(x=>x.action==='intent.member.disable'));
+        assert.ok(unresolvedState.entries.some(x=>x.action==='commit.member.disable'));
+        assert.ok(unresolvedState.entries.some(x=>x.action==='member.disable'));
+        assert.ok(unresolvedState.snapshot.sequence>manifest.safetyJournal.sequence);
 
         // Restore the actual custom pg_dump into a different fresh database.
         const restored=run('pg_restore',['--no-owner','--no-privileges','--dbname',decodeURIComponent(new URL(restoreUrl).pathname.slice(1)),dumpPath],{
@@ -193,27 +215,40 @@ test('DEV-09C real backup/restore approves only zero post-backup safety deltas',
         assert.equal(report.media.verifiedAssetIds[0],uploadId);
         assert.equal(report.media.backupIdentityDigest,manifest.media.identityDigest);
 
-        const deltaApproval=run('pnpm',['--silent','recovery:approve','--',
+        const blockedRun=run('pnpm',['--silent','recovery:approve','--',
             '--actor-login','owner','--recovery-run-id',preparedRow.id,
             '--backup-manifest',manifestPath,'--database-dump',dumpPath],{
             ...common,SAFETY_JOURNAL_FILE:journal
         },3);
-        const blocked=JSON.parse(deltaApproval.stdout);
+        const blocked=JSON.parse(blockedRun.stdout);
         assert.equal(blocked.eligible,false);
         assert.ok(blocked.blockers.includes('SAFETY_JOURNAL_DELTA_UNRESOLVED'));
+        assert.ok(blocked.deltaResolution.items.some((x:any)=>x.operation==='source.suspend'&&x.resolution==='CONTAINED_BY_PREPARE'));
+        assert.ok(blocked.deltaResolution.items.some((x:any)=>x.operation==='member.disable'&&x.resolution==='BLOCKER'));
         assert.equal((await restoreClient.workspace.findFirstOrThrow()).recoveryEpoch,oldEpoch);
 
-        const eligible=run('pnpm',['--silent','recovery:approve','--',
+        const zeroEligible=JSON.parse(run('pnpm',['--silent','recovery:approve','--',
             '--actor-login','owner','--recovery-run-id',preparedRow.id,
             '--backup-manifest',manifestPath,'--database-dump',dumpPath],{
-            ...common,SAFETY_JOURNAL_FILE:deltaJournal
-        });
-        assert.equal(JSON.parse(eligible.stdout).eligible,true);
+            ...common,SAFETY_JOURNAL_FILE:zeroJournal
+        }).stdout);
+        assert.equal(zeroEligible.eligible,true);
+        assert.equal(zeroEligible.deltaResolution.postBackupEntries,0);
+
+        const containedEligible=JSON.parse(run('pnpm',['--silent','recovery:approve','--',
+            '--actor-login','owner','--recovery-run-id',preparedRow.id,
+            '--backup-manifest',manifestPath,'--database-dump',dumpPath],{
+            ...common,SAFETY_JOURNAL_FILE:containedJournal
+        }).stdout);
+        assert.equal(containedEligible.eligible,true);
+        assert.ok(containedEligible.deltaResolution.postBackupEntries>0);
+        assert.equal(containedEligible.deltaResolution.unresolved,0);
+        assert.ok(containedEligible.deltaResolution.items.some((x:any)=>x.operation==='source.suspend'&&x.resolution==='CONTAINED_BY_PREPARE'));
 
         const approved=run('pnpm',['--silent','recovery:approve','--',
             '--actor-login','owner','--recovery-run-id',preparedRow.id,
             '--backup-manifest',manifestPath,'--database-dump',dumpPath,'--apply'],{
-            ...common,SAFETY_JOURNAL_FILE:deltaJournal,ALLOW_RECOVERY_APPROVE:'yes'
+            ...common,SAFETY_JOURNAL_FILE:containedJournal,ALLOW_RECOVERY_APPROVE:'yes'
         });
         const approvedResult=JSON.parse(approved.stdout);
         assert.equal(approvedResult.state,'APPROVED');
@@ -224,7 +259,9 @@ test('DEV-09C real backup/restore approves only zero post-backup safety deltas',
         const runRow=await restoreClient.recoveryRun.findUniqueOrThrow({where:{id:preparedRow.id}});
         assert.equal(runRow.state,'APPROVED');
         assert.equal((runRow.approval as any).backupId,manifest.backupId);
-        assert.equal((runRow.approval as any).safetyJournal.postBackupEntries,0);
+        assert.ok((runRow.approval as any).safetyJournal.postBackupEntries>0);
+        assert.equal((runRow.approval as any).deltaResolution.unresolved,0);
+        assert.match((runRow.approval as any).deltaResolutionDigest,/^[a-f0-9]{64}$/);
         assert.equal((await restoreClient.sourceRecord.findUniqueOrThrow({where:{id:sourceId}})).status,'SUSPENDED');
         assert.equal((await restoreClient.auditEvent.findFirstOrThrow({where:{action:'recovery.approve'}})).resourceId,preparedRow.id);
 
@@ -239,7 +276,7 @@ test('DEV-09C real backup/restore approves only zero post-backup safety deltas',
         const hidden=await restoredOwner.raw('GET','/people/'+personId);
         assert.equal(hidden.status,404,'suspended source remains restricted after recovery approval');
 
-        console.log('PASS DEV-09D pg_dump/pg_restore+media: DB and private media restore together; zero journal delta approves; post-backup safety delta blocks');
+        console.log('PASS DEV-09E pg_dump/pg_restore+media: contained post-backup delta resolves and approves; unresolved committed member.disable remains blocked');
     }finally{
         await sourceStore.close();
         await restoreStore.close();

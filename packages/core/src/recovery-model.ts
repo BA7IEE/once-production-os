@@ -35,6 +35,37 @@ export interface RecoveryExternalCheck {
 }
 
 
+export const RECOVERY_PREPARE_CONTAINED_OPERATIONS = [
+    'source.suspend',
+    'handoff.decline',
+    'handoff.revoke',
+    'usePermission.revoke',
+    'asset.quarantine',
+    'upload.cancel'
+] as const;
+
+export type RecoveryDeltaState = 'ABORTED' | 'COMMITTED' | 'UNRESOLVED' | 'AUDIT_ONLY';
+export type RecoveryDeltaResolution = 'NO_COMMIT' | 'CONTAINED_BY_PREPARE' | 'SUPPLEMENTAL_AUDIT' | 'BLOCKER';
+
+export interface RecoveryDeltaItem {
+    key: string;
+    operation: string;
+    resourceId: string;
+    state: RecoveryDeltaState;
+    resolution: RecoveryDeltaResolution;
+    reasonCode: string;
+    evidenceSeqs: number[];
+}
+export interface RecoveryDeltaResolutionReport {
+    schemaVersion: 'once-recovery-delta-v1';
+    backupSequence: number;
+    currentSequence: number;
+    postBackupEntries: number;
+    resolved: number;
+    unresolved: number;
+    items: RecoveryDeltaItem[];
+}
+
 export interface RecoveryApprovalEvidence {
     schemaVersion: 'once-recovery-approval-v1';
     backupId: string;
@@ -45,6 +76,8 @@ export interface RecoveryApprovalEvidence {
     migrationDigest: string;
     mediaIdentityDigest: string;
     reportDigest: string;
+    deltaResolutionDigest: string;
+    deltaResolution: RecoveryDeltaResolutionReport;
     safetyJournal: {
         journalId: string;
         backupSequence: number;
