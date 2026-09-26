@@ -12,10 +12,18 @@ import { SafetyJournalWriter, readSafetyJournal } from '../../apps/api/src/recov
 
 class IntentSink implements SafetyIntentSink {
     rows: SafetyIntent[] = [];
+    commits: Array<{ intent: SafetyIntent; resourceId: string }> = [];
+    aborts: SafetyIntent[] = [];
     fail = false;
     async writeAhead(intent: SafetyIntent) {
         if (this.fail) throw new Error('synthetic write-ahead failure');
         this.rows.push(structuredClone(intent));
+    }
+    async committed(intent: SafetyIntent, resourceId: string) {
+        this.commits.push({ intent: structuredClone(intent), resourceId });
+    }
+    async aborted(intent: SafetyIntent) {
+        this.aborts.push(structuredClone(intent));
     }
 }
 async function system(sink: SafetyIntentSink) {
