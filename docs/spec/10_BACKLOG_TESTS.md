@@ -1,14 +1,14 @@
 # ONCE Production OS｜开发任务、追踪与内部验收
 
-版本：v0.3｜日期：2026-09-22｜当前范围：一期内部 OS + AI｜状态：文档已修订，产品实现和运行测试未执行
+版本：v0.4｜日期：2026-09-26｜当前范围：一期内部 OS + Talent Domain 2.0 + AI｜状态：TD2 新增工作包未实现；历史实现状态以 release 证据为准
 
 ## 1. 当前开发节奏
 
-本版用DEV-00～DEV-11替代旧D00～D20，里程碑定义只在12。不是要求一次完成全部表和页面；每工作包拆成可演示的贯穿切片。所有工作包NOT_STARTED、产品用例NOT_RUN。
+DEV-00～DEV-11保留既有追踪编号，不因本次升级重编号。v0.4 追加 TD2-01～06 作为 Talent Domain 2.0 强制升级线。规格里的状态不覆盖已存在的 release/CI 证据；TD2 新增能力均为 NOT_IMPLEMENTED / NOT_RUN。
 
-M1验收包含DEV-07和DEV-09，因此内部试用前有必要维护/导出/恢复；M2是明确的内部AI，不是官网阶段。DEV-08与DEV-09在条件具备时可并行。没有任何站点调查或公开发布任务。
+M1验收包含DEV-07和DEV-09，因此内部试用前有必要维护/导出/恢复；M2仍是明确的内部AI，不是官网阶段。**v0.4 不再允许 DEV-08 与 DEV-09 并行推进正式人才 AI：先完成 DEV-09 当前恢复链，再通过 TD2-01～06 Gate，之后启动 DEV-08。**没有任何站点调查或公开发布任务。
 
-## 2. 当前12个工作包
+## 2. 既有12个工作包与TD2升级线
 
 | ID | 里程碑 | 交付 | 依赖 | 改动面 | 完成断言 | 状态 |
 |---|---|---|---|---|---|---|
@@ -20,14 +20,44 @@ M1验收包含DEV-07和DEV-09，因此内部试用前有必要维护/导出/恢�
 | DEV-05 | M1 | 作品、轻量项目与内部双语文本 | DEV-03, DEV-04 | works/projects/locale/admin | 署名正确；参考不计制作；内部复盘；中英修改不互相覆盖 | NOT_STARTED |
 | DEV-06 | M1 | 查询、内部候选清单与日常工作台 | DEV-05 | queries/shortlists/admin | 列表与统计同权限；候选清单不生成分享链接/预订/网站内容 | NOT_STARTED |
 | DEV-07 | M1 | 维护、内部导出、合并删除及依赖失效 | DEV-02, DEV-05, DEV-06 | maintenance/exports/use-policy | 旧导出逐依赖复查；JSON重建；删除不因快照不可变而失败 | NOT_STARTED |
-| DEV-08 | M2 | 有界 AI、建议采纳与成本控制 | DEV-02, DEV-05, DEV-06, DEV-07 | ai-assist/provider/admin | 四种任务；发送前Attempt落库；未知不重发；原子多选采纳 | NOT_STARTED |
+| DEV-08 | M2 | 有界 AI、建议采纳与成本控制 | DEV-02, DEV-05, DEV-06, DEV-07, TD2-06 | ai-assist/provider/admin | 四种任务；使用版本化Talent Schema；发送前Attempt落库；未知不重发；原子多选采纳 | NOT_STARTED |
 | DEV-09 | M1 | 部署、备份、恢复隔离与运行手册 | DEV-02, DEV-04, DEV-07 | ops/monitoring/runbooks | 无CMS配置启动；旧库恢复先隔离；账号停用/删除不自动复活 | NOT_STARTED |
 | DEV-10 | M3 | 端到端、故障与范围回归 | DEV-08, DEV-09 | tests/evidence | 22组当前需求+内部风险用例；关闭AI仍可完整人工工作 | NOT_STARTED |
 | DEV-11 | M3 | 真实样本试点、接管与文档交付 | DEV-10 | docs/release/measurement | 净用时实测；维护人能接管；无外部发布验收项 | NOT_STARTED |
 
+### Talent Domain 2.0 必做切片
+
+| ID | 阶段 | 交付 | 依赖 | 完成断言 | 状态 |
+|---|---|---|---|---|---|
+| TD2-01 | M1扩展 | PersonRole / TalentProfile / PersonCapability 正规化；旧字段兼容迁移 | DEV-07, DEV-09 | 一人多Role不复制Person；roles/skills无损迁移；稳定ID不变；旧库/空库均可升级 | NOT_IMPLEMENTED |
+| TD2-02 | M1扩展 | ModelProfile + 专属字段Evidence | TD2-01 | 非MODEL不能挂ModelProfile；尺寸有单位/日期/来源；旧height不误推职业 | NOT_IMPLEMENTED |
+| TD2-03 | M1扩展 | Representation + MediaCollection | TD2-01, DEV-04 | Agent/Agency关系可追溯；同一Asset跨Collection/Work/Shortlist复用不复制 | NOT_IMPLEMENTED |
+| TD2-04 | M1扩展 | Translator语言对/服务模式 + Creative/Crew通用模型验证 | TD2-01 | Translator可结构化筛选；摄影/剪辑等不要求一职业一表 | NOT_IMPLEMENTED |
+| TD2-05 | M1扩展 | Search 2.0 + Shortlist/Export/Merge/Delete/Rebuild/Recovery接线 | TD2-02, TD2-03, TD2-04 | Role+Capability+Work/Project/Media组合查询；新增关系不绕过权限/维护/恢复 | NOT_IMPLEMENTED |
+| TD2-06 | AI前置门 | Talent Schema / Agent Contract + 完整TD2 Gate | TD2-05 | schemaVersion固定；未知字段/code拒绝；Agent写入有来源/CAS；新增验收全通过 | NOT_IMPLEMENTED |
+
 每项交付前端动作、后端契约、迁移/索引、权限/审计和失败路径；不得只交CRUD截图。责任为产品/全栈/测试/维护职责，不代表已指定人员或承诺固定工期。
 
 回滚原则：骨架可撤销；认证/权限不能回退到无鉴权；文件回滚不能全桶删除；业务关系用前滚修正；已删/受限状态不能被旧库恢复；AI停止新请求但保留未知费用。精确迁移回滚须每个PR附实际方案。
+
+## 2.1 TD2 Gate 追加验收
+
+TD2 不复用旧 T01/T04/T14 来冒充通过。实现时追加以下独立验收证据：
+
+- TD2-T01：同一 Person 多 Role、重复 Role 唯一约束、旧 Person ID 稳定；
+- TD2-T02：旧 roles/skillCodes/heightCm 前向迁移与双读一致；
+- TD2-T03：ModelProfile role 约束、尺寸/日期/FieldEvidence；
+- TD2-T04：Representation 历史与 scope/source 边界；
+- TD2-T05：MediaCollection 复用 Asset，删除集合不删原资产；
+- TD2-T06：Translator 语言对/服务模式与 Crew 无专属表路径；
+- TD2-T07：Search 2.0 的 Role/Capability/Work/Project/Media 权限与 facet 一致；
+- TD2-T08：Person merge / deletion / export 对新增关系的影响预览和执行；
+- TD2-T09：T29 JSON rebuild 保留新结构，稳定 ID 与 Evidence 边界正确；
+- TD2-T10：DEV-09 backup/restore 包含新增表且 restore-check 不放过缺失关系；
+- TD2-T11：Talent Schema version / unknown field / unknown code / stale schema 拒绝；
+- TD2-T12：关闭AI仍可完成 Model、Translator、Creative/Crew 的人工建档与检索。
+
+只有 TD2-T01～12 在指定实现提交上有真实证据，TD2-06 才可标记 Gate PASS。
 
 ## 3. FR与当前验收完整追踪
 
