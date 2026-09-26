@@ -1,12 +1,12 @@
-# ONCE Production OS｜范围决策、阶段门与唯一参数
+# ONCE Production OS｜范围决策、阶段门与唯一参数｜v0.4
 
-版本：v0.3｜日期：2026-09-22｜当前范围：一期内部 OS + AI｜状态：文档已修订，产品实现和运行测试未执行
+版本：v0.4｜日期：2026-09-26｜当前范围：一期内部 OS + Talent Domain 2.0 + AI｜状态：Talent 2.0 规格冻结候选，新增实现未执行
 
 ## 1. 用户确认与本版实现默认分开
 
-已确认：ONCE Production OS方向；一期先内部OS，官网发布等暂不考虑；AI需要接入；CRM/财务/合同/排期/报价可不做但底座可扩展；交付MD。
+已确认：ONCE Production OS方向；一期先内部OS，官网发布等暂不考虑；AI需要接入；CRM/财务/合同/排期/报价可不做但底座可扩展；人才需要承载模特、翻译、摄影、剪辑等多类角色；**一个现实人物共用统一 Person，不为每个职业建立独立人才系统；Role、Capability 与按需专属资料分层。**
 
-本版为此选取的实现默认：客户外部分享/反馈、自助门户同步延期；内部清单保留；内部JSON迁移保留，CSV/PDF客户排版延期；AI先四种文字任务。它们不是永久取消功能，未来有实际需要可独立恢复；当前不让编码Agent自行加回。
+本版为此选取的实现默认：客户外部分享/反馈、自助门户同步延期；内部清单保留；内部JSON迁移保留，CSV/PDF客户排版延期；AI仍保留四种有界任务，但正式人才提取/标签/搜索契约必须等 Talent Domain 2.0 Gate；当前恢复链先完成，再做 TD2-01～06，再启动 DEV-08。它们不是永久取消功能，未来有实际需要可独立恢复；当前不让编码Agent自行加回。
 
 技术/阈值是文档设计默认，不是用户已逐项批准或云端已实测值。变更必须更新相应PRD/API/测试，不能把一句默认当作法律结论或供应商保证。
 
@@ -16,7 +16,7 @@
 |---|---|---|
 | M0 | 可开发的内部工程底座 | DEV-00/01/02；合成资料、身份/回执/任务 |
 | M1 | 无AI也可使用的内部闭环 | DEV-03～07及DEV-09；人才/素材/作品/项目/清单/维护/恢复 |
-| M2 | 明确的内部AI能力 | DEV-08；四类任务、来源/采纳/配置/费用 |
+| M2 | 明确的内部AI能力 | TD2-01～06 Gate 通过后执行 DEV-08；四类任务、来源/采纳/配置/费用 |
 | M3 | 当前一期回归、试点和交接 | DEV-10/11；M1和M2全部当前验收 |
 
 M1可以先内部试用；M2仍属于一期，不永久拖后。M0～M3都没有官网/CMS/SEO前提。旧G0～G5、P0-A/P0-B不再用作当前完成定义。
@@ -83,9 +83,29 @@ OS-ADR-06：新final封存再检查；全部存储私有。OS-ADR-07：内部清
 
 OS-ADR-09：AI发送前持久Attempt，未知费用不自动释放；一次原子采纳。OS-ADR-10：导出逐依赖检查，删除可清敏感payload。OS-ADR-11：恢复先隔离内部访问，缺口重核。
 
-OS-ADR-12：官网/客户门户/商业模块只留连接原则，不建运行时骨架。所有更改均需更新相应FR/T/DEV与相邻契约，不用新附录覆盖主文档。
+OS-ADR-12：官网/客户门户/商业模块只留连接原则，不建运行时骨架。
 
-## 6. v0.2 → v0.3变化摘要
+OS-ADR-13：**统一人物、多职业身份、能力分层。** Person 是现实人物唯一主身份；PersonRole 表达职业；PersonCapability 表达能力；不得通过复制 Person 或无限扩张 Role 字典表达职业细分。
+
+OS-ADR-14：**专属职业资料按需建模。** 首批完整专属结构为 ModelProfile；Translator 用语言对/服务模式；摄影、剪辑、导演、化妆等先使用 Role + Capability + Work/Project。禁止预建几十种空 Profile 或用无约束 JSON/EAV 规避 schema。
+
+OS-ADR-15：**媒体组织与事实分离。** Asset 是文件，MediaCollection 是人才职业下的组织方式，Work 是真实作品；同一 Asset 可复用而不复制物理文件。Representation 类型化表达 Agent/Agency/booking 关系。
+
+OS-ADR-16：**Agent/AI 服从版本化 Talent Schema。** 外部 Agent 不拥有另一套人才结构；未知字段/code/schemaVersion fail closed。正式 extract_profile / suggest_tags / parse_search 必须在 TD2 Gate 后启动。
+
+OS-ADR-17：**Talent 2.0 只做前向兼容迁移。** 现有 Person/Work/Project/Asset UUID 不变；roles[]/skillCodes[]/heightCm 先回填与双读验证，再切新写，最后另一个 migration 删除旧列；不得改写已应用 migration。
+
+所有更改均需更新相应FR/T/DEV与相邻契约，不用新附录覆盖主文档。
+
+## 6. v0.3 → v0.4 变化摘要
+
+新增 Talent Domain 2.0：统一 Person + PersonRole + Capability + 按需职业 Profile；正式确定 ModelProfile、Translator 语言对/服务模式、Representation、MediaCollection 与版本化 Agent Schema。搜索从“角色/技能数组”升级为 Role + Capability + Work/Project/Media 的事实组合。
+
+开发顺序调整为：**完成当前 DEV-09 恢复链 → TD2-01～06 → DEV-08 AI → 后续总体验收**。这不是取消 AI，而是避免 AI/Agent 把当前过渡字段固化成长期事实接口。
+
+新增 TD2-T01～12 独立验收，不用旧 T01/T04/T14 的既有证据冒充 Talent 2.0 已通过。完整冻结规格见 `15_TALENT_DOMAIN_2.md`。
+
+## 7. v0.2 → v0.3变化摘要
 
 一期从“内部+客户+官网”收窄到“内部OS+AI”。6角色收敛为4模板+敏感权限；RightsCase多方公开权利模型收窄为来源依据/有限额外用途；Board/Share/Publication相关模型和API退出。保留内部版本、权限、文件、任务、恢复与AI未知请求的安全契约。
 
