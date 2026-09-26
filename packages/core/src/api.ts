@@ -22,7 +22,7 @@ import { readSourceHistory } from './source-history.ts';
 import { Handoffs, handoffParticipant } from './handoffs.ts';
 import { Imports } from './imports.ts';
 import { csrfFor, equalSecret, randomSecret } from './crypto.ts';
-import { parseStrictJson } from './json.ts';
+import { digest, parseStrictJson } from './json.ts';
 import { page, workspaceRow } from './helpers.ts';
 import { requirePermission, scopeVisible, personFor, sourceFor } from './policy.ts';
 import { ROUTES, type RouteDefinition } from './routes.ts';
@@ -102,10 +102,16 @@ export class Application {
         this.commands = new Commands(clock);
         this.imports = new Imports(store, clock, config, this.talent);
     }
-    private async writeAhead(actor: Actor, operation: string, requestId: string, resourceId: string): Promise<void> {
+    private async writeAhead(actor: Actor, operation: string, requestId: string, resourceId: string, commandKey = ''): Promise<void> {
         if (!this.safetyIntent || !requiresSafetyIntent(operation)) return;
+        if (commandKey)
+            invariant(/^[A-Za-z0-9_-]{8,128}$/.test(commandKey), 'IDEMPOTENCY_REQUIRED',
+                '写入需要 8–128 位 Idempotency-Key', 400);
+        const stable = commandKey
+            ? digest({ workspaceId: actor.workspaceId, actorId: actor.membershipId, operation, commandKey })
+            : requestId;
         await this.safetyIntent.writeAhead({
-            intentId: 'intent:' + requestId,
+            intentId: 'intent:' + stable,
             workspaceId: actor.workspaceId,
             operation,
             requestId,
@@ -221,7 +227,8 @@ export class Application {
                     if (route.permission) requirePermission(actor, route.permission);
                     return actor;
                 });
-                await this.writeAhead(preActor, route.operation, meta.requestId, params.id ?? meta.requestId);
+                await this.writeAhead(preActor, route.operation, meta.requestId, params.id ?? meta.requestId,
+                    route.mode === 'COMMAND' ? (request.headers['idempotency-key'] ?? '') : '');
             }
             response.body = await this.store.transaction(async (tx) => {
                 const actor = await this.identity.authenticate(tx, token);
