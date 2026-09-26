@@ -99,6 +99,12 @@ try {
 
     const assets = await client.mediaAsset.findMany({ where: { state: { not: 'ERASED' } }, orderBy: { id: 'asc' } });
     const expectedAssetIds = assets.map(x => x.id);
+    const mediaIdentityDigest = digest(assets.map(x => ({
+        id: x.id, uploadId: x.uploadId, sourceId: x.sourceId, scopeId: x.scopeId, personId: x.personId,
+        revision: x.revision, fileName: x.fileName, mime: x.mime, bytes: x.bytes, sha256: x.sha256,
+        width: x.width, height: x.height, previewBytes: x.previewBytes, previewHash: x.previewHash,
+        objectToken: x.objectToken, state: x.state
+    })));
     const verifiedAssetIds: string[] = [], missingAssetIds: string[] = [], mismatchAssetIds: string[] = [];
     const mediaMode = process.env.MEDIA_PROVIDER ?? 'disabled';
     if (!['disabled','local'].includes(mediaMode)) {
@@ -144,6 +150,7 @@ try {
         migrationDigest, migrationMatch,
         media: {
             provider: mediaMode as 'disabled'|'local',
+            identityDigest: mediaIdentityDigest,
             expectedAssetIds,
             verifiedAssetIds,
             missingAssetIds,
