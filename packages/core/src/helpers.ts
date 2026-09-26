@@ -9,7 +9,7 @@ export function cas(row: {
 }, expectedRevision: number): void { invariant(row.revision === expectedRevision, 'REVISION_CONFLICT', '记录已被更新，请刷新后重新检查修改', 409); }
 export const unique = <T>(values: T[]): T[] => [...new Set(values)];
 export async function audit(tx: Tx, actor: Actor | null, workspaceId: string, action: string, resourceKind: string, resourceId: string, changedFields: string[], meta: RequestMeta, clock: Clock): Promise<void> {
-    await tx.insert('audits', { ...base(workspaceId, clock), actorId: actor?.membershipId ?? null, action, resourceKind, resourceId, changedFields: unique(changedFields).sort(), requestId: meta.requestId });
+    await tx.insert('audits', { ...base(workspaceId, clock), actorId: actor?.actorKind === 'MACHINE' ? null : actor?.membershipId ?? null, ...(actor?.actorKind === 'MACHINE' ? {servicePrincipalId: actor.servicePrincipalId} : {}), action, resourceKind, resourceId, changedFields: unique(changedFields).sort(), requestId: meta.requestId });
 }
 export async function workspaceRow<K extends Table>(tx: Tx, table: K, id: string, workspaceId: string): Promise<TableMap[K] | null> {
     const row = await tx.get(table, id);

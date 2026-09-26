@@ -1,3 +1,6 @@
+import { loadTalentGraph, td2PersonFor } from './talent-v2-graph.ts';
+import type { FactRow } from './talent-v2-schema.ts';
+import { TD2Schemas } from './talent-v2-schema.ts';
 import type { Actor, Clock, Person } from './model.ts';
 import type { Tx } from './store.ts';
 import type { Shortlist, ShortlistItem } from './shortlist-model.ts';
@@ -79,8 +82,13 @@ export class Shortlists {
 
     private async visibleItem(tx: Tx, actor: Actor, item: ShortlistItem) {
         try {
-            const person = await personFor(tx, actor, item.personId, this.clock);
-            const personSource = await sourceFor(tx, actor, person.sourceId, this.clock);
+            const graph = await loadTalentGraph(tx,actor,this.clock);
+            const profile = graph.rows('talentProfiles').find(p=>p.personId===item.personId);
+            const role = item.personRoleId ? graph.fact('personRoles',item.personRoleId) : null;
+            if(profile && (!role || role.personId!==item.personId || !graph.usable('personRoles',role))) missing();
+            const person = profile ? await td2PersonFor(tx,actor,item.personId) : await personFor(tx, actor, item.personId, this.clock);
+            const td2Header = profile ? graph.personHeader(person) : null;
+            const personSource = await sourceFor(tx, actor, person.sourceId, this.clock, !profile);
             let work = null;
             let workSourceRevision: number | null = null;
             if (item.workId) {
@@ -103,11 +111,14 @@ export class Shortlists {
                 position: item.position,
                 unavailable: false as const,
                 note: item.note,
-                person: { id: person.id, displayName: person.displayName, roles: person.roles, cityCode: person.cityCode,
-                    languageCodes: person.languageCodes, skillCodes: person.skillCodes, revision: person.revision },
+                personRoleId: role?.id ?? null,
+                roleCode: role?.roleCode ?? null,
+                roleContextState: item.roleContextState ?? null,
+                person: { id: person.id, displayName: td2Header?.displayName ?? person.displayName, roles: role ? [String(role.roleCode)] : person.roles, cityCode: profile ? null : person.cityCode,
+                    languageCodes: profile ? [] : person.languageCodes, skillCodes: profile ? [] : person.skillCodes, revision: person.revision },
                 work,
                 selectedAssets: selected,
-                updatedSinceAdded: person.revision !== item.addedPersonRevision || personSource.revision !== item.addedPersonSourceRevision
+                updatedSinceAdded: (role && role.revision !== item.personRoleRevision) || person.revision !== item.addedPersonRevision || personSource.revision !== item.addedPersonSourceRevision
                     || (!!item.workId && (work?.revision !== item.addedWorkRevision || workSourceRevision !== item.addedWorkSourceRevision))
             };
         }
@@ -158,12 +169,24 @@ export class Shortlists {
         const d = S.itemAdd.parse(input), root = await this.edit(tx, actor, id, d.expectedRevision);
         invariant(new Set(d.workAssetIds).size === d.workAssetIds.length, 'DUPLICATE_LINK', '候选图片不能重复', 400);
         invariant(!!d.workId || d.workAssetIds.length === 0, 'WORK_REQUIRED', '选择作品图片时必须先选择对应作品', 422);
+        const graph=await loadTalentGraph(tx,actor,this.clock);
+        const profile=graph.rows('talentProfiles').find(p=>p.personId===d.personId);
+        let chosenRole:FactRow|null=null;
+        if(profile){
+            const roles=graph.rows('personRoles').filter(r=>r.personId===d.personId&&graph.usable('personRoles',r as unknown as FactRow));
+            chosenRole=(d.personRoleId?roles.find(r=>r.id===d.personRoleId):roles.length===1?roles[0]:null) as unknown as FactRow|null;
+            invariant(!!chosenRole,'SHORTLIST_ROLE_REQUIRED','请选择本次候选人的具体职业角色',422);
+            if(d.personRoleRevision!==undefined)cas(chosenRole,d.personRoleRevision);
+        }else{
+            invariant(!d.personRoleId&&!d.personRoleRevision,'SHORTLIST_ROLE_INVALID','此人物没有对应的专业职业',422);
+            const person=await personFor(tx,actor,d.personId,this.clock);invariant(person.roles.length>0,'SHORTLIST_TALENT_REQUIRED','普通联系人不能作为人才候选人',422);
+        }
         const pair = await this.ensurePair(tx, actor, d.personId, d.workId);
         const all = await tx.find('shortlistItems', { workspaceId: actor.workspaceId, shortlistId: id });
         invariant(all.length < L.items, 'SHORTLIST_ITEM_LIMIT', '单个候选清单最多100条', 422);
-        invariant(!all.some(x => x.personId === d.personId && x.workId === (d.workId ?? null)), 'DUPLICATE_LINK', '该候选人与作品组合已在清单中', 409);
+        invariant(!all.some(x => x.personId === d.personId && x.workId === (d.workId ?? null) && (x.personRoleId ?? null) === (chosenRole?.id ?? null)), 'DUPLICATE_LINK', '该候选人与作品组合已在清单中', 409);
         const item: ShortlistItem = { ...base(actor.workspaceId, this.clock), shortlistId: id, personId: d.personId, workId: d.workId ?? null,
-            position: all.length, note: d.note, addedPersonRevision: pair.person.revision, addedPersonSourceRevision: pair.personSource.revision,
+            position: all.length, note: d.note, personRoleId: chosenRole?.id ?? null, personRoleRevision: chosenRole?.revision ?? null, roleContextState: chosenRole ? 'BOUND' : null, addedPersonRevision: pair.person.revision, addedPersonSourceRevision: pair.personSource.revision,
             addedWorkRevision: pair.work?.revision ?? null, addedWorkSourceRevision: pair.workSource?.revision ?? null };
         const selected = [];
         for (const workAssetId of d.workAssetIds) {
@@ -201,12 +224,23 @@ export class Shortlists {
             missing();
         for (const link of await tx.find('shortlistItemAssets', { workspaceId: actor.workspaceId, itemId: item.id }))
             await tx.remove('shortlistItemAssets', link.id);
+        for(const review of await tx.find('talentMigrationReviews',{workspaceId:actor.workspaceId,shortlistItemId:item.id}))await tx.remove('talentMigrationReviews',review.id);
         await tx.remove('shortlistItems', item.id);
         const rest = (await tx.find('shortlistItems', { workspaceId: actor.workspaceId, shortlistId: id })).sort((a, b) => a.position - b.position);
         for (let i = 0; i < rest.length; i++)
             if (rest[i]!.position !== i)
                 await tx.replace('shortlistItems', { ...touch(rest[i]!, this.clock), position: i });
         return this.bump(tx, root);
+    }
+
+    async bindRole(tx:Tx,actor:Actor,id:string,input:unknown){
+        const d=TD2Schemas.shortlistRole.parse(input),root=await this.edit(tx,actor,id,d.expectedRevision);
+        const item=await workspaceRow(tx,'shortlistItems',d.itemId,actor.workspaceId);if(!item||item.shortlistId!==id)missing();
+        const graph=await loadTalentGraph(tx,actor,this.clock),role=graph.fact('personRoles',d.personRoleId);
+        invariant(!!role&&role.personId===item.personId&&graph.usable('personRoles',role),'SHORTLIST_ROLE_UNAVAILABLE','职业角色不可用',422);cas(role,d.personRoleRevision);
+        await tx.replace('shortlistItems',{...touch(item,this.clock),personRoleId:role.id,personRoleRevision:role.revision,roleContextState:'BOUND'});
+        for(const review of await tx.find('talentMigrationReviews',{workspaceId:actor.workspaceId,shortlistItemId:item.id,state:'PENDING'}))await tx.replace('talentMigrationReviews',{...touch(review,this.clock),state:'RESOLVED',resolvedAt:this.clock.now().toISOString(),resolvedById:actor.membershipId});
+        return this.bump(tx,root);
     }
 
     async reorder(tx: Tx, actor: Actor, id: string, input: unknown) {

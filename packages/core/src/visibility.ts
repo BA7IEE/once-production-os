@@ -8,7 +8,7 @@ import { sourceCurrent } from './policy.ts';
 export function visibilityIndex(actor: Actor, clock: Clock, scopes: Scope[], members: ScopeMember[], sources: Source[], blocks: DeletionRequest[] = [], aliases: PersonAlias[] = []) {
     const scopeById = new Map(scopes.filter(s => s.workspaceId === actor.workspaceId).map(s => [s.id, s]));
     const granted = new Set(members.filter(m => m.workspaceId === actor.workspaceId && m.membershipId === actor.membershipId).map(m => m.scopeId));
-    const scopeVisible = (id: string) => { const s = scopeById.get(id); return !!s && (s.mode === 'WORKSPACE' || granted.has(id)); };
+    const scopeVisible = (id: string) => { const s = scopeById.get(id); return !!s && (!actor.machineScopeId || actor.machineScopeId === id) && (s.mode === 'WORKSPACE' || granted.has(id)); };
     const sourceById = new Map(sources.filter(s => s.workspaceId === actor.workspaceId).map(s => [s.id, s]));
     const blocked = new Map<DeletionTargetKind, Set<string>>();
     for (const row of blocks)
@@ -18,7 +18,7 @@ export function visibilityIndex(actor: Actor, clock: Clock, scopes: Scope[], mem
         }
     const isBlocked = (kind: DeletionTargetKind, id: string) => blocked.get(kind)?.has(id) ?? false;
     const mergedOldIds = new Set(aliases.filter(a => a.workspaceId === actor.workspaceId).map(a => a.oldPersonId));
-    const visibleScopeIds = [...scopeById.values()].filter(s => s.mode === 'WORKSPACE' || granted.has(s.id)).map(s => s.id);
+    const visibleScopeIds = [...scopeById.values()].filter(s => scopeVisible(s.id)).map(s => s.id);
     const visibleSourceIds = [...sourceById.values()].filter(s => !isBlocked('SOURCE', s.id) && sourceCurrent(s, clock) && scopeVisible(s.scopeId)).map(s => s.id);
     return { visibleScopeIds, visibleSourceIds, blocked: isBlocked, source(id: string): Source | null { return sourceById.get(id) ?? null; }, scopeVisible,
         sourceVisible(id: string): boolean { const s = sourceById.get(id); return !!s && !isBlocked('SOURCE', s.id) && sourceCurrent(s, clock) && scopeVisible(s.scopeId); },

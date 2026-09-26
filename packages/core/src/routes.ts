@@ -1,3 +1,4 @@
+import { TD2_ROUTES } from './talent-v2-routes.ts';
 import { MergeSchemas as MS } from './merge-validation.ts';
 import { DeletionSchemas as DS } from './deletion-validation.ts';
 import { ExportSchemas as ES } from './export-validation.ts';
@@ -15,6 +16,7 @@ export interface RouteDefinition {
     schema?: Schema<unknown>;
 }
 export const ROUTES: RouteDefinition[] = [
+    ...TD2_ROUTES,
     { method: 'GET', path: '/works', operation: 'work.list', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/works', operation: 'work.create', mode: 'COMMAND', permission: 'records.write', schema: PS.workCreate },
     { method: 'GET', path: '/works/{id}', operation: 'work.get', mode: 'READ', permission: 'records.read' },

@@ -19,6 +19,7 @@ export function requirePermission(actor: Actor, permission: Permission): void {
         fail(403, 'FORBIDDEN', '当前账号没有执行此操作的权限');
 }
 export async function scopeVisible(tx: Tx, actor: Actor, scopeId: string): Promise<boolean> {
+    if (actor.actorKind === 'MACHINE' && actor.machineScopeId !== scopeId) return false;
     const scope = await workspaceRow(tx, 'scopes', scopeId, actor.workspaceId);
     if (!scope)
         return false;

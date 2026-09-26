@@ -1,3 +1,5 @@
+import { authorizeTd2Resource } from './talent-v2-access.ts';
+import { td2PersonFor } from './talent-v2-graph.ts';
 import { Deletions } from './deletions.ts';
 import { shortlistFor } from './shortlists.ts';
 import { workFor, projectFor } from './production-policy.ts';
@@ -13,6 +15,8 @@ import { personFor, sourceFor, sourceCurrent, requireScope, requirePermission } 
 export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandReceipt, clock: Clock, config?: Config): Promise<void> {
     const id = receipt.resourceId;
     switch (receipt.resourceKind) {
+        case 'talentFact': case 'fieldProposal': case 'servicePrincipal': case 'organization': case 'capabilityDefinition':
+            return authorizeTd2Resource(tx,actor,receipt.resourceKind,id,clock);
         case 'merge': {
             requirePermission(actor, 'data.merge');
             const row = await workspaceRow(tx, 'personMerges', id, actor.workspaceId);
@@ -63,6 +67,7 @@ export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandRec
             await handoffParticipant(tx, actor, id);
             return;
         case 'person':
+            if(receipt.operation.startsWith('td2.')){await td2PersonFor(tx,actor,id);return;}
             if (['person.update', 'evidence.confirm'].includes(receipt.operation)) {
                 await profileAccess(tx, actor, id, clock, receipt.operation === 'person.update' ? 'edit' : 'review');
                 return;

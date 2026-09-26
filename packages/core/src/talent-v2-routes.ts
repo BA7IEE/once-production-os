@@ -1,0 +1,38 @@
+import type { RouteDefinition } from './routes.ts';
+import { TD2Schemas as S, TD2_TABLES, TD2_FACTS, FACT_SCHEMAS } from './talent-v2-schema.ts';
+export const TD2_ROUTES:RouteDefinition[]=[
+    {method:'POST',path:'/td2/shortlists/{id}/role',operation:'td2.shortlist.role',mode:'COMMAND',permission:'records.write',schema:S.shortlistRole},
+    {method:'GET',path:'/td2/schema',operation:'td2.schema',mode:'READ',permission:'records.read'},
+    {method:'GET',path:'/td2/people',operation:'td2.person.list',mode:'READ',permission:'records.read'},
+    {method:'GET',path:'/td2/resolve',operation:'td2.resolve',mode:'READ',permission:'records.read'},
+    {method:'POST',path:'/td2/people',operation:'td2.person.create',mode:'COMMAND',schema:S.personCreate},
+    {method:'GET',path:'/td2/people/{id}',operation:'td2.person.get',mode:'READ',permission:'records.read'},
+    {method:'PATCH',path:'/td2/people/{id}',operation:'td2.person.patch',mode:'COMMAND',schema:S.personPatch},
+    {method:'POST',path:'/td2/people/{id}/enroll',operation:'td2.person.enroll',mode:'COMMAND',schema:S.enroll},
+    {method:'POST',path:'/td2/evidence',operation:'td2.evidence',mode:'COMMAND',permission:'sources.review',schema:S.evidence},
+    {method:'POST',path:'/td2/proposals',operation:'td2.proposal.create',mode:'COMMAND',schema:S.proposal},
+    {method:'GET',path:'/td2/proposals',operation:'td2.proposal.list',mode:'READ',permission:'sources.review'},
+    {method:'POST',path:'/td2/proposals/{id}/decide',operation:'td2.proposal.decide',mode:'COMMAND',permission:'sources.review',schema:S.decide},
+    {method:'POST',path:'/td2/capability-definitions',operation:'td2.registry.create',mode:'COMMAND',permission:'catalog.manage',schema:S.registryCreate},
+    {method:'PATCH',path:'/td2/capability-definitions/{id}',operation:'td2.registry.patch',mode:'COMMAND',permission:'catalog.manage',schema:S.registryPatch},
+    {method:'POST',path:'/td2/organizations',operation:'td2.organization.create',mode:'COMMAND',permission:'records.write',schema:S.organization},
+    {method:'GET',path:'/td2/organizations',operation:'td2.organization.list',mode:'READ',permission:'records.read'},
+    {method:'POST',path:'/td2/measurements/{id}/confirm',operation:'td2.measurement.confirm',mode:'COMMAND',permission:'sources.review',schema:S.factConfirm},
+    {method:'POST',path:'/td2/external-refs/{id}/verify',operation:'td2.external.verify',mode:'COMMAND',permission:'sources.review',schema:S.factConfirm},
+    {method:'POST',path:'/td2/external-refs/{id}/revoke',operation:'td2.external.revoke',mode:'COMMAND',permission:'sources.review',schema:S.factConfirm},
+    {method:'POST',path:'/td2/credentials/{id}/verify',operation:'td2.credential.verify',mode:'COMMAND',permission:'sources.review',schema:S.factConfirm},
+    {method:'POST',path:'/td2/credentials/{id}/revoke',operation:'td2.credential.revoke',mode:'COMMAND',permission:'sources.review',schema:S.factConfirm},
+    {method:'POST',path:'/td2/credentials/{id}/identifier',operation:'td2.credential.secret',mode:'COMMAND',permission:'sensitive.write',schema:S.credentialSecret},
+    {method:'POST',path:'/td2/adult-eligibility/{id}/verify',operation:'td2.adult.verify',mode:'COMMAND',permission:'sources.review',schema:S.adultVerify},
+    {method:'POST',path:'/td2/collections/{id}/items',operation:'td2.collection.add',mode:'COMMAND',schema:S.collectionAdd},
+    {method:'POST',path:'/td2/collections/{id}/items/remove',operation:'td2.collection.remove',mode:'COMMAND',schema:S.collectionRemove},
+    {method:'POST',path:'/td2/collections/{id}/items/reorder',operation:'td2.collection.order',mode:'COMMAND',schema:S.collectionOrder},
+    {method:'GET',path:'/td2/principals',operation:'td2.principal.list',mode:'READ',permission:'members.manage'},
+    {method:'POST',path:'/td2/principals',operation:'td2.principal.create',mode:'SECRET',permission:'members.manage',schema:S.principalCreate},
+    {method:'POST',path:'/td2/principals/{id}/rotate',operation:'td2.principal.rotate',mode:'SECRET',permission:'members.manage',schema:S.principalChange},
+    {method:'POST',path:'/td2/principals/{id}/revoke',operation:'td2.principal.revoke',mode:'COMMAND',permission:'members.manage',schema:S.principalChange},
+    ...TD2_TABLES.flatMap(table=>[
+        {method:'POST' as const,path:`/td2/people/{id}/${TD2_FACTS[table].slug}`,operation:`td2.fact.${table}.create`,mode:'COMMAND' as const,schema:FACT_SCHEMAS[table].create},
+        {method:'PATCH' as const,path:`/td2/${TD2_FACTS[table].slug}/{id}`,operation:`td2.fact.${table}.patch`,mode:'COMMAND' as const,schema:FACT_SCHEMAS[table].patch}
+    ])
+];

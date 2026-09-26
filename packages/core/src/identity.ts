@@ -36,6 +36,7 @@ export class Identity {
             ][] = [
                 ['role', 'model', '模特', 'Model'], ['role', 'photographer', '摄影师', 'Photographer'], ['role', 'editor', '剪辑师', 'Editor'],
                 ['role', 'makeup', '化妆师', 'Makeup artist'], ['role', 'director', '导演', 'Director'], ['role', 'stylist', '造型师', 'Stylist'],
+                ['role', 'actor', '演员', 'Actor'], ['role', 'kol', '达人', 'Creator'], ['role', 'translator', '翻译', 'Translator'],
                 ['role', 'producer', '制片', 'Producer'], ['role', 'cinematographer', '摄影指导', 'Cinematographer'],
                 ['city', 'shenzhen', '深圳', 'Shenzhen'], ['city', 'guangzhou', '广州', 'Guangzhou'], ['city', 'dongguan', '东莞', 'Dongguan'],
                 ['language', 'zh', '中文', 'Chinese'], ['language', 'en', '英语', 'English'], ['language', 'fr', '法语', 'French'],

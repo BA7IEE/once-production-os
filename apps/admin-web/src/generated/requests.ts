@@ -1,5 +1,65 @@
 // Generated from packages/core/src/routes.ts and validation.ts. Do not edit.
 export interface Inputs {
+  "td2.shortlist.role": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "itemId": string; "personRoleId": string; "personRoleRevision": number };
+  "td2.schema": undefined;
+  "td2.person.list": undefined;
+  "td2.resolve": undefined;
+  "td2.person.create": { "schemaVersion": "once-talent-v2.0.0"; "originSourceId": string; "sourceRevision": number; "displayName": string; "aliases"?: Array<string>; "intro"?: string; "createTalent"?: boolean };
+  "td2.person.get": undefined;
+  "td2.person.patch": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "displayName"?: string; "aliases"?: Array<string>; "intro"?: string; "status"?: "DRAFT" | "ACTIVE" | "ARCHIVED" };
+  "td2.person.enroll": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "sourceRevision": number };
+  "td2.evidence": { "schemaVersion": "once-talent-v2.0.0"; "ownerKind": "person" | "talentProfiles" | "personRoles" | "personCapabilities" | "personLanguages" | "talentLocations" | "castingProfiles" | "measurementSets" | "adultEligibilities" | "representations" | "personExternalRefs" | "personCredentials" | "translatorLanguagePairs" | "translatorServiceModes" | "mediaCollections" | "mediaCollectionTags"; "ownerId": string; "fieldPath": string; "expectedRevision": number; "sourceId": string; "sourceRevision": number };
+  "td2.proposal.create": { "schemaVersion": "once-talent-v2.0.0"; "ownerKind": "person" | "talentProfiles" | "personRoles" | "personCapabilities" | "personLanguages" | "talentLocations" | "castingProfiles" | "measurementSets" | "adultEligibilities" | "representations" | "personExternalRefs" | "personCredentials" | "translatorLanguagePairs" | "translatorServiceModes" | "mediaCollections" | "mediaCollectionTags"; "ownerId": string; "fieldPath": string; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "proposedValue": unknown };
+  "td2.proposal.list": undefined;
+  "td2.proposal.decide": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "decision": "APPLY" | "REJECT" };
+  "td2.registry.create": { "schemaVersion": "once-talent-v2.0.0"; "code": string; "labelZh": string; "labelEn": string; "aliases": Array<string>; "applicableRoleCodes": Array<string>; "levelSchemeCode": "ABILITY_5" | null; "semanticVersion": string };
+  "td2.registry.patch": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "labelZh"?: string; "labelEn"?: string; "status"?: "ACTIVE" | "INACTIVE" };
+  "td2.organization.create": { "schemaVersion": "once-talent-v2.0.0"; "sourceId": string; "sourceRevision": number; "name": string; "kind": "AGENCY" | "ISSUER" | "OTHER" };
+  "td2.organization.list": undefined;
+  "td2.measurement.confirm": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "sourceRevision": number };
+  "td2.external.verify": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "sourceRevision": number };
+  "td2.external.revoke": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "sourceRevision": number };
+  "td2.credential.verify": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "sourceRevision": number };
+  "td2.credential.revoke": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "sourceRevision": number };
+  "td2.credential.secret": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "identifier": string };
+  "td2.adult.verify": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "sourceRevision": number; "evidenceAssetId": string; "validUntil": string };
+  "td2.collection.add": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "assetId": string; "caption"?: string; "featured"?: boolean };
+  "td2.collection.remove": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "itemId": string };
+  "td2.collection.order": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "itemIds": Array<string> };
+  "td2.principal.list": undefined;
+  "td2.principal.create": { "schemaVersion": "once-talent-v2.0.0"; "displayName": string; "scopeId": string; "defaultMaintainerMembershipId": string; "permissionCodes": Array<"records.read" | "sources.read" | "talent.propose" | "talent.fact.write">; "expiresAt": string };
+  "td2.principal.rotate": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number };
+  "td2.principal.revoke": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number };
+  "td2.fact.talentProfiles.create": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "internalSummary"?: string; "status"?: "ACTIVE" | "ARCHIVED" } };
+  "td2.fact.talentProfiles.patch": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "internalSummary"?: string; "status"?: "ACTIVE" | "ARCHIVED" } };
+  "td2.fact.personRoles.create": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "roleCode": string; "validFrom"?: string | null; "validUntil"?: string | null; "status"?: "ACTIVE" | "INACTIVE" } };
+  "td2.fact.personRoles.patch": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "validFrom"?: string | null; "validUntil"?: string | null; "status"?: "ACTIVE" | "INACTIVE" } };
+  "td2.fact.personCapabilities.create": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "personRoleId"?: string | null; "capabilityCode": string; "levelCode"?: "BASIC" | "WORKING" | "PROFESSIONAL" | "FLUENT" | "NATIVE" | null; "validFrom"?: string | null; "validUntil"?: string | null; "status"?: "ACTIVE" | "INACTIVE" } };
+  "td2.fact.personCapabilities.patch": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "levelCode"?: "BASIC" | "WORKING" | "PROFESSIONAL" | "FLUENT" | "NATIVE" | null; "validFrom"?: string | null; "validUntil"?: string | null; "status"?: "ACTIVE" | "INACTIVE" } };
+  "td2.fact.personLanguages.create": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "languageCode": string; "speakingLevelCode"?: "BASIC" | "WORKING" | "PROFESSIONAL" | "FLUENT" | "NATIVE" | null; "listeningLevelCode"?: "BASIC" | "WORKING" | "PROFESSIONAL" | "FLUENT" | "NATIVE" | null; "readingLevelCode"?: "BASIC" | "WORKING" | "PROFESSIONAL" | "FLUENT" | "NATIVE" | null; "writingLevelCode"?: "BASIC" | "WORKING" | "PROFESSIONAL" | "FLUENT" | "NATIVE" | null; "validFrom"?: string | null; "validUntil"?: string | null; "status"?: "ACTIVE" | "INACTIVE" } };
+  "td2.fact.personLanguages.patch": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "speakingLevelCode"?: "BASIC" | "WORKING" | "PROFESSIONAL" | "FLUENT" | "NATIVE" | null; "listeningLevelCode"?: "BASIC" | "WORKING" | "PROFESSIONAL" | "FLUENT" | "NATIVE" | null; "readingLevelCode"?: "BASIC" | "WORKING" | "PROFESSIONAL" | "FLUENT" | "NATIVE" | null; "writingLevelCode"?: "BASIC" | "WORKING" | "PROFESSIONAL" | "FLUENT" | "NATIVE" | null; "validFrom"?: string | null; "validUntil"?: string | null; "status"?: "ACTIVE" | "INACTIVE" } };
+  "td2.fact.talentLocations.create": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "locationCode": string; "relationCode": "BASE" | "SERVICE"; "validFrom"?: string | null; "validUntil"?: string | null; "status"?: "ACTIVE" | "INACTIVE" } };
+  "td2.fact.talentLocations.patch": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "locationCode"?: string; "relationCode"?: "BASE" | "SERVICE"; "validFrom"?: string | null; "validUntil"?: string | null; "status"?: "ACTIVE" | "INACTIVE" } };
+  "td2.fact.castingProfiles.create": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "hairColorCode"?: "BLACK" | "BROWN" | "BLONDE" | "RED" | "GRAY" | "WHITE" | "OTHER" | null; "eyeColorCode"?: "BLACK" | "BROWN" | "BLUE" | "GREEN" | "GRAY" | "HAZEL" | "OTHER" | null; "appearanceObservedOn"?: string | null } };
+  "td2.fact.castingProfiles.patch": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "hairColorCode"?: "BLACK" | "BROWN" | "BLONDE" | "RED" | "GRAY" | "WHITE" | "OTHER" | null; "eyeColorCode"?: "BLACK" | "BROWN" | "BLUE" | "GREEN" | "GRAY" | "HAZEL" | "OTHER" | null; "appearanceObservedOn"?: string | null } };
+  "td2.fact.measurementSets.create": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "measuredOn": string; "datePrecision": "EXACT_DAY" | "APPROXIMATE"; "heightCm"?: number | null; "bustCm"?: number | null; "waistCm"?: number | null; "hipsCm"?: number | null; "shoeSizeValue"?: string | null; "shoeSizeSystem"?: "EU" | "US" | "UK" | "CN" | null; "clothingSizeValue"?: string | null; "clothingSizeSystem"?: "INTL" | "EU" | "US" | "UK" | "CN" | null; "supersedesId"?: string | null } };
+  "td2.fact.measurementSets.patch": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "measuredOn"?: string; "datePrecision"?: "EXACT_DAY" | "APPROXIMATE"; "heightCm"?: number | null; "bustCm"?: number | null; "waistCm"?: number | null; "hipsCm"?: number | null; "shoeSizeValue"?: string | null; "shoeSizeSystem"?: "EU" | "US" | "UK" | "CN" | null; "clothingSizeValue"?: string | null; "clothingSizeSystem"?: "INTL" | "EU" | "US" | "UK" | "CN" | null } };
+  "td2.fact.adultEligibilities.create": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "state": "UNKNOWN" | "SELF_DECLARED_ADULT" | "RESTRICTED"; "validUntil"?: string | null; "evidenceAssetId"?: string | null; "status"?: "ACTIVE" | "INACTIVE" } };
+  "td2.fact.adultEligibilities.patch": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "state"?: "UNKNOWN" | "SELF_DECLARED_ADULT" | "RESTRICTED"; "validUntil"?: string | null; "status"?: "ACTIVE" | "INACTIVE" } };
+  "td2.fact.representations.create": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "personRoleId"?: string | null; "agencyOrganizationId"?: string | null; "agentPersonId"?: string | null; "relationCode": "AGENT" | "AGENCY" | "MANAGER"; "territoryCode"?: string | null; "validFrom"?: string | null; "validUntil"?: string | null; "status"?: "ACTIVE" | "INACTIVE" } };
+  "td2.fact.representations.patch": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "relationCode"?: "AGENT" | "AGENCY" | "MANAGER"; "territoryCode"?: string | null; "validFrom"?: string | null; "validUntil"?: string | null; "status"?: "ACTIVE" | "INACTIVE" } };
+  "td2.fact.personExternalRefs.create": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "providerCode": "WECHAT" | "XIAOHONGSHU" | "INSTAGRAM" | "AGENCY_INTERNAL" | "SUPPLIER_SYSTEM"; "namespaceCode": string; "issuerOrganizationId"?: string | null; "externalKey": string } };
+  "td2.fact.personExternalRefs.patch": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": {  } };
+  "td2.fact.personCredentials.create": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "personRoleId"?: string | null; "credentialTypeCode": "DRONE_LICENSE" | "TRANSLATION_CERTIFICATE" | "DIVING_CERTIFICATE" | "EQUIPMENT_CERTIFICATE" | "OTHER"; "issuerOrganizationId"?: string | null; "issuerName"?: string | null; "issuedOn"?: string | null; "expiresOn"?: string | null; "evidenceAssetId"?: string | null } };
+  "td2.fact.personCredentials.patch": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "credentialTypeCode"?: "DRONE_LICENSE" | "TRANSLATION_CERTIFICATE" | "DIVING_CERTIFICATE" | "EQUIPMENT_CERTIFICATE" | "OTHER"; "issuerName"?: string | null; "issuedOn"?: string | null; "expiresOn"?: string | null } };
+  "td2.fact.translatorLanguagePairs.create": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "personRoleId": string; "sourceLanguageCode": string; "targetLanguageCode": string; "status"?: "ACTIVE" | "INACTIVE" } };
+  "td2.fact.translatorLanguagePairs.patch": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "status"?: "ACTIVE" | "INACTIVE" } };
+  "td2.fact.translatorServiceModes.create": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "personRoleId": string; "modeCode": "BUSINESS_MEETING" | "ON_SET" | "ESCORT" | "CONSECUTIVE" | "SIMULTANEOUS" | "WRITTEN"; "status"?: "ACTIVE" | "INACTIVE" } };
+  "td2.fact.translatorServiceModes.patch": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "status"?: "ACTIVE" | "INACTIVE" } };
+  "td2.fact.mediaCollections.create": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "personRoleId"?: string | null; "collectionTypeCode": "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "title": string; "status"?: "ACTIVE" | "ARCHIVED" } };
+  "td2.fact.mediaCollections.patch": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "collectionTypeCode"?: "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "title"?: string; "status"?: "ACTIVE" | "ARCHIVED" } };
+  "td2.fact.mediaCollectionTags.create": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "collectionId": string; "tagCode": "FASHION" | "BEAUTY" | "COMMERCIAL" | "LINGERIE" | "RUNWAY" | "LIFESTYLE" | "INDUSTRIAL" | "PRODUCT" } };
+  "td2.fact.mediaCollectionTags.patch": { "schemaVersion": "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": {  } };
   "work.list": undefined;
   "work.create": { "title": string; "sourceId"?: string; "inlineSource"?: { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string }; "description"?: string; "industryCode"?: string | null; "workTypeCodes"?: Array<string>; "origin"?: "ONCE" | "EXTERNAL" | "UNKNOWN"; "originNote"?: string };
   "work.get": undefined;
@@ -99,12 +159,312 @@ export interface Inputs {
   "shortlist.create": { "title": string; "brief"?: string; "scopeId": string };
   "shortlist.get": undefined;
   "shortlist.update": { "expectedRevision": number; "title"?: string; "brief"?: string };
-  "shortlist.itemAdd": { "expectedRevision": number; "personId": string; "workId"?: string; "workAssetIds": Array<string>; "note": string };
+  "shortlist.itemAdd": { "expectedRevision": number; "personId": string; "personRoleId"?: string; "personRoleRevision"?: number; "workId"?: string; "workAssetIds": Array<string>; "note": string };
   "shortlist.itemUpdate": { "expectedRevision": number; "entryId": string; "note": string };
   "shortlist.itemRemove": { "expectedRevision": number; "entryId": string };
   "shortlist.reorder": { "expectedRevision": number; "entryIds": Array<string> };
 }
 export const ENDPOINTS = {
+  "td2.shortlist.role": {
+    "method": "POST",
+    "path": "/td2/shortlists/{id}/role",
+    "mode": "COMMAND"
+  },
+  "td2.schema": {
+    "method": "GET",
+    "path": "/td2/schema",
+    "mode": "READ"
+  },
+  "td2.person.list": {
+    "method": "GET",
+    "path": "/td2/people",
+    "mode": "READ"
+  },
+  "td2.resolve": {
+    "method": "GET",
+    "path": "/td2/resolve",
+    "mode": "READ"
+  },
+  "td2.person.create": {
+    "method": "POST",
+    "path": "/td2/people",
+    "mode": "COMMAND"
+  },
+  "td2.person.get": {
+    "method": "GET",
+    "path": "/td2/people/{id}",
+    "mode": "READ"
+  },
+  "td2.person.patch": {
+    "method": "PATCH",
+    "path": "/td2/people/{id}",
+    "mode": "COMMAND"
+  },
+  "td2.person.enroll": {
+    "method": "POST",
+    "path": "/td2/people/{id}/enroll",
+    "mode": "COMMAND"
+  },
+  "td2.evidence": {
+    "method": "POST",
+    "path": "/td2/evidence",
+    "mode": "COMMAND"
+  },
+  "td2.proposal.create": {
+    "method": "POST",
+    "path": "/td2/proposals",
+    "mode": "COMMAND"
+  },
+  "td2.proposal.list": {
+    "method": "GET",
+    "path": "/td2/proposals",
+    "mode": "READ"
+  },
+  "td2.proposal.decide": {
+    "method": "POST",
+    "path": "/td2/proposals/{id}/decide",
+    "mode": "COMMAND"
+  },
+  "td2.registry.create": {
+    "method": "POST",
+    "path": "/td2/capability-definitions",
+    "mode": "COMMAND"
+  },
+  "td2.registry.patch": {
+    "method": "PATCH",
+    "path": "/td2/capability-definitions/{id}",
+    "mode": "COMMAND"
+  },
+  "td2.organization.create": {
+    "method": "POST",
+    "path": "/td2/organizations",
+    "mode": "COMMAND"
+  },
+  "td2.organization.list": {
+    "method": "GET",
+    "path": "/td2/organizations",
+    "mode": "READ"
+  },
+  "td2.measurement.confirm": {
+    "method": "POST",
+    "path": "/td2/measurements/{id}/confirm",
+    "mode": "COMMAND"
+  },
+  "td2.external.verify": {
+    "method": "POST",
+    "path": "/td2/external-refs/{id}/verify",
+    "mode": "COMMAND"
+  },
+  "td2.external.revoke": {
+    "method": "POST",
+    "path": "/td2/external-refs/{id}/revoke",
+    "mode": "COMMAND"
+  },
+  "td2.credential.verify": {
+    "method": "POST",
+    "path": "/td2/credentials/{id}/verify",
+    "mode": "COMMAND"
+  },
+  "td2.credential.revoke": {
+    "method": "POST",
+    "path": "/td2/credentials/{id}/revoke",
+    "mode": "COMMAND"
+  },
+  "td2.credential.secret": {
+    "method": "POST",
+    "path": "/td2/credentials/{id}/identifier",
+    "mode": "COMMAND"
+  },
+  "td2.adult.verify": {
+    "method": "POST",
+    "path": "/td2/adult-eligibility/{id}/verify",
+    "mode": "COMMAND"
+  },
+  "td2.collection.add": {
+    "method": "POST",
+    "path": "/td2/collections/{id}/items",
+    "mode": "COMMAND"
+  },
+  "td2.collection.remove": {
+    "method": "POST",
+    "path": "/td2/collections/{id}/items/remove",
+    "mode": "COMMAND"
+  },
+  "td2.collection.order": {
+    "method": "POST",
+    "path": "/td2/collections/{id}/items/reorder",
+    "mode": "COMMAND"
+  },
+  "td2.principal.list": {
+    "method": "GET",
+    "path": "/td2/principals",
+    "mode": "READ"
+  },
+  "td2.principal.create": {
+    "method": "POST",
+    "path": "/td2/principals",
+    "mode": "SECRET"
+  },
+  "td2.principal.rotate": {
+    "method": "POST",
+    "path": "/td2/principals/{id}/rotate",
+    "mode": "SECRET"
+  },
+  "td2.principal.revoke": {
+    "method": "POST",
+    "path": "/td2/principals/{id}/revoke",
+    "mode": "COMMAND"
+  },
+  "td2.fact.talentProfiles.create": {
+    "method": "POST",
+    "path": "/td2/people/{id}/profile",
+    "mode": "COMMAND"
+  },
+  "td2.fact.talentProfiles.patch": {
+    "method": "PATCH",
+    "path": "/td2/profile/{id}",
+    "mode": "COMMAND"
+  },
+  "td2.fact.personRoles.create": {
+    "method": "POST",
+    "path": "/td2/people/{id}/roles",
+    "mode": "COMMAND"
+  },
+  "td2.fact.personRoles.patch": {
+    "method": "PATCH",
+    "path": "/td2/roles/{id}",
+    "mode": "COMMAND"
+  },
+  "td2.fact.personCapabilities.create": {
+    "method": "POST",
+    "path": "/td2/people/{id}/capabilities",
+    "mode": "COMMAND"
+  },
+  "td2.fact.personCapabilities.patch": {
+    "method": "PATCH",
+    "path": "/td2/capabilities/{id}",
+    "mode": "COMMAND"
+  },
+  "td2.fact.personLanguages.create": {
+    "method": "POST",
+    "path": "/td2/people/{id}/languages",
+    "mode": "COMMAND"
+  },
+  "td2.fact.personLanguages.patch": {
+    "method": "PATCH",
+    "path": "/td2/languages/{id}",
+    "mode": "COMMAND"
+  },
+  "td2.fact.talentLocations.create": {
+    "method": "POST",
+    "path": "/td2/people/{id}/locations",
+    "mode": "COMMAND"
+  },
+  "td2.fact.talentLocations.patch": {
+    "method": "PATCH",
+    "path": "/td2/locations/{id}",
+    "mode": "COMMAND"
+  },
+  "td2.fact.castingProfiles.create": {
+    "method": "POST",
+    "path": "/td2/people/{id}/casting",
+    "mode": "COMMAND"
+  },
+  "td2.fact.castingProfiles.patch": {
+    "method": "PATCH",
+    "path": "/td2/casting/{id}",
+    "mode": "COMMAND"
+  },
+  "td2.fact.measurementSets.create": {
+    "method": "POST",
+    "path": "/td2/people/{id}/measurements",
+    "mode": "COMMAND"
+  },
+  "td2.fact.measurementSets.patch": {
+    "method": "PATCH",
+    "path": "/td2/measurements/{id}",
+    "mode": "COMMAND"
+  },
+  "td2.fact.adultEligibilities.create": {
+    "method": "POST",
+    "path": "/td2/people/{id}/adult-eligibility",
+    "mode": "COMMAND"
+  },
+  "td2.fact.adultEligibilities.patch": {
+    "method": "PATCH",
+    "path": "/td2/adult-eligibility/{id}",
+    "mode": "COMMAND"
+  },
+  "td2.fact.representations.create": {
+    "method": "POST",
+    "path": "/td2/people/{id}/representations",
+    "mode": "COMMAND"
+  },
+  "td2.fact.representations.patch": {
+    "method": "PATCH",
+    "path": "/td2/representations/{id}",
+    "mode": "COMMAND"
+  },
+  "td2.fact.personExternalRefs.create": {
+    "method": "POST",
+    "path": "/td2/people/{id}/external-refs",
+    "mode": "COMMAND"
+  },
+  "td2.fact.personExternalRefs.patch": {
+    "method": "PATCH",
+    "path": "/td2/external-refs/{id}",
+    "mode": "COMMAND"
+  },
+  "td2.fact.personCredentials.create": {
+    "method": "POST",
+    "path": "/td2/people/{id}/credentials",
+    "mode": "COMMAND"
+  },
+  "td2.fact.personCredentials.patch": {
+    "method": "PATCH",
+    "path": "/td2/credentials/{id}",
+    "mode": "COMMAND"
+  },
+  "td2.fact.translatorLanguagePairs.create": {
+    "method": "POST",
+    "path": "/td2/people/{id}/translation-pairs",
+    "mode": "COMMAND"
+  },
+  "td2.fact.translatorLanguagePairs.patch": {
+    "method": "PATCH",
+    "path": "/td2/translation-pairs/{id}",
+    "mode": "COMMAND"
+  },
+  "td2.fact.translatorServiceModes.create": {
+    "method": "POST",
+    "path": "/td2/people/{id}/translation-modes",
+    "mode": "COMMAND"
+  },
+  "td2.fact.translatorServiceModes.patch": {
+    "method": "PATCH",
+    "path": "/td2/translation-modes/{id}",
+    "mode": "COMMAND"
+  },
+  "td2.fact.mediaCollections.create": {
+    "method": "POST",
+    "path": "/td2/people/{id}/collections",
+    "mode": "COMMAND"
+  },
+  "td2.fact.mediaCollections.patch": {
+    "method": "PATCH",
+    "path": "/td2/collections/{id}",
+    "mode": "COMMAND"
+  },
+  "td2.fact.mediaCollectionTags.create": {
+    "method": "POST",
+    "path": "/td2/people/{id}/collection-tags",
+    "mode": "COMMAND"
+  },
+  "td2.fact.mediaCollectionTags.patch": {
+    "method": "PATCH",
+    "path": "/td2/collection-tags/{id}",
+    "mode": "COMMAND"
+  },
   "work.list": {
     "method": "GET",
     "path": "/works",

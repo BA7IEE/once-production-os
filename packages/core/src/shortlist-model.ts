@@ -8,6 +8,9 @@ export interface Shortlist extends Base {
 }
 
 export interface ShortlistItem extends Base {
+    personRoleId?: string | null;
+    personRoleRevision?: number | null;
+    roleContextState?: 'BOUND' | 'LEGACY_REVIEW' | null;
     shortlistId: string;
     personId: string;
     workId: string | null;

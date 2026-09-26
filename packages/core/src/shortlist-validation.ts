@@ -15,6 +15,8 @@ export const ShortlistSchemas = {
     itemAdd: v.object({
         expectedRevision: revision,
         personId: uuid,
+        personRoleId: v.optional(uuid),
+        personRoleRevision: v.optional(revision),
         workId: v.optional(uuid),
         workAssetIds: v.array(uuid, L.assetsPerItem),
         note: v.string(2000)

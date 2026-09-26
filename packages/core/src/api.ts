@@ -1,3 +1,8 @@
+import { TalentV2 } from './talent-v2.ts';
+import { MachineIdentity } from './talent-v2-machine.ts';
+import { authorizeTd2Operation, authorizeTd2Resource, TD2_RESOURCE_KINDS } from './talent-v2-access.ts';
+import { searchTalentV2 } from './talent-v2-search.ts';
+import { TD2_TABLES, type FactTable } from './talent-v2-schema.ts';
 import { PersonMerges } from './person-merges.ts';
 import { resolvePersonReadId } from './merge-policy.ts';
 import { DeletionFinalization } from './deletion-finalization.ts';
@@ -75,6 +80,8 @@ export class Application {
     deletionCleanup: DeletionCleanup;
     deletionFinalization: DeletionFinalization;
     personMerges: PersonMerges;
+    talentV2: TalentV2;
+    machine: MachineIdentity;
     safetyIntent: SafetyIntentSink | null;
     constructor(store: Store, config: Config, clock: Clock = { now: () => new Date() }, safetyIntent: SafetyIntentSink | null = null) {
         invariant(config.contactKey.length === 32 && config.csrfKey.length === 32, 'CONFIG_INVALID', '密钥必须为 32 字节', 503);
@@ -88,6 +95,8 @@ export class Application {
         this.config = config;
         this.identity = new Identity(store, clock, config);
         this.talent = new Talent(clock, config);
+        this.talentV2 = new TalentV2(clock, config);
+        this.machine = new MachineIdentity(clock, config);
         this.portfolio = new Portfolio(clock, this.talent);
         this.projects = new Projects(clock, this.talent);
         this.shortlists = new Shortlists(clock);
@@ -108,7 +117,7 @@ export class Application {
             invariant(/^[A-Za-z0-9_-]{8,128}$/.test(commandKey), 'IDEMPOTENCY_REQUIRED',
                 '写入需要 8–128 位 Idempotency-Key', 400);
         const stable = commandKey
-            ? digest({ workspaceId: actor.workspaceId, actorId: actor.membershipId, operation, commandKey })
+            ? digest({ workspaceId: actor.workspaceId, ...(actor.actorKind === 'MACHINE' ? {servicePrincipalId: actor.servicePrincipalId} : {actorId: actor.membershipId}), operation, commandKey })
             : requestId;
         const intent: SafetyIntent = {
             intentId: 'intent:' + stable,
@@ -186,10 +195,19 @@ export class Application {
             const url = new URL(request.url, this.config.origin);
             invariant(url.pathname.startsWith('/api/v1/'), 'NOT_FOUND', '接口不存在', 404);
             const { route, params } = this.match(request.method, url.pathname.slice('/api/v1'.length));
-            if (request.method !== 'GET')
+            const bearerHeader=request.headers.authorization;
+            const machineRequest=bearerHeader!==undefined;
+            if(machineRequest){
+                invariant(!!bearerHeader && /^Bearer once_machine\./.test(bearerHeader),'MACHINE_UNAUTHENTICATED','机器认证头无效',401);
+                invariant(route.operation.startsWith('td2.'),'MACHINE_OPERATION_FORBIDDEN','机器账号只能调用人才2.0的受限接口',403);
+                invariant(!request.headers.cookie,'MIXED_AUTH_FORBIDDEN','不能混用会话与机器凭证',400);
+                invariant(!request.headers.origin||request.headers.origin===this.config.origin,'ORIGIN_DENIED','请求来源不被允许',403);
+            }
+            if (request.method !== 'GET' && !machineRequest)
                 invariant(request.headers.origin === this.config.origin, 'ORIGIN_DENIED', '请求来源不被允许', 403);
             const jar = cookies(request.headers.cookie ?? '');
             const token = jar[sessionName] ?? '';
+            const authenticate = (tx:Tx) => machineRequest ? this.machine.authenticate(tx,bearerHeader!.slice(7)) : this.identity.authenticate(tx,token);
             const query: Record<string, string> = {};
             for (const [key, value] of url.searchParams) {
                 invariant(!Object.hasOwn(query, key), 'QUERY_INVALID', '筛选字段不能重复', 400);
@@ -220,7 +238,7 @@ export class Application {
                 response.cookies.push(this.cookie(preName, '', 0));
                 return response;
             }
-            if (request.method !== 'GET')
+            if (request.method !== 'GET' && !machineRequest)
                 invariant(!!token && equalSecret(request.headers['x-csrf-token'] ?? '', csrfFor(token, this.config.csrfKey)), 'CSRF_INVALID', '会话校验失败，请刷新后重试', 403);
             if (route.operation === 'auth.logout') {
                 await this.identity.logout(token, meta);
@@ -246,7 +264,8 @@ export class Application {
             let safetyIntent: SafetyIntent | null = null;
             if (requiresSafetyIntent(route.mode)) {
                 const preActor = await this.store.transaction(async tx => {
-                    const actor = await this.identity.authenticate(tx, token);
+                    const actor = await authenticate(tx);
+                    authorizeTd2Operation(actor,route.operation,route.mode);
                     if (route.permission) requirePermission(actor, route.permission);
                     return actor;
                 });
@@ -255,7 +274,8 @@ export class Application {
             }
             try {
                 response.body = await this.store.transaction(async (tx) => {
-                const actor = await this.identity.authenticate(tx, token);
+                const actor = await authenticate(tx);
+                authorizeTd2Operation(actor,route.operation,route.mode);
                 if (route.permission)
                     requirePermission(actor, route.permission);
                 const id = params.id ?? '';
@@ -263,7 +283,43 @@ export class Application {
                     id: string;
                     revision: number;
                 }>, target = id || null) => this.commands.execute(tx, actor, route.operation, request.headers['idempotency-key'] ?? '', target, data, kind, meta, execute, receipt => authorizeReceipt(tx, actor, receipt, this.clock, this.config), ['import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation) ? 'ACCEPTED' : 'SUCCEEDED');
+                if(route.operation.startsWith('td2.fact.')){
+                    const [, ,table,action]=route.operation.split('.');
+                    invariant(TD2_TABLES.includes(table as FactTable),'NOT_FOUND','资料类型不存在',404);
+                    return command('talentFact',()=>action==='create'?this.talentV2.createFact(tx,actor,table as FactTable,id,data):this.talentV2.patchFact(tx,actor,table as FactTable,id,data));
+                }
                 switch (route.operation) {
+                    case 'td2.shortlist.role': return command('shortlist',()=>this.shortlists.bindRole(tx,actor,id,data));
+                    case 'td2.schema': return this.talentV2.schema(tx,actor);
+                    case 'td2.person.list': return searchTalentV2(tx,actor,this.clock,query);
+                    case 'td2.person.get': return this.talentV2.get(tx,actor,id);
+                    case 'td2.person.create': return command('person',()=>this.talentV2.createPerson(tx,actor,data));
+                    case 'td2.person.patch': return command('person',()=>this.talentV2.patchPerson(tx,actor,id,data));
+                    case 'td2.person.enroll': return command('person',()=>this.talentV2.enroll(tx,actor,id,data));
+                    case 'td2.evidence': return command('person',()=>this.talentV2.addEvidence(tx,actor,data));
+                    case 'td2.proposal.create': return command('fieldProposal',()=>this.talentV2.proposal(tx,actor,data));
+                    case 'td2.proposal.list': return this.talentV2.proposals(tx,actor,query);
+                    case 'td2.proposal.decide': return command('fieldProposal',()=>this.talentV2.decide(tx,actor,id,data));
+                    case 'td2.organization.create': return command('organization',()=>this.talentV2.organization(tx,actor,data));
+                    case 'td2.organization.list': return this.talentV2.organizations(tx,actor,query);
+                    case 'td2.registry.create': return command('capabilityDefinition',()=>this.talentV2.registryCreate(tx,actor,data));
+                    case 'td2.registry.patch': return command('capabilityDefinition',()=>this.talentV2.registryPatch(tx,actor,id,data));
+                    case 'td2.measurement.confirm': return command('talentFact',()=>this.talentV2.confirm(tx,actor,'measurementSets',id,data));
+                    case 'td2.external.verify': return command('talentFact',()=>this.talentV2.confirm(tx,actor,'personExternalRefs',id,data));
+                    case 'td2.external.revoke': return command('talentFact',()=>this.talentV2.revokeFact(tx,actor,'personExternalRefs',id,data));
+                    case 'td2.credential.verify': return command('talentFact',()=>this.talentV2.confirm(tx,actor,'personCredentials',id,data));
+                    case 'td2.credential.revoke': return command('talentFact',()=>this.talentV2.revokeFact(tx,actor,'personCredentials',id,data));
+                    case 'td2.credential.secret': return command('talentFact',()=>this.talentV2.credentialSecret(tx,actor,id,data));
+                    case 'td2.adult.verify': return command('talentFact',()=>this.talentV2.adultVerify(tx,actor,id,data));
+                    case 'td2.resolve': return this.talentV2.resolve(tx,actor,query);
+                    case 'td2.collection.add': return command('talentFact',()=>this.talentV2.collectionMutation(tx,actor,id,data,'ADD'));
+                    case 'td2.collection.remove': return command('talentFact',()=>this.talentV2.collectionMutation(tx,actor,id,data,'REMOVE'));
+                    case 'td2.collection.order': return command('talentFact',()=>this.talentV2.collectionMutation(tx,actor,id,data,'ORDER'));
+                    case 'td2.principal.list': return this.machine.list(tx,actor,query);
+                    case 'td2.principal.create': return this.machine.create(tx,actor,data,meta);
+                    case 'td2.principal.rotate': return this.machine.rotate(tx,actor,id,data,meta);
+                    case 'td2.principal.revoke': return command('servicePrincipal',()=>this.machine.revoke(tx,actor,id,data));
+
                     case 'deletion.preview': return this.deletions.preview(tx, actor, data);
                     case 'deletion.list': return this.deletions.list(tx, actor, query);
                     case 'deletion.create': return command('deletion', () => this.deletions.create(tx, actor, data));
@@ -380,6 +436,7 @@ export class Application {
                 this.resultResourceId(response.body, params.id ?? safetyIntent?.resourceId ?? meta.requestId));
             if (['import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation))
                 response.status = 202;
+            else if (route.operation.startsWith('td2.') && route.operation.endsWith('.create')) response.status = 201;
             else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
                 response.status = 201;
             return response;
@@ -412,6 +469,7 @@ export class Application {
         const result = [];
         for (const row of await tx.find('audits', { workspaceId: actor.workspaceId })) {
             try {
+                if((TD2_RESOURCE_KINDS as readonly string[]).includes(row.resourceKind)) await authorizeTd2Resource(tx,actor,row.resourceKind,row.resourceId,this.clock);
                 if (row.resourceKind === 'upload')
                     await uploadFor(tx, actor, row.resourceId);
                 if (row.resourceKind === 'asset')
@@ -451,7 +509,7 @@ export class Application {
                     if (!job || job.actorId !== actor.membershipId)
                         continue;
                 }
-                result.push({ id: row.id, actorId: row.actorId, action: row.action, resourceKind: row.resourceKind, resourceId: row.resourceId, changedFields: row.changedFields, at: row.createdAt, requestId: row.requestId });
+                result.push({ id: row.id, actorId: row.actorId, actorKind: row.servicePrincipalId ? 'MACHINE' : row.actorId ? 'HUMAN' : 'SYSTEM', servicePrincipalId: row.servicePrincipalId ?? null, action: row.action, resourceKind: row.resourceKind, resourceId: row.resourceId, changedFields: row.changedFields, at: row.createdAt, requestId: row.requestId });
             }
             catch (e) {
                 if (!(e instanceof AppError && e.status === 404))
