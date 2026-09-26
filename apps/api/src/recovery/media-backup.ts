@@ -21,21 +21,33 @@ export interface BackupMediaManifest {
     assets: BackupMediaAsset[];
 }
 
-function identity(rows: Array<{
+type MediaIdentityRow = {
     id:string;uploadId:string;sourceId:string;scopeId:string;personId:string|null;revision:number;
     fileName:string;mime:string;bytes:number;sha256:string;width:number;height:number;
     previewBytes:number;previewHash:string;objectToken:string;state:string;
-}>) {
+};
+function backupIdentity(rows: MediaIdentityRow[]) {
     return digest(rows.map(x=>({
         id:x.id,uploadId:x.uploadId,sourceId:x.sourceId,scopeId:x.scopeId,personId:x.personId,
-        revision:x.revision,fileName:x.fileName,mime:x.mime,bytes:x.bytes,sha256:x.sha256,
+        fileName:x.fileName,mime:x.mime,bytes:x.bytes,sha256:x.sha256,
         width:x.width,height:x.height,previewBytes:x.previewBytes,previewHash:x.previewHash,
-        objectToken:x.objectToken,state:x.state
+        objectToken:x.objectToken
+    })).sort((a,b)=>a.id.localeCompare(b.id)));
+}
+function stateIdentity(rows: MediaIdentityRow[]) {
+    return digest(rows.map(x=>({
+        id:x.id,revision:x.revision,state:x.state,
+        backupIdentity: {
+            uploadId:x.uploadId,sourceId:x.sourceId,scopeId:x.scopeId,personId:x.personId,
+            fileName:x.fileName,mime:x.mime,bytes:x.bytes,sha256:x.sha256,
+            width:x.width,height:x.height,previewBytes:x.previewBytes,previewHash:x.previewHash,
+            objectToken:x.objectToken
+        }
     })).sort((a,b)=>a.id.localeCompare(b.id)));
 }
 export async function currentMediaIdentity(client: PrismaClient) {
     const assets=await client.mediaAsset.findMany({where:{state:{not:'ERASED'}},orderBy:{id:'asc'}});
-    return {assets,identityDigest:identity(assets)};
+    return {assets,identityDigest:backupIdentity(assets),stateDigest:stateIdentity(assets)};
 }
 async function makeBundleRoot(root: string) {
     await mkdir(root,{mode:0o700});
