@@ -9,6 +9,8 @@ import { RecoveryOps } from '../packages/core/src/recovery.ts';
 import { collectRecoveryExternalCheck } from '../apps/api/src/recovery/external-check.ts';
 import { readBackupManifest, sha256File } from '../apps/api/src/recovery/backup-manifest.ts';
 import { readSafetyJournal, safetyJournalHashAt } from '../apps/api/src/recovery/safety-journal.ts';
+import { analyzeSafetyDeltas } from '../apps/api/src/recovery/delta-resolution.ts';
+import { digest } from '../packages/core/src/json.ts';
 import { AppError } from '../packages/core/src/errors.ts';
 
 function usage(): never {
@@ -96,9 +98,10 @@ try{
                 process.exitCode=1;
             }else{
                 const report=await store.transaction(tx=>recovery.check(tx,actor,input.recoveryRunId,external));
-                const postBackupEntries=journal.snapshot.sequence-manifest.safetyJournal.sequence;
+                const deltaResolution=analyzeSafetyDeltas(journal,manifest.safetyJournal.sequence);
+                const postBackupEntries=deltaResolution.postBackupEntries;
                 const blockers=[...report.blockers];
-                if(postBackupEntries!==0) blockers.push('SAFETY_JOURNAL_DELTA_UNRESOLVED');
+                if(deltaResolution.unresolved!==0) blockers.push('SAFETY_JOURNAL_DELTA_UNRESOLVED');
                 if(manifest.recoveryEpochDigest!==run.sourceEpochDigest) blockers.push('BACKUP_EPOCH_MISMATCH');
                 if(manifest.contactKeyDigest!==(run.report as any).contactKeyDigest) blockers.push('BACKUP_CONTACT_KEY_MISMATCH');
                 if(manifest.migrationDigest!==(run.report as any).migrationDigest) blockers.push('BACKUP_MIGRATION_MISMATCH');
@@ -114,6 +117,8 @@ try{
                     migrationDigest:manifest.migrationDigest,
                     mediaIdentityDigest:manifest.media.identityDigest,
                     reportDigest:run.reportDigest,
+                    deltaResolutionDigest:digest(deltaResolution),
+                    deltaResolution,
                     safetyJournal:{
                         journalId:journal.header.journalId,
                         backupSequence:manifest.safetyJournal.sequence,
@@ -124,10 +129,16 @@ try{
                     }
                 };
                 if(!input.apply){
-                    console.log(JSON.stringify({mode:'CHECK',eligible:blockers.length===0,blockers,evidence},null,2));
+                    console.log(JSON.stringify({mode:'CHECK',eligible:blockers.length===0,blockers,
+                        deltaResolution:{resolved:deltaResolution.resolved,unresolved:deltaResolution.unresolved,
+                            postBackupEntries:deltaResolution.postBackupEntries,items:deltaResolution.items},
+                        evidence},null,2));
                     if(blockers.length) process.exitCode=3;
                 }else if(blockers.length){
-                    console.log(JSON.stringify({mode:'APPLY',eligible:false,blockers,evidence},null,2));
+                    console.log(JSON.stringify({mode:'APPLY',eligible:false,blockers,
+                        deltaResolution:{resolved:deltaResolution.resolved,unresolved:deltaResolution.unresolved,
+                            postBackupEntries:deltaResolution.postBackupEntries,items:deltaResolution.items},
+                        evidence},null,2));
                     process.exitCode=3;
                 }else{
                     const approved=await store.transaction(tx=>recovery.approve(tx,actor,input.recoveryRunId,external,evidence,
