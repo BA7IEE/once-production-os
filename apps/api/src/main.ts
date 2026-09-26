@@ -1,4 +1,5 @@
 import { registerMediaHttp } from './media/http.ts';
+import { SafetyJournalWriter } from './recovery/safety-journal.ts';
 import { LocalMediaProvider } from './media/local-provider.ts';
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
@@ -48,7 +49,10 @@ class AppModule {
 async function main() {
     const config = loadConfig();
     store = new PrismaStore();
-    core = new Application(store, config);
+    const safetyJournal = process.env.SAFETY_JOURNAL_FILE
+        ? await SafetyJournalWriter.open(process.env.SAFETY_JOURNAL_FILE)
+        : null;
+    core = new Application(store, config, undefined, safetyJournal);
     const app = await NestFactory.create(AppModule, { bodyParser: false, logger: ['error', 'warn'] });
     const server = app.getHttpAdapter().getInstance() as express.Express;
     server.disable('x-powered-by');
