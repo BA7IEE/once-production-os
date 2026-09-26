@@ -7,7 +7,7 @@ React 管理前端源码 ── cookie + CSRF ── Nest/Express 入口源码
                                       ↓
                              Application / routes
                                       ↓
-                Identity / Talent / Portfolio / Projects / Shortlists / Search / Exports / Deletions / DeletionCleanup / DeletionFinalization / PersonMerges
+                Identity / Talent / Portfolio / Projects / Shortlists / Search / Exports / Deletions / DeletionCleanup / DeletionFinalization / PersonMerges / JsonRebuild
                                       ↓
                          Commands + 事务审计 + Tx
                            ↙                   ↘
@@ -30,12 +30,14 @@ React 管理前端源码 ── cookie + CSRF ── Nest/Express 入口源码
 | exports.ts / export-model.ts | INTERNAL_EXPORT 用途许可、冻结 JSON、精确依赖复查与 ExportJob |
 | deletions.ts / deletion-model.ts / deletion-cleanup.ts / deletion-finalization.ts | 删除影响扫描、使用阻断、保留决定、CLEANING 依赖清理、媒体/历史专用最终化与 ERASED 最小头 |
 | person-merges.ts / merge-policy.ts | 受控 Person merge、字段/关系冲突、旧 ID 只读解析、授权撤销与来源边界 |
+| rebuild.ts / rebuild-validation.ts / rebuild-model.ts | T29 隔离 JSON 重建：闭包、目标隔离、catalog/业务上限、稳定 UUID、单事务 APPLY |
 | source-history.ts / visibility.ts | 来源版本的受限读取与追加/单向脱敏；同一事务中的批量可见性判断 |
 | commands.ts | 最小幂等回执，接收领域鉴权回调；不读取人才表 |
 | replay-policy.ts | 回执重新读取时的领域权限和来源判断 |
 | imports.ts | 有界 JSON 预览、选择集冻结、任务领取、失败后显式继续、逐行原子执行 |
 | json-boundary.ts / validation.ts | 重复键、原型键、非法 Unicode、数值、嵌套、额外字段的请求约束 |
 | api.ts / routes.ts | 框架无关的请求入口与登记表；103 条路由 |
+| scripts/rebuild-export.ts | 仅维护人员使用的 T29 CLI；只接受 loopback once_rebuild_*，APPLY 绑定源 Export payloadDigest |
 | apps/api/src | Nest/Express、Prisma、配置、bootstrap 和独立 Worker 入口 |
 | apps/admin-web/src | React 页面、显式 DTO、内存请求状态和响应错误呈现 |
 | prisma | 37 个模型、20 条迁移、组合 FK/CHECK/延迟唯一约束；当前新空库 PG 测试通过，正式数据升级 NOT_RUN |
@@ -54,7 +56,7 @@ PrismaStore 每个短事务获取一个 PostgreSQL advisory transaction lock，�
 
 正式数据规模前必须做真实 DB 压测，把授权过滤/分页下推 SQL，再评审细粒度锁与多进程竞争。不允许因为慢就拿掉锁，也不能声明已经达到 v0.3 性能目标。
 
-外部 I/O、密码 KDF 不放在业务事务内。Deletion preview 只读当前事务；DRAFT、BLOCKED_FOR_USE、保留决定、plan freeze 和 cleanup start 均在短事务内写事实/审计/回执。DeletionCleanup Worker 用 executionPlanDigest + lease 逐项执行；DeletionFinalization 另用专用租约做媒体物理 purge、SourceHistory 单向脱敏与根对象 ERASED 终结。HTTP 请求不在事务里做长 I/O。Person merge 是同步短事务原子命令，不做后台自动去重。后台另有导入、local/test 私有媒体和 ExportJob。ExportJob 不复用 ImportBatch 的 DurableJob 外键；生成前及下载时逐依赖复查。没有 AI 或网站发布任务。任务按行重新查发起者、当前来源及其版本；租约 30 秒、过期可接管、最多 3 次领取，旧租约无法回写。失败会标记为 FAILED，已经提交的行保留；仅符合条件的失败可由本人显式继续，不承诺整批回滚。
+外部 I/O、密码 KDF 不放在业务事务内。Deletion preview 只读当前事务；DRAFT、BLOCKED_FOR_USE、保留决定、plan freeze 和 cleanup start 均在短事务内写事实/审计/回执。DeletionCleanup Worker 用 executionPlanDigest + lease 逐项执行；DeletionFinalization 另用专用租约做媒体物理 purge、SourceHistory 单向脱敏与根对象 ERASED 终结。HTTP 请求不在事务里做长 I/O。Person merge 是同步短事务原子命令，不做后台自动去重。后台另有导入、local/test 私有媒体和 ExportJob。JsonRebuild 不挂 HTTP，不由普通用户触发；CHECK 是零写读事务，APPLY 是一次短数据库事务，目标必须为隔离空业务图。ExportJob 不复用 ImportBatch 的 DurableJob 外键；生成前及下载时逐依赖复查。没有 AI 或网站发布任务。任务按行重新查发起者、当前来源及其版本；租约 30 秒、过期可接管、最多 3 次领取，旧租约无法回写。失败会标记为 FAILED，已经提交的行保留；仅符合条件的失败可由本人显式继续，不承诺整批回滚。
 
 ## 5. 协议与状态
 
@@ -62,7 +64,7 @@ PrismaStore 每个短事务获取一个 PostgreSQL advisory transaction lock，�
 
 同步成功回执 state=SUCCEEDED；import.commit 与 job.resume 为 HTTP 202/state=ACCEPTED，只代表排队。任务另有 QUEUED/RUNNING/SUCCEEDED/FAILED。前端结果未知保存原请求键于内存，不自动重发，不存 localStorage。关闭/刷新丢失内存键后应先检查已有记录。
 
-JSON 摘要使用排序键的受限输入规范：拒绝不安全整数、无效 Unicode、重复键等。它不是已经验证全部 RFC 8785/JCS 兼容向量的实现；完整跨客户端规范仍属于 DEV-02 待收敛事项。
+JSON 摘要使用排序键的受限输入规范：拒绝不安全整数、无效 Unicode、重复键等。T29 APPLY 还要求输入 digest 精确等于源 READY Export 的 payloadDigest；不一致在数据库访问前拒绝。它不是已经验证全部 RFC 8785/JCS 兼容向量的实现；完整跨客户端规范仍属于 DEV-02 待收敛事项。
 
 ## 6. 契约生成的准确范围
 
