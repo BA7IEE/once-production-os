@@ -81,9 +81,11 @@ try{
 
     const backupId=randomUUID(), dumpPath=join(outputDir,backupId+'.dump'),
         mediaPath=join(outputDir,backupId+'.media'), manifestPath=join(outputDir,backupId+'.manifest.json');
+    const mediaBefore=await currentMediaIdentity(client);
     const media=await backupPrivateMedia(client,process.env.MEDIA_PROVIDER??'disabled',process.env.MEDIA_ROOT,mediaPath);
-    const beforeDumpMedia=(await currentMediaIdentity(client)).identityDigest;
-    if(beforeDumpMedia!==media.identityDigest) fail('Media database identity changed while creating backup bundle; manifest not emitted.');
+    const beforeDumpMedia=await currentMediaIdentity(client);
+    if(beforeDumpMedia.identityDigest!==media.identityDigest||beforeDumpMedia.stateDigest!==mediaBefore.stateDigest)
+        fail('Media database identity changed while creating backup bundle; manifest not emitted.');
     const pg=spawnSync('pg_dump',['--format=custom','--no-owner','--no-privileges','--file',dumpPath],
         {env:{...process.env,...dbEnv(databaseUrl)},encoding:'utf8',timeout:300000});
     if(pg.error||pg.status!==0) {
@@ -93,8 +95,9 @@ try{
     else {
         chmodSync(dumpPath,0o600);
         const database=await sha256File(dumpPath);
-        const afterDumpMedia=(await currentMediaIdentity(client)).identityDigest;
-        if(afterDumpMedia!==media.identityDigest) fail('Media database identity changed during pg_dump; manifest not emitted.');
+        const afterDumpMedia=await currentMediaIdentity(client);
+        if(afterDumpMedia.identityDigest!==media.identityDigest||afterDumpMedia.stateDigest!==mediaBefore.stateDigest)
+            fail('Media database identity changed during pg_dump; manifest not emitted.');
         const [jobsAfter,uploadsAfter,deletionsAfter]=await Promise.all([
             client.durableJob.count({where:{state:{in:['QUEUED','RUNNING']}}}),
             client.mediaUpload.count({where:{state:{in:['OPEN','RECEIVING','UPLOADED','QUEUED','PROCESSING']}}}),
