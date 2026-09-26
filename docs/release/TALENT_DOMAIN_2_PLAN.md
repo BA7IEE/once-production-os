@@ -1,7 +1,7 @@
 # Talent Domain 2.0 R1｜实施前重新冻结计划
 
 日期：2026-09-27  
-状态：R1_SPEC_FROZEN_CANDIDATE / NOT_IMPLEMENTED  
+状态：R1_SPEC_FROZEN / NOT_IMPLEMENTED  
 基线：`feat/recovery-writeahead-media` / PR #22 head `d0d3a05e57403201f8de82120fbbf7ce218bf5f3`；Talent R1 规格在 PR #24
 
 ## 1. 决策
