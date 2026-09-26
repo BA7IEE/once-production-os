@@ -119,7 +119,8 @@ export class RecoveryOps {
         invariant(plan.sourceEpochDigest === expectedSourceEpochDigest, 'RECOVERY_SOURCE_EPOCH_MISMATCH',
             '恢复数据库中的旧 recovery epoch 与预期备份摘要不一致', 409);
 
-        const now = this.clock.now().toISOString();
+        const runBase = base(actor.workspaceId, this.clock);
+        const now = runBase.createdAt;
 
         for (const row of await tx.find('sessions', { workspaceId: actor.workspaceId }))
             if (!row.revokedAt) await tx.replace('sessions', { ...touch(row, this.clock), revokedAt: now });
@@ -174,7 +175,7 @@ export class RecoveryOps {
         }
 
         const run: RecoveryRun = {
-            ...base(actor.workspaceId, this.clock), actorId: actor.membershipId,
+            ...runBase, actorId: actor.membershipId,
             sourceEpochDigest: plan.sourceEpochDigest, targetEpochDigest: plan.targetEpochDigest,
             state: 'PREPARED', preparedAt: now, approvedAt: null, reportDigest: null,
             revokedSessions: plan.counts.sessions, consumedActivations: plan.counts.activations,
