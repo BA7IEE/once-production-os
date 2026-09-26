@@ -1,6 +1,6 @@
 # ONCE Production OS｜内部状态与工作流｜不含网站发布
 
-版本：v0.3｜日期：2026-09-22｜当前范围：一期内部 OS + AI｜状态：文档已修订，产品实现和运行测试未执行
+版本：v0.5｜日期：2026-09-27｜当前范围：一期内部 OS + Talent Domain 2.0 R1 + AI｜状态：R1 状态/时序契约重新冻结候选，尚未实现
 
 ## 1. 范围与状态分层
 
@@ -8,16 +8,22 @@
 
 | 对象 | 当前状态/语义 |
 |---|---|
-| 人物/作品 | DRAFT/ACTIVE/ARCHIVED/ERASED；ACTIVE不表示公开或可预订 |
+| Person / TalentProfile / 作品 | Person与Talent分层；DRAFT/ACTIVE/ARCHIVED/ERASED；Talent ACTIVE不表示公开、可预订或有档期 |
 | 来源依据 | RECEIVED/CONFIRMED/SUSPENDED/ERASED；时间失效实时计算 |
 | 上传 | CREATED/SEALING/INSPECTING/READY/FAILED/CANCELLED/EXPIRED |
 | 资产 | PROCESSING/READY/QUARANTINED/ARCHIVED/ERASED |
 | 项目 | DRAFT/ACTIVE/COMPLETED/CANCELLED/ARCHIVED；不触发财务 |
-| 内部清单 | 可变草稿/归档，revision保护；无客户发布状态 |
+| 内部清单 | 可变草稿/归档，revision保护；每个条目固定 personRoleId；Role失效后不可用而不自动切换 |
 | AIJob | QUEUED/RUNNING/SUCCEEDED/FAILED/CANCELLED/UNKNOWN |
-| Proposal | PENDING/APPLIED/REJECTED/STALE/ERASED |
+| AIProposal / FieldProposal | PENDING/APPLIED/REJECTED/STALE/ERASED；source/target/schema变化可STALE |
 | Export | QUEUED/BUILDING/READY/FAILED/STALE/REVOKED/ERASED；EXPIRED实时计算 |
 | 删除请求 | BLOCKED_FOR_USE/CLEANING/COMPLETED/RETAINED_WITH_BASIS/FAILED |
+| PersonRole | ACTIVE/INACTIVE/ARCHIVED；有效期另算；停用不删除历史Work/Project |
+| PersonExternalRef | OBSERVED/VERIFIED/REVOKED；REVOKED不删除Person |
+| MeasurementSet | DRAFT/CONFIRMED/SUPERSEDED；CONFIRMED历史不静默覆盖 |
+| AdultEligibility | UNKNOWN/SELF_DECLARED_ADULT/VERIFIED_ADULT/RESTRICTED；UNKNOWN fail closed |
+| Credential | ACTIVE/EXPIRED/REVOKED/ARCHIVED；到期实时计算 |
+| ServicePrincipal | ACTIVE/PAUSED/REVOKED；credential rotate/revoke立即生效 |
 
 任务运行状态与业务可用状态分开。Worker显示SUCCEEDED不允许越过Asset检查或AIProposal采纳条件。
 
@@ -39,6 +45,14 @@ UseManifest保存精确字段和变换：禁止裁切的图不得裁切，要求
 
 导出/AI输入同时保存两种版本：内容是否过时与用途是否仍成立分别判断。已生成导出内容本来是过去快照，普通后续修字不必修改旧文件；但安全版本变了则必须拒绝新下载。内部清单本身是动态引用，不在后台偷偷保留无权的旧字节。
 
+### 3.1 Talent R1 的时间事实与冲突
+
+Person.originSource 只说明身份进入系统的来源。Role、Capability、Language、Location、Measurement、Representation、Credential 等保存自己的 source/version/validity；新来源与当前值冲突时不直接覆盖。
+
+MeasurementSet 的 CONFIRMED 记录作为历史快照；新测量建立新记录并切 currentMeasurementSet 指针。Representation/Location/Credential 到期不删除历史。PersonLanguage 级别未知保持 null。
+
+AdultEligibility 只按明确状态工作；UNKNOWN 不因“看起来成年”自动变化。
+
 ## 4. 命令幂等的唯一顺序
 
 ```text
@@ -50,7 +64,7 @@ UseManifest保存精确字段和变换：禁止裁切的图不得裁切，要求
   → 写事实 + 最小审计 + 新回执 + 必要job，同事务提交
 ```
 
-`authorizeReplay`查当前成员和当前可读范围，不再次执行原状态转换（例如上次成功删除后对象已经ERASED）和旧expectedRevision。对已删对象仅返回有权看到的处置头；不重放旧敏感payload。任何停用账号不因有回执被放行。
+`authorizeReplay` 对人类 Membership 与 ServicePrincipal 使用各自当前资格：人类检查会话/成员/权限；机器检查 principal status/scope/permission/credential epoch。对已删对象仅返回有权看到的处置头；不重放旧敏感payload。任何停用账号或 REVOKED ServicePrincipal 不因有旧回执被放行。
 
 SECRET类创建只存安全身份，响应丢失须显式轮换，旧秘密无效。SIGN/ACCESS现签现验；登录/激活/重置不应用通用业务回执保存口令或会话。
 
@@ -95,13 +109,22 @@ CSV下载延期，只提供有Schema的JSON及媒体清单。今后提供Excel/W
 
 本期不提供自动多供应商fallback。同job最多一条未决Attempt；供应商幂等key保持该Attempt身份，不每重试换UUID。实际成本未知不能在Job变FAILED/CANCELLED时自动释放预留。费用字段注明估算/返回用量/人工核对，不冒充对账单。
 
-## 8. 一份提议只采纳一次
+## 8. Proposal：冲突建议与 AI 建议都只采纳一次
 
-PENDING可预览、多选若干字段。apply事务锁Proposal和目标根、源依据，检查baseRevision/当前范围/字段Schema；写选择字段、审计与回执，Proposal整体APPLIED，保存selected/discarded清单。
+Talent R1 的 FieldProposal 与 AIProposal 共用核心状态：PENDING → APPLIED / REJECTED / STALE / ERASED。
 
-不允许第二个新key在APPLIED继续采纳剩余字段。同key重放原回执；需要后续建议就以当前事实创建新提议或手工编辑。源已经改动则STALE而不是“覆盖也许没事”。多目标采纳首版不提供；每份Proposal一个明确目标，避免半成功。
+Proposal 必须绑定 typed target、fieldPath、sourceRevision、baseRevision、schemaVersion 与真实 actor。fieldPath/code 必须在 Talent Schema 注册；不能用自由 JSON 绕过字段契约。
 
-parse_search只输出受限AST，用户确认后用现有查询服务执行，不写事实。draft_locale写内部文本草稿；不会调用发布动作。
+以下情况必须进入 Proposal，而不是静默覆盖：
+
+- ServicePrincipal 只有 `talent.propose` 没有直写权限；
+- 新来源与当前受保护事实冲突；
+- AI 输出；
+- 迁移/导入需要人工选择的多Role、ExternalRef冲突等。
+
+apply 事务锁 Proposal 与目标根/来源，重查 scope、permission、Schema、source/target revision；通过后调用目标领域命令，Proposal 整体 APPLIED。source/target/schema 已变化则 STALE。
+
+不允许第二个新 key 在 APPLIED 后继续采纳剩余字段；需要后续建议则创建新 Proposal。parse_search 只输出受限AST，draft_locale只写内部草稿。
 
 ## 9. 删除、派生文本与不可变载荷
 
@@ -115,7 +138,7 @@ parse_search只输出受限AST，用户确认后用现有查询服务执行，�
 
 租约、续租、代次只约束本地claim/ACK。网络、文件解析不进长事务；退出停止新claim，受限时间排空后留下可恢复状态。普通重试不能调用有未决Attempt的AI任务。
 
-恢复按11先隔离普通访问和AI/下载，生成新运行恢复批次。撤销旧session/激活令牌；旧AI任务不自动发，旧导出不直接下载。核对最新安全变化，未知区间中的旧记录不能自动回到可读列表。当前没有远端官网目标需要枚举/暂停。
+恢复按11先隔离普通访问和AI/下载，生成新运行恢复批次。撤销旧session/激活令牌；ServicePrincipal credential/keyVersion 也进入恢复一致性检查与必要轮换；旧AI任务不自动发，旧导出不直接下载。Talent R1 新关系（Role/ExternalRef/Language/Location/Measurement/Representation/Credential/Collection/Proposal）缺失或关系不一致时 restore-check 阻断放行。
 
 ## 11. 故障验收的最小集合
 
