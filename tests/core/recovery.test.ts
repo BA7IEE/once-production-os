@@ -331,7 +331,16 @@ test('DEV-09B stale media evidence is rejected and DB safety changes produce a n
         ...x, media: { ...x.media, expectedAssetIds: [] , verifiedAssetIds: [] }
     })), (e: unknown) => e instanceof AppError && e.code === 'RECOVERY_EXTERNAL_EVIDENCE_STALE');
 
-    const clean = await f.store.transaction(tx => r.inspect(tx, a, run.id, x,
+    await f.store.transaction(async tx => {
+        const asset = (await tx.find('assets'))[0]!;
+        await tx.replace('assets', { ...asset, revision: asset.revision + 1,
+            updatedAt: f.clock.now().toISOString(), fileName: 'metadata-changed.png' });
+    });
+    await assert.rejects(f.store.transaction(tx => r.check(tx, a, run.id, x)),
+        (e: unknown) => e instanceof AppError && e.code === 'RECOVERY_EXTERNAL_EVIDENCE_STALE',
+        'same IDs with changed asset metadata must invalidate old media evidence');
+
+    const clean = await f.store.transaction(tx => r.inspect(tx, a, run.id, external(f),
         { requestId: randomUUID(), ip: 'CLI' }));
     await f.store.transaction(async tx => {
         const member = (await tx.find('memberships', { id: reviewer.id }))[0]!;
