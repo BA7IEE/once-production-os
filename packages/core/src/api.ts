@@ -130,11 +130,13 @@ export class Application {
     }
     private async markCommitted(intent: SafetyIntent | null, resourceId: string): Promise<void> {
         if (!intent || !this.safetyIntent) return;
-        await this.safetyIntent.committed(intent, resourceId).catch(() => {});
+        try { await this.safetyIntent.committed(intent, resourceId); }
+        catch { /* DB already committed; missing completion evidence must block later recovery, not rewrite the response. */ }
     }
     private async markAborted(intent: SafetyIntent | null): Promise<void> {
         if (!intent || !this.safetyIntent) return;
-        await this.safetyIntent.aborted(intent).catch(() => {});
+        try { await this.safetyIntent.aborted(intent); }
+        catch { /* write-ahead intent remains unresolved and therefore conservative during recovery. */ }
     }
     private cookie(name: string, value: string, seconds: number): string { return `${name}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${seconds}${this.config.secureCookies ? '; Secure' : ''}`; }
     private preAuthValue(): string { const body = `${randomSecret()}.${this.clock.now().getTime() + 15 * 60000}`; return `${body}.${csrfFor(body, this.config.csrfKey)}`; }
