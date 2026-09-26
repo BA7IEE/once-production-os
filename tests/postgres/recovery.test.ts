@@ -171,7 +171,7 @@ test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch appro
         };
         await assert.rejects(faults.transaction(tx => recovery.prepare(tx, recoveryActor, hashSecret(oldEpoch),
             { requestId: randomUUID(), ip: 'CLI' })),
-            (e: unknown) => e instanceof Error && 'code' in e && (e as { code: string }).code === 'DB_WRITE_FAILED');
+            (e: unknown) => e instanceof Error && 'code' in e && (e as { code: string }).code === 'STORE_UNAVAILABLE');
         assert.ok(fired, 'fault must happen after the real recovery audit insert inside the transaction');
         assert.equal(await client.recoveryRun.count(), 0);
         assert.equal((await client.sourceRecord.findUniqueOrThrow({ where: { id: sourceId } })).status, beforeSource.status);
