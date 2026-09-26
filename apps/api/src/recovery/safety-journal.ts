@@ -108,6 +108,12 @@ export async function readSafetyJournal(path: string): Promise<SafetyJournalStat
         sequence: entries.length, headHash: prev, entries: entries.length
     }};
 }
+export function safetyJournalHashAt(state: SafetyJournalState, sequence: number): string {
+    invariant(Number.isSafeInteger(sequence) && sequence >= 0 && sequence <= state.entries.length,
+        'SAFETY_JOURNAL_ANCHOR_INVALID', '安全日志备份锚点序号无效', 503);
+    return sequence === 0 ? digest(state.header) : state.entries[sequence - 1]!.hash;
+}
+
 export async function createSafetyJournal(path: string, now = new Date()): Promise<SafetyJournalState> {
     invariant(isAbsolute(path) && resolve(path) === path, 'SAFETY_JOURNAL_PATH_INVALID', '安全日志必须使用规范绝对路径', 503);
     const parent = dirname(path), p = await stat(parent);
