@@ -112,6 +112,145 @@ export class RecoveryOps {
         return this.plan(tx, actor);
     }
 
+    private external(input: RecoveryExternalCheck): RecoveryExternalCheck {
+        invariant(input && typeof input === 'object', 'RECOVERY_CHECK_INVALID', '恢复外部检查结果格式无效', 400);
+        invariant(/^[a-f0-9]{64}$/.test(input.migrationDigest), 'RECOVERY_CHECK_INVALID', '迁移摘要格式无效', 400);
+        invariant(typeof input.migrationMatch === 'boolean', 'RECOVERY_CHECK_INVALID', '迁移匹配状态无效', 400);
+        const media = input.media;
+        invariant(media && ['disabled','local'].includes(media.provider), 'RECOVERY_CHECK_INVALID', '媒体检查模式无效', 400);
+        const arrays = [media.expectedAssetIds, media.verifiedAssetIds, media.missingAssetIds, media.mismatchAssetIds];
+        invariant(arrays.every(Array.isArray), 'RECOVERY_CHECK_INVALID', '媒体检查清单格式无效', 400);
+        for (const rows of arrays) for (const id of rows) uuid.parse(id);
+        invariant(arrays.every(rows => unique(rows).length === rows.length), 'RECOVERY_CHECK_INVALID', '媒体检查清单包含重复 ID', 400);
+        const expected = [...media.expectedAssetIds].sort();
+        const partition = [...media.verifiedAssetIds, ...media.missingAssetIds, ...media.mismatchAssetIds].sort();
+        invariant(partition.length === expected.length && partition.every((id, i) => id === expected[i]),
+            'RECOVERY_CHECK_INVALID', '媒体验证结果必须完整覆盖预期对象且不能交叉重复', 400);
+        if (media.provider === 'disabled')
+            invariant(media.verifiedAssetIds.length === 0, 'RECOVERY_CHECK_INVALID', '禁用媒体提供方不能声称已验证文件', 400);
+        return {
+            migrationDigest: input.migrationDigest,
+            migrationMatch: input.migrationMatch,
+            media: {
+                provider: media.provider,
+                expectedAssetIds: expected,
+                verifiedAssetIds: [...media.verifiedAssetIds].sort(),
+                missingAssetIds: [...media.missingAssetIds].sort(),
+                mismatchAssetIds: [...media.mismatchAssetIds].sort()
+            }
+        };
+    }
+
+    private async safetyState(tx: Tx, actor: Actor) {
+        const byId = <T extends { id: string }>(rows: T[]) => rows.sort((a,b) => a.id.localeCompare(b.id));
+        const workspace = (await tx.find('workspaces'))[0]!;
+        const users = byId(await tx.find('users', { workspaceId: actor.workspaceId }));
+        const memberships = byId(await tx.find('memberships', { workspaceId: actor.workspaceId }));
+        const sessions = byId(await tx.find('sessions', { workspaceId: actor.workspaceId }));
+        const activations = byId(await tx.find('activations', { workspaceId: actor.workspaceId }));
+        const sources = byId(await tx.find('sources', { workspaceId: actor.workspaceId }));
+        const contacts = byId(await tx.find('contacts', { workspaceId: actor.workspaceId }));
+        const handoffs = byId(await tx.find('handoffs', { workspaceId: actor.workspaceId }));
+        const usePermissions = byId(await tx.find('usePermissions', { workspaceId: actor.workspaceId }));
+        const exports = byId(await tx.find('exports', { workspaceId: actor.workspaceId }));
+        const jobs = byId(await tx.find('jobs', { workspaceId: actor.workspaceId }));
+        const uploads = byId(await tx.find('uploads', { workspaceId: actor.workspaceId }));
+        const assets = byId(await tx.find('assets', { workspaceId: actor.workspaceId }));
+        const deletions = byId(await tx.find('deletionRequests', { workspaceId: actor.workspaceId }));
+        const compact = {
+            workspace: { id: workspace.id, recoveryEpoch: workspace.recoveryEpoch },
+            users: users.map(x => [x.id,x.revision,x.status,x.sessionEpoch]),
+            memberships: memberships.map(x => [x.id,x.revision,x.status,x.role,[...x.extraPermissions].sort()]),
+            sessions: sessions.map(x => [x.id,x.revision,x.membershipId,x.userEpoch,x.recoveryEpoch,x.revokedAt]),
+            activations: activations.map(x => [x.id,x.revision,x.userId,x.expiresAt,x.consumedAt]),
+            sources: sources.map(x => [x.id,x.revision,x.status,x.protectionEpoch,x.validFrom,x.validUntil]),
+            contacts: contacts.map(x => [x.id,x.revision,x.personId,x.sourceId,x.ciphertext]),
+            handoffs: handoffs.map(x => [x.id,x.revision,x.state,x.personId,x.sourceId]),
+            usePermissions: usePermissions.map(x => [x.id,x.revision,x.status,x.subjectKind,x.subjectId,x.sourceId]),
+            exports: exports.map(x => [x.id,x.revision,x.state,x.payloadDigest,x.errorCode]),
+            jobs: jobs.map(x => [x.id,x.revision,x.state,x.errorCode]),
+            uploads: uploads.map(x => [x.id,x.revision,x.state,x.errorCode,x.expectedHash]),
+            assets: assets.map(x => [x.id,x.revision,x.state,x.sha256,x.previewHash,x.objectToken]),
+            deletions: deletions.map(x => [x.id,x.revision,x.state,x.executionPlanDigest,x.cleanupErrorCode,x.finalizationDigest,x.finalizationErrorCode])
+        };
+        return { workspace, users, memberships, sessions, activations, sources, contacts, handoffs, usePermissions, exports, jobs, uploads, assets, deletions,
+            databaseStateDigest: digest(compact) };
+    }
+
+    async inspect(tx: Tx, actor: Actor, recoveryRunId: string, externalInput: RecoveryExternalCheck,
+        meta: { requestId: string; ip: string }): Promise<RecoveryCheckReport> {
+        this.gates();
+        uuid.parse(recoveryRunId);
+        const run = await workspaceRow(tx, 'recoveryRuns', recoveryRunId, actor.workspaceId);
+        invariant(run && ['PREPARED','INSPECTED'].includes(run.state), 'RECOVERY_RUN_NOT_PREPARED',
+            '恢复批次尚未准备或已经批准', 409);
+        invariant(run.actorId === actor.membershipId, 'RECOVERY_ACTOR_MISMATCH', '只能由执行恢复准备的维护管理员继续检查', 403);
+        invariant(hashSecret(this.config.recoveryEpoch) === run.targetEpochDigest, 'RECOVERY_TARGET_EPOCH_CHANGED',
+            '部署侧 recovery epoch 已变化，请重新开始恢复流程', 409);
+        invariant(this.config.contactKey?.length === 32, 'RECOVERY_CONTACT_KEY_REQUIRED',
+            'restore-check 必须加载恢复后的 CONTACT_KEY_FILE', 503);
+        const external = this.external(externalInput);
+        const state = await this.safetyState(tx, actor);
+        const expectedAssetIds = state.assets.filter(x => x.state !== 'ERASED').map(x => x.id).sort();
+        invariant(expectedAssetIds.length === external.media.expectedAssetIds.length
+            && expectedAssetIds.every((id, i) => id === external.media.expectedAssetIds[i]),
+            'RECOVERY_EXTERNAL_EVIDENCE_STALE', '媒体检查对象与当前恢复数据库不一致，请重新检查', 409);
+
+        const blockers: string[] = [];
+        const block = (condition: boolean, code: string) => { if (condition) blockers.push(code); };
+        block(hashSecret(state.workspace.recoveryEpoch) !== run.sourceEpochDigest, 'SOURCE_EPOCH_CHANGED');
+        block(state.sessions.some(x => !x.revokedAt), 'ACTIVE_SESSION');
+        block(state.activations.some(x => !x.consumedAt), 'PENDING_ACTIVATION');
+        block(state.users.some(x => x.id !== actor.userId && x.status !== 'DISABLED'), 'OLD_USER_ACTIVE');
+        block(state.memberships.some(x => x.id !== actor.membershipId && x.status !== 'DISABLED'), 'OLD_MEMBERSHIP_ACTIVE');
+        block(state.handoffs.some(x => x.state === 'PENDING' || x.state === 'ACCEPTED'), 'HANDOFF_ACTIVE');
+        block(state.usePermissions.some(x => x.status === 'ACTIVE'), 'USE_PERMISSION_ACTIVE');
+        block(state.exports.some(x => x.state === 'READY' || x.state === 'QUEUED'), 'EXPORT_ACTIVE');
+        block(state.jobs.some(x => x.state === 'QUEUED' || x.state === 'RUNNING'), 'JOB_RUNNABLE');
+        block(state.uploads.some(x => ['OPEN','RECEIVING','UPLOADED','QUEUED','PROCESSING'].includes(x.state)), 'UPLOAD_RUNNABLE');
+        block(state.assets.some(x => x.state === 'READY'), 'ASSET_NOT_QUARANTINED');
+        block(state.sources.some(x => x.status === 'RECEIVED' || x.status === 'CONFIRMED'), 'SOURCE_NOT_REVIEWED');
+        block(state.deletions.some(x => x.state === 'CLEANING'), 'DELETION_IN_FLIGHT');
+        block(!external.migrationMatch, 'MIGRATION_MISMATCH');
+        block(external.media.provider === 'disabled' && expectedAssetIds.length > 0, 'MEDIA_PROVIDER_REQUIRED');
+        block(external.media.missingAssetIds.length > 0, 'MEDIA_MISSING');
+        block(external.media.mismatchAssetIds.length > 0, 'MEDIA_DIGEST_MISMATCH');
+
+        let contactDecryptFailures = 0;
+        for (const row of state.contacts) {
+            try {
+                decryptContact(row.ciphertext, this.config.contactKey,
+                    row.workspaceId + ':' + row.personId + ':' + row.id);
+            } catch { contactDecryptFailures++; }
+        }
+        block(contactDecryptFailures > 0, 'CONTACT_KEY_MISMATCH');
+
+        const checkedAt = this.clock.now().toISOString();
+        const report: RecoveryCheckReport = {
+            schemaVersion: 'once-recovery-check-v1',
+            recoveryRunId: run.id,
+            workspaceId: actor.workspaceId,
+            targetEpochDigest: run.targetEpochDigest,
+            checkedAt,
+            databaseStateDigest: state.databaseStateDigest,
+            migrationDigest: external.migrationDigest,
+            migrationMatch: external.migrationMatch,
+            contactKeyDigest: hashSecret(this.config.contactKey.toString('hex')),
+            contactCount: state.contacts.length,
+            contactDecryptFailures,
+            media: external.media,
+            blockers: unique(blockers).sort()
+        };
+        const next: RecoveryRun = {
+            ...touch(run, this.clock), state: 'INSPECTED', checkedAt,
+            approvedAt: null, reportDigest: digest(report), report
+        };
+        await tx.replace('recoveryRuns', next);
+        await audit(tx, actor, actor.workspaceId, 'recovery.inspect', 'recovery', run.id,
+            ['reportDigest','databaseStateDigest','migrationDigest','contacts','media','blockers'], meta, this.clock);
+        return report;
+    }
+
     async prepare(tx: Tx, actor: Actor, expectedSourceEpochDigest: string,
         meta: { requestId: string; ip: string }): Promise<RecoveryRun> {
         invariant(/^[a-f0-9]{64}$/.test(expectedSourceEpochDigest), 'RECOVERY_SOURCE_EPOCH_DIGEST_INVALID',
