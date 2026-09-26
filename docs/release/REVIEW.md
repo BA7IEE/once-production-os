@@ -1,6 +1,25 @@
-> 当前增量详见 [WP6_PERSON_MERGE.md](WP6_PERSON_MERGE.md)。当前结论以 PR #17 最终 head 与对应 Actions 为准。
+> 当前增量详见 [WP7_JSON_REBUILD.md](WP7_JSON_REBUILD.md)。当前结论以 PR #18 最终 head 与对应 Actions 为准。
 
 # 第一批源码 Review
+
+## 2026-09-26 DEV-07H / T29 隔离 JSON 重建 Review
+
+本轮明确把 JSON rebuild 与 backup restore 分开。重建器只消费受控 `once-export-v1` 业务图，不恢复账号、会话、密钥、Contact、Evidence、Audit 历史或媒体字节。
+
+对抗审查中实际发现并修复：
+
+1. MemoryStore 没暴露 SourceHistory BASELINE 的真实 PostgreSQL CHECK；PG 首轮直接拒绝 actorId/decisionReason 非 null，修正为 observed baseline，执行人由 rebuild.apply Audit 单独记录。
+2. 目标 Dictionary 若用正常 API 预置会产生 CommandReceipt，原“空目标”判断因此自相矛盾；修为业务表必须空，但允许 target-local catalog/audit/receipt 准备痕迹。
+3. 同一 Asset 可被多个 Work 合法复用，不能按 assetId 全局判重；改为 workId+assetId link 唯一，并要求同 assetId 的 identity 元数据完全一致。
+4. media position 必须从 0 连续，单 Work 仍受 30 个媒体上限。
+5. 直接写 Store 不能绕过普通 API：重复 roles/language/skill/workType、trim 后空标题、单 Work >50 credits、单 Project >50 participants / >30 works 均拒绝。
+6. APPLY 不能只信“Schema 看起来正确”的 JSON；现强制 `--expected-sha256` 与源 READY Export `payloadDigest` 一致，并在数据库访问前完成 digest gate。
+7. rebuild.apply Audit 的 resourceId 改为源 exportId，目标库可以解释这批数据来自哪一份冻结导出。
+8. CLI 兼容标准 pnpm `--` 分隔符，并使用 machine-readable quiet 调用验证 JSON 输出。
+
+功能冻结 head `feeab369396bf85536c92e3f8812d2bd50d3be9a`，Actions `36220456451` 五项全部 success：103 routes、274/274 core/transport、67/67 原 PG 合同、T29 real export→PG rebuild 1/1、CLI safety acceptance PASS，四条 browser 主链全部通过。
+
+下一阶段必须是 DEV-09 备份/恢复，不应继续给 T29 增加“像备份”的能力。
 
 ## 2026-09-26 DEV-07G 受控 Person merge Review
 
