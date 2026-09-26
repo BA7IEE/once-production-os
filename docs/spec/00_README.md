@@ -1,6 +1,6 @@
 # ONCE Production OS｜v0.5 内部 OS + Talent Domain 2.0 R1 开发基线
 
-版本：v0.5｜日期：2026-09-27｜当前范围：一期内部 OS + Talent Domain 2.0 R1 + AI｜状态：R1 已重新冻结候选，相关实现尚未执行
+版本：v0.5｜日期：2026-09-27｜当前范围：一期内部 OS + Talent Domain 2.0 R1 + AI｜状态：R1 SPEC_FROZEN，相关实现尚未执行
 
 ## 1. 这版做什么
 
