@@ -186,8 +186,11 @@ test('DEV-07H T29 real once-export-v1 -> PostgreSQL rollback -> CLI rebuild 10/3
                 throw new Error('T29 synthetic audit failure');
             }
         };
-        await assert.rejects(faults.transaction(tx => rebuild.apply(tx, actor, exportPayload, { requestId: randomUUID(), ip: 'CLI' })), /T29 synthetic audit failure/);
-        assert.ok(fired);
+        await assert.rejects(
+            faults.transaction(tx => rebuild.apply(tx, actor, exportPayload, { requestId: randomUUID(), ip: 'CLI' })),
+            (error: unknown) => error instanceof Error && (error as any).code === 'STORE_UNAVAILABLE'
+        );
+        assert.ok(fired, 'fault must happen after the real audit insert inside the transaction');
         assert.equal(await targetClient.sourceRecord.count(), 0);
         assert.equal(await targetClient.sourceHistory.count(), 0);
         assert.equal(await targetClient.person.count(), 0);
