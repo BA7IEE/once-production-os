@@ -100,7 +100,7 @@ R1 事实优先级：
 
 当前可以称为：
 
-**Talent Domain 2.0 R1 SPEC FROZEN CANDIDATE**
+**Talent Domain 2.0 R1 SPEC FROZEN**
 
 不能称为：
 
