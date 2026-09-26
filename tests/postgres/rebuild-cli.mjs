@@ -114,7 +114,7 @@ try {
 
     // DATABASE_URL is intentionally a different test DB; the CLI must use only DATABASE_URL_REBUILD.
     const commonEnv = { ...process.env, DATABASE_URL_REBUILD: targetUrl, DATABASE_URL: raw };
-    const check = run('pnpm', ['rebuild:json', '--', '--input', input, '--actor-login', 'owner'], commonEnv);
+    const check = run('pnpm', ['--silent', 'run', 'rebuild:json', '--', '--input', input, '--actor-login', 'owner'], commonEnv);
     const checked = JSON.parse(check.stdout);
     assert.equal(checked.mode, 'CHECK');
     assert.equal(checked.counts.people, 10);
@@ -125,12 +125,12 @@ try {
     assert.equal(await targetClient.person.count(), 0);
 
     // The ordinary once_test_* DB is rejected by the CLI target-name safety gate before any query.
-    const rejected = run('pnpm', ['rebuild:json', '--', '--input', input, '--actor-login', 'owner'], {
+    const rejected = run('pnpm', ['--silent', 'run', 'rebuild:json', '--', '--input', input, '--actor-login', 'owner'], {
         ...process.env, DATABASE_URL_REBUILD: raw
     }, 2);
     assert.match(rejected.stderr, /Only an explicit loopback once_rebuild_/);
 
-    const applied = run('pnpm', ['rebuild:json', '--', '--input', input, '--actor-login', 'owner', '--apply'], {
+    const applied = run('pnpm', ['--silent', 'run', 'rebuild:json', '--', '--input', input, '--actor-login', 'owner', '--apply'], {
         ...commonEnv, ALLOW_REBUILD: 'yes'
     });
     const summary = JSON.parse(applied.stdout);
@@ -165,7 +165,7 @@ try {
     assert.equal(history.action, 'BASELINE');
     assert.equal(history.baselineOnly, true);
 
-    const second = run('pnpm', ['rebuild:json', '--', '--input', input, '--actor-login', 'owner', '--apply'], {
+    const second = run('pnpm', ['--silent', 'run', 'rebuild:json', '--', '--input', input, '--actor-login', 'owner', '--apply'], {
         ...commonEnv, ALLOW_REBUILD: 'yes'
     }, 1);
     assert.match(second.stderr, /REBUILD_TARGET_NOT_EMPTY/);
