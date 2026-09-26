@@ -1,0 +1,35 @@
+name: Recovery review snapshot
+on:
+  push:
+    branches: [feat/recovery-delta-resolution]
+    paths: [.github/workflows/recovery-review-snapshot.yml]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Archive tracked source only and report fingerprint drift
+        run: |
+          mkdir -p "$RUNNER_TEMP/once-review"
+          git archive --format=zip HEAD -o "$RUNNER_TEMP/once-review/source.zip"
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, subprocess
+          files = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+          hashes = {p: hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest() for p in files if p and p != 'MANIFEST.sha256'}
+          out = pathlib.Path(os.environ['RUNNER_TEMP']) / 'once-review'
+          (out / 'hashes.json').write_text(json.dumps(hashes, sort_keys=True, indent=2) + '\n')
+          for line in pathlib.Path('MANIFEST.sha256').read_text().splitlines():
+              expected, path = line.split('  ', 1)
+              if hashes.get(path) != expected:
+                  print('DRIFT', path, 'actual=' + str(hashes.get(path)))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: recovery-review-source
+          path: ${{ runner.temp }}/once-review/
+          retention-days: 1
