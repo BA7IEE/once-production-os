@@ -27,7 +27,7 @@ import { page, workspaceRow } from './helpers.ts';
 import { requirePermission, scopeVisible, personFor, sourceFor } from './policy.ts';
 import { ROUTES, type RouteDefinition } from './routes.ts';
 import { uuid } from './validation.ts';
-import { requiresSafetyIntent, type SafetyIntentSink } from './safety-intent.ts';
+import { requiresSafetyIntent, type SafetyIntent, type SafetyIntentSink } from './safety-intent.ts';
 export interface ApiRequest {
     method: string;
     url: string;
@@ -102,21 +102,39 @@ export class Application {
         this.commands = new Commands(clock);
         this.imports = new Imports(store, clock, config, this.talent);
     }
-    private async writeAhead(actor: Actor, operation: string, requestId: string, resourceId: string, commandKey = ''): Promise<void> {
-        if (!this.safetyIntent) return;
+    private async writeAhead(actor: Actor, operation: string, requestId: string, resourceId: string, commandKey = ''): Promise<SafetyIntent | null> {
+        if (!this.safetyIntent) return null;
         if (commandKey)
             invariant(/^[A-Za-z0-9_-]{8,128}$/.test(commandKey), 'IDEMPOTENCY_REQUIRED',
                 '写入需要 8–128 位 Idempotency-Key', 400);
         const stable = commandKey
             ? digest({ workspaceId: actor.workspaceId, actorId: actor.membershipId, operation, commandKey })
             : requestId;
-        await this.safetyIntent.writeAhead({
+        const intent: SafetyIntent = {
             intentId: 'intent:' + stable,
             workspaceId: actor.workspaceId,
             operation,
             requestId,
             resourceId: resourceId || requestId
-        });
+        };
+        await this.safetyIntent.writeAhead(intent);
+        return intent;
+    }
+    private resultResourceId(body: unknown, fallback: string): string {
+        if (!body || typeof body !== 'object') return fallback;
+        for (const key of ['resourceId', 'membershipId', 'userId', 'id']) {
+            const value = (body as Record<string, unknown>)[key];
+            if (typeof value === 'string' && value.length > 0 && value.length <= 180) return value;
+        }
+        return fallback;
+    }
+    private async markCommitted(intent: SafetyIntent | null, resourceId: string): Promise<void> {
+        if (!intent || !this.safetyIntent) return;
+        await this.safetyIntent.committed(intent, resourceId).catch(() => {});
+    }
+    private async markAborted(intent: SafetyIntent | null): Promise<void> {
+        if (!intent || !this.safetyIntent) return;
+        await this.safetyIntent.aborted(intent).catch(() => {});
     }
     private cookie(name: string, value: string, seconds: number): string { return `${name}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${seconds}${this.config.secureCookies ? '; Secure' : ''}`; }
     private preAuthValue(): string { const body = `${randomSecret()}.${this.clock.now().getTime() + 15 * 60000}`; return `${body}.${csrfFor(body, this.config.csrfKey)}`; }
@@ -215,22 +233,31 @@ export class Application {
             }
             if (route.operation === 'auth.changePassword') {
                 const preActor = await this.store.transaction(tx => this.identity.authenticate(tx, token));
-                await this.writeAhead(preActor, route.operation, meta.requestId, preActor.membershipId);
-                await this.identity.changePassword(token, data, meta);
+                const intent = await this.writeAhead(preActor, route.operation, meta.requestId, preActor.membershipId);
+                try {
+                    await this.identity.changePassword(token, data, meta);
+                    await this.markCommitted(intent, preActor.membershipId);
+                }
+                catch (error) {
+                    await this.markAborted(intent);
+                    throw error;
+                }
                 response.cookies.push(this.cookie(sessionName, '', 0));
                 response.body = { state: 'PASSWORD_CHANGED' };
                 return response;
             }
+            let safetyIntent: SafetyIntent | null = null;
             if (requiresSafetyIntent(route.mode)) {
                 const preActor = await this.store.transaction(async tx => {
                     const actor = await this.identity.authenticate(tx, token);
                     if (route.permission) requirePermission(actor, route.permission);
                     return actor;
                 });
-                await this.writeAhead(preActor, route.operation, meta.requestId, params.id ?? meta.requestId,
+                safetyIntent = await this.writeAhead(preActor, route.operation, meta.requestId, params.id ?? meta.requestId,
                     route.mode === 'COMMAND' ? (request.headers['idempotency-key'] ?? '') : '');
             }
-            response.body = await this.store.transaction(async (tx) => {
+            try {
+                response.body = await this.store.transaction(async (tx) => {
                 const actor = await this.identity.authenticate(tx, token);
                 if (route.permission)
                     requirePermission(actor, route.permission);
@@ -347,6 +374,13 @@ export class Application {
                     default: return missing();
                 }
             });
+            }
+            catch (error) {
+                await this.markAborted(safetyIntent);
+                throw error;
+            }
+            await this.markCommitted(safetyIntent,
+                this.resultResourceId(response.body, params.id ?? safetyIntent?.resourceId ?? meta.requestId));
             if (['import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation))
                 response.status = 202;
             else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
