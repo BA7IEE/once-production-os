@@ -1,6 +1,30 @@
 # ONCE Production OS｜范围修复与对抗审查回填报告
 
-版本：v0.3｜日期：2026-09-22｜当前范围：一期内部 OS + AI｜状态：文档已修订，产品实现和运行测试未执行
+版本：v0.5｜日期：2026-09-27｜当前范围：一期内部 OS + Talent Domain 2.0 R1 + AI｜状态：R1 对抗审查已回填，新增实现未执行
+
+## 0. Talent Domain 2.0 R1 对抗审查回填
+
+2026-09-27 对 PR #24 的 R0 冻结稿做全局第一性原理复核，发现并回填以下结构问题；这些是规格修订，不是产品已实现：
+
+| 编号 | R0问题 | R1处置 |
+|---|---|---|
+| TD-R1-01 | Person 被默认等同 Talent | TalentProfile 改 0..1；普通经纪人/联系人可只有Person |
+| TD-R1-02 | Person.source 容易继续被当“整个人才主来源” | 收窄为 originSource；字段/关系事实各自 Evidence |
+| TD-R1-03 | 外部Agent没有稳定人物映射 | 新增 PersonExternalRef；exact ref解析，模糊不自动merge |
+| TD-R1-04 | Agent会冒充人类账号 | 新增 ServicePrincipal/Machine Actor 与 actor exactly-one |
+| TD-R1-05 | ModelProfile 复制跨角色身体事实 | 取消大而全ModelProfile；改CastingProfile+MeasurementSet组合视图 |
+| TD-R1-06 | 尺寸缺历史和尺码体系 | MeasurementSet时间快照；shoe/clothing value+system |
+| TD-R1-07 | MediaCollection把资料形式和内容类型混在一起 | collectionType 与 tag 分离 |
+| TD-R1-08 | Representation无法表达不同职业/地区 | 增加 personRoleId/territory/validity |
+| TD-R1-09 | Shortlist多职业上下文会丢 | ShortlistItem强制personRoleId |
+| TD-R1-10 | languageCodes无法表达商务可用程度 | PersonLanguage听说读写级别，旧数据不猜等级 |
+| TD-R1-11 | 成人场景资格没有最小事实位置 | AdultEligibility；UNKNOWN fail closed；不靠图片推断 |
+| TD-R1-12 | Capability可能演变自由标签垃圾场 | CapabilityDefinition + Schema Registry |
+| TD-R1-13 | Capability和资格证混淆 | PersonCredential独立；敏感编号加密/掩码 |
+| TD-R1-14 | Agent冲突写入缺少中间态 | FieldProposal；source/target/schema变化STALE |
+| TD-R1-15 | 时间变化事实表达不足 | Location/Language/Measurement/Representation/Credential均可带validity/source |
+
+R1 Gate 扩展为 TD2-T01～18；开发顺序仍为 DEV-09 → TD2-01～06 → DEV-08 AI。
 
 ## 1. 本轮纠偏
 
