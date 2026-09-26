@@ -204,13 +204,36 @@ export class SafetyJournalWriter {
             changedFields: audit.changedFields
         })));
     }
-    async writeAhead(intent: SafetyIntent): Promise<void> {
-        invariant(intent.operation.length > 0 && intent.operation.length <= 100
-            && intent.resourceId.length > 0 && intent.resourceId.length <= 160,
+    private intentSuffix(intent: SafetyIntent): string {
+        invariant(intent.intentId.startsWith('intent:') && intent.intentId.length > 15 && intent.intentId.length <= 200
+            && intent.operation.length > 0 && intent.operation.length <= 100
+            && intent.resourceId.length > 0 && intent.resourceId.length <= 180,
             'SAFETY_INTENT_INVALID', '安全意图元数据无效', 503);
+        return intent.intentId.slice('intent:'.length);
+    }
+    async writeAhead(intent: SafetyIntent): Promise<void> {
+        this.intentSuffix(intent);
         await this.appendRows([{
             auditId: intent.intentId, workspaceId: intent.workspaceId, createdAt: new Date().toISOString(),
             action: 'intent.' + intent.operation, resourceKind: 'intent',
+            resourceId: intent.resourceId, changedFields: []
+        }]);
+    }
+    async committed(intent: SafetyIntent, resourceId: string): Promise<void> {
+        const suffix = this.intentSuffix(intent);
+        invariant(resourceId.length > 0 && resourceId.length <= 180,
+            'SAFETY_INTENT_INVALID', '安全提交资源标识无效', 503);
+        await this.appendRows([{
+            auditId: 'commit:' + suffix, workspaceId: intent.workspaceId, createdAt: new Date().toISOString(),
+            action: 'commit.' + intent.operation, resourceKind: 'intent-commit',
+            resourceId, changedFields: []
+        }]);
+    }
+    async aborted(intent: SafetyIntent): Promise<void> {
+        const suffix = this.intentSuffix(intent);
+        await this.appendRows([{
+            auditId: 'abort:' + suffix, workspaceId: intent.workspaceId, createdAt: new Date().toISOString(),
+            action: 'abort.' + intent.operation, resourceKind: 'intent-abort',
             resourceId: intent.resourceId, changedFields: []
         }]);
     }
