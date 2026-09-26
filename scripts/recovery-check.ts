@@ -1,13 +1,11 @@
 /** DEV-09B restore-check CLI.
  * Default CHECK is zero-write. --record persists an INSPECTED report but never approves recovery. */
-import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { PrismaClient } from '@prisma/client';
 import { PrismaStore } from '../apps/api/src/prisma-store.ts';
-import { LocalMediaProvider } from '../apps/api/src/media/local-provider.ts';
 import { RecoveryOps } from '../packages/core/src/recovery.ts';
-import { digest } from '../packages/core/src/json.ts';
+import { collectRecoveryExternalCheck } from '../apps/api/src/recovery/external-check.ts';
 import { AppError } from '../packages/core/src/errors.ts';
 
 function usage(): never {
@@ -88,75 +86,7 @@ const recovery = new RecoveryOps({ now: () => new Date() }, config());
 try {
     await client.$connect();
 
-    const expectedMigrations = readdirSync(join(process.cwd(), 'prisma', 'migrations'), { withFileTypes: true })
-        .filter(x => x.isDirectory()).map(x => x.name).sort();
-    const appliedRows = await client.$queryRawUnsafe<Array<{ migration_name: string }>>(
-        'SELECT "migration_name" FROM "_prisma_migrations" WHERE "finished_at" IS NOT NULL AND "rolled_back_at" IS NULL ORDER BY "migration_name"');
-    const appliedMigrations = appliedRows.map(x => x.migration_name).sort();
-    const migrationMatch = expectedMigrations.length === appliedMigrations.length
-        && expectedMigrations.every((name, i) => name === appliedMigrations[i]);
-    const migrationDigest = digest({ expectedMigrations, appliedMigrations });
-
-    const assets = await client.mediaAsset.findMany({ where: { state: { not: 'ERASED' } }, orderBy: { id: 'asc' } });
-    const expectedAssetIds = assets.map(x => x.id);
-    const mediaIdentityDigest = digest(assets.map(x => ({
-        id: x.id, uploadId: x.uploadId, sourceId: x.sourceId, scopeId: x.scopeId, personId: x.personId,
-        revision: x.revision, fileName: x.fileName, mime: x.mime, bytes: x.bytes, sha256: x.sha256,
-        width: x.width, height: x.height, previewBytes: x.previewBytes, previewHash: x.previewHash,
-        objectToken: x.objectToken, state: x.state
-    })));
-    const verifiedAssetIds: string[] = [], missingAssetIds: string[] = [], mismatchAssetIds: string[] = [];
-    const mediaMode = process.env.MEDIA_PROVIDER ?? 'disabled';
-    if (!['disabled','local'].includes(mediaMode)) {
-        console.error('MEDIA_PROVIDER must be disabled or local for this restore-check slice.');
-        process.exit(2);
-    }
-
-    if (mediaMode === 'local') {
-        const root = process.env.MEDIA_ROOT;
-        if (!root) {
-            missingAssetIds.push(...expectedAssetIds);
-        }
-        else {
-            let provider: LocalMediaProvider | null = null;
-            try { provider = await LocalMediaProvider.openExisting(root); }
-            catch { missingAssetIds.push(...expectedAssetIds); }
-            if (provider) for (const asset of assets) {
-                try {
-                    await provider.verifyAsset({
-                        id: asset.id, workspaceId: asset.workspaceId,
-                        createdAt: asset.createdAt.toISOString(), updatedAt: asset.updatedAt.toISOString(),
-                        revision: asset.revision, uploadId: asset.uploadId, sourceId: asset.sourceId,
-                        scopeId: asset.scopeId, personId: asset.personId, fileName: asset.fileName,
-                        mime: asset.mime as 'image/jpeg'|'image/png'|'image/webp', bytes: asset.bytes,
-                        sha256: asset.sha256, width: asset.width, height: asset.height,
-                        previewBytes: asset.previewBytes, previewHash: asset.previewHash,
-                        objectToken: asset.objectToken, state: asset.state as 'READY'|'QUARANTINED'|'ERASED'
-                    });
-                    verifiedAssetIds.push(asset.id);
-                }
-                catch (error) {
-                    if ((error as NodeJS.ErrnoException).code === 'ENOENT') missingAssetIds.push(asset.id);
-                    else mismatchAssetIds.push(asset.id);
-                }
-            }
-        }
-    }
-    else {
-        missingAssetIds.push(...expectedAssetIds);
-    }
-
-    const external = {
-        migrationDigest, migrationMatch,
-        media: {
-            provider: mediaMode as 'disabled'|'local',
-            identityDigest: mediaIdentityDigest,
-            expectedAssetIds,
-            verifiedAssetIds,
-            missingAssetIds,
-            mismatchAssetIds
-        }
-    };
+    const external = await collectRecoveryExternalCheck(client);
     const actor = await store.transaction(tx => recovery.actorFromRestoredTarget(tx, input.actorLogin));
     const report = input.record
         ? await store.transaction(tx => recovery.inspect(tx, actor, input.recoveryRunId, external,

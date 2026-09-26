@@ -34,7 +34,10 @@
     "review:package": "node scripts/check-package.mjs",
     "rebuild:json": "node --experimental-strip-types scripts/rebuild-export.ts",
     "recovery:prepare": "node --experimental-strip-types scripts/recovery-prepare.ts",
-    "recovery:check": "node --experimental-strip-types scripts/recovery-check.ts"
+    "recovery:check": "node --experimental-strip-types scripts/recovery-check.ts",
+    "safety-journal": "node --experimental-strip-types scripts/safety-journal.ts",
+    "recovery:backup": "node --experimental-strip-types scripts/recovery-backup.ts",
+    "recovery:approve": "node --experimental-strip-types scripts/recovery-approve.ts"
   },
   "dependencies": {
     "@nestjs/common": "11.2.5",
