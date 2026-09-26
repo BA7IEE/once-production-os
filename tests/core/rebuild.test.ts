@@ -167,9 +167,8 @@ test('DEV-07H T29 apply preserves exported business ids and relations while rebi
     assert.equal(history[0]!.action, 'BASELINE');
     assert.equal(history[0]!.baselineOnly, true);
     assert.equal(history[0]!.sourceRevision, source.revision);
-    assert.match(history[0]!.decisionReason ?? '', /original source history/i);
-    assert.match(history[0]!.decisionReason ?? '', new RegExp(payload.exportId));
-    assert.match(history[0]!.decisionReason ?? '', new RegExp(summary.inputDigest));
+    assert.equal(history[0]!.decisionReason, null);
+    assert.equal(history[0]!.actorId, null);
 
     assert.equal(f.store.rows('workCredits').length, 3);
     assert.equal(f.store.rows('projectParticipants').length, 2);
