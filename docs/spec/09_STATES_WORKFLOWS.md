@@ -1,6 +1,6 @@
 # ONCE Production OS｜内部状态与工作流｜不含网站发布
 
-版本：v0.5｜日期：2026-09-27｜当前范围：一期内部 OS + Talent Domain 2.0 R1 + AI｜状态：R1 状态/时序契约重新冻结候选，尚未实现
+版本：v0.5｜日期：2026-09-27｜当前范围：一期内部 OS + Talent Domain 2.0 R1 + AI｜状态：R1 SPEC_FROZEN，尚未实现
 
 ## 1. 范围与状态分层
 
