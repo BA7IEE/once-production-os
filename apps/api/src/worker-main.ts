@@ -2,7 +2,7 @@ import { SafetyJournalWriter } from './recovery/safety-journal.ts';
 import { LocalMediaProvider } from './media/local-provider.ts';
 import { DeletionFinalizer } from './deletion/finalizer.ts';
 import { MediaWorker } from './media/worker.ts';
-import { randomUUID } from 'node:crypto';
+import { digest } from '../../../packages/core/src/json.ts';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { Application } from '../../../packages/core/src/api.ts';
 import { PrismaStore } from './prisma-store.ts';
@@ -35,11 +35,21 @@ async function run() {
                     await core.exports.process(exportClaim);
                 const deletionClaim = await core.deletionCleanup.claim();
                 if (deletionClaim) {
-                    if (safetyJournal) await safetyJournal.writeAhead({
-                        intentId: 'intent:' + randomUUID(), workspaceId: deletionClaim.workspaceId,
-                        operation: 'worker.deletion.cleanup', requestId: deletionClaim.id, resourceId: deletionClaim.id
-                    });
-                    await core.deletionCleanup.process(deletionClaim);
+                    const intent = safetyJournal ? {
+                        intentId: 'intent:' + digest({ workspaceId: deletionClaim.workspaceId,
+                            operation: 'worker.deletion.cleanup', resourceId: deletionClaim.id }),
+                        workspaceId: deletionClaim.workspaceId, operation: 'worker.deletion.cleanup',
+                        requestId: deletionClaim.id, resourceId: deletionClaim.id
+                    } : null;
+                    if (intent) await safetyJournal!.writeAhead(intent);
+                    try {
+                        await core.deletionCleanup.process(deletionClaim);
+                        if (intent) await safetyJournal!.committed(intent, deletionClaim.id).catch(() => {});
+                    }
+                    catch (error) {
+                        if (intent) await safetyJournal!.aborted(intent).catch(() => {});
+                        throw error;
+                    }
                 }
                 const didFinalize = await deletionFinalizer.cycle(stopController.signal);
                 const didMedia = media ? await media.cycle(stopController.signal) : false;
