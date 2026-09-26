@@ -191,10 +191,10 @@ export class JsonRebuild {
             await tx.insert('sources', source);
             const history: SourceHistory = {
                 ...base(actor.workspaceId, this.clock), sourceId: source.id, sourceRevision: source.revision,
-                scopeId: source.scopeId, actorId: actor.membershipId, action: 'BASELINE',
-                decisionReason: 'Controlled JSON rebuild baseline from export ' + payload.exportId + '; input digest ' + summary.inputDigest
-                    + '; original source history and reviewer identity were intentionally not restored.',
-                baselineOnly: true, basisAmbiguous: false, snapshot: sourceSnapshot(source)
+                scopeId: source.scopeId, actorId: null, action: 'BASELINE',
+                // BASELINE is an observed starting point, not invented historical authorship.
+                // The actual rebuild operator is recorded by the separate rebuild.apply audit.
+                decisionReason: null, baselineOnly: true, basisAmbiguous: false, snapshot: sourceSnapshot(source)
             };
             await tx.insert('sourceHistory', history);
         }
