@@ -51,6 +51,8 @@ export function analyzeSafetyDeltas(state: SafetyJournalState, backupSequence: n
 
     for (const key of [...logicalKeys].sort()) {
         const intent=intents.get(key),commit=commits.get(key),abort=aborts.get(key);
+        invariant(!(commit && abort), 'SAFETY_DELTA_INVALID',
+            '同一安全意图不能同时出现 commit 与 abort marker', 503);
         const evidence=[intent,commit,abort].filter((x): x is SafetyJournalEntry=>!!x&&x.seq>backupSequence);
         if(!evidence.length) continue;
         for(const row of evidence) used.add(row.seq);
@@ -59,6 +61,11 @@ export function analyzeSafetyDeltas(state: SafetyJournalState, backupSequence: n
         if(intent) invariant(intent.action==='intent.'+operation,'SAFETY_DELTA_INVALID','intent operation 不一致',503);
         if(commit) invariant(commit.action==='commit.'+operation,'SAFETY_DELTA_INVALID','commit operation 不一致',503);
         if(abort) invariant(abort.action==='abort.'+operation,'SAFETY_DELTA_INVALID','abort operation 不一致',503);
+        const workspaceId=intent?.workspaceId??commit?.workspaceId??abort!.workspaceId;
+        invariant([intent,commit,abort].filter(Boolean).every(x=>x!.workspaceId===workspaceId),
+            'SAFETY_DELTA_INVALID','同一安全意图的 marker workspace 不一致',503);
+        if(intent&&abort) invariant(intent.resourceId===abort.resourceId,
+            'SAFETY_DELTA_INVALID','abort marker 资源标识与 intent 不一致',503);
         const resourceId=commit?.resourceId??intent?.resourceId??abort!.resourceId;
 
         if(commit){
