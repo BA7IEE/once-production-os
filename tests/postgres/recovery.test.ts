@@ -267,6 +267,9 @@ test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch appro
         assert.match(inspected.reportDigest ?? '', /^[a-f0-9]{64}$/);
         assert.equal((inspected.report as any).databaseStateDigest, recordedReport.databaseStateDigest);
         assert.equal((await client.auditEvent.findFirstOrThrow({ where: { action: 'recovery.inspect' } })).resourceId, prepared.id);
+        await assert.rejects(client.recoveryRun.update({ where: { id: prepared.id }, data: {
+            report: { ...(inspected.report as any), recoveryRunId: randomUUID() }
+        } }), 'database must reject a restore report whose embedded identity does not match the RecoveryRun');
         assert.equal((await client.workspace.findUniqueOrThrow({ where: { id: ids.workspaceId } })).recoveryEpoch, oldEpoch,
             'inspection still must not approve the deployment epoch');
 
