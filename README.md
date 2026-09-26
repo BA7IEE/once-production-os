@@ -17,8 +17,9 @@ Person merge 不是自动去重。它要求 `data.merge + records.write`、显�
 ## 仍未完成
 
 - DEV-09E：post-backup Safety Intent 的 committed/failed 配对与逐条 resolution；
+- **Talent Domain 2.0 R1**：TD2-01～06 / TD2-T01～18 尚未实现；
 - 正式 COS / PDF / 视频 provider；
-- DEV-08 四类有界 AI；
+- DEV-08 四类有界 AI（必须在 Talent R1 Gate 后）；
 - 最终性能/生产接管门。
 
 当前恢复链对任何 post-backup journal delta 都会保守阻断；在 09E 完成前，不允许用人工勾选绕过。
@@ -37,6 +38,8 @@ Person merge 不是自动去重。它要求 `data.merge + records.write`、显�
 - [当前实现状态](docs/release/IMPLEMENTATION_STATUS.md)
 - [测试报告](docs/release/TEST_REPORT.md)
 - [开发 Agent 入口](AGENTS.md)
-- [原始 v0.3 规格](docs/spec/00_README.md)
+- [当前 v0.5 / Talent Domain 2.0 R1 规格](docs/spec/00_README.md)
+- [Talent Domain 2.0 R1 冻结契约](docs/spec/15_TALENT_DOMAIN_2.md)
+- [Talent R1 实施计划](docs/release/TALENT_DOMAIN_2_PLAN.md)
 
-下一刀是 **DEV-09E Safety Delta Resolution**。根目录 `MANIFEST.sha256` 是文件一致性清单，不是代码签名或安全认证。
+下一刀仍是 **DEV-09E Safety Delta Resolution**；其整体 Gate 关闭后按 **TD2-01 → TD2-06 → TD2-T01～18 → DEV-08** 推进。根目录 `MANIFEST.sha256` 是文件一致性清单，不是代码签名或安全认证。
