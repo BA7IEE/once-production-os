@@ -1,4 +1,4 @@
-import { open, readFile, rename, stat } from 'node:fs/promises';
+import { open, readFile, stat } from 'node:fs/promises';
 import { dirname, isAbsolute, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { AuditEvent } from '../../../../packages/core/src/model.ts';
@@ -160,12 +160,5 @@ export class SafetyJournalWriter {
         // Re-read the whole chain after append. A concurrent or partial writer must be detected now.
         this.state = await readSafetyJournal(this.path);
         return additions.length;
-    }
-    async replaceAtomicallyFromVerified(sourcePath: string): Promise<void> {
-        const verified = await readSafetyJournal(sourcePath);
-        invariant(verified.header.journalId === this.state.header.journalId, 'SAFETY_JOURNAL_INVALID',
-            '不能用另一条安全日志链替换当前 journal', 503);
-        await rename(sourcePath, this.path);
-        this.state = await readSafetyJournal(this.path);
     }
 }
