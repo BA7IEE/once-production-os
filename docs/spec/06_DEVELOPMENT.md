@@ -1,10 +1,10 @@
 # ONCE Production OS｜开发实施文档｜先把内部 OS 做出来
 
-版本：v0.4｜日期：2026-09-26｜当前范围：一期内部 OS + Talent Domain 2.0 + AI｜状态：Talent 2.0 规格冻结候选，新增实现未执行
+版本：v0.5｜日期：2026-09-27｜当前范围：一期内部 OS + Talent Domain 2.0 R1 + AI｜状态：R1 重新冻结候选，新增实现未执行
 
 ## 1. 实施目标
 
-第一版让团队可以持续使用：人有统一档案，Person 下可挂多个职业 Role 与 Capability，作品有真实署名，文件能安全存取，项目可记录实际参与，候选可内部整理，AI可协助但不能直接造事实。**不创建网站发布或客户门户；Talent Domain 2.0 必须先于正式人才 AI 契约完成。**
+第一版让团队可以持续使用：Person 是统一自然人身份，TalentProfile 可选；人才下有 Role/Capability/Language/Location/Casting/Measurement/Representation/ExternalRef/Credential 等有来源事实；作品有真实署名，文件安全，Shortlist 保留 Role 上下文。AI/Agent 可辅助但不能静默覆盖事实。**Talent Domain 2.0 R1 必须先于正式人才 AI 契约完成。**
 
 本文是开发入口；04定义业务行为；07/08/09定义实现契约；10定义工作包；12定义统一参数。以下结构和命令均是待创建的目标，不是现存源码或可直接运行的生产工具。
 
@@ -42,7 +42,7 @@ flowchart LR
 | 目录/责任域 | 独占写入 | 跨域开放 |
 |---|---|---|
 | identity / access | 账号、成员、会话、访问范围 | 当前身份、动作和字段权限 |
-| talent / catalog | Person、TalentProfile、PersonRole、Capability、专属职业资料、Representation、机构/品牌/联系方式/字典 | 受限人物与主体引用；版本化 Talent Schema |
+| talent / catalog | Person、optional TalentProfile、PersonRole、CapabilityDefinition/Capability、Language、Location、Casting/Measurement、Eligibility、ExternalRef、Representation、Credential、Translator关系、Schema Registry | 受限人物与主体引用；版本化 Talent Schema |
 | sources / use-policy | 来源依据、核验、额外使用许可、限制 | 当前用途判定与来源证据 |
 | media | 上传、对象、检查、资产及预览 | 当前可读的逻辑媒体；封存/检查命令 |
 | portfolio | 作品、素材顺序、真实署名 | 作品事实与资产清单 |
@@ -54,13 +54,13 @@ flowchart LR
 
 这不是要求每行一个独立服务或npm包。共享数据库不等于任意跨域改表：由应用命令启动一次事务，各域入口接同一tx；只读聚合也经过统一权限过滤。平台不得反向依赖AI或ONCE业务细节。
 
-### 3.1 Talent Domain 2.0 的实现边界
+### 3.1 Talent Domain 2.0 R1 的实现边界
 
-人才域不采用“一职业一人才表”。Person 是现实人物唯一主身份；PersonRole 是职业；PersonCapability 是能力；ModelProfile 等专属结构只在真实业务需要稳定结构化字段时增加。详细契约见 `15_TALENT_DOMAIN_2.md`。
+Person 是现实自然人唯一主身份，**不等于 Talent**。TalentProfile 是 0..1 扩展；经纪人/客户联系人可只有 Person。PersonRole 是职业，PersonCapability 是能力；R1 不建立“大而全 ModelProfile”，Model UI 由 Role + CastingProfile + MeasurementSet + Capability + Collection + Work/Representation 组合。详细契约见 `15_TALENT_DOMAIN_2.md`。
 
-当前实现中的 `Person.roles[] / skillCodes[] / heightCm` 视为过渡结构。TD2 只能追加前向 migration：新增新表 → 回填与双读验证 → 切新写 → 兼容期 → 另一个 migration 删除旧列。禁止为了升级重新生成 Person/Work/Project/Asset ID。
+当前 `Person.roles[] / skillCodes[] / languageCodes[] / cityCode / heightCm / sourceId` 视为过渡结构。TD2 只能追加前向 migration：新增结构 → 回填/双读 → 新写切换 → 兼容期 → 另一个 migration 删除旧列；`sourceId` 语义收窄为 originSource。稳定 Person/Work/Project/Asset ID 不变。
 
-MediaCollection 只组织已有 Asset；Work 继续表示真实作品。Representation 表达经纪/Agency/booking 联系关系。External Work 与 ONCE Project 的现有语义保持不变。
+ExternalRef 提供精确身份映射但不允许模糊自动merge；ServicePrincipal 是独立 Machine Actor；FieldProposal 承接冲突或无直写权限的 Agent/Import/AI 建议。Shortlist 必须保存 personRoleId。MediaCollection type 与内容 tag 分离。
 
 ## 4. 目标仓库结构
 
@@ -84,11 +84,11 @@ once-production-os/
 
 1. `DEV-01`实现本地一次性bootstrap：仅空安装创建首个ADMIN；口令通过安全交互输入，无默认值，不提供匿名HTTP接口。
 2. 管理员建立编辑账号并交付一次性激活凭证；编辑激活后得到内部会话。忘记密码走受控重置/重新激活，旧会话作废。
-3. 编辑在“新增人才”页输入展示名、至少一个PersonRole和来源说明。允许内联创建来源（含已说明的临时接收依据与期限），在同一命令提交；不用先有PDF或图片。同一人物增加第二职业只新增Role，不复制Person。
+3. 编辑先建立 Person；只有作为制作人才时创建 TalentProfile + 至少一个 PersonRole。originSource 可内联创建；经纪人等普通联系人可只建 Person。同一人物增加第二职业只新增 Role，不复制 Person。后续 Language/Location/Capability/ExternalRef/Representation 等事实各自带来源。
 4. 同页添加图片/PDF：创建UploadSession → 直传staging → complete返回任务ID → Worker封存并检查final → Asset绑定该source。一个source可含多文件，绑定由upload.sourceId推导，不由客户端任意改父对象。
 5. 建Work，写真实作者/出镜/后期角色；外部作品保持EXTERNAL。关联某实际Project时区分REFERENCE和DELIVERABLE。
-6. 按Role、Capability、城市/服务地区、语言、Work/Project事实检索，建内部Shortlist，保存顺序和备注；另一成员只看到自己有权的条目。没有分享链接。
-7. **先通过Talent Domain 2.0 Gate。** 之后选择获准文字提交AI；AI按版本化Talent Schema生成待确认字段，多选一次采纳。没有AI时手填同样字段。
+6. 按 Role、Capability、Language level、BASE/SERVICE Location、Work/Project/Collection 等事实检索；加入 Shortlist 时必须保存 personRoleId，再保存顺序/备注/选图。另一成员只看到自己有权的条目。
+7. **先通过 Talent Domain 2.0 R1 Gate。** 外部 Agent 使用 ServicePrincipal + schemaVersion；无直写权/冲突时进入 FieldProposal。之后 AI 才按同一 Talent Schema 生成待确认字段。没有 AI 时人工路径完整可用。
 8. 抽查来源、当前用途和审计；用内部JSON导出做隔离重建。恢复时不要求CMS存在。
 
 这条旅程由前端和接口契约同时覆盖，不能只生成数据库表和Swagger就算交付。
@@ -117,7 +117,7 @@ UsePolicy是确定性函数，当前只处理有限用途：INTERNAL、INTERNAL_
 
 ## 9. AI链路与前端
 
-首版四类任务以获准文字工作；PDF先本地提取文字，扫描件显示“需人工补文字”，不偷偷发整份原件给外部OCR。作品描述可打标签；图片视觉理解另增评审，不在当前必需清单。正式 `extract_profile / suggest_tags / parse_search` 必须在 TD2-06 Gate 后读取版本化 Talent Schema，不允许继续以旧 Person.roles[] / skillCodes[] / heightCm 作为长期事实契约。
+首版四类任务以获准文字工作；PDF先本地提取文字。正式 `extract_profile / suggest_tags / parse_search` 必须在 TD2-06 Gate 后读取版本化 Talent Schema；旧 roles/skills/languageCodes/city/height 不能作为长期事实契约。图片视觉理解另增评审，且不得用于推断成年、国籍、健康、宗教等敏感事实。
 
 输入白名单构造后保存sourceRevision、protectionEpoch、输入摘要、用途证据和providerConfigRevision。预算预留后排队；发送前原子写Attempt=MAY_HAVE_EXECUTED。请求未决时同job不能再发送另一Attempt。超时/进程崩溃先进入UNKNOWN并核对，不自动换模型再试。
 
@@ -125,7 +125,7 @@ UsePolicy是确定性函数，当前只处理有限用途：INTERNAL、INTERNAL_
 
 ## 10. 内部页面的完成标准
 
-人才：快速建立、编辑、多个PersonRole、Capability、通用资料、专属Role资料、Representation、MediaCollection、来源、作品、项目与当前可见联系信息。素材：批量上传进度、处理态、失败原因、当前可访问预览。作品：归组、排序、封面、署名。项目：参与、成果/参考、复盘。候选：按Role/Capability/作品事实检索、添加、排序、备注。AI：任务、输入确认、差异、采纳。设置：账号、字典、日志、作业和恢复/配置状态。
+人才：Person/Talent边界、Role、Capability、Language、Location、Casting/Measurement、Eligibility、ExternalRef、Representation、Credential、Collection、来源/证据/Proposal、作品/项目与联系信息。候选：按 Role Context 加入并筛选。AI/Agent：机器身份、Schema、Proposal、采纳。设置：人类账号、ServicePrincipal、字典/Schema、日志、作业和恢复状态。
 
 所有表单对权限/状态失败给可执行下一步；冲突说明是谁/何时更新了可见部分，不泄露其他范围数据。不要出现“官网发布中”“客户反馈待处理”“正在锁档”等无一期对应功能的状态。
 
@@ -144,6 +144,6 @@ UsePolicy是确定性函数，当前只处理有限用途：INTERNAL、INTERNAL_
 
 ## 12. 开发顺序与完成定义
 
-原 DEV-00～11 工作包继续保留历史编号；v0.4 在 DEV-09 与 DEV-08 之间新增 TD2-01～06 强制升级线。M1可先内部试用，但正式M2人才AI不得绕过TD2 Gate。M1必须含导出删除和基础恢复，不能因编号较后就跳过。任何阶段都不依赖网站工作。
+原 DEV-00～11 继续保留；v0.5 在 DEV-09 与 DEV-08 之间保留 TD2-01～06，但 R1 重定义其内容：Identity/Machine Actor → Common Facts → Casting/Representation → Media/Role Context → Search/Maintenance → Schema/Agent Gate。正式 M2 人才 AI 不得绕过 TD2-T01～18。
 
 每个PR有范围、FR/T编号、迁移、权限/审计变更、真实执行证据与回滚/前滚方案。主代码测试、真实DB测试、供应商测试分别标识；NOT_RUN不能写成通过。不要一次把全套需求转成几十张CRUD表后再补安全和交互。
