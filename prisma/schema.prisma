@@ -1038,6 +1038,8 @@ model RecoveryRun {
   approvedAt DateTime? @db.Timestamptz(3)
   reportDigest String? @db.Text
   report Json @db.JsonB
+  approvalDigest String? @db.Text
+  approval Json @db.JsonB
   revokedSessions Int
   consumedActivations Int
   disabledUsers Int
