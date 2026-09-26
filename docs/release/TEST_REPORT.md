@@ -1,5 +1,18 @@
 # 实际测试与验证记录
 
+## WP7｜DEV-07H / T29 隔离 JSON 重建
+
+详见 [WP7_JSON_REBUILD.md](WP7_JSON_REBUILD.md)。功能冻结 head `feeab369396bf85536c92e3f8812d2bd50d3be9a`，PR #18。
+
+Actions `36220456451` 五项全绿：103 条请求契约；274/274 core/transport；rebuild core 11/11；原 PostgreSQL 合同 67/67；真实 once-export-v1 → fresh once_rebuild_* PostgreSQL 1/1；browser-resume 17/17；原生表单 Chromium 6/6；browser-production / handoff / media 全部 success。
+
+T29 真链路不是手造内存数据：在 source PostgreSQL 通过正式 Application API 创建 10 Person、3 Work、1 Project 与关系，创建 INTERNAL_EXPORT UsePermission，真实 Export Worker 生成 READY payload 与 payloadDigest；随后创建独立 once_rebuild_* PostgreSQL，migrate + bootstrap，CHECK 零写，注入 audit fault 验证 APPLY 整事务回滚，再通过 CLI 使用真实 payloadDigest APPLY，并直接查询 PostgreSQL 验证稳定 UUID、3/2/3 条关系和 Source BASELINE。
+
+CLI 另验证普通 once_test_* URL 拒绝、digest mismatch 在数据库访问前拒绝、APPLY 必须 ALLOW_REBUILD=yes、第二次 APPLY 因目标非空拒绝。不会恢复 Session、Contact、Evidence、Export 或媒体字节；ACTIVE Work / ACTUAL participant 因缺失必要材料拒绝伪造。
+
+对抗审查后额外修复：SourceHistory BASELINE 必须 actorId/decisionReason 均为 null；目标可通过正常 API 预置 Dictionary 而不会被 CommandReceipt 误判为业务污染；同一 Asset 可跨 Work 复用但 identity 必须一致；重建不能绕过正常 API 的重复分类、空白标题、每根关系/媒体上限；rebuild.apply Audit 绑定源 exportId。
+
+
 ## WP6｜DEV-07G 受控 Person merge
 
 详见 [WP6_PERSON_MERGE.md](WP6_PERSON_MERGE.md)。功能冻结 head `1673272979e338ede4ddf09952c941cae7344070`，PR #17。
