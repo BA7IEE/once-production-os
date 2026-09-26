@@ -253,6 +253,27 @@ test('DEV-07H T29 cannot bypass normal per-work or per-project relationship limi
     await assert.rejects(preview(f2, payload2), (e: unknown) => e instanceof AppError && e.code === 'REBUILD_ROOT_MEDIA_LIMIT');
 });
 
+test('DEV-07H T29 rejects states normal record APIs would not create', async () => {
+    for (const [code, mutate] of [
+        ['REBUILD_DUPLICATE_CODE', (p: any) => { p.manifest.people[0].data.roles = ['model','model']; }],
+        ['REBUILD_DUPLICATE_CODE', (p: any) => { p.manifest.people[0].data.languageCodes = ['zh','zh']; }],
+        ['REBUILD_DUPLICATE_CODE', (p: any) => { p.manifest.works[0].data.workTypeCodes = ['product_photo','product_photo']; }],
+        ['REBUILD_TITLE_REQUIRED', (p: any) => { p.manifest.works[0].data.title = '   '; }],
+        ['REBUILD_TITLE_REQUIRED', (p: any) => { p.manifest.projects[0].data.title = '   '; }]
+    ] as Array<[string, (p: any) => void]>) {
+        const f = await fixture();
+        if (code === 'REBUILD_DUPLICATE_CODE' && mutate.toString().includes('product_photo')) {
+            const created = await f.owner.cmd('POST', '/catalog/items', {
+                namespace: 'workType', code: 'product_photo', labelZh: '产品摄影', labelEn: 'Product photo'
+            });
+            assert.equal(created.status, 201);
+        }
+        const payload: any = rebuildablePayload();
+        mutate(payload);
+        await assert.rejects(preview(f, payload), (e: unknown) => e instanceof AppError && e.code === code);
+    }
+});
+
 test('DEV-07H T29 media identity permits cross-work reuse but rejects duplicate links and order gaps', async () => {
     const sharedAssetId = randomUUID();
 
@@ -268,6 +289,19 @@ test('DEV-07H T29 media identity permits cross-work reuse but rejects duplicate 
         const summary = await preview(f, payload);
         assert.equal(summary.counts.mediaIdentities, 2);
         assert.equal(summary.mediaRestored, 0);
+    }
+
+    {
+        const f = await fixture();
+        const payload: any = rebuildablePayload();
+        const sourceId = payload.manifest.sources[0].id;
+        const first = {
+            id: sharedAssetId, workId: payload.manifest.works[0].id, position: 0, isCover: true,
+            sourceId, revision: 1, fileName: 'shared.png', mime: 'image/png', bytes: 12,
+            sha256: 'd'.repeat(64), width: 2, height: 3
+        };
+        payload.manifest.media = [first, { ...first, workId: payload.manifest.works[1].id, sha256: 'e'.repeat(64) }];
+        await assert.rejects(preview(f, payload), (e: unknown) => e instanceof AppError && e.code === 'REBUILD_MEDIA_IDENTITY_CONFLICT');
     }
 
     {
