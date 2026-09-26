@@ -118,7 +118,7 @@ export class RecoveryOps {
         invariant(typeof input.migrationMatch === 'boolean', 'RECOVERY_CHECK_INVALID', '迁移匹配状态无效', 400);
         const media = input.media;
         invariant(media && ['disabled','local'].includes(media.provider), 'RECOVERY_CHECK_INVALID', '媒体检查模式无效', 400);
-        invariant(/^[a-f0-9]{64}$/.test(media.identityDigest), 'RECOVERY_CHECK_INVALID', '媒体身份摘要格式无效', 400);
+        invariant(/^[a-f0-9]{64}$/.test(media.identityDigest) && /^[a-f0-9]{64}$/.test(media.backupIdentityDigest), 'RECOVERY_CHECK_INVALID', '媒体身份摘要格式无效', 400);
         const arrays = [media.expectedAssetIds, media.verifiedAssetIds, media.missingAssetIds, media.mismatchAssetIds];
         invariant(arrays.every(Array.isArray), 'RECOVERY_CHECK_INVALID', '媒体检查清单格式无效', 400);
         for (const rows of arrays) for (const id of rows) uuid.parse(id);
@@ -135,6 +135,7 @@ export class RecoveryOps {
             media: {
                 provider: media.provider,
                 identityDigest: media.identityDigest,
+                backupIdentityDigest: media.backupIdentityDigest,
                 expectedAssetIds: expected,
                 verifiedAssetIds: [...media.verifiedAssetIds].sort(),
                 missingAssetIds: [...media.missingAssetIds].sort(),
@@ -320,7 +321,7 @@ export class RecoveryOps {
             '备份清单的 Contact key 摘要与 restore-check 不一致', 409);
         invariant(evidence.migrationDigest === stored.migrationDigest, 'RECOVERY_BACKUP_MIGRATION_MISMATCH',
             '备份清单的迁移摘要与 restore-check 不一致', 409);
-        invariant(evidence.mediaIdentityDigest === stored.media.identityDigest, 'RECOVERY_BACKUP_MEDIA_MISMATCH',
+        invariant(evidence.mediaIdentityDigest === stored.media.backupIdentityDigest, 'RECOVERY_BACKUP_MEDIA_MISMATCH',
             '备份清单的媒体身份摘要与 restore-check 不一致', 409);
 
         const { report: fresh } = await this.inspection(tx, actor, recoveryRunId, externalInput);
