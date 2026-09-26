@@ -48,6 +48,18 @@ export class LocalMediaProvider {
         await chmod(root, 0o700);
         return new LocalMediaProvider(resolve(root));
     }
+    /** Restore-check opener: validate an existing private-media root without creating or chmod'ing anything. */
+    static async openExisting(root: string) {
+        invariant(isAbsolute(root) && resolve(root) !== '/', 'MEDIA_ROOT_INVALID', 'MEDIA_ROOT必须是独立的绝对目录', 503);
+        invariant(await realpath(root) === resolve(root), 'MEDIA_ROOT_INVALID', '存储目录不能经过符号链接', 503);
+        invariant(await readFile(join(root, '.once-private-media-v1'), 'utf8') === 'ONCE_PRIVATE_MEDIA_V1\n',
+            'MEDIA_ROOT_INVALID', '目录不是已登记的私有媒体目录', 503);
+        for (const name of ['uploads', 'trash']) {
+            const st = await lstat(join(root, name));
+            invariant(st.isDirectory() && !st.isSymbolicLink(), 'MEDIA_ROOT_INVALID', '私有目录不安全', 503);
+        }
+        return new LocalMediaProvider(resolve(root));
+    }
     group(id: string) { return join(this.root, 'uploads', uuid.parse(id)); }
     staging(u: MediaUpload) { return join(this.group(u.id), 'ingest-' + uuid.parse(u.receiveToken) + '.bin'); }
     work(id: string, token: string) { return join(this.group(id), 'work-' + uuid.parse(token)); }
@@ -128,6 +140,20 @@ export class LocalMediaProvider {
                 magic.toString('ascii', 0, 4) === 'RIFF' && magic.toString('ascii', 8, 12) === 'WEBP' ? 'image/webp' : null;
         invariant(mime === u.mime, 'MEDIA_TYPE_INVALID', '文件真实类型与声明不符或不支持', 422);
         return { path, preview: join(dir, 'preview.jpg') };
+    }
+    async verifyAsset(a: MediaAsset): Promise<void> {
+        const originalPath = join(this.work(a.uploadId, a.objectToken), 'original.bin');
+        const original = await this.checkedFile(originalPath);
+        try {
+            invariant(original.st.size === a.bytes, 'MEDIA_FILE_INVALID', '原始文件长度与数据库不一致', 503);
+            const body = await original.file.readFile();
+            invariant(body.length === a.bytes && createHash('sha256').update(body).digest('hex') === a.sha256,
+                'MEDIA_FILE_INVALID', '原始文件摘要与数据库不一致', 503);
+        }
+        finally {
+            await original.file.close();
+        }
+        await this.readPreview(a);
     }
     async readPreview(a: MediaAsset): Promise<Buffer> {
         const path = join(this.work(a.uploadId, a.objectToken), 'preview.jpg'), { file, st } = await this.checkedFile(path);
