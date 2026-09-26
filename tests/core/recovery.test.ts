@@ -364,6 +364,7 @@ function approvalEvidence(run: any, report: any, overrides: any = {}) {
         recoveryEpochDigest: overrides.recoveryEpochDigest ?? run.sourceEpochDigest,
         contactKeyDigest: overrides.contactKeyDigest ?? report.contactKeyDigest,
         migrationDigest: overrides.migrationDigest ?? report.migrationDigest,
+        mediaIdentityDigest: overrides.mediaIdentityDigest ?? report.media.identityDigest,
         reportDigest: overrides.reportDigest ?? run.reportDigest,
         safetyJournal: {
             journalId: overrides.journalId ?? randomUUID(),
