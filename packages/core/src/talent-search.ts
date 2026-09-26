@@ -53,6 +53,7 @@ export class TalentSearch {
         });
         const evidenceByPerson = new Map<string, typeof raw.evidence>();
         for (const evidence of raw.evidence) {
+            if (!evidence.personId || !evidence.reviewedAt) continue;
             const list = evidenceByPerson.get(evidence.personId) ?? [];
             list.push(evidence); evidenceByPerson.set(evidence.personId, list);
         }
@@ -61,7 +62,7 @@ export class TalentSearch {
             let latestVerifiedAt: string | null = null;
             for (const evidence of evidenceByPerson.get(row.person.id) ?? []) {
                 const source = visibility.source(evidence.sourceId);
-                if (!source || !visibility.sourceVisible(source.id) || evidence.sourceRevision !== source.revision) continue;
+                if (!evidence.reviewedAt || !source || !visibility.sourceVisible(source.id) || evidence.sourceRevision !== source.revision) continue;
                 const key = evidence.fieldPath as keyof Person;
                 if (digest(row.person[key]) !== evidence.valueDigest) continue;
                 if (!latestVerifiedAt || evidence.reviewedAt > latestVerifiedAt) latestVerifiedAt = evidence.reviewedAt;

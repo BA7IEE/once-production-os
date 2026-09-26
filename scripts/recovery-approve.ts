@@ -8,7 +8,7 @@ import { PrismaStore } from '../apps/api/src/prisma-store.ts';
 import { RecoveryOps } from '../packages/core/src/recovery.ts';
 import { collectRecoveryExternalCheck } from '../apps/api/src/recovery/external-check.ts';
 import { readBackupManifest, sha256File } from '../apps/api/src/recovery/backup-manifest.ts';
-import { readSafetyJournal, safetyJournalHashAt } from '../apps/api/src/recovery/safety-journal.ts';
+import { readSafetyJournal, safetyJournalHashAt, withSafetyJournalLock } from '../apps/api/src/recovery/safety-journal.ts';
 import { analyzeSafetyDeltas } from '../apps/api/src/recovery/delta-resolution.ts';
 import { digest } from '../packages/core/src/json.ts';
 import { AppError } from '../packages/core/src/errors.ts';
@@ -82,6 +82,8 @@ try{
         console.error('RECOVERY_BACKUP_DUMP_MISMATCH: database dump does not match backup manifest.');
         process.exitCode=1;
     }else{
+        // Hold the same append lock through the approval transaction COMMIT.
+        await withSafetyJournalLock(journalPath, async () => {
         const journal=await readSafetyJournal(journalPath);
         if(journal.header.journalId!==manifest.safetyJournal.journalId
             || manifest.safetyJournal.sequence>journal.snapshot.sequence
@@ -151,6 +153,7 @@ try{
                 }
             }
         }
+        });
     }
 }catch(error){
     if(error instanceof AppError) console.error(error.code+': '+error.message);

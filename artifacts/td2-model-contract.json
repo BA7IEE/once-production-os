@@ -1,0 +1,434 @@
+{
+  "talentProfiles": {
+    "name": "TalentProfile",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "personId": "uuid",
+      "sourceId": "uuid",
+      "internalSummary": "text",
+      "status": "enum:ACTIVE,ARCHIVED"
+    },
+    "person": true,
+    "period": false
+  },
+  "personRoles": {
+    "name": "PersonRole",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "personId": "uuid",
+      "sourceId": "uuid",
+      "roleCode": "text",
+      "validFrom": "time?",
+      "validUntil": "time?",
+      "status": "enum:ACTIVE,INACTIVE"
+    },
+    "person": true,
+    "period": true
+  },
+  "capabilityDefinitions": {
+    "name": "CapabilityDefinition",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "code": "text",
+      "labelZh": "text",
+      "labelEn": "text",
+      "aliases": "texts",
+      "applicableRoleCodes": "texts",
+      "levelSchemeCode": "text?",
+      "semanticVersion": "text",
+      "schemaVersion": "text",
+      "status": "enum:ACTIVE,INACTIVE"
+    },
+    "person": false,
+    "period": false
+  },
+  "personCapabilities": {
+    "name": "PersonCapability",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "personId": "uuid",
+      "sourceId": "uuid",
+      "personRoleId": "uuid?",
+      "capabilityCode": "text",
+      "levelCode": "enum:BASIC,WORKING,PROFESSIONAL,FLUENT,NATIVE?",
+      "validFrom": "time?",
+      "validUntil": "time?",
+      "status": "enum:ACTIVE,INACTIVE"
+    },
+    "person": true,
+    "period": true
+  },
+  "personLanguages": {
+    "name": "PersonLanguage",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "personId": "uuid",
+      "sourceId": "uuid",
+      "languageCode": "text",
+      "speakingLevelCode": "enum:BASIC,WORKING,PROFESSIONAL,FLUENT,NATIVE?",
+      "listeningLevelCode": "enum:BASIC,WORKING,PROFESSIONAL,FLUENT,NATIVE?",
+      "readingLevelCode": "enum:BASIC,WORKING,PROFESSIONAL,FLUENT,NATIVE?",
+      "writingLevelCode": "enum:BASIC,WORKING,PROFESSIONAL,FLUENT,NATIVE?",
+      "verifiedAt": "time?",
+      "validFrom": "time?",
+      "validUntil": "time?",
+      "status": "enum:ACTIVE,INACTIVE"
+    },
+    "person": true,
+    "period": true
+  },
+  "talentLocations": {
+    "name": "TalentLocation",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "personId": "uuid",
+      "sourceId": "uuid",
+      "locationCode": "text",
+      "relationCode": "enum:BASE,SERVICE",
+      "verifiedAt": "time?",
+      "validFrom": "time?",
+      "validUntil": "time?",
+      "status": "enum:ACTIVE,INACTIVE"
+    },
+    "person": true,
+    "period": true
+  },
+  "castingProfiles": {
+    "name": "CastingProfile",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "personId": "uuid",
+      "sourceId": "uuid",
+      "hairColorCode": "enum:BLACK,BROWN,BLONDE,RED,GRAY,WHITE,OTHER?",
+      "eyeColorCode": "enum:BLACK,BROWN,BLUE,GREEN,GRAY,HAZEL,OTHER?",
+      "appearanceObservedOn": "day?",
+      "currentMeasurementSetId": "uuid?"
+    },
+    "person": true,
+    "period": false
+  },
+  "measurementSets": {
+    "name": "MeasurementSet",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "personId": "uuid",
+      "sourceId": "uuid",
+      "measuredOn": "day",
+      "datePrecision": "enum:EXACT_DAY,APPROXIMATE",
+      "heightCm": "float?",
+      "bustCm": "float?",
+      "waistCm": "float?",
+      "hipsCm": "float?",
+      "shoeSizeValue": "text?",
+      "shoeSizeSystem": "enum:EU,US,UK,CN?",
+      "clothingSizeValue": "text?",
+      "clothingSizeSystem": "enum:INTL,EU,US,UK,CN?",
+      "supersedesId": "uuid?",
+      "status": "enum:DRAFT,CONFIRMED,SUPERSEDED"
+    },
+    "person": true,
+    "period": false
+  },
+  "adultEligibilities": {
+    "name": "AdultEligibility",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "personId": "uuid",
+      "sourceId": "uuid",
+      "state": "enum:UNKNOWN,SELF_DECLARED_ADULT,VERIFIED_ADULT,RESTRICTED",
+      "verifiedByMembershipId": "uuid?",
+      "verifiedAt": "time?",
+      "validUntil": "time?",
+      "evidenceAssetId": "uuid?",
+      "status": "enum:ACTIVE,INACTIVE"
+    },
+    "person": true,
+    "period": false
+  },
+  "organizations": {
+    "name": "TalentOrganization",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "name": "text",
+      "kind": "enum:AGENCY,ISSUER,OTHER",
+      "sourceId": "uuid",
+      "scopeId": "uuid",
+      "status": "enum:ACTIVE,ARCHIVED"
+    },
+    "person": false,
+    "period": false
+  },
+  "representations": {
+    "name": "Representation",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "personId": "uuid",
+      "sourceId": "uuid",
+      "personRoleId": "uuid?",
+      "agencyOrganizationId": "uuid?",
+      "agentPersonId": "uuid?",
+      "relationCode": "enum:AGENT,AGENCY,MANAGER",
+      "territoryCode": "text?",
+      "validFrom": "time?",
+      "validUntil": "time?",
+      "status": "enum:ACTIVE,INACTIVE"
+    },
+    "person": true,
+    "period": true
+  },
+  "personExternalRefs": {
+    "name": "PersonExternalRef",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "personId": "uuid",
+      "sourceId": "uuid",
+      "providerCode": "enum:WECHAT,XIAOHONGSHU,INSTAGRAM,AGENCY_INTERNAL,SUPPLIER_SYSTEM",
+      "namespaceCode": "text",
+      "issuerOrganizationId": "uuid?",
+      "externalKey": "text",
+      "state": "enum:OBSERVED,VERIFIED,REVOKED",
+      "verifiedAt": "time?"
+    },
+    "person": true,
+    "period": false
+  },
+  "personCredentials": {
+    "name": "PersonCredential",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "personId": "uuid",
+      "sourceId": "uuid",
+      "personRoleId": "uuid?",
+      "credentialTypeCode": "enum:DRONE_LICENSE,TRANSLATION_CERTIFICATE,DIVING_CERTIFICATE,EQUIPMENT_CERTIFICATE,OTHER",
+      "issuerOrganizationId": "uuid?",
+      "issuerName": "text?",
+      "identifierCiphertext": "text?",
+      "maskedIdentifier": "text?",
+      "issuedOn": "day?",
+      "expiresOn": "day?",
+      "evidenceAssetId": "uuid?",
+      "status": "enum:UNVERIFIED,VERIFIED,REVOKED"
+    },
+    "person": true,
+    "period": false
+  },
+  "translatorLanguagePairs": {
+    "name": "TranslatorLanguagePair",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "personId": "uuid",
+      "sourceId": "uuid",
+      "personRoleId": "uuid",
+      "sourceLanguageCode": "text",
+      "targetLanguageCode": "text",
+      "status": "enum:ACTIVE,INACTIVE"
+    },
+    "person": true,
+    "period": false
+  },
+  "translatorServiceModes": {
+    "name": "TranslatorServiceMode",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "personId": "uuid",
+      "sourceId": "uuid",
+      "personRoleId": "uuid",
+      "modeCode": "enum:BUSINESS_MEETING,ON_SET,ESCORT,CONSECUTIVE,SIMULTANEOUS,WRITTEN",
+      "status": "enum:ACTIVE,INACTIVE"
+    },
+    "person": true,
+    "period": false
+  },
+  "mediaCollections": {
+    "name": "MediaCollection",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "personId": "uuid",
+      "sourceId": "uuid",
+      "personRoleId": "uuid?",
+      "collectionTypeCode": "enum:MODEL_CARD,POLAROIDS,PORTFOLIO,SHOWREEL,INTRO_VIDEO,OTHER",
+      "title": "text",
+      "status": "enum:ACTIVE,ARCHIVED"
+    },
+    "person": true,
+    "period": false
+  },
+  "mediaCollectionTags": {
+    "name": "MediaCollectionTag",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "personId": "uuid",
+      "sourceId": "uuid",
+      "collectionId": "uuid",
+      "tagCode": "enum:FASHION,BEAUTY,COMMERCIAL,LINGERIE,RUNWAY,LIFESTYLE,INDUSTRIAL,PRODUCT"
+    },
+    "person": true,
+    "period": false
+  },
+  "mediaCollectionItems": {
+    "name": "MediaCollectionItem",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "personId": "uuid",
+      "collectionId": "uuid",
+      "assetId": "uuid",
+      "orderIndex": "int",
+      "caption": "text",
+      "featured": "bool"
+    },
+    "person": false,
+    "period": false
+  },
+  "servicePrincipals": {
+    "name": "ServicePrincipal",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "displayName": "text",
+      "scopeId": "uuid",
+      "permissionCodes": "texts",
+      "defaultMaintainerMembershipId": "uuid",
+      "credentialHash": "text?",
+      "keyVersion": "int",
+      "expiresAt": "time?",
+      "recoveryEpoch": "text",
+      "status": "enum:ACTIVE,REVOKED"
+    },
+    "person": false,
+    "period": false
+  },
+  "fieldProposals": {
+    "name": "FieldProposal",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "personId": "uuid?",
+      "talentProfileId": "uuid?",
+      "personRoleId": "uuid?",
+      "personCapabilityId": "uuid?",
+      "personLanguageId": "uuid?",
+      "talentLocationId": "uuid?",
+      "castingProfileId": "uuid?",
+      "measurementSetId": "uuid?",
+      "adultEligibilityId": "uuid?",
+      "representationId": "uuid?",
+      "personExternalRefId": "uuid?",
+      "personCredentialId": "uuid?",
+      "translatorLanguagePairId": "uuid?",
+      "translatorServiceModeId": "uuid?",
+      "mediaCollectionId": "uuid?",
+      "mediaCollectionTagId": "uuid?",
+      "fieldPath": "text",
+      "proposedValue": "json",
+      "valueDigest": "text",
+      "sourceId": "uuid",
+      "sourceRevision": "int",
+      "originType": "enum:IMPORT,AGENT,AI",
+      "actorId": "uuid?",
+      "servicePrincipalId": "uuid?",
+      "baseRevision": "int",
+      "schemaVersion": "text",
+      "state": "enum:PENDING,APPLIED,REJECTED,STALE",
+      "decidedAt": "time?",
+      "decidedById": "uuid?"
+    },
+    "person": false,
+    "period": false
+  },
+  "talentMigrationReviews": {
+    "name": "TalentMigrationReview",
+    "fields": {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "createdAt": "time",
+      "updatedAt": "time",
+      "revision": "int",
+      "personId": "uuid",
+      "shortlistItemId": "uuid?",
+      "reason": "enum:HEIGHT_SEMANTICS_REQUIRED,SHORTLIST_ROLE_REQUIRED",
+      "state": "enum:PENDING,RESOLVED",
+      "resolvedAt": "time?",
+      "resolvedById": "uuid?"
+    },
+    "person": false,
+    "period": false
+  }
+}

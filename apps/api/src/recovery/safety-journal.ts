@@ -134,11 +134,11 @@ export async function createSafetyJournal(path: string, now = new Date()): Promi
     finally { await handle.close(); }
     return readSafetyJournal(path);
 }
-export class SafetyJournalWriter {
-    path: string;
-    state: SafetyJournalState;
-    private async withLock<T>(work: () => Promise<T>): Promise<T> {
-        const lock = this.path + '.lock';
+export async function withSafetyJournalLock<T>(path: string, work: () => Promise<T>): Promise<T> {
+        invariant(isAbsolute(path) && resolve(path) === path, 'SAFETY_JOURNAL_PATH_INVALID', '安全日志必须使用规范绝对路径', 503);
+        const parent = await stat(dirname(path));
+        invariant(parent.isDirectory() && (parent.mode & 0o077) === 0, 'SAFETY_JOURNAL_PATH_INVALID', '安全日志父目录必须是私有目录', 503);
+        const lock = path + '.lock';
         let acquired = false;
         for (let attempt = 0; attempt < 80; attempt++) {
             try {
@@ -155,6 +155,10 @@ export class SafetyJournalWriter {
         try { return await work(); }
         finally { await rmdir(lock).catch(() => {}); }
     }
+
+export class SafetyJournalWriter {
+    path: string;
+    state: SafetyJournalState;
     private constructor(path: string, state: SafetyJournalState) { this.path = path; this.state = state; }
     static async open(path: string) {
         let state: SafetyJournalState;
@@ -176,7 +180,7 @@ export class SafetyJournalWriter {
         auditId: string; workspaceId: string; createdAt: string; action: string;
         resourceKind: string; resourceId: string; changedFields: string[]; requestId: string; abortProof?: 'NOT_STARTED';
     }>): Promise<number> {
-        return this.withLock(async () => {
+        return withSafetyJournalLock(this.path, async () => {
             this.state = await readSafetyJournal(this.path);
             const known = new Set(this.state.entries.map(x => x.auditId));
             const pending = rows.filter(x => !known.has(x.auditId))

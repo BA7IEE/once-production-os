@@ -4,7 +4,7 @@ import { mkdtempSync, readFileSync, writeFileSync, chmodSync, rmSync, statSync }
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { SafetyJournalWriter, readSafetyJournal, safetyCriticalAudit } from '../../apps/api/src/recovery/safety-journal.ts';
+import { SafetyJournalWriter, readSafetyJournal, safetyCriticalAudit, withSafetyJournalLock } from '../../apps/api/src/recovery/safety-journal.ts';
 import type { AuditEvent } from '../../packages/core/src/model.ts';
 
 function dir() {
@@ -100,4 +100,30 @@ test('DEV-09C safety journal refuses public parent/file permissions', async () =
         await assert.rejects(readSafetyJournal(path));
     }
     finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+
+test('DEV-09F approval barrier excludes append until commit and releases after failure', async () => {
+    const root = dir(), path = join(root, 'journal.jsonl');
+    try {
+        const writer = await SafetyJournalWriter.open(path);
+        let release!: () => void, entered!: () => void;
+        const enteredPromise = new Promise<void>(resolve => { entered = resolve; });
+        const hold = new Promise<void>(resolve => { release = resolve; });
+        const approval = withSafetyJournalLock(path, async () => {
+            entered();
+            assert.equal((await readSafetyJournal(path)).snapshot.sequence, 0);
+            await hold;
+            assert.equal((await readSafetyJournal(path)).snapshot.sequence, 0);
+        });
+        await enteredPromise;
+        const pending = writer.append([audit('source.suspend', '2026-09-26T00:00:01.000Z')]);
+        await new Promise(resolve => setTimeout(resolve, 60));
+        assert.equal((await readSafetyJournal(path)).snapshot.sequence, 0);
+        release(); await approval; await pending;
+        assert.equal((await readSafetyJournal(path)).snapshot.sequence, 1);
+        await assert.rejects(withSafetyJournalLock(path, async () => { throw new Error('synthetic approval rollback'); }));
+        await writer.append([audit('member.disable', '2026-09-26T00:00:02.000Z')]);
+        assert.equal((await readSafetyJournal(path)).snapshot.sequence, 2);
+    } finally { rmSync(root, {recursive:true, force:true}); }
 });

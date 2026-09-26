@@ -9,6 +9,27 @@ datasource db {
 }
 
 model Workspace {
+  TalentProfile_workspaceId_td2 TalentProfile[] @relation("TalentProfile_workspaceId_td2")
+  PersonRole_workspaceId_td2 PersonRole[] @relation("PersonRole_workspaceId_td2")
+  CapabilityDefinition_workspaceId_td2 CapabilityDefinition[] @relation("CapabilityDefinition_workspaceId_td2")
+  PersonCapability_workspaceId_td2 PersonCapability[] @relation("PersonCapability_workspaceId_td2")
+  PersonLanguage_workspaceId_td2 PersonLanguage[] @relation("PersonLanguage_workspaceId_td2")
+  TalentLocation_workspaceId_td2 TalentLocation[] @relation("TalentLocation_workspaceId_td2")
+  CastingProfile_workspaceId_td2 CastingProfile[] @relation("CastingProfile_workspaceId_td2")
+  MeasurementSet_workspaceId_td2 MeasurementSet[] @relation("MeasurementSet_workspaceId_td2")
+  AdultEligibility_workspaceId_td2 AdultEligibility[] @relation("AdultEligibility_workspaceId_td2")
+  TalentOrganization_workspaceId_td2 TalentOrganization[] @relation("TalentOrganization_workspaceId_td2")
+  Representation_workspaceId_td2 Representation[] @relation("Representation_workspaceId_td2")
+  PersonExternalRef_workspaceId_td2 PersonExternalRef[] @relation("PersonExternalRef_workspaceId_td2")
+  PersonCredential_workspaceId_td2 PersonCredential[] @relation("PersonCredential_workspaceId_td2")
+  TranslatorLanguagePair_workspaceId_td2 TranslatorLanguagePair[] @relation("TranslatorLanguagePair_workspaceId_td2")
+  TranslatorServiceMode_workspaceId_td2 TranslatorServiceMode[] @relation("TranslatorServiceMode_workspaceId_td2")
+  MediaCollection_workspaceId_td2 MediaCollection[] @relation("MediaCollection_workspaceId_td2")
+  MediaCollectionTag_workspaceId_td2 MediaCollectionTag[] @relation("MediaCollectionTag_workspaceId_td2")
+  MediaCollectionItem_workspaceId_td2 MediaCollectionItem[] @relation("MediaCollectionItem_workspaceId_td2")
+  ServicePrincipal_workspaceId_td2 ServicePrincipal[] @relation("ServicePrincipal_workspaceId_td2")
+  FieldProposal_workspaceId_td2 FieldProposal[] @relation("FieldProposal_workspaceId_td2")
+  TalentMigrationReview_workspaceId_td2 TalentMigrationReview[] @relation("TalentMigrationReview_workspaceId_td2")
   RecoveryRun_workspace RecoveryRun[] @relation("RecoveryRun_workspace")
   PersonMergeDecision_workspace PersonMergeDecision[] @relation("PersonMergeDecision_workspace")
   PersonAlias_workspace PersonAlias[] @relation("PersonAlias_workspace")
@@ -74,6 +95,11 @@ model User {
 }
 
 model Membership {
+  AdultEligibility_verifiedByMembershipId_td2 AdultEligibility[] @relation("AdultEligibility_verifiedByMembershipId_td2")
+  ServicePrincipal_defaultMaintainerMembershipId_td2 ServicePrincipal[] @relation("ServicePrincipal_defaultMaintainerMembershipId_td2")
+  FieldProposal_actorId_td2 FieldProposal[] @relation("FieldProposal_actorId_td2")
+  FieldProposal_decidedById_td2 FieldProposal[] @relation("FieldProposal_decidedById_td2")
+  TalentMigrationReview_resolvedById_td2 TalentMigrationReview[] @relation("TalentMigrationReview_resolvedById_td2")
   RecoveryRun_actorIdRef RecoveryRun[] @relation("RecoveryRun_actorIdRef")
   PersonMergeDecision_actorIdRef PersonMergeDecision[] @relation("PersonMergeDecision_actorIdRef")
   DeletionRequest_cleanupStartedByRef DeletionRequest[] @relation("DeletionRequest_cleanupStartedByRef")
@@ -159,6 +185,8 @@ model Activation {
 }
 
 model AccessScope {
+  TalentOrganization_scopeId_td2 TalentOrganization[] @relation("TalentOrganization_scopeId_td2")
+  ServicePrincipal_scopeId_td2 ServicePrincipal[] @relation("ServicePrincipal_scopeId_td2")
   Shortlist_scopeIdRef Shortlist[] @relation("Shortlist_scopeIdRef")
   Project_scopeIdRef Project[] @relation("Project_scopeIdRef")
   Work_scopeIdRef Work[] @relation("Work_scopeIdRef")
@@ -203,6 +231,23 @@ model ScopeMember {
 }
 
 model SourceRecord {
+  TalentProfile_sourceId_td2 TalentProfile[] @relation("TalentProfile_sourceId_td2")
+  PersonRole_sourceId_td2 PersonRole[] @relation("PersonRole_sourceId_td2")
+  PersonCapability_sourceId_td2 PersonCapability[] @relation("PersonCapability_sourceId_td2")
+  PersonLanguage_sourceId_td2 PersonLanguage[] @relation("PersonLanguage_sourceId_td2")
+  TalentLocation_sourceId_td2 TalentLocation[] @relation("TalentLocation_sourceId_td2")
+  CastingProfile_sourceId_td2 CastingProfile[] @relation("CastingProfile_sourceId_td2")
+  MeasurementSet_sourceId_td2 MeasurementSet[] @relation("MeasurementSet_sourceId_td2")
+  AdultEligibility_sourceId_td2 AdultEligibility[] @relation("AdultEligibility_sourceId_td2")
+  TalentOrganization_sourceId_td2 TalentOrganization[] @relation("TalentOrganization_sourceId_td2")
+  Representation_sourceId_td2 Representation[] @relation("Representation_sourceId_td2")
+  PersonExternalRef_sourceId_td2 PersonExternalRef[] @relation("PersonExternalRef_sourceId_td2")
+  PersonCredential_sourceId_td2 PersonCredential[] @relation("PersonCredential_sourceId_td2")
+  TranslatorLanguagePair_sourceId_td2 TranslatorLanguagePair[] @relation("TranslatorLanguagePair_sourceId_td2")
+  TranslatorServiceMode_sourceId_td2 TranslatorServiceMode[] @relation("TranslatorServiceMode_sourceId_td2")
+  MediaCollection_sourceId_td2 MediaCollection[] @relation("MediaCollection_sourceId_td2")
+  MediaCollectionTag_sourceId_td2 MediaCollectionTag[] @relation("MediaCollectionTag_sourceId_td2")
+  FieldProposal_sourceId_td2 FieldProposal[] @relation("FieldProposal_sourceId_td2")
   PersonMergeDecision_canonicalSourceRef PersonMergeDecision[] @relation("PersonMergeDecision_canonicalSourceRef")
   PersonMergeDecision_duplicateSourceRef PersonMergeDecision[] @relation("PersonMergeDecision_duplicateSourceRef")
   DeletionItem_retentionSourceRef DeletionItem[] @relation("DeletionItem_retentionSourceRef")
@@ -253,6 +298,25 @@ model SourceRecord {
 }
 
 model Person {
+  TalentProfile_personId_td2 TalentProfile[] @relation("TalentProfile_personId_td2")
+  PersonRole_personId_td2 PersonRole[] @relation("PersonRole_personId_td2")
+  PersonCapability_personId_td2 PersonCapability[] @relation("PersonCapability_personId_td2")
+  PersonLanguage_personId_td2 PersonLanguage[] @relation("PersonLanguage_personId_td2")
+  TalentLocation_personId_td2 TalentLocation[] @relation("TalentLocation_personId_td2")
+  CastingProfile_personId_td2 CastingProfile[] @relation("CastingProfile_personId_td2")
+  MeasurementSet_personId_td2 MeasurementSet[] @relation("MeasurementSet_personId_td2")
+  AdultEligibility_personId_td2 AdultEligibility[] @relation("AdultEligibility_personId_td2")
+  Representation_personId_td2 Representation[] @relation("Representation_personId_td2")
+  Representation_agentPersonId_td2 Representation[] @relation("Representation_agentPersonId_td2")
+  PersonExternalRef_personId_td2 PersonExternalRef[] @relation("PersonExternalRef_personId_td2")
+  PersonCredential_personId_td2 PersonCredential[] @relation("PersonCredential_personId_td2")
+  TranslatorLanguagePair_personId_td2 TranslatorLanguagePair[] @relation("TranslatorLanguagePair_personId_td2")
+  TranslatorServiceMode_personId_td2 TranslatorServiceMode[] @relation("TranslatorServiceMode_personId_td2")
+  MediaCollection_personId_td2 MediaCollection[] @relation("MediaCollection_personId_td2")
+  MediaCollectionTag_personId_td2 MediaCollectionTag[] @relation("MediaCollectionTag_personId_td2")
+  MediaCollectionItem_personId_td2 MediaCollectionItem[] @relation("MediaCollectionItem_personId_td2")
+  TalentMigrationReview_personId_td2 TalentMigrationReview[] @relation("TalentMigrationReview_personId_td2")
+  FieldProposal_personId_td2 FieldProposal[] @relation("FieldProposal_personId_td2")
   PersonMergeDecision_canonicalPersonRef PersonMergeDecision[] @relation("PersonMergeDecision_canonicalPersonRef")
   PersonMergeDecision_duplicatePersonRef PersonMergeDecision[] @relation("PersonMergeDecision_duplicatePersonRef")
   PersonAlias_oldPersonRef PersonAlias[] @relation("PersonAlias_oldPersonRef")
@@ -319,22 +383,52 @@ model Contact {
 }
 
 model FieldEvidence {
+  talentProfileId String? @db.Uuid
+  personRoleId String? @db.Uuid
+  personCapabilityId String? @db.Uuid
+  personLanguageId String? @db.Uuid
+  talentLocationId String? @db.Uuid
+  castingProfileId String? @db.Uuid
+  measurementSetId String? @db.Uuid
+  adultEligibilityId String? @db.Uuid
+  representationId String? @db.Uuid
+  personExternalRefId String? @db.Uuid
+  personCredentialId String? @db.Uuid
+  translatorLanguagePairId String? @db.Uuid
+  translatorServiceModeId String? @db.Uuid
+  mediaCollectionId String? @db.Uuid
+  mediaCollectionTagId String? @db.Uuid
+  talentProfileIdTd2 TalentProfile? @relation("FieldEvidence_talentProfileId_td2", fields: [workspaceId, talentProfileId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "evidence_talentProfileId_td2_fk")
+  personRoleIdTd2 PersonRole? @relation("FieldEvidence_personRoleId_td2", fields: [workspaceId, personRoleId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "evidence_personRoleId_td2_fk")
+  personCapabilityIdTd2 PersonCapability? @relation("FieldEvidence_personCapabilityId_td2", fields: [workspaceId, personCapabilityId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "evidence_personCapabilityId_td2_fk")
+  personLanguageIdTd2 PersonLanguage? @relation("FieldEvidence_personLanguageId_td2", fields: [workspaceId, personLanguageId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "evidence_personLanguageId_td2_fk")
+  talentLocationIdTd2 TalentLocation? @relation("FieldEvidence_talentLocationId_td2", fields: [workspaceId, talentLocationId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "evidence_talentLocationId_td2_fk")
+  castingProfileIdTd2 CastingProfile? @relation("FieldEvidence_castingProfileId_td2", fields: [workspaceId, castingProfileId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "evidence_castingProfileId_td2_fk")
+  measurementSetIdTd2 MeasurementSet? @relation("FieldEvidence_measurementSetId_td2", fields: [workspaceId, measurementSetId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "evidence_measurementSetId_td2_fk")
+  adultEligibilityIdTd2 AdultEligibility? @relation("FieldEvidence_adultEligibilityId_td2", fields: [workspaceId, adultEligibilityId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "evidence_adultEligibilityId_td2_fk")
+  representationIdTd2 Representation? @relation("FieldEvidence_representationId_td2", fields: [workspaceId, representationId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "evidence_representationId_td2_fk")
+  personExternalRefIdTd2 PersonExternalRef? @relation("FieldEvidence_personExternalRefId_td2", fields: [workspaceId, personExternalRefId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "evidence_personExternalRefId_td2_fk")
+  personCredentialIdTd2 PersonCredential? @relation("FieldEvidence_personCredentialId_td2", fields: [workspaceId, personCredentialId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "evidence_personCredentialId_td2_fk")
+  translatorLanguagePairIdTd2 TranslatorLanguagePair? @relation("FieldEvidence_translatorLanguagePairId_td2", fields: [workspaceId, translatorLanguagePairId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "evidence_translatorLanguagePairId_td2_fk")
+  translatorServiceModeIdTd2 TranslatorServiceMode? @relation("FieldEvidence_translatorServiceModeId_td2", fields: [workspaceId, translatorServiceModeId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "evidence_translatorServiceModeId_td2_fk")
+  mediaCollectionIdTd2 MediaCollection? @relation("FieldEvidence_mediaCollectionId_td2", fields: [workspaceId, mediaCollectionId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "evidence_mediaCollectionId_td2_fk")
+  mediaCollectionTagIdTd2 MediaCollectionTag? @relation("FieldEvidence_mediaCollectionTagId_td2", fields: [workspaceId, mediaCollectionTagId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "evidence_mediaCollectionTagId_td2_fk")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
   updatedAt DateTime @db.Timestamptz(3)
   revision Int
-  personId String @db.Uuid
+  personId String? @db.Uuid
   fieldPath String @db.Text
   valueDigest String @db.Text
   sourceId String @db.Uuid
   sourceRevision Int
-  reviewerId String @db.Uuid
-  reviewedAt DateTime @db.Timestamptz(3)
+  reviewerId String? @db.Uuid
+  reviewedAt DateTime? @db.Timestamptz(3)
   workspace Workspace @relation("FieldEvidence_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "evidence_workspace_fkey")
-  personIdRef Person @relation("FieldEvidence_personIdRef", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "evidence_personIdRef_fkey")
+  personIdRef Person? @relation("FieldEvidence_personIdRef", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "evidence_personIdRef_fkey")
   sourceIdRef SourceRecord @relation("FieldEvidence_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "evidence_sourceIdRef_fkey")
-  reviewerIdRef Membership @relation("FieldEvidence_reviewerIdRef", fields: [workspaceId, reviewerId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "evidence_reviewerIdRef_fkey")
+  reviewerIdRef Membership? @relation("FieldEvidence_reviewerIdRef", fields: [workspaceId, reviewerId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "evidence_reviewerIdRef_fkey")
   @@unique([workspaceId, id])
   @@index([workspaceId, createdAt], map: "evidence_idx_0")
   @@index([workspaceId, personId], map: "evidence_idx_1")
@@ -360,12 +454,14 @@ model DictionaryItem {
 }
 
 model CommandReceipt {
+  servicePrincipalId String? @db.Uuid
+  servicePrincipalIdTd2 ServicePrincipal? @relation("CommandReceipt_servicePrincipalId_td2", fields: [workspaceId, servicePrincipalId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "receipts_servicePrincipalId_td2_fk")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
   updatedAt DateTime @db.Timestamptz(3)
   revision Int
-  actorId String @db.Uuid
+  actorId String? @db.Uuid
   operation String @db.Text
   commandKey String @db.Text
   requestDigest String @db.Text
@@ -373,7 +469,7 @@ model CommandReceipt {
   resourceId String @db.Uuid
   result Json @db.JsonB
   workspace Workspace @relation("CommandReceipt_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "receipts_workspace_fkey")
-  actorIdRef Membership @relation("CommandReceipt_actorIdRef", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "receipts_actorIdRef_fkey")
+  actorIdRef Membership? @relation("CommandReceipt_actorIdRef", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "receipts_actorIdRef_fkey")
   @@unique([workspaceId, id])
   @@unique([workspaceId, actorId, operation, commandKey])
   @@index([workspaceId, createdAt], map: "receipts_idx_0")
@@ -381,6 +477,8 @@ model CommandReceipt {
 }
 
 model AuditEvent {
+  servicePrincipalId String? @db.Uuid
+  servicePrincipalIdTd2 ServicePrincipal? @relation("AuditEvent_servicePrincipalId_td2", fields: [workspaceId, servicePrincipalId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "audits_servicePrincipalId_td2_fk")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -567,6 +665,9 @@ model MediaUpload {
 }
 
 model MediaAsset {
+  AdultEligibility_evidenceAssetId_td2 AdultEligibility[] @relation("AdultEligibility_evidenceAssetId_td2")
+  PersonCredential_evidenceAssetId_td2 PersonCredential[] @relation("PersonCredential_evidenceAssetId_td2")
+  MediaCollectionItem_assetId_td2 MediaCollectionItem[] @relation("MediaCollectionItem_assetId_td2")
   DeletionRequest_targetAssetRef DeletionRequest[] @relation("DeletionRequest_targetAssetRef")
   UsePermission_subjectAssetRef UsePermission[] @relation("UsePermission_subjectAssetRef")
   ExportDependency_assetRef ExportDependency[] @relation("ExportDependency_assetRef")
@@ -774,6 +875,11 @@ model Shortlist {
 }
 
 model ShortlistItem {
+  personRoleId String? @db.Uuid
+  personRoleRevision Int?
+  roleContextState String? @db.Text
+  TalentMigrationReview_shortlistItemId_td2 TalentMigrationReview[] @relation("TalentMigrationReview_shortlistItemId_td2")
+  personRoleIdTd2 PersonRole? @relation("ShortlistItem_personRoleId_td2", fields: [workspaceId, personId, personRoleId], references: [workspaceId, personId, id], onDelete: NoAction, onUpdate: NoAction, map: "shortlistItems_personRoleId_td2_fk")
   ShortlistItemAsset_itemRef ShortlistItemAsset[] @relation("ShortlistItemAsset_itemRef")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
@@ -1117,3 +1223,591 @@ model PersonAlias {
   @@map("personAliases")
 }
 
+
+model TalentProfile {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  sourceId String @db.Uuid
+  internalSummary String @db.Text
+  status String @db.Text
+  workspaceIdTd2 Workspace @relation("TalentProfile_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "talentProfiles_workspaceId_td2_fk")
+  personIdTd2 Person @relation("TalentProfile_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "talentProfiles_personId_td2_fk")
+  sourceIdTd2 SourceRecord @relation("TalentProfile_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "talentProfiles_sourceId_td2_fk")
+  FieldEvidence_talentProfileId_td2 FieldEvidence[] @relation("FieldEvidence_talentProfileId_td2")
+  FieldProposal_talentProfileId_td2 FieldProposal[] @relation("FieldProposal_talentProfileId_td2")
+  PersonRole_talentProfile_td2 PersonRole[] @relation("PersonRole_talentProfile_td2")
+  PersonCapability_talentProfile_td2 PersonCapability[] @relation("PersonCapability_talentProfile_td2")
+  TalentLocation_talentProfile_td2 TalentLocation[] @relation("TalentLocation_talentProfile_td2")
+  @@unique([workspaceId, personId], map: "talentProfiles_personId_td2_unique")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, personId, id])
+  @@index([workspaceId, createdAt], map: "talentProfiles_td2_created_idx")
+  @@map("talentProfiles")
+}
+
+model PersonRole {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  sourceId String @db.Uuid
+  roleCode String @db.Text
+  validFrom DateTime? @db.Timestamptz(3)
+  validUntil DateTime? @db.Timestamptz(3)
+  status String @db.Text
+  workspaceIdTd2 Workspace @relation("PersonRole_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "personRoles_workspaceId_td2_fk")
+  personIdTd2 Person @relation("PersonRole_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "personRoles_personId_td2_fk")
+  sourceIdTd2 SourceRecord @relation("PersonRole_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "personRoles_sourceId_td2_fk")
+  PersonCapability_personRoleId_td2 PersonCapability[] @relation("PersonCapability_personRoleId_td2")
+  Representation_personRoleId_td2 Representation[] @relation("Representation_personRoleId_td2")
+  PersonCredential_personRoleId_td2 PersonCredential[] @relation("PersonCredential_personRoleId_td2")
+  TranslatorLanguagePair_personRoleId_td2 TranslatorLanguagePair[] @relation("TranslatorLanguagePair_personRoleId_td2")
+  TranslatorServiceMode_personRoleId_td2 TranslatorServiceMode[] @relation("TranslatorServiceMode_personRoleId_td2")
+  MediaCollection_personRoleId_td2 MediaCollection[] @relation("MediaCollection_personRoleId_td2")
+  FieldEvidence_personRoleId_td2 FieldEvidence[] @relation("FieldEvidence_personRoleId_td2")
+  FieldProposal_personRoleId_td2 FieldProposal[] @relation("FieldProposal_personRoleId_td2")
+  ShortlistItem_personRoleId_td2 ShortlistItem[] @relation("ShortlistItem_personRoleId_td2")
+  talentProfileTd2 TalentProfile @relation("PersonRole_talentProfile_td2", fields: [workspaceId, personId], references: [workspaceId, personId], onDelete: NoAction, onUpdate: NoAction, map: "personRoles_talentProfile_td2_fk")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, personId, id])
+  @@index([workspaceId, createdAt], map: "personRoles_td2_created_idx")
+  @@map("personRoles")
+}
+
+model CapabilityDefinition {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  code String @db.Text
+  labelZh String @db.Text
+  labelEn String @db.Text
+  aliases String[]
+  applicableRoleCodes String[]
+  levelSchemeCode String? @db.Text
+  semanticVersion String @db.Text
+  schemaVersion String @db.Text
+  status String @db.Text
+  workspaceIdTd2 Workspace @relation("CapabilityDefinition_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "capabilityDefinitions_workspaceId_td2_fk")
+  PersonCapability_capabilityCode_td2 PersonCapability[] @relation("PersonCapability_capabilityCode_td2")
+  @@unique([workspaceId, code], map: "capabilityDefinitions_code_td2_unique")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, createdAt], map: "capabilityDefinitions_td2_created_idx")
+  @@map("capabilityDefinitions")
+}
+
+model PersonCapability {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  sourceId String @db.Uuid
+  personRoleId String? @db.Uuid
+  capabilityCode String @db.Text
+  levelCode String? @db.Text
+  validFrom DateTime? @db.Timestamptz(3)
+  validUntil DateTime? @db.Timestamptz(3)
+  status String @db.Text
+  workspaceIdTd2 Workspace @relation("PersonCapability_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "personCapabilities_workspaceId_td2_fk")
+  personIdTd2 Person @relation("PersonCapability_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "personCapabilities_personId_td2_fk")
+  sourceIdTd2 SourceRecord @relation("PersonCapability_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "personCapabilities_sourceId_td2_fk")
+  personRoleIdTd2 PersonRole? @relation("PersonCapability_personRoleId_td2", fields: [workspaceId, personId, personRoleId], references: [workspaceId, personId, id], onDelete: NoAction, onUpdate: NoAction, map: "personCapabilities_personRoleId_td2_fk")
+  FieldEvidence_personCapabilityId_td2 FieldEvidence[] @relation("FieldEvidence_personCapabilityId_td2")
+  FieldProposal_personCapabilityId_td2 FieldProposal[] @relation("FieldProposal_personCapabilityId_td2")
+  talentProfileTd2 TalentProfile @relation("PersonCapability_talentProfile_td2", fields: [workspaceId, personId], references: [workspaceId, personId], onDelete: NoAction, onUpdate: NoAction, map: "personCapabilities_talentProfile_td2_fk")
+  capabilityCodeTd2 CapabilityDefinition @relation("PersonCapability_capabilityCode_td2", fields: [workspaceId, capabilityCode], references: [workspaceId, code], onDelete: NoAction, onUpdate: NoAction, map: "personCapabilities_capabilityCode_td2_fk")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, personId, id])
+  @@index([workspaceId, createdAt], map: "personCapabilities_td2_created_idx")
+  @@map("personCapabilities")
+}
+
+model PersonLanguage {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  sourceId String @db.Uuid
+  languageCode String @db.Text
+  speakingLevelCode String? @db.Text
+  listeningLevelCode String? @db.Text
+  readingLevelCode String? @db.Text
+  writingLevelCode String? @db.Text
+  verifiedAt DateTime? @db.Timestamptz(3)
+  validFrom DateTime? @db.Timestamptz(3)
+  validUntil DateTime? @db.Timestamptz(3)
+  status String @db.Text
+  workspaceIdTd2 Workspace @relation("PersonLanguage_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "personLanguages_workspaceId_td2_fk")
+  personIdTd2 Person @relation("PersonLanguage_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "personLanguages_personId_td2_fk")
+  sourceIdTd2 SourceRecord @relation("PersonLanguage_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "personLanguages_sourceId_td2_fk")
+  FieldEvidence_personLanguageId_td2 FieldEvidence[] @relation("FieldEvidence_personLanguageId_td2")
+  FieldProposal_personLanguageId_td2 FieldProposal[] @relation("FieldProposal_personLanguageId_td2")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, personId, id])
+  @@index([workspaceId, createdAt], map: "personLanguages_td2_created_idx")
+  @@map("personLanguages")
+}
+
+model TalentLocation {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  sourceId String @db.Uuid
+  locationCode String @db.Text
+  relationCode String @db.Text
+  verifiedAt DateTime? @db.Timestamptz(3)
+  validFrom DateTime? @db.Timestamptz(3)
+  validUntil DateTime? @db.Timestamptz(3)
+  status String @db.Text
+  workspaceIdTd2 Workspace @relation("TalentLocation_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "talentLocations_workspaceId_td2_fk")
+  personIdTd2 Person @relation("TalentLocation_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "talentLocations_personId_td2_fk")
+  sourceIdTd2 SourceRecord @relation("TalentLocation_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "talentLocations_sourceId_td2_fk")
+  FieldEvidence_talentLocationId_td2 FieldEvidence[] @relation("FieldEvidence_talentLocationId_td2")
+  FieldProposal_talentLocationId_td2 FieldProposal[] @relation("FieldProposal_talentLocationId_td2")
+  talentProfileTd2 TalentProfile @relation("TalentLocation_talentProfile_td2", fields: [workspaceId, personId], references: [workspaceId, personId], onDelete: NoAction, onUpdate: NoAction, map: "talentLocations_talentProfile_td2_fk")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, personId, id])
+  @@index([workspaceId, createdAt], map: "talentLocations_td2_created_idx")
+  @@map("talentLocations")
+}
+
+model CastingProfile {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  sourceId String @db.Uuid
+  hairColorCode String? @db.Text
+  eyeColorCode String? @db.Text
+  appearanceObservedOn String? @db.Text
+  currentMeasurementSetId String? @db.Uuid
+  workspaceIdTd2 Workspace @relation("CastingProfile_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "castingProfiles_workspaceId_td2_fk")
+  personIdTd2 Person @relation("CastingProfile_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "castingProfiles_personId_td2_fk")
+  sourceIdTd2 SourceRecord @relation("CastingProfile_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "castingProfiles_sourceId_td2_fk")
+  currentMeasurementSetIdTd2 MeasurementSet? @relation("CastingProfile_currentMeasurementSetId_td2", fields: [workspaceId, personId, currentMeasurementSetId], references: [workspaceId, personId, id], onDelete: NoAction, onUpdate: NoAction, map: "castingProfiles_currentMeasurementSetId_td2_fk")
+  FieldEvidence_castingProfileId_td2 FieldEvidence[] @relation("FieldEvidence_castingProfileId_td2")
+  FieldProposal_castingProfileId_td2 FieldProposal[] @relation("FieldProposal_castingProfileId_td2")
+  @@unique([workspaceId, personId], map: "castingProfiles_personId_td2_unique")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, personId, id])
+  @@index([workspaceId, createdAt], map: "castingProfiles_td2_created_idx")
+  @@map("castingProfiles")
+}
+
+model MeasurementSet {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  sourceId String @db.Uuid
+  measuredOn String @db.Text
+  datePrecision String @db.Text
+  heightCm Float? @db.DoublePrecision
+  bustCm Float? @db.DoublePrecision
+  waistCm Float? @db.DoublePrecision
+  hipsCm Float? @db.DoublePrecision
+  shoeSizeValue String? @db.Text
+  shoeSizeSystem String? @db.Text
+  clothingSizeValue String? @db.Text
+  clothingSizeSystem String? @db.Text
+  supersedesId String? @db.Uuid
+  status String @db.Text
+  CastingProfile_currentMeasurementSetId_td2 CastingProfile[] @relation("CastingProfile_currentMeasurementSetId_td2")
+  workspaceIdTd2 Workspace @relation("MeasurementSet_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "measurementSets_workspaceId_td2_fk")
+  personIdTd2 Person @relation("MeasurementSet_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "measurementSets_personId_td2_fk")
+  sourceIdTd2 SourceRecord @relation("MeasurementSet_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "measurementSets_sourceId_td2_fk")
+  supersedesIdTd2 MeasurementSet? @relation("MeasurementSet_supersedesId_td2", fields: [workspaceId, personId, supersedesId], references: [workspaceId, personId, id], onDelete: NoAction, onUpdate: NoAction, map: "measurementSets_supersedesId_td2_fk")
+  MeasurementSet_supersedesId_td2 MeasurementSet[] @relation("MeasurementSet_supersedesId_td2")
+  FieldEvidence_measurementSetId_td2 FieldEvidence[] @relation("FieldEvidence_measurementSetId_td2")
+  FieldProposal_measurementSetId_td2 FieldProposal[] @relation("FieldProposal_measurementSetId_td2")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, personId, id])
+  @@index([workspaceId, createdAt], map: "measurementSets_td2_created_idx")
+  @@map("measurementSets")
+}
+
+model AdultEligibility {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  sourceId String @db.Uuid
+  state String @db.Text
+  verifiedByMembershipId String? @db.Uuid
+  verifiedAt DateTime? @db.Timestamptz(3)
+  validUntil DateTime? @db.Timestamptz(3)
+  evidenceAssetId String? @db.Uuid
+  status String @db.Text
+  workspaceIdTd2 Workspace @relation("AdultEligibility_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "adultEligibilities_workspaceId_td2_fk")
+  personIdTd2 Person @relation("AdultEligibility_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "adultEligibilities_personId_td2_fk")
+  sourceIdTd2 SourceRecord @relation("AdultEligibility_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "adultEligibilities_sourceId_td2_fk")
+  evidenceAssetIdTd2 MediaAsset? @relation("AdultEligibility_evidenceAssetId_td2", fields: [workspaceId, evidenceAssetId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "adultEligibilities_evidenceAssetId_td2_fk")
+  verifiedByMembershipIdTd2 Membership? @relation("AdultEligibility_verifiedByMembershipId_td2", fields: [workspaceId, verifiedByMembershipId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "adultEligibilities_verifiedByMembershipId_td2_fk")
+  FieldEvidence_adultEligibilityId_td2 FieldEvidence[] @relation("FieldEvidence_adultEligibilityId_td2")
+  FieldProposal_adultEligibilityId_td2 FieldProposal[] @relation("FieldProposal_adultEligibilityId_td2")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, personId, id])
+  @@index([workspaceId, createdAt], map: "adultEligibilities_td2_created_idx")
+  @@map("adultEligibilities")
+}
+
+model TalentOrganization {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  name String @db.Text
+  kind String @db.Text
+  sourceId String @db.Uuid
+  scopeId String @db.Uuid
+  status String @db.Text
+  workspaceIdTd2 Workspace @relation("TalentOrganization_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "organizations_workspaceId_td2_fk")
+  sourceIdTd2 SourceRecord @relation("TalentOrganization_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "organizations_sourceId_td2_fk")
+  scopeIdTd2 AccessScope @relation("TalentOrganization_scopeId_td2", fields: [workspaceId, scopeId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "organizations_scopeId_td2_fk")
+  Representation_agencyOrganizationId_td2 Representation[] @relation("Representation_agencyOrganizationId_td2")
+  PersonExternalRef_issuerOrganizationId_td2 PersonExternalRef[] @relation("PersonExternalRef_issuerOrganizationId_td2")
+  PersonCredential_issuerOrganizationId_td2 PersonCredential[] @relation("PersonCredential_issuerOrganizationId_td2")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, createdAt], map: "organizations_td2_created_idx")
+  @@map("organizations")
+}
+
+model Representation {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  sourceId String @db.Uuid
+  personRoleId String? @db.Uuid
+  agencyOrganizationId String? @db.Uuid
+  agentPersonId String? @db.Uuid
+  relationCode String @db.Text
+  territoryCode String? @db.Text
+  validFrom DateTime? @db.Timestamptz(3)
+  validUntil DateTime? @db.Timestamptz(3)
+  status String @db.Text
+  workspaceIdTd2 Workspace @relation("Representation_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "representations_workspaceId_td2_fk")
+  personIdTd2 Person @relation("Representation_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "representations_personId_td2_fk")
+  sourceIdTd2 SourceRecord @relation("Representation_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "representations_sourceId_td2_fk")
+  personRoleIdTd2 PersonRole? @relation("Representation_personRoleId_td2", fields: [workspaceId, personId, personRoleId], references: [workspaceId, personId, id], onDelete: NoAction, onUpdate: NoAction, map: "representations_personRoleId_td2_fk")
+  agencyOrganizationIdTd2 TalentOrganization? @relation("Representation_agencyOrganizationId_td2", fields: [workspaceId, agencyOrganizationId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "representations_agencyOrganizationId_td2_fk")
+  agentPersonIdTd2 Person? @relation("Representation_agentPersonId_td2", fields: [workspaceId, agentPersonId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "representations_agentPersonId_td2_fk")
+  FieldEvidence_representationId_td2 FieldEvidence[] @relation("FieldEvidence_representationId_td2")
+  FieldProposal_representationId_td2 FieldProposal[] @relation("FieldProposal_representationId_td2")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, personId, id])
+  @@index([workspaceId, createdAt], map: "representations_td2_created_idx")
+  @@map("representations")
+}
+
+model PersonExternalRef {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  sourceId String @db.Uuid
+  providerCode String @db.Text
+  namespaceCode String @db.Text
+  issuerOrganizationId String? @db.Uuid
+  externalKey String @db.Text
+  state String @db.Text
+  verifiedAt DateTime? @db.Timestamptz(3)
+  workspaceIdTd2 Workspace @relation("PersonExternalRef_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "personExternalRefs_workspaceId_td2_fk")
+  personIdTd2 Person @relation("PersonExternalRef_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "personExternalRefs_personId_td2_fk")
+  sourceIdTd2 SourceRecord @relation("PersonExternalRef_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "personExternalRefs_sourceId_td2_fk")
+  issuerOrganizationIdTd2 TalentOrganization? @relation("PersonExternalRef_issuerOrganizationId_td2", fields: [workspaceId, issuerOrganizationId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "personExternalRefs_issuerOrganizationId_td2_fk")
+  FieldEvidence_personExternalRefId_td2 FieldEvidence[] @relation("FieldEvidence_personExternalRefId_td2")
+  FieldProposal_personExternalRefId_td2 FieldProposal[] @relation("FieldProposal_personExternalRefId_td2")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, personId, id])
+  @@index([workspaceId, createdAt], map: "personExternalRefs_td2_created_idx")
+  @@map("personExternalRefs")
+}
+
+model PersonCredential {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  sourceId String @db.Uuid
+  personRoleId String? @db.Uuid
+  credentialTypeCode String @db.Text
+  issuerOrganizationId String? @db.Uuid
+  issuerName String? @db.Text
+  identifierCiphertext String? @db.Text
+  maskedIdentifier String? @db.Text
+  issuedOn String? @db.Text
+  expiresOn String? @db.Text
+  evidenceAssetId String? @db.Uuid
+  status String @db.Text
+  workspaceIdTd2 Workspace @relation("PersonCredential_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "personCredentials_workspaceId_td2_fk")
+  personIdTd2 Person @relation("PersonCredential_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "personCredentials_personId_td2_fk")
+  sourceIdTd2 SourceRecord @relation("PersonCredential_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "personCredentials_sourceId_td2_fk")
+  personRoleIdTd2 PersonRole? @relation("PersonCredential_personRoleId_td2", fields: [workspaceId, personId, personRoleId], references: [workspaceId, personId, id], onDelete: NoAction, onUpdate: NoAction, map: "personCredentials_personRoleId_td2_fk")
+  evidenceAssetIdTd2 MediaAsset? @relation("PersonCredential_evidenceAssetId_td2", fields: [workspaceId, evidenceAssetId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "personCredentials_evidenceAssetId_td2_fk")
+  issuerOrganizationIdTd2 TalentOrganization? @relation("PersonCredential_issuerOrganizationId_td2", fields: [workspaceId, issuerOrganizationId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "personCredentials_issuerOrganizationId_td2_fk")
+  FieldEvidence_personCredentialId_td2 FieldEvidence[] @relation("FieldEvidence_personCredentialId_td2")
+  FieldProposal_personCredentialId_td2 FieldProposal[] @relation("FieldProposal_personCredentialId_td2")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, personId, id])
+  @@index([workspaceId, createdAt], map: "personCredentials_td2_created_idx")
+  @@map("personCredentials")
+}
+
+model TranslatorLanguagePair {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  sourceId String @db.Uuid
+  personRoleId String @db.Uuid
+  sourceLanguageCode String @db.Text
+  targetLanguageCode String @db.Text
+  status String @db.Text
+  workspaceIdTd2 Workspace @relation("TranslatorLanguagePair_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "translatorLanguagePairs_workspaceId_td2_fk")
+  personIdTd2 Person @relation("TranslatorLanguagePair_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "translatorLanguagePairs_personId_td2_fk")
+  sourceIdTd2 SourceRecord @relation("TranslatorLanguagePair_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "translatorLanguagePairs_sourceId_td2_fk")
+  personRoleIdTd2 PersonRole @relation("TranslatorLanguagePair_personRoleId_td2", fields: [workspaceId, personId, personRoleId], references: [workspaceId, personId, id], onDelete: NoAction, onUpdate: NoAction, map: "translatorLanguagePairs_personRoleId_td2_fk")
+  FieldEvidence_translatorLanguagePairId_td2 FieldEvidence[] @relation("FieldEvidence_translatorLanguagePairId_td2")
+  FieldProposal_translatorLanguagePairId_td2 FieldProposal[] @relation("FieldProposal_translatorLanguagePairId_td2")
+  @@unique([workspaceId, personRoleId, sourceLanguageCode, targetLanguageCode], map: "translatorLanguagePairs_personRoleId_sourceLang_75fc13495a86")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, personId, id])
+  @@index([workspaceId, createdAt], map: "translatorLanguagePairs_td2_created_idx")
+  @@map("translatorLanguagePairs")
+}
+
+model TranslatorServiceMode {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  sourceId String @db.Uuid
+  personRoleId String @db.Uuid
+  modeCode String @db.Text
+  status String @db.Text
+  workspaceIdTd2 Workspace @relation("TranslatorServiceMode_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "translatorServiceModes_workspaceId_td2_fk")
+  personIdTd2 Person @relation("TranslatorServiceMode_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "translatorServiceModes_personId_td2_fk")
+  sourceIdTd2 SourceRecord @relation("TranslatorServiceMode_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "translatorServiceModes_sourceId_td2_fk")
+  personRoleIdTd2 PersonRole @relation("TranslatorServiceMode_personRoleId_td2", fields: [workspaceId, personId, personRoleId], references: [workspaceId, personId, id], onDelete: NoAction, onUpdate: NoAction, map: "translatorServiceModes_personRoleId_td2_fk")
+  FieldEvidence_translatorServiceModeId_td2 FieldEvidence[] @relation("FieldEvidence_translatorServiceModeId_td2")
+  FieldProposal_translatorServiceModeId_td2 FieldProposal[] @relation("FieldProposal_translatorServiceModeId_td2")
+  @@unique([workspaceId, personRoleId, modeCode], map: "translatorServiceModes_personRoleId_modeCode_td2_unique")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, personId, id])
+  @@index([workspaceId, createdAt], map: "translatorServiceModes_td2_created_idx")
+  @@map("translatorServiceModes")
+}
+
+model MediaCollection {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  sourceId String @db.Uuid
+  personRoleId String? @db.Uuid
+  collectionTypeCode String @db.Text
+  title String @db.Text
+  status String @db.Text
+  workspaceIdTd2 Workspace @relation("MediaCollection_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mediaCollections_workspaceId_td2_fk")
+  personIdTd2 Person @relation("MediaCollection_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "mediaCollections_personId_td2_fk")
+  sourceIdTd2 SourceRecord @relation("MediaCollection_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "mediaCollections_sourceId_td2_fk")
+  personRoleIdTd2 PersonRole? @relation("MediaCollection_personRoleId_td2", fields: [workspaceId, personId, personRoleId], references: [workspaceId, personId, id], onDelete: NoAction, onUpdate: NoAction, map: "mediaCollections_personRoleId_td2_fk")
+  MediaCollectionTag_collectionId_td2 MediaCollectionTag[] @relation("MediaCollectionTag_collectionId_td2")
+  MediaCollectionItem_collectionId_td2 MediaCollectionItem[] @relation("MediaCollectionItem_collectionId_td2")
+  FieldEvidence_mediaCollectionId_td2 FieldEvidence[] @relation("FieldEvidence_mediaCollectionId_td2")
+  FieldProposal_mediaCollectionId_td2 FieldProposal[] @relation("FieldProposal_mediaCollectionId_td2")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, personId, id])
+  @@index([workspaceId, createdAt], map: "mediaCollections_td2_created_idx")
+  @@map("mediaCollections")
+}
+
+model MediaCollectionTag {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  sourceId String @db.Uuid
+  collectionId String @db.Uuid
+  tagCode String @db.Text
+  workspaceIdTd2 Workspace @relation("MediaCollectionTag_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mediaCollectionTags_workspaceId_td2_fk")
+  personIdTd2 Person @relation("MediaCollectionTag_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "mediaCollectionTags_personId_td2_fk")
+  sourceIdTd2 SourceRecord @relation("MediaCollectionTag_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "mediaCollectionTags_sourceId_td2_fk")
+  collectionIdTd2 MediaCollection @relation("MediaCollectionTag_collectionId_td2", fields: [workspaceId, personId, collectionId], references: [workspaceId, personId, id], onDelete: NoAction, onUpdate: NoAction, map: "mediaCollectionTags_collectionId_td2_fk")
+  FieldEvidence_mediaCollectionTagId_td2 FieldEvidence[] @relation("FieldEvidence_mediaCollectionTagId_td2")
+  FieldProposal_mediaCollectionTagId_td2 FieldProposal[] @relation("FieldProposal_mediaCollectionTagId_td2")
+  @@unique([workspaceId, collectionId, tagCode], map: "mediaCollectionTags_collectionId_tagCode_td2_unique")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, personId, id])
+  @@index([workspaceId, createdAt], map: "mediaCollectionTags_td2_created_idx")
+  @@map("mediaCollectionTags")
+}
+
+model MediaCollectionItem {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  collectionId String @db.Uuid
+  assetId String @db.Uuid
+  orderIndex Int
+  caption String @db.Text
+  featured Boolean
+  workspaceIdTd2 Workspace @relation("MediaCollectionItem_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mediaCollectionItems_workspaceId_td2_fk")
+  personIdTd2 Person @relation("MediaCollectionItem_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "mediaCollectionItems_personId_td2_fk")
+  collectionIdTd2 MediaCollection @relation("MediaCollectionItem_collectionId_td2", fields: [workspaceId, personId, collectionId], references: [workspaceId, personId, id], onDelete: NoAction, onUpdate: NoAction, map: "mediaCollectionItems_collectionId_td2_fk")
+  assetIdTd2 MediaAsset @relation("MediaCollectionItem_assetId_td2", fields: [workspaceId, assetId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "mediaCollectionItems_assetId_td2_fk")
+  @@unique([workspaceId, collectionId, assetId], map: "mediaCollectionItems_collectionId_assetId_td2_unique")
+  @@unique([workspaceId, collectionId, orderIndex], map: "mediaCollectionItems_collectionId_orderIndex_td2_unique")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, personId, id])
+  @@index([workspaceId, createdAt], map: "mediaCollectionItems_td2_created_idx")
+  @@map("mediaCollectionItems")
+}
+
+model ServicePrincipal {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  displayName String @db.Text
+  scopeId String @db.Uuid
+  permissionCodes String[]
+  defaultMaintainerMembershipId String @db.Uuid
+  credentialHash String? @db.Text
+  keyVersion Int
+  expiresAt DateTime? @db.Timestamptz(3)
+  recoveryEpoch String @db.Text
+  status String @db.Text
+  workspaceIdTd2 Workspace @relation("ServicePrincipal_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "servicePrincipals_workspaceId_td2_fk")
+  scopeIdTd2 AccessScope @relation("ServicePrincipal_scopeId_td2", fields: [workspaceId, scopeId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "servicePrincipals_scopeId_td2_fk")
+  defaultMaintainerMembershipIdTd2 Membership @relation("ServicePrincipal_defaultMaintainerMembershipId_td2", fields: [workspaceId, defaultMaintainerMembershipId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "servicePrincipals_defaultMaintainerMembershipId_td2_fk")
+  FieldProposal_servicePrincipalId_td2 FieldProposal[] @relation("FieldProposal_servicePrincipalId_td2")
+  CommandReceipt_servicePrincipalId_td2 CommandReceipt[] @relation("CommandReceipt_servicePrincipalId_td2")
+  AuditEvent_servicePrincipalId_td2 AuditEvent[] @relation("AuditEvent_servicePrincipalId_td2")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, createdAt], map: "servicePrincipals_td2_created_idx")
+  @@map("servicePrincipals")
+}
+
+model FieldProposal {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String? @db.Uuid
+  talentProfileId String? @db.Uuid
+  personRoleId String? @db.Uuid
+  personCapabilityId String? @db.Uuid
+  personLanguageId String? @db.Uuid
+  talentLocationId String? @db.Uuid
+  castingProfileId String? @db.Uuid
+  measurementSetId String? @db.Uuid
+  adultEligibilityId String? @db.Uuid
+  representationId String? @db.Uuid
+  personExternalRefId String? @db.Uuid
+  personCredentialId String? @db.Uuid
+  translatorLanguagePairId String? @db.Uuid
+  translatorServiceModeId String? @db.Uuid
+  mediaCollectionId String? @db.Uuid
+  mediaCollectionTagId String? @db.Uuid
+  fieldPath String @db.Text
+  proposedValue Json @db.JsonB
+  valueDigest String @db.Text
+  sourceId String @db.Uuid
+  sourceRevision Int
+  originType String @db.Text
+  actorId String? @db.Uuid
+  servicePrincipalId String? @db.Uuid
+  baseRevision Int
+  schemaVersion String @db.Text
+  state String @db.Text
+  decidedAt DateTime? @db.Timestamptz(3)
+  decidedById String? @db.Uuid
+  workspaceIdTd2 Workspace @relation("FieldProposal_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_workspaceId_td2_fk")
+  sourceIdTd2 SourceRecord @relation("FieldProposal_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_sourceId_td2_fk")
+  actorIdTd2 Membership? @relation("FieldProposal_actorId_td2", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_actorId_td2_fk")
+  decidedByIdTd2 Membership? @relation("FieldProposal_decidedById_td2", fields: [workspaceId, decidedById], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_decidedById_td2_fk")
+  servicePrincipalIdTd2 ServicePrincipal? @relation("FieldProposal_servicePrincipalId_td2", fields: [workspaceId, servicePrincipalId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_servicePrincipalId_td2_fk")
+  personIdTd2 Person? @relation("FieldProposal_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_personId_td2_fk")
+  talentProfileIdTd2 TalentProfile? @relation("FieldProposal_talentProfileId_td2", fields: [workspaceId, talentProfileId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_talentProfileId_td2_fk")
+  personRoleIdTd2 PersonRole? @relation("FieldProposal_personRoleId_td2", fields: [workspaceId, personRoleId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_personRoleId_td2_fk")
+  personCapabilityIdTd2 PersonCapability? @relation("FieldProposal_personCapabilityId_td2", fields: [workspaceId, personCapabilityId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_personCapabilityId_td2_fk")
+  personLanguageIdTd2 PersonLanguage? @relation("FieldProposal_personLanguageId_td2", fields: [workspaceId, personLanguageId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_personLanguageId_td2_fk")
+  talentLocationIdTd2 TalentLocation? @relation("FieldProposal_talentLocationId_td2", fields: [workspaceId, talentLocationId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_talentLocationId_td2_fk")
+  castingProfileIdTd2 CastingProfile? @relation("FieldProposal_castingProfileId_td2", fields: [workspaceId, castingProfileId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_castingProfileId_td2_fk")
+  measurementSetIdTd2 MeasurementSet? @relation("FieldProposal_measurementSetId_td2", fields: [workspaceId, measurementSetId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_measurementSetId_td2_fk")
+  adultEligibilityIdTd2 AdultEligibility? @relation("FieldProposal_adultEligibilityId_td2", fields: [workspaceId, adultEligibilityId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_adultEligibilityId_td2_fk")
+  representationIdTd2 Representation? @relation("FieldProposal_representationId_td2", fields: [workspaceId, representationId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_representationId_td2_fk")
+  personExternalRefIdTd2 PersonExternalRef? @relation("FieldProposal_personExternalRefId_td2", fields: [workspaceId, personExternalRefId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_personExternalRefId_td2_fk")
+  personCredentialIdTd2 PersonCredential? @relation("FieldProposal_personCredentialId_td2", fields: [workspaceId, personCredentialId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_personCredentialId_td2_fk")
+  translatorLanguagePairIdTd2 TranslatorLanguagePair? @relation("FieldProposal_translatorLanguagePairId_td2", fields: [workspaceId, translatorLanguagePairId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_translatorLanguagePairId_td2_fk")
+  translatorServiceModeIdTd2 TranslatorServiceMode? @relation("FieldProposal_translatorServiceModeId_td2", fields: [workspaceId, translatorServiceModeId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_translatorServiceModeId_td2_fk")
+  mediaCollectionIdTd2 MediaCollection? @relation("FieldProposal_mediaCollectionId_td2", fields: [workspaceId, mediaCollectionId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_mediaCollectionId_td2_fk")
+  mediaCollectionTagIdTd2 MediaCollectionTag? @relation("FieldProposal_mediaCollectionTagId_td2", fields: [workspaceId, mediaCollectionTagId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "fieldProposals_mediaCollectionTagId_td2_fk")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, createdAt], map: "fieldProposals_td2_created_idx")
+  @@map("fieldProposals")
+}
+
+model TalentMigrationReview {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  shortlistItemId String? @db.Uuid
+  reason String @db.Text
+  state String @db.Text
+  resolvedAt DateTime? @db.Timestamptz(3)
+  resolvedById String? @db.Uuid
+  workspaceIdTd2 Workspace @relation("TalentMigrationReview_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "talentMigrationReviews_workspaceId_td2_fk")
+  personIdTd2 Person @relation("TalentMigrationReview_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "talentMigrationReviews_personId_td2_fk")
+  resolvedByIdTd2 Membership? @relation("TalentMigrationReview_resolvedById_td2", fields: [workspaceId, resolvedById], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "talentMigrationReviews_resolvedById_td2_fk")
+  shortlistItemIdTd2 ShortlistItem? @relation("TalentMigrationReview_shortlistItemId_td2", fields: [workspaceId, shortlistItemId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "talentMigrationReviews_shortlistItemId_td2_fk")
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, personId, id])
+  @@index([workspaceId, createdAt], map: "talentMigrationReviews_td2_created_idx")
+  @@map("talentMigrationReviews")
+}

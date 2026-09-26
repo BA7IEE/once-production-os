@@ -1,3 +1,4 @@
+import type { TalentV2Tables, TalentOwnerRefs } from './talent-v2-model.ts';
 import type { Work, WorkAsset, WorkCredit, Project, ProjectParticipant, ProjectWork } from './production-model.ts';
 import type { Shortlist, ShortlistItem, ShortlistItemAsset } from './shortlist-model.ts';
 import type { MediaUpload, MediaAsset } from './media-model.ts';
@@ -8,7 +9,7 @@ import type { RecoveryRun } from './recovery-model.ts';
 export type Role = 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'VIEWER';
 export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write', 'data.export', 'data.delete', 'data.merge'] as const;
 export type ExtraPermission = typeof EXTRA_PERMISSIONS[number];
-export type Permission = 'records.read' | 'records.write' | 'sources.read' | 'sources.write' | 'sources.review' | 'catalog.manage' | 'members.manage' | 'audit.read' | 'assets.read' | 'assets.upload' | ExtraPermission;
+export type Permission = 'records.read' | 'records.write' | 'sources.read' | 'sources.write' | 'sources.review' | 'catalog.manage' | 'members.manage' | 'audit.read' | 'assets.read' | 'assets.upload' | 'talent.propose' | 'talent.fact.write' | ExtraPermission;
 export interface Base {
     id: string;
     workspaceId: string;
@@ -109,14 +110,14 @@ export interface Contact extends Base {
     ciphertext: string;
     maskedValue: string;
 }
-export interface FieldEvidence extends Base {
-    personId: string;
+export interface FieldEvidence extends Base, Partial<TalentOwnerRefs> {
+    personId: string | null;
     fieldPath: string;
     valueDigest: string;
     sourceId: string;
     sourceRevision: number;
-    reviewerId: string;
-    reviewedAt: string;
+    reviewerId: string | null;
+    reviewedAt: string | null;
 }
 export interface DictionaryItem extends Base {
     namespace: 'role' | 'city' | 'language' | 'skill' | 'industry' | 'workType';
@@ -126,7 +127,8 @@ export interface DictionaryItem extends Base {
     status: 'ACTIVE' | 'INACTIVE';
 }
 export interface CommandReceipt extends Base {
-    actorId: string;
+    servicePrincipalId?: string | null;
+    actorId: string | null;
     operation: string;
     commandKey: string;
     requestDigest: string;
@@ -142,6 +144,7 @@ export interface ReceiptResult {
     replayed?: boolean;
 }
 export interface AuditEvent extends Base {
+    servicePrincipalId?: string | null;
     actorId: string | null;
     action: string;
     resourceKind: string;
@@ -206,7 +209,7 @@ export interface RecordHandoff extends Base {
     closedAt: string | null;
     closedById: string | null;
 }
-export interface TableMap {
+export interface TableMap extends TalentV2Tables {
     recoveryRuns: RecoveryRun;
     personMerges: PersonMergeDecision;
     personAliases: PersonAlias;
@@ -248,6 +251,9 @@ export interface TableMap {
 }
 export type Table = keyof TableMap;
 export interface Actor {
+    actorKind?: 'HUMAN' | 'MACHINE';
+    servicePrincipalId?: string;
+    machineScopeId?: string;
     userId: string;
     membershipId: string;
     workspaceId: string;
