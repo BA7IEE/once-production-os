@@ -160,7 +160,8 @@ test('DEV-09A prepare revokes old capabilities but deliberately does not approve
     const a = await actor(f, r);
     const expected = hashSecret(f.app.config.recoveryEpoch);
     const oldWorkspaceEpoch = f.store.rows('workspaces')[0]!.recoveryEpoch;
-    const ownerBefore = f.store.rows('users').find(x => x.id === f.userId)!;
+    const ownerUserId = f.store.rows('memberships').find(x => x.id === f.membershipId)!.userId;
+    const ownerBefore = f.store.rows('users').find(x => x.id === ownerUserId)!;
 
     const run = await f.store.transaction(tx => r.prepare(tx, a, expected, { requestId: randomUUID(), ip: 'CLI' }));
     assert.equal(run.state, 'PREPARED');
@@ -171,7 +172,7 @@ test('DEV-09A prepare revokes old capabilities but deliberately does not approve
 
     assert.ok(f.store.rows('sessions').every(x => !!x.revokedAt));
     assert.ok(f.store.rows('activations').every(x => !!x.consumedAt));
-    assert.ok(f.store.rows('users').find(x => x.id === f.userId)!.sessionEpoch > ownerBefore.sessionEpoch);
+    assert.ok(f.store.rows('users').find(x => x.id === ownerUserId)!.sessionEpoch > ownerBefore.sessionEpoch);
     assert.equal(f.store.rows('memberships').find(x => x.id === reviewer.id)!.status, 'DISABLED');
     assert.equal(f.store.rows('handoffs')[0]!.state, 'REVOKED');
     assert.equal(f.store.rows('usePermissions')[0]!.status, 'REVOKED');
