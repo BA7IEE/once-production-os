@@ -231,6 +231,28 @@ test('DEV-07H T29 refuses to merge into an already-used target', async () => {
     assert.deepEqual(businessCounts(f), before);
 });
 
+test('DEV-07H T29 cannot bypass normal per-work or per-project relationship limits', async () => {
+    const f = await fixture();
+    const payload: any = rebuildablePayload();
+    const roles = ['model','photographer','editor','makeup','director','stylist','producer','cinematographer'];
+    const rows = [];
+    for (const person of payload.manifest.people) {
+        for (const roleCode of roles) rows.push({ workId: payload.manifest.works[0].id, personId: person.id, roleCode });
+    }
+    payload.manifest.relations.workCredits = rows.slice(0, 51);
+    await assert.rejects(preview(f, payload), (e: unknown) => e instanceof AppError && e.code === 'REBUILD_ROOT_RELATION_LIMIT');
+
+    const f2 = await fixture();
+    const payload2: any = rebuildablePayload();
+    const sourceId = payload2.manifest.sources[0].id;
+    payload2.manifest.media = Array.from({ length: 31 }, (_, position) => ({
+        id: randomUUID(), workId: payload2.manifest.works[0].id, position, isCover: position === 0,
+        sourceId, revision: 1, fileName: 'm-' + position + '.png', mime: 'image/png',
+        bytes: 12, sha256: position.toString(16).padStart(64, '0'), width: 2, height: 3
+    }));
+    await assert.rejects(preview(f2, payload2), (e: unknown) => e instanceof AppError && e.code === 'REBUILD_ROOT_MEDIA_LIMIT');
+});
+
 test('DEV-07H T29 media identity permits cross-work reuse but rejects duplicate links and order gaps', async () => {
     const sharedAssetId = randomUUID();
 
