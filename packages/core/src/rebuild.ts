@@ -277,7 +277,7 @@ export class JsonRebuild {
             await tx.insert('projectWorks', relation);
         }
 
-        await audit(tx, actor, actor.workspaceId, 'rebuild.apply', 'workspace', actor.workspaceId,
+        await audit(tx, actor, actor.workspaceId, 'rebuild.apply', 'rebuild-export', payload.exportId,
             ['sources', 'people', 'works', 'projects', 'relations', ...(payload.manifest.media.length ? ['media.identity-only'] : [])],
             meta, this.clock);
         return summary;
