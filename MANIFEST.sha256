@@ -35,7 +35,7 @@ b605cc404c45183fdf343f4898ea362f85b37d17a5454100465239fcb00086c7  apps/api/src/d
 1c70e755fb4dc1bd488892288bbd1558031939ad7f8643c906bb3291b4852485  apps/api/src/main.ts
 1431b8a52c3db6f8a5f67f859d91abc4f2652c499738bb051fcb8f05cd6aed03  apps/api/src/media/decoder.ts
 92572559198cf535746fa0d737aba518f04fbf7ae9056acfb058eeb20fa9a967  apps/api/src/media/http.ts
-e5bfd476735c7c316df12f3b46c3ff91ad5434687d9fec491854aa7ad589c855  apps/api/src/media/local-provider.ts
+e294199fbdef102495bd4c85922c2cc3545c723341173fad26b1b529bb22973e  apps/api/src/media/local-provider.ts
 7fc31f5d175dd23f5e717621bc59b3de94a6fd3b1d9c94434a3a441267b377af  apps/api/src/media/worker.ts
 eb4251b79e1ef23ef8bf0062670f7a1f08d5b9aef27c805db4f1683289df4a77  apps/api/src/prisma-store.ts
 70e9a07d3ea35605733916b72a8ce354affebe8222bdef7ce47c7a15ba596283  apps/api/src/worker-main.ts
