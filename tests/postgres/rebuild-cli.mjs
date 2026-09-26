@@ -154,6 +154,9 @@ try {
     assert.equal(await targetClient.exportJob.count(), 0);
     assert.equal(await targetClient.session.count(), 0);
     assert.equal(await targetClient.auditEvent.count(), 2);
+    const rebuildAudit = await targetClient.auditEvent.findFirstOrThrow({ where: { action: 'rebuild.apply' } });
+    assert.equal(rebuildAudit.resourceKind, 'rebuild-export');
+    assert.equal(rebuildAudit.resourceId, value.exportId);
 
     assert.equal((await targetClient.person.findUniqueOrThrow({ where: { id: value.manifest.people[0].id } })).displayName, 'T29 PG 人才 1');
     assert.equal((await targetClient.work.findUniqueOrThrow({ where: { id: value.manifest.works[0].id } })).title, 'T29 PG 作品 1');
