@@ -22,6 +22,8 @@
 
 ---
 
+> 以下历史 Review 描述各提交当时的**已实现代码语义**，不是 Talent R1 的目标模型。尤其 DEV-07G 的“Person 只有一个 primary Source”仍是旧代码真实边界；R1 将通过前向迁移把它收窄为 identity originSource，并把具体事实改为多来源 Evidence/Proposal。不得用历史实现说明覆盖 R1 新规格。
+
 > 当前增量详见 [WP7_JSON_REBUILD.md](WP7_JSON_REBUILD.md)。当前结论以 PR #18 最终 head 与对应 Actions 为准。
 
 # 第一批源码 Review
