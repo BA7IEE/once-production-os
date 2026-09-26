@@ -227,6 +227,9 @@ test('DEV-07H T29 real once-export-v1 -> PostgreSQL rollback -> CLI rebuild 10/3
         assert.equal(await targetClient.membership.count(), 1);
         assert.equal(await targetClient.commandReceipt.count(), 0);
         assert.equal(await targetClient.exportJob.count(), 0);
+        const rebuildAudit = await targetClient.auditEvent.findFirstOrThrow({ where: { action: 'rebuild.apply' } });
+        assert.equal(rebuildAudit.resourceKind, 'rebuild-export');
+        assert.equal(rebuildAudit.resourceId, exportPayload.exportId);
 
         const source = await targetClient.sourceRecord.findUniqueOrThrow({ where: { id: exportPayload.manifest.sources[0].id } });
         assert.equal(source.textPayload, '');
