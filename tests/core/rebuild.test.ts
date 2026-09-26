@@ -168,6 +168,8 @@ test('DEV-07H T29 apply preserves exported business ids and relations while rebi
     assert.equal(history[0]!.baselineOnly, true);
     assert.equal(history[0]!.sourceRevision, source.revision);
     assert.match(history[0]!.decisionReason ?? '', /original source history/i);
+    assert.match(history[0]!.decisionReason ?? '', new RegExp(payload.exportId));
+    assert.match(history[0]!.decisionReason ?? '', new RegExp(summary.inputDigest));
 
     assert.equal(f.store.rows('workCredits').length, 3);
     assert.equal(f.store.rows('projectParticipants').length, 2);
@@ -228,6 +230,48 @@ test('DEV-07H T29 refuses to merge into an already-used target', async () => {
     const before = businessCounts(f);
     await assert.rejects(preview(f, rebuildablePayload()), (e: unknown) => e instanceof AppError && e.code === 'REBUILD_TARGET_NOT_EMPTY');
     assert.deepEqual(businessCounts(f), before);
+});
+
+test('DEV-07H T29 media identity permits cross-work reuse but rejects duplicate links and order gaps', async () => {
+    const sharedAssetId = randomUUID();
+
+    {
+        const f = await fixture();
+        const payload: any = rebuildablePayload();
+        const sourceId = payload.manifest.sources[0].id;
+        const media = (workId: string, position: number) => ({
+            id: sharedAssetId, workId, position, isCover: true, sourceId, revision: 1,
+            fileName: 'shared.png', mime: 'image/png', bytes: 12, sha256: 'a'.repeat(64), width: 2, height: 3
+        });
+        payload.manifest.media = [media(payload.manifest.works[0].id, 0), media(payload.manifest.works[1].id, 0)];
+        const summary = await preview(f, payload);
+        assert.equal(summary.counts.mediaIdentities, 2);
+        assert.equal(summary.mediaRestored, 0);
+    }
+
+    {
+        const f = await fixture();
+        const payload: any = rebuildablePayload();
+        const sourceId = payload.manifest.sources[0].id;
+        const workId = payload.manifest.works[0].id;
+        const base = {
+            id: sharedAssetId, workId, isCover: false, sourceId, revision: 1,
+            fileName: 'duplicate.png', mime: 'image/png', bytes: 12, sha256: 'b'.repeat(64), width: 2, height: 3
+        };
+        payload.manifest.media = [{ ...base, position: 0 }, { ...base, position: 1 }];
+        await assert.rejects(preview(f, payload), (e: unknown) => e instanceof AppError && e.code === 'REBUILD_DUPLICATE_MEDIA_LINK');
+    }
+
+    {
+        const f = await fixture();
+        const payload: any = rebuildablePayload();
+        const sourceId = payload.manifest.sources[0].id;
+        payload.manifest.media = [{
+            id: randomUUID(), workId: payload.manifest.works[0].id, position: 1, isCover: false, sourceId, revision: 1,
+            fileName: 'gap.png', mime: 'image/png', bytes: 12, sha256: 'c'.repeat(64), width: 2, height: 3
+        }];
+        await assert.rejects(preview(f, payload), (e: unknown) => e instanceof AppError && e.code === 'REBUILD_MEDIA_ORDER_INVALID');
+    }
 });
 
 test('DEV-07H T29 allows target-local catalog preparation through normal commands', async () => {
