@@ -5,6 +5,7 @@ export type RecoveryState = 'PREPARED' | 'INSPECTED' | 'APPROVED';
 export interface RecoveryMediaCheck {
     provider: 'disabled' | 'local';
     identityDigest: string;
+    backupIdentityDigest: string;
     expectedAssetIds: string[];
     verifiedAssetIds: string[];
     missingAssetIds: string[];
@@ -42,6 +43,7 @@ export interface RecoveryApprovalEvidence {
     recoveryEpochDigest: string;
     contactKeyDigest: string;
     migrationDigest: string;
+    mediaIdentityDigest: string;
     reportDigest: string;
     safetyJournal: {
         journalId: string;

@@ -29,6 +29,12 @@ function external(f: F, overrides: Partial<{ migrationMatch: boolean; provider: 
         width: x.width, height: x.height, previewBytes: x.previewBytes, previewHash: x.previewHash,
         objectToken: x.objectToken, state: x.state
     })));
+    const backupIdentityDigest = digest(assets.map(x => ({
+        id: x.id, uploadId: x.uploadId, sourceId: x.sourceId, scopeId: x.scopeId, personId: x.personId,
+        fileName: x.fileName, mime: x.mime, bytes: x.bytes, sha256: x.sha256,
+        width: x.width, height: x.height, previewBytes: x.previewBytes, previewHash: x.previewHash,
+        objectToken: x.objectToken
+    })));
     const provider = overrides.provider ?? 'local';
     const missing = overrides.missing ?? [];
     const mismatch = overrides.mismatch ?? [];
@@ -39,6 +45,7 @@ function external(f: F, overrides: Partial<{ migrationMatch: boolean; provider: 
         media: {
             provider,
             identityDigest,
+            backupIdentityDigest,
             expectedAssetIds: ids,
             verifiedAssetIds: provider === 'local' ? ids.filter(id => !bad.has(id)) : [],
             missingAssetIds: provider === 'disabled' ? ids : missing,
@@ -364,6 +371,7 @@ function approvalEvidence(run: any, report: any, overrides: any = {}) {
         recoveryEpochDigest: overrides.recoveryEpochDigest ?? run.sourceEpochDigest,
         contactKeyDigest: overrides.contactKeyDigest ?? report.contactKeyDigest,
         migrationDigest: overrides.migrationDigest ?? report.migrationDigest,
+        mediaIdentityDigest: overrides.mediaIdentityDigest ?? report.media.backupIdentityDigest,
         reportDigest: overrides.reportDigest ?? run.reportDigest,
         safetyJournal: {
             journalId: overrides.journalId ?? randomUUID(),

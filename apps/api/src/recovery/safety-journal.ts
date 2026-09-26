@@ -1,7 +1,9 @@
-import { open, readFile, stat } from 'node:fs/promises';
+import { mkdir, open, readFile, rmdir, stat } from 'node:fs/promises';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { dirname, isAbsolute, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { AuditEvent } from '../../../../packages/core/src/model.ts';
+import type { SafetyIntent } from '../../../../packages/core/src/safety-intent.ts';
 import { digest } from '../../../../packages/core/src/json.ts';
 import { invariant } from '../../../../packages/core/src/errors.ts';
 
@@ -127,44 +129,89 @@ export async function createSafetyJournal(path: string, now = new Date()): Promi
 export class SafetyJournalWriter {
     path: string;
     state: SafetyJournalState;
+    private async withLock<T>(work: () => Promise<T>): Promise<T> {
+        const lock = this.path + '.lock';
+        let acquired = false;
+        for (let attempt = 0; attempt < 80; attempt++) {
+            try {
+                await mkdir(lock, { mode: 0o700 });
+                acquired = true;
+                break;
+            } catch (error) {
+                if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+                await sleep(25);
+            }
+        }
+        invariant(acquired, 'SAFETY_JOURNAL_LOCKED',
+            '安全日志写锁被其他进程占用；为避免漏记安全事件，本次写入已中止', 503);
+        try { return await work(); }
+        finally { await rmdir(lock).catch(() => {}); }
+    }
     private constructor(path: string, state: SafetyJournalState) { this.path = path; this.state = state; }
     static async open(path: string) {
         let state: SafetyJournalState;
         try { state = await readSafetyJournal(path); }
         catch (error) {
             if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
-            state = await createSafetyJournal(path);
+            try { state = await createSafetyJournal(path); }
+            catch (createError) {
+                if ((createError as NodeJS.ErrnoException).code !== 'EEXIST') throw createError;
+                // API and Worker may both be the first opener. Never overwrite; validate the winner.
+                state = await readSafetyJournal(path);
+            }
         }
         return new SafetyJournalWriter(path, state);
     }
     snapshot(): SafetyJournalSnapshot { return structuredClone(this.state.snapshot); }
 
+    private async appendRows(rows: Array<{
+        auditId: string; workspaceId: string; createdAt: string; action: string;
+        resourceKind: string; resourceId: string; changedFields: string[];
+    }>): Promise<number> {
+        return this.withLock(async () => {
+            this.state = await readSafetyJournal(this.path);
+            const known = new Set(this.state.entries.map(x => x.auditId));
+            const pending = rows.filter(x => !known.has(x.auditId))
+                .sort((a,b) => a.createdAt.localeCompare(b.createdAt) || a.auditId.localeCompare(b.auditId));
+            if (!pending.length) return 0;
+            let prev = this.state.snapshot.headHash, seq = this.state.snapshot.sequence;
+            const additions: SafetyJournalEntry[] = [];
+            for (const input of pending) {
+                const body: Omit<SafetyJournalEntry, 'hash'> = {
+                    schemaVersion: SAFETY_JOURNAL_ENTRY_VERSION,
+                    seq: ++seq, auditId: input.auditId, workspaceId: input.workspaceId,
+                    createdAt: input.createdAt, action: input.action,
+                    resourceKind: input.resourceKind, resourceId: input.resourceId,
+                    changedFields: [...input.changedFields].sort(), prevHash: prev
+                };
+                const row: SafetyJournalEntry = { ...body, hash: digest(body) };
+                additions.push(row); prev = row.hash;
+            }
+            const handle = await open(this.path, 'a', 0o600);
+            try {
+                await handle.writeFile(additions.map(x => JSON.stringify(x)).join('\n') + '\n');
+                await handle.sync();
+            }
+            finally { await handle.close(); }
+            this.state = await readSafetyJournal(this.path);
+            return additions.length;
+        });
+    }
     async append(audits: AuditEvent[]): Promise<number> {
-        const known = new Set(this.state.entries.map(x => x.auditId));
-        const rows = audits.filter(safetyCriticalAudit).filter(x => !known.has(x.id))
-            .sort((a,b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
-        if (!rows.length) return 0;
-        let prev = this.state.snapshot.headHash, seq = this.state.snapshot.sequence;
-        const additions: SafetyJournalEntry[] = [];
-        for (const audit of rows) {
-            const body: Omit<SafetyJournalEntry, 'hash'> = {
-                schemaVersion: SAFETY_JOURNAL_ENTRY_VERSION,
-                seq: ++seq, auditId: audit.id, workspaceId: audit.workspaceId,
-                createdAt: audit.createdAt, action: audit.action,
-                resourceKind: audit.resourceKind, resourceId: audit.resourceId,
-                changedFields: [...audit.changedFields].sort(), prevHash: prev
-            };
-            const row: SafetyJournalEntry = { ...body, hash: digest(body) };
-            additions.push(row); prev = row.hash;
-        }
-        const handle = await open(this.path, 'a', 0o600);
-        try {
-            await handle.writeFile(additions.map(x => JSON.stringify(x)).join('\n') + '\n');
-            await handle.sync();
-        }
-        finally { await handle.close(); }
-        // Re-read the whole chain after append. A concurrent or partial writer must be detected now.
-        this.state = await readSafetyJournal(this.path);
-        return additions.length;
+        return this.appendRows(audits.filter(safetyCriticalAudit).map(audit => ({
+            auditId: audit.id, workspaceId: audit.workspaceId, createdAt: audit.createdAt,
+            action: audit.action, resourceKind: audit.resourceKind, resourceId: audit.resourceId,
+            changedFields: audit.changedFields
+        })));
+    }
+    async writeAhead(intent: SafetyIntent): Promise<void> {
+        invariant(intent.operation.length > 0 && intent.operation.length <= 100
+            && intent.resourceId.length > 0 && intent.resourceId.length <= 160,
+            'SAFETY_INTENT_INVALID', '安全意图元数据无效', 503);
+        await this.appendRows([{
+            auditId: intent.intentId, workspaceId: intent.workspaceId, createdAt: new Date().toISOString(),
+            action: 'intent.' + intent.operation, resourceKind: 'intent',
+            resourceId: intent.resourceId, changedFields: []
+        }]);
     }
 }

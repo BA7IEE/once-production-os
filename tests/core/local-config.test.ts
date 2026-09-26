@@ -76,6 +76,35 @@ test('config loader accepts valid file references and rejects malformed secrets 
         rmSync(dir, { recursive: true, force: true });
     }
 });
+test('staging/production INTERNAL config requires an absolute safety journal path', () => {
+    const dir = directory();
+    const saved = { ...process.env };
+    try {
+        assert.equal(initialize(dir).status, 0);
+        Object.assign(process.env, {
+            APP_ENV: 'staging', APP_ORIGIN: 'https://os.example.invalid', ACCESS_MODE: 'INTERNAL',
+            COOKIE_SECURE: 'true', DATABASE_URL: 'postgresql://synthetic:synthetic@127.0.0.1:5436/once_test_config',
+            CONTACT_KEY_FILE: join(dir, '.secrets/contact.hex'), CSRF_KEY_FILE: join(dir, '.secrets/csrf.hex'),
+            RECOVERY_EPOCH_FILE: join(dir, '.secrets/recovery.epoch'), MEDIA_PROVIDER: 'disabled'
+        });
+        delete process.env.SAFETY_JOURNAL_FILE;
+        assert.throws(loadConfig, /SAFETY_JOURNAL_FILE/);
+        process.env.SAFETY_JOURNAL_FILE = 'relative-journal.jsonl';
+        assert.throws(loadConfig, /SAFETY_JOURNAL_FILE/);
+        process.env.SAFETY_JOURNAL_FILE = join(dir, 'safety-journal.jsonl');
+        assert.equal(loadConfig().accessMode, 'INTERNAL');
+        process.env.APP_ENV = 'local';
+        delete process.env.SAFETY_JOURNAL_FILE;
+        assert.equal(loadConfig().environment, 'local', 'local/test remain optional for development');
+    }
+    finally {
+        for (const k of Object.keys(process.env))
+            if (!(k in saved)) delete process.env[k];
+        Object.assign(process.env, saved);
+        rmSync(dir, { recursive: true, force: true });
+    }
+});
+
 test('production core refuses insecure origin and cookies before any database access', () => {
     const f = newSystem();
     assert.throws(() => new Application(f.store, { ...f.app.config, environment: 'production', origin: 'http://os.example.invalid', secureCookies: false }));

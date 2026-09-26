@@ -16,7 +16,7 @@ function journal() {
     };
 }
 
-test('DEV-09C backup manifest binds dump, recovery/key/migration and journal anchor',async()=>{
+test('DEV-09D backup manifest binds dump, recovery/key/migration and journal anchor',async()=>{
     const root=privateDir();
     try{
         const dump=join(root,'db.dump');writeFileSync(dump,Buffer.from('synthetic-pg-dump'),{mode:0o600});
@@ -26,6 +26,7 @@ test('DEV-09C backup manifest binds dump, recovery/key/migration and journal anc
             createdAt:'2026-09-26T06:00:00.000Z',
             applicationVersion:'0.1.0-dev.1',database,
             recoveryEpochDigest:'b'.repeat(64),contactKeyDigest:'c'.repeat(64),migrationDigest:'d'.repeat(64),
+            media:{provider:'disabled' as const,identityDigest:'e'.repeat(64),assetCount:0,totalBytes:0,assets:[]},
             safetyJournal:journal()
         });
         const path=join(root,'manifest.json');
@@ -36,13 +37,14 @@ test('DEV-09C backup manifest binds dump, recovery/key/migration and journal anc
     }finally{rmSync(root,{recursive:true,force:true});}
 });
 
-test('DEV-09C backup manifest detects JSON tampering and unsafe permissions',async()=>{
+test('DEV-09D backup manifest detects JSON tampering and unsafe permissions',async()=>{
     const root=privateDir();
     try{
         const dump=join(root,'db.dump');writeFileSync(dump,'dump',{mode:0o600});
         const manifest=buildBackupManifest({
             applicationVersion:'0.1.0-dev.1',database:await sha256File(dump),
             recoveryEpochDigest:'b'.repeat(64),contactKeyDigest:'c'.repeat(64),migrationDigest:'d'.repeat(64),
+            media:{provider:'disabled' as const,identityDigest:'e'.repeat(64),assetCount:0,totalBytes:0,assets:[]},
             safetyJournal:journal()
         });
         const path=join(root,'manifest.json');await writeBackupManifest(path,manifest);

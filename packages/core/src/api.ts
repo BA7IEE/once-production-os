@@ -22,11 +22,12 @@ import { readSourceHistory } from './source-history.ts';
 import { Handoffs, handoffParticipant } from './handoffs.ts';
 import { Imports } from './imports.ts';
 import { csrfFor, equalSecret, randomSecret } from './crypto.ts';
-import { parseStrictJson } from './json.ts';
+import { digest, parseStrictJson } from './json.ts';
 import { page, workspaceRow } from './helpers.ts';
 import { requirePermission, scopeVisible, personFor, sourceFor } from './policy.ts';
 import { ROUTES, type RouteDefinition } from './routes.ts';
 import { uuid } from './validation.ts';
+import { requiresSafetyIntent, type SafetyIntentSink } from './safety-intent.ts';
 export interface ApiRequest {
     method: string;
     url: string;
@@ -74,7 +75,8 @@ export class Application {
     deletionCleanup: DeletionCleanup;
     deletionFinalization: DeletionFinalization;
     personMerges: PersonMerges;
-    constructor(store: Store, config: Config, clock: Clock = { now: () => new Date() }) {
+    safetyIntent: SafetyIntentSink | null;
+    constructor(store: Store, config: Config, clock: Clock = { now: () => new Date() }, safetyIntent: SafetyIntentSink | null = null) {
         invariant(config.contactKey.length === 32 && config.csrfKey.length === 32, 'CONFIG_INVALID', '密钥必须为 32 字节', 503);
         const origin = new URL(config.origin);
         invariant(origin.origin === config.origin && !origin.username && !origin.password && ['http:', 'https:'].includes(origin.protocol), 'CONFIG_INVALID', '必须配置精确 Origin', 503);
@@ -82,6 +84,7 @@ export class Application {
         invariant(/^[a-zA-Z0-9_-]{16,128}$/.test(config.recoveryEpoch), 'CONFIG_INVALID', '恢复批次编号未配置', 503);
         this.store = store;
         this.clock = clock;
+        this.safetyIntent = safetyIntent;
         this.config = config;
         this.identity = new Identity(store, clock, config);
         this.talent = new Talent(clock, config);
@@ -98,6 +101,22 @@ export class Application {
         this.media = new Media(store, clock, config);
         this.commands = new Commands(clock);
         this.imports = new Imports(store, clock, config, this.talent);
+    }
+    private async writeAhead(actor: Actor, operation: string, requestId: string, resourceId: string, commandKey = ''): Promise<void> {
+        if (!this.safetyIntent) return;
+        if (commandKey)
+            invariant(/^[A-Za-z0-9_-]{8,128}$/.test(commandKey), 'IDEMPOTENCY_REQUIRED',
+                '写入需要 8–128 位 Idempotency-Key', 400);
+        const stable = commandKey
+            ? digest({ workspaceId: actor.workspaceId, actorId: actor.membershipId, operation, commandKey })
+            : requestId;
+        await this.safetyIntent.writeAhead({
+            intentId: 'intent:' + stable,
+            workspaceId: actor.workspaceId,
+            operation,
+            requestId,
+            resourceId: resourceId || requestId
+        });
     }
     private cookie(name: string, value: string, seconds: number): string { return `${name}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${seconds}${this.config.secureCookies ? '; Secure' : ''}`; }
     private preAuthValue(): string { const body = `${randomSecret()}.${this.clock.now().getTime() + 15 * 60000}`; return `${body}.${csrfFor(body, this.config.csrfKey)}`; }
@@ -195,10 +214,21 @@ export class Application {
                 return response;
             }
             if (route.operation === 'auth.changePassword') {
+                const preActor = await this.store.transaction(tx => this.identity.authenticate(tx, token));
+                await this.writeAhead(preActor, route.operation, meta.requestId, preActor.membershipId);
                 await this.identity.changePassword(token, data, meta);
                 response.cookies.push(this.cookie(sessionName, '', 0));
                 response.body = { state: 'PASSWORD_CHANGED' };
                 return response;
+            }
+            if (requiresSafetyIntent(route.mode)) {
+                const preActor = await this.store.transaction(async tx => {
+                    const actor = await this.identity.authenticate(tx, token);
+                    if (route.permission) requirePermission(actor, route.permission);
+                    return actor;
+                });
+                await this.writeAhead(preActor, route.operation, meta.requestId, params.id ?? meta.requestId,
+                    route.mode === 'COMMAND' ? (request.headers['idempotency-key'] ?? '') : '');
             }
             response.body = await this.store.transaction(async (tx) => {
                 const actor = await this.identity.authenticate(tx, token);

@@ -25,6 +25,12 @@ export async function collectRecoveryExternalCheck(client: PrismaClient,
         width: x.width, height: x.height, previewBytes: x.previewBytes, previewHash: x.previewHash,
         objectToken: x.objectToken, state: x.state
     })));
+    const backupIdentityDigest = digest(assets.map(x => ({
+        id: x.id, uploadId: x.uploadId, sourceId: x.sourceId, scopeId: x.scopeId, personId: x.personId,
+        fileName: x.fileName, mime: x.mime, bytes: x.bytes, sha256: x.sha256,
+        width: x.width, height: x.height, previewBytes: x.previewBytes, previewHash: x.previewHash,
+        objectToken: x.objectToken
+    })));
     const verifiedAssetIds: string[] = [], missingAssetIds: string[] = [], mismatchAssetIds: string[] = [];
     const provider = env.MEDIA_PROVIDER ?? 'disabled';
     invariant(provider === 'disabled' || provider === 'local', 'RECOVERY_MEDIA_PROVIDER_INVALID',
@@ -62,6 +68,6 @@ export async function collectRecoveryExternalCheck(client: PrismaClient,
 
     return {
         migrationDigest, migrationMatch,
-        media: { provider, identityDigest, expectedAssetIds, verifiedAssetIds, missingAssetIds, mismatchAssetIds }
+        media: { provider, identityDigest, backupIdentityDigest, expectedAssetIds, verifiedAssetIds, missingAssetIds, mismatchAssetIds }
     };
 }
