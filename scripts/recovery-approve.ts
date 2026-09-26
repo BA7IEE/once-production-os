@@ -102,6 +102,7 @@ try{
                 if(manifest.recoveryEpochDigest!==run.sourceEpochDigest) blockers.push('BACKUP_EPOCH_MISMATCH');
                 if(manifest.contactKeyDigest!==(run.report as any).contactKeyDigest) blockers.push('BACKUP_CONTACT_KEY_MISMATCH');
                 if(manifest.migrationDigest!==(run.report as any).migrationDigest) blockers.push('BACKUP_MIGRATION_MISMATCH');
+                if(manifest.media.identityDigest!==(run.report as any).media.identityDigest) blockers.push('BACKUP_MEDIA_MISMATCH');
 
                 const evidence={
                     schemaVersion:'once-recovery-approval-v1' as const,
@@ -111,6 +112,7 @@ try{
                     recoveryEpochDigest:manifest.recoveryEpochDigest,
                     contactKeyDigest:manifest.contactKeyDigest,
                     migrationDigest:manifest.migrationDigest,
+                    mediaIdentityDigest:manifest.media.identityDigest,
                     reportDigest:run.reportDigest,
                     safetyJournal:{
                         journalId:journal.header.journalId,
