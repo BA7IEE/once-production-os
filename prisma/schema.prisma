@@ -1034,8 +1034,10 @@ model RecoveryRun {
   targetEpochDigest String @db.Text
   state String @db.Text
   preparedAt DateTime @db.Timestamptz(3)
+  checkedAt DateTime? @db.Timestamptz(3)
   approvedAt DateTime? @db.Timestamptz(3)
   reportDigest String? @db.Text
+  report Json @db.JsonB
   revokedSessions Int
   consumedActivations Int
   disabledUsers Int
