@@ -129,6 +129,7 @@ async function buildControlledExport(client: PrismaClient, store: PrismaStore) {
     const ready = await client.exportJob.findUniqueOrThrow({ where: { id: job.id } });
     assert.equal(ready.state, 'READY');
     assert.ok(ready.payload);
+    assert.match(ready.payloadDigest ?? '', /^[0-9a-f]{64}$/);
     const payload = ready.payload as any;
     assert.equal(payload.schemaVersion, 'once-export-v1');
     assert.equal(payload.manifest.people.length, 10);
@@ -142,7 +143,7 @@ async function buildControlledExport(client: PrismaClient, store: PrismaStore) {
     assert.equal(encoded.includes('tokenHash'), false);
     assert.equal(encoded.includes('ciphertext'), false);
     assert.equal(encoded.includes('textPayload'), false);
-    return payload;
+    return { payload, payloadDigest: ready.payloadDigest! };
 }
 
 test('DEV-07H T29 real once-export-v1 -> PostgreSQL rollback -> CLI rebuild 10/3/1 graph', async () => {
@@ -158,7 +159,8 @@ test('DEV-07H T29 real once-export-v1 -> PostgreSQL rollback -> CLI rebuild 10/3
         await sourceClient.$connect();
         await targetClient.$connect();
         assert.equal(await targetClient.workspace.count(), 0, 'T29 target must be a fresh migrated rebuild database.');
-        const exportPayload = await buildControlledExport(sourceClient, sourceStore);
+        const builtExport = await buildControlledExport(sourceClient, sourceStore);
+        const exportPayload = builtExport.payload;
 
         const targetClock = new FakeClock();
         const targetConfig: Config = {
@@ -172,6 +174,7 @@ test('DEV-07H T29 real once-export-v1 -> PostgreSQL rollback -> CLI rebuild 10/3
         const rebuild = new JsonRebuild(targetClock);
         const actor = await targetStore.transaction(tx => rebuild.actorFromTarget(tx, 'rebuild_owner'));
         const preview = await targetStore.transaction(tx => rebuild.preview(tx, actor, exportPayload));
+        assert.equal(preview.inputDigest, builtExport.payloadDigest, 'rebuild digest must match the READY source Export payloadDigest');
         assert.deepEqual(preview.counts, {
             sources: 1, people: 10, works: 3, projects: 1,
             workCredits: 3, projectParticipants: 2, projectWorks: 3, mediaIdentities: 0
@@ -200,7 +203,7 @@ test('DEV-07H T29 real once-export-v1 -> PostgreSQL rollback -> CLI rebuild 10/3
         const file = join(tmp, 'controlled-export.json');
         writeFileSync(file, JSON.stringify(exportPayload), { mode: 0o600 });
         const cli = spawnSync(process.execPath, ['--experimental-strip-types', 'scripts/rebuild-export.ts',
-            '--input', file, '--actor-login', 'rebuild_owner', '--apply'], {
+            '--input', file, '--actor-login', 'rebuild_owner', '--expected-sha256', builtExport.payloadDigest, '--apply'], {
             cwd: process.cwd(), encoding: 'utf8', timeout: 120000,
             env: { ...process.env, DATABASE_URL_REBUILD: targetUrl, ALLOW_REBUILD: 'yes' }
         });
