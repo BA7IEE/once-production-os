@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -271,11 +271,13 @@ test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch appro
             'inspection still must not approve the deployment epoch');
 
         // File tampering produces a blocker rather than a plausible pass.
-        writeFileSync(join(mediaWork, 'preview.jpg'), Buffer.alloc(previewBody.length), { mode: 0o600 });
+        chmodSync(join(mediaWork, 'preview.jpg'), 0o600);
+        writeFileSync(join(mediaWork, 'preview.jpg'), Buffer.alloc(previewBody.length));
         const badMedia = run('pnpm', ['--silent', 'recovery:check', '--',
             '--actor-login', 'owner', '--recovery-run-id', prepared.id], checkEnv, 3);
         assert.ok(JSON.parse(badMedia.stdout).blockers.includes('MEDIA_DIGEST_MISMATCH'));
-        writeFileSync(join(mediaWork, 'preview.jpg'), previewBody, { mode: 0o400 });
+        writeFileSync(join(mediaWork, 'preview.jpg'), previewBody);
+        chmodSync(join(mediaWork, 'preview.jpg'), 0o400);
 
         // A wrong restored contact key is detected by actually decrypting ciphertext.
         const wrongContactFile = join(tmp, 'contact-wrong.hex');
