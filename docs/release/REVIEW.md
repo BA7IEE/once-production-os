@@ -1,17 +1,24 @@
-# Talent Domain 2.0 规格 Review｜2026-09-26
+# Talent Domain 2.0 R1 规格 Review｜2026-09-27
 
-本轮为规格层 Review，不是代码 Review。确认以下边界：
+本轮为第二次规格层对抗审查，不是代码 Review。R0 主轴保留，但以下 15 个结构缺口已经回填主规格：
 
-1. 一个现实人物一个 Person；多职业用 PersonRole。
-2. Role 与 Capability 分离；不创建“工业摄影师”等爆炸式角色。
-3. Model 首批专属 Profile；Translator 使用语言对/服务模式；Crew 默认复用 Role + Capability + Work。
-4. Asset / MediaCollection / Work 三层分离，同一 Asset 可复用但不复制物理对象。
-5. Representation 类型化表达 Agent/Agency，外部作品与 ONCE 项目继续严格分离。
-6. Agent/AI 必须服从版本化 Talent Schema，未知字段/code fail closed。
-7. 旧 roles[] / skillCodes[] / heightCm 只作为前向迁移输入，稳定业务 ID 不变。
-8. Merge/Delete/Export/Rebuild/Recovery 必须覆盖新增关系，TD2 Gate 先于 DEV-08。
+1. Person 与 TalentProfile 分离；普通联系人不被强制变Talent。
+2. Person.source 收窄为 originSource；事实改为多来源 Evidence。
+3. ExternalRef 提供 exact 身份映射；姓名/头像不得自动merge。
+4. ServicePrincipal/Machine Actor 独立于人类账号与审计。
+5. 取消“大而全 ModelProfile”，改 CastingProfile + MeasurementSet 组合视图。
+6. MeasurementSet 保存历史，鞋/服装尺寸有 size system。
+7. MediaCollection type 与内容 tag 分离。
+8. Representation 增加 PersonRole / territory / validity。
+9. ShortlistItem 必须保存 personRoleId。
+10. PersonLanguage 表达听说读写级别；旧languageCodes不猜级别。
+11. AdultEligibility 为成人限定场景提供最小资格事实，UNKNOWN fail closed。
+12. CapabilityDefinition/Schema Registry 防止能力code变自由标签。
+13. PersonCredential 与 Capability 分离，敏感编号加密/掩码。
+14. FieldProposal 承接 Agent/Import/AI 的无直写权或冲突写入。
+15. Location/Language/Measurement/Representation/Credential 等时间变化事实都能表达来源和有效期。
 
-当前没有运行产品测试，因此没有把 SPEC_UPDATED 写成 PASS。
+开发切片 TD2-01～06 已按 R1 重定义，独立验收扩展为 TD2-T01～18。现阶段仍是 SPEC_ONLY：没有 schema/API/UI/runtime 实现，不把 SPEC_UPDATED 写成 PASS。
 
 ---
 
