@@ -66,6 +66,18 @@ test('DEV-09D safety-critical API fails closed before DB mutation when intent fs
     assert.equal(sink.rows[1]!.resourceId,sourceId);
 });
 
+test('DEV-09D idempotent command retries derive the same write-ahead intent id',async()=>{
+    const sink=new IntentSink(),f=await system(sink),key=randomUUID(),body=sourceInput();
+    const first=await f.owner.cmd('POST','/sources',body,key);
+    assert.equal(first.status,201,JSON.stringify(first.body));
+    const replay=await f.owner.cmd('POST','/sources',body,key);
+    assert.equal(replay.status,201,JSON.stringify(replay.body));
+    assert.equal(result(replay).replayed,true);
+    assert.equal(sink.rows.length,2,'pre-DB hook runs on each network attempt');
+    assert.equal(sink.rows[0]!.intentId,sink.rows[1]!.intentId,
+        'same Idempotency-Key must collapse to one journal identity');
+});
+
 test('DEV-09D two journal writers serialize concurrent write-ahead intents into one valid chain',async()=>{
     const root=mkdtempSync(join(tmpdir(),'once-intent-lock-'));chmodSync(root,0o700);
     const path=join(root,'journal.jsonl');
