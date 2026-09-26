@@ -42,7 +42,8 @@ export class LocalMediaProvider {
             const path = join(root, name);
             await mkdir(path, { recursive: true, mode: 0o700 });
             const st = await lstat(path);
-            invariant(st.isDirectory() && !st.isSymbolicLink(), 'MEDIA_ROOT_INVALID', '私有目录不安全', 503);
+            invariant(st.isDirectory() && !st.isSymbolicLink() && (st.mode & 0o077) === 0,
+                'MEDIA_ROOT_INVALID', '私有目录不安全或权限过宽', 503);
             await chmod(path, 0o700);
         }
         await chmod(root, 0o700);
@@ -52,6 +53,9 @@ export class LocalMediaProvider {
     static async openExisting(root: string) {
         invariant(isAbsolute(root) && resolve(root) !== '/', 'MEDIA_ROOT_INVALID', 'MEDIA_ROOT必须是独立的绝对目录', 503);
         invariant(await realpath(root) === resolve(root), 'MEDIA_ROOT_INVALID', '存储目录不能经过符号链接', 503);
+        const rootStat = await lstat(root);
+        invariant(rootStat.isDirectory() && !rootStat.isSymbolicLink() && (rootStat.mode & 0o077) === 0,
+            'MEDIA_ROOT_INVALID', '恢复后的私有媒体根目录权限过宽', 503);
         invariant(await readFile(join(root, '.once-private-media-v1'), 'utf8') === 'ONCE_PRIVATE_MEDIA_V1\n',
             'MEDIA_ROOT_INVALID', '目录不是已登记的私有媒体目录', 503);
         for (const name of ['uploads', 'trash']) {
@@ -145,7 +149,8 @@ export class LocalMediaProvider {
         const originalPath = join(this.work(a.uploadId, a.objectToken), 'original.bin');
         const original = await this.checkedFile(originalPath);
         try {
-            invariant(original.st.size === a.bytes, 'MEDIA_FILE_INVALID', '原始文件长度与数据库不一致', 503);
+            invariant(original.st.size === a.bytes && (original.st.mode & 0o222) === 0,
+                'MEDIA_FILE_INVALID', '原始文件长度或只读权限与数据库约定不一致', 503);
             const body = await original.file.readFile();
             invariant(body.length === a.bytes && createHash('sha256').update(body).digest('hex') === a.sha256,
                 'MEDIA_FILE_INVALID', '原始文件摘要与数据库不一致', 503);
@@ -158,7 +163,8 @@ export class LocalMediaProvider {
     async readPreview(a: MediaAsset): Promise<Buffer> {
         const path = join(this.work(a.uploadId, a.objectToken), 'preview.jpg'), { file, st } = await this.checkedFile(path);
         try {
-            invariant(st.size === a.previewBytes && st.size > 0 && st.size <= L.previewBytes, 'MEDIA_FILE_INVALID', '预览文件校验失败', 503);
+            invariant(st.size === a.previewBytes && st.size > 0 && st.size <= L.previewBytes && (st.mode & 0o222) === 0,
+                'MEDIA_FILE_INVALID', '预览文件长度、权限或内容校验失败', 503);
             const b = await file.readFile();
             invariant(b.length === a.previewBytes && createHash('sha256').update(b).digest('hex') === a.previewHash, 'MEDIA_FILE_INVALID', '预览文件校验失败', 503);
             return b;
