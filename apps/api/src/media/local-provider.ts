@@ -42,8 +42,7 @@ export class LocalMediaProvider {
             const path = join(root, name);
             await mkdir(path, { recursive: true, mode: 0o700 });
             const st = await lstat(path);
-            invariant(st.isDirectory() && !st.isSymbolicLink() && (st.mode & 0o077) === 0,
-                'MEDIA_ROOT_INVALID', '私有目录不安全或权限过宽', 503);
+            invariant(st.isDirectory() && !st.isSymbolicLink(), 'MEDIA_ROOT_INVALID', '私有目录不安全', 503);
             await chmod(path, 0o700);
         }
         await chmod(root, 0o700);
@@ -60,7 +59,8 @@ export class LocalMediaProvider {
             'MEDIA_ROOT_INVALID', '目录不是已登记的私有媒体目录', 503);
         for (const name of ['uploads', 'trash']) {
             const st = await lstat(join(root, name));
-            invariant(st.isDirectory() && !st.isSymbolicLink(), 'MEDIA_ROOT_INVALID', '私有目录不安全', 503);
+            invariant(st.isDirectory() && !st.isSymbolicLink() && (st.mode & 0o077) === 0,
+                'MEDIA_ROOT_INVALID', '恢复后的私有目录不安全或权限过宽', 503);
         }
         return new LocalMediaProvider(resolve(root));
     }
