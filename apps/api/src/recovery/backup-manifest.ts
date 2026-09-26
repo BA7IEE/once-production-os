@@ -5,8 +5,9 @@ import { dirname, isAbsolute, resolve } from 'node:path';
 import { digest } from '../../../../packages/core/src/json.ts';
 import { invariant } from '../../../../packages/core/src/errors.ts';
 import type { SafetyJournalSnapshot } from './safety-journal.ts';
+import type { BackupMediaManifest } from './media-backup.ts';
 
-export const BACKUP_MANIFEST_VERSION = 'once-backup-manifest-v1';
+export const BACKUP_MANIFEST_VERSION = 'once-backup-manifest-v2';
 
 export interface BackupManifestBody {
     schemaVersion: typeof BACKUP_MANIFEST_VERSION;
@@ -17,6 +18,7 @@ export interface BackupManifestBody {
     recoveryEpochDigest: string;
     contactKeyDigest: string;
     migrationDigest: string;
+    media: BackupMediaManifest;
     safetyJournal: SafetyJournalSnapshot;
 }
 export interface BackupManifest extends BackupManifestBody {
@@ -43,7 +45,7 @@ function exactKeys(row: Record<string, unknown>, expected: string[]) {
 }
 function validate(body: BackupManifest): BackupManifest {
     exactKeys(body as unknown as Record<string, unknown>,
-        ['schemaVersion','backupId','createdAt','applicationVersion','database','recoveryEpochDigest','contactKeyDigest','migrationDigest','safetyJournal','manifestDigest']);
+        ['schemaVersion','backupId','createdAt','applicationVersion','database','recoveryEpochDigest','contactKeyDigest','migrationDigest','media','safetyJournal','manifestDigest']);
     invariant(body.schemaVersion === BACKUP_MANIFEST_VERSION
         && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(body.backupId)
         && Number.isFinite(Date.parse(body.createdAt))
@@ -53,6 +55,16 @@ function validate(body: BackupManifest): BackupManifest {
         && /^[a-f0-9]{64}$/.test(body.recoveryEpochDigest)
         && /^[a-f0-9]{64}$/.test(body.contactKeyDigest)
         && /^[a-f0-9]{64}$/.test(body.migrationDigest)
+        && (body.media?.provider === 'disabled' || body.media?.provider === 'local')
+        && /^[a-f0-9]{64}$/.test(body.media?.identityDigest ?? '')
+        && Number.isSafeInteger(body.media?.assetCount) && body.media.assetCount >= 0
+        && Number.isSafeInteger(body.media?.totalBytes) && body.media.totalBytes >= 0
+        && Array.isArray(body.media?.assets) && body.media.assets.length === body.media.assetCount
+        && body.media.assets.every((x: any) => x && typeof x === 'object'
+            && /^[0-9a-f-]{36}$/.test(x.id) && /^[0-9a-f-]{36}$/.test(x.uploadId) && /^[0-9a-f-]{36}$/.test(x.objectToken)
+            && Number.isSafeInteger(x.original?.bytes) && x.original.bytes > 0 && /^[a-f0-9]{64}$/.test(x.original?.sha256 ?? '')
+            && Number.isSafeInteger(x.preview?.bytes) && x.preview.bytes > 0 && /^[a-f0-9]{64}$/.test(x.preview?.sha256 ?? ''))
+        && (body.media.provider === 'local' || (body.media.assetCount === 0 && body.media.totalBytes === 0))
         && body.safetyJournal?.schemaVersion === 'once-safety-journal-v1'
         && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(body.safetyJournal.journalId)
         && Number.isSafeInteger(body.safetyJournal.sequence) && body.safetyJournal.sequence >= 0
@@ -76,6 +88,7 @@ export function buildBackupManifest(input: Omit<BackupManifestBody,'schemaVersio
         recoveryEpochDigest: input.recoveryEpochDigest,
         contactKeyDigest: input.contactKeyDigest,
         migrationDigest: input.migrationDigest,
+        media: input.media,
         safetyJournal: input.safetyJournal
     };
     return validate({ ...body, manifestDigest: digest(body) });
