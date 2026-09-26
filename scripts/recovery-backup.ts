@@ -9,6 +9,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaStore } from '../apps/api/src/prisma-store.ts';
 import { SafetyJournalWriter } from '../apps/api/src/recovery/safety-journal.ts';
 import { buildBackupManifest, sha256File, writeBackupManifest } from '../apps/api/src/recovery/backup-manifest.ts';
+import { backupPrivateMedia, currentMediaIdentity } from '../apps/api/src/recovery/media-backup.ts';
 import { digest } from '../packages/core/src/json.ts';
 import { hashSecret } from '../packages/core/src/crypto.ts';
 
@@ -41,6 +42,12 @@ const journalPath=process.env.SAFETY_JOURNAL_FILE;
 const contactFile=process.env.CONTACT_KEY_FILE;
 const recoveryFile=process.env.RECOVERY_EPOCH_FILE;
 if(!databaseUrl||!journalPath||!contactFile||!recoveryFile) fail('DATABASE_URL_BACKUP, SAFETY_JOURNAL_FILE, CONTACT_KEY_FILE and RECOVERY_EPOCH_FILE are required.');
+if(process.env.BACKUP_QUIESCED!=='yes'
+    ||process.env.ACCESS_MODE!=='MAINTENANCE'
+    ||(process.env.DATA_EGRESS_MODE??'DISABLED')!=='DISABLED'
+    ||(process.env.DATA_CLEANUP_MODE??'DISABLED')!=='DISABLED'
+    ||(process.env.DATA_MERGE_MODE??'DISABLED')!=='DISABLED')
+    fail('Backup requires BACKUP_QUIESCED=yes, ACCESS_MODE=MAINTENANCE and all data execution gates DISABLED.');
 
 const contactHex=readFileSync(contactFile,'utf8').trim();
 const recoveryEpoch=readFileSync(recoveryFile,'utf8').trim();
@@ -50,6 +57,13 @@ const client=new PrismaClient({datasources:{db:{url:databaseUrl}},log:[]});
 const store=new PrismaStore(client);
 try{
     await client.$connect();
+    const [runnableJobs,runnableUploads,cleaningDeletions]=await Promise.all([
+        client.durableJob.count({where:{state:{in:['QUEUED','RUNNING']}}}),
+        client.mediaUpload.count({where:{state:{in:['OPEN','RECEIVING','UPLOADED','QUEUED','PROCESSING']}}}),
+        client.deletionRequest.count({where:{state:'CLEANING'}})
+    ]);
+    if(runnableJobs||runnableUploads||cleaningDeletions)
+        fail('Backup target is not quiesced: runnable job/upload/deletion state still exists.');
     const writer=await SafetyJournalWriter.open(journalPath);
     const audits=await store.transaction(tx=>tx.find('audits'));
     await writer.append(audits);
@@ -65,7 +79,11 @@ try{
         fail('Database migrations do not match this application build; backup anchor was not emitted.');
     const migrationDigest=digest({expectedMigrations,appliedMigrations});
 
-    const backupId=randomUUID(), dumpPath=join(outputDir,backupId+'.dump'), manifestPath=join(outputDir,backupId+'.manifest.json');
+    const backupId=randomUUID(), dumpPath=join(outputDir,backupId+'.dump'),
+        mediaPath=join(outputDir,backupId+'.media'), manifestPath=join(outputDir,backupId+'.manifest.json');
+    const media=await backupPrivateMedia(client,process.env.MEDIA_PROVIDER??'disabled',process.env.MEDIA_ROOT,mediaPath);
+    const beforeDumpMedia=(await currentMediaIdentity(client)).identityDigest;
+    if(beforeDumpMedia!==media.identityDigest) fail('Media database identity changed while creating backup bundle; manifest not emitted.');
     const pg=spawnSync('pg_dump',['--format=custom','--no-owner','--no-privileges','--file',dumpPath],
         {env:{...process.env,...dbEnv(databaseUrl)},encoding:'utf8',timeout:300000});
     if(pg.error||pg.status!==0) {
@@ -75,16 +93,24 @@ try{
     else {
         chmodSync(dumpPath,0o600);
         const database=await sha256File(dumpPath);
+        const afterDumpMedia=(await currentMediaIdentity(client)).identityDigest;
+        if(afterDumpMedia!==media.identityDigest) fail('Media database identity changed during pg_dump; manifest not emitted.');
+        const [jobsAfter,uploadsAfter,deletionsAfter]=await Promise.all([
+            client.durableJob.count({where:{state:{in:['QUEUED','RUNNING']}}}),
+            client.mediaUpload.count({where:{state:{in:['OPEN','RECEIVING','UPLOADED','QUEUED','PROCESSING']}}}),
+            client.deletionRequest.count({where:{state:'CLEANING'}})
+        ]);
+        if(jobsAfter||uploadsAfter||deletionsAfter) fail('Backup target stopped being quiesced during capture; manifest not emitted.');
         const pkg=JSON.parse(readFileSync(join(process.cwd(),'package.json'),'utf8')) as {version:string};
         const manifest=buildBackupManifest({
             backupId,createdAt:anchorAt,applicationVersion:pkg.version,database,
             recoveryEpochDigest:hashSecret(recoveryEpoch),
             contactKeyDigest:hashSecret(contactHex.toLowerCase()),
-            migrationDigest,safetyJournal:journalAnchor
+            migrationDigest,media,safetyJournal:journalAnchor
         });
         await writeBackupManifest(manifestPath,manifest);
         console.log(JSON.stringify({
-            mode:'BACKUP',backupId,dumpPath,manifestPath,manifestDigest:manifest.manifestDigest,
+            mode:'BACKUP',backupId,dumpPath,mediaPath,manifestPath,manifestDigest:manifest.manifestDigest,
             safetyJournal:manifest.safetyJournal,database:manifest.database
         },null,2));
     }
