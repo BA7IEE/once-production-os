@@ -3,7 +3,7 @@ name: ONCE acceptance
 on:
   pull_request:
     # Stacked feature PRs can validate before the already-tested A1 PR is merged.
-    branches: [main, acceptance/browser-resume-ci, feat/controlled-handoff, feat/private-media, feat/works-projects, feat/search-shortlists, feat/search-facts-sql, feat/export-dependencies, feat/deletion-impact-preview, feat/deletion-blocking, feat/deletion-retention-plan, feat/deletion-cleaning, feat/deletion-finalization, feat/person-merge, feat/json-rebuild, feat/restore-drill]
+    branches: [main, acceptance/browser-resume-ci, feat/controlled-handoff, feat/private-media, feat/works-projects, feat/search-shortlists, feat/search-facts-sql, feat/export-dependencies, feat/deletion-impact-preview, feat/deletion-blocking, feat/deletion-retention-plan, feat/deletion-cleaning, feat/deletion-finalization, feat/person-merge, feat/json-rebuild, feat/restore-drill, feat/restore-check]
   push:
     branches: [main]
 
