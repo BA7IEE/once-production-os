@@ -5,6 +5,7 @@ import { fixture, member, sourceInput, result } from '../support/fixtures.ts';
 import { RecoveryOps } from '../../packages/core/src/recovery.ts';
 import { base } from '../../packages/core/src/helpers.ts';
 import { hashSecret } from '../../packages/core/src/crypto.ts';
+import { digest } from '../../packages/core/src/json.ts';
 import { AppError } from '../../packages/core/src/errors.ts';
 
 type F = Awaited<ReturnType<typeof fixture>>;
@@ -20,7 +21,14 @@ function recovery(f: F, epoch = 'R'.repeat(48), contactKey: Buffer = f.app.confi
     });
 }
 function external(f: F, overrides: Partial<{ migrationMatch: boolean; provider: 'disabled'|'local'; missing: string[]; mismatch: string[] }> = {}) {
-    const ids = f.store.rows('assets').filter(x => x.state !== 'ERASED').map(x => x.id).sort();
+    const assets = f.store.rows('assets').filter(x => x.state !== 'ERASED').sort((a,b) => a.id.localeCompare(b.id));
+    const ids = assets.map(x => x.id);
+    const identityDigest = digest(assets.map(x => ({
+        id: x.id, uploadId: x.uploadId, sourceId: x.sourceId, scopeId: x.scopeId, personId: x.personId,
+        revision: x.revision, fileName: x.fileName, mime: x.mime, bytes: x.bytes, sha256: x.sha256,
+        width: x.width, height: x.height, previewBytes: x.previewBytes, previewHash: x.previewHash,
+        objectToken: x.objectToken, state: x.state
+    })));
     const provider = overrides.provider ?? 'local';
     const missing = overrides.missing ?? [];
     const mismatch = overrides.mismatch ?? [];
@@ -30,6 +38,7 @@ function external(f: F, overrides: Partial<{ migrationMatch: boolean; provider: 
         migrationMatch: overrides.migrationMatch ?? true,
         media: {
             provider,
+            identityDigest,
             expectedAssetIds: ids,
             verifiedAssetIds: provider === 'local' ? ids.filter(id => !bad.has(id)) : [],
             missingAssetIds: provider === 'disabled' ? ids : missing,
