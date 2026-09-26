@@ -6,14 +6,15 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaStore } from '../apps/api/src/prisma-store.ts';
 import { JsonRebuild } from '../packages/core/src/rebuild.ts';
 import { parseStrictJson } from '../packages/core/src/json-boundary.ts';
+import { digest } from '../packages/core/src/json.ts';
 import { AppError } from '../packages/core/src/errors.ts';
 
 function usage(): never {
-    console.error('Usage: pnpm rebuild:json -- --input <export.json> --actor-login <login> [--apply]');
+    console.error('Usage: pnpm rebuild:json -- --input <export.json> --actor-login <login> [--expected-sha256 <digest>] [--apply]');
     process.exit(2);
 }
 function args() {
-    const out: { input?: string; actorLogin?: string; apply: boolean } = { apply: false };
+    const out: { input?: string; actorLogin?: string; expectedSha256?: string; apply: boolean } = { apply: false };
     const list = process.argv.slice(2);
     for (let i = 0; i < list.length; i++) {
         const arg = list[i];
@@ -23,11 +24,17 @@ function args() {
         if (arg === '--apply') out.apply = true;
         else if (arg === '--input') out.input = list[++i];
         else if (arg === '--actor-login') out.actorLogin = list[++i];
+        else if (arg === '--expected-sha256') out.expectedSha256 = list[++i];
         else usage();
     }
     if (!out.input || !out.actorLogin) usage();
     if (!/^[a-z0-9][a-z0-9._-]{2,79}$/.test(out.actorLogin)) usage();
-    return out as { input: string; actorLogin: string; apply: boolean };
+    if (out.expectedSha256 !== undefined && !/^[0-9a-f]{64}$/.test(out.expectedSha256)) usage();
+    if (out.apply && !out.expectedSha256) {
+        console.error('Apply requires --expected-sha256 from the READY source Export payloadDigest.');
+        process.exit(2);
+    }
+    return out as { input: string; actorLogin: string; expectedSha256?: string; apply: boolean };
 }
 function targetUrl(): string {
     const raw = process.env.DATABASE_URL_REBUILD;
@@ -66,6 +73,11 @@ let payload: unknown;
 try { payload = parseStrictJson(rawJson); }
 catch {
     console.error('Rebuild input is not accepted strict JSON.');
+    process.exit(2);
+}
+const inputDigest = digest(payload);
+if (input.expectedSha256 && input.expectedSha256 !== inputDigest) {
+    console.error('REBUILD_DIGEST_MISMATCH: input does not match the source Export payloadDigest. No database access was attempted.');
     process.exit(2);
 }
 
