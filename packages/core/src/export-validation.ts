@@ -5,6 +5,7 @@ const field = v.enum(F);
 export const ExportSchemas = {
     permissionCreate: v.object({
         sourceId: uuid,
+        retentionBasisSourceId: v.optional(uuid),
         subjectKind: v.enum(['SOURCE', 'PERSON', 'WORK', 'PROJECT', 'ASSET']),
         subjectId: uuid,
         fields: v.array(field, L.fields, 1),

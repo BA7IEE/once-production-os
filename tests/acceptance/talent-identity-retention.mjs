@@ -19,4 +19,5 @@ export async function verifyIdentityRetentionChoices({owner,prisma,cmd,writeUI,s
  const after=await person();assert.equal(after.sourceId,origin.id);assert.equal(after.displayName,before.displayName);assert.equal(after.intro,before.intro);assert.equal((await prisma.sourceRecord.findUniqueOrThrow({where:{id:origin.id}})).status,'ERASED');assert.deepEqual(await prisma.fieldEvidence.findMany({where:{personId,sourceId:basis.id},orderBy:{id:'asc'}}),evidence);
  const detail=await json(owner,`/td2/people/${personId}`);assert.equal(detail.originAvailable,false);assert.equal(detail.originSourceId,origin.id);assert.equal(detail.isTalent,false);assert.equal(detail.displayName,before.displayName);
  console.log('PASS TD2 identity retention browser: real separate identity/group decisions, frozen original source erased, ordinary identity and original field evidence retained without inventing talent');
+ return {personId,origin,basis};
 }

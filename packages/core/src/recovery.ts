@@ -170,7 +170,7 @@ export class RecoveryOps {
             sources: sources.map(x => [x.id,x.revision,x.status,x.protectionEpoch,x.validFrom,x.validUntil]),
             contacts: contacts.map(x => [x.id,x.revision,x.personId,x.sourceId,x.ciphertext]),
             handoffs: handoffs.map(x => [x.id,x.revision,x.state,x.personId,x.sourceId]),
-            usePermissions: usePermissions.map(x => [x.id,x.revision,x.status,x.subjectKind,x.subjectId,x.sourceId]),
+            usePermissions: usePermissions.map(x => [x.id,x.revision,x.status,x.subjectKind,x.subjectId,x.sourceId,...(x.retentionBasisSourceId?[x.retentionBasisSourceId]:[])]),
             exports: exports.map(x => [x.id,x.revision,x.state,x.payloadDigest,x.errorCode]),
             jobs: jobs.map(x => [x.id,x.revision,x.state,x.errorCode]),
             uploads: uploads.map(x => [x.id,x.revision,x.state,x.errorCode,x.expectedHash]),

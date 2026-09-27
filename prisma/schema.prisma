@@ -253,6 +253,7 @@ model SourceRecord {
   DeletionItem_retentionSourceRef DeletionItem[] @relation("DeletionItem_retentionSourceRef")
   DeletionRequest_targetSourceIdRef DeletionRequest[] @relation("DeletionRequest_targetSourceIdRef")
   DeletionRequest_targetSourceSubjectRef DeletionRequest[] @relation("DeletionRequest_targetSourceSubjectRef")
+  UsePermission_retentionBasisSourceRef UsePermission[] @relation("UsePermission_retentionBasisSourceRef")
   UsePermission_sourceIdRef UsePermission[] @relation("UsePermission_sourceIdRef")
   UsePermission_subjectSourceRef UsePermission[] @relation("UsePermission_subjectSourceRef")
   ExportDependency_sourceIdRef ExportDependency[] @relation("ExportDependency_sourceIdRef")
@@ -939,6 +940,7 @@ model UsePermission {
   updatedAt DateTime @db.Timestamptz(3)
   revision Int
   sourceId String @db.Uuid
+  retentionBasisSourceId String? @db.Uuid
   subjectKind String @db.Text
   subjectId String @db.Uuid
   purpose String @db.Text
@@ -954,6 +956,7 @@ model UsePermission {
   subjectAssetId String? @db.Uuid
   subjectSourceId String? @db.Uuid
   workspace Workspace @relation("UsePermission_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_workspace_fkey")
+  retentionBasisSourceRef SourceRecord? @relation("UsePermission_retentionBasisSourceRef", fields: [workspaceId, retentionBasisSourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_retentionBasisSourceRef_fkey")
   sourceIdRef SourceRecord @relation("UsePermission_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_sourceIdRef_fkey")
   reviewerIdRef Membership @relation("UsePermission_reviewerIdRef", fields: [workspaceId, reviewerId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_reviewerIdRef_fkey")
   subjectPersonRef Person? @relation("UsePermission_subjectPersonRef", fields: [workspaceId, subjectPersonId, sourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_subjectPersonRef_fkey")
@@ -965,6 +968,7 @@ model UsePermission {
   @@unique([workspaceId, id, sourceId], map: "usePermissions_workspaceId_id_sourceId_key")
   @@index([workspaceId, sourceId, status], map: "usePermissions_export_source_idx")
   @@index([workspaceId, subjectKind, subjectId], map: "usePermissions_export_subject_idx")
+  @@index([workspaceId, retentionBasisSourceId], map: "usePermissions_retention_basis_idx")
   @@map("usePermissions")
 }
 

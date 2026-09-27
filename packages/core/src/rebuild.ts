@@ -77,7 +77,7 @@ export class JsonRebuild {
         const target = await this.target(tx, actor);
         const typed = payload.schemaVersion === TALENT_EXPORT_VERSION;
         invariant(payload.schemaVersion === payload.manifest.schemaVersion && typed === !!payload.manifest.talent, 'REBUILD_SCHEMA_MISMATCH', '导出版本与专业资料结构不一致', 422);
-        if (payload.manifest.talent) validateRetainedOrigins(payload.manifest.talent,payload.manifest.sources,this.clock);
+        if (payload.manifest.talent) validateRetainedOrigins(payload.manifest.talent,payload.manifest.sources,this.clock,payload.manifest.people);
         if (payload.manifest.talent) await validateTalentRebuild(tx, actor, this.clock, payload.manifest.talent, payload.manifest.people.map(p=>p.id), payload.manifest.sources.map(s=>s.id));
         if(payload.manifest.talent&&transferRows(payload.manifest.talent,'personCredentials').some(r=>r.data.identifierCiphertext)) {
             requirePermission(actor,'sensitive.write');
@@ -110,7 +110,7 @@ export class JsonRebuild {
                 'REBUILD_SOURCE_NOT_CURRENT', '重建只接受当前仍有效的 INTERNAL_USE 来源快照', 409);
         }
         for (const row of [...people, ...works, ...projects])
-            invariant(sourceIds.has(row.sourceId), 'REBUILD_SOURCE_MISSING', '业务对象引用的来源没有包含在重建清单中', 422);
+            invariant(sourceIds.has(row.sourceId)||(people.includes(row as typeof people[number])&&payload.manifest.talent?.schemaVersion==='once-talent-transfer-v13'&&payload.manifest.talent.retainedOrigins?.some(o=>o.id===row.sourceId)), 'REBUILD_SOURCE_MISSING', '业务对象引用的来源没有包含在重建清单中', 422);
         const assetIdentity = new Map<string,string>();
         for (const row of media) {
             invariant(workIds.has(row.workId) && sourceIds.has(row.sourceId), 'REBUILD_MEDIA_REFERENCE_INVALID',

@@ -1,3 +1,4 @@
+import {exportPermissionSource} from './exports.ts';
 import { authorizeTd2Resource } from './talent-v2-access.ts';
 import { td2PersonFor } from './talent-v2-graph.ts';
 import { Deletions } from './deletions.ts';
@@ -31,7 +32,8 @@ export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandRec
             requirePermission(actor, 'sources.review');
             const row = await workspaceRow(tx, 'usePermissions', id, actor.workspaceId);
             if (!row) missing();
-            await sourceFor(tx, actor, row.sourceId, clock, receipt.operation !== 'usePermission.revoke');
+            if(row.retentionBasisSourceId&&receipt.operation!=='usePermission.revoke')await exportPermissionSource(tx,actor,row,clock);
+            else {await sourceFor(tx, actor, row.sourceId, clock, receipt.operation !== 'usePermission.revoke',!!row.retentionBasisSourceId);if(row.retentionBasisSourceId)await sourceFor(tx,actor,row.retentionBasisSourceId,clock,false);}
             if (receipt.operation !== 'usePermission.revoke' && row.status !== 'ACTIVE') missing();
             return;
         }
@@ -41,10 +43,10 @@ export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandRec
             const row = await workspaceRow(tx, 'exports', id, actor.workspaceId);
             if (!row || row.actorId !== actor.membershipId) missing();
             for (const dep of await tx.find('exportDependencies', { workspaceId: actor.workspaceId, exportId: id })) {
-                await sourceFor(tx, actor, dep.sourceId, clock);
                 const permission = await workspaceRow(tx, 'usePermissions', dep.usePermissionId, actor.workspaceId);
                 if (!permission || permission.status !== 'ACTIVE' || permission.revision !== dep.usePermissionRevision || Date.parse(permission.validUntil) <= clock.now().getTime())
                     missing();
+                if(permission.retentionBasisSourceId){await exportPermissionSource(tx,actor,permission,clock);await sourceFor(tx,actor,dep.sourceId,clock,false,true);}else await sourceFor(tx,actor,dep.sourceId,clock);
             }
             return;
         }

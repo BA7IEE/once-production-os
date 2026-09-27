@@ -83,6 +83,10 @@ function PermissionForm({ resources, onClose, onDone }: { resources: ResourceSet
     const [fields, setFields] = useState<ExportFieldCode[]>([]);
     const [validUntil, setValidUntil] = useState(futureLocal());
     const [evidenceNote, setEvidenceNote] = useState('');
+    const [retentionBasisSourceId,setRetentionBasisSourceId]=useState('');
+    useEffect(()=>setRetentionBasisSourceId(''),[kind,subjectId]);
+    const person=useLoad<{id:string;source:{status:string}}|null>(()=>kind==='PERSON'&&subjectId?read('person.get',{id:subjectId}):Promise.resolve(null),kind+':'+subjectId);
+    const retainedOrigin=kind==='PERSON'&&person.data?.id===subjectId&&person.data.source.status==='ERASED';
     const action = useAction();
 
     useEffect(() => { setSubjectId(''); setFields([]); }, [kind]);
@@ -102,21 +106,24 @@ function PermissionForm({ resources, onClose, onDone }: { resources: ResourceSet
         : resources.assets.map(x => [x.id, x.fileName] as const);
 
     return <Modal title="批准内部导出用途" onClose={onClose} wide><form onSubmit={e => { e.preventDefault(); void action.run(async () => {
+            if(kind==='PERSON'&&(person.busy||person.data?.id!==subjectId))throw new Error('人物身份仍在核对，请稍后再提交');
+            if(retainedOrigin&&!retentionBasisSourceId)throw new Error('请选择已登记完整身份字段证据的独立依据');
             if (!sourceId) throw new Error('对象来源尚未读取完成，请稍后再提交');
             if (!fields.length) throw new Error('至少选择一个允许导出的字段');
             await call('usePermission.create', {
-                sourceId, subjectKind: kind, subjectId, fields,
+                sourceId, subjectKind: kind, subjectId, fields,...(retainedOrigin?{retentionBasisSourceId}:{}),
                 validUntil: new Date(validUntil).toISOString(),
                 evidenceNote
             });
             onDone();
         }); }}>
-            <div className="modal-body"><ErrorBox error={action.error ?? work.error ?? project.error}/>
+            <div className="modal-body"><ErrorBox error={action.error ?? person.error ?? work.error ?? project.error}/>
                 <div className="notice">这是额外的数据导出许可，不等于“当前能看就能导出”。临时整理来源无法批准导出；许可到期、撤销或来源安全状态变化都会使旧导出失效。2.0 专业资料需同时批准人物字段和每个实际来源的专业字段；来源许可只适用于另外取得人物许可的资料。</div>
                 <Field label="对象类型"><select value={kind} onChange={e => setKind(e.target.value as ExportSubjectKind)}>
                     <option value="PERSON">人才</option><option value="WORK">作品</option><option value="PROJECT">项目</option><option value="SOURCE">资料来源</option><option value="ASSET">图片身份</option>
                 </select></Field>
                 <Field label="批准对象"><select required value={subjectId} onChange={e => setSubjectId(e.target.value)}><option value="">请选择</option>{options.map(([id, name]) => <option value={id} key={id}>{name}</option>)}</select></Field>
+                {retainedOrigin&&<><p className="notice">最初来源已删除。请选择当前独立身份依据，并勾选姓名、别名、简介和身份字段依据；导出只保留原来源编号，不恢复其内容。</p><Field label="身份保留依据"><select required value={retentionBasisSourceId} onChange={e=>setRetentionBasisSourceId(e.target.value)}><option value="">请选择独立身份依据</option>{resources.sources.filter(s=>s.basisMode==='INTERNAL_USE'&&s.id!==sourceId).map(s=><option key={s.id} value={s.id}>{s.title}</option>)}</select></Field></>}
                 <Field label="允许导出的字段" hint="只允许本次明确勾选的字段进入 JSON；联系方式、来源原文、密码/会话/密钥没有可选项。">
                     <div className="check-grid">{fieldGroups[kind].map(([code, label]) => <label className={'check-chip' + (fields.includes(code) ? ' checked' : '')} key={code}><input type="checkbox" checked={fields.includes(code)} onChange={e => setFields(e.target.checked ? [...fields, code] : fields.filter(x => x !== code))}/>{label}</label>)}</div>
                 </Field>
@@ -124,7 +131,7 @@ function PermissionForm({ resources, onClose, onDone }: { resources: ResourceSet
                 <Field label="审批依据" hint="说明为什么这份资料允许做内部 JSON 导出；不要粘贴完整敏感原文。"><textarea required minLength={4} maxLength={2000} rows={4} value={evidenceNote} onChange={e => setEvidenceNote(e.target.value)}/></Field>
                 {sourceId && <p className="muted">来源 ID：{sourceId}</p>}
             </div>
-            <footer className="modal-footer"><button type="button" onClick={onClose} disabled={action.busy}>取消</button><Submit busy={action.busy}>批准用途</Submit></footer>
+            <footer className="modal-footer"><button type="button" onClick={onClose} disabled={action.busy}>取消</button><Submit busy={action.busy||(kind==='PERSON'&&person.busy)}>批准用途</Submit></footer>
         </form></Modal>;
 }
 

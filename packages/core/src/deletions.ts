@@ -235,7 +235,7 @@ export class Deletions {
             }
         }
         if (targetKind === 'SOURCE') {
-            for (const row of await tx.find('usePermissions', { workspaceId: actor.workspaceId, sourceId: targetId }))
+            for (const row of (await tx.find('usePermissions', { workspaceId: actor.workspaceId })).filter(p=>p.sourceId===targetId||p.retentionBasisSourceId===targetId))
                 add({ resourceKind: 'usePermission', resourceId: row.id, dependencyKind: 'SOURCE_USE_PERMISSION', proposedAction: 'REVOKE_PERMISSION', evidenceState: 'PROVEN', detailCode: 'PURPOSE_PERMISSION' });
             for (const row of await tx.find('exportDependencies', { workspaceId: actor.workspaceId, sourceId: targetId })) {
                 add({ resourceKind: 'exportDependency', resourceId: row.id, dependencyKind: 'SOURCE_EXPORT_DEPENDENCY', proposedAction: 'ERASE_DERIVATIVE', evidenceState: 'PROVEN', detailCode: 'FROZEN_EXPORT_INPUT' });

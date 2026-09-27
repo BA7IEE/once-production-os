@@ -1,3 +1,4 @@
+import {validateIdentityRetention} from './talent-identity-retention.ts';
 import {MERGE_HISTORY_CODE,validateMergeHistory} from './merge-history-transfer.ts';
 import {IDENTITY_EVIDENCE_CODE,identityField} from './identity-transfer.ts';
 import { MEDIA_TRANSFER_CODE, transferAsset } from './media-transfer.ts';
@@ -48,6 +49,15 @@ function dataFields<T extends Record<string, unknown>>(prefix: string, fields: E
     return Object.fromEntries(fields.map(field => [field.slice(prefix.length), row[field.slice(prefix.length)] ]));
 }
 
+export async function exportPermissionSource(tx:Tx,actor:Actor,row:Pick<UsePermission,'subjectKind'|'subjectId'|'sourceId'|'retentionBasisSourceId'>,clock:Clock) {
+        if(!row.retentionBasisSourceId)return sourceFor(tx,actor,row.sourceId,clock);
+        invariant(row.subjectKind==='PERSON','EXPORT_RETENTION_SUBJECT','独立身份依据仅适用于人物许可',422);
+        const person=await personFor(tx,actor,row.subjectId,clock),origin=await sourceFor(tx,actor,row.sourceId,clock,false,true);
+        invariant(person.sourceId===origin.id&&origin.status==='ERASED','EXPORT_RETENTION_ORIGIN','独立保留许可必须绑定人物已删除的最初来源',422);
+        await validateIdentityRetention(tx,actor,person,row.retentionBasisSourceId,clock,undefined,false);
+        return sourceFor(tx,actor,row.retentionBasisSourceId,clock);
+    }
+
 export class Exports {
     store: Store;
     clock: Clock;
@@ -84,13 +94,13 @@ export class Exports {
         invariant(unique(d.fields).length === d.fields.length, 'DUPLICATE_FIELD', '导出字段不能重复', 400);
         const allowed = d.fields.filter(f => fieldsFor(d.subjectKind, [f]).length || (d.subjectKind === 'SOURCE' && (f===MERGE_HISTORY_CODE||identityField(f)||f===IDENTITY_EVIDENCE_CODE||isTransferCode(f)||f===EVIDENCE_TRANSFER_CODE||f===CREDENTIAL_IDENTIFIER_CODE||f===MEDIA_TRANSFER_CODE)));
         invariant(allowed.length === d.fields.length, 'EXPORT_FIELD_SUBJECT_MISMATCH', '导出许可字段与对象类型不匹配', 422);
-        const subject = await this.subject(tx, actor, d.subjectKind, d.subjectId);
-        invariant(subject.source.id === d.sourceId, 'EXPORT_SOURCE_MISMATCH', '导出许可的来源与对象不一致', 422);
+        const subject = d.retentionBasisSourceId?{source:await exportPermissionSource(tx,actor,d,this.clock)}:await this.subject(tx, actor, d.subjectKind, d.subjectId);
+        invariant(!!d.retentionBasisSourceId || subject.source.id === d.sourceId, 'EXPORT_SOURCE_MISMATCH', '导出许可的来源与对象不一致', 422);
         invariant(subject.source.basisMode === 'INTERNAL_USE', 'EXPORT_USE_NOT_ALLOWED', '临时整理依据不能用于内部导出', 422);
         const now = this.clock.now().toISOString();
         invariant(Date.parse(d.validUntil) > Date.parse(now) && Date.parse(d.validUntil) <= Date.parse(subject.source.validUntil),
             'EXPORT_PERMISSION_EXPIRY_INVALID', '导出许可期限必须在当前来源依据期限内', 422);
-        const row: UsePermission = { ...base(actor.workspaceId, this.clock), sourceId: d.sourceId, subjectKind: d.subjectKind, subjectId: d.subjectId,
+        const row: UsePermission = { ...base(actor.workspaceId, this.clock), sourceId: d.sourceId, ...(d.retentionBasisSourceId?{retentionBasisSourceId:d.retentionBasisSourceId}:{}), subjectKind: d.subjectKind, subjectId: d.subjectId,
             purpose: 'INTERNAL_EXPORT', fields: [...d.fields].sort(), validFrom: now, validUntil: d.validUntil, status: 'ACTIVE',
             evidenceNote: d.evidenceNote, reviewerId: actor.membershipId, ...typedSubject(d.subjectKind, d.subjectId) };
         await tx.insert('usePermissions', row);
@@ -102,7 +112,7 @@ export class Exports {
         const d = S.permissionRevoke.parse(input);
         const row = await workspaceRow(tx, 'usePermissions', id, actor.workspaceId);
         if (!row) missing();
-        await sourceFor(tx, actor, row.sourceId, this.clock, false);
+        if(row.retentionBasisSourceId){await sourceFor(tx,actor,row.sourceId,this.clock,false,true);await sourceFor(tx,actor,row.retentionBasisSourceId,this.clock,false);}else await sourceFor(tx, actor, row.sourceId, this.clock, false);
         cas(row, d.expectedRevision);
         invariant(row.status === 'ACTIVE', 'PERMISSION_ALREADY_REVOKED', '该导出许可已经撤销', 409);
         const next: UsePermission = { ...touch(row, this.clock), status: 'REVOKED' };
@@ -117,9 +127,9 @@ export class Exports {
         for (const row of await tx.find('usePermissions', { workspaceId: actor.workspaceId })) {
             if (query.sourceId && row.sourceId !== query.sourceId || query.subjectKind && row.subjectKind !== query.subjectKind || query.status && row.status !== query.status)
                 continue;
-            try { await sourceFor(tx, actor, row.sourceId, this.clock, false); }
+            try { if(row.retentionBasisSourceId){await sourceFor(tx,actor,row.sourceId,this.clock,false,true);await sourceFor(tx,actor,row.retentionBasisSourceId,this.clock,false);}else await sourceFor(tx, actor, row.sourceId, this.clock, false); }
             catch (error) { if (error instanceof AppError && error.status === 404) continue; throw error; }
-            rows.push({ id: row.id, sourceId: row.sourceId, subjectKind: row.subjectKind, subjectId: row.subjectId, fields: row.fields,
+            rows.push({ id: row.id, sourceId: row.sourceId,...(row.retentionBasisSourceId?{retentionBasisSourceId:row.retentionBasisSourceId}:{}), subjectKind: row.subjectKind, subjectId: row.subjectId, fields: row.fields,
                 validFrom: row.validFrom, validUntil: row.validUntil, status: row.status, revision: row.revision,
                 ...(actor.permissions.includes('sources.review') ? { evidenceNote: row.evidenceNote, reviewerId: row.reviewerId } : {}) });
         }
@@ -130,7 +140,7 @@ export class Exports {
     private async permissionFor(tx: Tx, actor: Actor, id: string): Promise<UsePermission> {
         const row = await workspaceRow(tx, 'usePermissions', id, actor.workspaceId);
         if (!row) missing();
-        const source = await sourceFor(tx, actor, row.sourceId, this.clock);
+        const source = await exportPermissionSource(tx, actor, row,this.clock);
         const now = this.clock.now().getTime();
         invariant(row.status === 'ACTIVE' && row.purpose === 'INTERNAL_EXPORT' && Date.parse(row.validFrom) <= now && now < Date.parse(row.validUntil),
             'EXPORT_PERMISSION_INACTIVE', '导出许可当前不可用', 409);
@@ -150,7 +160,7 @@ export class Exports {
         return { ...base(workspaceId, this.clock), exportId, kind, sourceId: source.id, sourceRevision: source.revision,
             sourceProtectionEpoch: source.protectionEpoch, resourceRevision: revision, resourceProtectionEpoch: protectionEpoch,
             fields: [...fields].sort(), usePermissionId: permission.id, usePermissionRevision: permission.revision,
-            validUntil: minIso(exportExpiry, source.validUntil, permission.validUntil), ...typedDependency(kind, id) };
+            validUntil: source.status==='ERASED'&&kind==='PERSON'&&permission.retentionBasisSourceId?minIso(exportExpiry,permission.validUntil):minIso(exportExpiry, source.validUntil, permission.validUntil), ...typedDependency(kind, id) };
     }
 
     async create(tx: Tx, actor: Actor, input: unknown): Promise<ExportJob> {
@@ -174,7 +184,7 @@ export class Exports {
         for (const id of d.usePermissionRefs) permissions.push(await this.permissionFor(tx, actor, id));
         const used = new Set<string>(), sources = new Map<string, Source>(), dependencies: ExportDependency[] = [];
         const people: Person[] = [], works = [], projects = [];
-        for (const id of peopleIds) { const row = await personFor(tx, actor, id, this.clock); people.push(row); sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock)); }
+        for (const id of peopleIds) { const row = await personFor(tx, actor, id, this.clock); people.push(row);const origin=await sourceFor(tx,actor,row.sourceId,this.clock,false,true);sources.set(row.sourceId,origin.status==='ERASED'?origin:await sourceFor(tx,actor,row.sourceId,this.clock)); }
         for (const id of workIds) { const row = await workFor(tx, actor, id, this.clock); works.push(row); sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock)); }
         for (const id of projectIds) { const row = await projectFor(tx, actor, id, this.clock); projects.push(row); sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock)); }
 
@@ -184,6 +194,7 @@ export class Exports {
         invariant(!d.fields.includes(MEDIA_TRANSFER_CODE)||(transferFields.includes('person.td2.personCredentials')||transferFields.includes('person.td2.mediaCollections')||transferFields.includes('person.td2.adultEligibilities')),'TD2_TRANSFER_MEDIA_OWNER_REQUIRED','原件必须随资质或媒体集合导出',422);
         const identityFields=d.fields.includes(IDENTITY_EVIDENCE_CODE)?d.fields.filter(identityField):undefined;
         const talent = transferFields.length||identityFields||d.fields.includes(MERGE_HISTORY_CODE) ? await collectTalentTransfer(tx, actor, this.clock, peopleIds, transferFields, withEvidence, withIdentifiers, d.fields.includes(MEDIA_TRANSFER_CODE),identityFields,d.fields.includes(MERGE_HISTORY_CODE)) : null;
+        invariant(!people.some(p=>sources.get(p.sourceId)?.status==='ERASED')||talent?.schemaVersion==='once-talent-transfer-v13','TD2_RETAINED_IDENTITY_FIELDS','原始来源已删的人物须同时迁移完整身份字段与独立依据',422);
         const sourceTransferFields = new Map<string, Set<ExportFieldCode>>();
         if (talent) for (const table of TRANSFER_TABLES) for (const row of transferRows(talent,table)) {
             if(talent.retainedOrigins?.some(o=>o.id===row.sourceId))continue;
@@ -291,6 +302,7 @@ export class Exports {
         const manifestSources: unknown[] = [];
         if (sourceFields.length || sourceTransferFields.size) {
             for (const source of [...sources.values()].sort((a, b) => a.id.localeCompare(b.id))) {
+                if(source.status==='ERASED')continue;
                 const requiredSourceFields = unique([...sourceFields, ...(sourceTransferFields.get(source.id) ?? [])]);
                 if (!requiredSourceFields.length) continue;
                 const permission = this.choosePermission(permissions, used, 'SOURCE', source.id, source.id, requiredSourceFields);
@@ -318,10 +330,11 @@ export class Exports {
 
     private async validateDependency(tx: Tx, actor: Actor, dependency: ExportDependency) {
         try {
-            const source = await sourceFor(tx, actor, dependency.sourceId, this.clock);
+            const permission = await this.permissionFor(tx, actor, dependency.usePermissionId);
+            const source = await sourceFor(tx, actor, dependency.sourceId, this.clock,!(dependency.kind==='PERSON'&&permission.retentionBasisSourceId),!!(dependency.kind==='PERSON'&&permission.retentionBasisSourceId));
+            if(permission.retentionBasisSourceId)invariant(dependency.kind==='PERSON'&&source.status==='ERASED'&&source.revision===dependency.sourceRevision,'EXPORT_SOURCE_CHANGED','原始来源头已变化',409);
             if (dependency.fields.some(isTransferCode)) invariant(source.revision === dependency.sourceRevision, 'EXPORT_SOURCE_CHANGED', '专业资料来源版本已变化', 409);
             invariant(source.protectionEpoch === dependency.sourceProtectionEpoch, 'EXPORT_SOURCE_CHANGED', '来源安全状态已变化', 409);
-            const permission = await this.permissionFor(tx, actor, dependency.usePermissionId);
             invariant(permission.revision === dependency.usePermissionRevision && dependency.fields.every(field => permission.fields.includes(field)),
                 'EXPORT_PERMISSION_CHANGED', '导出许可已变化', 409);
             let revision = dependency.resourceRevision;

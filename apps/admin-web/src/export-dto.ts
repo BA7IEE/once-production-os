@@ -3,6 +3,7 @@ import type { ExportFieldCode, ExportSubjectKind } from '../../../packages/core/
 export interface UsePermissionDto {
     id: string;
     sourceId: string;
+    retentionBasisSourceId?: string | null;
     subjectKind: ExportSubjectKind;
     subjectId: string;
     fields: ExportFieldCode[];

@@ -16,6 +16,7 @@ export type ExportSubjectKind = 'SOURCE' | 'PERSON' | 'WORK' | 'PROJECT' | 'ASSE
 
 export interface UsePermission extends Base {
     sourceId: string;
+    retentionBasisSourceId?: string | null;
     subjectKind: ExportSubjectKind;
     subjectId: string;
     purpose: 'INTERNAL_EXPORT';

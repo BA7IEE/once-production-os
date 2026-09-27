@@ -14,8 +14,8 @@ export function identityContent(person:Person){
 }
 export function identityItemCode(person:Person){return `TD2_SOURCE_PERSON:${identityContent(person)}`;}
 /** Retention preserves the original source UUID. Only existing matching evidence can support it. */
-export async function validateIdentityRetention(tx:Tx,actor:Actor,person:Person,basisId:string,clock:Clock,item?:DeletionItem){
- requirePermission(actor,'sources.review');
+export async function validateIdentityRetention(tx:Tx,actor:Actor,person:Person,basisId:string,clock:Clock,item?:DeletionItem,review=true){
+ if(review)requirePermission(actor,'sources.review');
  invariant(!item||identityItemCode(person)===item.detailCode,'TD2_ERASURE_GRAPH_STALE','人物身份内容已变化，请重新检查删除计划',409);
  invariant(person.workspaceId===actor.workspaceId&&person.status!=='ERASED'&&await scopeVisible(tx,actor,person.scopeId),'TD2_SOURCE_OWNER_UNAVAILABLE','人物身份当前不可用',409);
  const records=await tx.find('evidence',{workspaceId:actor.workspaceId,personId:person.id});
