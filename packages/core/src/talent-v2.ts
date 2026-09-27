@@ -1,3 +1,4 @@
+import { shortlistFor } from './shortlists.ts';
 import type { Actor, Clock, Config, Person, RequestMeta, TableMap, FieldEvidence } from './model.ts';
 import type { Tx } from './store.ts';
 import { AppError, invariant, missing } from './errors.ts';
@@ -46,6 +47,10 @@ export class TalentV2 {
         talentWrite(actor);const d=S.enroll.parse(input),p=await this.parent(tx,actor,id,d.expectedRevision);
         await this.source(tx,actor,p.sourceId,d.sourceRevision);
         invariant(!(await tx.find('talentProfiles',{workspaceId:actor.workspaceId,personId:id})).length,'TALENT_PROFILE_EXISTS','人物已有专业档案',409);
+        const legacyCandidates=(await tx.find('shortlistItems',{workspaceId:actor.workspaceId,personId:id})).filter(item=>!item.personRoleId);
+        invariant(legacyCandidates.length<=500,'TALENT_ENROLL_DEPENDENCY_LIMIT','现有候选关系超过单次升级上限，需要先核对',409);
+        const candidateLists=new Map<string,TableMap['shortlists']>();
+        for(const item of legacyCandidates)if(!candidateLists.has(item.shortlistId))candidateLists.set(item.shortlistId,await shortlistFor(tx,actor,item.shortlistId));
         await tx.insert('talentProfiles',{...base(actor.workspaceId,this.clock),personId:id,sourceId:p.sourceId,internalSummary:'',status:'ACTIVE'});
         for(const roleCode of p.roles)await tx.insert('personRoles',{...base(actor.workspaceId,this.clock),personId:id,sourceId:p.sourceId,roleCode,validFrom:null,validUntil:null,status:'ACTIVE'});
         for(const languageCode of p.languageCodes)await tx.insert('personLanguages',{...base(actor.workspaceId,this.clock),personId:id,sourceId:p.sourceId,languageCode,speakingLevelCode:null,listeningLevelCode:null,readingLevelCode:null,writingLevelCode:null,verifiedAt:null,validFrom:null,validUntil:null,status:'ACTIVE'});
@@ -55,6 +60,12 @@ export class TalentV2 {
             if(!definition){const entry=(await tx.find('dictionary',{workspaceId:actor.workspaceId,namespace:'skill',code:capabilityCode}))[0];invariant(!!entry,'CAPABILITY_MIGRATION_REVIEW','旧能力字典缺失，需要先核对',409);definition={...base(actor.workspaceId,this.clock),code:capabilityCode,labelZh:entry.labelZh,labelEn:entry.labelEn,aliases:[],applicableRoleCodes:[],levelSchemeCode:null,semanticVersion:'1.0.0',schemaVersion:TALENT_SCHEMA_VERSION,status:entry.status};await tx.insert('capabilityDefinitions',definition);}
             await tx.insert('personCapabilities',{...base(actor.workspaceId,this.clock),personId:id,sourceId:p.sourceId,personRoleId:null,capabilityCode,levelCode:null,validFrom:null,validUntil:null,status:'ACTIVE'});
         }
+        for(const item of legacyCandidates){
+            await tx.replace('shortlistItems',{...touch(item,this.clock),roleContextState:'LEGACY_REVIEW'});
+            if(!(await tx.find('talentMigrationReviews',{workspaceId:actor.workspaceId,shortlistItemId:item.id,reason:'SHORTLIST_ROLE_REQUIRED',state:'PENDING'})).length)
+                await tx.insert('talentMigrationReviews',{...base(actor.workspaceId,this.clock),personId:id,shortlistItemId:item.id,previousShortlistItemIds:[],reason:'SHORTLIST_ROLE_REQUIRED',state:'PENDING',resolvedAt:null,resolvedById:null});
+        }
+        for(const root of candidateLists.values())await tx.replace('shortlists',touch(root,this.clock));
         if(p.heightCm!==null)await tx.insert('talentMigrationReviews',{...base(actor.workspaceId,this.clock),personId:id,shortlistItemId:null,reason:'HEIGHT_SEMANTICS_REQUIRED',state:'PENDING',resolvedAt:null,resolvedById:null});
         return this.bump(tx,p);
     }

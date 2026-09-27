@@ -6,7 +6,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaStore } from '../../apps/api/src/prisma-store.ts';
 import { Application } from '../../packages/core/src/api.ts';
 import { FakeClock, Client, SYNTHETIC_PASSWORD } from '../support/fixtures.ts';
-import { verifyUnknownRoleCandidateMerge, verifyRoleCandidateMerge, verifyProfessionalConflicts, verifyProfessionalMerge } from '../support/talent-v2-merge.ts';
+import { verifyCandidateRoleContext, verifyLegacyCandidateEnrollment, verifyUnknownRoleCandidateMerge, verifyRoleCandidateMerge, verifyProfessionalConflicts, verifyProfessionalMerge } from '../support/talent-v2-merge.ts';
 
 test('TD2 real PostgreSQL professional merge rollback and retry', async () => {
     assert.equal(process.env.ALLOW_TD2_DB_TESTS, 'yes');
@@ -30,6 +30,8 @@ test('TD2 real PostgreSQL professional merge rollback and retry', async () => {
         await verifyProfessionalConflicts(app, store, clock, owner);
         await verifyRoleCandidateMerge(app,store,clock,owner);
         await verifyUnknownRoleCandidateMerge(app,store,clock,owner);
+        await verifyCandidateRoleContext(app,store,clock,owner);
+        await verifyLegacyCandidateEnrollment(app,store,clock,owner);
         const review = await client.talentMigrationReview.findFirstOrThrow({where:{previousShortlistItemIds:{isEmpty:false}}});
         await assert.rejects(client.talentMigrationReview.update({where:{id:review.id},data:{previousShortlistItemIds:[]}}), /lineage is append only/);
         await assert.rejects(client.talentMigrationReview.update({where:{id:review.id},data:{shortlistItemId:null}}), /reassignment must preserve/);

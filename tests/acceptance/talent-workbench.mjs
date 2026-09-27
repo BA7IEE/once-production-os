@@ -33,6 +33,21 @@ export async function verifyTalentWorkbench({owner,prisma,cmd,writeUI,source,ass
  await add('工作语言','languages',async f=>{await f.getByLabel('语言 *',{exact:true}).selectOption('en');await f.getByLabel('口语',{exact:true}).selectOption('WORKING');});
  const language=await prisma.personLanguage.findFirstOrThrow({where:{personId:pid,languageCode:'en'}});assert.equal(language.speakingLevelCode,'WORKING');assert.equal(language.readingLevelCode,null);
  await group('翻译服务');const translator=await prisma.personRole.findFirstOrThrow({where:{personId:pid,roleCode:'translator'}});
+ // The same person enters one list twice with distinct occupations; only matching work credits are offered.
+ const candidateList=(await cmd(owner,'POST','/shortlists',{title:'工作台多职业候选清单',scopeId:(await prisma.person.findUniqueOrThrow({where:{id:pid}})).scopeId},201)).resourceId;
+ const translationWork=(await cmd(owner,'POST','/works',{title:'工作台仅翻译署名作品',sourceId:sid},201)).resourceId;
+ await cmd(owner,'POST',`/works/${translationWork}/credits`,{expectedRevision:1,personId:pid,roleCode:'translator',note:'合成翻译署名'});
+ const model=await prisma.personRole.findFirstOrThrow({where:{personId:pid,roleCode:'model'}});
+ for(const role of [model,translator]){
+  await owner.getByRole('button',{name:'加入候选清单',exact:true}).click();await owner.getByRole('dialog',{name:'选择候选清单',exact:true}).getByRole('button',{name:'工作台多职业候选清单',exact:true}).click();
+  const candidateDialog=owner.getByRole('dialog',{name:'加入候选 · 工作台模特兼翻译',exact:true});await candidateDialog.getByLabel('本次入选职业',{exact:true}).selectOption(role.id);
+  const works=candidateDialog.getByLabel('关联署名作品（可选）',{exact:true});
+  if(role.roleCode==='model')assert.equal(await works.locator(`option[value="${translationWork}"]`).count(),0);
+  else await works.selectOption(translationWork);
+  await candidateDialog.getByLabel('内部协作备注',{exact:true}).fill('合成明确职业 '+role.roleCode);
+  await writeUI(owner,'POST',`/shortlists/${candidateList}/items`,()=>candidateDialog.getByRole('button',{name:'加入当前清单',exact:true}).click());
+ }
+ const candidates=await prisma.shortlistItem.findMany({where:{shortlistId:candidateList,personId:pid}});assert.equal(candidates.length,2);assert.deepEqual(candidates.map(r=>r.personRoleId).sort(),[model.id,translator.id].sort());assert.equal(candidates.find(r=>r.personRoleId===translator.id).workId,translationWork);assert.equal(candidates.find(r=>r.personRoleId===model.id).workId,null);
  await add('翻译方向','translation-pairs',async f=>{await f.getByLabel('翻译职业 *',{exact:true}).selectOption(translator.id);await f.getByLabel('源语言 *',{exact:true}).selectOption('zh');await f.getByLabel('目标语言 *',{exact:true}).selectOption('en');});
  await add('翻译服务方式','translation-modes',async f=>{await f.getByLabel('翻译职业 *',{exact:true}).selectOption(translator.id);await f.getByLabel('服务方式 *',{exact:true}).selectOption('ON_SET');});
  await group('模特与选角');await add('选角外观','casting',async f=>f.getByLabel('发色',{exact:true}).selectOption('BLACK'));

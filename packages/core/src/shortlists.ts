@@ -85,17 +85,23 @@ export class Shortlists {
             const graph = await loadTalentGraph(tx,actor,this.clock);
             const profile = graph.rows('talentProfiles').find(p=>p.personId===item.personId);
             const role = item.personRoleId ? graph.fact('personRoles',item.personRoleId) : null;
-            if(profile && (!role || role.personId!==item.personId || !graph.usable('personRoles',role))) missing();
+            const needsRoleReview=!!profile&&!role&&item.personRoleId===null&&item.roleContextState==='LEGACY_REVIEW';
+            if(profile && !needsRoleReview && (!role || role.personId!==item.personId || !graph.usable('personRoles',role))) missing();
             const person = profile ? await td2PersonFor(tx,actor,item.personId) : await personFor(tx, actor, item.personId, this.clock);
             const td2Header = profile ? graph.personHeader(person) : null;
             const personSource = await sourceFor(tx, actor, person.sourceId, this.clock, !profile);
             let work = null;
             let workSourceRevision: number | null = null;
+            let creditedRoles: string[] | null = null;
             if (item.workId) {
                 const full = await workFor(tx, actor, item.workId, this.clock);
                 const source = await sourceFor(tx, actor, full.sourceId, this.clock);
                 work = workHeader(full);
                 workSourceRevision = source.revision;
+                if(profile){
+                    creditedRoles=(await tx.find('workCredits',{workspaceId:actor.workspaceId,workId:full.id,personId:person.id})).map(c=>c.roleCode);
+                    if(!creditedRoles.length || (role&&!creditedRoles.includes(String(role.roleCode))))missing();
+                }
             }
             const selected = [];
             const links = (await tx.find('shortlistItemAssets', { workspaceId: actor.workspaceId, itemId: item.id })).sort((a, b) => a.position - b.position);
@@ -105,6 +111,13 @@ export class Shortlists {
                 invariant(!!workAsset && workAsset.workId === item.workId && workAsset.assetId === link.assetId, 'SHORTLIST_RELATION_INVALID', '候选清单图片关系损坏，请联系维护人员', 503);
                 const asset = await readyAsset(tx, actor, link.assetId, this.clock);
                 selected.push({ id: link.id, workAssetId: link.workAssetId, asset: { id: asset.id, fileName: asset.fileName, width: asset.width, height: asset.height, revision: asset.revision } });
+            }
+            if(needsRoleReview){
+                const roleReview=actor.permissions.includes('records.write')?{
+                    person:{id:person.id,displayName:td2Header!.displayName},
+                    roles:graph.rows('personRoles').filter(r=>r.personId===person.id&&graph.usable('personRoles',r as unknown as FactRow)&&(!creditedRoles||creditedRoles.includes(r.roleCode))).map(r=>({id:r.id,roleCode:r.roleCode,revision:r.revision}))
+                }:undefined;
+                return {id:item.id,position:item.position,unavailable:true as const,...(roleReview?{roleReview}:{})};
             }
             return {
                 id: item.id,
@@ -151,7 +164,7 @@ export class Shortlists {
         return next;
     }
 
-    private async ensurePair(tx: Tx, actor: Actor, personId: string, workId?: string) {
+    private async ensurePair(tx: Tx, actor: Actor, personId: string, workId?: string, roleCode?: string) {
         const person = await personFor(tx, actor, personId, this.clock);
         invariant(person.status !== 'ARCHIVED', 'PERSON_ARCHIVED', '已归档人才不能新增到候选清单', 409);
         const personSource = await sourceFor(tx, actor, person.sourceId, this.clock);
@@ -161,6 +174,7 @@ export class Shortlists {
         invariant(work.status !== 'ARCHIVED', 'WORK_ARCHIVED', '已归档作品不能新增到候选清单', 409);
         const credits = await tx.find('workCredits', { workspaceId: actor.workspaceId, workId, personId });
         invariant(credits.length > 0, 'WORK_PERSON_MISMATCH', '选择的作品没有该候选人的署名记录', 422);
+        invariant(!roleCode||credits.some(c=>c.roleCode===roleCode),'WORK_ROLE_MISMATCH','所选作品没有本次职业的署名，不能借用其他职业的作品',422);
         const workSource = await sourceFor(tx, actor, work.sourceId, this.clock);
         return { person, personSource, work, workSource };
     }
@@ -181,7 +195,7 @@ export class Shortlists {
             invariant(!d.personRoleId&&!d.personRoleRevision,'SHORTLIST_ROLE_INVALID','此人物没有对应的专业职业',422);
             const person=await personFor(tx,actor,d.personId,this.clock);invariant(person.roles.length>0,'SHORTLIST_TALENT_REQUIRED','普通联系人不能作为人才候选人',422);
         }
-        const pair = await this.ensurePair(tx, actor, d.personId, d.workId);
+        const pair = await this.ensurePair(tx, actor, d.personId, d.workId,chosenRole?String(chosenRole.roleCode):undefined);
         const all = await tx.find('shortlistItems', { workspaceId: actor.workspaceId, shortlistId: id });
         invariant(all.length < L.items, 'SHORTLIST_ITEM_LIMIT', '单个候选清单最多100条', 422);
         invariant(!all.some(x => x.personId === d.personId && x.workId === (d.workId ?? null) && (x.personRoleId ?? null) === (chosenRole?.id ?? null)), 'DUPLICATE_LINK', '该候选人与作品组合已在清单中', 409);
@@ -238,6 +252,11 @@ export class Shortlists {
         const item=await workspaceRow(tx,'shortlistItems',d.itemId,actor.workspaceId);if(!item||item.shortlistId!==id)missing();
         const graph=await loadTalentGraph(tx,actor,this.clock),role=graph.fact('personRoles',d.personRoleId);
         invariant(!!role&&role.personId===item.personId&&graph.usable('personRoles',role),'SHORTLIST_ROLE_UNAVAILABLE','职业角色不可用',422);cas(role,d.personRoleRevision);
+        // Recheck the entire candidate graph under the chosen role before resolving legacy reviews.
+        const context=await this.visibleItem(tx,actor,{...item,personRoleId:role.id,personRoleRevision:role.revision,roleContextState:'BOUND'});
+        invariant(!context.unavailable,'SHORTLIST_CONTEXT_UNAVAILABLE','候选人的来源、作品或图片已不可用，或作品不属于所选职业',409);
+        const others=await tx.find('shortlistItems',{workspaceId:actor.workspaceId,shortlistId:id});
+        invariant(!others.some(r=>r.id!==item.id&&r.personId===item.personId&&(r.workId??null)===(item.workId??null)&&r.personRoleId===role.id),'DUPLICATE_LINK','此职业与作品组合已在清单中，请先核对重复候选',409);
         await tx.replace('shortlistItems',{...touch(item,this.clock),personRoleId:role.id,personRoleRevision:role.revision,roleContextState:'BOUND'});
         for(const review of await tx.find('talentMigrationReviews',{workspaceId:actor.workspaceId,shortlistItemId:item.id,state:'PENDING'}))await tx.replace('talentMigrationReviews',{...touch(review,this.clock),state:'RESOLVED',resolvedAt:this.clock.now().toISOString(),resolvedById:actor.membershipId});
         return this.bump(tx,root);

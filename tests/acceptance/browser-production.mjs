@@ -462,6 +462,18 @@ try {
  assert.equal(await prisma.talentProfile.count({where:{personId:tdDuplicate,supersededById:{not:null}}}),1);
  console.log('PASS TD2 browser: explicit conflict selection and retained history; per-record confirmation gates professional merge; stable role/language/collection/item IDs and original media survive');
 
+ // The human role review is a real UI action; a lost response must replay the original request.
+ await owner.getByRole('button',{name:/候选工作台/}).click();await owner.locator('.sl-list-bar').getByRole('button',{name:/TD2职业待核实候选/}).click();
+ await owner.getByRole('button',{name:'核实候选职业',exact:true}).click();const roleDialog=owner.getByRole('dialog',{name:'核实候选职业',exact:true});
+ await roleDialog.getByLabel('本次入选职业',{exact:true}).selectOption(tdRole);await roleDialog.getByLabel('我已核对本次候选需求与职业',{exact:true}).check();
+ const rolePath=`/td2/shortlists/${tdUnknownList}/role`,rolePattern='**/api/v1'+rolePath,roleRequests=[];
+ const roleObserve=r=>{if(r.method()==='POST'&&r.url().endsWith(rolePath))roleRequests.push({body:r.postData(),key:r.headers()['idempotency-key']});};owner.on('request',roleObserve);
+ await owner.route(rolePattern,async route=>{assert.equal((await route.fetch()).status(),200);await route.abort('failed');});await roleDialog.getByRole('button',{name:'确认候选职业',exact:true}).click();await roleDialog.getByRole('alert').waitFor();assert.equal(await roleDialog.getByLabel('本次入选职业',{exact:true}).isDisabled(),true);assert.equal(await roleDialog.getByRole('button',{name:'取消',exact:true}).isDisabled(),true);await owner.unroute(rolePattern);
+ assert.equal((await writeUI(owner,'POST',rolePath,()=>roleDialog.getByRole('button',{name:'核对上次提交',exact:true}).click())).replayed,true);owner.off('request',roleObserve);assert.equal(roleRequests.length,2);assert.deepEqual(roleRequests[0],roleRequests[1]);
+ await owner.locator('.sl-detail').getByText('待核实历史候选',{exact:true}).waitFor();assert.equal((await prisma.shortlistItem.findUniqueOrThrow({where:{id:tdUnknownItems[0]}})).personRoleId,tdRole);
+ for(const [index,id] of tdUnknownReviews.entries()){const row=await prisma.talentMigrationReview.findUniqueOrThrow({where:{id}});assert.equal(row.state,'RESOLVED');assert.deepEqual(row.previousShortlistItemIds,index===1?[tdUnknownItems[1]]:[]);}
+ console.log('PASS TD2 candidate role browser: explicit human selection resolves both retained reviews, preserving lineage; response-loss retry preserves body and key');
+
 
  const transferredTag=(await cmd(owner,'POST',`/td2/people/${tdCanonical}/collection-tags`,{schemaVersion:tdSchema,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceId:tdSource,sourceRevision:1,values:{collectionId:tdCollection,tagCode:'FASHION'}},201)).resourceId;
  // TD2 transfer: approve person fields and each fact source using the real forms.

@@ -215,3 +215,76 @@ export async function verifyUnknownRoleCandidateMerge(app: Application, store: S
         for(const id of reviews){const row=resolved.talentMigrationReviews.find(r=>r.id===id)!;assert.equal(row.state,'RESOLVED');assert.ok(row.resolvedById);assert.deepEqual(row.previousShortlistItemIds,after.talentMigrationReviews.find(r=>r.id===id)!.previousShortlistItemIds);}
     }
 }
+
+/** A chosen occupation cannot borrow credits or hidden media from another occupation/context. */
+export async function verifyCandidateRoleContext(app:Application,store:Store,clock:FakeClock,owner:Client) {
+    const g=await seedProfessionalGraph(app,store,clock,owner),person=await g.current();
+    const workSource=ok(await owner.cmd('POST','/sources',sourceInput())).resourceId;
+    const work=ok(await owner.cmd('POST','/works',{title:'合成仅翻译署名作品',sourceId:workSource})).resourceId;
+    ok(await owner.cmd('POST',`/works/${work}/credits`,{expectedRevision:1,personId:g.personId,roleCode:'translator',note:'合成翻译贡献'}),200);
+    const list=ok(await owner.cmd('POST','/shortlists',{title:'合成职业核对',scopeId:person.scopeId})).resourceId;
+    const body={expectedRevision:1,personId:g.personId,workId:work,workAssetIds:[],note:'原候选备注'};
+    const mismatch=await owner.cmd('POST',`/shortlists/${list}/items`,{...body,personRoleId:g.roleId,personRoleRevision:1});
+    assert.equal(mismatch.status,422);assert.equal(result(mismatch).error.code,'WORK_ROLE_MISMATCH');
+    assert.equal((await store.transaction(tx=>tx.find('shortlistItems',{shortlistId:list}))).length,0);
+    ok(await owner.cmd('POST',`/shortlists/${list}/items`,{...body,personRoleId:g.translatorId,personRoleRevision:1}),200);
+    const item=(await store.transaction(tx=>tx.find('shortlistItems',{shortlistId:list})))[0]!;
+    assert.equal(ok(await owner.raw('GET',`/shortlists/${list}`),200).items[0].unavailable,false);
+    const credit=(await store.transaction(tx=>tx.find('workCredits',{workId:work})))[0]!;
+    const workBefore=(await store.transaction(tx=>tx.get('works',work)))!;
+    ok(await owner.cmd('POST',`/works/${work}/credits/remove`,{expectedRevision:workBefore.revision,entryId:credit.id}),200);
+    assert.deepEqual(ok(await owner.raw('GET',`/shortlists/${list}`),200).items[0],{id:item.id,position:0,unavailable:true});
+    const workAfter=(await store.transaction(tx=>tx.get('works',work)))!;
+    ok(await owner.cmd('POST',`/works/${work}/credits`,{expectedRevision:workAfter.revision,personId:g.personId,roleCode:'model',note:'合成更正职业贡献'}),200);
+    const reviewId=randomUUID();
+    await store.transaction(async tx=>{
+        const row=(await tx.get('shortlistItems',item.id))!;await tx.replace('shortlistItems',{...row,personRoleId:null,personRoleRevision:null,roleContextState:'LEGACY_REVIEW'});
+        await tx.insert('talentMigrationReviews',{id:reviewId,workspaceId:person.workspaceId,createdAt:clock.now().toISOString(),updatedAt:clock.now().toISOString(),revision:1,personId:person.id,shortlistItemId:item.id,previousShortlistItemIds:[],reason:'SHORTLIST_ROLE_REQUIRED',state:'PENDING',resolvedAt:null,resolvedById:null});
+    });
+    const preview=ok(await owner.raw('GET',`/shortlists/${list}`),200),candidate=preview.items[0];
+    assert.equal(candidate.unavailable,true);assert.equal(candidate.roleReview.person.id,person.id);assert.deepEqual(candidate.roleReview.roles.map((r:any)=>r.id),[g.roleId]);assert.equal(candidate.note,undefined);
+    const input={schemaVersion,expectedRevision:preview.revision,itemId:item.id,personRoleId:g.roleId,personRoleRevision:1};
+    assert.equal((await owner.cmd('POST',`/td2/shortlists/${list}/role`,{...input,personRoleId:g.translatorId})).status,409);
+    const source=(await store.transaction(tx=>tx.get('sources',workSource)))!;
+    ok(await owner.cmd('POST',`/sources/${workSource}/suspend`,{expectedRevision:source.revision,reason:'合成作品依据暂停'}),200);
+    assert.deepEqual(ok(await owner.raw('GET',`/shortlists/${list}`),200).items[0],{id:item.id,position:0,unavailable:true});
+    const hidden=await owner.cmd('POST',`/td2/shortlists/${list}/role`,input);assert.equal(hidden.status,409);assert.equal(result(hidden).error.code,'SHORTLIST_CONTEXT_UNAVAILABLE');
+    assert.equal((await store.transaction(tx=>tx.get('talentMigrationReviews',reviewId)))!.state,'PENDING');
+    const suspended=(await store.transaction(tx=>tx.get('sources',workSource)))!;
+    ok(await owner.cmd('POST',`/sources/${workSource}/review`,{expectedRevision:suspended.revision,basisDescription:'合成重新确认作品依据',validUntil:source.validUntil}),200);
+    const before=await store.transaction(tx=>talentSnapshot(tx,person.workspaceId)),fault=new FaultStore(store);
+    fault.afterInsert=(t,r)=>{if(t==='audits'&&'action' in r&&r.action==='td2.shortlist.role')throw new AppError(503,'STORE_UNAVAILABLE','synthetic role review audit failure');};
+    const client=new Client(new Application(fault,app.config,clock));client.jar={...owner.jar};client.csrf=owner.csrf;
+    const key=randomUUID();assert.equal((await client.cmd('POST',`/td2/shortlists/${list}/role`,input,key)).status,503);
+    assert.deepEqual(await store.transaction(tx=>talentSnapshot(tx,person.workspaceId)),before);
+    fault.afterInsert=null;ok(await client.cmd('POST',`/td2/shortlists/${list}/role`,input,key),200);
+    assert.equal((await store.transaction(tx=>tx.get('talentMigrationReviews',reviewId)))!.state,'RESOLVED');
+    assert.equal(ok(await owner.raw('GET',`/shortlists/${list}`),200).items[0].roleCode,'model');
+    assert.equal(ok(await client.cmd('POST',`/td2/shortlists/${list}/role`,input,key),200).replayed,true);
+}
+
+export async function verifyLegacyCandidateEnrollment(app:Application,store:Store,clock:FakeClock,owner:Client) {
+    const id=ok(await owner.cmd('POST','/people',{displayName:'合成既有候选升级',roles:['model','translator'],inlineSource:sourceInput()})).resourceId;
+    const person=(await store.transaction(tx=>tx.get('people',id)))!;
+    const list=ok(await owner.cmd('POST','/shortlists',{title:'合成升级前候选',scopeId:person.scopeId})).resourceId;
+    ok(await owner.cmd('POST',`/shortlists/${list}/items`,{expectedRevision:1,personId:id,note:'历史职业尚未明确',workAssetIds:[]}),200);
+    const item=(await store.transaction(tx=>tx.find('shortlistItems',{shortlistId:list})))[0]!;
+    const before=await store.transaction(tx=>talentSnapshot(tx,person.workspaceId));
+    const source=(await store.transaction(tx=>tx.get('sources',person.sourceId)))!;
+    const input={schemaVersion,expectedRevision:person.revision,sourceRevision:source.revision},key=randomUUID();
+    const fault=new FaultStore(store);fault.afterInsert=(t,r)=>{if(t==='audits'&&'action' in r&&r.action==='td2.person.enroll')throw new AppError(503,'STORE_UNAVAILABLE','synthetic enrollment audit failure');};
+    const client=new Client(new Application(fault,app.config,clock));client.jar={...owner.jar};client.csrf=owner.csrf;
+    assert.equal((await client.cmd('POST',`/td2/people/${id}/enroll`,input,key)).status,503);assert.deepEqual(await store.transaction(tx=>talentSnapshot(tx,person.workspaceId)),before);
+    fault.afterInsert=null;ok(await client.cmd('POST',`/td2/people/${id}/enroll`,input,key),200);
+    const after=(await store.transaction(tx=>tx.get('shortlistItems',item.id)))!;assert.equal(after.roleContextState,'LEGACY_REVIEW');assert.equal(after.personRoleId??null,null);assert.equal(after.note,item.note);
+    assert.equal((await store.transaction(tx=>tx.find('talentMigrationReviews',{shortlistItemId:item.id,state:'PENDING'}))).length,1);
+    const view=ok(await owner.raw('GET',`/shortlists/${list}`),200);assert.equal(view.revision,3);assert.equal(view.items[0].roleReview.roles.length,2);
+    assert.equal(ok(await client.cmd('POST',`/td2/people/${id}/enroll`,input,key),200).replayed,true);
+    const role=(await store.transaction(tx=>tx.find('personRoles',{personId:id,roleCode:'model'})))[0]!;
+    ok(await owner.cmd('POST',`/shortlists/${list}/items`,{expectedRevision:view.revision,personId:id,personRoleId:role.id,personRoleRevision:role.revision,workAssetIds:[],note:'独立明确职业候选'}),200);
+    const root=(await store.transaction(tx=>tx.get('shortlists',list)))!;
+    const duplicate=await owner.cmd('POST',`/td2/shortlists/${list}/role`,{schemaVersion,expectedRevision:root.revision,itemId:item.id,personRoleId:role.id,personRoleRevision:role.revision});
+    assert.equal(duplicate.status,409);assert.equal(result(duplicate).error.code,'DUPLICATE_LINK');
+    assert.equal((await store.transaction(tx=>tx.get('shortlistItems',item.id)))!.personRoleId??null,null);
+    assert.equal((await store.transaction(tx=>tx.find('talentMigrationReviews',{shortlistItemId:item.id,state:'PENDING'}))).length,1);
+}

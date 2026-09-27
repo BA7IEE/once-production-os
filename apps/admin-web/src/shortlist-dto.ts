@@ -83,6 +83,7 @@ export interface ShortlistUnavailableItem {
     id: string;
     position: number;
     unavailable: true;
+    roleReview?: { person: { id: string; displayName: string }; roles: Array<{ id: string; roleCode: string; revision: number }> };
 }
 export type ShortlistItem = ShortlistAvailableItem | ShortlistUnavailableItem;
 export interface ShortlistDetail extends ShortlistSummary {
