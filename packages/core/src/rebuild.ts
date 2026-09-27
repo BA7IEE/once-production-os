@@ -1,3 +1,4 @@
+import {validateRetainedOrigins} from './retained-origin-transfer.ts';
 import {validateMergeHistory,applyHistoryPeople,applyMergeHistory} from './merge-history-transfer.ts';
 import {validateIdentityEvidence,applyIdentityEvidence} from './identity-transfer.ts';
 import {randomUUID} from 'node:crypto';
@@ -76,6 +77,7 @@ export class JsonRebuild {
         const target = await this.target(tx, actor);
         const typed = payload.schemaVersion === TALENT_EXPORT_VERSION;
         invariant(payload.schemaVersion === payload.manifest.schemaVersion && typed === !!payload.manifest.talent, 'REBUILD_SCHEMA_MISMATCH', '导出版本与专业资料结构不一致', 422);
+        if (payload.manifest.talent) validateRetainedOrigins(payload.manifest.talent,payload.manifest.sources,this.clock);
         if (payload.manifest.talent) await validateTalentRebuild(tx, actor, this.clock, payload.manifest.talent, payload.manifest.people.map(p=>p.id), payload.manifest.sources.map(s=>s.id));
         if(payload.manifest.talent&&transferRows(payload.manifest.talent,'personCredentials').some(r=>r.data.identifierCiphertext)) {
             requirePermission(actor,'sensitive.write');
@@ -90,6 +92,7 @@ export class JsonRebuild {
 
         const { sources, people, works, projects, media, relations } = payload.manifest;
         invariant(people.length + works.length + projects.length > 0, 'REBUILD_EMPTY_EXPORT', '导出中没有可重建的业务根对象', 422);
+        invariant(sources.length+(payload.manifest.talent?.retainedOrigins?.length??0)<=RL.sources,'REBUILD_SOURCE_LIMIT','当前及历史来源总数超过单次重建上限',422);
         uniqueBy(sources, x => x.id, 'REBUILD_DUPLICATE_ID', '来源清单包含重复 ID');
         uniqueBy(people, x => x.id, 'REBUILD_DUPLICATE_ID', '人才清单包含重复 ID');
         uniqueBy(works, x => x.id, 'REBUILD_DUPLICATE_ID', '作品清单包含重复 ID');
@@ -208,7 +211,7 @@ export class JsonRebuild {
             workspaceId: actor.workspaceId,
             scopeId: target.scope.id,
             counts: {
-                sources: sources.length,
+                sources: sources.length+(payload.manifest.talent?.retainedOrigins?.length??0),
                 people: people.length,
                 works: works.length,
                 projects: projects.length,
@@ -253,6 +256,14 @@ export class JsonRebuild {
                 decisionReason: null, baselineOnly: true, basisAmbiguous: false, snapshot: sourceSnapshot(source)
             };
             await tx.insert('sourceHistory', history);
+        }
+
+        for(const row of payload.manifest.talent?.retainedOrigins??[]) {
+            const source:Source={...row,workspaceId:actor.workspaceId,...stamp,scopeId:target.scope.id,maintainerId:actor.membershipId,
+                title:'[ERASED]',type:'MANUAL',providerClaim:'',textPayload:'',basisMode:'INTERNAL_USE',basisDescription:'[ERASED]',
+                validFrom:'1970-01-01T00:00:00.000Z',validUntil:'1970-01-02T00:00:00.000Z',reviewedBy:null,reviewedAt:null,protectionEpoch:row.protectionEpoch+1};
+            await tx.insert('sources',source);
+            await tx.insert('sourceHistory',{...base(actor.workspaceId,this.clock),sourceId:source.id,sourceRevision:source.revision,scopeId:source.scopeId,actorId:null,action:'BASELINE',decisionReason:null,baselineOnly:true,basisAmbiguous:false,snapshot:sourceSnapshot(source)});
         }
 
         for (const row of payload.manifest.people) {

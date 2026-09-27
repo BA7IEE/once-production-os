@@ -186,6 +186,7 @@ export class Exports {
         const talent = transferFields.length||identityFields||d.fields.includes(MERGE_HISTORY_CODE) ? await collectTalentTransfer(tx, actor, this.clock, peopleIds, transferFields, withEvidence, withIdentifiers, d.fields.includes(MEDIA_TRANSFER_CODE),identityFields,d.fields.includes(MERGE_HISTORY_CODE)) : null;
         const sourceTransferFields = new Map<string, Set<ExportFieldCode>>();
         if (talent) for (const table of TRANSFER_TABLES) for (const row of transferRows(talent,table)) {
+            if(talent.retainedOrigins?.some(o=>o.id===row.sourceId))continue;
             sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock));
             const fields = sourceTransferFields.get(row.sourceId) ?? new Set<ExportFieldCode>(); fields.add(transferCode(table)); if(table==='personCredentials'&&row.data.identifierCiphertext) fields.add(CREDENTIAL_IDENTIFIER_CODE); sourceTransferFields.set(row.sourceId, fields);
         }

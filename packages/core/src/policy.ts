@@ -45,6 +45,7 @@ export async function sourceFor(tx: Tx, actor: Actor, id: string, clock: Clock, 
     if (!source)
         missing();
     await requireScope(tx, actor, source.scopeId);
+    if (!allowBlocked && source.status === 'ERASED') missing();
     if (!allowBlocked && await deletionBlocked(tx, actor.workspaceId, 'SOURCE', source.id))
         missing();
     if (active && !sourceCurrent(source, clock))

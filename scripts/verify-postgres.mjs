@@ -77,6 +77,13 @@ if(mainStatus!==0){process.exitCode=mainStatus;}else{
    },240000);
   }
   if(status===0){
+   const retainedSource=await fresh('once_test_td2_retained_','Talent 2 retained-origin source');
+   const retainedTarget=await fresh('once_rebuild_retained_','Talent 2 retained-origin target');
+   status=runNode('tests/postgres/retained-origin-transfer.test.ts',{
+    ...process.env,DATABASE_URL_TD2_TEST:retainedSource,DATABASE_URL_TALENT_REBUILD_TEST:retainedTarget,ALLOW_TD2_DB_TESTS:'yes'
+   },240000);
+  }
+  if(status===0){
    const proofSource=await fresh('once_test_td2_proof_','Talent 2 proof source');
    const proofTarget=await fresh('once_rebuild_proof_','Talent 2 proof target');
    status=runNode('tests/postgres/credential-media-transfer.test.ts',{

@@ -1,3 +1,4 @@
+import {RETAINED_ORIGIN_VERSION,RetainedOriginSchema,validateRetainedOrigins,type RetainedOrigin} from './retained-origin-transfer.ts';
 import {MERGE_HISTORY_VERSION,MergeHistorySchema,collectMergeHistory,type MergeHistory} from './merge-history-transfer.ts';
 import {IDENTITY_TRANSFER_VERSION,IDENTITY_FIELDS,IdentityEvidenceSchema,collectIdentityEvidence,type IdentityEvidence} from './identity-transfer.ts';
 import { MEDIA_TRANSFER_VERSION, TransferAssetSchema, transferAsset, type TransferAsset } from './media-transfer.ts';
@@ -52,7 +53,7 @@ export interface TransferDefinition { id: string; revision: number; createdAt: s
 export interface TransferOrganization { id: string; sourceId: string; revision: number; createdAt: string; updatedAt: string; name: string; kind: 'AGENCY' | 'ISSUER' | 'OTHER'; status: 'ACTIVE' }
 export interface TransferEvidence { id: string; revision: number; createdAt: string; updatedAt: string; ownerKind: TransferTable; ownerId: string; fieldPath: string; valueDigest: string; sourceId: string; sourceRevision: number; originalReview: {workspaceId:string; membershipId:string; reviewedAt:string} | null }
 export interface TransferCollectionItem {id:string;personId:string;collectionId:string;assetId:string;revision:number;createdAt:string;updatedAt:string;orderIndex:number;caption:string;featured:boolean}
-export interface TalentTransfer { schemaVersion: typeof TRANSFER_VERSION | typeof CAPABILITY_TRANSFER_VERSION | typeof EXTERNAL_TRANSFER_VERSION | typeof REPRESENTATION_TRANSFER_VERSION | typeof EVIDENCE_TRANSFER_VERSION | typeof CREDENTIAL_TRANSFER_VERSION | typeof MEDIA_TRANSFER_VERSION | typeof COLLECTION_TRANSFER_VERSION | typeof ADULT_TRANSFER_VERSION | typeof IDENTITY_TRANSFER_VERSION | typeof MERGE_HISTORY_VERSION; mergeHistory?:MergeHistory; identityFields?:string[]; identityEvidence?:IdentityEvidence[]; collectionItems?:TransferCollectionItem[]; assets?: TransferAsset[]; identifierContextWorkspaceId?: string; credentialIdentifiersIncluded?: boolean; evidence?: TransferEvidence[]; selectedFields: TransferCode[]; tables: Record<TransferTable, TransferRow[]>; capabilityDefinitions?: TransferDefinition[]; organizations?: TransferOrganization[] }
+export interface TalentTransfer { schemaVersion: typeof TRANSFER_VERSION | typeof CAPABILITY_TRANSFER_VERSION | typeof EXTERNAL_TRANSFER_VERSION | typeof REPRESENTATION_TRANSFER_VERSION | typeof EVIDENCE_TRANSFER_VERSION | typeof CREDENTIAL_TRANSFER_VERSION | typeof MEDIA_TRANSFER_VERSION | typeof COLLECTION_TRANSFER_VERSION | typeof ADULT_TRANSFER_VERSION | typeof IDENTITY_TRANSFER_VERSION | typeof MERGE_HISTORY_VERSION | typeof RETAINED_ORIGIN_VERSION; retainedOrigins?:RetainedOrigin[]; mergeHistory?:MergeHistory; identityFields?:string[]; identityEvidence?:IdentityEvidence[]; collectionItems?:TransferCollectionItem[]; assets?: TransferAsset[]; identifierContextWorkspaceId?: string; credentialIdentifiersIncluded?: boolean; evidence?: TransferEvidence[]; selectedFields: TransferCode[]; tables: Record<TransferTable, TransferRow[]>; capabilityDefinitions?: TransferDefinition[]; organizations?: TransferOrganization[] }
 // Old v1/v2 payloads lack later tables. Keep their bytes and digest unchanged.
 export const transferRows = (bundle: TalentTransfer, table: TransferTable): TransferRow[] => bundle.tables[table] ?? [];
 const definitionSchema = v.object({ id: uuid, revision, createdAt: dateIso, updatedAt: dateIso, code,
@@ -99,11 +100,12 @@ const collectionSchema=v.object({schemaVersion:v.enum([COLLECTION_TRANSFER_VERSI
 const adultSchema=v.object({schemaVersion:v.enum([ADULT_TRANSFER_VERSION]),assets:v.array(TransferAssetSchema,500),collectionItems:v.array(collectionItemSchema,500),identifierContextWorkspaceId:uuid,credentialIdentifiersIncluded:v.boolean(),selectedFields:v.array(v.enum(TRANSFER_CODES),TRANSFER_CODES.length,1),tables:v.object(tableSchemas),capabilityDefinitions:v.array(definitionSchema,500),organizations:v.array(organizationSchema,500),evidence:v.array(adultEvidenceSchema,500)});
 const identitySchema=v.object({schemaVersion:v.enum([IDENTITY_TRANSFER_VERSION]),identityFields:v.array(v.enum(IDENTITY_FIELDS),3,1),identityEvidence:v.array(IdentityEvidenceSchema,500),assets:v.array(TransferAssetSchema,500),collectionItems:v.array(collectionItemSchema,500),identifierContextWorkspaceId:uuid,credentialIdentifiersIncluded:v.boolean(),selectedFields:v.array(v.enum(TRANSFER_CODES),TRANSFER_CODES.length),tables:v.object(tableSchemas),capabilityDefinitions:v.array(definitionSchema,500),organizations:v.array(organizationSchema,500),evidence:v.array(adultEvidenceSchema,500)});
 const historySchema=v.object({schemaVersion:v.enum([MERGE_HISTORY_VERSION]),mergeHistory:MergeHistorySchema,identityFields:v.array(v.enum(IDENTITY_FIELDS),3),identityEvidence:v.array(IdentityEvidenceSchema,500),assets:v.array(TransferAssetSchema,500),collectionItems:v.array(collectionItemSchema,500),identifierContextWorkspaceId:uuid,credentialIdentifiersIncluded:v.boolean(),selectedFields:v.array(v.enum(TRANSFER_CODES),TRANSFER_CODES.length),tables:v.object(tableSchemas),capabilityDefinitions:v.array(definitionSchema,500),organizations:v.array(organizationSchema,500),evidence:v.array(adultEvidenceSchema,500)});
+const retainedSchema=v.object({schemaVersion:v.enum([RETAINED_ORIGIN_VERSION]),retainedOrigins:v.array(RetainedOriginSchema,500,1),mergeHistory:v.optional(MergeHistorySchema),identityFields:v.array(v.enum(IDENTITY_FIELDS),3),identityEvidence:v.array(IdentityEvidenceSchema,500),assets:v.array(TransferAssetSchema,500),collectionItems:v.array(collectionItemSchema,500),identifierContextWorkspaceId:uuid,credentialIdentifiersIncluded:v.boolean(),selectedFields:v.array(v.enum(TRANSFER_CODES),TRANSFER_CODES.length,1),tables:v.object(tableSchemas),capabilityDefinitions:v.array(definitionSchema,500),organizations:v.array(organizationSchema,500),evidence:v.array(adultEvidenceSchema,500)});
 export const TransferSchema: Schema<TalentTransfer> = {
-    json: {oneOf:[legacySchema.json,capabilitySchema.json,externalSchema.json,representationSchema.json,evidenceTransferSchema.json,credentialSchema.json,mediaSchema.json,collectionSchema.json,adultSchema.json,identitySchema.json,historySchema.json]},
+    json: {oneOf:[legacySchema.json,capabilitySchema.json,externalSchema.json,representationSchema.json,evidenceTransferSchema.json,credentialSchema.json,mediaSchema.json,collectionSchema.json,adultSchema.json,identitySchema.json,historySchema.json,retainedSchema.json]},
     parse(input,path) {
         const version = input && typeof input==='object' ? (input as Record<string,unknown>).schemaVersion : undefined;
-        return (version===MERGE_HISTORY_VERSION ? historySchema : version===IDENTITY_TRANSFER_VERSION ? identitySchema : version===ADULT_TRANSFER_VERSION ? adultSchema : version===COLLECTION_TRANSFER_VERSION ? collectionSchema : version===MEDIA_TRANSFER_VERSION ? mediaSchema : version===CREDENTIAL_TRANSFER_VERSION ? credentialSchema : version===EVIDENCE_TRANSFER_VERSION ? evidenceTransferSchema : version===REPRESENTATION_TRANSFER_VERSION ? representationSchema : version===EXTERNAL_TRANSFER_VERSION ? externalSchema : version===CAPABILITY_TRANSFER_VERSION ? capabilitySchema : legacySchema).parse(input,path) as unknown as TalentTransfer;
+        return (version===RETAINED_ORIGIN_VERSION ? retainedSchema : version===MERGE_HISTORY_VERSION ? historySchema : version===IDENTITY_TRANSFER_VERSION ? identitySchema : version===ADULT_TRANSFER_VERSION ? adultSchema : version===COLLECTION_TRANSFER_VERSION ? collectionSchema : version===MEDIA_TRANSFER_VERSION ? mediaSchema : version===CREDENTIAL_TRANSFER_VERSION ? credentialSchema : version===EVIDENCE_TRANSFER_VERSION ? evidenceTransferSchema : version===REPRESENTATION_TRANSFER_VERSION ? representationSchema : version===EXTERNAL_TRANSFER_VERSION ? externalSchema : version===CAPABILITY_TRANSFER_VERSION ? capabilitySchema : legacySchema).parse(input,path) as unknown as TalentTransfer;
     }
 };
 
@@ -121,6 +123,7 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
     if(withEvidence) requirePermission(actor,'sources.review');
     const graph = await loadTalentGraph(tx, actor, clock), people = new Set(peopleIds);
     const tables = Object.fromEntries(TRANSFER_TABLES.map(t => [t, []])) as unknown as TalentTransfer['tables'];
+    const retainedOrigins:RetainedOrigin[]=[];
     let total = 0;
     for (const table of TRANSFER_TABLES) {
         if (!codes.includes(transferCode(table))) continue;
@@ -132,7 +135,12 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
                 invariant(withMedia||(!row.evidenceAssetId&&row.status!=='VERIFIED'),'TD2_CREDENTIAL_MEDIA_UNSUPPORTED','带证明材料或已核验的资质必须等待原件迁移，不能丢弃证明后导出',409);
                 invariant(!row.identifierCiphertext||withIdentifiers,'TD2_CREDENTIAL_IDENTIFIER_GRANT_REQUIRED','此资质含敏感编号，必须单独批准加密编号迁移',422);
             }
-            await sourceFor(tx, actor, row.sourceId, clock);
+            // Only the ERASED branch may read a blocked origin, and exports its minimal header only.
+            const origin=await sourceFor(tx,actor,row.sourceId,clock,false,true);
+            if(origin.status==='ERASED') {
+                invariant(withEvidence,'TD2_RETAINED_ORIGIN_EVIDENCE_REQUIRED','已删来源的保留资料必须连同独立字段依据迁移',422);
+                if(!retainedOrigins.some(o=>o.id===origin.id))retainedOrigins.push({id:origin.id,revision:origin.revision,protectionEpoch:origin.protectionEpoch,status:'ERASED'});
+            }else await sourceFor(tx,actor,row.sourceId,clock);
             const projected = graph.project(table, row);
             invariant(projected && (projected.unavailableFields as string[]).length === 0, 'TD2_EXPORT_RESTRICTED', '所选专业资料存在当前不可读字段，不能静默遗漏', 409);
             // Per-field multi-source evidence needs its own transfer contract. Do not drop provenance.
@@ -204,14 +212,20 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
         }
         assets.sort((a,b)=>a.id.localeCompare(b.id));
     }
-    if(!withHistory&&!withIdentity&&!withAdults) delete (tables as Partial<typeof tables>).adultEligibilities;
-    if(!withHistory&&!withIdentity&&!withAdults&&!withCollections) {delete (tables as Partial<typeof tables>).mediaCollections;delete (tables as Partial<typeof tables>).mediaCollectionTags;}
-    if(!withHistory&&!withIdentity&&!withAdults&&!withCollections&&!withCredentials&&!withMedia) delete (tables as Partial<typeof tables>).personCredentials;
-    if(!withHistory&&!withIdentity&&!withAdults&&!withCollections&&!withCredentials&&!withEvidence&&!withRepresentations) delete (tables as Partial<typeof tables>).representations;
-    if(!withHistory&&!withIdentity&&!withAdults&&!withCollections&&!withCredentials&&!withEvidence&&!withExternal&&!withRepresentations) delete (tables as Partial<typeof tables>).personExternalRefs;
-    if(!withHistory&&!withIdentity&&!withAdults&&!withCollections&&!withCredentials&&!withEvidence&&!withCapabilities&&!withExternal&&!withRepresentations) delete (tables as Partial<typeof tables>).personCapabilities;
+    const withOrigins=retainedOrigins.length>0;
+    if(!withOrigins&&!withHistory&&!withIdentity&&!withAdults) delete (tables as Partial<typeof tables>).adultEligibilities;
+    if(!withOrigins&&!withHistory&&!withIdentity&&!withAdults&&!withCollections) {delete (tables as Partial<typeof tables>).mediaCollections;delete (tables as Partial<typeof tables>).mediaCollectionTags;}
+    if(!withOrigins&&!withHistory&&!withIdentity&&!withAdults&&!withCollections&&!withCredentials&&!withMedia) delete (tables as Partial<typeof tables>).personCredentials;
+    if(!withOrigins&&!withHistory&&!withIdentity&&!withAdults&&!withCollections&&!withCredentials&&!withEvidence&&!withRepresentations) delete (tables as Partial<typeof tables>).representations;
+    if(!withOrigins&&!withHistory&&!withIdentity&&!withAdults&&!withCollections&&!withCredentials&&!withEvidence&&!withExternal&&!withRepresentations) delete (tables as Partial<typeof tables>).personExternalRefs;
+    if(!withOrigins&&!withHistory&&!withIdentity&&!withAdults&&!withCollections&&!withCredentials&&!withEvidence&&!withCapabilities&&!withExternal&&!withRepresentations) delete (tables as Partial<typeof tables>).personCapabilities;
     const data = { schemaVersion: withHistory ? MERGE_HISTORY_VERSION : withIdentity ? IDENTITY_TRANSFER_VERSION : withAdults ? ADULT_TRANSFER_VERSION : withCollections ? COLLECTION_TRANSFER_VERSION : withMedia ? MEDIA_TRANSFER_VERSION : withCredentials ? CREDENTIAL_TRANSFER_VERSION : withEvidence ? EVIDENCE_TRANSFER_VERSION : withRepresentations ? REPRESENTATION_TRANSFER_VERSION : withExternal ? EXTERNAL_TRANSFER_VERSION : withCapabilities ? CAPABILITY_TRANSFER_VERSION : TRANSFER_VERSION, selectedFields: [...codes].sort(), tables, ...(withIdentity?{identityFields:[...identityFields!].sort(),identityEvidence}:{}), ...(withHistory||withIdentity||withAdults||withCollections||withCredentials||withEvidence||withCapabilities||withExternal||withRepresentations?{capabilityDefinitions}:{}), ...(withHistory||withIdentity||withAdults||withCollections||withCredentials||withEvidence||withExternal||withRepresentations?{organizations}:{}), ...(withHistory||withIdentity||withAdults||withCollections||withEvidence||withCredentials?{evidence}:{}), ...(withHistory||withIdentity||withAdults||withCollections||withCredentials?{identifierContextWorkspaceId:actor.workspaceId,credentialIdentifiersIncluded:withIdentifiers}:{}), ...(withHistory||withIdentity||withAdults||withMedia||withCollections?{assets}:{}),...(withHistory||withIdentity||withAdults||withCollections?{collectionItems}:{}) };
-    const transfer = TransferSchema.parse(withHistory?{...data,identityFields:identityFields??[],identityEvidence:identityEvidence??[],mergeHistory:await collectMergeHistory(tx,actor,clock,peopleIds,data as TalentTransfer,withEvidence)}:data);
+    const withMerge=withHistory?{...data,identityFields:identityFields??[],identityEvidence:identityEvidence??[],mergeHistory:await collectMergeHistory(tx,actor,clock,peopleIds,data as TalentTransfer,withEvidence)}:data;
+    const transfer = TransferSchema.parse(withOrigins?{...withMerge,schemaVersion:RETAINED_ORIGIN_VERSION,retainedOrigins:retainedOrigins.sort((a,b)=>a.id.localeCompare(b.id)),identityFields:identityFields??[],identityEvidence:identityEvidence??[],capabilityDefinitions,organizations,evidence,assets,collectionItems,identifierContextWorkspaceId:actor.workspaceId,credentialIdentifiersIncluded:withIdentifiers}:withMerge);
+    if(withOrigins) {
+        const sources=await tx.find('sources',{workspaceId:actor.workspaceId});
+        validateRetainedOrigins(transfer,sources.filter(s=>s.status!=='ERASED').map(s=>({id:s.id,revision:s.revision,data:{status:s.status,validFrom:s.validFrom,validUntil:s.validUntil}})),clock);
+    }
     validateTransferLinks(transfer, peopleIds);
     return transfer;
 }
@@ -220,7 +234,7 @@ export function validateTransferLinks(bundle: TalentTransfer, personIds: string[
     const people = new Set(personIds), selected = new Set(bundle.selectedFields);
     invariant(selected.size === bundle.selectedFields.length, 'TD2_TRANSFER_DUPLICATE', '专业资料字段不能重复', 422);
     const maps = Object.fromEntries(TRANSFER_TABLES.map(t => [t, new Map(transferRows(bundle,t).map(r => [r.id, r]))])) as Record<TransferTable, Map<string, TransferRow>>;
-    let count = bundle.identityEvidence?.length??0;
+    let count = (bundle.identityEvidence?.length??0)+(bundle.retainedOrigins?.length??0);
     for (const table of TRANSFER_TABLES) {
         const rows = transferRows(bundle,table); count += rows.length;
         invariant(rows.length === maps[table].size && (!rows.length || selected.has(transferCode(table))), 'TD2_TRANSFER_DUPLICATE', '专业记录重复或不在所选字段中', 422);
@@ -262,7 +276,7 @@ export function validateTransferLinks(bundle: TalentTransfer, personIds: string[
     const credentials=transferRows(bundle,'personCredentials');
     for(const row of credentials) {
         const d=row.data;
-        invariant((bundle.schemaVersion===MEDIA_TRANSFER_VERSION||bundle.schemaVersion===COLLECTION_TRANSFER_VERSION||bundle.schemaVersion===ADULT_TRANSFER_VERSION||bundle.schemaVersion===IDENTITY_TRANSFER_VERSION||bundle.schemaVersion===MERGE_HISTORY_VERSION)||(!d.evidenceAssetId&&d.status!=='VERIFIED'),'TD2_CREDENTIAL_MEDIA_UNSUPPORTED','带证明材料或已核验的资质需要原件迁移',422);
+        invariant((bundle.schemaVersion===MEDIA_TRANSFER_VERSION||bundle.schemaVersion===COLLECTION_TRANSFER_VERSION||bundle.schemaVersion===ADULT_TRANSFER_VERSION||bundle.schemaVersion===IDENTITY_TRANSFER_VERSION||bundle.schemaVersion===MERGE_HISTORY_VERSION||bundle.schemaVersion===RETAINED_ORIGIN_VERSION)||(!d.evidenceAssetId&&d.status!=='VERIFIED'),'TD2_CREDENTIAL_MEDIA_UNSUPPORTED','带证明材料或已核验的资质需要原件迁移',422);
         invariant(d.status!=='VERIFIED'||!!d.evidenceAssetId,'CREDENTIAL_PROOF_REQUIRED','已核验资质必须保存证明原件',422);
         invariant(!!d.issuerOrganizationId||!!d.issuerName,'CREDENTIAL_ISSUER_REQUIRED','资质必须注明颁发方',422);
         invariant(!d.issuedOn||!d.expiresOn||String(d.issuedOn)<=String(d.expiresOn),'CREDENTIAL_DATE_INVALID','资质起止日期不正确',422);

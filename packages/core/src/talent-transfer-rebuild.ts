@@ -31,7 +31,7 @@ export async function validateTalentRebuild(tx: Tx, actor: Actor, clock: Clock, 
     }
     for (const table of TRANSFER_TABLES) for (const row of transferRows(bundle,table)) {
         const d = row.data, same = transferRows(bundle,table).filter(r => r.personId === row.personId && r.id !== row.id);
-        invariant(sources.includes(row.sourceId), 'REBUILD_SOURCE_MISSING', '专业资料来源必须包含在重建清单', 422);
+        invariant(sources.includes(row.sourceId)||bundle.retainedOrigins?.some(o=>o.id===row.sourceId), 'REBUILD_SOURCE_MISSING', '专业资料来源必须包含在重建清单', 422);
         invariant(Date.parse(row.createdAt) <= Date.parse(row.updatedAt) && Date.parse(row.updatedAt) <= clock.now().getTime(), 'TD2_TRANSFER_TIME_INVALID', '专业记录时间不合法', 422);
         invariant(!d.validFrom || !d.validUntil || String(d.validFrom)<String(d.validUntil), 'PERIOD_INVALID', '专业资料有效期不合法', 422);
         invariant(!d.verifiedAt || Date.parse(String(d.verifiedAt)) <= clock.now().getTime(), 'TD2_TRANSFER_TIME_INVALID', '核验时间不能晚于当前时间', 422);
