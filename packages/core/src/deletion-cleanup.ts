@@ -27,7 +27,7 @@ const relationTable: Record<string, Table> = {
 const actionPriority = (item: DeletionItem) => {
     if (item.resourceKind === SOURCE_FACT_GROUP) return 4;
     if (item.resourceKind === SOURCE_FACT_ITEM) return 6;
-    if (['talentGraph','talentAssetGraph','talentSourceEvidenceGraph'].includes(item.resourceKind)) return 5;
+    if (['talentGraph','talentAssetGraph','talentSourceEvidenceGraph','talentSourceAssetGraph'].includes(item.resourceKind)) return 5;
     if (item.resourceKind === 'shortlistItemAsset') return 10;
     if (item.resolvedAction === 'REMOVE_RELATION') return item.resourceKind === 'shortlistItem' ? 30 : 20;
     if (item.resolvedAction === 'REVOKE_PERMISSION') return 40;
@@ -240,7 +240,7 @@ export class DeletionCleanup {
                 await eraseTalentSourceEvidence(tx, request, item, this.clock);
                 return { outcome: 'DONE' };
             }
-            if (item.resourceKind === 'talentAssetGraph') {
+            if (['talentAssetGraph','talentSourceAssetGraph'].includes(item.resourceKind)) {
                 await eraseTalentAssetReferences(tx, request, item, this.clock);
                 return { outcome: 'DONE' };
             }

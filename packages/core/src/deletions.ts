@@ -1,6 +1,6 @@
 import { sourceFactGraph, sourceFactItemCode, validateSourceFactDecision, validateSourceFactPlan, SOURCE_FACT_GROUP, SOURCE_FACT_ITEM } from './talent-source-fact-erasure.ts';
 import { previewTalentSourceErasure } from './talent-source-erasure.ts';
-import { previewTalentAssetErasure } from './talent-asset-erasure.ts';
+import { previewTalentAssetErasure, previewTalentSourceAssets } from './talent-asset-erasure.ts';
 import { previewTalentErasure } from './talent-v2-erasure.ts';
 import { talentDependencyCounts } from './talent-v2-integrity.ts';
 import type { Actor, Clock, Person, Source } from './model.ts';
@@ -275,6 +275,15 @@ export class Deletions {
             }
         }
 
+        if (targetKind === 'SOURCE' && assets.size) {
+            const media = await previewTalentSourceAssets(tx, actor, targetId);
+            if (media.blocker) miss(media.blocker);
+            else if (media.count) {
+                if ([...impacts.values()].some(i => [SOURCE_FACT_GROUP,'talentSourceEvidenceGraph'].includes(i.resourceKind))) miss('TD2_SOURCE_COMBINED_RETENTION_REQUIRED');
+                else add({resourceKind:'talentSourceAssetGraph',resourceId:targetId,dependencyKind:'SOURCE_ASSET_TALENT_REFERENCES',proposedAction:'ERASE_PAYLOAD',evidenceState:'REVIEW_REQUIRED',detailCode:media.detailCode});
+            }
+        }
+
         const sorted = [...impacts.values()].sort((a, b) => [a.resourceKind, a.resourceId, a.dependencyKind].join(':').localeCompare([b.resourceKind, b.resourceId, b.dependencyKind].join(':')));
         const truncated = sorted.length > L.impacts;
         const items = sorted.slice(0, L.impacts);
@@ -416,7 +425,7 @@ export class Deletions {
         }
         let retentionSourceId: string | null = null, retentionSourceRevision: number | null = null, retentionSourceProtectionEpoch: number | null = null;
         if (d.decision === 'RETAIN_WITH_BASIS') {
-            invariant(!['talentGraph','talentAssetGraph','talentSourceEvidenceGraph',SOURCE_FACT_GROUP].includes(item.resourceKind), 'TD2_ERASURE_RETENTION_UNSUPPORTED',
+            invariant(!['talentGraph','talentAssetGraph','talentSourceEvidenceGraph','talentSourceAssetGraph',SOURCE_FACT_GROUP].includes(item.resourceKind), 'TD2_ERASURE_RETENTION_UNSUPPORTED',
                 '本项必须清理指定对象的资料或引用；独立来源证据不能改记来源，需要保留时请停止本次删除', 422);
             requirePermission(actor, 'sources.review');
             invariant(!!d.retentionSourceId && d.retentionSourceId !== row.targetSourceId, 'RETENTION_BASIS_REQUIRED', '保留必须选择另一份独立且当前有效的来源依据', 422);

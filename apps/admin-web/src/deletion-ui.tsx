@@ -51,6 +51,7 @@ function detailText(code: string) {
     return detailLabel[code] ?? code;
 }
 const unresolvedLabel: Record<string, string> = {
+    TD2_SOURCE_COMBINED_RETENTION_REQUIRED: '来源同时包含待处理字段事实和证明原件，需要联合保留方案',
     TD2_SOURCE_IDENTITY_RETENTION_REQUIRED: '来源包含人物身份资料，仍需完成身份字段保留方案',
     TD2_SOURCE_MEDIA_RETENTION_REQUIRED: '来源包含原件，仍需完成原件与专业引用联合清理方案',
     TD2_SOURCE_INDEPENDENT_EVIDENCE_REQUIRED: '部分字段没有另一份有效且支持当前值的已登记依据，不能直接删除本来源',
@@ -95,7 +96,7 @@ function DecisionModal({ request, item, sources, canRetain, onClose, onDone }: {
                 <Field label="本项决定">
                     <select value={decision} onChange={e => { setDecision(e.target.value as 'APPLY_PROPOSED' | 'RETAIN_WITH_BASIS'); setRetentionSourceId(''); }}>
                         <option value="APPLY_PROPOSED">{item.dependencyKind==='SOURCE_TALENT_FACT'?'删除这项专业资料':item.dependencyKind==='SOURCE_TALENT_FACT_GROUP'?'确认按逐项决定执行':'按系统建议处置'}</option>
-                        {canRetain && !['PERSON_TALENT_GRAPH','ASSET_TALENT_REFERENCES','SOURCE_TALENT_EVIDENCE','SOURCE_TALENT_FACT_GROUP'].includes(item.dependencyKind) && <option value="RETAIN_WITH_BASIS">有独立依据，保留</option>}
+                        {canRetain && !['PERSON_TALENT_GRAPH','ASSET_TALENT_REFERENCES','SOURCE_TALENT_EVIDENCE','SOURCE_TALENT_FACT_GROUP','SOURCE_ASSET_TALENT_REFERENCES'].includes(item.dependencyKind) && <option value="RETAIN_WITH_BASIS">有独立依据，保留</option>}
                     </select>
                 </Field>
                 {decision === 'RETAIN_WITH_BASIS' && <Field label="独立保留依据" hint="必须是另一份当前有效的正式 INTERNAL_USE 来源；目标原来源不能自证保留。">

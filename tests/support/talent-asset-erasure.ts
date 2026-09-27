@@ -10,18 +10,19 @@ import { DeletionCleanup } from '../../packages/core/src/deletion-cleanup.ts';
 import { talentSnapshot, talentDependencyCounts, inspectTalentIntegrity } from '../../packages/core/src/talent-v2-integrity.ts';
 import { seedProfessionalGraph, expectResponse as ok } from './talent-v2-maintenance.ts';
 import { FaultStore } from './fault-store.ts';
-import type { FakeClock, Client } from './fixtures.ts';
+import { sourceInput, type FakeClock, type Client } from './fixtures.ts';
 const schemaVersion = 'once-talent-v2.0.0';
 type Context = { app: Application; store: Store; clock: FakeClock; owner: Client };
-export async function seedSharedProof(f: Context, root: string) {
+export async function seedSharedProof(f: Context, root: string, independentMediaSource = false) {
     const g = await seedProfessionalGraph(f.app, f.store, f.clock, f.owner);
     f.app.config.mediaEnabled = true;
     const provider = await LocalMediaProvider.create(root);
     const actor = await f.store.transaction(tx => f.app.identity.authenticate(tx, f.owner.jar.once_session!));
-    const upload = async (name: string) => {
+    const mediaSourceId = independentMediaSource ? ok(await f.owner.cmd('POST','/sources',{...sourceInput(),title:'合成独立证明原件来源'})).resourceId as string : g.sourceId;
+    const upload = async (name: string, sourceId = mediaSourceId) => {
         const original = await sharp({ create: { width: 8, height: 6, channels: 3, background: '#617892' } }).png().toBuffer();
         const hash = createHash('sha256').update(original).digest('hex');
-        const id = ok(await f.owner.cmd('POST', '/uploads', { sourceId: g.sourceId, expectedSourceRevision: 1, personId: g.personId,
+        const id = ok(await f.owner.cmd('POST', '/uploads', { sourceId, expectedSourceRevision: 1, ...(sourceId === g.sourceId ? {personId:g.personId} : {}),
             fileName: name, mime: 'image/png', expectedBytes: original.length, sha256: hash })).resourceId as string;
         const u = await f.store.transaction(tx => f.app.media.beginReceive(tx, actor, id, original.length));
         const received = await provider.receive(u, Readable.from(original), new AbortController().signal);
@@ -35,21 +36,27 @@ export async function seedSharedProof(f: Context, root: string) {
             previewBytes: preview.length, previewHash: createHash('sha256').update(preview).digest('hex') });
         return id;
     };
-    const assetId = await upload('synthetic-shared-proof.png'), keptAssetId = await upload('synthetic-retained-image.png');
+    const assetId = await upload('synthetic-shared-proof.png'), keptAssetId = await upload('synthetic-retained-image.png', g.sourceId);
+    const secondAssetId = independentMediaSource ? await upload('synthetic-second-proof.png') : null;
     const collection2 = await g.add('mediaCollections', { collectionTypeCode: 'POLAROIDS', title: '合成第二集合' });
-    for (const collectionId of [g.collectionId, collection2]) for (const id of [assetId, keptAssetId]) {
+    for (const collectionId of [g.collectionId, collection2]) for (const id of [assetId, ...(secondAssetId ? [secondAssetId] : []), keptAssetId]) {
         const collection = (await f.store.transaction(tx => tx.get('mediaCollections', collectionId)))!;
         ok(await f.owner.cmd('POST', `/td2/collections/${collectionId}/items`, { schemaVersion, expectedRevision: collection.revision,
             expectedPersonRevision: (await g.current()).revision, assetId: id, caption: '合成共享引用' }), 200);
     }
     const credentialId = await g.add('personCredentials', { credentialTypeCode: 'OTHER', issuerName: '合成证明机构', evidenceAssetId: assetId });
     ok(await f.owner.cmd('POST', `/td2/credentials/${credentialId}/verify`, { schemaVersion, expectedRevision: 1, expectedPersonRevision: (await g.current()).revision, sourceRevision: 1 }), 200);
+    let secondCredentialId: string | null = null;
+    if (secondAssetId) {
+        secondCredentialId = await g.add('personCredentials', {credentialTypeCode:'OTHER',issuerName:'合成第二证明机构',evidenceAssetId:secondAssetId});
+        ok(await f.owner.cmd('POST',`/td2/credentials/${secondCredentialId}/verify`,{schemaVersion,expectedRevision:1,expectedPersonRevision:(await g.current()).revision,sourceRevision:1}),200);
+    }
     const adult = (await f.store.transaction(tx => tx.find('adultEligibilities', { personId: g.personId })))[0]!;
     ok(await f.owner.cmd('POST', `/td2/adult-eligibility/${adult.id}/verify`, { schemaVersion, expectedRevision: adult.revision,
         expectedPersonRevision: (await g.current()).revision, sourceRevision: 1, evidenceAssetId: assetId, validUntil: '2026-10-01T00:00:00.000Z' }), 200);
     const proposalId = ok(await f.owner.cmd('POST', '/td2/proposals', { schemaVersion, ownerKind: 'personCredentials', ownerId: credentialId,
         fieldPath: 'issuerName', expectedRevision: 2, sourceId: g.sourceId, sourceRevision: 1, proposedValue: '合成待审名称' })).resourceId as string;
-    return { g, assetId, keptAssetId, credentialId, adultId: adult.id, proposalId, collection2, provider };
+    return { g, assetId, keptAssetId, mediaSourceId, secondAssetId, secondCredentialId, credentialId, adultId: adult.id, proposalId, collection2, provider };
 }
 export async function prepareAssetDeletion(f: Context, assetId: string) {
     const asset = (await f.store.transaction(tx => tx.get('assets', assetId)))!;
