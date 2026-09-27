@@ -23,10 +23,10 @@ test('TD2-T17 integrity inspector detects missing or cross-person typed referenc
     const report = await f.store.transaction(tx => inspectTalentIntegrity(tx, f.workspaceId, f.app.config.contactKey));
     assert.ok(report.relationFailures > before.relationFailures); assert.ok(report.blockers.includes('TD2_RELATION_INVALID'));
 });
-test('TD2-T16 source retention stays blocked while singleton merge requires explicit history resolution', async () => {
+test('TD2-T16 source-owned identities require explicit full erasure while singleton merge requires history resolution', async () => {
     const f = await fixture(), p = await seedProfessionalGraph(f.app, f.store, f.clock, f.owner);
     const preview = expectResponse(await f.owner.raw('POST', '/deletion-requests/preview', { targetKind: 'SOURCE', targetId: p.sourceId, expectedRevision: 1 }), 200);
-    assert.equal(preview.complete, false); assert.ok(preview.unresolved.some((r: any) => r.code === 'TD2_SOURCE_RETENTION_REVIEW_REQUIRED'));
+    assert.equal(preview.complete,true); assert.equal(preview.items.filter((r:any)=>r.detailCode==='TD2_SOURCE_PERSON_ERASE_ONLY').length,2); assert.ok(preview.items.some((r:any)=>r.resourceKind==='talentSourceFact'&&r.resourceId===p.credentialId));
     const second = expectResponse(await f.owner.cmd('POST', '/td2/people', { schemaVersion, originSourceId: p.sourceId, sourceRevision: 1, displayName: '合成重复人物', createTalent: true }));
     const merge = expectResponse(await f.owner.raw('POST', '/people/merge-preview', {
         canonicalId: p.personId, duplicateId: second.resourceId, expectedCanonicalRevision: (await p.current()).revision, expectedDuplicateRevision: 1

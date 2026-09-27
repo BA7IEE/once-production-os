@@ -21,7 +21,8 @@ export async function sourceFactGraph(tx:Tx,actor:Actor,sourceId:string,clock:Cl
  requirePermission(actor,'records.read');
  const data=await talentSnapshot(tx,actor.workspaceId),selected=new Map<string,Selected>();
  const media=await snapshotTalentSourceAssets(tx,actor,sourceId);
- for(const table of TALENT_FACT_TABLES)for(const row of data[table])if(row.sourceId===sourceId)selected.set(key(table,row.id),{table,row});
+ const ownedHeaders=data.people.filter(p=>p.sourceId===sourceId),ownedPeople=ownedHeaders.filter(p=>p.status!=='ERASED'),ownedIds=new Set(ownedHeaders.map(p=>p.id));
+ for(const table of TALENT_FACT_TABLES)for(const row of data[table])if(row.sourceId===sourceId||ownedIds.has(String(row.personId))||(table==='representations'&&ownedIds.has(String(row.agentPersonId))))selected.set(key(table,row.id),{table,row});
  for(const record of data.evidence.filter(e=>e.sourceId===sourceId))for(const [field,table] of Object.entries(TALENT_OWNER_TABLES))if(record[field]&&TALENT_FACT_TABLES.includes(table as FactTable)){const row=data[table].find(r=>r.id===record[field]);if(row)selected.set(key(table,row.id),{table:table as FactTable,row});}
  // Expose every affected child as an explicit decision. No automatic cascade into another source's facts.
  let changed=true;
@@ -33,10 +34,10 @@ export async function sourceFactGraph(tx:Tx,actor:Actor,sourceId:string,clock:Cl
   }
  }}
  const rows=[...selected.values()].sort((a,b)=>key(a.table,a.row.id).localeCompare(key(b.table,b.row.id)));
- const evidence=data.evidence.filter(e=>e.sourceId===sourceId||ownerSelected(e,selected));
- const proposals=data.fieldProposals.filter(e=>e.sourceId===sourceId||ownerSelected(e,selected));
+ const evidence=data.evidence.filter(e=>e.sourceId===sourceId||ownerSelected(e,selected)||ownedIds.has(String(e.personId)));
+ const proposals=data.fieldProposals.filter(e=>e.sourceId===sourceId||ownerSelected(e,selected)||ownedIds.has(String(e.personId)));
  const collectionItems=data.mediaCollectionItems.filter(i=>selected.has(key('mediaCollections',i.collectionId)));
- const candidates=data.shortlistItems.filter(i=>selected.has(key('personRoles',i.personRoleId)));
+ const candidates=data.shortlistItems.filter(i=>selected.has(key('personRoles',i.personRoleId))||ownedIds.has(String(i.personId)));
  const lists=(await tx.find('shortlists',{workspaceId:actor.workspaceId})).filter(l=>candidates.some(c=>c.shortlistId===l.id));
  const proposalOwners=proposals.filter(p=>p.sourceId===sourceId).flatMap(p=>Object.entries(TALENT_OWNER_TABLES).flatMap(([field,table])=>data[table].filter(r=>r.id===p[field]).map(row=>({table,row}))));
  const candidateAssets=(await tx.find('shortlistItemAssets',{workspaceId:actor.workspaceId})).filter(a=>candidates.some(c=>c.id===a.itemId));
@@ -44,25 +45,25 @@ export async function sourceFactGraph(tx:Tx,actor:Actor,sourceId:string,clock:Cl
  const assets=data.assets.filter(a=>candidateAssets.some(r=>r.assetId===a.id)||collectionItems.some(i=>i.assetId===a.id)||rows.some(o=>o.row.evidenceAssetId===a.id));
  const parents=[...rows.flatMap(o=>parentReferences.flatMap(([field,table])=>data[table].filter(r=>r.id===o.row[field]))),...data.talentProfiles.filter(p=>rows.some(o=>o.row.personId===p.personId))];
  const organizations=data.organizations.filter(r=>rows.some(o=>o.row.agencyOrganizationId===r.id||o.row.issuerOrganizationId===r.id));
- const reviews=data.talentMigrationReviews.filter(r=>candidates.some(c=>c.id===r.shortlistItemId));
- const people=data.people.filter(p=>rows.some(o=>o.row.personId===p.id)||proposalOwners.some(o=>(o.table==='people'?o.row.id:o.row.personId)===p.id)||rows.some(o=>o.row.agentPersonId===p.id)||assets.some(a=>a.personId===p.id));
+ const reviews=data.talentMigrationReviews.filter(r=>candidates.some(c=>c.id===r.shortlistItemId)||ownedIds.has(String(r.personId)));
+ const people=data.people.filter(p=>ownedIds.has(p.id)||rows.some(o=>o.row.personId===p.id)||proposalOwners.some(o=>(o.table==='people'?o.row.id:o.row.personId)===p.id)||rows.some(o=>o.row.agentPersonId===p.id)||assets.some(a=>a.personId===p.id));
  const sourceIds=new Set([sourceId,...rows.map(o=>o.row.sourceId),...evidence.map(e=>e.sourceId),...proposals.map(p=>p.sourceId),...people.map(p=>p.sourceId),...proposalOwners.map(o=>o.row.sourceId),...works.map(w=>w.sourceId),...assets.map(a=>a.sourceId),...parents.map(p=>p.sourceId),...organizations.map(o=>o.sourceId)]);
  const sources=data.sources.filter(s=>sourceIds.has(s.id));
  const scopes=data.scopes.filter(s=>[...people,...sources,...lists,...works,...assets,...organizations].some(r=>r.scopeId===s.id));
  let blocker:string|null=sources.length!==sourceIds.size?'TD2_SOURCE_OWNER_MISSING':null;
- if(data.evidence.some(e=>e.sourceId===sourceId&&e.personId))blocker='TD2_SOURCE_IDENTITY_RETENTION_REQUIRED';
- if(data.people.some(p=>p.sourceId===sourceId))blocker='TD2_SOURCE_RETENTION_REVIEW_REQUIRED';
+ if(data.evidence.some(e=>e.sourceId===sourceId&&e.personId&&!ownedIds.has(String(e.personId))))blocker='TD2_SOURCE_IDENTITY_RETENTION_REQUIRED';
+ if(data.personAliases.some(a=>ownedIds.has(String(a.oldPersonId))||ownedIds.has(String(a.canonicalPersonId))))blocker='TD2_MERGE_HISTORY_RETENTION_REQUIRED';
  if(media.blocker)blocker=media.blocker;
  if(TALENT_V2_TABLES.some(t=>!TALENT_FACT_TABLES.includes(t as FactTable)&&t!=='fieldProposals'&&data[t].some(r=>r.sourceId===sourceId)))blocker='TD2_SOURCE_RETENTION_REVIEW_REQUIRED';
  if(rows.length>500)blocker='TD2_SOURCE_FACT_LIMIT';
  if(rows.some(o=>o.row.supersededById)||(['talentProfiles','castingProfiles'] as const).some(t=>data[t].some(r=>r.supersededById&&selected.has(key(t,r.supersededById))||r.retiredCurrentMeasurementSetId&&selected.has(key('measurementSets',r.retiredCurrentMeasurementSetId)))))blocker='TD2_MERGE_HISTORY_RETENTION_REQUIRED';
  if(rows.some(o=>o.row.identifierCiphertext)&&!actor.permissions.includes('sensitive.write'))blocker='TD2_SENSITIVE_WRITE_REQUIRED';
  for(const row of [...people,...sources,...lists,...works,...assets,...organizations])if(!await scopeVisible(tx,actor,String(row.scopeId)))blocker='TD2_HIDDEN_DEPENDENCY';
- for(const person of people)if(person.status==='ERASED'||await deletionBlocked(tx,actor.workspaceId,'PERSON',person.id))blocker=blocker??'TD2_SOURCE_OWNER_UNAVAILABLE';
- const graphDigest=digest({media:media.detailCode,rows,evidence,proposals,proposalOwners,collectionItems,candidates,candidateAssets,works,assets,parents,organizations,reviews,lists,
+ for(const person of people)if(!(person.status==='ERASED'&&ownedIds.has(person.id))&&(person.status==='ERASED'||await deletionBlocked(tx,actor.workspaceId,'PERSON',person.id)))blocker=blocker??'TD2_SOURCE_OWNER_UNAVAILABLE';
+ const graphDigest=digest({ownedPeople,media:media.detailCode,rows,evidence,proposals,proposalOwners,collectionItems,candidates,candidateAssets,works,assets,parents,organizations,reviews,lists,
   people:people.map(p=>({id:p.id,scopeId:p.scopeId})),scopes,sources:sources.map(s=>s.id===sourceId?{id:s.id,scopeId:s.scopeId}:s)});
- return {data,media,selected,rows,evidence,proposals,collectionItems,candidates,lists,people,sources,blocker,
-  detailCode:`TD2_SOURCE_FACT_GRAPH_${Buffer.from(graphDigest,'hex').toString('base64url')}:F${rows.length}:C${candidates.length}:I${collectionItems.length}:M${media.ownedAssets.length}:Q${media.credentials.length}:A${media.adults.length}:L${media.links.length}`};
+ return {data,media,ownedPeople,ownedIds,reviews,selected,rows,evidence,proposals,collectionItems,candidates,lists,people,sources,blocker,
+  detailCode:`TD2_SOURCE_FACT_GRAPH_${Buffer.from(graphDigest,'hex').toString('base64url')}:F${rows.length}:C${candidates.length}:I${collectionItems.length}:M${media.ownedAssets.length}:Q${media.credentials.length}:A${media.adults.length}:L${media.links.length}:H${ownedPeople.length}`};
 }
 function factContentDigest(row:Row){const {revision,updatedAt,...content}=row;return digest(content);}
 export function sourceFactItemCode(o:Selected){return `TD2_SOURCE_FACT_${o.table}:${factContentDigest(o.row)}`;}
@@ -95,10 +96,12 @@ export async function validateSourceFactPlan(tx:Tx,actor:Actor,request:DeletionR
  const group=items.find(i=>i.resourceKind===SOURCE_FACT_GROUP);if(!group)return;
  const g=await sourceFactGraph(tx,actor,request.targetId,clock);
  invariant(!g.blocker&&g.detailCode===group.detailCode,'TD2_ERASURE_GRAPH_STALE','专业资料或依赖发生变化，拒绝旧清理计划',409);
+ for(const person of g.ownedPeople)invariant(items.some(i=>i.resourceKind==='person'&&i.resourceId===person.id&&i.decision==='APPLY_PROPOSED'),'TD2_SOURCE_IDENTITY_RETENTION_REQUIRED','原始人物来源删除须明确删除其身份；人物身份保留需要完整独立依据处置',409);
  const decisions=new Map(items.filter(i=>i.resourceKind===SOURCE_FACT_ITEM).map(i=>[key(parseSourceFactItem(i),i.resourceId),i]));
  invariant(decisions.size===g.rows.length,'TD2_SOURCE_DECISIONS_INCOMPLETE','专业资料决定不完整',409);
  for(const o of g.rows){const item=decisions.get(key(o.table,o.row.id));invariant(item&&item.detailCode===sourceFactItemCode(o)&&item.decision!=='PENDING','TD2_SOURCE_DECISIONS_INCOMPLETE','专业资料决定未完成',409);
   if(item.decision!=='RETAIN_WITH_BASIS')continue;
+  invariant(!g.ownedIds.has(String(o.row.personId))&&!g.ownedIds.has(String(o.row.agentPersonId)),'TD2_SOURCE_PERSON_ERASED','不能保留归属或代表人身份已决定删除的专业资料',409);
   invariant(!g.media.ownedAssets.some(a=>a.id===o.row.evidenceAssetId),'TD2_SOURCE_RETAINED_PROOF_ERASED','不能保留仍指向本次待删除原件的证明资料，请明确删除或先完成证明失效与重新核验',409);
   invariant(!!item.retentionSourceId,'RETENTION_BASIS_MISSING','保留资料缺少独立依据',409);
   await supportedRetention(tx,actor,request.targetId,o,item.retentionSourceId,clock);
@@ -115,12 +118,13 @@ export async function eraseSourceFacts(tx:Tx,request:DeletionRequest,item:Deleti
  invariant(g.media.ownedAssets.every(a=>items.some(i=>i.resourceKind==='asset'&&i.resourceId===a.id&&i.resolvedAction==='ERASE_PAYLOAD')),'TD2_SOURCE_MEDIA_PLAN_INCOMPLETE','联合清理缺少原件删除计划',409);
  // Both snapshots were checked before any change. Media invalidation and fact decisions share this transaction.
  await applyTalentAssetGraph(tx,actor,g.media,clock);
- for(const row of g.proposals)if(row.sourceId===request.targetId||ownerSelected(row,erased))await tx.remove('fieldProposals',row.id);
- for(const row of g.evidence)if(row.sourceId===request.targetId||ownerSelected(row,erased))await tx.remove('evidence',row.id);
+ for(const row of g.proposals)if(row.sourceId===request.targetId||ownerSelected(row,erased)||g.ownedIds.has(String(row.personId)))await tx.remove('fieldProposals',row.id);
+ for(const row of g.evidence)if(row.sourceId===request.targetId||ownerSelected(row,erased)||g.ownedIds.has(String(row.personId)))await tx.remove('evidence',row.id);
  for(const row of g.collectionItems)if(erased.has(key('mediaCollections',row.collectionId))&&await tx.get('mediaCollectionItems',row.id))await tx.remove('mediaCollectionItems',row.id);
+ for(const row of g.reviews)if(g.ownedIds.has(String(row.personId)))await tx.remove('talentMigrationReviews',row.id);
  for(const old of g.candidates)if(erased.has(key('personRoles',old.personRoleId))){
   const row=(await tx.get('shortlistItems',old.id))!;await tx.replace('shortlistItems',{...touch(row,clock),personRoleId:null,personRoleRevision:null,roleContextState:'LEGACY_REVIEW'});
-  if(!(await tx.find('talentMigrationReviews',{workspaceId:request.workspaceId,shortlistItemId:row.id,reason:'SHORTLIST_ROLE_REQUIRED',state:'PENDING'})).length)await tx.insert('talentMigrationReviews',{...base(request.workspaceId,clock),personId:row.personId,shortlistItemId:row.id,previousShortlistItemIds:[],reason:'SHORTLIST_ROLE_REQUIRED',state:'PENDING',resolvedAt:null,resolvedById:null});
+  if(!g.ownedIds.has(String(row.personId))&&!(await tx.find('talentMigrationReviews',{workspaceId:request.workspaceId,shortlistItemId:row.id,reason:'SHORTLIST_ROLE_REQUIRED',state:'PENDING'})).length)await tx.insert('talentMigrationReviews',{...base(request.workspaceId,clock),personId:row.personId,shortlistItemId:row.id,previousShortlistItemIds:[],reason:'SHORTLIST_ROLE_REQUIRED',state:'PENDING',resolvedAt:null,resolvedById:null});
  }
  const order:FactTable[]=['mediaCollectionTags','mediaCollections','personCredentials','representations','translatorLanguagePairs','translatorServiceModes','adultEligibilities','castingProfiles','measurementSets','personCapabilities','talentLocations','personLanguages','personExternalRefs','personRoles','talentProfiles'];
  for(const table of order)for(const o of erased.values())if(o.table===table)await tx.remove(table,o.row.id);
@@ -141,7 +145,7 @@ export async function assertSourceFactRetentionComplete(tx:Tx,workspaceId:string
  const actor=await deletionWorkerActor(tx,request),graph=await sourceFactGraph(tx,actor,sourceId,clock);
  invariant(!graph.blocker,'TD2_CLEANUP_INCOMPLETE','保留资料或关联范围发生变化，不能完成来源清理',409);
  const data=graph.data;
- invariant(!data.people.some(p=>p.sourceId===sourceId),'TD2_CLEANUP_INCOMPLETE','来源仍拥有人物身份',409);
+ invariant(!data.people.some(p=>p.sourceId===sourceId&&p.status!=='ERASED'),'TD2_CLEANUP_INCOMPLETE','来源仍拥有人物身份',409);
  invariant(!data.evidence.some(e=>e.sourceId===sourceId)&&!data.fieldProposals.some(p=>p.sourceId===sourceId),'TD2_CLEANUP_INCOMPLETE','来源字段证据或建议仍未清理',409);
  for(const table of TALENT_V2_TABLES)for(const row of data[table])if(row.sourceId===sourceId){
   invariant(TALENT_FACT_TABLES.includes(table as FactTable),'TD2_CLEANUP_INCOMPLETE','存在未登记来源清理关系',409);

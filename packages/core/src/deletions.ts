@@ -106,6 +106,7 @@ export class Deletions {
                 for (const row of await tx.find('sourceHistory', { workspaceId: actor.workspaceId, sourceId }))
                     add({ resourceKind: 'sourceHistory', resourceId: row.id, dependencyKind: 'SOURCE_HISTORY', proposedAction: 'ERASE_PAYLOAD', evidenceState: 'PROVEN', detailCode: 'SOURCE_SNAPSHOT_CONTAINS_PAYLOAD' });
                 for (const row of await tx.find('people', { workspaceId: actor.workspaceId, sourceId })) {
+                    if (row.status === 'ERASED') continue;
                     if (!(await scopeVisible(tx, actor, row.scopeId))) { miss('HIDDEN_PERSON_DEPENDENCY'); continue; }
                     people.add(row.id);
                     add({ resourceKind: 'person', resourceId: row.id, dependencyKind: 'SOURCE_OWNS_PERSON', proposedAction: 'REVIEW_RETENTION', evidenceState: 'REVIEW_REQUIRED', detailCode: 'SUBJECT_MAY_REQUIRE_INDEPENDENT_BASIS' });
@@ -151,6 +152,7 @@ export class Deletions {
                 add({ resourceKind: 'evidence', resourceId: row.id, dependencyKind: 'PERSON_FIELD_EVIDENCE', proposedAction: 'REVIEW_RETENTION', evidenceState: 'REVIEW_REQUIRED', detailCode: 'FIELD_EVIDENCE' });
             for (const row of await tx.find('uploads', { workspaceId: actor.workspaceId, personId })) {
                 if (!(await scopeVisible(tx, actor, row.scopeId))) { miss('HIDDEN_UPLOAD_DEPENDENCY'); continue; }
+                if (sources.has(row.sourceId)) continue; // SOURCE_UPLOAD already mandates erasure with its original.
                 add({ resourceKind: 'upload', resourceId: row.id, dependencyKind: 'PERSON_MEDIA_UPLOAD', proposedAction: 'REVIEW_RETENTION', evidenceState: 'REVIEW_REQUIRED', detailCode: 'MEDIA_MAY_HAVE_INDEPENDENT_SOURCE' });
             }
             for (const row of await tx.find('assets', { workspaceId: actor.workspaceId, personId })) {
@@ -264,6 +266,7 @@ export class Deletions {
                     else if (facts.rows.length || facts.proposals.length || facts.media.count) {
                         const evidenceIds = new Set(facts.evidence.map(e => e.id));
                         for (const [key, impact] of impacts) if (impact.resourceKind === 'evidence' && evidenceIds.has(impact.resourceId)) impacts.delete(key);
+                        for(const person of facts.ownedPeople)for(const impact of impacts.values())if(impact.resourceKind==='person'&&impact.resourceId===person.id)impact.detailCode='TD2_SOURCE_PERSON_ERASE_ONLY';
                         add({resourceKind:SOURCE_FACT_GROUP,resourceId:targetId,dependencyKind:'SOURCE_TALENT_FACT_GROUP',proposedAction:'ERASE_PAYLOAD',evidenceState:'REVIEW_REQUIRED',detailCode:facts.detailCode});
                         for (const fact of facts.rows) add({resourceKind:SOURCE_FACT_ITEM,resourceId:fact.row.id,dependencyKind:'SOURCE_TALENT_FACT',proposedAction:'REVIEW_RETENTION',evidenceState:'REVIEW_REQUIRED',detailCode:sourceFactItemCode(fact)});
                     } else if (graph.blocker) miss(graph.blocker);
@@ -418,6 +421,7 @@ export class Deletions {
         if (!item || item.requestId !== row.id) missing();
         invariant(item.evidenceState === 'REVIEW_REQUIRED', 'DELETION_DECISION_NOT_REQUIRED', '该影响项已有可证明的自动处置，不需要人工覆盖', 409);
 
+        invariant(!(item.detailCode==='TD2_SOURCE_PERSON_ERASE_ONLY'&&d.decision==='RETAIN_WITH_BASIS'),'TD2_SOURCE_IDENTITY_RETENTION_REQUIRED','人才身份需要完整独立依据处置，不能重绑来源后保留',409);
         if ([SOURCE_FACT_GROUP,SOURCE_FACT_ITEM].includes(item.resourceKind)) {
             const graph = await sourceFactGraph(tx, actor, row.targetId, this.clock);
             if (graph.blocker === 'TD2_HIDDEN_DEPENDENCY') missing();

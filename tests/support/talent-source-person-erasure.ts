@@ -1,0 +1,43 @@
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {seedSharedProof} from './talent-asset-erasure.ts';
+import {expectResponse as ok} from './talent-v2-maintenance.ts';
+import type {FactErasureContext} from './talent-source-fact-erasure.ts';
+import {FaultStore} from './fault-store.ts';
+import {DeletionCleanup} from '../../packages/core/src/deletion-cleanup.ts';
+import {talentSnapshot,inspectTalentIntegrity} from '../../packages/core/src/talent-v2-integrity.ts';
+import {TALENT_FACT_TABLES} from '../../packages/core/src/talent-v2-model.ts';
+export async function verifySourcePersonErasure(f:FactErasureContext,root:string) {
+ const m=await seedSharedProof(f,root,true),g=m.g,schemaVersion='once-talent-v2.0.0';
+ ok(await f.owner.cmd('POST',`/td2/people/${g.personId}/languages`,{schemaVersion,expectedPersonRevision:(await g.current()).revision,sourceId:m.mediaSourceId,sourceRevision:1,values:{languageCode:'fr',speakingLevelCode:'WORKING'}}));
+ ok(await f.owner.cmd('POST','/td2/evidence',{schemaVersion,ownerKind:'person',ownerId:g.personId,fieldPath:'displayName',expectedRevision:(await g.current()).revision,sourceId:m.mediaSourceId,sourceRevision:1}),200);
+ const survivorId=ok(await f.owner.cmd('POST','/td2/people',{schemaVersion,originSourceId:m.mediaSourceId,sourceRevision:1,displayName:'合成不删除的独立人物',createTalent:true})).resourceId as string;
+ const survivor=()=>f.store.transaction(async tx=>(await tx.get('people',survivorId))!);
+ const relationId=ok(await f.owner.cmd('POST',`/td2/people/${survivorId}/representations`,{schemaVersion,expectedPersonRevision:(await survivor()).revision,sourceId:m.mediaSourceId,sourceRevision:1,values:{relationCode:'AGENT',agentPersonId:g.agentId}})).resourceId as string;
+ const listId=ok(await f.owner.cmd('POST','/shortlists',{title:'合成删除原身份及职业候选',scopeId:(await g.current()).scopeId})).resourceId as string;
+ ok(await f.owner.cmd('POST',`/shortlists/${listId}/items`,{expectedRevision:1,personId:g.personId,personRoleId:g.roleId,personRoleRevision:1,workAssetIds:[],note:'合成明确随人物删除'}),200);
+ const preview=ok(await f.owner.raw('POST','/deletion-requests/preview',{targetKind:'SOURCE',targetId:g.sourceId,expectedRevision:1}),200);assert.equal(preview.complete,true,JSON.stringify(preview.unresolved));assert.equal(preview.items.filter((i:any)=>i.detailCode==='TD2_SOURCE_PERSON_ERASE_ONLY').length,2);
+ const requestId=ok(await f.owner.cmd('POST','/deletion-requests',{targetKind:'SOURCE',targetId:g.sourceId,expectedRevision:1,previewDigest:preview.previewDigest,reason:'合成明确删除原始来源、所拥有人物及全部专业档案'})).resourceId as string;
+ const current=()=>f.store.transaction(async tx=>(await tx.get('deletionRequests',requestId))!);
+ ok(await f.owner.cmd('POST',`/deletion-requests/${requestId}/block`,{expectedRevision:1,previewDigest:preview.previewDigest,acknowledgeBlock:true}),200);
+ const items=await f.store.transaction(tx=>tx.find('deletionItems',{requestId})),personItem=items.find(i=>i.resourceKind==='person'&&i.resourceId===g.personId)!;
+ const rebind=await f.owner.cmd('POST',`/deletion-requests/${requestId}/decisions`,{expectedRevision:(await current()).revision,entryId:personItem.id,decision:'RETAIN_WITH_BASIS',retentionSourceId:m.mediaSourceId,decisionReason:'不可通过改写原来源保留整份身份'});assert.equal(ok(rebind,409).error.code,'TD2_SOURCE_IDENTITY_RETENTION_REQUIRED');
+ for(const item of items)if(item.decision==='PENDING')ok(await f.owner.cmd('POST',`/deletion-requests/${requestId}/decisions`,{expectedRevision:(await current()).revision,entryId:item.id,decision:'APPLY_PROPOSED',decisionReason:'合成明确处置此人物、资料及整组关联'}),200);
+ ok(await f.owner.cmd('POST',`/deletion-requests/${requestId}/plan/freeze`,{expectedRevision:(await current()).revision,acknowledgePlan:true}),200);
+ ok(await f.owner.cmd('POST',`/deletion-requests/${requestId}/cleaning/start`,{expectedRevision:(await current()).revision,planDigest:(await current()).planDigest,acknowledgeIrreversible:true}),200);
+ const workspaceId=(await g.current()).workspaceId,before=await f.store.transaction(tx=>talentSnapshot(tx,workspaceId)),faults=new FaultStore(f.store);
+ faults.afterInsert=(table,row)=>{if(table==='audits'&&'action' in row&&row.action==='deletion.cleanup-item'&&'changedFields' in row&&row.changedFields.includes('talentSourceFactGraph'))throw new Error('synthetic owned identity graph rollback');};
+ const worker=new DeletionCleanup(faults,f.clock,f.app.config),claim=await worker.claim();assert.ok(claim);await worker.process(claim);assert.deepEqual(await f.store.transaction(tx=>talentSnapshot(tx,workspaceId)),before);
+ faults.afterInsert=null;const retry=await worker.claim();assert.ok(retry);await worker.process(retry);
+ for(const personId of [g.personId,g.agentId])for(const table of TALENT_FACT_TABLES)assert.equal((await f.store.transaction(tx=>tx.find(table,{personId} as never))).length,0,table);
+ assert.equal(await f.store.transaction(tx=>tx.get('representations',relationId)),null);assert.equal((await f.store.transaction(tx=>tx.find('shortlistItems',{shortlistId:listId}))).length,0);assert.equal((await f.store.transaction(tx=>tx.find('evidence',{personId:g.personId}))).length,0);
+ let final=await f.app.deletionFinalization.claim();assert.ok(final);const tasks=await f.app.deletionFinalization.mediaTasks(final);assert.deepEqual(tasks.map(t=>t.mediaId),[m.keptAssetId]);for(const task of tasks){await m.provider.purge(task.mediaId);await f.app.deletionFinalization.completeMediaPurge(final,task.mediaId);}
+ const currentPerson=await g.current(),hiddenScopeId=randomUUID(),at=f.clock.now().toISOString();await f.store.transaction(async tx=>{await tx.insert('scopes',{id:hiddenScopeId,workspaceId,createdAt:at,updatedAt:at,revision:1,name:'合成原身份完成前失去范围',mode:'RESTRICTED'});await tx.replace('people',{...currentPerson,scopeId:hiddenScopeId});});
+ await f.app.deletionFinalization.finish(final);assert.equal((await current()).state,'CLEANING');assert.equal((await current()).finalizationErrorCode,'TD2_CLEANUP_INCOMPLETE');assert.notEqual((await g.current()).status,'ERASED');
+ await f.store.transaction(tx=>tx.replace('people',currentPerson));final=await f.app.deletionFinalization.claim();assert.ok(final);await f.app.deletionFinalization.finish(final);
+ assert.equal((await current()).state,'COMPLETED');for(const personId of [g.personId,g.agentId])assert.equal((await f.store.transaction(tx=>tx.get('people',personId)))!.status,'ERASED');assert.equal((await f.store.transaction(tx=>tx.get('sources',g.sourceId)))!.status,'ERASED');
+ assert.equal((await f.owner.raw('GET',`/td2/people/${survivorId}`)).status,200);for(const id of [m.assetId,m.secondAssetId!])await m.provider.verifyAsset((await f.store.transaction(tx=>tx.get('assets',id)))!);
+ assert.equal((await f.store.transaction(tx=>inspectTalentIntegrity(tx,workspaceId,f.app.config.contactKey))).relationFailures,0);
+ console.log('PASS TD2 source identity: full professional and identity evidence graph rollback/retry, external representation cleanup, hidden-owner finalization rollback/retry, source-owned original purge, independent people and original files retained');
+ return {g,m,survivorId,requestId};
+}
