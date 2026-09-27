@@ -76,7 +76,8 @@ export class PrismaStore implements Store {
                         const clauses: Prisma.Sql[] = [
                             Prisma.sql`p."workspaceId" = ${input.workspaceId}::uuid`,
                             Prisma.sql`p."scopeId" IN (${scopeList})`,
-                            Prisma.sql`p."sourceId" IN (${sourceList})`,
+                            input.retainedPersonIds?.length?Prisma.sql`(p."sourceId" IN (${sourceList}) OR p."id" IN (${uuidList(input.retainedPersonIds)}))`:Prisma.sql`p."sourceId" IN (${sourceList})`,
+                            Prisma.sql`p."status" <> 'ERASED'`,
                             Prisma.sql`NOT EXISTS (
                                 SELECT 1 FROM "deletionRequests" dr
                                 WHERE dr."workspaceId" = p."workspaceId" AND dr."state" <> 'DRAFT'

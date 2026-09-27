@@ -1,3 +1,4 @@
+import {IDENTITY_RETENTION,IDENTITY_DEPENDENCY,identityItemCode,validateIdentityRetention} from './talent-identity-retention.ts';
 import { sourceFactGraph, sourceFactItemCode, validateSourceFactDecision, validateSourceFactPlan, SOURCE_FACT_GROUP, SOURCE_FACT_ITEM } from './talent-source-fact-erasure.ts';
 import { previewTalentSourceErasure } from './talent-source-erasure.ts';
 import { previewTalentAssetErasure, previewTalentSourceAssets } from './talent-asset-erasure.ts';
@@ -256,17 +257,18 @@ export class Deletions {
                 evidenceState: 'REVIEW_REQUIRED', detailCode: talent.detailCode });
         } else if (targetKind === 'SOURCE') {
             const talent = await talentDependencyCounts(tx, actor.workspaceId, targetKind, targetId);
-            if (talent.count) {
+            if (talent.count || people.size) {
                 const graph = await previewTalentSourceErasure(tx, actor, targetId, this.clock);
                 const ids = new Set(graph.evidence.map(e => e.id));
                 for (const [key, impact] of impacts) if (impact.resourceKind === 'evidence' && ids.has(impact.resourceId)) impacts.delete(key);
-                if (graph.blocker === 'TD2_SOURCE_RETENTION_REVIEW_REQUIRED' || (!graph.blocker && assets.size > 0)) {
+                if (people.size || graph.blocker === 'TD2_SOURCE_RETENTION_REVIEW_REQUIRED' || (!graph.blocker && assets.size > 0)) {
                     const facts = await sourceFactGraph(tx, actor, targetId, this.clock);
                     if (facts.blocker) miss(facts.blocker);
-                    else if (facts.rows.length || facts.proposals.length || facts.media.count) {
+                    else if (facts.ownedPeople.length || facts.rows.length || facts.proposals.length || facts.media.count) {
                         const evidenceIds = new Set(facts.evidence.map(e => e.id));
                         for (const [key, impact] of impacts) if (impact.resourceKind === 'evidence' && evidenceIds.has(impact.resourceId)) impacts.delete(key);
-                        for(const person of facts.ownedPeople)for(const impact of impacts.values())if(impact.resourceKind==='person'&&impact.resourceId===person.id)impact.detailCode='TD2_SOURCE_PERSON_ERASE_ONLY';
+                        for(const person of facts.ownedPeople)for(const impact of impacts.values())if(impact.resourceKind==='person'&&impact.resourceId===person.id){impact.dependencyKind=IDENTITY_RETENTION;impact.detailCode=identityItemCode(person as unknown as import('./model.ts').Person);}
+                        for(const impact of impacts.values())if(['PERSON_CONTACT','PERSON_MEDIA_UPLOAD','PERSON_MEDIA_ASSET','PERSON_WORK_CREDIT','PERSON_PROJECT_PARTICIPATION','PERSON_SHORTLIST_ITEM','SHORTLIST_ITEM_ASSET'].includes(impact.dependencyKind)){impact.dependencyKind=IDENTITY_DEPENDENCY;impact.evidenceState='REVIEW_REQUIRED';}
                         add({resourceKind:SOURCE_FACT_GROUP,resourceId:targetId,dependencyKind:'SOURCE_TALENT_FACT_GROUP',proposedAction:'ERASE_PAYLOAD',evidenceState:'REVIEW_REQUIRED',detailCode:facts.detailCode});
                         for (const fact of facts.rows) add({resourceKind:SOURCE_FACT_ITEM,resourceId:fact.row.id,dependencyKind:'SOURCE_TALENT_FACT',proposedAction:'REVIEW_RETENTION',evidenceState:'REVIEW_REQUIRED',detailCode:sourceFactItemCode(fact)});
                     } else if (graph.blocker) miss(graph.blocker);
@@ -421,8 +423,7 @@ export class Deletions {
         if (!item || item.requestId !== row.id) missing();
         invariant(item.evidenceState === 'REVIEW_REQUIRED', 'DELETION_DECISION_NOT_REQUIRED', '该影响项已有可证明的自动处置，不需要人工覆盖', 409);
 
-        invariant(!(item.detailCode==='TD2_SOURCE_PERSON_ERASE_ONLY'&&d.decision==='RETAIN_WITH_BASIS'),'TD2_SOURCE_IDENTITY_RETENTION_REQUIRED','人才身份需要完整独立依据处置，不能重绑来源后保留',409);
-        if ([SOURCE_FACT_GROUP,SOURCE_FACT_ITEM].includes(item.resourceKind)) {
+        if ([SOURCE_FACT_GROUP,SOURCE_FACT_ITEM].includes(item.resourceKind)||item.dependencyKind===IDENTITY_RETENTION) {
             const graph = await sourceFactGraph(tx, actor, row.targetId, this.clock);
             if (graph.blocker === 'TD2_HIDDEN_DEPENDENCY') missing();
             const group = (await tx.find('deletionItems', {workspaceId:actor.workspaceId,requestId:row.id})).find(i => i.resourceKind === SOURCE_FACT_GROUP);
@@ -437,6 +438,7 @@ export class Deletions {
             const basis = await sourceFor(tx, actor, d.retentionSourceId, this.clock);
             invariant(basis.basisMode === 'INTERNAL_USE', 'RETENTION_BASIS_INVALID', '保留依据必须是当前有效的正式内部依据', 422);
             if (item.resourceKind === SOURCE_FACT_ITEM) await validateSourceFactDecision(tx, actor, row, item, basis.id, this.clock);
+            if(item.dependencyKind===IDENTITY_RETENTION){const person=await tx.get('people',item.resourceId);if(!person)missing();await validateIdentityRetention(tx,actor,person,basis.id,this.clock,item);}
             retentionSourceId = basis.id;
             retentionSourceRevision = basis.revision;
             retentionSourceProtectionEpoch = basis.protectionEpoch;

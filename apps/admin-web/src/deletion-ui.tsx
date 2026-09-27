@@ -37,9 +37,9 @@ const detailLabel: Record<string, string> = {
     EXPORT_PAYLOAD_DEPENDS_ON_SOURCE: '旧导出 payload 依赖来源'
 };
 function detailText(code: string) {
-    if(code==='TD2_SOURCE_PERSON_ERASE_ONLY')return '删除该人物身份及其整份专业资料；人物身份的独立保留需要先完成专门核验，不能改写原来源代替处置。';
+    if(code.startsWith('TD2_SOURCE_PERSON:'))return '逐项决定删除或保留人物身份。保留须已有姓名、别名、简介的完整独立依据；最初来源编号不改变，专业资料需分别决定。';
     const facts = /^TD2_SOURCE_FACT_GRAPH_(?:[a-f0-9]{64}|[A-Za-z0-9_-]{43}):F(\d+):C(\d+):I(\d+)(?::M(\d+):Q(\d+):A(\d+):L(\d+)(?::H(\d+))?)?$/.exec(code);
-    if (facts) return `按逐项决定处理 ${facts[1]} 项专业资料；涉及 ${facts[2]} 条候选职业关系和 ${facts[3]} 项集合关联。${Number(facts[8])>0?`本来源的 ${facts[8]} 个人物身份及其候选一并删除；其他仅失去职业的候选保留并标记待核实。`:'删除职业后原候选保留并标记待核实，不猜测新职业。'}${Number(facts[4])>0?`同时删除 ${facts[4]} 份原件，移出 ${facts[7]} 处图片引用，撤销 ${facts[5]} 项资质当前状态、将 ${facts[6]} 项成年资格改为未知。`:``}`;
+    if (facts) return `按逐项决定处理 ${facts[1]} 项专业资料；涉及 ${facts[2]} 条候选职业关系和 ${facts[3]} 项集合关联。${Number(facts[8])>0?`本来源的 ${facts[8]} 个人物身份及其关联需分别决定保留或删除；仅失去职业的保留候选标记待核实。`:'删除职业后原候选保留并标记待核实，不猜测新职业。'}${Number(facts[4])>0?`同时删除 ${facts[4]} 份原件，移出 ${facts[7]} 处图片引用，撤销 ${facts[5]} 项资质当前状态、将 ${facts[6]} 项成年资格改为未知。`:``}`;
     if (code.startsWith('TD2_SOURCE_FACT_')) {
         const names:Record<string,string>={talentProfiles:'专业主档案',personRoles:'职业',personCapabilities:'能力',personLanguages:'工作语言',talentLocations:'工作地区',castingProfiles:'选角资料',measurementSets:'量尺',adultEligibilities:'成年资格',representations:'经纪关系',personExternalRefs:'外部标识',personCredentials:'资质',translatorLanguagePairs:'翻译方向',translatorServiceModes:'翻译服务',mediaCollections:'媒体集合',mediaCollectionTags:'集合标签'};
         return `${names[code.split(':')[0]!.replace('TD2_SOURCE_FACT_','')]??'专业资料'}：选择删除，或依据已有逐字段核验保留。保留不会改记原来源。`;
@@ -97,7 +97,7 @@ function DecisionModal({ request, item, sources, canRetain, onClose, onDone }: {
                 <Field label="本项决定">
                     <select value={decision} onChange={e => { setDecision(e.target.value as 'APPLY_PROPOSED' | 'RETAIN_WITH_BASIS'); setRetentionSourceId(''); }}>
                         <option value="APPLY_PROPOSED">{item.dependencyKind==='SOURCE_TALENT_FACT'?'删除这项专业资料':item.dependencyKind==='SOURCE_TALENT_FACT_GROUP'?'确认按逐项决定执行':'按系统建议处置'}</option>
-                        {canRetain && item.detailCode!=='TD2_SOURCE_PERSON_ERASE_ONLY' && !['PERSON_TALENT_GRAPH','ASSET_TALENT_REFERENCES','SOURCE_TALENT_EVIDENCE','SOURCE_TALENT_FACT_GROUP','SOURCE_ASSET_TALENT_REFERENCES'].includes(item.dependencyKind) && <option value="RETAIN_WITH_BASIS">有独立依据，保留</option>}
+                        {canRetain && !['PERSON_TALENT_GRAPH','ASSET_TALENT_REFERENCES','SOURCE_TALENT_EVIDENCE','SOURCE_TALENT_FACT_GROUP','SOURCE_ASSET_TALENT_REFERENCES'].includes(item.dependencyKind) && <option value="RETAIN_WITH_BASIS">有独立依据，保留</option>}
                     </select>
                 </Field>
                 {decision === 'RETAIN_WITH_BASIS' && <Field label="独立保留依据" hint="必须是另一份当前有效的正式 INTERNAL_USE 来源；目标原来源不能自证保留。">

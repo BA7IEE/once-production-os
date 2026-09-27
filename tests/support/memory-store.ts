@@ -74,7 +74,7 @@ export class MemoryStore implements Store {
                         workTypeCodes: [...new Set(linked.flatMap(w => w.workTypeCodes))].sort() };
                 };
                 const projectCount = (personId: string) => new Set(actual.filter(p => p.personId === personId).map(p => p.projectId)).size;
-                const all = [...draft.people.values()].filter(p => p.workspaceId === input.workspaceId && !mergedPeople.has(p.id) && !blockedPeople.has(p.id) && scopeIds.has(p.scopeId) && sourceIds.has(p.sourceId)).map(person => {
+                const all = [...draft.people.values()].filter(p => p.workspaceId === input.workspaceId && !mergedPeople.has(p.id) && !blockedPeople.has(p.id) && p.status!=='ERASED' && scopeIds.has(p.scopeId) && (sourceIds.has(p.sourceId)||(input.retainedPersonIds??[]).includes(p.id))).map(person => {
                     const f = facts(person.id); return { person, actualProjectCount: projectCount(person.id), ...f };
                 }).filter(row => {
                     const p = row.person;

@@ -43,7 +43,9 @@ export class TalentSearch {
         const days = query.verifiedWithinDays ? Number(query.verifiedWithinDays) : null;
         invariant(days === null || [30, 90, 180, 365].includes(days), 'QUERY_INVALID', '核验时效仅支持30/90/180/365天', 400);
         const visibility = await loadVisibility(tx, actor, this.clock);
+        const retainedPersonIds=visibility.hasErasedSources?(await tx.find('people',{workspaceId:actor.workspaceId})).filter(p=>visibility.source(p.sourceId)?.status==='ERASED'&&visibility.personVisible(p)).map(p=>p.id):[];
         const raw = await tx.talentQuery({
+            retainedPersonIds,
             workspaceId: actor.workspaceId, visibleScopeIds: visibility.visibleScopeIds, visibleSourceIds: visibility.visibleSourceIds,
             q: query.q?.toLocaleLowerCase() ?? '', role: query.role ?? null, cityCode: query.cityCode ?? null,
             languageCode: query.languageCode ?? null, skillCode: query.skillCode ?? null,

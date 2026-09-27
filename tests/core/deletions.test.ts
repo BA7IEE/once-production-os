@@ -747,13 +747,14 @@ test('DEV-07F finalizes a source to an erased root and redacted history only aft
     assert.equal(admin.finalizationDigest.length, 64);
 });
 
-test('DEV-07F retained source-owned person rebinds to independent basis before old source is erased', async () => {
+test('DEV-07F retained source-owned person requires complete field evidence and preserves original origin', async () => {
     const f = await fixture();
     const sourceId = (await ok(f.owner.cmd('POST', '/sources', { ...sourceInput(), title: '待删除来源' }), 201)).resourceId as string;
     const personId = (await ok(f.owner.cmd('POST', '/people', {
         displayName: '有独立依据保留的人才', roles: ['model'], sourceId
     }), 201)).resourceId as string;
     const basisId = (await ok(f.owner.cmd('POST', '/sources', { ...sourceInput(), title: '独立保留来源' }), 201)).resourceId as string;
+    for(const fieldPath of ['displayName','aliases','intro','roles'])await ok(f.owner.cmd('POST','/field-evidence',{personId,expectedRevision:(await get(f.owner,'/people/'+personId)).revision,fieldPath,sourceId:basisId,sourceRevision:1}));
     const source = await get(f.owner, '/sources/' + sourceId);
     const p = await preview(f, 'SOURCE', sourceId, source.revision);
     const created = await ok(f.owner.cmd('POST', '/deletion-requests', {
@@ -765,7 +766,7 @@ test('DEV-07F retained source-owned person rebinds to independent basis before o
     }));
     let detail = await get(f.owner, '/deletion-requests/' + created.resourceId);
     const items = await get(f.owner, '/deletion-requests/' + created.resourceId + '/items');
-    const personSlot = items.items.find((x: any) => x.dependencyKind === 'SOURCE_OWNS_PERSON');
+    const personSlot = items.items.find((x: any) => x.dependencyKind === 'SOURCE_ORIGIN_PERSON');
     assert.ok(personSlot);
     await ok(f.owner.cmd('POST', '/deletion-requests/' + created.resourceId + '/decisions', {
         expectedRevision: detail.revision, entryId: personSlot.id, decision: 'RETAIN_WITH_BASIS',
@@ -788,7 +789,7 @@ test('DEV-07F retained source-owned person rebinds to independent basis before o
     }));
     const cleanupClaim = await f.app.deletionCleanup.claim(); assert.ok(cleanupClaim);
     await f.app.deletionCleanup.process(cleanupClaim);
-    assert.equal(f.store.rows('people').find(x => x.id === personId)!.sourceId, basisId);
+    assert.equal(f.store.rows('people').find(x => x.id === personId)!.sourceId, sourceId);
 
     const finalClaim = await f.app.deletionFinalization.claim(); assert.ok(finalClaim);
     await f.app.deletionFinalization.finish(finalClaim);
@@ -796,7 +797,7 @@ test('DEV-07F retained source-owned person rebinds to independent basis before o
     assert.equal(request.state, 'RETAINED_WITH_BASIS');
     assert.equal(request.finalizationDigest?.length, 64);
     const person = await get(f.owner, '/people/' + personId);
-    assert.equal(person.sourceId, basisId);
+    assert.equal(person.sourceId, sourceId);
     assert.equal(person.displayName, '有独立依据保留的人才');
     assert.equal((await f.owner.raw('GET', '/sources/' + sourceId)).status, 404);
     assert.equal(f.store.rows('sources').find(x => x.id === sourceId)!.status, 'ERASED');

@@ -74,7 +74,7 @@ export async function loadTalentGraph(tx:Tx,actor:Actor,clock:Clock){
             if(row[field]){const r=fact(parent,String(row[field]));if(!r||r.personId!==row.personId||!readable(parent,r,next))return false;}
         }
         for(const key of ['agencyOrganizationId','issuerOrganizationId']) if(row[key]&&!organizationReadable(String(row[key])))return false;
-        if(row.agentPersonId){const agent=personMap.get(String(row.agentPersonId));if(!agent||!identityReadable(agent)||!sourceUsable(agent.sourceId))return false;}
+        if(row.agentPersonId){const agent=personMap.get(String(row.agentPersonId));if(!agent||!identityReadable(agent)||(!sourceUsable(agent.sourceId)&&!['displayName','aliases','intro'].every(field=>fieldReadable('person',asRow(agent),field))))return false;}
         return true;
     };
     const project=(table:FactTable,row:FactRow):Record<string,unknown>|null=>{
@@ -122,7 +122,7 @@ export async function loadTalentGraph(tx:Tx,actor:Actor,clock:Clock){
         const p=personMap.get(id);if(!p||!identityReadable(p))missing();
         const facts:Record<string,Record<string,unknown>[]>= {};
         for(const t of TD2_TABLES)facts[t]=rows(t).filter(r=>r.personId===id).map(r=>project(t,r as unknown as FactRow)).filter((r):r is Record<string,unknown>=>!!r);
-        if(!sourceUsable(p.sourceId)&&!Object.values(facts).some(r=>r.length))missing();
+        if(!sourceUsable(p.sourceId)&&!Object.values(facts).some(r=>r.length)&&!['displayName','aliases','intro'].every(field=>fieldReadable('person',asRow(p),field)))missing();
         const profile=facts.talentProfiles!.find(r=>r.usable)??null;
         const collections=(facts.mediaCollections??[]).map(c=>({...c,items:actor.permissions.includes('assets.read')?rows('mediaCollectionItems').filter(i=>i.collectionId===c.id&&assetReadable(i.assetId)).sort((a,b)=>a.orderIndex-b.orderIndex).map(i=>({id:i.id,assetId:i.assetId,caption:i.caption,featured:i.featured,orderIndex:i.orderIndex,asset:rows('assets').filter(a=>a.id===i.assetId).map(a=>({id:a.id,mime:a.mime,fileName:a.fileName,width:a.width,height:a.height}))[0]})):[]}));
         const age=facts.adultEligibilities!.find(r=>r.usable);

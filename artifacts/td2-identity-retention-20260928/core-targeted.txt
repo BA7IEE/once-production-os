@@ -1,0 +1,362 @@
+TAP version 13
+# Subtest: DEV-07B preview is zero-write and DRAFT request does not block the target
+ok 1 - DEV-07B preview is zero-write and DRAFT request does not block the target
+  ---
+  duration_ms: 177.860583
+  type: 'test'
+  ...
+# Subtest: DEV-07B stale preview is rejected when a new dependency appears
+ok 2 - DEV-07B stale preview is rejected when a new dependency appears
+  ---
+  duration_ms: 144.211083
+  type: 'test'
+  ...
+# Subtest: DEV-07B hidden dependency is counted but not enumerated, and request creation is refused
+ok 3 - DEV-07B hidden dependency is counted but not enumerated, and request creation is refused
+  ---
+  duration_ms: 253.389708
+  type: 'test'
+  ...
+# Subtest: DEV-07B visible source does not enumerate child records whose own scope is hidden
+ok 4 - DEV-07B visible source does not enumerate child records whose own scope is hidden
+  ---
+  duration_ms: 249.479083
+  type: 'test'
+  ...
+# Subtest: DEV-07B source preview reaches owned records, relations, permissions and frozen exports
+ok 5 - DEV-07B source preview reaches owned records, relations, permissions and frozen exports
+  ---
+  duration_ms: 128.616667
+  type: 'test'
+  ...
+# Subtest: DEV-07B persisted request returns only summary, not frozen dependency ids
+ok 6 - DEV-07B persisted request returns only summary, not frozen dependency ids
+  ---
+  duration_ms: 123.361375
+  type: 'test'
+  ...
+# Subtest: DEV-07B non-delete member cannot preview or enumerate draft deletion requests
+ok 7 - DEV-07B non-delete member cannot preview or enumerate draft deletion requests
+  ---
+  duration_ms: 242.120291
+  type: 'test'
+  ...
+# Subtest: DEV-07C blocking a person removes normal reads/search/handoff but preserves underlying data
+ok 8 - DEV-07C blocking a person removes normal reads/search/handoff but preserves underlying data
+  ---
+  duration_ms: 242.811917
+  type: 'test'
+  ...
+# Subtest: DEV-07C blocking a source cascades to normal source/person/work reads and appends protected history
+ok 9 - DEV-07C blocking a source cascades to normal source/person/work reads and appends protected history
+  ---
+  duration_ms: 123.669167
+  type: 'test'
+  ...
+# Subtest: DEV-07C block is refused when the frozen preview changed after DRAFT creation
+ok 10 - DEV-07C block is refused when the frozen preview changed after DRAFT creation
+  ---
+  duration_ms: 119.088542
+  type: 'test'
+  ...
+# Subtest: DEV-07C blocked person invalidates old export and shortlist item while preserving their records
+ok 11 - DEV-07C blocked person invalidates old export and shortlist item while preserving their records
+  ---
+  duration_ms: 124.124417
+  type: 'test'
+  ...
+# Subtest: DEV-07C already blocked target cannot create another deletion request
+ok 12 - DEV-07C already blocked target cannot create another deletion request
+  ---
+  duration_ms: 117.352334
+  type: 'test'
+  ...
+# Subtest: DEV-07D pending review decisions block plan freeze; safe review slots expose no underlying resource ids
+ok 13 - DEV-07D pending review decisions block plan freeze; safe review slots expose no underlying resource ids
+  ---
+  duration_ms: 119.538792
+  type: 'test'
+  ...
+# Subtest: DEV-07D manual proposed-action decision completes and freezes a non-executing cleanup plan
+ok 14 - DEV-07D manual proposed-action decision completes and freezes a non-executing cleanup plan
+  ---
+  duration_ms: 120.555625
+  type: 'test'
+  ...
+# Subtest: DEV-07D retain-with-basis requires independent current source and freezes its revision/epoch
+ok 15 - DEV-07D retain-with-basis requires independent current source and freezes its revision/epoch
+  ---
+  duration_ms: 122.063667
+  type: 'test'
+  ...
+# Subtest: DEV-07D delete-only member may apply proposed action but cannot authorize retain-with-basis
+ok 16 - DEV-07D delete-only member may apply proposed action but cannot authorize retain-with-basis
+  ---
+  duration_ms: 237.789709
+  type: 'test'
+  ...
+# Subtest: DEV-07D source reviewer may approve retention and delete-only operator may freeze the completed plan
+ok 17 - DEV-07D source reviewer may approve retention and delete-only operator may freeze the completed plan
+  ---
+  duration_ms: 243.425833
+  type: 'test'
+  ...
+# Subtest: DEV-07E cleanup gate is independent and disabled mode cannot enter CLEANING
+ok 18 - DEV-07E cleanup gate is independent and disabled mode cannot enter CLEANING
+  ---
+  duration_ms: 123.052875
+  type: 'test'
+  ...
+# Subtest: DEV-07E worker irreversibly cleans registered DB dependencies but preserves blocked root
+ok 19 - DEV-07E worker irreversibly cleans registered DB dependencies but preserves blocked root
+  ---
+  duration_ms: 133.465417
+  type: 'test'
+  ...
+# Subtest: DEV-07E source cleanup stops at explicit external/specialized work instead of claiming completion
+ok 20 - DEV-07E source cleanup stops at explicit external/specialized work instead of claiming completion
+  ---
+  duration_ms: 126.182458
+  type: 'test'
+  ...
+# Subtest: DEV-07E cleanup start rechecks retained-basis revision after plan freeze
+ok 21 - DEV-07E cleanup start rechecks retained-basis revision after plan freeze
+  ---
+  duration_ms: 129.88925
+  type: 'test'
+  ...
+# Subtest: DEV-07F finalizes a source to an erased root and redacted history only after specialized cleanup proves completion
+ok 22 - DEV-07F finalizes a source to an erased root and redacted history only after specialized cleanup proves completion
+  ---
+  duration_ms: 125.335666
+  type: 'test'
+  ...
+# Subtest: DEV-07F retained source-owned person requires complete field evidence and preserves original origin
+ok 23 - DEV-07F retained source-owned person requires complete field evidence and preserves original origin
+  ---
+  duration_ms: 138.541417
+  type: 'test'
+  ...
+# Subtest: R1 resume uses the same checkpoints; replay and two workers create exactly two people
+ok 24 - R1 resume uses the same checkpoints; replay and two workers create exactly two people
+  ---
+  duration_ms: 176.453125
+  type: 'test'
+  ...
+# Subtest: R1 resume rejects changed payload under an existing command key
+ok 25 - R1 resume rejects changed payload under an existing command key
+  ---
+  duration_ms: 129.171042
+  type: 'test'
+  ...
+# Subtest: R1 resume rechecks suspended
+ok 26 - R1 resume rechecks suspended
+  ---
+  duration_ms: 252.467458
+  type: 'test'
+  ...
+# Subtest: R1 resume rechecks source-revision
+ok 27 - R1 resume rechecks source-revision
+  ---
+  duration_ms: 249.437625
+  type: 'test'
+  ...
+# Subtest: R1 resume rechecks preview-expired
+ok 28 - R1 resume rechecks preview-expired
+  ---
+  duration_ms: 306.818792
+  type: 'test'
+  ...
+# Subtest: R1 resume rechecks maintenance
+ok 29 - R1 resume rechecks maintenance
+  ---
+  duration_ms: 243.81725
+  type: 'test'
+  ...
+# Subtest: R1 resume rechecks scope-revoked
+ok 30 - R1 resume rechecks scope-revoked
+  ---
+  duration_ms: 240.372625
+  type: 'test'
+  ...
+# Subtest: R1 another administrator cannot resume someone else's job
+ok 31 - R1 another administrator cannot resume someone else's job
+  ---
+  duration_ms: 236.089375
+  type: 'test'
+  ...
+# Subtest: R1 role revocation prevents resuming and also old receipt replay
+ok 32 - R1 role revocation prevents resuming and also old receipt replay
+  ---
+  duration_ms: 296.81575
+  type: 'test'
+  ...
+# Subtest: R1 non-transient failure is not blindly resumable
+ok 33 - R1 non-transient failure is not blindly resumable
+  ---
+  duration_ms: 118.012541
+  type: 'test'
+  ...
+# Subtest: R1 explicit resume preserves the lifetime attempt cap
+ok 34 - R1 explicit resume preserves the lifetime attempt cap
+  ---
+  duration_ms: 121.20925
+  type: 'test'
+  ...
+# Subtest: R1 resume requires CSRF and an idempotency key
+ok 35 - R1 resume requires CSRF and an idempotency key
+  ---
+  duration_ms: 116.415625
+  type: 'test'
+  ...
+# Subtest: R1 source edit/review/pause/re-review preserve distinct immutable versions and decision reasons
+ok 36 - R1 source edit/review/pause/re-review preserve distinct immutable versions and decision reasons
+  ---
+  duration_ms: 119.539583
+  type: 'test'
+  ...
+# Subtest: R1 history is denied without BOTH review and sensitive-read, even to ADMIN
+ok 37 - R1 history is denied without BOTH review and sensitive-read, even to ADMIN
+  ---
+  duration_ms: 358.866958
+  type: 'test'
+  ...
+# Subtest: R1 history widening does not expose previously restricted snapshots
+ok 38 - R1 history widening does not expose previously restricted snapshots
+  ---
+  duration_ms: 242.079792
+  type: 'test'
+  ...
+# Subtest: R1 historical review is audited and source-history cannot be overwritten or removed through Store
+ok 39 - R1 historical review is audited and source-history cannot be overwritten or removed through Store
+  ---
+  duration_ms: 124.070208
+  type: 'test'
+  ...
+# Subtest: R1 baseline flags never present old overwritten pause text as verified original basis
+ok 40 - R1 baseline flags never present old overwritten pause text as verified original basis
+  ---
+  duration_ms: 124.300083
+  type: 'test'
+  ...
+# Subtest: R1 command replay and failed audit never duplicate or orphan source history
+ok 41 - R1 command replay and failed audit never duplicate or orphan source history
+  ---
+  duration_ms: 124.399666
+  type: 'test'
+  ...
+# Subtest: R1 field evidence becomes stale after a new source version, history remains
+ok 42 - R1 field evidence becomes stale after a new source version, history remains
+  ---
+  duration_ms: 120.622958
+  type: 'test'
+  ...
+# Subtest: R1 batch visibility agrees with original point checks for restricted/current/expired sources
+ok 43 - R1 batch visibility agrees with original point checks for restricted/current/expired sources
+  ---
+  duration_ms: 224.843125
+  type: 'test'
+  ...
+# {"metric":"R1-preview-100x100","storeReads":20,"backend":"MemoryStore instrumentation; not PG latency"}
+# Subtest: R1 100 existing people + 100 import rows use bounded Store reads, not N times M queries
+ok 44 - R1 100 existing people + 100 import rows use bounded Store reads, not N times M queries
+  ---
+  duration_ms: 110.658125
+  type: 'test'
+  ...
+# Subtest: R1 duplicate-name hints neither leak private names nor miss an exact match behind five prefix matches
+ok 45 - R1 duplicate-name hints neither leak private names nor miss an exact match behind five prefix matches
+  ---
+  duration_ms: 220.464458
+  type: 'test'
+  ...
+# Subtest: R1 an old-binary history gap blocks further mutation instead of manufacturing missing evidence
+ok 46 - R1 an old-binary history gap blocks further mutation instead of manufacturing missing evidence
+  ---
+  duration_ms: 113.094375
+  type: 'test'
+  ...
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# Subtest: TD2 retained identity and professional facts preserve original source and independently checked field evidence
+ok 47 - TD2 retained identity and professional facts preserve original source and independently checked field evidence
+  ---
+  duration_ms: 245.395292
+  type: 'test'
+  ...
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# Subtest: TD2 ordinary identity remains accessible on independent evidence without becoming talent
+ok 48 - TD2 ordinary identity remains accessible on independent evidence without becoming talent
+  ---
+  duration_ms: 184.378167
+  type: 'test'
+  ...
+# PASS TD2 source identity: full professional and identity evidence graph rollback/retry, external representation cleanup, hidden-owner finalization rollback/retry, source-owned original purge, independent people and original files retained
+# Subtest: TD2 source-owned identities and complete professional graphs erase atomically, preserving independent people and original files
+ok 49 - TD2 source-owned identities and complete professional graphs erase atomically, preserving independent people and original files
+  ---
+  duration_ms: 498.29275
+  type: 'test'
+  ...
+# Subtest: TD2-T16 Person graph erasure previews, rolls back on audit failure, retries and preserves independent identities
+ok 50 - TD2-T16 Person graph erasure previews, rolls back on audit failure, retries and preserves independent identities
+  ---
+  duration_ms: 238.428125
+  type: 'test'
+  ...
+# Subtest: TD2-T17 recovery revokes machine credentials, invalidates proposals, checks credential encryption and detects graph drift
+ok 51 - TD2-T17 recovery revokes machine credentials, invalidates proposals, checks credential encryption and detects graph drift
+  ---
+  duration_ms: 155.2665
+  type: 'test'
+  ...
+# Subtest: TD2-T17 integrity inspector detects missing or cross-person typed references without leaking identifiers
+ok 52 - TD2-T17 integrity inspector detects missing or cross-person typed references without leaking identifiers
+  ---
+  duration_ms: 145.609333
+  type: 'test'
+  ...
+# Subtest: TD2-T16 source-owned identities require explicit full erasure while singleton merge requires history resolution
+ok 53 - TD2-T16 source-owned identities require explicit full erasure while singleton merge requires history resolution
+  ---
+  duration_ms: 146.183333
+  type: 'test'
+  ...
+# Subtest: TD2-T16 legacy export cannot serialize stale flat professional fields for an upgraded person
+ok 54 - TD2-T16 legacy export cannot serialize stale flat professional fields for an upgraded person
+  ---
+  duration_ms: 144.471875
+  type: 'test'
+  ...
+# Subtest: TD2-T15 result totals and all-page facets exclude hidden professional facts
+ok 55 - TD2-T15 result totals and all-page facets exclude hidden professional facts
+  ---
+  duration_ms: 326.43625
+  type: 'test'
+  ...
+# Subtest: TD2-T15 industry and work type must match the same work in the selected occupation
+ok 56 - TD2-T15 industry and work type must match the same work in the selected occupation
+  ---
+  duration_ms: 154.388166
+  type: 'test'
+  ...
+# Subtest: TD2-T15 actual collaboration and combined professional filters preserve role context
+ok 57 - TD2-T15 actual collaboration and combined professional filters preserve role context
+  ---
+  duration_ms: 147.582625
+  type: 'test'
+  ...
+# Subtest: TD2-T15 suspended sources remove search matches and orphan filter qualifiers are rejected
+ok 58 - TD2-T15 suspended sources remove search matches and orphan filter qualifiers are rejected
+  ---
+  duration_ms: 140.395208
+  type: 'test'
+  ...
+1..58
+# tests 58
+# suites 0
+# pass 58
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4601.388542

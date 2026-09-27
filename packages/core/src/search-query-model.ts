@@ -4,6 +4,7 @@ export interface TalentQueryFilters {
     workspaceId: string;
     visibleScopeIds: string[];
     visibleSourceIds: string[];
+    retainedPersonIds?: string[];
     q: string;
     role: string | null;
     cityCode: string | null;

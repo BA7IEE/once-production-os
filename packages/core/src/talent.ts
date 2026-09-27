@@ -182,6 +182,7 @@ export class Talent {
         const data = PersonPatch.parse(input);
         const access = await profileAccess(tx, actor, id, this.clock, 'edit');
         const person = access.person;
+        invariant((await tx.get('sources',person.sourceId))?.status!=='ERASED','TD2_IDENTITY_PROPOSAL_REQUIRED','最初来源已删除，请通过独立来源的字段建议修改身份资料',409);
         invariant(access.native || data.status === undefined, 'HANDOFF_FIELD_FORBIDDEN', '交接不能归档或改变档案生命周期', 403);
         cas(person, data.expectedRevision);
         invariant(Object.keys(data).length > 1, 'EMPTY_UPDATE', '没有需要保存的修改', 400);
@@ -241,13 +242,13 @@ export class Talent {
             const current = row.sourceRevision === evidenceSource.revision && row.valueDigest === digest(person[row.fieldPath as keyof Person]);
             evidence.push({ id: row.id, fieldPath: row.fieldPath, reviewedAt: row.reviewedAt, sourceId: row.sourceId, state: current ? 'VERIFIED' : 'STALE' });
         }
-        const canEdit = actor.permissions.includes('records.write') && (access.native || !!await handoffForAction(tx, actor, id, this.clock, 'edit'));
+        const canEdit = source.status!=='ERASED' && actor.permissions.includes('records.write') && (access.native || !!await handoffForAction(tx, actor, id, this.clock, 'edit'));
         const canReview = actor.permissions.includes('sources.review') && (access.native || !!await handoffForAction(tx, actor, id, this.clock, 'review'));
         return { ...this.personDto(person), access: { mode: access.native ? 'NATIVE' : 'HANDOFF', canEdit, canReview,
-            canReadSource: access.native && actor.permissions.includes('sources.read'),
+            canReadSource: source.status!=='ERASED' && access.native && actor.permissions.includes('sources.read'),
             canReadContacts: access.native && actor.permissions.includes('sensitive.read'),
             canManageScope: access.native && actor.permissions.includes('members.manage'),
-            canOffer: access.native && person.status !== 'ARCHIVED' && person.maintainerId === actor.membershipId
+            canOffer: source.status!=='ERASED' && access.native && person.status !== 'ARCHIVED' && person.maintainerId === actor.membershipId
                 && source.maintainerId === actor.membershipId && actor.permissions.includes('records.write') && actor.permissions.includes('sources.write') }, source: { id: source.id, revision: source.revision, title: source.title, basisMode: source.basisMode, validUntil: source.validUntil, status: source.status }, evidence };
     }
     async contacts(tx: Tx, actor: Actor, personId: string, meta: RequestMeta): Promise<unknown> {

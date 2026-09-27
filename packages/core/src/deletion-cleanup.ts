@@ -1,3 +1,4 @@
+import {IDENTITY_RETENTION,IDENTITY_DEPENDENCY,validateIdentityRetention,validateIdentityDependency} from './talent-identity-retention.ts';
 import { eraseSourceFacts, assertSourceFactGroupDone, validateSourceFactPlan, SOURCE_FACT_GROUP, SOURCE_FACT_ITEM } from './talent-source-fact-erasure.ts';
 import { eraseTalentSourceEvidence } from './talent-source-erasure.ts';
 import { deletionWorkerActor } from './deletion-worker-policy.ts';
@@ -140,23 +141,15 @@ export class DeletionCleanup {
         invariant(action, 'CLEANUP_ACTION_MISSING', '清理项没有冻结执行动作', 409);
         if (action === 'RETAIN_WITH_BASIS') {
             await this.validateRetentionSources(tx, [item]);
+            if(item.dependencyKind===IDENTITY_DEPENDENCY){await assertSourceFactGroupDone(tx,request);await validateIdentityDependency(tx,await deletionWorkerActor(tx,request),request.targetId,item,await tx.find('deletionItems',{workspaceId:request.workspaceId,requestId:request.id}),this.clock);}
+            if(item.dependencyKind===IDENTITY_RETENTION){await assertSourceFactGroupDone(tx,request);const person=await tx.get('people',item.resourceId);invariant(person,'TD2_SOURCE_OWNER_UNAVAILABLE','人物身份不存在',409);await validateIdentityRetention(tx,await deletionWorkerActor(tx,request),person,item.retentionSourceId!,this.clock,item);}
             return { outcome: 'DONE' };
         }
         if (action === 'REBIND_SOURCE') {
             await this.validateRetentionSources(tx, [item]);
             invariant(!!item.retentionSourceId && !!item.retentionSourceRevision && !!item.retentionSourceProtectionEpoch,
                 'RETENTION_BASIS_MISSING', '重绑来源缺少冻结依据', 409);
-            if (item.resourceKind === 'person') {
-                const row = await tx.get('people', item.resourceId);
-                if (row) {
-                    for (const permission of await tx.find('usePermissions', { workspaceId: row.workspaceId, subjectPersonId: row.id, sourceId: row.sourceId })) {
-                        invariant(permission.status === 'REVOKED', 'RETENTION_PERMISSION_ACTIVE', '旧来源仍有未撤销的人才用途许可', 409);
-                        await tx.remove('usePermissions', permission.id);
-                    }
-                    await tx.replace('people', { ...touch(row, this.clock), sourceId: item.retentionSourceId });
-                }
-                return { outcome: 'DONE' };
-            }
+            invariant(item.resourceKind!=='person','TD2_IDENTITY_PLAN_REFRESH_REQUIRED','旧人物来源重绑计划已不适用，须重新评估原始来源与独立字段依据',409);
             if (item.resourceKind === 'work') {
                 const row = await tx.get('works', item.resourceId);
                 if (row) {
