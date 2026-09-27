@@ -36,6 +36,8 @@ export class MemoryStore implements Store {
             replace: async <K extends Table>(table: K, row: TableMap[K]): Promise<void> => {
                 if (table === 'sourceHistory')
                     throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加');
+                if ((table === 'talentProfiles' || table === 'castingProfiles') && draft[table].get(row.id)?.supersededById)
+                    throw new AppError(409, 'MERGE_HISTORY_IMMUTABLE', '合并保留的专业档案只读');
                 if (!draft[table].has(row.id))
                     throw new Error('missing row');
                 (draft[table] as Map<string, TableMap[K]>).set(row.id, structuredClone(row));
@@ -43,6 +45,8 @@ export class MemoryStore implements Store {
             remove: async (table, id) => {
                 if (table === 'sourceHistory')
                     throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加');
+                if ((table === 'talentProfiles' || table === 'castingProfiles') && draft[table].get(id)?.supersededById)
+                    throw new AppError(409, 'MERGE_HISTORY_IMMUTABLE', '合并历史删除需要专用保留策略');
                 draft[table].delete(id);
             },
             redactSourceHistory: async (id, at) => {

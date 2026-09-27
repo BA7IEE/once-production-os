@@ -3,6 +3,7 @@ export type PersonMergeField = 'displayName' | 'aliases' | 'roles' | 'cityCode' 
 export type PersonMergeFieldChoice = 'CANONICAL' | 'DUPLICATE' | 'UNION';
 export type PersonMergeCollisionChoice = 'KEEP_CANONICAL' | 'KEEP_DUPLICATE';
 
+export type ProfessionalConflictChoice = NonNullable<Inputs['person.merge']['professionalConflicts']>[number]['choice'];
 export interface PersonMergePreview {
     canonical: { id: string; displayName: string; sourceId: string; scopeId: string; revision: number };
     duplicate: { id: string; displayName: string; sourceId: string; scopeId: string; revision: number };
@@ -30,7 +31,7 @@ export interface PersonMergePreview {
     moves: { workCredits: number; projectParticipants: number; shortlistItems: number };
     professional: {
         items: Array<NonNullable<Inputs['person.merge']['professionalDecisions']>[number] & { revision: number }>;
-        conflicts: Array<{ table: string; canonicalId: string; duplicateId: string; code: string }>;
+        conflicts: Array<{ table: string; canonicalId: string; duplicateId: string; code: string; choices: ProfessionalConflictChoice[]; canonicalValue: unknown; duplicateValue: unknown; dependentCount: number }>;
         restricted: boolean;
     };
     previewDigest: string;

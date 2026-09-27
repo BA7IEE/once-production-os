@@ -62,6 +62,7 @@ export class PersonMerges {
     private permissions(actor: Actor) {
         requirePermission(actor, 'data.merge');
         requirePermission(actor, 'records.write');
+        requirePermission(actor, 'records.read');
     }
     private executionGate() {
         invariant(this.config.dataMergeMode === 'INTERNAL_APPROVED', 'MERGE_DISABLED', '当前环境未批准执行人才合并', 503);
@@ -310,7 +311,7 @@ export class PersonMerges {
         const requested = talentDecisions.map(r => `${r.table}:${r.id}:${r.action}`).sort();
         const required = plan.talent.preview.items.map(r => `${r.table}:${r.id}:${r.action}`).sort();
         invariant(same(requested, required), 'TD2_MERGE_DECISIONS_INCOMPLETE', '必须逐项确认专业资料迁移及建议失效', 422);
-        const professional = await applyTalentMerge(tx, actor, this.clock, plan.talent, plan.canonical.id, plan.duplicate.id);
+        const professional = await applyTalentMerge(tx, actor, this.clock, plan.talent, plan.canonical.id, plan.duplicate.id, d.professionalConflicts ?? []);
 
         const now = this.clock.now().toISOString();
         // Revoke purpose grants and handoffs rather than moving them to a different identity.
@@ -414,7 +415,7 @@ export class PersonMerges {
         await this.bumpRoots(tx, actor, plan);
 
         const manifest = {
-            professional, professionalDecisions: talentDecisions,
+            professional, professionalDecisions: talentDecisions, professionalConflicts: d.professionalConflicts ?? [],
             reason: d.reason, fieldDecisions: [...fieldMap].sort(), collisionDecisions: [...collisionMap].sort(),
             revokedHandoffs: plan.activeHandoffIds.length, revokedUsePermissions: plan.activePermissionIds.length,
             contactsReencrypted: plan.contactIds.length, evidenceMoved: plan.evidenceIds.length,

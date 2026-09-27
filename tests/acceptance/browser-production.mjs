@@ -380,9 +380,10 @@ try {
  // TD2: the actual merge form requires each professional move to be acknowledged.
  const tdSchema='once-talent-v2.0.0';
  const tdSource=(await cmd(owner,'POST','/sources',source('TD2专业合并来源'),201)).resourceId;
- const tdCanonical=(await cmd(owner,'POST','/td2/people',{schemaVersion:tdSchema,originSourceId:tdSource,sourceRevision:1,displayName:'TD2保留身份'},201)).resourceId;
+ const tdCanonical=(await cmd(owner,'POST','/td2/people',{schemaVersion:tdSchema,originSourceId:tdSource,sourceRevision:1,displayName:'TD2保留身份',createTalent:true},201)).resourceId;
  const tdDuplicate=(await cmd(owner,'POST','/td2/people',{schemaVersion:tdSchema,originSourceId:tdSource,sourceRevision:1,displayName:'TD2专业重复',createTalent:true},201)).resourceId;
  const tdAdd=async(slug,values)=>cmd(owner,'POST',`/td2/people/${tdDuplicate}/${slug}`,{schemaVersion:tdSchema,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdDuplicate}})).revision,sourceId:tdSource,sourceRevision:1,values},201);
+ await cmd(owner,'POST',`/td2/people/${tdCanonical}/roles`,{schemaVersion:tdSchema,expectedPersonRevision:1,sourceId:tdSource,sourceRevision:1,values:{roleCode:'model'}},201);
  const tdRole=(await tdAdd('roles',{roleCode:'model'})).resourceId;
  const tdLanguage=(await tdAdd('languages',{languageCode:'en',speakingLevelCode:'WORKING'})).resourceId;
  const tdCollection=(await tdAdd('collections',{personRoleId:tdRole,collectionTypeCode:'PORTFOLIO',title:'TD2合成集合'})).resourceId;
@@ -408,17 +409,26 @@ try {
  assert.equal(await tdPanel.getByRole('checkbox').count(),tdPreview.professional.items.length);
  if(tdPreview.media.uploadsToDetach+tdPreview.media.assetsToDetach>0)await owner.getByLabel(/我确认解除/).check();
  for(const box of await tdPanel.getByRole('checkbox').all())await box.check();
+ assert.equal(await owner.getByRole('button',{name:'执行受控合并',exact:true}).isEnabled(),false);
+ assert.equal(tdPreview.professional.conflicts.length,2);
+ for(const c of tdPreview.professional.conflicts) await owner.getByLabel('专业冲突决定 '+c.table+':'+c.canonicalId+':'+c.duplicateId,{exact:true}).selectOption(c.table==='talentProfiles'?'RETAIN_DUPLICATE_HISTORY':'KEEP_DUPLICATE_ACTIVE');
  assert.equal(await owner.getByRole('button',{name:'执行受控合并',exact:true}).isEnabled(),true);
  owner.once('dialog',dialog=>void dialog.accept());
  await writeUI(owner,'POST','/people/merge',()=>owner.getByRole('button',{name:'执行受控合并',exact:true}).click());
  await owner.getByText('合并已完成',{exact:true}).waitFor();
  const tdDetail=await json(owner,'/td2/people/'+tdCanonical);
  assert.equal(tdDetail.facts.personLanguages[0].id,tdLanguage);
- assert.equal(tdDetail.facts.personRoles[0].id,tdRole);
+ assert.equal(tdDetail.facts.personRoles.find(r=>r.status==='ACTIVE').id,tdRole);
  assert.equal(tdDetail.facts.mediaCollections[0].id,tdCollection);
  assert.equal(tdDetail.facts.mediaCollections[0].items[0].assetId,tdUpload.resourceId);
  assert.equal(await prisma.personAlias.count({where:{oldPersonId:tdDuplicate,canonicalPersonId:tdCanonical}}),1);
- console.log('PASS TD2 browser: per-record confirmation gates professional merge; stable role/language/collection/item IDs and original media survive');
+ await owner.getByRole('button',{name:'查看合并保留资料',exact:true}).click();
+ await owner.getByRole('heading',{name:'合并保留资料',exact:true}).waitFor();
+ const historySection=owner.locator('section').filter({has:owner.getByRole('heading',{name:'合并保留资料',exact:true})});
+ assert.equal(await historySection.getByRole('heading',{name:'人才主档案',exact:true}).count(),1);
+ assert.ok((await historySection.innerText()).includes(tdDuplicate));
+ assert.equal(await prisma.talentProfile.count({where:{personId:tdDuplicate,supersededById:{not:null}}}),1);
+ console.log('PASS TD2 browser: explicit conflict selection and retained history; per-record confirmation gates professional merge; stable role/language/collection/item IDs and original media survive');
 
  assert.deepEqual(errors,[]);
 } catch(error) {

@@ -79,6 +79,7 @@ export const ROUTES: RouteDefinition[] = [
     { method: 'POST', path: '/handoffs/{id}/accept', operation: 'handoff.accept', mode: 'COMMAND', permission: 'records.read', schema: Schemas.revision },
     { method: 'POST', path: '/handoffs/{id}/decline', operation: 'handoff.decline', mode: 'COMMAND', permission: 'records.read', schema: Schemas.revision },
     { method: 'POST', path: '/handoffs/{id}/revoke', operation: 'handoff.revoke', mode: 'COMMAND', permission: 'records.read', schema: Schemas.revision },
+    { method: 'GET', path: '/people/{id}/merge-history', operation: 'person.mergeHistory', mode: 'READ', permission: 'data.merge' },
     { method: 'POST', path: '/people/merge-preview', operation: 'person.mergePreview', mode: 'READ', permission: 'data.merge', schema: MS.preview },
     { method: 'POST', path: '/people/merge', operation: 'person.merge', mode: 'COMMAND', permission: 'data.merge', schema: MS.execute },
     { method: 'GET', path: '/people', operation: 'person.list', mode: 'READ', permission: 'records.read' },

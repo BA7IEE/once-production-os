@@ -1,3 +1,4 @@
+import { mergeInput, mergePreview } from '../support/talent-v2-merge.ts';
 import { seedProfessionalGraph } from '../support/talent-v2-maintenance.ts';
 /** DEV-09C actual pg_dump -> pg_restore -> recovery approve drill. */
 import { test } from 'node:test';
@@ -136,6 +137,14 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         });
         assert.equal(linked.status, 200, JSON.stringify(linked.body));
 
+        const historyDuplicate = result(await owner.cmd('POST', '/td2/people', {schemaVersion:'once-talent-v2.0.0',originSourceId:sourceId,sourceRevision:1,displayName:'合成恢复历史',createTalent:true}));
+        const historyPersonId = historyDuplicate.resourceId;
+        assert.ok(historyPersonId);
+        const historyPreview = await mergePreview(sourceStore, owner, personId, historyPersonId);
+        const historyMerge = await owner.cmd('POST', '/people/merge', { ...mergeInput(historyPreview), professionalConflicts: historyPreview.professional.conflicts.map((c: any) => ({table:c.table,canonicalId:c.canonicalId,duplicateId:c.duplicateId,choice:'RETAIN_DUPLICATE_HISTORY'})) });
+        assert.equal(historyMerge.status,200,JSON.stringify(historyMerge.body));
+        const historyId = (await sourceClient.talentProfile.findFirstOrThrow({where:{personId:historyPersonId}})).id;
+
         const backup=run('pnpm',['--silent','recovery:backup','--','--output-dir',backupDir],{
             ...process.env,DATABASE_URL_BACKUP:sourceUrl,SAFETY_JOURNAL_FILE:journal,
             CONTACT_KEY_FILE:contactFile,RECOVERY_EPOCH_FILE:oldEpochFile,
@@ -222,6 +231,9 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         assert.deepEqual(report.blockers,[]);
         assert.equal(report.contactDecryptFailures,0);
         assert.equal(report.talent.relationFailures, 0);
+        const retained = await restoreClient.talentProfile.findUniqueOrThrow({where:{id:historyId}});
+        assert.equal(retained.personId,historyPersonId); assert.ok(retained.supersededById);
+        assert.equal(await restoreClient.personAlias.count({where:{oldPersonId:historyPersonId,canonicalPersonId:personId}}),1);
         assert.equal(report.talent.credentialCount, 1);
         assert.equal(report.talent.credentialDecryptFailures, 0);
         assert.equal(report.talent.tableCounts.personRoles, 2);

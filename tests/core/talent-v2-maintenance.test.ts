@@ -23,7 +23,7 @@ test('TD2-T17 integrity inspector detects missing or cross-person typed referenc
     const report = await f.store.transaction(tx => inspectTalentIntegrity(tx, f.workspaceId, f.app.config.contactKey));
     assert.ok(report.relationFailures > before.relationFailures); assert.ok(report.blockers.includes('TD2_RELATION_INVALID'));
 });
-test('TD2-T16 unsupported cross-source retention and typed merge fail closed rather than silently orphaning professional facts', async () => {
+test('TD2-T16 source retention stays blocked while singleton merge requires explicit history resolution', async () => {
     const f = await fixture(), p = await seedProfessionalGraph(f.app, f.store, f.clock, f.owner);
     const preview = expectResponse(await f.owner.raw('POST', '/deletion-requests/preview', { targetKind: 'SOURCE', targetId: p.sourceId, expectedRevision: 1 }), 200);
     assert.equal(preview.complete, false); assert.ok(preview.unresolved.some((r: any) => r.code === 'TD2_SOURCE_RETENTION_REVIEW_REQUIRED'));
@@ -31,7 +31,8 @@ test('TD2-T16 unsupported cross-source retention and typed merge fail closed rat
     const merge = expectResponse(await f.owner.raw('POST', '/people/merge-preview', {
         canonicalId: p.personId, duplicateId: second.resourceId, expectedCanonicalRevision: (await p.current()).revision, expectedDuplicateRevision: 1
     }), 200);
-    assert.ok(merge.blockers.some((r: any) => r.code === 'TD2_MERGE_SINGLETON_CONFLICT'));
+    assert.ok(merge.professional.conflicts.some((r: any) => r.table === 'talentProfiles' && r.choices.includes('RETAIN_DUPLICATE_HISTORY')));
+    assert.equal(merge.complete, true);
     await assert.rejects(f.store.transaction(tx => assertTalentFinalizationClean(tx, f.workspaceId, 'PERSON', p.personId)));
 });
 test('TD2-T16 legacy export cannot serialize stale flat professional fields for an upgraded person', async () => {

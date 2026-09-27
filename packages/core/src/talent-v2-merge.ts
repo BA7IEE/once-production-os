@@ -4,19 +4,25 @@ import { TALENT_FACT_TABLES, TALENT_OWNER_TABLES } from './talent-v2-model.ts';
 import { talentSnapshot } from './talent-v2-integrity.ts';
 import { loadTalentGraph } from './talent-v2-graph.ts';
 import type { FactRow, FactTable } from './talent-v2-schema.ts';
-import { sourceFor } from './policy.ts';
+import { sourceFor, requirePermission } from './policy.ts';
 import { AppError, invariant } from './errors.ts';
 import { digest } from './json.ts';
 import { touch } from './helpers.ts';
 
 const MOVE_TABLES = [...TALENT_FACT_TABLES, 'mediaCollectionItems', 'talentMigrationReviews'] as const;
 type Row = { id: string; workspaceId: string; [key: string]: unknown };
-export interface TalentMergeItem { table: string; id: string; revision: number; action: 'MOVE' | 'REBIND_AGENT' | 'STALE_PROPOSAL' }
-export interface TalentMergeConflict { table: string; canonicalId: string; duplicateId: string; code: string }
+export interface TalentMergeItem { table: string; id: string; revision: number; action: 'MOVE' | 'REBIND_AGENT' | 'STALE_PROPOSAL' | 'RETAIN_HISTORY' }
+export type TalentConflictChoice = 'RETAIN_DUPLICATE_HISTORY' | 'KEEP_CANONICAL_ACTIVE' | 'KEEP_DUPLICATE_ACTIVE';
+export interface TalentConflictDecision { table: string; canonicalId: string; duplicateId: string; choice: TalentConflictChoice }
+export interface TalentMergeConflict {
+    table: string; canonicalId: string; duplicateId: string; code: string;
+    choices: TalentConflictChoice[]; canonicalValue: Record<string, unknown>; duplicateValue: Record<string, unknown>;
+    dependentCount: number;
+}
+export const conflictKey = (c: { table: string; canonicalId: string; duplicateId: string }) => `${c.table}:${c.canonicalId}:${c.duplicateId}`;
 
-/** No raw facts, proposal values, identifiers or evidence text are exposed by this maintenance DTO.
- * Non-colliding records keep their UUID and source. Singleton consolidation requires a separate
- * evidence-preserving resolution policy; it must never be implemented by dropping one record. */
+/** Conflict values use the permission-filtered fact projection. Secret identifiers and proposal
+ * values are never exposed. Stable UUIDs and original sources survive every resolution. */
 export async function scanTalentMerge(tx: Tx, actor: Actor, clock: Clock, canonicalId: string, duplicateId: string) {
     const data = await talentSnapshot(tx, actor.workspaceId);
     const graph = await loadTalentGraph(tx, actor, clock);
@@ -25,6 +31,15 @@ export async function scanTalentMerge(tx: Tx, actor: Actor, clock: Clock, canoni
     const blockers = new Set<string>();
     const items: TalentMergeItem[] = [];
     const conflicts: TalentMergeConflict[] = [];
+    const addConflict = (table: FactTable, a: Row, b: Row, code: string, choices: TalentConflictChoice[]) => {
+        const canonicalValue = graph.project(table, a as FactRow), duplicateValue = graph.project(table, b as FactRow);
+        if (!canonicalValue || !duplicateValue || (canonicalValue.unavailableFields as string[]).length || (duplicateValue.unavailableFields as string[]).length)
+            blockers.add('TD2_MERGE_HIDDEN_DEPENDENCY');
+        const dependentCount = [...TALENT_FACT_TABLES, 'shortlistItems' as const].reduce((n, t) =>
+            n + data[t].filter(r => r.personRoleId === a.id || r.personRoleId === b.id).length, 0);
+        conflicts.push({ table, canonicalId: a.id, duplicateId: b.id, code, choices,
+            canonicalValue: canonicalValue ?? {}, duplicateValue: duplicateValue ?? {}, dependentCount });
+    };
     for (const table of MOVE_TABLES) {
         const rows = data[table].filter(r => r.personId === canonicalId || r.personId === duplicateId
             || (table === 'representations' && (r.agentPersonId === canonicalId || r.agentPersonId === duplicateId)));
@@ -53,8 +68,7 @@ export async function scanTalentMerge(tx: Tx, actor: Actor, clock: Clock, canoni
                     const overlap = (!a.validFrom || !b.validUntil || String(a.validFrom) < String(b.validUntil))
                         && (!b.validFrom || !a.validUntil || String(b.validFrom) < String(a.validUntil));
                     if (a[key] === b[key] && overlap && (table !== 'talentLocations' || a.relationCode === 'BASE')) {
-                        conflicts.push({ table, canonicalId: a.id, duplicateId: b.id, code: 'PERIOD_RESOLUTION_REQUIRED' });
-                        blockers.add('TD2_MERGE_PERIOD_CONFLICT');
+                        addConflict(table, a, b, 'PERIOD_RESOLUTION_REQUIRED', ['KEEP_CANONICAL_ACTIVE', 'KEEP_DUPLICATE_ACTIVE']);
                     }
                 }
         }
@@ -62,8 +76,14 @@ export async function scanTalentMerge(tx: Tx, actor: Actor, clock: Clock, canoni
             const relevant = table === 'adultEligibilities' ? rows.filter(r => r.status === 'ACTIVE') : rows;
             const a = relevant.find(r => r.personId === canonicalId), b = relevant.find(r => r.personId === duplicateId);
             if (a && b) {
-                conflicts.push({ table, canonicalId: a.id, duplicateId: b.id, code: 'SINGLETON_RESOLUTION_REQUIRED' });
-                blockers.add('TD2_MERGE_SINGLETON_CONFLICT');
+                if (table === 'adultEligibilities') {
+                    addConflict(table, a, b, 'ADULT_RESOLUTION_REQUIRED', ['KEEP_CANONICAL_ACTIVE', 'KEEP_DUPLICATE_ACTIVE']);
+                    if (!actor.permissions.includes('sources.review')) blockers.add('TD2_MERGE_REVIEW_REQUIRED');
+                } else {
+                    addConflict(table, a, b, 'SINGLETON_RESOLUTION_REQUIRED', ['RETAIN_DUPLICATE_HISTORY']);
+                    const item = items.find(i => i.table === table && i.id === b.id);
+                    if (item) item.action = 'RETAIN_HISTORY';
+                }
             }
         }
     }
@@ -92,21 +112,61 @@ export async function scanTalentMerge(tx: Tx, actor: Actor, clock: Clock, canoni
     if (count > 500) blockers.add('TD2_MERGE_LIMIT');
     const hidden = blockers.has('TD2_MERGE_HIDDEN_DEPENDENCY') || blockers.has('TD2_MERGE_SENSITIVE_REQUIRED');
     items.sort((a, b) => a.table.localeCompare(b.table) || a.id.localeCompare(b.id));
+    if (conflicts.length > 100) blockers.add('TD2_MERGE_LIMIT');
     // Include endpoint state so source/scope/media changes invalidate a frozen preview too.
     // This conservative snapshot may also invalidate on unrelated workspace edits.
-    return { selected, count, blockers: [...blockers].sort(),
+    return { selected, conflicts, count, blockers: [...blockers].sort(),
         preview: { items: hidden ? [] : items, conflicts: hidden ? [] : conflicts, restricted: hidden },
         digest: digest(data) };
 }
 export type TalentMergePlan = Awaited<ReturnType<typeof scanTalentMerge>>;
 
-export async function applyTalentMerge(tx: Tx, actor: Actor, clock: Clock, plan: TalentMergePlan, canonicalId: string, duplicateId: string) {
+export function resolveTalentConflicts(plan: TalentMergePlan, decisions: TalentConflictDecision[]) {
+    const choices = new Map<string, TalentConflictChoice>();
+    for (const d of decisions) {
+        invariant(!choices.has(conflictKey(d)), 'TD2_MERGE_CONFLICT_DUPLICATE', '同一专业冲突只能决定一次', 422);
+        choices.set(conflictKey(d), d.choice);
+    }
+    invariant(choices.size === plan.conflicts.length && plan.conflicts.every(c => choices.has(conflictKey(c))),
+        'TD2_MERGE_CONFLICT_INCOMPLETE', '必须逐项决定全部专业资料冲突', 422);
+    const deactivate = new Map<FactTable, Set<string>>(), retain = new Map<string, TalentMergeConflict>();
+    const kept = new Set<string>(), dropped = new Set<string>();
+    for (const c of plan.conflicts) {
+        const choice = choices.get(conflictKey(c))!;
+        invariant(c.choices.includes(choice), 'TD2_MERGE_CONFLICT_CHOICE_INVALID', '专业冲突决定不符合当前预览', 422);
+        if (choice === 'RETAIN_DUPLICATE_HISTORY') { retain.set(c.table + ':' + c.duplicateId, c); continue; }
+        const keep = choice === 'KEEP_CANONICAL_ACTIVE' ? c.canonicalId : c.duplicateId;
+        const drop = choice === 'KEEP_CANONICAL_ACTIVE' ? c.duplicateId : c.canonicalId;
+        kept.add(c.table + ':' + keep); dropped.add(c.table + ':' + drop);
+        const ids = deactivate.get(c.table as FactTable) ?? new Set<string>(); ids.add(drop); deactivate.set(c.table as FactTable, ids);
+    }
+    invariant([...kept].every(id => !dropped.has(id)), 'TD2_MERGE_CONFLICT_CONTRADICTORY', '同一条资料不能同时选择保留生效和停用，请重新决定', 422);
+    return { deactivate, retain };
+}
+
+export async function applyTalentMerge(tx: Tx, actor: Actor, clock: Clock, plan: TalentMergePlan, canonicalId: string, duplicateId: string, decisions: TalentConflictDecision[] = []) {
     invariant(plan.blockers.length === 0, 'MERGE_BLOCKED', '专业资料仍有未解决的合并依赖', 409);
+    const { deactivate, retain } = resolveTalentConflicts(plan, decisions);
+    if (plan.conflicts.some(c => c.table === 'adultEligibilities')) requirePermission(actor, 'sources.review');
+    // Deactivate losing active rows before moving a competing row through immediate unique indexes.
+    for (const [table, ids] of deactivate) for (const id of ids) {
+        const row = await tx.get(table, id); invariant(!!row, 'MERGE_PREVIEW_STALE', '专业记录已经变化', 409);
+        await tx.replace(table, { ...touch(row, clock), status: 'INACTIVE' } as TableMap[typeof table]);
+    }
     const affectedPeople = new Set<string>();
-    let moved = 0, staleProposals = 0;
+    let moved = 0, staleProposals = 0, retainedProfiles = 0;
     for (const table of MOVE_TABLES) for (const row of plan.selected.get(table) ?? []) {
         if (row.personId !== duplicateId && row.agentPersonId !== duplicateId) continue;
-        const next = { ...touch(row as unknown as TableMap[typeof table], clock),
+        const history = retain.get(table + ':' + row.id);
+        if (history) {
+            invariant(table === 'talentProfiles' || table === 'castingProfiles', 'TD2_MERGE_HISTORY_INVALID', '不支持该类型的历史保留', 422);
+            const old = row as unknown as TableMap[typeof table];
+            await tx.replace(table, { ...touch(old, clock), supersededById: history.canonicalId,
+                ...(table === 'castingProfiles' ? { currentMeasurementSetId: null, retiredCurrentMeasurementSetId: row.currentMeasurementSetId == null ? null : String(row.currentMeasurementSetId) } : {}) });
+            retainedProfiles++; continue;
+        }
+        const current = await tx.get(table, row.id); invariant(!!current, 'MERGE_PREVIEW_STALE', '专业记录已经变化', 409);
+        const next = { ...touch(current, clock),
             personId: row.personId === duplicateId ? canonicalId : String(row.personId) };
         if (table === 'representations' && row.agentPersonId === duplicateId) {
             Object.assign(next, { agentPersonId: canonicalId });
@@ -126,5 +186,5 @@ export async function applyTalentMerge(tx: Tx, actor: Actor, clock: Clock, plan:
     for (const id of affectedPeople) {
         const p = await tx.get('people', id); if (p) await tx.replace('people', touch(p, clock));
     }
-    return { moved, staleProposals };
+    return { moved, staleProposals, retainedProfiles, deactivated: [...deactivate.values()].reduce((n, ids) => n + ids.size, 0) };
 }

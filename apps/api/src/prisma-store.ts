@@ -42,12 +42,20 @@ export class PrismaStore implements Store {
                     replace: async <K extends Table>(t: K, row: TableMap[K]) => {
                         if (t === 'sourceHistory')
                             throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加');
+                        if (t === 'talentProfiles' || t === 'castingProfiles') {
+                            const old = await tx.get(t, row.id);
+                            if (old && 'supersededById' in old && old.supersededById) throw new AppError(409, 'MERGE_HISTORY_IMMUTABLE', '合并保留的专业档案只读');
+                        }
                         const { id, ...update } = data(row);
                         await delegate(t).update({ where: { id }, data: update });
                     },
                     remove: async (t, id) => {
                         if (t === 'sourceHistory')
                             throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加');
+                        if (t === 'talentProfiles' || t === 'castingProfiles') {
+                            const old = await tx.get(t, id);
+                            if (old && 'supersededById' in old && old.supersededById) throw new AppError(409, 'MERGE_HISTORY_IMMUTABLE', '合并历史删除需要专用保留策略');
+                        }
                         await delegate(t).delete({ where: { id } });
                     },
                     redactSourceHistory: async (id, at) => {

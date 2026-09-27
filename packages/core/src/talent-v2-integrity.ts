@@ -74,6 +74,18 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
         ref(row, 'issuerOrganizationId', 'organizations');
         ref(row, 'evidenceAssetId', 'assets');
         if (table === 'castingProfiles') ref(row, 'currentMeasurementSetId', 'measurementSets', true);
+        if ((table === 'talentProfiles' || table === 'castingProfiles') && row.supersededById) {
+            ref(row, 'supersededById', table, false, true);
+            const current = maps[table].get(String(row.supersededById));
+            check(!!current && !current.supersededById && current.personId !== row.personId
+                && data.personAliases.some(a => a.oldPersonId === row.personId && a.canonicalPersonId === current.personId));
+            if (table === 'castingProfiles') {
+                check(row.currentMeasurementSetId == null);
+                ref(row, 'retiredCurrentMeasurementSetId', 'measurementSets');
+                if (row.retiredCurrentMeasurementSetId) check(maps.measurementSets.get(String(row.retiredCurrentMeasurementSetId))?.personId === current?.personId);
+            }
+        }
+        if (table === 'castingProfiles' && !row.supersededById) check(row.retiredCurrentMeasurementSetId == null);
         if (table === 'measurementSets') ref(row, 'supersedesId', 'measurementSets', true);
         if (table === 'mediaCollectionItems') {
             ref(row, 'assetId', 'assets', false, true);
@@ -153,6 +165,8 @@ export async function talentDependencyCounts(tx: Tx, workspaceId: string, kind: 
             || (kind === 'SOURCE' && row.sourceId === id)
             || (kind === 'ASSET' && (row.assetId === id || row.evidenceAssetId === id))) add(table, row);
     }
+    if (kind === 'PERSON') for (const table of ['talentProfiles', 'castingProfiles'] as const)
+        for (const row of data[table]) if (row.supersededById && data[table].some(r => r.id === row.supersededById && r.personId === id)) add(table, row);
     if (kind === 'SOURCE') {
         const people = data.people.filter(r => r.sourceId === id);
         for (const table of TALENT_V2_TABLES) for (const row of data[table])

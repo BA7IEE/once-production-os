@@ -51,9 +51,11 @@ export async function previewTalentErasure(tx: Tx, actor: Actor, personId: strin
             if (!s || !await scopeVisible(tx, actor, String(s.scopeId))) visible = false;
         }
     }
+    const retainedHistory = (['talentProfiles', 'castingProfiles'] as const).some(table => g.data[table].some(row =>
+        row.supersededById && (row.personId === personId || g.data[table].some(target => target.id === row.supersededById && target.personId === personId))));
     const sensitive = (g.selected.get('personCredentials') ?? []).some(r => !!r.identifierCiphertext);
     return { count: g.count, digest: g.digest, counts: visible ? g.counts : {},
-        blocker: !visible ? 'TD2_HIDDEN_DEPENDENCY' : sensitive && !actor.permissions.includes('sensitive.write') ? 'TD2_SENSITIVE_WRITE_REQUIRED' : null };
+        blocker: retainedHistory ? 'TD2_MERGE_HISTORY_RETENTION_REQUIRED' : !visible ? 'TD2_HIDDEN_DEPENDENCY' : sensitive && !actor.permissions.includes('sensitive.write') ? 'TD2_SENSITIVE_WRITE_REQUIRED' : null };
 }
 
 /** The entire graph is removed in ONE short transaction, including dependent typed Evidence.

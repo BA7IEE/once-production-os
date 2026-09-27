@@ -1,3 +1,11 @@
+# 2026-09-27 专业冲突合并验证
+
+接续 `ad24bd8`，本轮 **357/357 CORE_MEMORY_TESTED**（原 354，加 3 个核心用例并扩展既有断言）。164 请求契约、服务/React/core/transport 类型检查、静态检查和构建 PASS。真实 PostgreSQL 16 空库、保留合成库前向升级、专业冲突/SQL历史不可改/回滚重试、完整原合同 67/67、重建和 DB+私有媒体恢复链均 DB_TESTED。实际恢复演练含已保留的专业历史及其别名。真实 Chrome production 链通过，新增逐项冲突选择与只读历史查看 BROWSER_TESTED。详见 [范围和未完成项](TD2_CONFLICT_MERGE.md)，日志 `artifacts/td2-conflicts-20260927/`。最终远端结果以本次提交的 PR #26 Actions 为准；正式迁移、部署、生产提供方和完整 TD2-06 NOT_RUN。
+
+首次浏览器启动的测试包装脚本预先迁移数据库，被原有“必须空库”断言拒绝；修正包装脚本后使用另一新空库，未清库、未改弱断言。首次新核心断言错误地假定合成资质绑定职业；改为验证实际原绑定完全保留。没有以跳过测试或增加等待时限换取通过。
+
+---
+
 # 2026-09-27 人才 2.0 无冲突专业图合并验证
 
 基线 `e8906b3`；本轮核心回归 **354/354，CORE_MEMORY_TESTED**。完整服务/React 类型检查、163 请求契约、静态检查与构建 PASS。新增共享专业合并断言在真实 PostgreSQL 16 新空库通过，DB_TESTED，覆盖稳定 ID/原来源、候选职业关联、密文解密、审计后回滚、同键重试/重放。完整 PostgreSQL 验收通过：原合同 67/67、T29 重建、恢复检查、DB+media 恢复、TD2 删除/恢复及新增独立合并库全部 PASS；真实 Chrome 的 production 主链与新增逐项确认/职业/语言/集合/素材保留验收通过，BROWSER_TESTED。远端最终 CI 以 PR #26 当前 head 的 Actions 为准。本轮日志在 `artifacts/td2-merge-20260927/`，没有覆盖旧阶段证据。详见 [本轮范围与边界](TD2_MERGE_CONTINUATION.md)。

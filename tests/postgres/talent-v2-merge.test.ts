@@ -6,7 +6,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaStore } from '../../apps/api/src/prisma-store.ts';
 import { Application } from '../../packages/core/src/api.ts';
 import { FakeClock, Client, SYNTHETIC_PASSWORD } from '../support/fixtures.ts';
-import { verifyProfessionalMerge } from '../support/talent-v2-merge.ts';
+import { verifyProfessionalConflicts, verifyProfessionalMerge } from '../support/talent-v2-merge.ts';
 
 test('TD2 real PostgreSQL professional merge rollback and retry', async () => {
     assert.equal(process.env.ALLOW_TD2_DB_TESTS, 'yes');
@@ -27,6 +27,13 @@ test('TD2 real PostgreSQL professional merge rollback and retry', async () => {
         await app.identity.bootstrap('owner', '合成2.0维护管理员', SYNTHETIC_PASSWORD);
         const owner = new Client(app); assert.equal((await owner.login()).status, 200);
         await verifyProfessionalMerge(app, store, clock, owner);
-        console.log('PASS TD2 PG: typed merge stable IDs, original sources, role links, audit rollback, retry and replay');
+        await verifyProfessionalConflicts(app, store, clock, owner);
+        const retired = await client.talentProfile.findFirstOrThrow({ where: { supersededById: { not: null } } });
+        await assert.rejects(client.$executeRaw`UPDATE "talentProfiles" SET "revision"="revision"+1 WHERE "id"=${retired.id}::uuid`, /retired profile is immutable/);
+        await assert.rejects(client.$executeRaw`DELETE FROM "talentProfiles" WHERE "id"=${retired.id}::uuid`, /retired profile is immutable/);
+        await assert.rejects(client.$executeRaw`UPDATE "talentProfiles" SET "personId"=${retired.personId}::uuid WHERE "id"=${retired.supersededById}::uuid`, /cannot change the owner/);
+        const ordinary = await client.talentProfile.findFirstOrThrow({ where: { supersededById: null, id: { not: retired.supersededById! } } });
+        await assert.rejects(client.$executeRaw`UPDATE "talentProfiles" SET "supersededById"=${retired.supersededById}::uuid,"revision"="revision"+1 WHERE "id"=${ordinary.id}::uuid`, /matching completed identity merge/);
+        console.log('PASS TD2 PG: explicit conflicts, immutable history, raw SQL lineage guards; typed merge stable IDs, original sources, role links, audit rollback, retry and replay');
     } finally { await store.close(); }
 });

@@ -1,6 +1,7 @@
 import type { Base } from './model.ts';
 export const TALENT_SCHEMA_VERSION = 'once-talent-v2.0.0' as const;
 export interface TalentProfile extends Base {
+    supersededById?: string | null;
     personId: string;
     sourceId: string;
     internalSummary: string;
@@ -59,6 +60,8 @@ export interface TalentLocation extends Base {
     status: 'ACTIVE' | 'INACTIVE';
 }
 export interface CastingProfile extends Base {
+    supersededById?: string | null;
+    retiredCurrentMeasurementSetId?: string | null;
     personId: string;
     sourceId: string;
     hairColorCode: 'BLACK' | 'BROWN' | 'BLONDE' | 'RED' | 'GRAY' | 'WHITE' | 'OTHER' | null;

@@ -1230,6 +1230,7 @@ model TalentProfile {
   createdAt DateTime @db.Timestamptz(3)
   updatedAt DateTime @db.Timestamptz(3)
   revision Int
+  supersededById String? @db.Uuid
   personId String @db.Uuid
   sourceId String @db.Uuid
   internalSummary String @db.Text
@@ -1247,6 +1248,9 @@ model TalentProfile {
   @@unique([workspaceId, personId, id])
   @@index([workspaceId, createdAt], map: "talentProfiles_td2_created_idx")
   @@map("talentProfiles")
+  supersededBy TalentProfile? @relation("TalentProfile_superseded", fields: [workspaceId, supersededById], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "talentProfiles_superseded_fk")
+  supersededProfiles TalentProfile[] @relation("TalentProfile_superseded")
+  @@index([workspaceId, supersededById], map: "talentProfiles_superseded_idx")
 }
 
 model PersonRole {
@@ -1391,6 +1395,7 @@ model CastingProfile {
   createdAt DateTime @db.Timestamptz(3)
   updatedAt DateTime @db.Timestamptz(3)
   revision Int
+  supersededById String? @db.Uuid
   personId String @db.Uuid
   sourceId String @db.Uuid
   hairColorCode String? @db.Text
@@ -1408,9 +1413,15 @@ model CastingProfile {
   @@unique([workspaceId, personId, id])
   @@index([workspaceId, createdAt], map: "castingProfiles_td2_created_idx")
   @@map("castingProfiles")
+  supersededBy CastingProfile? @relation("CastingProfile_superseded", fields: [workspaceId, supersededById], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "castingProfiles_superseded_fk")
+  supersededProfiles CastingProfile[] @relation("CastingProfile_superseded")
+  @@index([workspaceId, supersededById], map: "castingProfiles_superseded_idx")
+  retiredCurrentMeasurementSetId String? @db.Uuid
+  retiredMeasurement MeasurementSet? @relation("CastingProfile_retired_measurement", fields: [workspaceId, retiredCurrentMeasurementSetId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "castingProfiles_retired_measurement_fk")
 }
 
 model MeasurementSet {
+  retiredCastingProfiles CastingProfile[] @relation("CastingProfile_retired_measurement")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)

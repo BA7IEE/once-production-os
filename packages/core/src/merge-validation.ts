@@ -27,8 +27,13 @@ export const MergeSchemas = {
         professionalDecisions: v.optional(v.array(v.object({
             table: v.enum([...TALENT_FACT_TABLES, 'mediaCollectionItems', 'talentMigrationReviews', 'fieldProposals'] as const),
             id: uuid,
-            action: v.enum(['MOVE', 'REBIND_AGENT', 'STALE_PROPOSAL'])
+            action: v.enum(['MOVE', 'REBIND_AGENT', 'STALE_PROPOSAL', 'RETAIN_HISTORY'])
         }), L.collisions)),
+        professionalConflicts: v.optional(v.array(v.object({
+            table: v.enum(['talentProfiles', 'castingProfiles', 'adultEligibilities', 'personRoles', 'personLanguages', 'talentLocations']),
+            canonicalId: uuid, duplicateId: uuid,
+            choice: v.enum(['RETAIN_DUPLICATE_HISTORY', 'KEEP_CANONICAL_ACTIVE', 'KEEP_DUPLICATE_ACTIVE'])
+        }), L.conflicts)),
         acknowledgeRevocations: v.boolean(),
         acknowledgeMediaDetach: v.boolean(),
         reason: v.string(L.reason,4)

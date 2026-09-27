@@ -1,3 +1,4 @@
+import { readTalentMergeHistory } from './talent-merge-history.ts';
 import { TalentV2 } from './talent-v2.ts';
 import { MachineIdentity } from './talent-v2-machine.ts';
 import { authorizeTd2Operation, authorizeTd2Resource, TD2_RESOURCE_KINDS } from './talent-v2-access.ts';
@@ -404,6 +405,7 @@ export class Application {
                     case 'handoff.accept': return command('handoff', () => this.handoffs.act(tx, actor, id, data, 'accept'));
                     case 'handoff.decline': return command('handoff', () => this.handoffs.act(tx, actor, id, data, 'decline'));
                     case 'handoff.revoke': return command('handoff', () => this.handoffs.act(tx, actor, id, data, 'revoke'));
+                    case 'person.mergeHistory': return readTalentMergeHistory(tx, actor, id, query, this.clock, meta);
                     case 'person.mergePreview': return this.personMerges.preview(tx, actor, data);
                     case 'person.merge': return command('merge', () => this.personMerges.execute(tx, actor, data));
                     case 'person.list': return this.talent.listPeople(tx, actor, query);

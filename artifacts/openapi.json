@@ -12090,6 +12090,38 @@
         "x-mode": "COMMAND"
       }
     },
+    "/api/v1/people/{id}/merge-history": {
+      "get": {
+        "operationId": "person.mergeHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "data.merge",
+        "x-mode": "READ"
+      }
+    },
     "/api/v1/people/merge-preview": {
       "post": {
         "operationId": "person.mergePreview",
@@ -12347,7 +12379,8 @@
                           "enum": [
                             "MOVE",
                             "REBIND_AGENT",
-                            "STALE_PROPOSAL"
+                            "STALE_PROPOSAL",
+                            "RETAIN_HISTORY"
                           ]
                         }
                       },
@@ -12359,6 +12392,54 @@
                     },
                     "minItems": 0,
                     "maxItems": 500
+                  },
+                  "professionalConflicts": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "table": {
+                          "type": "string",
+                          "enum": [
+                            "talentProfiles",
+                            "castingProfiles",
+                            "adultEligibilities",
+                            "personRoles",
+                            "personLanguages",
+                            "talentLocations"
+                          ]
+                        },
+                        "canonicalId": {
+                          "type": "string",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                        },
+                        "duplicateId": {
+                          "type": "string",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                        },
+                        "choice": {
+                          "type": "string",
+                          "enum": [
+                            "RETAIN_DUPLICATE_HISTORY",
+                            "KEEP_CANONICAL_ACTIVE",
+                            "KEEP_DUPLICATE_ACTIVE"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "table",
+                        "canonicalId",
+                        "duplicateId",
+                        "choice"
+                      ]
+                    },
+                    "minItems": 0,
+                    "maxItems": 100
                   },
                   "acknowledgeRevocations": {
                     "type": "boolean"

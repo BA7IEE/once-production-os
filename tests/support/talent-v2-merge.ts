@@ -87,3 +87,56 @@ export async function verifyProfessionalMerge(app: Application, store: Store, cl
     const replay = ok(await client.cmd('POST', '/people/merge', input, key), 200);
     assert.equal(replay.replayed, true); assert.deepEqual(await snapshot(), after);
 }
+
+/** Conflicting professional graphs exercise both history retention and active-record selection. */
+export async function verifyProfessionalConflicts(app: Application, store: Store, clock: FakeClock, owner: Client) {
+    const a = await seedProfessionalGraph(app, store, clock, owner), b = await seedProfessionalGraph(app, store, clock, owner);
+    const person = await a.current();
+    const snapshot = () => store.transaction(tx => talentSnapshot(tx, person.workspaceId));
+    const before = await snapshot(), p = await mergePreview(store, owner, a.personId, b.personId);
+    assert.equal(p.complete, true, JSON.stringify(p.blockers));
+    assert.equal(p.professional.conflicts.length, 7);
+    const decisions = p.professional.conflicts.map((c: any) => ({ table: c.table, canonicalId: c.canonicalId, duplicateId: c.duplicateId,
+        choice: c.choices.includes('RETAIN_DUPLICATE_HISTORY') ? 'RETAIN_DUPLICATE_HISTORY' : c.table === 'adultEligibilities' ? 'KEEP_DUPLICATE_ACTIVE' : 'KEEP_CANONICAL_ACTIVE' }));
+    const input = { ...mergeInput(p), professionalConflicts: decisions }, key = randomUUID();
+    assert.equal((await owner.cmd('POST', '/people/merge', { ...input, professionalConflicts: decisions.slice(1) })).status, 422);
+    assert.equal((await owner.cmd('POST', '/people/merge', { ...input, professionalConflicts: [...decisions, decisions[0]] })).status, 422);
+    const fault = new FaultStore(store);
+    fault.afterInsert = (t, r) => { if (t === 'audits' && 'action' in r && r.action === 'person.merge') throw new AppError(503, 'STORE_UNAVAILABLE', 'synthetic conflict audit failure'); };
+    const client = new Client(new Application(fault, app.config, clock)); client.jar = { ...owner.jar }; client.csrf = owner.csrf;
+    assert.equal((await client.cmd('POST', '/people/merge', input, key)).status, 503);
+    assert.ok(fault.insertTrace.includes('personAliases'));
+    assert.deepEqual(await snapshot(), before);
+    fault.afterInsert = null;
+    ok(await client.cmd('POST', '/people/merge', input, key), 200);
+    const after = await snapshot();
+    for (const table of ['talentProfiles', 'castingProfiles'] as const) {
+        const old = before[table].find(r => r.personId === b.personId)!, retained = after[table].find(r => r.id === old.id)!;
+        assert.equal(retained.personId, b.personId); assert.equal(retained.sourceId, old.sourceId);
+        assert.equal(retained.supersededById, before[table].find(r => r.personId === a.personId)!.id);
+        if (table === 'castingProfiles') { assert.equal(retained.currentMeasurementSetId, null); assert.equal(retained.retiredCurrentMeasurementSetId, old.currentMeasurementSetId); }
+        for (const [field, value] of Object.entries(old)) if (!['revision', 'updatedAt', 'supersededById', 'currentMeasurementSetId', 'retiredCurrentMeasurementSetId'].includes(field)) assert.deepEqual(retained[field], value);
+        await assert.rejects(store.transaction(async tx => tx.remove(table, old.id)), /历史/);
+        await assert.rejects(store.transaction(async tx => { const row = (await tx.get(table, old.id))!; await tx.replace(table, { ...row, revision: row.revision + 1 }); }), /只读/);
+    }
+    assert.deepEqual(after.evidence, before.evidence);
+    assert.equal(after.personRoles.find(r => r.id === b.roleId)!.status, 'INACTIVE');
+    assert.equal(after.personRoles.find(r => r.id === a.roleId)!.status, 'ACTIVE');
+    assert.equal(after.personLanguages.find(r => r.id === b.languageId)!.status, 'INACTIVE');
+    assert.equal(after.adultEligibilities.find(r => r.personId === a.personId && r.status === 'ACTIVE')!.sourceId, b.sourceId);
+    assert.equal(after.adultEligibilities.filter(r => r.personId === a.personId && r.status === 'ACTIVE').length, 1);
+    assert.equal(after.measurementSets.find(r => r.id === b.measurementId)!.personId, a.personId);
+    assert.equal(after.personCredentials.find(r => r.id === b.credentialId)!.personRoleId, before.personCredentials.find(r => r.id === b.credentialId)!.personRoleId);
+    const deletion = ok(await owner.raw('POST', '/deletion-requests/preview', { targetKind: 'PERSON', targetId: a.personId, expectedRevision: (await a.current()).revision }), 200);
+    assert.equal(deletion.complete, false);
+    assert.ok(deletion.unresolved.some((r: any) => r.code === 'TD2_MERGE_HISTORY_RETENTION_REQUIRED'));
+    const history = ok(await owner.raw('GET', `/people/${a.personId}/merge-history`), 200);
+    assert.equal(history.items.length, 2); assert.ok(history.items.every((r: any) => r.record.usable === false && r.originalPersonId === b.personId));
+    assert.equal(JSON.stringify(history).includes('SYNTHETIC-PRIVATE'), false);
+    const check = await store.transaction(tx => inspectTalentIntegrity(tx, person.workspaceId, app.config.contactKey));
+    assert.equal(check.relationFailures, 0); assert.equal(check.credentialDecryptFailures, 0);
+    assert.equal(ok(await client.cmd('POST', '/people/merge', input, key), 200).replayed, true);
+    assert.deepEqual(await snapshot(), after);
+    await store.transaction(async tx => { const source = (await tx.get('sources', b.sourceId))!; await tx.replace('sources', { ...source, status: 'SUSPENDED', revision: source.revision + 1 }); });
+    assert.equal(ok(await owner.raw('GET', `/people/${a.personId}/merge-history`), 200).items.length, 0);
+}
