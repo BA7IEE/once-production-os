@@ -1,0 +1,3759 @@
+
+> once-production-os@0.1.0-dev.1 db:deploy /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> prisma migrate deploy
+
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_test_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+
+> once-production-os@0.1.0-dev.1 verify:postgres /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> node scripts/verify-postgres.mjs
+
+TAP version 13
+# Subtest: fresh disposable PostgreSQL: constraints, real transactions and independent workers
+    # Subtest: two independent clients serialize the same command into one source/person/receipt
+    ok 1 - two independent clients serialize the same command into one source/person/receipt
+      ---
+      duration_ms: 1325.31475
+      type: 'test'
+      ...
+    # Subtest: actual PostgreSQL person-update rollback (atomic command coverage follows below)
+    ok 2 - actual PostgreSQL person-update rollback (atomic command coverage follows below)
+      ---
+      duration_ms: 14.99725
+      type: 'test'
+      ...
+    # Subtest: database itself rejects cross-workspace scope membership
+    ok 3 - database itself rejects cross-workspace scope membership
+      ---
+      duration_ms: 143.018292
+      type: 'test'
+      ...
+    # Subtest: two stale CAS writes cannot both succeed
+    ok 4 - two stale CAS writes cannot both succeed
+      ---
+      duration_ms: 246.900125
+      type: 'test'
+      ...
+    # Subtest: two workers claim once; expired owner cannot modify replacement lease
+    ok 5 - two workers claim once; expired owner cannot modify replacement lease
+      ---
+      duration_ms: 1300.942291
+      type: 'test'
+      ...
+    # Subtest: real command rollback after sourceHistory insert, plus same-key successful retry
+    ok 6 - real command rollback after sourceHistory insert, plus same-key successful retry
+      ---
+      duration_ms: 426.209333
+      type: 'test'
+      ...
+    # Subtest: real command rollback after people insert, plus same-key successful retry
+    ok 7 - real command rollback after people insert, plus same-key successful retry
+      ---
+      duration_ms: 599.540166
+      type: 'test'
+      ...
+    # Subtest: real command rollback after audits insert, plus same-key successful retry
+    ok 8 - real command rollback after audits insert, plus same-key successful retry
+      ---
+      duration_ms: 594.94975
+      type: 'test'
+      ...
+    # Subtest: real command rollback after receipts insert, plus same-key successful retry
+    ok 9 - real command rollback after receipts insert, plus same-key successful retry
+      ---
+      duration_ms: 338.579875
+      type: 'test'
+      ...
+    # Subtest: new source-history SQL constraints reject duplicate revision, cross-scope FK, UPDATE and DELETE
+    ok 10 - new source-history SQL constraints reject duplicate revision, cross-scope FK, UPDATE and DELETE
+      ---
+      duration_ms: 17.193667
+      type: 'test'
+      ...
+    # Subtest: PG partial import resume retains checkpoints, idempotency and two-worker ownership
+    ok 11 - PG partial import resume retains checkpoints, idempotency and two-worker ownership
+      ---
+      duration_ms: 2078.718334
+      type: 'test'
+      ...
+# {"metric":"PG-preview","people":100,"rows":100,"queries":33,"elapsedMs":236.78050000000076}
+# {"metric":"PG-talent-search","people":100,"pageSize":20,"queries":18,"elapsedMs":158.4147499999999}
+# {"metric":"PG-preview","people":1000,"rows":100,"queries":33,"elapsedMs":247.69787499999984}
+# {"metric":"PG-talent-search","people":1000,"pageSize":20,"queries":18,"elapsedMs":203.0806250000005}
+    # Subtest: PG query count stays bounded for 100/1000 people across preview and structured talent search
+    ok 12 - PG query count stays bounded for 100/1000 people across preview and structured talent search
+      ---
+      duration_ms: 1173.052542
+      type: 'test'
+      ...
+    # Subtest: H1 PG private basic-profile grant and native evidence separation
+    ok 13 - H1 PG private basic-profile grant and native evidence separation
+      ---
+      duration_ms: 2781.076167
+      type: 'test'
+      ...
+    # Subtest: H1 PG atomic handoff creation rollback after handoffs
+    ok 14 - H1 PG atomic handoff creation rollback after handoffs
+      ---
+      duration_ms: 630.976209
+      type: 'test'
+      ...
+    # Subtest: H1 PG atomic handoff creation rollback after audits
+    ok 15 - H1 PG atomic handoff creation rollback after audits
+      ---
+      duration_ms: 406.739167
+      type: 'test'
+      ...
+    # Subtest: H1 PG atomic handoff creation rollback after receipts
+    ok 16 - H1 PG atomic handoff creation rollback after receipts
+      ---
+      duration_ms: 287.46225
+      type: 'test'
+      ...
+    # Subtest: M1 PG same-key reservation, competing leases and unique asset from current attempt
+    ok 17 - M1 PG same-key reservation, competing leases and unique asset from current attempt
+      ---
+      duration_ms: 1412.373375
+      type: 'test'
+      ...
+    # Subtest: M1 PG READY publication rollback after assets
+    ok 18 - M1 PG READY publication rollback after assets
+      ---
+      duration_ms: 845.426666
+      type: 'test'
+      ...
+    # Subtest: M1 PG READY publication rollback after audits
+    ok 19 - M1 PG READY publication rollback after audits
+      ---
+      duration_ms: 891.181792
+      type: 'test'
+      ...
+    # Subtest: DEV-07G PG merge persists one decision/alias, replay is singular and old id resolves read-only
+    ok 20 - DEV-07G PG merge persists one decision/alias, replay is singular and old id resolves read-only
+      ---
+      duration_ms: 1143.4815
+      type: 'test'
+      ...
+    # Subtest: WP1 PG identical create commands on independent clients make one root/source/receipt
+    ok 21 - WP1 PG identical create commands on independent clients make one root/source/receipt
+      ---
+      duration_ms: 100.130334
+      type: 'test'
+      ...
+    # Subtest: WP1 PG concurrent child writes require same-parent CAS; retry old key does not write twice
+    ok 22 - WP1 PG concurrent child writes require same-parent CAS; retry old key does not write twice
+      ---
+      duration_ms: 384.685459
+      type: 'test'
+      ...
+    # Subtest: WP1 PG swaps deferred positions and validates cover belongs to this work at commit
+    ok 23 - WP1 PG swaps deferred positions and validates cover belongs to this work at commit
+      ---
+      duration_ms: 471.276917
+      type: 'test'
+      ...
+    # Subtest: WP1 PG removal compacts order, changes cover, but preserves original media
+    ok 24 - WP1 PG removal compacts order, changes cover, but preserves original media
+      ---
+      duration_ms: 592.207125
+      type: 'test'
+      ...
+    # Subtest: WP1 PG relationship uniqueness, state checks and workspace FKs are enforced by PostgreSQL
+    ok 25 - WP1 PG relationship uniqueness, state checks and workspace FKs are enforced by PostgreSQL
+      ---
+      duration_ms: 297.026208
+      type: 'test'
+      ...
+    # Subtest: WP1 PG external work reference/delivery remains external; source loss redacts live children
+    ok 26 - WP1 PG external work reference/delivery remains external; source loss redacts live children
+      ---
+      duration_ms: 612.512125
+      type: 'test'
+      ...
+    # Subtest: WP1 PG link/cover/root/audit/receipt roll back after workAssets
+    ok 27 - WP1 PG link/cover/root/audit/receipt roll back after workAssets
+      ---
+      duration_ms: 408.221875
+      type: 'test'
+      ...
+    # Subtest: WP1 PG link/cover/root/audit/receipt roll back after audits
+    ok 28 - WP1 PG link/cover/root/audit/receipt roll back after audits
+      ---
+      duration_ms: 206.584208
+      type: 'test'
+      ...
+    # Subtest: WP1 PG link/cover/root/audit/receipt roll back after receipts
+    ok 29 - WP1 PG link/cover/root/audit/receipt roll back after receipts
+      ---
+      duration_ms: 173.324666
+      type: 'test'
+      ...
+    # Subtest: WP1 PG child insertion failure rolls back its parent revision: workCredits
+    ok 30 - WP1 PG child insertion failure rolls back its parent revision: workCredits
+      ---
+      duration_ms: 201.981375
+      type: 'test'
+      ...
+    # Subtest: WP1 PG child insertion failure rolls back its parent revision: projectParticipants
+    ok 31 - WP1 PG child insertion failure rolls back its parent revision: projectParticipants
+      ---
+      duration_ms: 976.118792
+      type: 'test'
+      ...
+    # Subtest: WP1 PG child insertion failure rolls back its parent revision: projectWorks
+    ok 32 - WP1 PG child insertion failure rolls back its parent revision: projectWorks
+      ---
+      duration_ms: 2181.229959
+      type: 'test'
+      ...
+    # Subtest: DEV-06 PG work facts are constrained and power visible credited-work search
+    ok 33 - DEV-06 PG work facts are constrained and power visible credited-work search
+      ---
+      duration_ms: 1699.426667
+      type: 'test'
+      ...
+    # Subtest: DEV-06 PG shortlist exact work-asset FK rejects cross-work selections
+    ok 34 - DEV-06 PG shortlist exact work-asset FK rejects cross-work selections
+      ---
+      duration_ms: 4925.715458
+      type: 'test'
+      ...
+    # Subtest: DEV-06 PG unlinking a work image removes only derived shortlist selection and preserves media/item
+    ok 35 - DEV-06 PG unlinking a work image removes only derived shortlist selection and preserves media/item
+      ---
+      duration_ms: 7396.284584
+      type: 'test'
+      ...
+    # Subtest: DEV-06 PG concurrent shortlist mutations serialize on root CAS
+    ok 36 - DEV-06 PG concurrent shortlist mutations serialize on root CAS
+      ---
+      duration_ms: 360.50675
+      type: 'test'
+      ...
+    # Subtest: DEV-06 PG candidate command rolls back after shortlistItems
+    ok 37 - DEV-06 PG candidate command rolls back after shortlistItems
+      ---
+      duration_ms: 540.097416
+      type: 'test'
+      ...
+    # Subtest: DEV-06 PG candidate command rolls back after shortlistItemAssets
+    ok 38 - DEV-06 PG candidate command rolls back after shortlistItemAssets
+      ---
+      duration_ms: 472.73025
+      type: 'test'
+      ...
+    # Subtest: DEV-06 PG candidate command rolls back after audits
+    ok 39 - DEV-06 PG candidate command rolls back after audits
+      ---
+      duration_ms: 479.561292
+      type: 'test'
+      ...
+    # Subtest: DEV-06 PG candidate command rolls back after receipts
+    ok 40 - DEV-06 PG candidate command rolls back after receipts
+      ---
+      duration_ms: 361.206083
+      type: 'test'
+      ...
+    # Subtest: DEV-07A PG typed export permissions reject wrong-source subjects and unregistered fields
+    ok 41 - DEV-07A PG typed export permissions reject wrong-source subjects and unregistered fields
+      ---
+      duration_ms: 27.433666
+      type: 'test'
+      ...
+    # Subtest: DEV-07A PG export freezes exact dependency and worker produces private JSON payload
+    ok 42 - DEV-07A PG export freezes exact dependency and worker produces private JSON payload
+      ---
+      duration_ms: 736.384916
+      type: 'test'
+      ...
+    # Subtest: DEV-07A PG export create rolls back after exports
+    ok 43 - DEV-07A PG export create rolls back after exports
+      ---
+      duration_ms: 58.594292
+      type: 'test'
+      ...
+    # Subtest: DEV-07A PG export create rolls back after exportDependencies
+    ok 44 - DEV-07A PG export create rolls back after exportDependencies
+      ---
+      duration_ms: 252.416584
+      type: 'test'
+      ...
+    # Subtest: DEV-07A PG export create rolls back after audits
+    ok 45 - DEV-07A PG export create rolls back after audits
+      ---
+      duration_ms: 204.669042
+      type: 'test'
+      ...
+    # Subtest: DEV-07A PG export create rolls back after receipts
+    ok 46 - DEV-07A PG export create rolls back after receipts
+      ---
+      duration_ms: 184.456459
+      type: 'test'
+      ...
+    # Subtest: DEV-07B PG deletion target/source shape and unresolved-count constraints are enforced by DB
+    ok 47 - DEV-07B PG deletion target/source shape and unresolved-count constraints are enforced by DB
+      ---
+      duration_ms: 87.933625
+      type: 'test'
+      ...
+    # Subtest: DEV-07B PG preview freezes exact visible impacts without blocking the target
+    ok 48 - DEV-07B PG preview freezes exact visible impacts without blocking the target
+      ---
+      duration_ms: 463.246125
+      type: 'test'
+      ...
+    # Subtest: DEV-07B PG draft deletion create rolls back after deletionRequests
+    ok 49 - DEV-07B PG draft deletion create rolls back after deletionRequests
+      ---
+      duration_ms: 623.612
+      type: 'test'
+      ...
+    # Subtest: DEV-07B PG draft deletion create rolls back after deletionItems
+    ok 50 - DEV-07B PG draft deletion create rolls back after deletionItems
+      ---
+      duration_ms: 381.917583
+      type: 'test'
+      ...
+    # Subtest: DEV-07B PG draft deletion create rolls back after audits
+    ok 51 - DEV-07B PG draft deletion create rolls back after audits
+      ---
+      duration_ms: 607.903292
+      type: 'test'
+      ...
+    # Subtest: DEV-07B PG draft deletion create rolls back after receipts
+    ok 52 - DEV-07B PG draft deletion create rolls back after receipts
+      ---
+      duration_ms: 285.53025
+      type: 'test'
+      ...
+    # Subtest: DEV-07C PG person block raises protection epoch, hides normal reads/search and preserves row
+    ok 53 - DEV-07C PG person block raises protection epoch, hides normal reads/search and preserves row
+      ---
+      duration_ms: 362.570583
+      type: 'test'
+      ...
+    # Subtest: DEV-07C PG source block raises protection epoch and appends protected DELETION_BLOCKED history
+    ok 54 - DEV-07C PG source block raises protection epoch and appends protected DELETION_BLOCKED history
+      ---
+      duration_ms: 459.235542
+      type: 'test'
+      ...
+    # Subtest: DEV-07C PG source block rolls back after sourceHistory
+    ok 55 - DEV-07C PG source block rolls back after sourceHistory
+      ---
+      duration_ms: 472.32675
+      type: 'test'
+      ...
+    # Subtest: DEV-07C PG source block rolls back after audits
+    ok 56 - DEV-07C PG source block rolls back after audits
+      ---
+      duration_ms: 417.810792
+      type: 'test'
+      ...
+    # Subtest: DEV-07C PG source block rolls back after receipts
+    ok 57 - DEV-07C PG source block rolls back after receipts
+      ---
+      duration_ms: 321.511875
+      type: 'test'
+      ...
+    # Subtest: DEV-07D PG review decisions freeze a plan without cleaning underlying rows
+    ok 58 - DEV-07D PG review decisions freeze a plan without cleaning underlying rows
+      ---
+      duration_ms: 823.631917
+      type: 'test'
+      ...
+    # Subtest: DEV-07D PG invalid retention decision shapes are rejected by DB
+    ok 59 - DEV-07D PG invalid retention decision shapes are rejected by DB
+      ---
+      duration_ms: 9.12675
+      type: 'test'
+      ...
+    # Subtest: DEV-07D PG decision and freeze rollback with audit/receipt failures
+    ok 60 - DEV-07D PG decision and freeze rollback with audit/receipt failures
+      ---
+      duration_ms: 933.489375
+      type: 'test'
+      ...
+    # Subtest: DEV-07E PG executes frozen dependency cleanup and keeps blocked root
+    ok 61 - DEV-07E PG executes frozen dependency cleanup and keeps blocked root
+      ---
+      duration_ms: 1767.846041
+      type: 'test'
+      ...
+    # Subtest: DEV-07E PG cleanup item delete rolls back when audit insert fails, then retries safely
+    ok 62 - DEV-07E PG cleanup item delete rolls back when audit insert fails, then retries safely
+      ---
+      duration_ms: 929.432583
+      type: 'test'
+      ...
+    # Subtest: DEV-07E PG cleanup state constraints reject forged completion evidence
+    ok 63 - DEV-07E PG cleanup state constraints reject forged completion evidence
+      ---
+      duration_ms: 10.997625
+      type: 'test'
+      ...
+    # Subtest: DEV-07F PG source finalization redacts history and writes strict ERASED root
+    ok 64 - DEV-07F PG source finalization redacts history and writes strict ERASED root
+      ---
+      duration_ms: 911.681708
+      type: 'test'
+      ...
+    # Subtest: DEV-07F PG erased/final states cannot be forged without strict tombstone evidence
+    ok 65 - DEV-07F PG erased/final states cannot be forged without strict tombstone evidence
+      ---
+      duration_ms: 472.489083
+      type: 'test'
+      ...
+    # Subtest: DEV-07F PG finalization audit failure rolls back root tombstone and final state, then retries safely
+    ok 66 - DEV-07F PG finalization audit failure rolls back root tombstone and final state, then retries safely
+      ---
+      duration_ms: 912.154083
+      type: 'test'
+      ...
+    1..66
+ok 1 - fresh disposable PostgreSQL: constraints, real transactions and independent workers
+  ---
+  duration_ms: 54535.988667
+  type: 'test'
+  ...
+1..1
+# tests 67
+# suites 0
+# pass 67
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 54702.74625
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_rebuild_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+TAP version 13
+# Subtest: DEV-07H T29 real once-export-v1 -> PostgreSQL rollback -> CLI rebuild 10/3/1 graph
+ok 1 - DEV-07H T29 real once-export-v1 -> PostgreSQL rollback -> CLI rebuild 10/3/1 graph
+  ---
+  duration_ms: 3057.779709
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3234.442917
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_restore_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+TAP version 13
+# PASS DEV-09A/09B recovery PG/CLI: old capabilities invalidated; DB/contact/media restore-check clean; tampered media, wrong key and state drift blocked; epoch remains unapproved
+# Subtest: DEV-09A restored PostgreSQL is quarantined before any recovery epoch approval
+ok 1 - DEV-09A restored PostgreSQL is quarantined before any recovery epoch approval
+  ---
+  duration_ms: 6644.863667
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6816.408708
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_backup_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+TAP version 13
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# PASS actual backup/restore preserves distinct erased identity origin and independent permission basis while revoking old permission
+# PASS actual backup/restore preserves erased historical source, retained language and exact independent evidence plus pending candidate role review
+# PASS TD2 pg_dump/pg_restore+media: stable roles, measurements, external refs, collection links, encrypted credential, original evidence and adult verification attribution and revoked machine identity
+# PASS DEV-09E pg_dump/pg_restore+media: contained post-backup delta resolves and approves; unresolved committed member.disable remains blocked
+# Subtest: DEV-09E real backup/restore resolves contained deltas and blocks unresolved committed mutations
+ok 1 - DEV-09E real backup/restore resolves contained deltas and blocks unresolved committed mutations
+  ---
+  duration_ms: 89875.170542
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 90059.61425
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_test_td2_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+TAP version 13
+# PASS TD2 PG: typed Person graph deletion, audit rollback, retry and ERASED finalization
+# PASS TD2 PG: machine credentials revoked; proposals stale; credential-key and graph-drift checks
+# Subtest: TD2 real PostgreSQL professional graph cleanup and recovery isolation
+ok 1 - TD2 real PostgreSQL professional graph cleanup and recovery isolation
+  ---
+  duration_ms: 2265.017542
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2434.008041
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_test_td2_asset_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+TAP version 13
+# PASS TD2 source identity: full professional and identity evidence graph rollback/retry, external representation cleanup, hidden-owner finalization rollback/retry, source-owned original purge, independent people and original files retained
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# PASS combined source/other-identity withdrawal: explicit field item, unchanged other identity and independent evidence, whole-group audit rollback/retry, final basis expiry refuses completion
+# PASS TD2 PG: shared collection/proof deletion, current requester checks, audit rollback/retry, historical evidence retained, physical media purge and ERASED finalization
+# Subtest: TD2 real PostgreSQL shared proof erasure and physical file cleanup
+ok 1 - TD2 real PostgreSQL shared proof erasure and physical file cleanup
+  ---
+  duration_ms: 17611.544625
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 17795.295667
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_test_td2_merge_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+TAP version 13
+# PASS TD2 PG: explicit conflicts, immutable history, raw SQL lineage guards; typed merge stable IDs, original sources, role links, audit rollback, retry and replay
+# PASS TD2 evidence history PG: paginated current/stale field support, suspended sources and original review attribution; restricted fields and machine reads rejected
+# PASS real PostgreSQL independent source evidence cleanup: preserved facts/provenance, audit rollback/retry and final erasure
+# PASS real PostgreSQL source fact choices: independent complete retention, cross-source children, candidate role review, atomic rollback and final retained origin
+# Subtest: TD2 real PostgreSQL professional merge rollback and retry
+ok 1 - TD2 real PostgreSQL professional merge rollback and retry
+  ---
+  duration_ms: 15292.940042
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 15443.642291
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_test_td2_transfer_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_rebuild_td2_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+TAP version 13
+# PASS TD2 transfer PG: real CLI check/apply, exact source permits, typed UUID/role/measurement links, original field values, credential identifiers re-encrypted under target key and workspace, wrong key rejected without writes, unknown/cross-person references rejected, audit rollback and retry, populated target rejected, revoked source grant blocks download
+# Subtest: TD2 PostgreSQL controlled multi-source export and isolated typed rebuild preserve UUIDs and roll back audit failure
+ok 1 - TD2 PostgreSQL controlled multi-source export and isolated typed rebuild preserve UUIDs and roll back audit failure
+  ---
+  duration_ms: 4807.1925
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4977.006584
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_test_td2_retained_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_rebuild_retained_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+TAP version 13
+# PASS TD2 retained origin PG: actual CLI preview/apply, full independent field proof and source grants, exact language and reviewer preservation, erased-source reactivation denied, transaction audit rollback and repeat export
+# Subtest: TD2 PostgreSQL retained-origin export and real CLI rebuild preserve erased minimal headers, original evidence and audit rollback
+ok 1 - TD2 PostgreSQL retained-origin export and real CLI rebuild preserve erased minimal headers, original evidence and audit rollback
+  ---
+  duration_ms: 3598.125083
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3761.466417
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_test_td2_identity_origin_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_rebuild_identity_origin_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+TAP version 13
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# PASS retained identity v13: separately approved current basis, erased original header, actual identity evidence and original reviewers, audit rollback and rebuild without restoring old permissions
+# PASS PG permission CHECK and FK reject origin-as-basis, missing basis, and non-PERSON retention without changing original approval
+# PASS TD2 retained origin PG: actual CLI preview/apply, full independent field proof and source grants, original person identity and reviewer preservation, erased-source reactivation denied, transaction audit rollback and repeat export
+# Subtest: TD2 PostgreSQL retained-identity export and real CLI rebuild preserve erased minimal headers, original evidence and audit rollback
+ok 1 - TD2 PostgreSQL retained-identity export and real CLI rebuild preserve erased minimal headers, original evidence and audit rollback
+  ---
+  duration_ms: 3554.917834
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3724.111959
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_test_td2_proof_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_rebuild_proof_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+TAP version 13
+# PASS proof PG: source original/preview bytes verified, missing files no writes, real CLI preview/apply, DB audit rollback, private files preserved for retry, verified credential UUID and attachment retained, populated target rejects replay
+# Subtest: real PostgreSQL and private files: verified proof migration, CLI apply, audit rollback and retry
+ok 1 - real PostgreSQL and private files: verified proof migration, CLI apply, audit rollback and retry
+  ---
+  duration_ms: 5959.605709
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6165.327875
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_test_td2_collection_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_rebuild_collection_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+TAP version 13
+# PASS collection PG: archived collection, typed role/tag/item UUIDs, cross-source tags, one shared original; source original/preview bytes verified, missing files no writes, real CLI preview/apply, DB audit rollback, private files preserved for retry, verified credential UUID and attachment retained, populated target rejects replay
+# Subtest: real PostgreSQL collection migration preserves shared bytes, source tags and collection relationships with rollback
+ok 1 - real PostgreSQL collection migration preserves shared bytes, source tags and collection relationships with rollback
+  ---
+  duration_ms: 6931.758875
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7139.979583
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_test_td2_adult_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_rebuild_adult_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+TAP version 13
+# PASS adult PG: source reviewer attribution retained without creating target account; SQL rejects incomplete or hybrid attribution; archived collection, typed role/tag/item UUIDs, cross-source tags, one shared original; source original/preview bytes verified, missing files no writes, real CLI preview/apply, DB audit rollback, private files preserved for retry, verified credential UUID and attachment retained, populated target rejects replay
+# Subtest: real PostgreSQL adult eligibility migration preserves original verification and forbids false target reviewer attribution
+ok 1 - real PostgreSQL adult eligibility migration preserves original verification and forbids false target reviewer attribution
+  ---
+  duration_ms: 7388.715375
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7581.527667
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_test_td2_identity_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_rebuild_identity_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+TAP version 13
+# PASS identity PG: real CLI CHECK/APPLY; original person/evidence/source IDs, historical reviewer and digests retained; no extra talent or membership; audit failure rolls back and retry succeeds; nonempty target rejects replay
+# Subtest: real PostgreSQL identity-only CLI rebuild retains multi-source evidence without manufacturing a talent profile or reviewer account
+ok 1 - real PostgreSQL identity-only CLI rebuild retains multi-source evidence without manufacturing a talent profile or reviewer account
+  ---
+  duration_ms: 2077.755334
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2248.413833
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_test_td2_history_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_rebuild_history_other_identity_full01", schema "public" at "127.0.0.1:55447"
+
+41 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+Applying migration `202609280007_identity_retention_permission`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+  └─ 202609280007_identity_retention_permission/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+TAP version 13
+# PASS history PG: real CLI CHECK/APPLY; archived person, alias, retained profile/measurement and source UUIDs preserved; original merge actor retained without creating account; SQL immutable history and original actor constraint enforced; audit failure rolls back and retry succeeds; nonempty target rejects replay
+# Subtest: real PostgreSQL merge history CLI rebuild retains archived identities, aliases, original decisions and actor attribution
+ok 1 - real PostgreSQL merge history CLI rebuild retains archived identities, aliases, original decisions and actor attribution
+  ---
+  duration_ms: 2600.3005
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2781.573084

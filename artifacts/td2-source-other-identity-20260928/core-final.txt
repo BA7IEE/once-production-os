@@ -1,0 +1,116 @@
+TAP version 13
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# Subtest: TD2 retained identity and professional facts preserve original source and independently checked field evidence
+ok 1 - TD2 retained identity and professional facts preserve original source and independently checked field evidence
+  ---
+  duration_ms: 290.509875
+  type: 'test'
+  ...
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# Subtest: TD2 ordinary identity remains accessible on independent evidence without becoming talent
+ok 2 - TD2 ordinary identity remains accessible on independent evidence without becoming talent
+  ---
+  duration_ms: 169.363458
+  type: 'test'
+  ...
+# Subtest: TD2 persisted legacy person-rebind cleanup cannot rewrite the original source
+ok 3 - TD2 persisted legacy person-rebind cleanup cannot rewrite the original source
+  ---
+  duration_ms: 138.531
+  type: 'test'
+  ...
+# Subtest: TD2 combined source cleanup retains independently supported facts and collection, erases role and shared originals with atomic audit rollback
+ok 4 - TD2 combined source cleanup retains independently supported facts and collection, erases role and shared originals with atomic audit rollback
+  ---
+  duration_ms: 626.535208
+  type: 'test'
+  ...
+# Subtest: TD2 combined source plan refuses retained proof pointing at an original scheduled for erasure
+ok 5 - TD2 combined source plan refuses retained proof pointing at an original scheduled for erasure
+  ---
+  duration_ms: 408.182417
+  type: 'test'
+  ...
+# Subtest: TD2 independent evidence source erasure retains exact other facts and provenance, rolls back audit failure and finishes after retry
+ok 6 - TD2 independent evidence source erasure retains exact other facts and provenance, rolls back audit failure and finishes after retry
+  ---
+  duration_ms: 250.55575
+  type: 'test'
+  ...
+# Subtest: TD2 independent source cannot erase the only basis of the current value or rewrite its reviewer to another source
+ok 7 - TD2 independent source cannot erase the only basis of the current value or rewrite its reviewer to another source
+  ---
+  duration_ms: 159.012375
+  type: 'test'
+  ...
+# Subtest: TD2 frozen independent source cleanup rechecks surviving basis and rejects a suspended source
+ok 8 - TD2 frozen independent source cleanup rechecks surviving basis and rejects a suspended source
+  ---
+  duration_ms: 181.788875
+  type: 'test'
+  ...
+# Subtest: TD2 source preview blocks when its professional owner is outside the current operator scope
+ok 9 - TD2 source preview blocks when its professional owner is outside the current operator scope
+  ---
+  duration_ms: 283.11
+  type: 'test'
+  ...
+# Subtest: TD2 source facts independently retain or erase with atomic graph rollback and preserve candidate history pending explicit role review
+ok 10 - TD2 source facts independently retain or erase with atomic graph rollback and preserve candidate history pending explicit role review
+  ---
+  duration_ms: 314.815458
+  type: 'test'
+  ...
+# Subtest: TD2 source plan cannot retain a child while erasing its parent role
+ok 11 - TD2 source plan cannot retain a child while erasing its parent role
+  ---
+  duration_ms: 204.382167
+  type: 'test'
+  ...
+# Subtest: TD2 source fact retention requires actual field coverage and later changes invalidate a frozen plan
+ok 12 - TD2 source fact retention requires actual field coverage and later changes invalidate a frozen plan
+  ---
+  duration_ms: 201.196416
+  type: 'test'
+  ...
+# PASS combined source/other-identity withdrawal: explicit field item, unchanged other identity and independent evidence, whole-group audit rollback/retry, final basis expiry refuses completion
+# Subtest: TD2 source fact deletion withdraws other identity evidence atomically and rechecks the frozen surviving proof at completion
+ok 13 - TD2 source fact deletion withdraws other identity evidence atomically and rechecks the frozen surviving proof at completion
+  ---
+  duration_ms: 332.879375
+  type: 'test'
+  ...
+# Subtest: TD2 combined source identity withdrawal rejects the last basis before making a deletion plan
+ok 14 - TD2 combined source identity withdrawal rejects the last basis before making a deletion plan
+  ---
+  duration_ms: 167.346917
+  type: 'test'
+  ...
+# Subtest: TD2 combined source identity withdrawal hides an out-of-scope independent basis from administrators
+ok 15 - TD2 combined source identity withdrawal hides an out-of-scope independent basis from administrators
+  ---
+  duration_ms: 309.321333
+  type: 'test'
+  ...
+# Subtest: TD2 combined source identity withdrawal binds independent source changes before freeze
+ok 16 - TD2 combined source identity withdrawal binds independent source changes before freeze
+  ---
+  duration_ms: 185.009833
+  type: 'test'
+  ...
+# PASS TD2 source identity: full professional and identity evidence graph rollback/retry, external representation cleanup, hidden-owner finalization rollback/retry, source-owned original purge, independent people and original files retained
+# Subtest: TD2 source-owned identities and complete professional graphs erase atomically, preserving independent people and original files
+ok 17 - TD2 source-owned identities and complete professional graphs erase atomically, preserving independent people and original files
+  ---
+  duration_ms: 647.148917
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1376.422167

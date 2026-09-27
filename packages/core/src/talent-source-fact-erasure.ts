@@ -1,3 +1,4 @@
+import {SOURCE_IDENTITY_EVIDENCE,identityWithdrawal,identityWithdrawalFields} from './talent-source-identity-evidence.ts';
 import {validateIdentityRetention,IDENTITY_DEPENDENCY,validateIdentityDependency} from './talent-identity-retention.ts';
 import {snapshotTalentSourceAssets,applyTalentAssetGraph} from './talent-asset-erasure.ts';
 import type { Actor, Clock, Source, TableMap } from './model.ts';
@@ -35,6 +36,9 @@ export async function sourceFactGraph(tx:Tx,actor:Actor,sourceId:string,clock:Cl
   }
  }}
  const rows=[...selected.values()].sort((a,b)=>key(a.table,a.row.id).localeCompare(key(b.table,b.row.id)));
+ const foreignIds=[...new Set(data.evidence.filter(e=>e.sourceId===sourceId&&e.personId&&!ownedIds.has(String(e.personId))).map(e=>String(e.personId)))];
+ const identityWithdrawals=[];
+ for(const id of foreignIds)identityWithdrawals.push(await identityWithdrawal(data,tx,actor,sourceId,id,[...new Set(data.evidence.filter(e=>e.sourceId===sourceId&&e.personId===id).map(e=>String(e.fieldPath)))].sort(),clock));
  const evidence=data.evidence.filter(e=>e.sourceId===sourceId||ownerSelected(e,selected)||ownedIds.has(String(e.personId)));
  const proposals=data.fieldProposals.filter(e=>e.sourceId===sourceId||ownerSelected(e,selected)||ownedIds.has(String(e.personId)));
  const identityDependencies:Array<{table:string;row:TableMap['contacts'|'uploads'|'workCredits'|'projectParticipants']}>=[];
@@ -50,12 +54,12 @@ export async function sourceFactGraph(tx:Tx,actor:Actor,sourceId:string,clock:Cl
  const parents=[...rows.flatMap(o=>parentReferences.flatMap(([field,table])=>data[table].filter(r=>r.id===o.row[field]))),...data.talentProfiles.filter(p=>rows.some(o=>o.row.personId===p.personId))];
  const organizations=data.organizations.filter(r=>rows.some(o=>o.row.agencyOrganizationId===r.id||o.row.issuerOrganizationId===r.id));
  const reviews=data.talentMigrationReviews.filter(r=>candidates.some(c=>c.id===r.shortlistItemId)||ownedIds.has(String(r.personId)));
- const people=data.people.filter(p=>ownedIds.has(p.id)||rows.some(o=>o.row.personId===p.id)||proposalOwners.some(o=>(o.table==='people'?o.row.id:o.row.personId)===p.id)||rows.some(o=>o.row.agentPersonId===p.id)||assets.some(a=>a.personId===p.id));
+ const people=data.people.filter(p=>ownedIds.has(p.id)||foreignIds.includes(p.id)||rows.some(o=>o.row.personId===p.id)||proposalOwners.some(o=>(o.table==='people'?o.row.id:o.row.personId)===p.id)||rows.some(o=>o.row.agentPersonId===p.id)||assets.some(a=>a.personId===p.id));
  const sourceIds=new Set([sourceId,...rows.map(o=>o.row.sourceId),...evidence.map(e=>e.sourceId),...proposals.map(p=>p.sourceId),...people.map(p=>p.sourceId),...proposalOwners.map(o=>o.row.sourceId),...identityDependencies.flatMap(d=>'sourceId' in d.row?[d.row.sourceId]:[]),...projects.map(p=>p.sourceId),...works.map(w=>w.sourceId),...assets.map(a=>a.sourceId),...parents.map(p=>p.sourceId),...organizations.map(o=>o.sourceId)]);
  const sources=data.sources.filter(s=>sourceIds.has(s.id));
  const scopes=data.scopes.filter(s=>[...people,...sources,...lists,...works,...projects,...assets,...organizations].some(r=>r.scopeId===s.id));
  let blocker:string|null=sources.length!==sourceIds.size?'TD2_SOURCE_OWNER_MISSING':null;
- if(data.evidence.some(e=>e.sourceId===sourceId&&e.personId&&!ownedIds.has(String(e.personId))))blocker='TD2_SOURCE_IDENTITY_RETENTION_REQUIRED';
+ for(const withdrawal of identityWithdrawals)if(withdrawal.blocker)blocker=withdrawal.blocker;
  if(data.personAliases.some(a=>ownedIds.has(String(a.oldPersonId))||ownedIds.has(String(a.canonicalPersonId))))blocker='TD2_MERGE_HISTORY_RETENTION_REQUIRED';
  if(media.blocker)blocker=media.blocker;
  if(TALENT_V2_TABLES.some(t=>!TALENT_FACT_TABLES.includes(t as FactTable)&&t!=='fieldProposals'&&data[t].some(r=>r.sourceId===sourceId)))blocker='TD2_SOURCE_RETENTION_REVIEW_REQUIRED';
@@ -64,9 +68,9 @@ export async function sourceFactGraph(tx:Tx,actor:Actor,sourceId:string,clock:Cl
  if(rows.some(o=>o.row.identifierCiphertext)&&!actor.permissions.includes('sensitive.write'))blocker='TD2_SENSITIVE_WRITE_REQUIRED';
  for(const row of [...people,...sources,...lists,...works,...projects,...assets,...organizations])if(!await scopeVisible(tx,actor,String(row.scopeId)))blocker='TD2_HIDDEN_DEPENDENCY';
  for(const person of people)if(!(person.status==='ERASED'&&ownedIds.has(person.id))&&(person.status==='ERASED'||await deletionBlocked(tx,actor.workspaceId,'PERSON',person.id)))blocker=blocker??'TD2_SOURCE_OWNER_UNAVAILABLE';
- const graphDigest=digest({ownedPeople,identityDependencies,projects,media:media.detailCode,rows,evidence,proposals,proposalOwners,collectionItems,candidates,candidateAssets,works,assets,parents,organizations,reviews,lists,
+ const graphDigest=digest({...(identityWithdrawals.length?{identityWithdrawals}:{}),ownedPeople,identityDependencies,projects,media:media.detailCode,rows,evidence,proposals,proposalOwners,collectionItems,candidates,candidateAssets,works,assets,parents,organizations,reviews,lists,
   people:people.map(p=>({id:p.id,scopeId:p.scopeId})),scopes,sources:sources.map(s=>s.id===sourceId?{id:s.id,scopeId:s.scopeId}:s)});
- return {data,media,ownedPeople,ownedIds,reviews,selected,rows,evidence,proposals,collectionItems,candidates,lists,people,sources,blocker,
+ return {data,media,identityWithdrawals,ownedPeople,ownedIds,reviews,selected,rows,evidence,proposals,collectionItems,candidates,lists,people,sources,blocker,
   detailCode:`TD2_SOURCE_FACT_GRAPH_${Buffer.from(graphDigest,'hex').toString('base64url')}:F${rows.length}:C${candidates.length}:I${collectionItems.length}:M${media.ownedAssets.length}:Q${media.credentials.length}:A${media.adults.length}:L${media.links.length}:H${ownedPeople.length}`};
 }
 function factContentDigest(row:Row){const {revision,updatedAt,...content}=row;return digest(content);}
@@ -100,6 +104,8 @@ export async function validateSourceFactPlan(tx:Tx,actor:Actor,request:DeletionR
  const group=items.find(i=>i.resourceKind===SOURCE_FACT_GROUP);if(!group)return;
  const g=await sourceFactGraph(tx,actor,request.targetId,clock);
  invariant(!g.blocker&&g.detailCode===group.detailCode,'TD2_ERASURE_GRAPH_STALE','专业资料或依赖发生变化，拒绝旧清理计划',409);
+ const identityItems=items.filter(i=>i.resourceKind===SOURCE_IDENTITY_EVIDENCE);
+ invariant(identityItems.length===g.identityWithdrawals.length&&g.identityWithdrawals.every(w=>identityItems.some(i=>i.resourceId===w.personId&&i.detailCode===w.detailCode&&i.decision==='APPLY_PROPOSED')),'TD2_SOURCE_IDENTITY_DECISIONS_INCOMPLETE','须逐项确认独立身份字段依据的撤回',409);
  const erasedPeople=new Set<string>();
  for(const person of g.ownedPeople){
   const item=items.find(i=>i.resourceKind==='person'&&i.resourceId===person.id);
@@ -157,6 +163,7 @@ export async function assertSourceFactRetentionComplete(tx:Tx,workspaceId:string
  invariant(!graph.blocker,'TD2_CLEANUP_INCOMPLETE','保留资料或关联范围发生变化，不能完成来源清理',409);
  for(const item of items)if(item.decision==='RETAIN_WITH_BASIS'){const basis=graph.data.sources.find(s=>s.id===item.retentionSourceId);invariant(basis&&basis.revision===item.retentionSourceRevision&&basis.protectionEpoch===item.retentionSourceProtectionEpoch&&sourceCurrent(basis as unknown as Source,clock)&&await scopeVisible(tx,actor,String(basis.scopeId))&&!await deletionBlocked(tx,workspaceId,'SOURCE',basis.id),'RETENTION_BASIS_CHANGED','保留依据已变化，不能完成来源清理',409);}
  const data=graph.data;
+ for(const item of items.filter(i=>i.resourceKind===SOURCE_IDENTITY_EVIDENCE)){const w=await identityWithdrawal(data,tx,actor,sourceId,item.resourceId,identityWithdrawalFields(item),clock);invariant(!w.blocker&&item.cleanupState==='DONE'&&w.detailCode===item.detailCode,'TD2_IDENTITY_RETENTION_CHANGED','身份字段或保留依据已经变化，不能完成来源清理',409);}
  for(const item of items)if(item.dependencyKind===IDENTITY_DEPENDENCY&&item.decision==='RETAIN_WITH_BASIS')await validateIdentityDependency(tx,actor,sourceId,item,items,clock);
  for(const person of data.people.filter(p=>p.sourceId===sourceId&&p.status!=='ERASED')){
   const item=items.find(i=>i.resourceKind==='person'&&i.resourceId===person.id);

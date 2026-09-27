@@ -1,3 +1,4 @@
+import {SOURCE_IDENTITY_EVIDENCE} from './talent-source-identity-evidence.ts';
 import {IDENTITY_RETENTION,IDENTITY_DEPENDENCY,validateIdentityRetention,validateIdentityDependency} from './talent-identity-retention.ts';
 import { eraseSourceFacts, assertSourceFactGroupDone, validateSourceFactPlan, SOURCE_FACT_GROUP, SOURCE_FACT_ITEM } from './talent-source-fact-erasure.ts';
 import { eraseTalentSourceEvidence } from './talent-source-erasure.ts';
@@ -27,7 +28,7 @@ const relationTable: Record<string, Table> = {
 };
 const actionPriority = (item: DeletionItem) => {
     if (item.resourceKind === SOURCE_FACT_GROUP) return 4;
-    if (item.resourceKind === SOURCE_FACT_ITEM) return 6;
+    if ([SOURCE_FACT_ITEM,SOURCE_IDENTITY_EVIDENCE].includes(item.resourceKind)) return 6;
     if (['talentGraph','talentAssetGraph','talentSourceEvidenceGraph','talentSourceAssetGraph'].includes(item.resourceKind)) return 5;
     if (item.resourceKind === 'shortlistItemAsset') return 10;
     if (item.resolvedAction === 'REMOVE_RELATION') return item.resourceKind === 'shortlistItem' ? 30 : 20;
@@ -136,7 +137,7 @@ export class DeletionCleanup {
     }
 
     private async apply(tx: Tx, request: DeletionRequest, item: DeletionItem): Promise<CleanupResult> {
-        if (item.resourceKind === SOURCE_FACT_ITEM) { await assertSourceFactGroupDone(tx, request); return { outcome: 'DONE' }; }
+        if ([SOURCE_FACT_ITEM,SOURCE_IDENTITY_EVIDENCE].includes(item.resourceKind)) { await assertSourceFactGroupDone(tx, request); return { outcome: 'DONE' }; }
         const action = item.resolvedAction;
         invariant(action, 'CLEANUP_ACTION_MISSING', '清理项没有冻结执行动作', 409);
         if (action === 'RETAIN_WITH_BASIS') {

@@ -1,3 +1,4 @@
+import {SOURCE_IDENTITY_EVIDENCE} from './talent-source-identity-evidence.ts';
 import {IDENTITY_RETENTION,IDENTITY_DEPENDENCY,identityItemCode,validateIdentityRetention} from './talent-identity-retention.ts';
 import { sourceFactGraph, sourceFactItemCode, validateSourceFactDecision, validateSourceFactPlan, SOURCE_FACT_GROUP, SOURCE_FACT_ITEM } from './talent-source-fact-erasure.ts';
 import { previewTalentSourceErasure } from './talent-source-erasure.ts';
@@ -270,6 +271,7 @@ export class Deletions {
                         for(const person of facts.ownedPeople)for(const impact of impacts.values())if(impact.resourceKind==='person'&&impact.resourceId===person.id){impact.dependencyKind=IDENTITY_RETENTION;impact.detailCode=identityItemCode(person as unknown as import('./model.ts').Person);}
                         for(const impact of impacts.values())if(['PERSON_CONTACT','PERSON_MEDIA_UPLOAD','PERSON_MEDIA_ASSET','PERSON_WORK_CREDIT','PERSON_PROJECT_PARTICIPATION','PERSON_SHORTLIST_ITEM','SHORTLIST_ITEM_ASSET'].includes(impact.dependencyKind)){impact.dependencyKind=IDENTITY_DEPENDENCY;impact.evidenceState='REVIEW_REQUIRED';}
                         add({resourceKind:SOURCE_FACT_GROUP,resourceId:targetId,dependencyKind:'SOURCE_TALENT_FACT_GROUP',proposedAction:'ERASE_PAYLOAD',evidenceState:'REVIEW_REQUIRED',detailCode:facts.detailCode});
+                        for(const withdrawal of facts.identityWithdrawals)add({resourceKind:SOURCE_IDENTITY_EVIDENCE,resourceId:withdrawal.personId,dependencyKind:'SOURCE_OTHER_IDENTITY_EVIDENCE',proposedAction:'ERASE_PAYLOAD',evidenceState:'REVIEW_REQUIRED',detailCode:withdrawal.detailCode});
                         for (const fact of facts.rows) add({resourceKind:SOURCE_FACT_ITEM,resourceId:fact.row.id,dependencyKind:'SOURCE_TALENT_FACT',proposedAction:'REVIEW_RETENTION',evidenceState:'REVIEW_REQUIRED',detailCode:sourceFactItemCode(fact)});
                     } else if (graph.blocker) miss(graph.blocker);
                 } else if (graph.blocker) miss(graph.blocker);
@@ -393,6 +395,7 @@ export class Deletions {
         if (items.some(i => i.resourceKind === SOURCE_FACT_GROUP) && ['DRAFT','BLOCKED_FOR_USE'].includes(row.state)) {
             const g = await sourceFactGraph(tx, actor, row.targetId, this.clock);
             if (g.blocker === 'TD2_HIDDEN_DEPENDENCY') missing();
+            for(const withdrawal of g.identityWithdrawals)factLabels.set(withdrawal.personId,String(g.people.find(p=>p.id===withdrawal.personId)?.displayName??''));
             for (const o of g.rows) factLabels.set(o.row.id, [g.people.find(p => p.id === o.row.personId)?.displayName,
                 o.row.roleCode, o.row.languageCode, o.row.capabilityCode, o.row.title, o.row.locationCode, o.row.credentialTypeCode,
                 o.row.validFrom, o.row.validUntil].filter(v => typeof v === 'string' && v.length).join(' · '));
@@ -407,7 +410,7 @@ export class Deletions {
             decisionReason: item.decisionReason === 'AUTO_PROVEN' ? '' : item.decisionReason,
             retentionBasisPresent: item.retentionSourceId !== null,
             decidedAt: item.decidedAt,
-            ...(item.resourceKind === SOURCE_FACT_ITEM ? {recordSummary: factLabels.get(item.resourceId) ?? ''} : {})
+            ...([SOURCE_FACT_ITEM,SOURCE_IDENTITY_EVIDENCE].includes(item.resourceKind) ? {recordSummary: factLabels.get(item.resourceId) ?? ''} : {})
         }));
         return page(safe, query);
     }
@@ -423,7 +426,7 @@ export class Deletions {
         if (!item || item.requestId !== row.id) missing();
         invariant(item.evidenceState === 'REVIEW_REQUIRED', 'DELETION_DECISION_NOT_REQUIRED', '该影响项已有可证明的自动处置，不需要人工覆盖', 409);
 
-        if ([SOURCE_FACT_GROUP,SOURCE_FACT_ITEM].includes(item.resourceKind)||item.dependencyKind===IDENTITY_RETENTION) {
+        if ([SOURCE_FACT_GROUP,SOURCE_FACT_ITEM,SOURCE_IDENTITY_EVIDENCE].includes(item.resourceKind)||item.dependencyKind===IDENTITY_RETENTION) {
             const graph = await sourceFactGraph(tx, actor, row.targetId, this.clock);
             if (graph.blocker === 'TD2_HIDDEN_DEPENDENCY') missing();
             const group = (await tx.find('deletionItems', {workspaceId:actor.workspaceId,requestId:row.id})).find(i => i.resourceKind === SOURCE_FACT_GROUP);
@@ -431,7 +434,7 @@ export class Deletions {
         }
         let retentionSourceId: string | null = null, retentionSourceRevision: number | null = null, retentionSourceProtectionEpoch: number | null = null;
         if (d.decision === 'RETAIN_WITH_BASIS') {
-            invariant(!['talentGraph','talentAssetGraph','talentSourceEvidenceGraph','talentSourceAssetGraph',SOURCE_FACT_GROUP].includes(item.resourceKind), 'TD2_ERASURE_RETENTION_UNSUPPORTED',
+            invariant(!['talentGraph','talentAssetGraph','talentSourceEvidenceGraph','talentSourceAssetGraph',SOURCE_FACT_GROUP,SOURCE_IDENTITY_EVIDENCE].includes(item.resourceKind), 'TD2_ERASURE_RETENTION_UNSUPPORTED',
                 '本项必须清理指定对象的资料或引用；独立来源证据不能改记来源，需要保留时请停止本次删除', 422);
             requirePermission(actor, 'sources.review');
             invariant(!!d.retentionSourceId && d.retentionSourceId !== row.targetSourceId, 'RETENTION_BASIS_REQUIRED', '保留必须选择另一份独立且当前有效的来源依据', 422);
