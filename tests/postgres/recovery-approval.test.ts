@@ -131,6 +131,9 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
 
         const td2 = await seedProfessionalGraph(sourceApp, sourceStore, clock, owner, sourceId, personId);
         const td2Person = await td2.current();
+        // A synthetic imported review has historical attribution, not a local reviewer account.
+        const evidenceBase=await sourceClient.fieldEvidence.findFirstOrThrow({where:{personLanguageId:td2.languageId}});
+        const importedEvidence=await sourceClient.fieldEvidence.create({data:{...evidenceBase,id:randomUUID(),reviewerId:null,reviewedAt:null,originalReviewWorkspaceId:randomUUID(),originalReviewMembershipId:randomUUID(),originalReviewedAt:evidenceBase.createdAt}});
         const linked = await owner.cmd('POST', `/td2/collections/${td2.collectionId}/items`, {
             schemaVersion: 'once-talent-v2.0.0', expectedRevision: 1,
             expectedPersonRevision: td2Person.revision, assetId: uploadId
@@ -234,6 +237,9 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         const retained = await restoreClient.talentProfile.findUniqueOrThrow({where:{id:historyId}});
         assert.equal(retained.personId,historyPersonId); assert.ok(retained.supersededById);
         assert.equal(await restoreClient.personAlias.count({where:{oldPersonId:historyPersonId,canonicalPersonId:personId}}),1);
+        const restoredEvidence=await restoreClient.fieldEvidence.findUniqueOrThrow({where:{id:importedEvidence.id}});
+        assert.deepEqual(restoredEvidence,importedEvidence);
+        assert.equal(restoredEvidence.reviewerId,null);assert.equal(restoredEvidence.reviewedAt,null);
         assert.equal(report.talent.credentialCount, 1);
         assert.equal(report.talent.credentialDecryptFailures, 0);
         assert.equal(report.talent.tableCounts.personRoles, 2);
@@ -307,7 +313,7 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         const hidden=await restoredOwner.raw('GET','/people/'+personId);
         assert.equal(hidden.status,404,'suspended source remains restricted after recovery approval');
 
-        console.log('PASS TD2 pg_dump/pg_restore+media: stable roles, measurements, external refs, collection links, encrypted credential and revoked machine identity');
+        console.log('PASS TD2 pg_dump/pg_restore+media: stable roles, measurements, external refs, collection links, encrypted credential, original evidence review attribution and revoked machine identity');
         console.log('PASS DEV-09E pg_dump/pg_restore+media: contained post-backup delta resolves and approves; unresolved committed member.disable remains blocked');
     }finally{
         await sourceStore.close();

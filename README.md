@@ -1,3 +1,5 @@
+当前接续：已支持的十一类专业资料可另行批准[字段来源证据迁移](docs/release/TD2_FIELD_EVIDENCE_TRANSFER.md)，保留原记录和核验归属；完整人才2.0仍未完成。
+
 > 当前入口：[人才 2.0 状态](docs/release/TD2_MAINTENANCE_STATUS.md)、[专业冲突合并](docs/release/TD2_CONFLICT_MERGE.md)、[职业候选保留](docs/release/TD2_ROLE_CANDIDATE_MERGE.md)与[专业导出/重建子集](docs/release/TD2_TYPED_TRANSFER.md)、[代表关系及关联机构迁移](docs/release/TD2_REPRESENTATION_TRANSFER.md)。PR #26 基于 PR #25，尚未合入 main；以下旧阶段证据不替代当前 head 验收。
 
 # ONCE Production OS

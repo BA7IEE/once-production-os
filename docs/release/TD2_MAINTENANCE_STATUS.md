@@ -5,7 +5,9 @@
 
 ## 本轮接续
 
-当前在 `1cd4e22` 上修复不同职业候选的合并误冲突，见 [TD2_ROLE_CANDIDATE_MERGE.md](TD2_ROLE_CANDIDATE_MERGE.md)。逐项确认后保留独立候选、原职业、备注与选图；职业不明且关联复核的真实碰撞继续阻断。
+当前在 `936d025` 上补字段来源证据导出与重建，见 [TD2_FIELD_EVIDENCE_TRANSFER.md](TD2_FIELD_EVIDENCE_TRANSFER.md)。十一类所选资料的同源/多源证据按独立许可进入 v5，原核验归属保留但不创建目标账号、不伪造目标核验。资质、媒体、合并历史等仍待完成。
+
+前批在 `1cd4e22` 上修复不同职业候选的合并误冲突，见 [TD2_ROLE_CANDIDATE_MERGE.md](TD2_ROLE_CANDIDATE_MERGE.md)。逐项确认后保留独立候选、原职业、备注与选图；职业不明且关联复核的真实碰撞继续阻断。
 
 前批在 `2a7d914` 上补代表关系迁移，见 [TD2_REPRESENTATION_TRANSFER.md](TD2_REPRESENTATION_TRANSFER.md)。个人代表需显式选择并独立批准；机构来源须批准实际使用的每个分组。职业/有效期/停用状态保留，旧 v1/v2/v3 兼容。整体仍未完成。
 

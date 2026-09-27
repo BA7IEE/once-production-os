@@ -1,7 +1,7 @@
 import { v, uuid, revision, dateIso, code, type Schema } from './validation.ts';
 import { TD2_FACTS, fieldSchema, type FactRow } from './talent-v2-schema.ts';
 import { loadTalentGraph } from './talent-v2-graph.ts';
-import { TALENT_SCHEMA_VERSION } from './talent-v2-model.ts';
+import { TALENT_SCHEMA_VERSION, TALENT_OWNER_EMPTY } from './talent-v2-model.ts';
 import type { Actor, Clock } from './model.ts';
 import type { Tx } from './store.ts';
 import { invariant } from './errors.ts';
@@ -29,13 +29,16 @@ export const TALENT_EXPORT_VERSION = 'once-export-v2-talent' as const;
 export const TRANSFER_VERSION = 'once-talent-transfer-v1' as const;
 export const CAPABILITY_TRANSFER_VERSION = 'once-talent-transfer-v2' as const;
 export const EXTERNAL_TRANSFER_VERSION = 'once-talent-transfer-v3' as const;
+export const EVIDENCE_TRANSFER_CODE = 'person.td2.fieldEvidence' as const;
+export const EVIDENCE_TRANSFER_VERSION = 'once-talent-transfer-v5' as const;
 export const REPRESENTATION_TRANSFER_VERSION = 'once-talent-transfer-v4' as const;
 export const transferCode = (table: TransferTable): TransferCode => `person.td2.${table}`;
 export const isTransferCode = (code: string): code is TransferCode => (TRANSFER_CODES as readonly string[]).includes(code);
 export interface TransferRow { id: string; personId: string; sourceId: string; revision: number; createdAt: string; updatedAt: string; data: Record<string, unknown> }
 export interface TransferDefinition { id: string; revision: number; createdAt: string; updatedAt: string; code: string; labelZh: string; labelEn: string; aliases: string[]; applicableRoleCodes: string[]; levelSchemeCode: 'ABILITY_5' | null; semanticVersion: string; schemaVersion: typeof TALENT_SCHEMA_VERSION; status: 'ACTIVE' | 'INACTIVE' }
 export interface TransferOrganization { id: string; sourceId: string; revision: number; createdAt: string; updatedAt: string; name: string; kind: 'AGENCY' | 'ISSUER' | 'OTHER'; status: 'ACTIVE' }
-export interface TalentTransfer { schemaVersion: typeof TRANSFER_VERSION | typeof CAPABILITY_TRANSFER_VERSION | typeof EXTERNAL_TRANSFER_VERSION | typeof REPRESENTATION_TRANSFER_VERSION; selectedFields: TransferCode[]; tables: Record<TransferTable, TransferRow[]>; capabilityDefinitions?: TransferDefinition[]; organizations?: TransferOrganization[] }
+export interface TransferEvidence { id: string; revision: number; createdAt: string; updatedAt: string; ownerKind: TransferTable; ownerId: string; fieldPath: string; valueDigest: string; sourceId: string; sourceRevision: number; originalReview: {workspaceId:string; membershipId:string; reviewedAt:string} | null }
+export interface TalentTransfer { schemaVersion: typeof TRANSFER_VERSION | typeof CAPABILITY_TRANSFER_VERSION | typeof EXTERNAL_TRANSFER_VERSION | typeof REPRESENTATION_TRANSFER_VERSION | typeof EVIDENCE_TRANSFER_VERSION; evidence?: TransferEvidence[]; selectedFields: TransferCode[]; tables: Record<TransferTable, TransferRow[]>; capabilityDefinitions?: TransferDefinition[]; organizations?: TransferOrganization[] }
 // Old v1/v2 payloads lack later tables. Keep their bytes and digest unchanged.
 export const transferRows = (bundle: TalentTransfer, table: TransferTable): TransferRow[] => bundle.tables[table] ?? [];
 const definitionSchema = v.object({ id: uuid, revision, createdAt: dateIso, updatedAt: dateIso, code,
@@ -63,16 +66,19 @@ const externalCodes=TRANSFER_CODES.filter(c=>c!=='person.td2.representations');
 const externalTables=Object.fromEntries(Object.entries(tableSchemas).filter(([table])=>table!=='representations'));
 const externalSchema = v.object({schemaVersion:v.enum([EXTERNAL_TRANSFER_VERSION]),selectedFields:v.array(v.enum(externalCodes),externalCodes.length,1),tables:v.object(externalTables),capabilityDefinitions:v.array(definitionSchema,500),organizations:v.array(organizationSchema,500)});
 const representationSchema=v.object({schemaVersion:v.enum([REPRESENTATION_TRANSFER_VERSION]),selectedFields:v.array(v.enum(TRANSFER_CODES),TRANSFER_CODES.length,1),tables:v.object(tableSchemas),capabilityDefinitions:v.array(definitionSchema,500),organizations:v.array(organizationSchema,500)});
+const evidenceSchema=v.object({id:uuid,revision,createdAt:dateIso,updatedAt:dateIso,ownerKind:v.enum(TRANSFER_TABLES),ownerId:uuid,fieldPath:v.string(160,1),valueDigest:v.string(64,64,/^[a-f0-9]{64}$/),sourceId:uuid,sourceRevision:revision,originalReview:v.nullable(v.object({workspaceId:uuid,membershipId:uuid,reviewedAt:dateIso}))});
+const evidenceTransferSchema=v.object({schemaVersion:v.enum([EVIDENCE_TRANSFER_VERSION]),selectedFields:v.array(v.enum(TRANSFER_CODES),TRANSFER_CODES.length,1),tables:v.object(tableSchemas),capabilityDefinitions:v.array(definitionSchema,500),organizations:v.array(organizationSchema,500),evidence:v.array(evidenceSchema,500)});
 export const TransferSchema: Schema<TalentTransfer> = {
-    json: {oneOf:[legacySchema.json,capabilitySchema.json,externalSchema.json,representationSchema.json]},
+    json: {oneOf:[legacySchema.json,capabilitySchema.json,externalSchema.json,representationSchema.json,evidenceTransferSchema.json]},
     parse(input,path) {
         const version = input && typeof input==='object' ? (input as Record<string,unknown>).schemaVersion : undefined;
-        return (version===REPRESENTATION_TRANSFER_VERSION ? representationSchema : version===EXTERNAL_TRANSFER_VERSION ? externalSchema : version===CAPABILITY_TRANSFER_VERSION ? capabilitySchema : legacySchema).parse(input,path) as unknown as TalentTransfer;
+        return (version===EVIDENCE_TRANSFER_VERSION ? evidenceTransferSchema : version===REPRESENTATION_TRANSFER_VERSION ? representationSchema : version===EXTERNAL_TRANSFER_VERSION ? externalSchema : version===CAPABILITY_TRANSFER_VERSION ? capabilitySchema : legacySchema).parse(input,path) as unknown as TalentTransfer;
     }
 };
 
-export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, peopleIds: string[], codes: TransferCode[]): Promise<TalentTransfer> {
+export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, peopleIds: string[], codes: TransferCode[], withEvidence = false): Promise<TalentTransfer> {
     requirePermission(actor, 'records.read');
+    if(withEvidence) requirePermission(actor,'sources.review');
     const graph = await loadTalentGraph(tx, actor, clock), people = new Set(peopleIds);
     const tables = Object.fromEntries(TRANSFER_TABLES.map(t => [t, []])) as unknown as TalentTransfer['tables'];
     let total = 0;
@@ -86,7 +92,7 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
             invariant(projected && (projected.unavailableFields as string[]).length === 0, 'TD2_EXPORT_RESTRICTED', '所选专业资料存在当前不可读字段，不能静默遗漏', 409);
             // Per-field multi-source evidence needs its own transfer contract. Do not drop provenance.
             const owner = TD2_FACTS[table].ownerKey;
-            invariant(!graph.rows('evidence').some(e => (e as unknown as Record<string, unknown>)[owner] === row.id && e.sourceId !== row.sourceId),
+            invariant(withEvidence || !graph.rows('evidence').some(e => (e as unknown as Record<string, unknown>)[owner] === row.id && e.sourceId !== row.sourceId),
                 'TD2_EXPORT_EVIDENCE_UNSUPPORTED', '同一条专业事实包含其他来源证据，当前格式不能完整保存其来源关系', 409);
             tables[table].push({ id: row.id, personId: row.personId, sourceId: row.sourceId, revision: row.revision,
                 createdAt: row.createdAt, updatedAt: row.updatedAt,
@@ -120,10 +126,23 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
         }
         organizations.sort((a,b)=>a.id.localeCompare(b.id));
     }
-    if(!withRepresentations) delete (tables as Partial<typeof tables>).representations;
-    if(!withExternal&&!withRepresentations) delete (tables as Partial<typeof tables>).personExternalRefs;
-    if(!withCapabilities&&!withExternal&&!withRepresentations) delete (tables as Partial<typeof tables>).personCapabilities;
-    const transfer = TransferSchema.parse({ schemaVersion: withRepresentations ? REPRESENTATION_TRANSFER_VERSION : withExternal ? EXTERNAL_TRANSFER_VERSION : withCapabilities ? CAPABILITY_TRANSFER_VERSION : TRANSFER_VERSION, selectedFields: [...codes].sort(), tables, ...(withCapabilities||withExternal||withRepresentations?{capabilityDefinitions}:{}), ...(withExternal||withRepresentations?{organizations}:{}) });
+    const evidence: TransferEvidence[]=[];
+    if(withEvidence) for(const table of TRANSFER_TABLES) for(const row of tables[table]) {
+        const owner=TD2_FACTS[table].ownerKey;
+        for(const e of graph.rows('evidence').filter(e=>(e as unknown as Record<string,unknown>)[owner]===row.id)) {
+            invariant(Object.keys(TALENT_OWNER_EMPTY).filter(k=>(e as unknown as Record<string,unknown>)[k]!=null).length===1,'TD2_TRANSFER_EVIDENCE_OWNER','字段证据归属必须唯一',409);
+            invariant(total+capabilityDefinitions.length+organizations.length+evidence.length<500,'TD2_EXPORT_LIMIT','单次专业资料与证据最多500条',422);
+            const evidenceSource=await sourceFor(tx,actor,e.sourceId,clock);
+            invariant(e.sourceRevision<=evidenceSource.revision,'TD2_TRANSFER_EVIDENCE_SOURCE_REVISION','字段证据引用了不存在的来源版本',409);
+            evidence.push(evidenceSchema.parse({id:e.id,revision:e.revision,createdAt:e.createdAt,updatedAt:e.updatedAt,ownerKind:table,ownerId:row.id,fieldPath:e.fieldPath,valueDigest:e.valueDigest,sourceId:e.sourceId,sourceRevision:e.sourceRevision,
+                originalReview:e.reviewerId?{workspaceId:actor.workspaceId,membershipId:e.reviewerId,reviewedAt:e.reviewedAt}:e.originalReviewWorkspaceId?{workspaceId:e.originalReviewWorkspaceId,membershipId:e.originalReviewMembershipId,reviewedAt:e.originalReviewedAt}:null}) as TransferEvidence);
+        }
+    }
+    evidence.sort((a,b)=>a.id.localeCompare(b.id));
+    if(!withEvidence&&!withRepresentations) delete (tables as Partial<typeof tables>).representations;
+    if(!withEvidence&&!withExternal&&!withRepresentations) delete (tables as Partial<typeof tables>).personExternalRefs;
+    if(!withEvidence&&!withCapabilities&&!withExternal&&!withRepresentations) delete (tables as Partial<typeof tables>).personCapabilities;
+    const transfer = TransferSchema.parse({ schemaVersion: withEvidence ? EVIDENCE_TRANSFER_VERSION : withRepresentations ? REPRESENTATION_TRANSFER_VERSION : withExternal ? EXTERNAL_TRANSFER_VERSION : withCapabilities ? CAPABILITY_TRANSFER_VERSION : TRANSFER_VERSION, selectedFields: [...codes].sort(), tables, ...(withEvidence||withCapabilities||withExternal||withRepresentations?{capabilityDefinitions}:{}), ...(withEvidence||withExternal||withRepresentations?{organizations}:{}), ...(withEvidence?{evidence}:{}) });
     validateTransferLinks(transfer, peopleIds);
     return transfer;
 }
@@ -183,7 +202,13 @@ export function validateTransferLinks(bundle: TalentTransfer, personIds: string[
         const key=JSON.stringify([d.providerCode,d.namespaceCode,d.issuerOrganizationId,d.externalKey]);
         invariant(!activeKeys.has(key),'EXTERNAL_REF_CONFLICT','同一外部标识不能重复归属人物',422);activeKeys.add(key);
     }
-    invariant(count + definitions.length + organizations.length <= 500, 'TD2_EXPORT_LIMIT', '单次专业资料最多 500 条', 422);
+    const evidence=bundle.evidence??[];
+    invariant(evidence.length===new Set(evidence.map(e=>e.id)).size,'TD2_TRANSFER_EVIDENCE_DUPLICATE','字段证据编号重复',422);
+    for(const e of evidence) {
+        invariant(maps[e.ownerKind]?.has(e.ownerId),'TD2_TRANSFER_EVIDENCE_OWNER','字段证据必须引用已选择的专业记录',422);
+        invariant((TALENT_TRANSFER_FIELDS[e.ownerKind] as readonly string[]).includes(e.fieldPath),'TD2_TRANSFER_EVIDENCE_FIELD','字段证据不能引用未导出的字段',422);
+    }
+    invariant(count + definitions.length + organizations.length + evidence.length <= 500, 'TD2_EXPORT_LIMIT', '单次专业资料最多 500 条', 422);
     for (const row of bundle.tables.measurementSets) {
         const seen = new Set([row.id]); let previous = row.data.supersedesId;
         while (previous) { invariant(!seen.has(String(previous)), 'TD2_TRANSFER_CYCLE', '量尺历史不能形成循环', 422); seen.add(String(previous)); previous = maps.measurementSets.get(String(previous))?.data.supersedesId; }

@@ -1,3 +1,5 @@
+当前接续：[字段来源证据迁移](TD2_FIELD_EVIDENCE_TRANSFER.md)新增独立许可和v5；不复制原账号、不伪造目标核验。完整TD2-06仍未完成。
+
 # 当前实现状态｜Talent Domain 2.0 业务衔接
 
 应用 `0.1.0-dev.1`。当前分支 `feat/talent-domain-2`，PR #26，基于 PR #25。

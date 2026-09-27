@@ -14431,11 +14431,12 @@
                         "person.td2.measurementSets",
                         "person.td2.castingProfiles",
                         "person.td2.translatorLanguagePairs",
-                        "person.td2.translatorServiceModes"
+                        "person.td2.translatorServiceModes",
+                        "person.td2.fieldEvidence"
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 44
+                    "maxItems": 45
                   },
                   "validUntil": {
                     "type": "string",
@@ -14730,11 +14731,12 @@
                         "person.td2.measurementSets",
                         "person.td2.castingProfiles",
                         "person.td2.translatorLanguagePairs",
-                        "person.td2.translatorServiceModes"
+                        "person.td2.translatorServiceModes",
+                        "person.td2.fieldEvidence"
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 44
+                    "maxItems": 45
                   },
                   "usePermissionRefs": {
                     "type": "array",

@@ -108,7 +108,11 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
             ref(row, 'decidedById', 'memberships');
         }
     }
-    for (const row of data.evidence) { owner(row); ref(row, 'sourceId', 'sources', false, true); }
+    for (const row of data.evidence) {
+        owner(row); ref(row, 'sourceId', 'sources', false, true);
+        const original=[row.originalReviewWorkspaceId,row.originalReviewMembershipId,row.originalReviewedAt].filter(v=>v!=null);
+        check(original.length===0 || (original.length===3 && row.reviewerId===null && row.reviewedAt===null && Date.parse(String(row.originalReviewedAt))>=Date.parse(String(row.createdAt)) && Date.parse(String(row.originalReviewedAt))<=Date.parse(String(row.updatedAt))));
+    }
     for (const row of data.shortlistItems) {
         ref(row, 'personId', 'people', false, true);
         ref(row, 'personRoleId', 'personRoles', true, row.roleContextState === 'BOUND');

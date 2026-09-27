@@ -30,9 +30,14 @@ test('TD2 PostgreSQL controlled multi-source export and isolated typed rebuild p
             const input=join(tmp,'apply.json');writeFileSync(input,JSON.stringify(payload),{mode:0o600});
             for(const apply of [false,true]){
                 const run=spawnSync('pnpm',['--silent','rebuild:json','--','--input',input,'--actor-login','owner','--expected-sha256',sha256,...(apply?['--apply']:[])],{encoding:'utf8',env:{...process.env,DATABASE_URL_REBUILD:urls[1],ALLOW_REBUILD:'yes'},timeout:60000});
-                assert.equal(run.status,0,run.stderr);assert.equal(JSON.parse(run.stdout).professionalRecords,16);assert.equal(JSON.parse(run.stdout).capabilityDefinitions,1);assert.equal(JSON.parse(run.stdout).organizations,1);
+                assert.equal(run.status,0,run.stderr);assert.equal(JSON.parse(run.stdout).professionalRecords,16);assert.equal(JSON.parse(run.stdout).capabilityDefinitions,1);assert.equal(JSON.parse(run.stdout).organizations,1);assert.equal(JSON.parse(run.stdout).fieldEvidence,(payload as any).manifest.talent.evidence.length);
             }
         }});
+        const imported=await stores[1]!.client.fieldEvidence.findFirstOrThrow({where:{originalReviewMembershipId:{not:null}}});
+        const targetMembership=await stores[1]!.client.membership.findFirstOrThrow();
+        await assert.rejects(stores[1]!.transaction(async tx=>{const e=(await tx.get('evidence',imported.id))!;await tx.replace('evidence',{...e,reviewerId:targetMembership.id,reviewedAt:e.originalReviewedAt!});}));
+        await assert.rejects(stores[1]!.transaction(async tx=>{const e=(await tx.get('evidence',imported.id))!;await tx.replace('evidence',{...e,originalReviewMembershipId:null});}));
+        assert.equal((await stores[1]!.client.fieldEvidence.findUniqueOrThrow({where:{id:imported.id}})).reviewerId,null);
         // Exact CLI parser must recognize this version and retain the populated-target guard.
         const path=join(tmp,'transfer.json');writeFileSync(path,JSON.stringify(transfer.download.payload),{mode:0o600});
         const cli=spawnSync('pnpm',['--silent','rebuild:json','--','--input',path,'--actor-login','owner','--expected-sha256',transfer.download.sha256],{encoding:'utf8',env:{...process.env,DATABASE_URL_REBUILD:urls[1]},timeout:60000});

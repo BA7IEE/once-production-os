@@ -111,6 +111,10 @@ export interface Contact extends Base {
     maskedValue: string;
 }
 export interface FieldEvidence extends Base, Partial<TalentOwnerRefs> {
+    // Historical review attribution is not a membership or approval in the target workspace.
+    originalReviewWorkspaceId?: string | null;
+    originalReviewMembershipId?: string | null;
+    originalReviewedAt?: string | null;
     personId: string | null;
     fieldPath: string;
     valueDigest: string;

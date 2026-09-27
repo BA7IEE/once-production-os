@@ -383,6 +383,9 @@ model Contact {
 }
 
 model FieldEvidence {
+  originalReviewWorkspaceId String? @db.Uuid
+  originalReviewMembershipId String? @db.Uuid
+  originalReviewedAt DateTime? @db.Timestamptz(3)
   talentProfileId String? @db.Uuid
   personRoleId String? @db.Uuid
   personCapabilityId String? @db.Uuid

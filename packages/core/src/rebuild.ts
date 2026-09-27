@@ -1,5 +1,5 @@
 import { transferRows, TALENT_EXPORT_VERSION, TRANSFER_TABLES } from './talent-transfer.ts';
-import { validateTalentRebuild, applyTalentRebuild } from './talent-transfer-rebuild.ts';
+import { validateTalentRebuild, applyTalentRebuild, applyTransferEvidence } from './talent-transfer-rebuild.ts';
 import type { Actor, Clock, Person, Source, SourceHistory } from './model.ts';
 import type { Work, WorkCredit, Project, ProjectParticipant, ProjectWork } from './production-model.ts';
 import { PRODUCTION_LIMITS as PL } from './production-model.ts';
@@ -106,8 +106,9 @@ export class JsonRebuild {
             assetIdentity.set(row.id, identityDigest);
         }
 
+        for(const e of payload.manifest.talent?.evidence??[]) invariant(e.sourceRevision<=(sources.find(s=>s.id===e.sourceId)?.revision??0),'TD2_TRANSFER_EVIDENCE_SOURCE_REVISION','字段证据引用了不存在的来源版本',422);
         const referencedSources = new Set([
-            ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent?.organizations??[]).map(o=>o.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>transferRows(payload.manifest.talent!,t).map(r=>r.sourceId)) : [])
+            ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent?.evidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.organizations??[]).map(o=>o.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>transferRows(payload.manifest.talent!,t).map(r=>r.sourceId)) : [])
         ]);
         invariant(sources.every(x => referencedSources.has(x.id)), 'REBUILD_UNUSED_SOURCE',
             '来源清单包含没有被本次业务图引用的记录', 422);
@@ -202,7 +203,7 @@ export class JsonRebuild {
                 projectWorks: relations.projectWorks.length,
                 mediaIdentities: media.length
             },
-            ...(payload.manifest.talent ? {organizations:payload.manifest.talent.organizations?.length??0, capabilityDefinitions: payload.manifest.talent.capabilityDefinitions?.length??0, professionalRecords: TRANSFER_TABLES.reduce((n,t)=>n+transferRows(payload.manifest.talent!,t).length,0)} : {}),
+            ...(payload.manifest.talent ? {fieldEvidence:payload.manifest.talent.evidence?.length??0, organizations:payload.manifest.talent.organizations?.length??0, capabilityDefinitions: payload.manifest.talent.capabilityDefinitions?.length??0, professionalRecords: TRANSFER_TABLES.reduce((n,t)=>n+transferRows(payload.manifest.talent!,t).length,0)} : {}),
             mediaRestored: 0
         };
         return { payload, target, summary };
@@ -286,6 +287,7 @@ export class JsonRebuild {
         }
 
         if (payload.manifest.talent) await applyTalentRebuild(tx, actor, payload.manifest.talent, target.scope.id);
+        if (payload.manifest.talent) await applyTransferEvidence(tx,actor,payload.manifest.talent);
 
         await audit(tx, actor, actor.workspaceId, 'rebuild.apply', 'rebuild-export', payload.exportId,
             ['sources', 'people', 'works', 'projects', 'relations', ...(payload.manifest.talent ? ['talent.typed'] : []), ...(payload.manifest.media.length ? ['media.identity-only'] : [])],

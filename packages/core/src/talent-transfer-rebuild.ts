@@ -1,3 +1,5 @@
+import { TALENT_OWNER_EMPTY } from './talent-v2-model.ts';
+import { TD2_FACTS } from './talent-v2-schema.ts';
 import type { Actor, Clock, TableMap } from './model.ts';
 import type { Tx } from './store.ts';
 import { invariant } from './errors.ts';
@@ -8,6 +10,11 @@ export async function validateTalentRebuild(tx: Tx, actor: Actor, clock: Clock, 
     const dictionary = await tx.find('dictionary', {workspaceId: actor.workspaceId, status: 'ACTIVE'});
     const catalog = (namespace: string, value: unknown) => invariant(dictionary.some(d => d.namespace === namespace && d.code === value), 'REBUILD_CATALOG_MISSING', '目标缺少专业资料使用的启用字典代码', 409);
     const overlap = (a: Record<string,unknown>, b: Record<string,unknown>) => (!a.validFrom || !b.validUntil || String(a.validFrom)<String(b.validUntil)) && (!b.validFrom || !a.validUntil || String(b.validFrom)<String(a.validUntil));
+    for(const e of bundle.evidence??[]) {
+        invariant(sources.includes(e.sourceId),'REBUILD_SOURCE_MISSING','字段证据来源必须包含在重建清单',422);
+        invariant(Date.parse(e.createdAt)<=Date.parse(e.updatedAt)&&Date.parse(e.updatedAt)<=clock.now().getTime(),'TD2_TRANSFER_TIME_INVALID','字段证据时间不合法',422);
+        invariant(!e.originalReview || (Date.parse(e.originalReview.reviewedAt)>=Date.parse(e.createdAt)&&Date.parse(e.originalReview.reviewedAt)<=Date.parse(e.updatedAt)), 'TD2_TRANSFER_TIME_INVALID','原核验时间不合法',422);
+    }
     for (const organization of bundle.organizations??[]) {
         invariant(sources.includes(organization.sourceId),'REBUILD_SOURCE_MISSING','关联机构来源必须包含在重建清单',422);
         invariant(Date.parse(organization.createdAt)<=Date.parse(organization.updatedAt)&&Date.parse(organization.updatedAt)<=clock.now().getTime(),'TD2_TRANSFER_TIME_INVALID','关联机构时间不合法',422);
@@ -56,5 +63,13 @@ export async function applyTalentRebuild(tx: Tx, actor: Actor, bundle: TalentTra
             ...(table === 'talentProfiles' ? {supersededById:null} : {}),
             ...(table === 'castingProfiles' ? {supersededById:null,retiredCurrentMeasurementSetId:null} : {})
         } as unknown as TableMap[typeof table]);
+    }
+}
+
+export async function applyTransferEvidence(tx:Tx,actor:Actor,bundle:TalentTransfer) {
+    for(const e of bundle.evidence??[]) {
+        const {ownerKind,ownerId,originalReview,...row}=e;
+        await tx.insert('evidence',{...row,workspaceId:actor.workspaceId,...TALENT_OWNER_EMPTY,[TD2_FACTS[ownerKind].ownerKey]:ownerId,reviewerId:null,reviewedAt:null,
+            originalReviewWorkspaceId:originalReview?.workspaceId??null,originalReviewMembershipId:originalReview?.membershipId??null,originalReviewedAt:originalReview?.reviewedAt??null});
     }
 }
