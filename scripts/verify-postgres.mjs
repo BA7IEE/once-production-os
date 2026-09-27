@@ -98,6 +98,13 @@ if(mainStatus!==0){process.exitCode=mainStatus;}else{
     ...process.env,DATABASE_URL_TD2_TEST:identitySource,DATABASE_URL_TALENT_REBUILD_TEST:identityTarget,ALLOW_TD2_DB_TESTS:'yes'
    },240000);
   }
+  if(status===0){
+   const historySource=await fresh('once_test_td2_history_','Merge history source');
+   const historyTarget=await fresh('once_rebuild_history_','Merge history target');
+   status=runNode('tests/postgres/merge-history-transfer.test.ts',{
+    ...process.env,DATABASE_URL_TD2_TEST:historySource,DATABASE_URL_TALENT_REBUILD_TEST:historyTarget,ALLOW_TD2_DB_TESTS:'yes'
+   },240000);
+  }
   process.exitCode=status;
  }catch(error){console.error(error instanceof Error?error.message:'Could not create a fresh isolated sibling database.');process.exitCode=1;}
  finally{await admin.$disconnect();}

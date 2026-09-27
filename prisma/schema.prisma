@@ -1175,7 +1175,9 @@ model PersonMergeDecision {
   createdAt DateTime @db.Timestamptz(3)
   updatedAt DateTime @db.Timestamptz(3)
   revision Int
-  actorId String @db.Uuid
+  actorId String? @db.Uuid
+  originalActorWorkspaceId String? @db.Uuid
+  originalActorMembershipId String? @db.Uuid
   canonicalPersonId String @db.Uuid
   duplicatePersonId String @db.Uuid
   canonicalRevisionBefore Int
@@ -1195,7 +1197,7 @@ model PersonMergeDecision {
   resultDigest String @db.Text
   completedAt DateTime @db.Timestamptz(3)
   workspace Workspace @relation("PersonMergeDecision_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "personMerges_workspace_fkey")
-  actorIdRef Membership @relation("PersonMergeDecision_actorIdRef", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "personMerges_actorIdRef_fkey")
+  actorIdRef Membership? @relation("PersonMergeDecision_actorIdRef", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "personMerges_actorIdRef_fkey")
   canonicalPersonRef Person @relation("PersonMergeDecision_canonicalPersonRef", fields: [workspaceId, canonicalPersonId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "personMerges_canonicalPersonRef_fkey")
   duplicatePersonRef Person @relation("PersonMergeDecision_duplicatePersonRef", fields: [workspaceId, duplicatePersonId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "personMerges_duplicatePersonRef_fkey")
   canonicalSourceRef SourceRecord @relation("PersonMergeDecision_canonicalSourceRef", fields: [workspaceId, canonicalSourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "personMerges_canonicalSourceRef_fkey")

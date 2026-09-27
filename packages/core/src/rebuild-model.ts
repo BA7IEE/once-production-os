@@ -46,5 +46,6 @@ export interface RebuildSummary {
     professionalRecords?: number;
     capabilityDefinitions?: number;
     organizations?: number;
+    mergeHistory?: {people:number;aliases:number;decisions:number;profiles:number;evidence:number};
     mediaRestored: number;
 }

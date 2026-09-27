@@ -10,7 +10,7 @@ import { touch } from './helpers.ts';
 /** All TD2 rows and their security-relevant endpoints participate in one recovery digest.
  * Do not return raw rows, encrypted identifiers or machine credential hashes in a report. */
 export const TD2_INTEGRITY_TABLES = [...TALENT_V2_TABLES, 'people', 'sources', 'scopes',
-    'memberships', 'assets', 'evidence', 'shortlistItems', 'personAliases'] as const;
+    'memberships', 'assets', 'evidence', 'shortlistItems', 'personAliases', 'personMerges'] as const;
 export type IntegrityTable = typeof TD2_INTEGRITY_TABLES[number];
 type Row = { id: string; workspaceId: string; [key: string]: unknown };
 export interface TalentIntegrityReport {
@@ -58,6 +58,12 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
             check(!!def && Object.hasOwn(def.fields, String(row.fieldPath)));
         }
     };
+    for(const row of data.personMerges){
+        ref(row,'actorId','memberships');ref(row,'canonicalPersonId','people',false,true);ref(row,'duplicatePersonId','people',false,true);ref(row,'canonicalSourceId','sources',false,true);ref(row,'duplicateSourceId','sources',false,true);
+        const originals=[row.originalActorWorkspaceId,row.originalActorMembershipId].filter(v=>v!=null);check(row.actorId!=null?originals.length===0:originals.length===2);
+        check(maps.people.get(String(row.canonicalPersonId))?.sourceId===row.canonicalSourceId&&maps.people.get(String(row.duplicatePersonId))?.sourceId===row.duplicateSourceId);
+    }
+    for(const row of data.personAliases){const merge=maps.personMerges.get(String(row.mergeDecisionId));check(!!merge&&merge.duplicatePersonId===row.oldPersonId&&merge.canonicalPersonId===row.canonicalPersonId);}
     for (const table of TALENT_V2_TABLES) for (const row of data[table]) {
         if (table !== 'fieldProposals' && Object.hasOwn(row, 'personId')) {
             ref(row, 'personId', 'people', false, true);

@@ -1,3 +1,4 @@
+import {MERGE_HISTORY_CODE,validateMergeHistory} from './merge-history-transfer.ts';
 import {IDENTITY_EVIDENCE_CODE,identityField} from './identity-transfer.ts';
 import { MEDIA_TRANSFER_CODE, transferAsset } from './media-transfer.ts';
 import { CREDENTIAL_IDENTIFIER_CODE, EVIDENCE_TRANSFER_CODE, transferRows, collectTalentTransfer, isTransferCode, TALENT_EXPORT_VERSION, TRANSFER_TABLES, transferCode, type TalentTransfer } from './talent-transfer.ts';
@@ -81,7 +82,7 @@ export class Exports {
         requirePermission(actor, 'sources.review');
         const d = S.permissionCreate.parse(input);
         invariant(unique(d.fields).length === d.fields.length, 'DUPLICATE_FIELD', '导出字段不能重复', 400);
-        const allowed = d.fields.filter(f => fieldsFor(d.subjectKind, [f]).length || (d.subjectKind === 'SOURCE' && (identityField(f)||f===IDENTITY_EVIDENCE_CODE||isTransferCode(f)||f===EVIDENCE_TRANSFER_CODE||f===CREDENTIAL_IDENTIFIER_CODE||f===MEDIA_TRANSFER_CODE)));
+        const allowed = d.fields.filter(f => fieldsFor(d.subjectKind, [f]).length || (d.subjectKind === 'SOURCE' && (f===MERGE_HISTORY_CODE||identityField(f)||f===IDENTITY_EVIDENCE_CODE||isTransferCode(f)||f===EVIDENCE_TRANSFER_CODE||f===CREDENTIAL_IDENTIFIER_CODE||f===MEDIA_TRANSFER_CODE)));
         invariant(allowed.length === d.fields.length, 'EXPORT_FIELD_SUBJECT_MISMATCH', '导出许可字段与对象类型不匹配', 422);
         const subject = await this.subject(tx, actor, d.subjectKind, d.subjectId);
         invariant(subject.source.id === d.sourceId, 'EXPORT_SOURCE_MISMATCH', '导出许可的来源与对象不一致', 422);
@@ -182,7 +183,7 @@ export class Exports {
         invariant(!withEvidence||transferFields.length>0,'TD2_TRANSFER_EVIDENCE_OWNER','字段证据必须同时选择专业资料',422);
         invariant(!d.fields.includes(MEDIA_TRANSFER_CODE)||(transferFields.includes('person.td2.personCredentials')||transferFields.includes('person.td2.mediaCollections')||transferFields.includes('person.td2.adultEligibilities')),'TD2_TRANSFER_MEDIA_OWNER_REQUIRED','原件必须随资质或媒体集合导出',422);
         const identityFields=d.fields.includes(IDENTITY_EVIDENCE_CODE)?d.fields.filter(identityField):undefined;
-        const talent = transferFields.length||identityFields ? await collectTalentTransfer(tx, actor, this.clock, peopleIds, transferFields, withEvidence, withIdentifiers, d.fields.includes(MEDIA_TRANSFER_CODE),identityFields) : null;
+        const talent = transferFields.length||identityFields||d.fields.includes(MERGE_HISTORY_CODE) ? await collectTalentTransfer(tx, actor, this.clock, peopleIds, transferFields, withEvidence, withIdentifiers, d.fields.includes(MEDIA_TRANSFER_CODE),identityFields,d.fields.includes(MERGE_HISTORY_CODE)) : null;
         const sourceTransferFields = new Map<string, Set<ExportFieldCode>>();
         if (talent) for (const table of TRANSFER_TABLES) for (const row of transferRows(talent,table)) {
             sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock));
@@ -197,6 +198,13 @@ export class Exports {
             sources.set(e.sourceId,await sourceFor(tx,actor,e.sourceId,this.clock));
             const fields=sourceTransferFields.get(e.sourceId)??new Set<ExportFieldCode>();
             fields.add(IDENTITY_EVIDENCE_CODE);fields.add(('person.'+e.fieldPath) as ExportFieldCode);sourceTransferFields.set(e.sourceId,fields);
+        }
+        if(talent?.mergeHistory) {
+            const h=talent.mergeHistory;
+            for(const id of new Set([...h.people,...h.talentProfiles,...h.castingProfiles,...h.evidence].map(r=>r.sourceId).concat(h.decisions.flatMap(d=>[d.canonicalSourceId,d.duplicateSourceId])))){
+                sources.set(id,await sourceFor(tx,actor,id,this.clock));const fields=sourceTransferFields.get(id)??new Set<ExportFieldCode>();fields.add(MERGE_HISTORY_CODE);if(h.evidence.some(e=>e.sourceId===id))fields.add(EVIDENCE_TRANSFER_CODE);sourceTransferFields.set(id,fields);
+            }
+            validateMergeHistory(this.clock,h,talent,people,[...sources.values()]);
         }
         for (const organization of talent?.organizations??[]) {
             sources.set(organization.sourceId,await sourceFor(tx,actor,organization.sourceId,this.clock));
@@ -224,7 +232,7 @@ export class Exports {
             const source = sources.get(row.sourceId)!;
             const permission = this.choosePermission(permissions, used, 'PERSON', row.id, row.sourceId, personFields);
             dependencies.push(this.dependency(actor.workspaceId, job.id, 'PERSON', row.id, personFields, source, row.revision, row.protectionEpoch, permission, initialExpiry));
-            return { id: row.id, sourceId: row.sourceId, revision: row.revision, data: dataFields('person.', personFields.filter(f => !isTransferCode(f)&&f!==EVIDENCE_TRANSFER_CODE&&f!==CREDENTIAL_IDENTIFIER_CODE&&f!==IDENTITY_EVIDENCE_CODE), row as unknown as Record<string, unknown>) };
+            return { id: row.id, sourceId: row.sourceId, revision: row.revision, data: dataFields('person.', personFields.filter(f => !isTransferCode(f)&&f!==EVIDENCE_TRANSFER_CODE&&f!==CREDENTIAL_IDENTIFIER_CODE&&f!==IDENTITY_EVIDENCE_CODE&&f!==MERGE_HISTORY_CODE), row as unknown as Record<string, unknown>) };
         });
         const manifestWorks = works.map(row => {
             const source = sources.get(row.sourceId)!;
@@ -345,7 +353,7 @@ export class Exports {
         if (row.schemaVersion === TALENT_EXPORT_VERSION) {
             const manifest = row.recordManifest as { people: Array<{id:string}>; talent: TalentTransfer };
             try {
-                const current = await collectTalentTransfer(tx, actor, this.clock, manifest.people.map(p => p.id), row.fields.filter(isTransferCode),row.fields.includes(EVIDENCE_TRANSFER_CODE),row.fields.includes(CREDENTIAL_IDENTIFIER_CODE),row.fields.includes(MEDIA_TRANSFER_CODE),row.fields.includes(IDENTITY_EVIDENCE_CODE)?row.fields.filter(identityField):undefined);
+                const current = await collectTalentTransfer(tx, actor, this.clock, manifest.people.map(p => p.id), row.fields.filter(isTransferCode),row.fields.includes(EVIDENCE_TRANSFER_CODE),row.fields.includes(CREDENTIAL_IDENTIFIER_CODE),row.fields.includes(MEDIA_TRANSFER_CODE),row.fields.includes(IDENTITY_EVIDENCE_CODE)?row.fields.filter(identityField):undefined,row.fields.includes(MERGE_HISTORY_CODE));
                 invariant(digest(current) === digest(manifest.talent), 'EXPORT_STALE', '专业资料已经变化，请重新生成导出', 409);
             } catch (error) { safeError(error); }
         }

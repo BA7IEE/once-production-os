@@ -152,6 +152,13 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         assert.equal(historyMerge.status,200,JSON.stringify(historyMerge.body));
         const historyId = (await sourceClient.talentProfile.findFirstOrThrow({where:{personId:historyPersonId}})).id;
 
+        const mergeBase=await sourceClient.personMergeDecision.findUniqueOrThrow({where:{id:result(historyMerge).resourceId}});
+        const historyBase=await sourceClient.person.findUniqueOrThrow({where:{id:historyPersonId}});
+        const importedHistoryPerson=await sourceClient.person.create({data:{...historyBase,id:randomUUID()}});
+        const importedMerge=await sourceClient.personMergeDecision.create({data:{...mergeBase,id:randomUUID(),duplicatePersonId:importedHistoryPerson.id,actorId:null,originalActorWorkspaceId:randomUUID(),originalActorMembershipId:randomUUID()}});
+        const aliasBase=await sourceClient.personAlias.findFirstOrThrow({where:{oldPersonId:historyPersonId}});
+        const importedAlias=await sourceClient.personAlias.create({data:{...aliasBase,id:randomUUID(),oldPersonId:importedHistoryPerson.id,mergeDecisionId:importedMerge.id}});
+
         const backup=run('pnpm',['--silent','recovery:backup','--','--output-dir',backupDir],{
             ...process.env,DATABASE_URL_BACKUP:sourceUrl,SAFETY_JOURNAL_FILE:journal,
             CONTACT_KEY_FILE:contactFile,RECOVERY_EPOCH_FILE:oldEpochFile,
@@ -243,6 +250,8 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         assert.equal(await restoreClient.personAlias.count({where:{oldPersonId:historyPersonId,canonicalPersonId:personId}}),1);
         const restoredEvidence=await restoreClient.fieldEvidence.findUniqueOrThrow({where:{id:importedEvidence.id}});
         assert.deepEqual(restoredEvidence,importedEvidence);
+        assert.deepEqual(await restoreClient.personMergeDecision.findUniqueOrThrow({where:{id:importedMerge.id}}),importedMerge);
+        assert.deepEqual(await restoreClient.personAlias.findUniqueOrThrow({where:{id:importedAlias.id}}),importedAlias);
         assert.deepEqual(await restoreClient.adultEligibility.findUniqueOrThrow({where:{id:importedAdult.id}}),importedAdult);
         assert.equal(restoredEvidence.reviewerId,null);assert.equal(restoredEvidence.reviewedAt,null);
         assert.equal(report.talent.credentialCount, 1);
