@@ -23,7 +23,7 @@ test('TD2 selected dependencies are explicit and unsupported typed fields cannot
     const unknown={...t.input,fields:[...t.input.fields,'person.td2.adultEligibilities']};
     assert.equal((await f.owner.cmd('POST','/exports',unknown)).status,400);
     const viewer=await member(f,'transfer_no_action','VIEWER');assert.equal((await viewer.client.cmd('POST','/exports',t.input)).status,403);
-    assert.equal(TRANSFER_CODES.length,12);
+    assert.equal(TRANSFER_CODES.length,14);
 });
 
 test('TD2 foreign-source field evidence cannot be silently flattened and worker rechecks revoked grants',async()=>{

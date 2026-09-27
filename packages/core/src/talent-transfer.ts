@@ -22,7 +22,9 @@ export const TALENT_TRANSFER_FIELDS = {
     measurementSets: ['measuredOn', 'datePrecision', 'heightCm', 'bustCm', 'waistCm', 'hipsCm', 'shoeSizeValue', 'shoeSizeSystem', 'clothingSizeValue', 'clothingSizeSystem', 'supersedesId', 'status'],
     castingProfiles: ['hairColorCode', 'eyeColorCode', 'appearanceObservedOn', 'currentMeasurementSetId'],
     translatorLanguagePairs: ['personRoleId', 'sourceLanguageCode', 'targetLanguageCode', 'status'],
-    translatorServiceModes: ['personRoleId', 'modeCode', 'status']
+    translatorServiceModes: ['personRoleId', 'modeCode', 'status'],
+    mediaCollections: ['personRoleId','collectionTypeCode','title','status'],
+    mediaCollectionTags: ['collectionId','tagCode']
 } as const;
 export type TransferTable = keyof typeof TALENT_TRANSFER_FIELDS;
 export const TRANSFER_TABLES = Object.keys(TALENT_TRANSFER_FIELDS) as TransferTable[];
@@ -32,6 +34,7 @@ export const TALENT_EXPORT_VERSION = 'once-export-v2-talent' as const;
 export const TRANSFER_VERSION = 'once-talent-transfer-v1' as const;
 export const CAPABILITY_TRANSFER_VERSION = 'once-talent-transfer-v2' as const;
 export const EXTERNAL_TRANSFER_VERSION = 'once-talent-transfer-v3' as const;
+export const COLLECTION_TRANSFER_VERSION = 'once-talent-transfer-v8' as const;
 export const CREDENTIAL_TRANSFER_VERSION = 'once-talent-transfer-v6' as const;
 export const CREDENTIAL_IDENTIFIER_CODE = 'person.td2.credentialIdentifiers' as const;
 export const EVIDENCE_TRANSFER_CODE = 'person.td2.fieldEvidence' as const;
@@ -43,7 +46,8 @@ export interface TransferRow { id: string; personId: string; sourceId: string; r
 export interface TransferDefinition { id: string; revision: number; createdAt: string; updatedAt: string; code: string; labelZh: string; labelEn: string; aliases: string[]; applicableRoleCodes: string[]; levelSchemeCode: 'ABILITY_5' | null; semanticVersion: string; schemaVersion: typeof TALENT_SCHEMA_VERSION; status: 'ACTIVE' | 'INACTIVE' }
 export interface TransferOrganization { id: string; sourceId: string; revision: number; createdAt: string; updatedAt: string; name: string; kind: 'AGENCY' | 'ISSUER' | 'OTHER'; status: 'ACTIVE' }
 export interface TransferEvidence { id: string; revision: number; createdAt: string; updatedAt: string; ownerKind: TransferTable; ownerId: string; fieldPath: string; valueDigest: string; sourceId: string; sourceRevision: number; originalReview: {workspaceId:string; membershipId:string; reviewedAt:string} | null }
-export interface TalentTransfer { schemaVersion: typeof TRANSFER_VERSION | typeof CAPABILITY_TRANSFER_VERSION | typeof EXTERNAL_TRANSFER_VERSION | typeof REPRESENTATION_TRANSFER_VERSION | typeof EVIDENCE_TRANSFER_VERSION | typeof CREDENTIAL_TRANSFER_VERSION | typeof MEDIA_TRANSFER_VERSION; assets?: TransferAsset[]; identifierContextWorkspaceId?: string; credentialIdentifiersIncluded?: boolean; evidence?: TransferEvidence[]; selectedFields: TransferCode[]; tables: Record<TransferTable, TransferRow[]>; capabilityDefinitions?: TransferDefinition[]; organizations?: TransferOrganization[] }
+export interface TransferCollectionItem {id:string;personId:string;collectionId:string;assetId:string;revision:number;createdAt:string;updatedAt:string;orderIndex:number;caption:string;featured:boolean}
+export interface TalentTransfer { schemaVersion: typeof TRANSFER_VERSION | typeof CAPABILITY_TRANSFER_VERSION | typeof EXTERNAL_TRANSFER_VERSION | typeof REPRESENTATION_TRANSFER_VERSION | typeof EVIDENCE_TRANSFER_VERSION | typeof CREDENTIAL_TRANSFER_VERSION | typeof MEDIA_TRANSFER_VERSION | typeof COLLECTION_TRANSFER_VERSION; collectionItems?:TransferCollectionItem[]; assets?: TransferAsset[]; identifierContextWorkspaceId?: string; credentialIdentifiersIncluded?: boolean; evidence?: TransferEvidence[]; selectedFields: TransferCode[]; tables: Record<TransferTable, TransferRow[]>; capabilityDefinitions?: TransferDefinition[]; organizations?: TransferOrganization[] }
 // Old v1/v2 payloads lack later tables. Keep their bytes and digest unchanged.
 export const transferRows = (bundle: TalentTransfer, table: TransferTable): TransferRow[] => bundle.tables[table] ?? [];
 const definitionSchema = v.object({ id: uuid, revision, createdAt: dateIso, updatedAt: dateIso, code,
@@ -61,8 +65,10 @@ for (const table of TRANSFER_TABLES) {
     }
     tableSchemas[table] = v.array(v.object({ id: uuid, personId: uuid, sourceId: uuid, revision, createdAt: dateIso, updatedAt: dateIso, data: v.object(shape) }), 500);
 }
-const priorCodes=TRANSFER_CODES.filter(c=>c!=='person.td2.personCredentials');
-const priorTables=Object.fromEntries(Object.entries(tableSchemas).filter(([t])=>t!=='personCredentials'));
+const credentialCodes=TRANSFER_CODES.filter(c=>!['person.td2.mediaCollections','person.td2.mediaCollectionTags'].includes(c));
+const credentialTables=Object.fromEntries(Object.entries(tableSchemas).filter(([t])=>t!=='mediaCollections'&&t!=='mediaCollectionTags'));
+const priorCodes=credentialCodes.filter(c=>c!=='person.td2.personCredentials');
+const priorTables=Object.fromEntries(Object.entries(credentialTables).filter(([t])=>t!=='personCredentials'));
 const legacyTables = Object.fromEntries(Object.entries(priorTables).filter(([table])=>table!=='personCapabilities'&&table!=='personExternalRefs'&&table!=='representations'));
 const legacyCodes = priorCodes.filter(c=>c!=='person.td2.personCapabilities'&&c!=='person.td2.personExternalRefs'&&c!=='person.td2.representations');
 const legacySchema = v.object({ schemaVersion: v.enum([TRANSFER_VERSION]), selectedFields: v.array(v.enum(legacyCodes),legacyCodes.length,1), tables: v.object(legacyTables) });
@@ -74,23 +80,27 @@ const externalTables=Object.fromEntries(Object.entries(priorTables).filter(([tab
 const externalSchema = v.object({schemaVersion:v.enum([EXTERNAL_TRANSFER_VERSION]),selectedFields:v.array(v.enum(externalCodes),externalCodes.length,1),tables:v.object(externalTables),capabilityDefinitions:v.array(definitionSchema,500),organizations:v.array(organizationSchema,500)});
 const representationSchema=v.object({schemaVersion:v.enum([REPRESENTATION_TRANSFER_VERSION]),selectedFields:v.array(v.enum(priorCodes),priorCodes.length,1),tables:v.object(priorTables),capabilityDefinitions:v.array(definitionSchema,500),organizations:v.array(organizationSchema,500)});
 const evidenceShape={id:uuid,revision,createdAt:dateIso,updatedAt:dateIso,ownerKind:v.enum(TRANSFER_TABLES),ownerId:uuid,fieldPath:v.string(160,1),valueDigest:v.string(64,64,/^[a-f0-9]{64}$/),sourceId:uuid,sourceRevision:revision,originalReview:v.nullable(v.object({workspaceId:uuid,membershipId:uuid,reviewedAt:dateIso}))};
-const evidenceSchema=v.object(evidenceShape);
-const priorEvidenceSchema=v.object({...evidenceShape,ownerKind:v.enum(TRANSFER_TABLES.filter(t=>t!=='personCredentials'))});
+const collectionEvidenceSchema=v.object(evidenceShape);
+const evidenceSchema=v.object({...evidenceShape,ownerKind:v.enum(TRANSFER_TABLES.filter(t=>t!=='mediaCollections'&&t!=='mediaCollectionTags'))});
+const priorEvidenceSchema=v.object({...evidenceShape,ownerKind:v.enum(TRANSFER_TABLES.filter(t=>t!=='personCredentials'&&t!=='mediaCollections'&&t!=='mediaCollectionTags'))});
 const evidenceTransferSchema=v.object({schemaVersion:v.enum([EVIDENCE_TRANSFER_VERSION]),selectedFields:v.array(v.enum(priorCodes),priorCodes.length,1),tables:v.object(priorTables),capabilityDefinitions:v.array(definitionSchema,500),organizations:v.array(organizationSchema,500),evidence:v.array(priorEvidenceSchema,500)});
-const credentialSchema=v.object({schemaVersion:v.enum([CREDENTIAL_TRANSFER_VERSION]),identifierContextWorkspaceId:uuid,credentialIdentifiersIncluded:v.boolean(),selectedFields:v.array(v.enum(TRANSFER_CODES),TRANSFER_CODES.length,1),tables:v.object(tableSchemas),capabilityDefinitions:v.array(definitionSchema,500),organizations:v.array(organizationSchema,500),evidence:v.array(evidenceSchema,500)});
-const mediaSchema=v.object({schemaVersion:v.enum([MEDIA_TRANSFER_VERSION]),assets:v.array(TransferAssetSchema,500),identifierContextWorkspaceId:uuid,credentialIdentifiersIncluded:v.boolean(),selectedFields:v.array(v.enum(TRANSFER_CODES),TRANSFER_CODES.length,1),tables:v.object(tableSchemas),capabilityDefinitions:v.array(definitionSchema,500),organizations:v.array(organizationSchema,500),evidence:v.array(evidenceSchema,500)});
+const credentialSchema=v.object({schemaVersion:v.enum([CREDENTIAL_TRANSFER_VERSION]),identifierContextWorkspaceId:uuid,credentialIdentifiersIncluded:v.boolean(),selectedFields:v.array(v.enum(credentialCodes),credentialCodes.length,1),tables:v.object(credentialTables),capabilityDefinitions:v.array(definitionSchema,500),organizations:v.array(organizationSchema,500),evidence:v.array(evidenceSchema,500)});
+const mediaSchema=v.object({schemaVersion:v.enum([MEDIA_TRANSFER_VERSION]),assets:v.array(TransferAssetSchema,500),identifierContextWorkspaceId:uuid,credentialIdentifiersIncluded:v.boolean(),selectedFields:v.array(v.enum(credentialCodes),credentialCodes.length,1),tables:v.object(credentialTables),capabilityDefinitions:v.array(definitionSchema,500),organizations:v.array(organizationSchema,500),evidence:v.array(evidenceSchema,500)});
+const collectionItemSchema=v.object({id:uuid,personId:uuid,collectionId:uuid,assetId:uuid,revision,createdAt:dateIso,updatedAt:dateIso,orderIndex:v.number(0,199),caption:v.string(1000),featured:v.boolean()});
+const collectionSchema=v.object({schemaVersion:v.enum([COLLECTION_TRANSFER_VERSION]),assets:v.array(TransferAssetSchema,500),collectionItems:v.array(collectionItemSchema,500),identifierContextWorkspaceId:uuid,credentialIdentifiersIncluded:v.boolean(),selectedFields:v.array(v.enum(TRANSFER_CODES),TRANSFER_CODES.length,1),tables:v.object(tableSchemas),capabilityDefinitions:v.array(definitionSchema,500),organizations:v.array(organizationSchema,500),evidence:v.array(collectionEvidenceSchema,500)});
 export const TransferSchema: Schema<TalentTransfer> = {
-    json: {oneOf:[legacySchema.json,capabilitySchema.json,externalSchema.json,representationSchema.json,evidenceTransferSchema.json,credentialSchema.json,mediaSchema.json]},
+    json: {oneOf:[legacySchema.json,capabilitySchema.json,externalSchema.json,representationSchema.json,evidenceTransferSchema.json,credentialSchema.json,mediaSchema.json,collectionSchema.json]},
     parse(input,path) {
         const version = input && typeof input==='object' ? (input as Record<string,unknown>).schemaVersion : undefined;
-        return (version===MEDIA_TRANSFER_VERSION ? mediaSchema : version===CREDENTIAL_TRANSFER_VERSION ? credentialSchema : version===EVIDENCE_TRANSFER_VERSION ? evidenceTransferSchema : version===REPRESENTATION_TRANSFER_VERSION ? representationSchema : version===EXTERNAL_TRANSFER_VERSION ? externalSchema : version===CAPABILITY_TRANSFER_VERSION ? capabilitySchema : legacySchema).parse(input,path) as unknown as TalentTransfer;
+        return (version===COLLECTION_TRANSFER_VERSION ? collectionSchema : version===MEDIA_TRANSFER_VERSION ? mediaSchema : version===CREDENTIAL_TRANSFER_VERSION ? credentialSchema : version===EVIDENCE_TRANSFER_VERSION ? evidenceTransferSchema : version===REPRESENTATION_TRANSFER_VERSION ? representationSchema : version===EXTERNAL_TRANSFER_VERSION ? externalSchema : version===CAPABILITY_TRANSFER_VERSION ? capabilitySchema : legacySchema).parse(input,path) as unknown as TalentTransfer;
     }
 };
 
 export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, peopleIds: string[], codes: TransferCode[], withEvidence = false, withIdentifiers = false, withMedia = false): Promise<TalentTransfer> {
     requirePermission(actor, 'records.read');
     const withCredentials=codes.includes('person.td2.personCredentials');
-    invariant(!withMedia||withCredentials,'TD2_TRANSFER_CREDENTIAL_REQUIRED','证明原件须随资质记录迁移',422);
+    const withCollections=codes.includes('person.td2.mediaCollections')||codes.includes('person.td2.mediaCollectionTags');
+    invariant(!withMedia||withCredentials||withCollections,'TD2_TRANSFER_MEDIA_OWNER_REQUIRED','原件须随资质或媒体集合迁移',422);
     invariant(!withIdentifiers||withCredentials,'TD2_TRANSFER_CREDENTIAL_REQUIRED','编号迁移必须同时选择资质记录',422);
     if(withIdentifiers) requirePermission(actor,'sensitive.read');
     if(withEvidence) requirePermission(actor,'sources.review');
@@ -153,15 +163,24 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
             invariant(total+capabilityDefinitions.length+organizations.length+evidence.length<500,'TD2_EXPORT_LIMIT','单次专业资料与证据最多500条',422);
             const evidenceSource=await sourceFor(tx,actor,e.sourceId,clock);
             invariant(e.sourceRevision<=evidenceSource.revision,'TD2_TRANSFER_EVIDENCE_SOURCE_REVISION','字段证据引用了不存在的来源版本',409);
-            evidence.push(evidenceSchema.parse({id:e.id,revision:e.revision,createdAt:e.createdAt,updatedAt:e.updatedAt,ownerKind:table,ownerId:row.id,fieldPath:e.fieldPath,valueDigest:e.valueDigest,sourceId:e.sourceId,sourceRevision:e.sourceRevision,
+            evidence.push(collectionEvidenceSchema.parse({id:e.id,revision:e.revision,createdAt:e.createdAt,updatedAt:e.updatedAt,ownerKind:table,ownerId:row.id,fieldPath:e.fieldPath,valueDigest:e.valueDigest,sourceId:e.sourceId,sourceRevision:e.sourceRevision,
                 originalReview:e.reviewerId?{workspaceId:actor.workspaceId,membershipId:e.reviewerId,reviewedAt:e.reviewedAt}:e.originalReviewWorkspaceId?{workspaceId:e.originalReviewWorkspaceId,membershipId:e.originalReviewMembershipId,reviewedAt:e.originalReviewedAt}:null}) as TransferEvidence);
         }
     }
     evidence.sort((a,b)=>a.id.localeCompare(b.id));
+    const collectionItems:TransferCollectionItem[]=[];
+    if(withCollections) {
+        const selected=new Set(tables.mediaCollections.map(c=>c.id));
+        for(const item of graph.rows('mediaCollectionItems').filter(i=>selected.has(i.collectionId))) {
+            invariant(withMedia,'TD2_TRANSFER_MEDIA_GRANT_REQUIRED','媒体集合含图片，必须另行批准原件迁移，不能只保留空集合',422);
+            collectionItems.push(collectionItemSchema.parse(Object.fromEntries(Object.keys(collectionItemSchema.json.properties as object).map(k=>[k,(item as unknown as Record<string,unknown>)[k]]))));
+        }
+        collectionItems.sort((a,b)=>a.collectionId.localeCompare(b.collectionId)||a.orderIndex-b.orderIndex);
+    }
     const assets: TransferAsset[]=[];
     if(withMedia) {
         requirePermission(actor,'assets.read');
-        const ids=new Set(tables.personCredentials.map(r=>r.data.evidenceAssetId).filter(Boolean));
+        const ids=new Set([...tables.personCredentials.map(r=>r.data.evidenceAssetId),...collectionItems.map(i=>i.assetId)].filter(Boolean));
         for(const id of ids) {
             const asset=await readyAsset(tx,actor,String(id),clock);
             invariant(!asset.personId||people.has(asset.personId),'TD2_TRANSFER_MEDIA_PERSON','证明图片所属人物必须一同选择并批准',422);
@@ -169,11 +188,12 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
         }
         assets.sort((a,b)=>a.id.localeCompare(b.id));
     }
-    if(!withCredentials&&!withMedia) delete (tables as Partial<typeof tables>).personCredentials;
-    if(!withCredentials&&!withEvidence&&!withRepresentations) delete (tables as Partial<typeof tables>).representations;
-    if(!withCredentials&&!withEvidence&&!withExternal&&!withRepresentations) delete (tables as Partial<typeof tables>).personExternalRefs;
-    if(!withCredentials&&!withEvidence&&!withCapabilities&&!withExternal&&!withRepresentations) delete (tables as Partial<typeof tables>).personCapabilities;
-    const transfer = TransferSchema.parse({ schemaVersion: withMedia ? MEDIA_TRANSFER_VERSION : withCredentials ? CREDENTIAL_TRANSFER_VERSION : withEvidence ? EVIDENCE_TRANSFER_VERSION : withRepresentations ? REPRESENTATION_TRANSFER_VERSION : withExternal ? EXTERNAL_TRANSFER_VERSION : withCapabilities ? CAPABILITY_TRANSFER_VERSION : TRANSFER_VERSION, selectedFields: [...codes].sort(), tables, ...(withCredentials||withEvidence||withCapabilities||withExternal||withRepresentations?{capabilityDefinitions}:{}), ...(withCredentials||withEvidence||withExternal||withRepresentations?{organizations}:{}), ...(withEvidence||withCredentials?{evidence}:{}), ...(withCredentials?{identifierContextWorkspaceId:actor.workspaceId,credentialIdentifiersIncluded:withIdentifiers}:{}), ...(withMedia?{assets}:{}) });
+    if(!withCollections) {delete (tables as Partial<typeof tables>).mediaCollections;delete (tables as Partial<typeof tables>).mediaCollectionTags;}
+    if(!withCollections&&!withCredentials&&!withMedia) delete (tables as Partial<typeof tables>).personCredentials;
+    if(!withCollections&&!withCredentials&&!withEvidence&&!withRepresentations) delete (tables as Partial<typeof tables>).representations;
+    if(!withCollections&&!withCredentials&&!withEvidence&&!withExternal&&!withRepresentations) delete (tables as Partial<typeof tables>).personExternalRefs;
+    if(!withCollections&&!withCredentials&&!withEvidence&&!withCapabilities&&!withExternal&&!withRepresentations) delete (tables as Partial<typeof tables>).personCapabilities;
+    const transfer = TransferSchema.parse({ schemaVersion: withCollections ? COLLECTION_TRANSFER_VERSION : withMedia ? MEDIA_TRANSFER_VERSION : withCredentials ? CREDENTIAL_TRANSFER_VERSION : withEvidence ? EVIDENCE_TRANSFER_VERSION : withRepresentations ? REPRESENTATION_TRANSFER_VERSION : withExternal ? EXTERNAL_TRANSFER_VERSION : withCapabilities ? CAPABILITY_TRANSFER_VERSION : TRANSFER_VERSION, selectedFields: [...codes].sort(), tables, ...(withCollections||withCredentials||withEvidence||withCapabilities||withExternal||withRepresentations?{capabilityDefinitions}:{}), ...(withCollections||withCredentials||withEvidence||withExternal||withRepresentations?{organizations}:{}), ...(withCollections||withEvidence||withCredentials?{evidence}:{}), ...(withCollections||withCredentials?{identifierContextWorkspaceId:actor.workspaceId,credentialIdentifiersIncluded:withIdentifiers}:{}), ...(withMedia||withCollections?{assets}:{}),...(withCollections?{collectionItems}:{}) });
     validateTransferLinks(transfer, peopleIds);
     return transfer;
 }
@@ -193,7 +213,7 @@ export function validateTransferLinks(bundle: TalentTransfer, personIds: string[
                 const target = maps[parent].get(String(row.data[field]));
                 invariant(target && target.personId === row.personId && target.id !== row.id, 'TD2_TRANSFER_REFERENCE_MISSING', '专业关联必须一起选择，且属于同一个人物', 422);
             };
-            reference('personRoleId', 'personRoles'); reference('currentMeasurementSetId', 'measurementSets'); reference('supersedesId', 'measurementSets');
+            reference('collectionId','mediaCollections'); reference('personRoleId', 'personRoles'); reference('currentMeasurementSetId', 'measurementSets'); reference('supersedesId', 'measurementSets');
             if ((table==='translatorLanguagePairs'||table==='translatorServiceModes') && row.data.personRoleId) invariant(maps.personRoles.get(String(row.data.personRoleId))?.data.roleCode === 'translator', 'TD2_TRANSFER_ROLE_INVALID', '翻译资料必须关联翻译职业', 422);
             if (table !== 'talentProfiles' && table !== 'personLanguages') invariant(bundle.tables.talentProfiles.some(p => p.personId === row.personId), 'TD2_TRANSFER_PROFILE_MISSING', '专业资料需要同时选择人才主档案', 422);
             if (table === 'castingProfiles' || table === 'measurementSets') invariant(bundle.tables.personRoles.some(p => p.personId === row.personId && ['model','actor','kol'].includes(String(p.data.roleCode))), 'TD2_TRANSFER_ROLE_INVALID', '选角资料需要同时选择对应职业', 422);
@@ -224,14 +244,23 @@ export function validateTransferLinks(bundle: TalentTransfer, personIds: string[
     const credentials=transferRows(bundle,'personCredentials');
     for(const row of credentials) {
         const d=row.data;
-        invariant(bundle.schemaVersion===MEDIA_TRANSFER_VERSION||(!d.evidenceAssetId&&d.status!=='VERIFIED'),'TD2_CREDENTIAL_MEDIA_UNSUPPORTED','带证明材料或已核验的资质需要原件迁移',422);
+        invariant((bundle.schemaVersion===MEDIA_TRANSFER_VERSION||bundle.schemaVersion===COLLECTION_TRANSFER_VERSION)||(!d.evidenceAssetId&&d.status!=='VERIFIED'),'TD2_CREDENTIAL_MEDIA_UNSUPPORTED','带证明材料或已核验的资质需要原件迁移',422);
         invariant(d.status!=='VERIFIED'||!!d.evidenceAssetId,'CREDENTIAL_PROOF_REQUIRED','已核验资质必须保存证明原件',422);
         invariant(!!d.issuerOrganizationId||!!d.issuerName,'CREDENTIAL_ISSUER_REQUIRED','资质必须注明颁发方',422);
         invariant(!d.issuedOn||!d.expiresOn||String(d.issuedOn)<=String(d.expiresOn),'CREDENTIAL_DATE_INVALID','资质起止日期不正确',422);
         invariant((d.identifierCiphertext===null)===(d.maskedIdentifier===null),'TD2_CREDENTIAL_IDENTIFIER_PAIR','资质编号密文和遮罩必须同时存在',422);
         invariant(!d.identifierCiphertext||bundle.credentialIdentifiersIncluded,'TD2_CREDENTIAL_IDENTIFIER_GRANT_REQUIRED','加密编号未声明单独迁移',422);
     }
-    const assets=bundle.assets??[], assetIds=new Set(credentials.map(r=>r.data.evidenceAssetId).filter(Boolean));
+    const items=bundle.collectionItems??[];
+    invariant(items.length===new Set(items.map(i=>i.id)).size,'TD2_TRANSFER_COLLECTION_DUPLICATE','集合项目编号重复',422);
+    for(const i of items) invariant(maps.mediaCollections.get(i.collectionId)?.personId===i.personId,'TD2_TRANSFER_COLLECTION_OWNER','集合项目必须属于已选人物和集合',422);
+    for(const c of transferRows(bundle,'mediaCollections')) {
+        const children=items.filter(i=>i.collectionId===c.id).sort((a,b)=>a.orderIndex-b.orderIndex);
+        invariant(children.length<=200&&children.every((i,n)=>i.orderIndex===n)&&new Set(children.map(i=>i.assetId)).size===children.length,'TD2_TRANSFER_COLLECTION_ORDER','集合图片必须唯一且顺序连续',422);
+    }
+    const tags=transferRows(bundle,'mediaCollectionTags');
+    invariant(new Set(tags.map(t=>String(t.data.collectionId)+':'+String(t.data.tagCode))).size===tags.length,'TD2_TRANSFER_COLLECTION_TAG_DUPLICATE','集合内容标签重复',422);
+    const assets=bundle.assets??[], assetIds=new Set([...credentials.map(r=>r.data.evidenceAssetId),...items.map(i=>i.assetId)].filter(Boolean));
     invariant(assets.length===new Set(assets.map(a=>a.id)).size && assets.length===assetIds.size && assets.every(a=>assetIds.has(a.id)), 'TD2_TRANSFER_MEDIA_MISSING','证明原件清单必须完整且不得夹带无关文件',422);
     for(const asset of assets) {
         invariant(!asset.personId||people.has(asset.personId),'TD2_TRANSFER_MEDIA_PERSON','证明图片所属人物缺失',422);
@@ -257,7 +286,7 @@ export function validateTransferLinks(bundle: TalentTransfer, personIds: string[
         invariant(maps[e.ownerKind]?.has(e.ownerId),'TD2_TRANSFER_EVIDENCE_OWNER','字段证据必须引用已选择的专业记录',422);
         invariant(!['identifierCiphertext','maskedIdentifier'].includes(e.fieldPath)&&(TALENT_TRANSFER_FIELDS[e.ownerKind] as readonly string[]).includes(e.fieldPath),'TD2_TRANSFER_EVIDENCE_FIELD','字段证据不能引用未导出的字段',422);
     }
-    invariant(count + definitions.length + organizations.length + evidence.length <= 500, 'TD2_EXPORT_LIMIT', '单次专业资料最多 500 条', 422);
+    invariant(count + definitions.length + organizations.length + evidence.length + items.length <= 500, 'TD2_EXPORT_LIMIT', '单次专业资料最多 500 条', 422);
     for (const row of bundle.tables.measurementSets) {
         const seen = new Set([row.id]); let previous = row.data.supersedesId;
         while (previous) { invariant(!seen.has(String(previous)), 'TD2_TRANSFER_CYCLE', '量尺历史不能形成循环', 422); seen.add(String(previous)); previous = maps.measurementSets.get(String(previous))?.data.supersedesId; }

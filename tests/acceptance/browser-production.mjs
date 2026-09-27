@@ -448,6 +448,7 @@ try {
  console.log('PASS TD2 browser: explicit conflict selection and retained history; per-record confirmation gates professional merge; stable role/language/collection/item IDs and original media survive');
 
 
+ const transferredTag=(await cmd(owner,'POST',`/td2/people/${tdCanonical}/collection-tags`,{schemaVersion:tdSchema,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceId:tdSource,sourceRevision:1,values:{collectionId:tdCollection,tagCode:'FASHION'}},201)).resourceId;
  // TD2 transfer: approve person fields and each fact source using the real forms.
  const transferSource=(await cmd(owner,'POST','/sources',source('TD2第二语言来源'),201)).resourceId;
  const transferLanguage=(await cmd(owner,'POST',`/td2/people/${tdCanonical}/languages`,{schemaVersion:tdSchema,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceId:transferSource,sourceRevision:1,values:{languageCode:'zh',speakingLevelCode:'NATIVE'}},201)).resourceId;
@@ -467,10 +468,10 @@ try {
  await cmd(owner,'POST','/td2/evidence',{schemaVersion:tdSchema,ownerKind:'personLanguages',ownerId:transferLanguage,fieldPath:'speakingLevelCode',expectedRevision:1,sourceId:transferEvidenceSource,sourceRevision:1},200);
  const transferEvidenceBefore=await prisma.fieldEvidence.findFirstOrThrow({where:{personLanguageId:transferLanguage,sourceId:transferEvidenceSource}});
  await owner.getByRole('button',{name:/内部导出/}).click();
- const transferLabels=['2.0 人才主档案（内部简介与状态）','2.0 职业及有效期','2.0 语言、熟练度及有效期','2.0 能力、等级及所用字典','2.0 外部标识、核验状态及关联机构','2.0 代表关系、有效期及关联机构','2.0 所选专业字段的来源证据与原核验记录','2.0 资质记录与核验状态','2.0 资质加密编号（单独批准）'];
+ const transferLabels=['2.0 人才主档案（内部简介与状态）','2.0 职业及有效期','2.0 语言、熟练度及有效期','2.0 能力、等级及所用字典','2.0 外部标识、核验状态及关联机构','2.0 代表关系、有效期及关联机构','2.0 所选专业字段的来源证据与原核验记录','2.0 资质记录与核验状态','2.0 资质加密编号（单独批准）','2.0 媒体集合、图片顺序与说明','2.0 集合内容标签'];
  const sourceLabels=['来源标题','来源类型','提供方说明','内部依据类型','依据说明','有效起点','有效截止','来源状态'];
  const transferPermits=[];
- for(const [kind,id,labels] of [['PERSON',tdCanonical,['姓名 / 展示名','档案状态',...transferLabels]],['SOURCE',tdSource,[...sourceLabels,...transferLabels,'资质证明原件及预览（单独批准）']],['SOURCE',transferSource,[...sourceLabels,transferLabels[2],transferLabels[4],transferLabels[5],transferLabels[6],transferLabels[7]]],['PERSON',transferAgent,['姓名 / 展示名','档案状态',...transferLabels]],['SOURCE',transferEvidenceSource,[...sourceLabels,transferLabels[2],transferLabels[6]]],['ASSET',tdUpload.resourceId,['资质证明原件及预览（单独批准）']]]){
+ for(const [kind,id,labels] of [['PERSON',tdCanonical,['姓名 / 展示名','档案状态',...transferLabels]],['SOURCE',tdSource,[...sourceLabels,...transferLabels,'图片原件及预览（单独批准）']],['SOURCE',transferSource,[...sourceLabels,transferLabels[2],transferLabels[4],transferLabels[5],transferLabels[6],transferLabels[7]]],['PERSON',transferAgent,['姓名 / 展示名','档案状态',...transferLabels]],['SOURCE',transferEvidenceSource,[...sourceLabels,transferLabels[2],transferLabels[6]]],['ASSET',tdUpload.resourceId,['图片原件及预览（单独批准）']]]){
   await owner.getByRole('button',{name:'＋ 批准导出用途',exact:true}).click();
   f=await dialogReady(owner,'批准内部导出用途');
   await f.getByLabel('对象类型',{exact:true}).selectOption(kind);await f.getByLabel('批准对象',{exact:true}).selectOption(id);
@@ -486,7 +487,7 @@ try {
  const typedDownload=owner.waitForEvent('download');await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();
  const typedFile=await typedDownload,typedPayload=JSON.parse(readFileSync(await typedFile.path(),'utf8'));
  assert.equal(typedPayload.schemaVersion,'once-export-v2-talent');
- assert.equal(typedPayload.manifest.talent.schemaVersion,'once-talent-transfer-v7');
+ assert.equal(typedPayload.manifest.talent.schemaVersion,'once-talent-transfer-v8');
  const exportedCredential=typedPayload.manifest.talent.tables.personCredentials.find(r=>r.id===transferCredential);
  assert.ok(exportedCredential);assert.equal(exportedCredential.data.identifierCiphertext,transferCredentialBefore.identifierCiphertext);assert.equal(exportedCredential.data.maskedIdentifier,'***1234');assert.equal(exportedCredential.data.status,'VERIFIED');
  assert.equal(typedPayload.manifest.talent.identifierContextWorkspaceId,transferCredentialBefore.workspaceId);
@@ -511,7 +512,8 @@ try {
  assert.ok(typedPayload.manifest.talent.tables.personRoles.some(r=>r.id===tdRole));
  assert.equal(typedPayload.manifest.talent.tables.personCredentials.length,1);
  assert.equal(exportedCredential.data.status,'VERIFIED');assert.equal(exportedCredential.data.evidenceAssetId,tdUpload.resourceId);
- for(const [part,label] of [['original','下载证明原件'],['preview','下载证明预览']]) {
+ assert.equal(typedPayload.manifest.talent.assets.length,1);assert.equal(typedPayload.manifest.talent.collectionItems.find(i=>i.collectionId===tdCollection).assetId,tdUpload.resourceId);assert.equal(typedPayload.manifest.talent.tables.mediaCollections.find(c=>c.id===tdCollection).data.personRoleId,tdRole);assert.equal(typedPayload.manifest.talent.tables.mediaCollectionTags.find(t=>t.id===transferredTag).data.tagCode,'FASHION');
+ for(const [part,label] of [['original','下载图片原件'],['preview','下载图片预览']]) {
   const downloadedProof=owner.waitForEvent('download');await owner.getByRole('button',{name:label,exact:true}).click();const file=await downloadedProof;
   assert.equal(file.suggestedFilename(),tdUpload.resourceId+(part==='original'?'.original.bin':'.preview.jpg'));
   const bytes=readFileSync(await file.path()),asset=typedPayload.manifest.talent.assets[0];assert.equal(hash(bytes),part==='original'?asset.sha256:asset.previewHash);
@@ -522,7 +524,7 @@ try {
  const blockedTransfer=await writeUI(owner,'POST','/exports/'+typedExport+'/download',()=>owner.getByRole('button',{name:'下载 JSON',exact:true}).click(),409);
  assert.equal(blockedTransfer.error.code,'EXPORT_STALE');
  assert.equal(await getStatus(owner,`/exports/${typedExport}/media/${tdUpload.resourceId}/original`),409);
- console.log('PASS TD2 transfer browser: original and preview downloads match exact hashes, verified credential retains attachment; explicit person, fact and evidence source grants -> v7 JSON preserves credential ciphertext without plaintext plus original field evidence and reviewer attribution -> evidence-only grant revocation blocks download');
+ console.log('PASS TD2 transfer browser: original and preview downloads match exact hashes, verified credential retains attachment; explicit person, fact and evidence source grants -> v8 JSON preserves collection/type/tag/item identity plus credential ciphertext without plaintext plus original field evidence and reviewer attribution -> evidence-only grant revocation blocks download');
 
  assert.deepEqual(errors,[]);
 } catch(error) {

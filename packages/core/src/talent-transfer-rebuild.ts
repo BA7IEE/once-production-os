@@ -11,6 +11,7 @@ export async function validateTalentRebuild(tx: Tx, actor: Actor, clock: Clock, 
     const dictionary = await tx.find('dictionary', {workspaceId: actor.workspaceId, status: 'ACTIVE'});
     const catalog = (namespace: string, value: unknown) => invariant(dictionary.some(d => d.namespace === namespace && d.code === value), 'REBUILD_CATALOG_MISSING', '目标缺少专业资料使用的启用字典代码', 409);
     const overlap = (a: Record<string,unknown>, b: Record<string,unknown>) => (!a.validFrom || !b.validUntil || String(a.validFrom)<String(b.validUntil)) && (!b.validFrom || !a.validUntil || String(b.validFrom)<String(a.validUntil));
+    for(const i of bundle.collectionItems??[]) invariant(Date.parse(i.createdAt)<=Date.parse(i.updatedAt)&&Date.parse(i.updatedAt)<=clock.now().getTime(),'TD2_TRANSFER_TIME_INVALID','集合项目时间不合法',422);
     for(const a of bundle.assets??[]) {
         invariant(sources.includes(a.sourceId),'REBUILD_SOURCE_MISSING','证明原件来源必须包含在清单',422);
         invariant(Date.parse(a.createdAt)<=Date.parse(a.updatedAt)&&Date.parse(a.updatedAt)<=clock.now().getTime(),'TD2_TRANSFER_TIME_INVALID','证明原件时间不合法',422);
@@ -69,6 +70,7 @@ export async function applyTalentRebuild(tx: Tx, actor: Actor, bundle: TalentTra
             ...(table === 'castingProfiles' ? {supersededById:null,retiredCurrentMeasurementSetId:null} : {})
         } as unknown as TableMap[typeof table]);
     }
+    for(const item of bundle.collectionItems??[]) await tx.insert('mediaCollectionItems',{...item,workspaceId:actor.workspaceId});
 }
 
 export async function applyTransferEvidence(tx:Tx,actor:Actor,bundle:TalentTransfer) {

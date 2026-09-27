@@ -1,0 +1,4 @@
+> once-production-os@0.1.0-dev.1 contract:check /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> node --experimental-strip-types scripts/generate-contract.ts --check
+
+Contract verified: 166 routes; request schemas only

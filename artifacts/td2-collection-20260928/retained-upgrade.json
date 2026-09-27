@@ -1,0 +1,244 @@
+{
+  "database": "isolated retained synthetic database",
+  "tables": 59,
+  "oldRecordsUnchanged": true,
+  "snapshot": {
+    "activations": {
+      "count": 2,
+      "digest": "3bf66f8d54947be0b867572e2f7eeb81"
+    },
+    "adultEligibilities": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "assets": {
+      "count": 5,
+      "digest": "827b0530a9a98c9e8ef76c0406c6574a"
+    },
+    "audits": {
+      "count": 213,
+      "digest": "5f53ab6e423d9186e59671a8892c4719"
+    },
+    "capabilityDefinitions": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "castingProfiles": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "contacts": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "deletionItems": {
+      "count": 209,
+      "digest": "ab1f7a08182cbbe26e6c14ec49229bce"
+    },
+    "deletionRequests": {
+      "count": 17,
+      "digest": "51d4fc311a46aadd6a0c9b13684d22d8"
+    },
+    "dictionary": {
+      "count": 22,
+      "digest": "e3a7e23915f2ba9a48a2086ce9493e7b"
+    },
+    "evidence": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "exportDependencies": {
+      "count": 20,
+      "digest": "9f1ed7273296b73ce8170d821ba19dab"
+    },
+    "exports": {
+      "count": 7,
+      "digest": "1260cf00ef6f7ac577a531885735ef8f"
+    },
+    "fieldProposals": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "handoffs": {
+      "count": 4,
+      "digest": "73af895ad3e96e13ecfade74c0539e85"
+    },
+    "imports": {
+      "count": 4,
+      "digest": "b31e0998dc73fc96430d6bde1264ee24"
+    },
+    "jobs": {
+      "count": 2,
+      "digest": "e726201310a1b3b47f165ce48bd59816"
+    },
+    "measurementSets": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "mediaCollectionItems": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "mediaCollectionTags": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "mediaCollections": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "memberships": {
+      "count": 4,
+      "digest": "71c3c0be4816119bdac1873bd196310f"
+    },
+    "organizations": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "people": {
+      "count": 1028,
+      "digest": "2913f75856dbd4d75c579e45217e3317"
+    },
+    "personAliases": {
+      "count": 1,
+      "digest": "59368d90783dddf425c2a6913a40b6a4"
+    },
+    "personCapabilities": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "personCredentials": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "personExternalRefs": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "personLanguages": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "personMerges": {
+      "count": 1,
+      "digest": "3007378c1d7fbdc052bb40b4a98e1cc9"
+    },
+    "personRoles": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "projectParticipants": {
+      "count": 4,
+      "digest": "cdc4cfff3c88801f600b20aff926c55e"
+    },
+    "projectWorks": {
+      "count": 5,
+      "digest": "121fcdbe51823b5f72f47b8e8455f510"
+    },
+    "projects": {
+      "count": 4,
+      "digest": "31187f771c8d4685b6e6a41ff6e1f089"
+    },
+    "rateBuckets": {
+      "count": 10,
+      "digest": "2cf71401ae6750abf5f063d438085f97"
+    },
+    "receipts": {
+      "count": 181,
+      "digest": "6c262063885398da75ea1af2cec47bed"
+    },
+    "recoveryRuns": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "representations": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "scopeMembers": {
+      "count": 7,
+      "digest": "b7e991ec666aae0bea0accb17a621d9e"
+    },
+    "scopes": {
+      "count": 9,
+      "digest": "80f5ffd2b17d5770b4c429c7a5a0ebaf"
+    },
+    "servicePrincipals": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "sessions": {
+      "count": 4,
+      "digest": "4f4e777fe79cbdf4b71a6df86274dc62"
+    },
+    "shortlistItemAssets": {
+      "count": 5,
+      "digest": "a8326c835f44f81770ad5a8ac0283455"
+    },
+    "shortlistItems": {
+      "count": 7,
+      "digest": "749f7c847c91ab9b90f59b0ae03f94a6"
+    },
+    "shortlists": {
+      "count": 7,
+      "digest": "8afd30283fd2030664a0877d7fe5af1a"
+    },
+    "sourceHistory": {
+      "count": 58,
+      "digest": "215d9f1c457ea6144edb4918a3c9e8a3"
+    },
+    "sources": {
+      "count": 52,
+      "digest": "61b518a011dd5e4fc7ccd2c09f53e3b9"
+    },
+    "talentLocations": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "talentMigrationReviews": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "talentProfiles": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "translatorLanguagePairs": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "translatorServiceModes": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "uploads": {
+      "count": 5,
+      "digest": "cee3fd11815f3a5778e4aa2ad395ad42"
+    },
+    "usePermissions": {
+      "count": 21,
+      "digest": "8af10daafe1b0511e60a076b48a81db5"
+    },
+    "users": {
+      "count": 4,
+      "digest": "23cb855eced750deec896aaba6b11ae7"
+    },
+    "workAssets": {
+      "count": 6,
+      "digest": "9a97e3f852c1d960e63942e63687aac6"
+    },
+    "workCredits": {
+      "count": 11,
+      "digest": "b268323ee7eb5d06ef0ec292def5e619"
+    },
+    "works": {
+      "count": 19,
+      "digest": "86dc7a404902c6ce51b9aac7390edebe"
+    },
+    "workspaces": {
+      "count": 3,
+      "digest": "df5e4867bca357ab6a302901a18e708e"
+    }
+  },
+  "migration": "202609280002_collection_transfer"
+}
