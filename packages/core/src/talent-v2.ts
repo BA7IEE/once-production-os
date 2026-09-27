@@ -119,12 +119,13 @@ export class TalentV2 {
         }
         if(table==='mediaCollectionTags')invariant(!same.some(x=>x.collectionId===row.collectionId&&x.tagCode===row.tagCode),'COLLECTION_TAG_EXISTS','此集合已使用该内容标签',409);
     }
-    async evidenceFor(tx:Tx,actor:Actor,table:string,row:Record<string,unknown>,fields:string[],sourceId:string,sourceRevision:number,reviewed=false){
+    async evidenceFor(tx:Tx,actor:Actor,table:string,row:Record<string,unknown>,fields:string[],sourceId:string,sourceRevision:number,reviewed=false,eventClock:Clock=this.clock){
+        const recordedAt=eventClock.now();const evidenceClock:Clock={now:()=>recordedAt};
         for(const field of fields){
             if(field.includes('Ciphertext')||field==='maskedIdentifier')continue;
             const owner=OWNER_KEYS[table];invariant(!!owner,'EVIDENCE_OWNER_INVALID','证据归属类型不正确',422);
-            const evidence={...base(actor.workspaceId,this.clock),personId:null,[owner]:row.id,fieldPath:field,valueDigest:digest(row[field]??null),sourceId,sourceRevision,
-                reviewerId:reviewed?actor.membershipId:null,reviewedAt:reviewed?this.clock.now().toISOString():null};
+            const evidence={...base(actor.workspaceId,evidenceClock),personId:null,[owner]:row.id,fieldPath:field,valueDigest:digest(row[field]??null),sourceId,sourceRevision,
+                reviewerId:reviewed?actor.membershipId:null,reviewedAt:reviewed?recordedAt.toISOString():null};
             await tx.insert('evidence',evidence as FieldEvidence);
         }
     }
@@ -240,8 +241,9 @@ export class TalentV2 {
         const source=await this.source(tx,actor,row.sourceId,d.sourceRevision);invariant(source.status==='CONFIRMED','CONFIRMED_SOURCE_REQUIRED','成年核验需要已确认的来源',409);
         invariant((await loadTalentGraph(tx,actor,this.clock)).assetReadable(d.evidenceAssetId),'AGE_EVIDENCE_REQUIRED','成年核验需要可访问的明确证明材料，不能根据头像推断',422);
         invariant(Date.parse(d.validUntil)>this.clock.now().getTime()&&Date.parse(d.validUntil)<=Date.parse(source.validUntil),'ELIGIBILITY_VALIDITY_INVALID','核验有效期必须在依据来源的有效期以内',422);
-        const next={...touch(row,this.clock),state:'VERIFIED_ADULT',verifiedAt:this.clock.now().toISOString(),verifiedByMembershipId:actor.membershipId,evidenceAssetId:d.evidenceAssetId,validUntil:d.validUntil};
-        await replaceFact(tx,'adultEligibilities',next);await this.evidenceFor(tx,actor,'adultEligibilities',next,['state'],source.id,source.revision,true);await this.bump(tx,p);return next;
+        const verifiedAt=this.clock.now();const eventClock:Clock={now:()=>verifiedAt};
+        const next={...touch(row,eventClock),state:'VERIFIED_ADULT',originalVerificationWorkspaceId:null,originalVerificationMembershipId:null,verifiedAt:verifiedAt.toISOString(),verifiedByMembershipId:actor.membershipId,evidenceAssetId:d.evidenceAssetId,validUntil:d.validUntil};
+        await replaceFact(tx,'adultEligibilities',next);await this.evidenceFor(tx,actor,'adultEligibilities',next,['state','validUntil','evidenceAssetId'],source.id,source.revision,true,eventClock);await this.bump(tx,p);return next;
     }
     async collectionMutation(tx:Tx,actor:Actor,id:string,input:unknown,action:'ADD'|'REMOVE'|'ORDER'){
         talentWrite(actor);requirePermission(actor,'assets.read');const d=(action==='ADD'?S.collectionAdd:action==='REMOVE'?S.collectionRemove:S.collectionOrder).parse(input);

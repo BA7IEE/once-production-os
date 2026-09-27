@@ -86,6 +86,8 @@ export interface MeasurementSet extends Base {
     status: 'DRAFT' | 'CONFIRMED' | 'SUPERSEDED';
 }
 export interface AdultEligibility extends Base {
+    originalVerificationWorkspaceId?: string | null;
+    originalVerificationMembershipId?: string | null;
     personId: string;
     sourceId: string;
     state: 'UNKNOWN' | 'SELF_DECLARED_ADULT' | 'VERIFIED_ADULT' | 'RESTRICTED';

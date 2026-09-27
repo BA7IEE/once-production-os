@@ -463,12 +463,16 @@ try {
  const transferCredential=(await cmd(owner,'POST',`/td2/people/${tdCanonical}/credentials`,{schemaVersion:tdSchema,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceId:tdSource,sourceRevision:1,values:{credentialTypeCode:'TRANSLATION_CERTIFICATE',evidenceAssetId:tdUpload.resourceId,issuerOrganizationId:transferOrganization,issuedOn:'2020-01-01',expiresOn:'2030-01-01'}},201)).resourceId;
  await cmd(owner,'POST',`/td2/credentials/${transferCredential}/identifier`,{schemaVersion:tdSchema,expectedRevision:1,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,identifier:'SYNTHETIC-BROWSER-1234'},200);
  await cmd(owner,'POST',`/td2/credentials/${transferCredential}/verify`,{schemaVersion:tdSchema,expectedRevision:2,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceRevision:1},200);
+ const transferAdult=(await cmd(owner,'POST',`/td2/people/${tdCanonical}/adult-eligibility`,{schemaVersion:tdSchema,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceId:tdSource,sourceRevision:1,values:{state:'SELF_DECLARED_ADULT'}},201)).resourceId;
+ const adultUntil=new Date(Date.now()+86400000).toISOString();
+ await cmd(owner,'POST',`/td2/adult-eligibility/${transferAdult}/verify`,{schemaVersion:tdSchema,expectedRevision:1,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceRevision:1,evidenceAssetId:tdUpload.resourceId,validUntil:adultUntil},200);
+ const adultBefore=await prisma.adultEligibility.findUniqueOrThrow({where:{id:transferAdult}});
  const transferCredentialBefore=await prisma.personCredential.findUniqueOrThrow({where:{id:transferCredential}});
  const transferEvidenceSource=(await cmd(owner,'POST','/sources',source('TD2字段证据独立来源'),201)).resourceId;
  await cmd(owner,'POST','/td2/evidence',{schemaVersion:tdSchema,ownerKind:'personLanguages',ownerId:transferLanguage,fieldPath:'speakingLevelCode',expectedRevision:1,sourceId:transferEvidenceSource,sourceRevision:1},200);
  const transferEvidenceBefore=await prisma.fieldEvidence.findFirstOrThrow({where:{personLanguageId:transferLanguage,sourceId:transferEvidenceSource}});
  await owner.getByRole('button',{name:/内部导出/}).click();
- const transferLabels=['2.0 人才主档案（内部简介与状态）','2.0 职业及有效期','2.0 语言、熟练度及有效期','2.0 能力、等级及所用字典','2.0 外部标识、核验状态及关联机构','2.0 代表关系、有效期及关联机构','2.0 所选专业字段的来源证据与原核验记录','2.0 资质记录与核验状态','2.0 资质加密编号（单独批准）','2.0 媒体集合、图片顺序与说明','2.0 集合内容标签'];
+ const transferLabels=['2.0 人才主档案（内部简介与状态）','2.0 职业及有效期','2.0 语言、熟练度及有效期','2.0 能力、等级及所用字典','2.0 外部标识、核验状态及关联机构','2.0 代表关系、有效期及关联机构','2.0 所选专业字段的来源证据与原核验记录','2.0 资质记录与核验状态','2.0 资质加密编号（单独批准）','2.0 媒体集合、图片顺序与说明','2.0 集合内容标签','2.0 成年资格与原核验归属（单独批准）'];
  const sourceLabels=['来源标题','来源类型','提供方说明','内部依据类型','依据说明','有效起点','有效截止','来源状态'];
  const transferPermits=[];
  for(const [kind,id,labels] of [['PERSON',tdCanonical,['姓名 / 展示名','档案状态',...transferLabels]],['SOURCE',tdSource,[...sourceLabels,...transferLabels,'图片原件及预览（单独批准）']],['SOURCE',transferSource,[...sourceLabels,transferLabels[2],transferLabels[4],transferLabels[5],transferLabels[6],transferLabels[7]]],['PERSON',transferAgent,['姓名 / 展示名','档案状态',...transferLabels]],['SOURCE',transferEvidenceSource,[...sourceLabels,transferLabels[2],transferLabels[6]]],['ASSET',tdUpload.resourceId,['图片原件及预览（单独批准）']]]){
@@ -487,7 +491,7 @@ try {
  const typedDownload=owner.waitForEvent('download');await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();
  const typedFile=await typedDownload,typedPayload=JSON.parse(readFileSync(await typedFile.path(),'utf8'));
  assert.equal(typedPayload.schemaVersion,'once-export-v2-talent');
- assert.equal(typedPayload.manifest.talent.schemaVersion,'once-talent-transfer-v8');
+ assert.equal(typedPayload.manifest.talent.schemaVersion,'once-talent-transfer-v9');
  const exportedCredential=typedPayload.manifest.talent.tables.personCredentials.find(r=>r.id===transferCredential);
  assert.ok(exportedCredential);assert.equal(exportedCredential.data.identifierCiphertext,transferCredentialBefore.identifierCiphertext);assert.equal(exportedCredential.data.maskedIdentifier,'***1234');assert.equal(exportedCredential.data.status,'VERIFIED');
  assert.equal(typedPayload.manifest.talent.identifierContextWorkspaceId,transferCredentialBefore.workspaceId);
@@ -512,6 +516,7 @@ try {
  assert.ok(typedPayload.manifest.talent.tables.personRoles.some(r=>r.id===tdRole));
  assert.equal(typedPayload.manifest.talent.tables.personCredentials.length,1);
  assert.equal(exportedCredential.data.status,'VERIFIED');assert.equal(exportedCredential.data.evidenceAssetId,tdUpload.resourceId);
+ const exportedAdult=typedPayload.manifest.talent.tables.adultEligibilities.find(a=>a.id===transferAdult);assert.equal(exportedAdult.data.state,'VERIFIED_ADULT');assert.equal(exportedAdult.data.verification.membershipId,adultBefore.verifiedByMembershipId);assert.equal(exportedAdult.data.verification.workspaceId,adultBefore.workspaceId);assert.equal(exportedAdult.data.verifiedAt,adultBefore.verifiedAt.toISOString());assert.equal(exportedAdult.data.validUntil,adultUntil);
  assert.equal(typedPayload.manifest.talent.assets.length,1);assert.equal(typedPayload.manifest.talent.collectionItems.find(i=>i.collectionId===tdCollection).assetId,tdUpload.resourceId);assert.equal(typedPayload.manifest.talent.tables.mediaCollections.find(c=>c.id===tdCollection).data.personRoleId,tdRole);assert.equal(typedPayload.manifest.talent.tables.mediaCollectionTags.find(t=>t.id===transferredTag).data.tagCode,'FASHION');
  for(const [part,label] of [['original','下载图片原件'],['preview','下载图片预览']]) {
   const downloadedProof=owner.waitForEvent('download');await owner.getByRole('button',{name:label,exact:true}).click();const file=await downloadedProof;
@@ -524,7 +529,7 @@ try {
  const blockedTransfer=await writeUI(owner,'POST','/exports/'+typedExport+'/download',()=>owner.getByRole('button',{name:'下载 JSON',exact:true}).click(),409);
  assert.equal(blockedTransfer.error.code,'EXPORT_STALE');
  assert.equal(await getStatus(owner,`/exports/${typedExport}/media/${tdUpload.resourceId}/original`),409);
- console.log('PASS TD2 transfer browser: original and preview downloads match exact hashes, verified credential retains attachment; explicit person, fact and evidence source grants -> v8 JSON preserves collection/type/tag/item identity plus credential ciphertext without plaintext plus original field evidence and reviewer attribution -> evidence-only grant revocation blocks download');
+ console.log('PASS TD2 transfer browser: original and preview downloads match exact hashes, verified credential retains attachment; explicit person, fact and evidence source grants -> v9 JSON preserves original adult verification plus collection/type/tag/item identity plus credential ciphertext without plaintext plus original field evidence and reviewer attribution -> evidence-only grant revocation blocks download');
 
  assert.deepEqual(errors,[]);
 } catch(error) {

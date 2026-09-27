@@ -354,7 +354,7 @@ export function rowDefaults(table: FactTable): Record<string,unknown> {
     if(table==='personCredentials') {raw.status='UNVERIFIED';raw.identifierCiphertext=null;raw.maskedIdentifier=null;}
     if(table==='personExternalRefs') {raw.state='OBSERVED';raw.verifiedAt=null;}
     if(table==='personLanguages'||table==='talentLocations') raw.verifiedAt=null;
-    if(table==='adultEligibilities') {raw.verifiedAt=null;raw.verifiedByMembershipId=null;}
+    if(table==='adultEligibilities') {raw.verifiedAt=null;raw.verifiedByMembershipId=null;raw.originalVerificationWorkspaceId=null;raw.originalVerificationMembershipId=null;}
     if(table==='castingProfiles') raw.currentMeasurementSetId=null;
     return raw;
 }

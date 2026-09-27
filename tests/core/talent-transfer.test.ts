@@ -20,10 +20,10 @@ test('TD2 selected dependencies are explicit and unsupported typed fields cannot
     const f=await fixture(),t=await controlledTransfer(f.app,f.store,f.clock,f.owner);
     const missing={...t.input,fields:t.input.fields.filter(x=>x!=='person.td2.personRoles')};
     assert.equal((await f.owner.cmd('POST','/exports',missing)).status,422);
-    const unknown={...t.input,fields:[...t.input.fields,'person.td2.adultEligibilities']};
+    const unknown={...t.input,fields:[...t.input.fields,'person.td2.unregisteredPrivateField']};
     assert.equal((await f.owner.cmd('POST','/exports',unknown)).status,400);
     const viewer=await member(f,'transfer_no_action','VIEWER');assert.equal((await viewer.client.cmd('POST','/exports',t.input)).status,403);
-    assert.equal(TRANSFER_CODES.length,14);
+    assert.equal(TRANSFER_CODES.length,15);
 });
 
 test('TD2 foreign-source field evidence cannot be silently flattened and worker rechecks revoked grants',async()=>{

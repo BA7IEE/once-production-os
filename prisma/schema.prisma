@@ -1459,6 +1459,8 @@ model MeasurementSet {
 }
 
 model AdultEligibility {
+  originalVerificationWorkspaceId String? @db.Uuid
+  originalVerificationMembershipId String? @db.Uuid
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)

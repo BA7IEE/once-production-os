@@ -1,3 +1,4 @@
+import {digest} from '../../packages/core/src/json.ts';
 import { mergeInput, mergePreview } from '../support/talent-v2-merge.ts';
 import { seedProfessionalGraph } from '../support/talent-v2-maintenance.ts';
 /** DEV-09C actual pg_dump -> pg_restore -> recovery approve drill. */
@@ -134,6 +135,9 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         // A synthetic imported review has historical attribution, not a local reviewer account.
         const evidenceBase=await sourceClient.fieldEvidence.findFirstOrThrow({where:{personLanguageId:td2.languageId}});
         const importedEvidence=await sourceClient.fieldEvidence.create({data:{...evidenceBase,id:randomUUID(),reviewerId:null,reviewedAt:null,originalReviewWorkspaceId:randomUUID(),originalReviewMembershipId:randomUUID(),originalReviewedAt:evidenceBase.createdAt}});
+        const adultBase=await sourceClient.adultEligibility.findFirstOrThrow({where:{personId}});
+        const importedAdult=await sourceClient.adultEligibility.update({where:{id:adultBase.id},data:{state:'VERIFIED_ADULT',verifiedByMembershipId:null,verifiedAt:adultBase.createdAt,validUntil:new Date('2026-09-30T00:00:00.000Z'),evidenceAssetId:uploadId,originalVerificationWorkspaceId:randomUUID(),originalVerificationMembershipId:randomUUID()}});
+        await sourceClient.fieldEvidence.create({data:{...evidenceBase,id:randomUUID(),personLanguageId:null,adultEligibilityId:importedAdult.id,fieldPath:'state',valueDigest:digest('VERIFIED_ADULT'),reviewerId:null,reviewedAt:null,originalReviewWorkspaceId:importedAdult.originalVerificationWorkspaceId,originalReviewMembershipId:importedAdult.originalVerificationMembershipId,originalReviewedAt:importedAdult.verifiedAt}});
         const linked = await owner.cmd('POST', `/td2/collections/${td2.collectionId}/items`, {
             schemaVersion: 'once-talent-v2.0.0', expectedRevision: 1,
             expectedPersonRevision: td2Person.revision, assetId: uploadId
@@ -239,6 +243,7 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         assert.equal(await restoreClient.personAlias.count({where:{oldPersonId:historyPersonId,canonicalPersonId:personId}}),1);
         const restoredEvidence=await restoreClient.fieldEvidence.findUniqueOrThrow({where:{id:importedEvidence.id}});
         assert.deepEqual(restoredEvidence,importedEvidence);
+        assert.deepEqual(await restoreClient.adultEligibility.findUniqueOrThrow({where:{id:importedAdult.id}}),importedAdult);
         assert.equal(restoredEvidence.reviewerId,null);assert.equal(restoredEvidence.reviewedAt,null);
         assert.equal(report.talent.credentialCount, 1);
         assert.equal(report.talent.credentialDecryptFailures, 0);
@@ -313,7 +318,7 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         const hidden=await restoredOwner.raw('GET','/people/'+personId);
         assert.equal(hidden.status,404,'suspended source remains restricted after recovery approval');
 
-        console.log('PASS TD2 pg_dump/pg_restore+media: stable roles, measurements, external refs, collection links, encrypted credential, original evidence review attribution and revoked machine identity');
+        console.log('PASS TD2 pg_dump/pg_restore+media: stable roles, measurements, external refs, collection links, encrypted credential, original evidence and adult verification attribution and revoked machine identity');
         console.log('PASS DEV-09E pg_dump/pg_restore+media: contained post-backup delta resolves and approves; unresolved committed member.disable remains blocked');
     }finally{
         await sourceStore.close();

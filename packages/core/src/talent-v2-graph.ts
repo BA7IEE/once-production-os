@@ -85,6 +85,7 @@ export async function loadTalentGraph(tx:Tx,actor:Actor,clock:Clock){
             if(fieldReadable(table,row,key))out[key]=row[key]; else{out[key]=null;unavailableFields.push(key);}
         }
         for(const key of ['status','state','verifiedAt','verifiedByMembershipId','currentMeasurementSetId'])if(Object.hasOwn(row,key)&&!Object.hasOwn(out,key))out[key]=row[key];
+        if(table==='adultEligibilities'&&actor.permissions.includes('sources.review'))out.originalVerification=row.originalVerificationWorkspaceId?{workspaceId:row.originalVerificationWorkspaceId,membershipId:row.originalVerificationMembershipId,verifiedAt:row.verifiedAt}:null;
         if(table==='personCredentials' && actor.permissions.includes('sensitive.read'))out.maskedIdentifier=row.maskedIdentifier;
         out.unavailableFields=unavailableFields;
         out.usable=usable(table,row,out);

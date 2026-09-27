@@ -14436,12 +14436,13 @@
                         "person.td2.translatorServiceModes",
                         "person.td2.mediaCollections",
                         "person.td2.mediaCollectionTags",
+                        "person.td2.adultEligibilities",
                         "person.td2.credentialIdentifiers",
                         "person.td2.fieldEvidence"
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 50
+                    "maxItems": 51
                   },
                   "validUntil": {
                     "type": "string",
@@ -14741,12 +14742,13 @@
                         "person.td2.translatorServiceModes",
                         "person.td2.mediaCollections",
                         "person.td2.mediaCollectionTags",
+                        "person.td2.adultEligibilities",
                         "person.td2.credentialIdentifiers",
                         "person.td2.fieldEvidence"
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 50
+                    "maxItems": 51
                   },
                   "usePermissionRefs": {
                     "type": "array",

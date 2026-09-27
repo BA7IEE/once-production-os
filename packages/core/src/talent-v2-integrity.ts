@@ -92,7 +92,13 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
             ref(row, 'collectionId', 'mediaCollections', true, true);
         }
         if (table === 'servicePrincipals') ref(row, 'defaultMaintainerMembershipId', 'memberships', false, true);
-        if (table === 'adultEligibilities') ref(row, 'verifiedByMembershipId', 'memberships');
+        if (table === 'adultEligibilities') {
+            ref(row, 'verifiedByMembershipId', 'memberships');
+            const originals=[row.originalVerificationWorkspaceId,row.originalVerificationMembershipId].filter(v=>v!=null);
+            check(originals.length===0||(originals.length===2&&row.verifiedByMembershipId==null&&row.verifiedAt!=null&&Date.parse(String(row.verifiedAt))>=Date.parse(String(row.createdAt))&&Date.parse(String(row.verifiedAt))<=Date.parse(String(row.updatedAt))));
+            if(originals.length===2)check(data.evidence.some(e=>e.adultEligibilityId===row.id&&e.fieldPath==='state'&&e.valueDigest===digest('VERIFIED_ADULT')&&e.originalReviewWorkspaceId===row.originalVerificationWorkspaceId&&e.originalReviewMembershipId===row.originalVerificationMembershipId&&e.originalReviewedAt===row.verifiedAt));
+            if(row.state==='VERIFIED_ADULT')check(row.verifiedAt!=null&&(row.verifiedByMembershipId!=null||originals.length===2));
+        }
         if (table === 'talentMigrationReviews') {
             ref(row, 'shortlistItemId', 'shortlistItems', true);
             ref(row, 'resolvedById', 'memberships');
