@@ -1,4 +1,8 @@
-当前接续：[成年资格与原核验归属迁移](TD2_ADULT_TRANSFER.md)增加 v9；独立许可、原证明和核验证据一起保留，目标不伪造核验人或延长有效期。完整人才 2.0 仍未完成。
+当前接续：[身份字段来源证据迁移](TD2_IDENTITY_EVIDENCE_TRANSFER.md)增加 v10；普通联系人无需人才档案即可按独立许可迁移所选身份字段的来源和原核验记录。整体人才 2.0 仍未完成。
+
+408/408 CORE_MEMORY_TESTED（新增6项）；服务、React、core、transport 类型检查、契约与构建 PASS。完整 PostgreSQL 链（原合同67/67）、独立双库身份字段真实CLI CHECK/APPLY、审计回滚/重试和重新导出比对 DB_TESTED。真实 Chromium v10 身份与专业/证明原件组合、原核验归属及证据许可撤销 BROWSER_TESTED。新空库38迁移通过，既有合成库59表摘要不变。 证据见 `artifacts/td2-identity-evidence-20260928/`。
+
+前批：[成年资格与原核验归属迁移](TD2_ADULT_TRANSFER.md)增加 v9；独立许可、原证明和核验证据一起保留，目标不伪造核验人或延长有效期。完整人才 2.0 仍未完成。
 
 **402/402 CORE_MEMORY_TESTED**；服务、React、core、transport 类型检查、构建与契约检查 PASS。完整 PostgreSQL 链（原合同 67/67、新增成年资格双库真实 CLI、审计回滚/重试、SQL 约束、含原核验记录的数据库与私有媒体恢复）DB_TESTED；新空库 37 个迁移通过。真实 Chromium 的 v9 授权、下载、原件摘要和撤权拦截通过。既有合成库 59 表原有记录摘要不变；该旧库成年资格表为空，不将它冒充历史成年资格升级数据覆盖。证据见 `artifacts/td2-adult-20260928/`。
 

@@ -1,3 +1,4 @@
+import {validateIdentityEvidence,applyIdentityEvidence} from './identity-transfer.ts';
 import {randomUUID} from 'node:crypto';
 import type { MediaAsset, MediaUpload } from './media-model.ts';
 import {validateCredentialKeys,type CredentialRebuildKeys} from './credential-transfer-crypto.ts';
@@ -79,6 +80,7 @@ export class JsonRebuild {
             requirePermission(actor,'sensitive.write');
             requirePermission({...actor,permissions:permissionsFor(target.member)},'sensitive.write');
         }
+        if(payload.manifest.talent?.identityFields) validateIdentityEvidence(this.clock,payload.manifest.talent.identityEvidence??[],payload.manifest.talent.identityFields,payload.manifest.people,payload.manifest.sources,(payload.manifest.talent.evidence??[]).map(e=>e.id));
         if(payload.manifest.talent) validateCredentialKeys(payload.manifest.talent,this.credentialKeys);
         const now = this.clock.now().getTime();
         invariant(Date.parse(payload.frozenAt) <= now && Date.parse(payload.manifest.frozenAt) <= now,
@@ -118,7 +120,7 @@ export class JsonRebuild {
 
         for(const e of payload.manifest.talent?.evidence??[]) invariant(e.sourceRevision<=(sources.find(s=>s.id===e.sourceId)?.revision??0),'TD2_TRANSFER_EVIDENCE_SOURCE_REVISION','字段证据引用了不存在的来源版本',422);
         const referencedSources = new Set([
-            ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent?.assets??[]).map(a=>a.sourceId), ...(payload.manifest.talent?.evidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.organizations??[]).map(o=>o.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>transferRows(payload.manifest.talent!,t).map(r=>r.sourceId)) : [])
+            ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent?.assets??[]).map(a=>a.sourceId), ...(payload.manifest.talent?.evidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.identityEvidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.organizations??[]).map(o=>o.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>transferRows(payload.manifest.talent!,t).map(r=>r.sourceId)) : [])
         ]);
         invariant(sources.every(x => referencedSources.has(x.id)), 'REBUILD_UNUSED_SOURCE',
             '来源清单包含没有被本次业务图引用的记录', 422);
@@ -213,7 +215,7 @@ export class JsonRebuild {
                 projectWorks: relations.projectWorks.length,
                 mediaIdentities: media.length
             },
-            ...(payload.manifest.talent ? {encryptedCredentialCount:transferRows(payload.manifest.talent,'personCredentials').filter(r=>r.data.identifierCiphertext).length, fieldEvidence:payload.manifest.talent.evidence?.length??0, organizations:payload.manifest.talent.organizations?.length??0, capabilityDefinitions: payload.manifest.talent.capabilityDefinitions?.length??0, professionalRecords: TRANSFER_TABLES.reduce((n,t)=>n+transferRows(payload.manifest.talent!,t).length,0)} : {}),
+            ...(payload.manifest.talent ? {encryptedCredentialCount:transferRows(payload.manifest.talent,'personCredentials').filter(r=>r.data.identifierCiphertext).length, fieldEvidence:(payload.manifest.talent.evidence?.length??0)+(payload.manifest.talent.identityEvidence?.length??0), organizations:payload.manifest.talent.organizations?.length??0, capabilityDefinitions: payload.manifest.talent.capabilityDefinitions?.length??0, professionalRecords: TRANSFER_TABLES.reduce((n,t)=>n+transferRows(payload.manifest.talent!,t).length,0)} : {}),
             mediaRestored: payload.manifest.talent?.assets?.length??0
         };
         return { payload, target, summary };
@@ -310,6 +312,7 @@ export class JsonRebuild {
         }
         if (payload.manifest.talent) await applyTalentRebuild(tx, actor, payload.manifest.talent, target.scope.id,this.credentialKeys);
         if (payload.manifest.talent) await applyTransferEvidence(tx,actor,payload.manifest.talent);
+        if (payload.manifest.talent?.identityEvidence) await applyIdentityEvidence(tx,actor,payload.manifest.talent.identityEvidence);
 
         await audit(tx, actor, actor.workspaceId, 'rebuild.apply', 'rebuild-export', payload.exportId,
             ['sources', 'people', 'works', 'projects', 'relations', ...(payload.manifest.talent ? ['talent.typed'] : []), ...(payload.manifest.media.length ? ['media.identity-only'] : [])],

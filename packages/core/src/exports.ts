@@ -1,3 +1,4 @@
+import {IDENTITY_EVIDENCE_CODE,identityField} from './identity-transfer.ts';
 import { MEDIA_TRANSFER_CODE, transferAsset } from './media-transfer.ts';
 import { CREDENTIAL_IDENTIFIER_CODE, EVIDENCE_TRANSFER_CODE, transferRows, collectTalentTransfer, isTransferCode, TALENT_EXPORT_VERSION, TRANSFER_TABLES, transferCode, type TalentTransfer } from './talent-transfer.ts';
 import { randomUUID } from 'node:crypto';
@@ -80,7 +81,7 @@ export class Exports {
         requirePermission(actor, 'sources.review');
         const d = S.permissionCreate.parse(input);
         invariant(unique(d.fields).length === d.fields.length, 'DUPLICATE_FIELD', '导出字段不能重复', 400);
-        const allowed = d.fields.filter(f => fieldsFor(d.subjectKind, [f]).length || (d.subjectKind === 'SOURCE' && (isTransferCode(f)||f===EVIDENCE_TRANSFER_CODE||f===CREDENTIAL_IDENTIFIER_CODE||f===MEDIA_TRANSFER_CODE)));
+        const allowed = d.fields.filter(f => fieldsFor(d.subjectKind, [f]).length || (d.subjectKind === 'SOURCE' && (identityField(f)||f===IDENTITY_EVIDENCE_CODE||isTransferCode(f)||f===EVIDENCE_TRANSFER_CODE||f===CREDENTIAL_IDENTIFIER_CODE||f===MEDIA_TRANSFER_CODE)));
         invariant(allowed.length === d.fields.length, 'EXPORT_FIELD_SUBJECT_MISMATCH', '导出许可字段与对象类型不匹配', 422);
         const subject = await this.subject(tx, actor, d.subjectKind, d.subjectId);
         invariant(subject.source.id === d.sourceId, 'EXPORT_SOURCE_MISMATCH', '导出许可的来源与对象不一致', 422);
@@ -180,7 +181,8 @@ export class Exports {
         invariant(!withIdentifiers||transferFields.includes('person.td2.personCredentials'),'TD2_TRANSFER_CREDENTIAL_REQUIRED','编号迁移必须同时选择资质记录',422);
         invariant(!withEvidence||transferFields.length>0,'TD2_TRANSFER_EVIDENCE_OWNER','字段证据必须同时选择专业资料',422);
         invariant(!d.fields.includes(MEDIA_TRANSFER_CODE)||(transferFields.includes('person.td2.personCredentials')||transferFields.includes('person.td2.mediaCollections')||transferFields.includes('person.td2.adultEligibilities')),'TD2_TRANSFER_MEDIA_OWNER_REQUIRED','原件必须随资质或媒体集合导出',422);
-        const talent = transferFields.length ? await collectTalentTransfer(tx, actor, this.clock, peopleIds, transferFields, withEvidence, withIdentifiers, d.fields.includes(MEDIA_TRANSFER_CODE)) : null;
+        const identityFields=d.fields.includes(IDENTITY_EVIDENCE_CODE)?d.fields.filter(identityField):undefined;
+        const talent = transferFields.length||identityFields ? await collectTalentTransfer(tx, actor, this.clock, peopleIds, transferFields, withEvidence, withIdentifiers, d.fields.includes(MEDIA_TRANSFER_CODE),identityFields) : null;
         const sourceTransferFields = new Map<string, Set<ExportFieldCode>>();
         if (talent) for (const table of TRANSFER_TABLES) for (const row of transferRows(talent,table)) {
             sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock));
@@ -190,6 +192,11 @@ export class Exports {
             sources.set(e.sourceId,await sourceFor(tx,actor,e.sourceId,this.clock));
             const fields=sourceTransferFields.get(e.sourceId)??new Set<ExportFieldCode>();
             fields.add(EVIDENCE_TRANSFER_CODE);fields.add(transferCode(e.ownerKind));sourceTransferFields.set(e.sourceId,fields);
+        }
+        for(const e of talent?.identityEvidence??[]) {
+            sources.set(e.sourceId,await sourceFor(tx,actor,e.sourceId,this.clock));
+            const fields=sourceTransferFields.get(e.sourceId)??new Set<ExportFieldCode>();
+            fields.add(IDENTITY_EVIDENCE_CODE);fields.add(('person.'+e.fieldPath) as ExportFieldCode);sourceTransferFields.set(e.sourceId,fields);
         }
         for (const organization of talent?.organizations??[]) {
             sources.set(organization.sourceId,await sourceFor(tx,actor,organization.sourceId,this.clock));
@@ -217,7 +224,7 @@ export class Exports {
             const source = sources.get(row.sourceId)!;
             const permission = this.choosePermission(permissions, used, 'PERSON', row.id, row.sourceId, personFields);
             dependencies.push(this.dependency(actor.workspaceId, job.id, 'PERSON', row.id, personFields, source, row.revision, row.protectionEpoch, permission, initialExpiry));
-            return { id: row.id, sourceId: row.sourceId, revision: row.revision, data: dataFields('person.', personFields.filter(f => !isTransferCode(f)&&f!==EVIDENCE_TRANSFER_CODE&&f!==CREDENTIAL_IDENTIFIER_CODE), row as unknown as Record<string, unknown>) };
+            return { id: row.id, sourceId: row.sourceId, revision: row.revision, data: dataFields('person.', personFields.filter(f => !isTransferCode(f)&&f!==EVIDENCE_TRANSFER_CODE&&f!==CREDENTIAL_IDENTIFIER_CODE&&f!==IDENTITY_EVIDENCE_CODE), row as unknown as Record<string, unknown>) };
         });
         const manifestWorks = works.map(row => {
             const source = sources.get(row.sourceId)!;
@@ -338,7 +345,7 @@ export class Exports {
         if (row.schemaVersion === TALENT_EXPORT_VERSION) {
             const manifest = row.recordManifest as { people: Array<{id:string}>; talent: TalentTransfer };
             try {
-                const current = await collectTalentTransfer(tx, actor, this.clock, manifest.people.map(p => p.id), row.fields.filter(isTransferCode),row.fields.includes(EVIDENCE_TRANSFER_CODE),row.fields.includes(CREDENTIAL_IDENTIFIER_CODE),row.fields.includes(MEDIA_TRANSFER_CODE));
+                const current = await collectTalentTransfer(tx, actor, this.clock, manifest.people.map(p => p.id), row.fields.filter(isTransferCode),row.fields.includes(EVIDENCE_TRANSFER_CODE),row.fields.includes(CREDENTIAL_IDENTIFIER_CODE),row.fields.includes(MEDIA_TRANSFER_CODE),row.fields.includes(IDENTITY_EVIDENCE_CODE)?row.fields.filter(identityField):undefined);
                 invariant(digest(current) === digest(manifest.talent), 'EXPORT_STALE', '专业资料已经变化，请重新生成导出', 409);
             } catch (error) { safeError(error); }
         }

@@ -14420,6 +14420,7 @@
                         "source.validFrom",
                         "source.validUntil",
                         "source.status",
+                        "person.identityEvidence",
                         "media.identity",
                         "media.originals",
                         "person.td2.talentProfiles",
@@ -14442,7 +14443,7 @@
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 51
+                    "maxItems": 52
                   },
                   "validUntil": {
                     "type": "string",
@@ -14726,6 +14727,7 @@
                         "source.validFrom",
                         "source.validUntil",
                         "source.status",
+                        "person.identityEvidence",
                         "media.identity",
                         "media.originals",
                         "person.td2.talentProfiles",
@@ -14748,7 +14750,7 @@
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 51
+                    "maxItems": 52
                   },
                   "usePermissionRefs": {
                     "type": "array",

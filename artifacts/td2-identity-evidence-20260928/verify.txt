@@ -1,0 +1,539 @@
+
+> once-production-os@0.1.0-dev.1 verify /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> pnpm contract:check && pnpm typecheck && pnpm test:core && pnpm review:static && pnpm build
+
+
+> once-production-os@0.1.0-dev.1 contract:check /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> node --experimental-strip-types scripts/generate-contract.ts --check
+
+Contract verified: 166 routes; request schemas only
+
+> once-production-os@0.1.0-dev.1 typecheck /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> tsc -p tsconfig.server.json --noEmit && tsc -p apps/admin-web/tsconfig.json
+
+
+> once-production-os@0.1.0-dev.1 test:core /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> node scripts/run-core-tests.mjs
+
+{"file":"adult-transfer.test.ts","exitCode":0,"error":null,"durationMs":2898,"tests":5,"pass":5,"fail":0,"skipped":0}
+{"file":"backup-manifest.test.ts","exitCode":0,"error":null,"durationMs":129,"tests":2,"pass":2,"fail":0,"skipped":0}
+{"file":"client-transport.test.ts","exitCode":0,"error":null,"durationMs":139,"tests":7,"pass":7,"fail":0,"skipped":0}
+{"file":"collection-transfer.test.ts","exitCode":0,"error":null,"durationMs":2067,"tests":4,"pass":4,"fail":0,"skipped":0}
+{"file":"commands-imports.test.ts","exitCode":0,"error":null,"durationMs":3399,"tests":22,"pass":22,"fail":0,"skipped":0}
+{"file":"credential-media-transfer.test.ts","exitCode":0,"error":null,"durationMs":1679,"tests":4,"pass":4,"fail":0,"skipped":0}
+{"file":"deletions.test.ts","exitCode":0,"error":null,"durationMs":3862,"tests":23,"pass":23,"fail":0,"skipped":0}
+{"file":"exports.test.ts","exitCode":0,"error":null,"durationMs":1309,"tests":7,"pass":7,"fail":0,"skipped":0}
+{"file":"handoffs.test.ts","exitCode":0,"error":null,"durationMs":10619,"tests":27,"pass":27,"fail":0,"skipped":0}
+{"file":"http-contract.test.ts","exitCode":0,"error":null,"durationMs":349,"tests":1,"pass":1,"fail":0,"skipped":0}
+{"file":"identity-transfer.test.ts","exitCode":0,"error":null,"durationMs":1882,"tests":6,"pass":6,"fail":0,"skipped":0}
+{"file":"identity.test.ts","exitCode":0,"error":null,"durationMs":4879,"tests":25,"pass":25,"fail":0,"skipped":0}
+{"file":"json-validation.test.ts","exitCode":0,"error":null,"durationMs":498,"tests":27,"pass":27,"fail":0,"skipped":0}
+{"file":"local-config.test.ts","exitCode":0,"error":null,"durationMs":485,"tests":5,"pass":5,"fail":0,"skipped":0}
+{"file":"media.test.ts","exitCode":0,"error":null,"durationMs":3406,"tests":23,"pass":23,"fail":0,"skipped":0}
+{"file":"person-merges.test.ts","exitCode":0,"error":null,"durationMs":1842,"tests":10,"pass":10,"fail":0,"skipped":0}
+{"file":"production.test.ts","exitCode":0,"error":null,"durationMs":4754,"tests":31,"pass":31,"fail":0,"skipped":0}
+{"file":"rebuild.test.ts","exitCode":0,"error":null,"durationMs":3071,"tests":11,"pass":11,"fail":0,"skipped":0}
+{"file":"recovery-delta-adversarial.test.ts","exitCode":0,"error":null,"durationMs":796,"tests":12,"pass":12,"fail":0,"skipped":0}
+{"file":"recovery-delta.test.ts","exitCode":0,"error":null,"durationMs":580,"tests":8,"pass":8,"fail":0,"skipped":0}
+{"file":"recovery-worker-intent.test.ts","exitCode":0,"error":null,"durationMs":111,"tests":2,"pass":2,"fail":0,"skipped":0}
+{"file":"recovery.test.ts","exitCode":0,"error":null,"durationMs":3505,"tests":13,"pass":13,"fail":0,"skipped":0}
+{"file":"review-r1.test.ts","exitCode":0,"error":null,"durationMs":4775,"tests":23,"pass":23,"fail":0,"skipped":0}
+{"file":"safety-intent.test.ts","exitCode":0,"error":null,"durationMs":770,"tests":5,"pass":5,"fail":0,"skipped":0}
+{"file":"safety-journal.test.ts","exitCode":0,"error":null,"durationMs":403,"tests":5,"pass":5,"fail":0,"skipped":0}
+{"file":"shortlists.test.ts","exitCode":0,"error":null,"durationMs":1382,"tests":7,"pass":7,"fail":0,"skipped":0}
+{"file":"talent-candidate-merge.test.ts","exitCode":0,"error":null,"durationMs":1361,"tests":4,"pass":4,"fail":0,"skipped":0}
+{"file":"talent-credential-transfer.test.ts","exitCode":0,"error":null,"durationMs":2483,"tests":7,"pass":7,"fail":0,"skipped":0}
+{"file":"talent-evidence-transfer.test.ts","exitCode":0,"error":null,"durationMs":1955,"tests":5,"pass":5,"fail":0,"skipped":0}
+{"file":"talent-external-transfer.test.ts","exitCode":0,"error":null,"durationMs":1771,"tests":4,"pass":4,"fail":0,"skipped":0}
+{"file":"talent-representation-transfer.test.ts","exitCode":0,"error":null,"durationMs":1491,"tests":4,"pass":4,"fail":0,"skipped":0}
+{"file":"talent-transfer.test.ts","exitCode":0,"error":null,"durationMs":2782,"tests":8,"pass":8,"fail":0,"skipped":0}
+{"file":"talent-v2-maintenance.test.ts","exitCode":0,"error":null,"durationMs":1038,"tests":5,"pass":5,"fail":0,"skipped":0}
+{"file":"talent-v2-merge.test.ts","exitCode":0,"error":null,"durationMs":2095,"tests":10,"pass":10,"fail":0,"skipped":0}
+{"file":"talent-v2-search.test.ts","exitCode":0,"error":null,"durationMs":980,"tests":4,"pass":4,"fail":0,"skipped":0}
+{"file":"talent-v2.test.ts","exitCode":0,"error":null,"durationMs":2257,"tests":16,"pass":16,"fail":0,"skipped":0}
+{"file":"talent.test.ts","exitCode":0,"error":null,"durationMs":4777,"tests":26,"pass":26,"fail":0,"skipped":0}
+{
+  "generatedAt": "2026-09-27T17:40:54.147Z",
+  "node": "v22.22.3",
+  "adapter": "tests/support/MemoryStore (NOT PostgreSQL)",
+  "results": [
+    {
+      "file": "adult-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2898,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "backup-manifest.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 129,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "client-transport.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 139,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "collection-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2067,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "commands-imports.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 3399,
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "credential-media-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1679,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "deletions.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 3862,
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "exports.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1309,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "handoffs.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 10619,
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "http-contract.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 349,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "identity-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1882,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "identity.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 4879,
+      "tests": 25,
+      "pass": 25,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "json-validation.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 498,
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "local-config.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 485,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "media.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 3406,
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "person-merges.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1842,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "production.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 4754,
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "rebuild.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 3071,
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "recovery-delta-adversarial.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 796,
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "recovery-delta.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 580,
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "recovery-worker-intent.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 111,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "recovery.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 3505,
+      "tests": 13,
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "review-r1.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 4775,
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "safety-intent.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 770,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "safety-journal.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 403,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "shortlists.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1382,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-candidate-merge.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1361,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-credential-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2483,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-evidence-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1955,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-external-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1771,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-representation-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1491,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2782,
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-v2-maintenance.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1038,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-v2-merge.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2095,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-v2-search.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 980,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-v2.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2257,
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 4777,
+      "tests": 26,
+      "pass": 26,
+      "fail": 0,
+      "skipped": 0
+    }
+  ],
+  "tests": 408,
+  "pass": 408,
+  "fail": 0,
+  "allPassed": true
+}
+
+> once-production-os@0.1.0-dev.1 review:static /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> node scripts/static-review.mjs
+
+{
+  "generatedAt": "2026-09-27T17:40:55.187Z",
+  "node": "v22.22.3",
+  "typescript": "5.8.3",
+  "scope": "static-source-and-contract",
+  "pass": 11,
+  "fail": 0,
+  "checks": [
+    {
+      "name": "typescript-syntax-transpile",
+      "passed": true,
+      "detail": {
+        "files": 103,
+        "diagnostics": [],
+        "note": "Syntax emit only. Not dependency resolution, full typecheck, Nest/Vite build, or browser execution."
+      }
+    },
+    {
+      "name": "test-double-not-in-production",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no-business-localStorage-or-unsafe-html",
+      "passed": true,
+      "detail": {
+        "forbidden": [],
+        "note": "AST identifier check; not a complete XSS or data-loss audit."
+      }
+    },
+    {
+      "name": "unique-route-operation-identities",
+      "passed": true,
+      "detail": {
+        "routes": 166
+      }
+    },
+    {
+      "name": "strict-request-object-schemas",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "command-key-header-required",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no-deferred-http-surfaces",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "candidate-migration-typed-tables",
+      "passed": true,
+      "detail": {
+        "tables": 17,
+        "note": "Text inspection only, not PostgreSQL execution."
+      }
+    },
+    {
+      "name": "candidate-composite-FKs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "candidate-job-lease-constraint",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no-fake-lockfile",
+      "passed": true,
+      "detail": {
+        "note": "Lockfile shape only; dependency resolution and audit are separate checks."
+      }
+    }
+  ]
+}
+
+> once-production-os@0.1.0-dev.1 build /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> pnpm build:api && pnpm build:web
+
+
+> once-production-os@0.1.0-dev.1 build:api /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> tsc -p tsconfig.server.json
+
+
+> once-production-os@0.1.0-dev.1 build:web /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> vite build --config apps/admin-web/vite.config.ts
+
+vite v6.4.1 building for production...
+transforming...
+✓ 41 modules transformed.
+rendering chunks...
+computing gzip size...
+../../dist/web/index.html                   0.47 kB │ gzip:   0.33 kB
+../../dist/web/assets/index-DjcHNh3x.css   22.05 kB │ gzip:   5.25 kB
+../../dist/web/assets/index-CWtTjxcD.js   372.43 kB │ gzip: 113.20 kB
+✓ built in 595ms
