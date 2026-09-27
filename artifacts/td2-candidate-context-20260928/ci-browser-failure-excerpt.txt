@@ -1,0 +1,26 @@
+2026-09-27T19:19:31.2231929Z PASS TD2 browser: explicit unknown-role collision keeps both pending review identities and original candidate lineage without inferring a role
+2026-09-27T19:19:31.4543282Z PASS TD2 browser: explicit conflict selection and retained history; per-record confirmation gates professional merge; stable role/language/collection/item IDs and original media survive
+2026-09-27T19:19:32.2008424Z PASS TD2 candidate role browser: explicit human selection resolves both retained reviews, preserving lineage; response-loss retry preserves body and key
+2026-09-27T19:19:44.5413199Z PASS TD2 transfer browser: original and preview downloads match exact hashes, verified credential retains attachment; explicit person, fact and evidence source grants -> v11 JSON preserves archived identities, retained profiles, immutable original merge decision and actor plus ordinary contact identity evidence and original adult verification plus collection/type/tag/item identity plus credential ciphertext without plaintext plus original field evidence and reviewer attribution -> evidence-only grant revocation blocks download
+2026-09-27T19:19:52.4121194Z Browser page errors: []
+2026-09-27T19:19:52.4125228Z Page route: /
+2026-09-27T19:19:52.4125988Z Page route: /
+2026-09-27T19:19:53.2994373Z node:internal/modules/run_main:123
+2026-09-27T19:19:53.2995060Z     triggerUncaughtException(
+2026-09-27T19:19:53.3000565Z     ^
+2026-09-27T19:19:53.3000774Z
+2026-09-27T19:19:53.3001563Z AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+2026-09-27T19:19:53.3002057Z
+2026-09-27T19:19:53.3002199Z 1 !== 0
+2026-09-27T19:19:53.3002369Z
+2026-09-27T19:19:53.3003236Z     at verifyTalentWorkbench (file:///home/runner/work/once-production-os/once-production-os/tests/acceptance/talent-workbench.mjs:56:116)
+2026-09-27T19:19:53.3004801Z     at async file:///home/runner/work/once-production-os/once-production-os/tests/acceptance/browser-production.mjs:567:2 {
+2026-09-27T19:19:53.3005714Z   generatedMessage: true,
+2026-09-27T19:19:53.3006092Z   code: 'ERR_ASSERTION',
+2026-09-27T19:19:53.3006441Z   actual: 1,
+2026-09-27T19:19:53.3006741Z   expected: 0,
+2026-09-27T19:19:53.3007434Z   operator: 'strictEqual',
+2026-09-27T19:19:53.3007819Z   diff: 'simple'
+2026-09-27T19:19:53.3008130Z }
+2026-09-27T19:19:53.3008284Z
+2026-09-27T19:19:53.3008410Z Node.js v22.22.3
