@@ -1,3 +1,4 @@
+import { verifyTalentWorkbench } from './talent-workbench.mjs';
 /** WP1 real Works/Projects/Chromium acceptance. Only an empty disposable loopback test DB.
  * Never reads a .env target, resets a DB, or sends requests to a production host. */
 import assert from 'node:assert/strict';
@@ -551,6 +552,7 @@ try {
  assert.equal(await getStatus(owner,`/exports/${typedExport}/media/${tdUpload.resourceId}/original`),409);
  console.log('PASS TD2 transfer browser: original and preview downloads match exact hashes, verified credential retains attachment; explicit person, fact and evidence source grants -> v11 JSON preserves archived identities, retained profiles, immutable original merge decision and actor plus ordinary contact identity evidence and original adult verification plus collection/type/tag/item identity plus credential ciphertext without plaintext plus original field evidence and reviewer attribution -> evidence-only grant revocation blocks download');
 
+ await verifyTalentWorkbench({owner,prisma,cmd,writeUI,source,assetId:tdUpload.resourceId,prepare,binary,queue,until,mediaBytes:tdBytes,login,password,json});
  assert.deepEqual(errors,[]);
 } catch(error) {
  console.error('Browser page errors:',JSON.stringify(errors));
