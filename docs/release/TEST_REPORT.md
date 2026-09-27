@@ -1,3 +1,11 @@
+# 2026-09-27 能力与字典迁移验证
+
+基线 `83d9224`。最终 **365/365 CORE_MEMORY_TESTED**（新增 4 项并扩展原往返）；能力专项 8/8。164 请求契约、服务/React/core/transport 类型检查、构建和静态检查 PASS。真实 PostgreSQL 原合同 67/67、恢复链、双库 CLI 预检/重建 DB_TESTED，逐项核对 11 条专业事实与 1 条能力定义，审计故障回滚包含字典。保留合成库 59 表记录摘要不变，含 ERASED 导出。真实 Chrome 人物/双来源许可、能力及字典 JSON 下载、撤销后再次下载拒绝 BROWSER_TESTED。详见 [本轮范围](TD2_CAPABILITY_TRANSFER.md)，证据 `artifacts/td2-capabilities-20260927/`。
+
+最初全量核心测试 364/364，随后补停用共享定义与空关联验证，最终重新完整运行 365/365；没有跳过、放宽断言或增加超时。正式迁移/部署/完整人才 2.0 为 NOT_RUN；最终五条 CI 以 PR #26 本轮提交为准。
+
+---
+
 # 2026-09-27 专业导出与重建验证
 
 基线 `8e2b80d`。**361/361 CORE_MEMORY_TESTED**；164请求契约、服务/React/core/transport类型检查、构建和静态检查 PASS。原PostgreSQL合同67/67、完整恢复/重建链及新增双库专业往返 DB_TESTED；新格式真实CLI check/apply通过。旧合成库59张业务表原列/记录摘要一致，含1条ERASED导出。真实Chrome双来源许可、下载、撤销后应用再次下载拒绝 BROWSER_TESTED。范围、失败原因与未完成项见 [TD2_TYPED_TRANSFER.md](TD2_TYPED_TRANSFER.md)，新证据 `artifacts/td2-transfer-20260927/`。最终云端以PR #26当前head为准；正式迁移/部署/完整TD2-06 NOT_RUN。

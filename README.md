@@ -1,4 +1,4 @@
-> 当前入口：[人才 2.0 状态](docs/release/TD2_MAINTENANCE_STATUS.md)、[专业冲突合并](docs/release/TD2_CONFLICT_MERGE.md)与[专业导出/重建子集](docs/release/TD2_TYPED_TRANSFER.md)。PR #26 基于 PR #25，尚未合入 main；以下旧阶段证据不替代当前 head 验收。
+> 当前入口：[人才 2.0 状态](docs/release/TD2_MAINTENANCE_STATUS.md)、[专业冲突合并](docs/release/TD2_CONFLICT_MERGE.md)与[专业导出/重建子集](docs/release/TD2_TYPED_TRANSFER.md)、[能力及字典迁移](docs/release/TD2_CAPABILITY_TRANSFER.md)。PR #26 基于 PR #25，尚未合入 main；以下旧阶段证据不替代当前 head 验收。
 
 # ONCE Production OS
 

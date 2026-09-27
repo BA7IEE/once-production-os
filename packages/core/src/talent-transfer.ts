@@ -1,6 +1,7 @@
-import { v, uuid, revision, dateIso, type Schema } from './validation.ts';
+import { v, uuid, revision, dateIso, code, type Schema } from './validation.ts';
 import { TD2_FACTS, fieldSchema, type FactRow } from './talent-v2-schema.ts';
 import { loadTalentGraph } from './talent-v2-graph.ts';
+import { TALENT_SCHEMA_VERSION } from './talent-v2-model.ts';
 import type { Actor, Clock } from './model.ts';
 import type { Tx } from './store.ts';
 import { invariant } from './errors.ts';
@@ -10,6 +11,7 @@ import { requirePermission, sourceFor } from './policy.ts';
 export const TALENT_TRANSFER_FIELDS = {
     talentProfiles: ['internalSummary', 'status'],
     personRoles: ['roleCode', 'validFrom', 'validUntil', 'status'],
+    personCapabilities: ['personRoleId', 'capabilityCode', 'levelCode', 'validFrom', 'validUntil', 'status'],
     personLanguages: ['languageCode', 'speakingLevelCode', 'listeningLevelCode', 'readingLevelCode', 'writingLevelCode', 'validFrom', 'validUntil', 'status', 'verifiedAt'],
     talentLocations: ['locationCode', 'relationCode', 'validFrom', 'validUntil', 'status', 'verifiedAt'],
     measurementSets: ['measuredOn', 'datePrecision', 'heightCm', 'bustCm', 'waistCm', 'hipsCm', 'shoeSizeValue', 'shoeSizeSystem', 'clothingSizeValue', 'clothingSizeSystem', 'supersedesId', 'status'],
@@ -23,10 +25,18 @@ export const TRANSFER_CODES = TRANSFER_TABLES.map(t => `person.td2.${t}` as cons
 export type TransferCode = typeof TRANSFER_CODES[number];
 export const TALENT_EXPORT_VERSION = 'once-export-v2-talent' as const;
 export const TRANSFER_VERSION = 'once-talent-transfer-v1' as const;
+export const CAPABILITY_TRANSFER_VERSION = 'once-talent-transfer-v2' as const;
 export const transferCode = (table: TransferTable): TransferCode => `person.td2.${table}`;
 export const isTransferCode = (code: string): code is TransferCode => (TRANSFER_CODES as readonly string[]).includes(code);
 export interface TransferRow { id: string; personId: string; sourceId: string; revision: number; createdAt: string; updatedAt: string; data: Record<string, unknown> }
-export interface TalentTransfer { schemaVersion: typeof TRANSFER_VERSION; selectedFields: TransferCode[]; tables: Record<TransferTable, TransferRow[]> }
+export interface TransferDefinition { id: string; revision: number; createdAt: string; updatedAt: string; code: string; labelZh: string; labelEn: string; aliases: string[]; applicableRoleCodes: string[]; levelSchemeCode: 'ABILITY_5' | null; semanticVersion: string; schemaVersion: typeof TALENT_SCHEMA_VERSION; status: 'ACTIVE' | 'INACTIVE' }
+export interface TalentTransfer { schemaVersion: typeof TRANSFER_VERSION | typeof CAPABILITY_TRANSFER_VERSION; selectedFields: TransferCode[]; tables: Record<TransferTable, TransferRow[]>; capabilityDefinitions?: TransferDefinition[] }
+// Old v1 payloads physically lack the capability table. Keep their bytes and digest unchanged.
+export const transferRows = (bundle: TalentTransfer, table: TransferTable): TransferRow[] => bundle.tables[table] ?? [];
+const definitionSchema = v.object({ id: uuid, revision, createdAt: dateIso, updatedAt: dateIso, code,
+    labelZh: v.string(120,1), labelEn: v.string(120), aliases: v.array(v.string(120,1),30), applicableRoleCodes: v.array(code,20),
+    levelSchemeCode: v.nullable(v.enum(['ABILITY_5'])), semanticVersion: v.string(30,5,/^\d+\.\d+\.\d+$/),
+    schemaVersion: v.enum([TALENT_SCHEMA_VERSION]), status: v.enum(['ACTIVE','INACTIVE']) });
 const tableSchemas: Record<string, Schema<unknown>> = {};
 for (const table of TRANSFER_TABLES) {
     const shape: Record<string, Schema<unknown>> = {};
@@ -37,7 +47,17 @@ for (const table of TRANSFER_TABLES) {
     }
     tableSchemas[table] = v.array(v.object({ id: uuid, personId: uuid, sourceId: uuid, revision, createdAt: dateIso, updatedAt: dateIso, data: v.object(shape) }), 500);
 }
-export const TransferSchema = v.object({ schemaVersion: v.enum([TRANSFER_VERSION]), selectedFields: v.array(v.enum(TRANSFER_CODES), TRANSFER_CODES.length, 1), tables: v.object(tableSchemas) }) as Schema<TalentTransfer>;
+const legacyTables = Object.fromEntries(Object.entries(tableSchemas).filter(([table])=>table!=='personCapabilities'));
+const legacyCodes = TRANSFER_CODES.filter(c=>c!=='person.td2.personCapabilities');
+const legacySchema = v.object({ schemaVersion: v.enum([TRANSFER_VERSION]), selectedFields: v.array(v.enum(legacyCodes),legacyCodes.length,1), tables: v.object(legacyTables) });
+const capabilitySchema = v.object({ schemaVersion: v.enum([CAPABILITY_TRANSFER_VERSION]), selectedFields: v.array(v.enum(TRANSFER_CODES),TRANSFER_CODES.length,1), tables: v.object(tableSchemas), capabilityDefinitions: v.array(definitionSchema,500) });
+export const TransferSchema: Schema<TalentTransfer> = {
+    json: {oneOf:[legacySchema.json,capabilitySchema.json]},
+    parse(input,path) {
+        const version = input && typeof input==='object' ? (input as Record<string,unknown>).schemaVersion : undefined;
+        return (version===CAPABILITY_TRANSFER_VERSION ? capabilitySchema : legacySchema).parse(input,path) as unknown as TalentTransfer;
+    }
+};
 
 export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, peopleIds: string[], codes: TransferCode[]): Promise<TalentTransfer> {
     requirePermission(actor, 'records.read');
@@ -63,7 +83,19 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
         }
         tables[table].sort((a,b) => a.id.localeCompare(b.id));
     }
-    const transfer = TransferSchema.parse({ schemaVersion: TRANSFER_VERSION, selectedFields: [...codes].sort(), tables });
+    const withCapabilities = codes.includes('person.td2.personCapabilities');
+    const capabilityDefinitions: TransferDefinition[] = [];
+    if (withCapabilities) {
+        const referenced = new Set(tables.personCapabilities.map(r=>String(r.data.capabilityCode)));
+        for (const code of referenced) {
+            const rows = graph.rows('capabilityDefinitions').filter(d=>d.code===code);
+            invariant(rows.length===1,'TD2_TRANSFER_DEFINITION_MISSING','能力定义缺失或重复，不能完整导出',409);
+            const definition=rows[0]!;
+            capabilityDefinitions.push(definitionSchema.parse(Object.fromEntries(Object.keys(definitionSchema.json.properties as object).map(k=>[k,(definition as unknown as Record<string,unknown>)[k]]))));
+        }
+        capabilityDefinitions.sort((a,b)=>a.id.localeCompare(b.id));
+    } else delete (tables as Partial<typeof tables>).personCapabilities;
+    const transfer = TransferSchema.parse({ schemaVersion: withCapabilities ? CAPABILITY_TRANSFER_VERSION : TRANSFER_VERSION, selectedFields: [...codes].sort(), tables, ...(withCapabilities?{capabilityDefinitions}:{}) });
     validateTransferLinks(transfer, peopleIds);
     return transfer;
 }
@@ -71,10 +103,10 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
 export function validateTransferLinks(bundle: TalentTransfer, personIds: string[]) {
     const people = new Set(personIds), selected = new Set(bundle.selectedFields);
     invariant(selected.size === bundle.selectedFields.length, 'TD2_TRANSFER_DUPLICATE', '专业资料字段不能重复', 422);
-    const maps = Object.fromEntries(TRANSFER_TABLES.map(t => [t, new Map(bundle.tables[t].map(r => [r.id, r]))])) as Record<TransferTable, Map<string, TransferRow>>;
+    const maps = Object.fromEntries(TRANSFER_TABLES.map(t => [t, new Map(transferRows(bundle,t).map(r => [r.id, r]))])) as Record<TransferTable, Map<string, TransferRow>>;
     let count = 0;
     for (const table of TRANSFER_TABLES) {
-        const rows = bundle.tables[table]; count += rows.length;
+        const rows = transferRows(bundle,table); count += rows.length;
         invariant(rows.length === maps[table].size && (!rows.length || selected.has(transferCode(table))), 'TD2_TRANSFER_DUPLICATE', '专业记录重复或不在所选字段中', 422);
         for (const row of rows) {
             invariant(people.has(row.personId), 'TD2_TRANSFER_PERSON_MISSING', '专业记录引用了未导出的人物', 422);
@@ -84,13 +116,27 @@ export function validateTransferLinks(bundle: TalentTransfer, personIds: string[
                 invariant(target && target.personId === row.personId && target.id !== row.id, 'TD2_TRANSFER_REFERENCE_MISSING', '专业关联必须一起选择，且属于同一个人物', 422);
             };
             reference('personRoleId', 'personRoles'); reference('currentMeasurementSetId', 'measurementSets'); reference('supersedesId', 'measurementSets');
-            if (row.data.personRoleId) invariant(maps.personRoles.get(String(row.data.personRoleId))?.data.roleCode === 'translator', 'TD2_TRANSFER_ROLE_INVALID', '翻译资料必须关联翻译职业', 422);
+            if ((table==='translatorLanguagePairs'||table==='translatorServiceModes') && row.data.personRoleId) invariant(maps.personRoles.get(String(row.data.personRoleId))?.data.roleCode === 'translator', 'TD2_TRANSFER_ROLE_INVALID', '翻译资料必须关联翻译职业', 422);
             if (table !== 'talentProfiles' && table !== 'personLanguages') invariant(bundle.tables.talentProfiles.some(p => p.personId === row.personId), 'TD2_TRANSFER_PROFILE_MISSING', '专业资料需要同时选择人才主档案', 422);
             if (table === 'castingProfiles' || table === 'measurementSets') invariant(bundle.tables.personRoles.some(p => p.personId === row.personId && ['model','actor','kol'].includes(String(p.data.roleCode))), 'TD2_TRANSFER_ROLE_INVALID', '选角资料需要同时选择对应职业', 422);
             if (table === 'talentProfiles' || table === 'castingProfiles') invariant(rows.filter(p => p.personId === row.personId).length === 1, 'TD2_TRANSFER_SINGLETON', '同一人物不能有多份当前主档案', 422);
         }
     }
-    invariant(count <= 500, 'TD2_EXPORT_LIMIT', '单次专业资料最多 500 条', 422);
+    const definitions=bundle.capabilityDefinitions??[], capabilities=transferRows(bundle,'personCapabilities');
+    invariant(bundle.schemaVersion===CAPABILITY_TRANSFER_VERSION || (!definitions.length&&!capabilities.length), 'TD2_TRANSFER_VERSION_INVALID','旧格式不支持能力字典',422);
+    invariant(definitions.length===new Set(definitions.map(d=>d.id)).size && definitions.length===new Set(definitions.map(d=>d.code)).size,'TD2_TRANSFER_DEFINITION_DUPLICATE','能力定义编号或代码重复',422);
+    const referencedCodes=new Set(capabilities.map(r=>String(r.data.capabilityCode)));
+    invariant(definitions.length===referencedCodes.size && definitions.every(d=>referencedCodes.has(d.code)), 'TD2_TRANSFER_DEFINITION_MISSING','能力字典必须恰好覆盖所选记录，不得遗漏或夹带无关定义',422);
+    for(const definition of definitions) {
+        invariant(new Set(definition.aliases).size===definition.aliases.length && new Set(definition.applicableRoleCodes).size===definition.applicableRoleCodes.length,'TD2_TRANSFER_DEFINITION_DUPLICATE','能力定义的别名或适用职业重复',422);
+    }
+    for(const row of capabilities) {
+        const definition=definitions.find(d=>d.code===row.data.capabilityCode);
+        invariant(definition,'TD2_TRANSFER_DEFINITION_MISSING','能力引用的定义缺失',422);
+        invariant(!row.data.levelCode||definition.levelSchemeCode==='ABILITY_5','CAPABILITY_LEVEL_UNREGISTERED','能力定义没有对应等级体系',422);
+        if(row.data.personRoleId && definition.applicableRoleCodes.length) invariant(definition.applicableRoleCodes.includes(String(maps.personRoles.get(String(row.data.personRoleId))?.data.roleCode)),'CAPABILITY_ROLE_MISMATCH','能力与适用职业不匹配',422);
+    }
+    invariant(count + definitions.length <= 500, 'TD2_EXPORT_LIMIT', '单次专业资料最多 500 条', 422);
     for (const row of bundle.tables.measurementSets) {
         const seen = new Set([row.id]); let previous = row.data.supersedesId;
         while (previous) { invariant(!seen.has(String(previous)), 'TD2_TRANSFER_CYCLE', '量尺历史不能形成循环', 422); seen.add(String(previous)); previous = maps.measurementSets.get(String(previous))?.data.supersedesId; }

@@ -1,4 +1,4 @@
-import { TALENT_EXPORT_VERSION, TRANSFER_TABLES } from './talent-transfer.ts';
+import { transferRows, TALENT_EXPORT_VERSION, TRANSFER_TABLES } from './talent-transfer.ts';
 import { validateTalentRebuild, applyTalentRebuild } from './talent-transfer-rebuild.ts';
 import type { Actor, Clock, Person, Source, SourceHistory } from './model.ts';
 import type { Work, WorkCredit, Project, ProjectParticipant, ProjectWork } from './production-model.ts';
@@ -107,7 +107,7 @@ export class JsonRebuild {
         }
 
         const referencedSources = new Set([
-            ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>payload.manifest.talent!.tables[t].map(r=>r.sourceId)) : [])
+            ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>transferRows(payload.manifest.talent!,t).map(r=>r.sourceId)) : [])
         ]);
         invariant(sources.every(x => referencedSources.has(x.id)), 'REBUILD_UNUSED_SOURCE',
             '来源清单包含没有被本次业务图引用的记录', 422);
@@ -202,7 +202,7 @@ export class JsonRebuild {
                 projectWorks: relations.projectWorks.length,
                 mediaIdentities: media.length
             },
-            ...(payload.manifest.talent ? {professionalRecords: TRANSFER_TABLES.reduce((n,t)=>n+payload.manifest.talent!.tables[t].length,0)} : {}),
+            ...(payload.manifest.talent ? {capabilityDefinitions: payload.manifest.talent.capabilityDefinitions?.length??0, professionalRecords: TRANSFER_TABLES.reduce((n,t)=>n+transferRows(payload.manifest.talent!,t).length,0)} : {}),
             mediaRestored: 0
         };
         return { payload, target, summary };

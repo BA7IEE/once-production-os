@@ -1,4 +1,4 @@
-import { collectTalentTransfer, isTransferCode, TALENT_EXPORT_VERSION, TRANSFER_TABLES, transferCode, type TalentTransfer } from './talent-transfer.ts';
+import { transferRows, collectTalentTransfer, isTransferCode, TALENT_EXPORT_VERSION, TRANSFER_TABLES, transferCode, type TalentTransfer } from './talent-transfer.ts';
 import { randomUUID } from 'node:crypto';
 import type { Actor, Clock, Config, Person, RequestMeta, Source } from './model.ts';
 import type { Store, Tx } from './store.ts';
@@ -177,7 +177,7 @@ export class Exports {
 
         const talent = transferFields.length ? await collectTalentTransfer(tx, actor, this.clock, peopleIds, transferFields) : null;
         const sourceTransferFields = new Map<string, Set<ExportFieldCode>>();
-        if (talent) for (const table of TRANSFER_TABLES) for (const row of talent.tables[table]) {
+        if (talent) for (const table of TRANSFER_TABLES) for (const row of transferRows(talent,table)) {
             sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock));
             const fields = sourceTransferFields.get(row.sourceId) ?? new Set<ExportFieldCode>(); fields.add(transferCode(table)); sourceTransferFields.set(row.sourceId, fields);
         }

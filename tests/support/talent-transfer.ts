@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import type { Application } from '../../packages/core/src/api.ts';
 import type { Store } from '../../packages/core/src/store.ts';
 import { AppError } from '../../packages/core/src/errors.ts';
-import { TRANSFER_CODES, TRANSFER_TABLES, TALENT_EXPORT_VERSION, type TalentTransfer } from '../../packages/core/src/talent-transfer.ts';
+import { transferRows, TRANSFER_CODES, TRANSFER_TABLES, TALENT_EXPORT_VERSION, type TalentTransfer } from '../../packages/core/src/talent-transfer.ts';
 import { JsonRebuild } from '../../packages/core/src/rebuild.ts';
 import { digest } from '../../packages/core/src/json.ts';
 import { inspectTalentIntegrity } from '../../packages/core/src/talent-v2-integrity.ts';
@@ -11,14 +11,15 @@ import { FaultStore } from './fault-store.ts';
 import { seedProfessionalGraph, expectResponse as ok } from './talent-v2-maintenance.ts';
 import { FakeClock, Client, sourceInput } from './fixtures.ts';
 export const SOURCE_FIELDS = ['source.title','source.type','source.providerClaim','source.basisMode','source.basisDescription','source.validFrom','source.validUntil','source.status'];
-export async function controlledTransfer(app: Application, store: Store, clock: FakeClock, owner: Client) {
+export async function controlledTransfer(app: Application, store: Store, clock: FakeClock, owner: Client, includeCapabilities = true) {
     const graph = await seedProfessionalGraph(app, store, clock, owner);
     const secondSource = ok(await owner.cmd('POST','/sources',{...sourceInput(),title:'第二份专业来源'})).resourceId as string;
     const secondLanguage = ok(await owner.cmd('POST',`/td2/people/${graph.personId}/languages`,{schemaVersion:'once-talent-v2.0.0',expectedPersonRevision:(await graph.current()).revision,sourceId:secondSource,sourceRevision:1,values:{languageCode:'zh',speakingLevelCode:'NATIVE'}})).resourceId as string;
     const permission = async(kind: string,id: string,sourceId: string,fields: string[]) => ok(await owner.cmd('POST','/use-permissions',{subjectKind:kind,subjectId:id,sourceId,fields,validUntil:'2026-10-01T00:00:00.000Z',evidenceNote:'合成验收：明确允许所列资料内部重建'})).resourceId as string;
-    const personFields = ['person.displayName','person.aliases','person.intro','person.status',...TRANSFER_CODES];
+    const codes = TRANSFER_CODES.filter(c=>includeCapabilities || c!=='person.td2.personCapabilities');
+    const personFields = ['person.displayName','person.aliases','person.intro','person.status',...codes];
     const personPermission = await permission('PERSON',graph.personId,graph.sourceId,personFields);
-    const primaryPermission = await permission('SOURCE',graph.sourceId,graph.sourceId,[...SOURCE_FIELDS,...TRANSFER_CODES]);
+    const primaryPermission = await permission('SOURCE',graph.sourceId,graph.sourceId,[...SOURCE_FIELDS,...codes]);
     const secondaryPermission = await permission('SOURCE',secondSource,secondSource,[...SOURCE_FIELDS,'person.td2.personLanguages']);
     const input = {format:'JSON',selectedIds:{people:[graph.personId],works:[],projects:[]},fields:[...personFields,...SOURCE_FIELDS],usePermissionRefs:[personPermission,primaryPermission,secondaryPermission]};
     const before = await store.transaction(tx=>tx.find('exports'));
@@ -40,7 +41,8 @@ export async function roundTripTransfer(source: {app:Application;store:Store;clo
     const transfer = await controlledTransfer(source.app,source.store,source.clock,source.owner);
     const rebuild = new JsonRebuild(target.clock), actor = await target.store.transaction(tx=>rebuild.actorFromTarget(tx,'owner'));
     const preview = await target.store.transaction(tx=>rebuild.preview(tx,actor,transfer.download.payload));
-    assert.equal(preview.schemaVersion,TALENT_EXPORT_VERSION); assert.equal(preview.professionalRecords,10);
+    assert.equal(preview.schemaVersion,TALENT_EXPORT_VERSION); assert.equal(preview.professionalRecords,11);
+    assert.equal(preview.capabilityDefinitions,1);
     const malformed=structuredClone(transfer.download.payload); malformed.manifest.talent.tables.translatorLanguagePairs[0].data.personRoleId=randomUUID();
     await assert.rejects(target.store.transaction(tx=>rebuild.preview(tx,actor,malformed)),/专业关联/);
     const crossPerson=structuredClone(transfer.download.payload), foreignPerson=randomUUID();
@@ -53,12 +55,17 @@ export async function roundTripTransfer(source: {app:Application;store:Store;clo
     await assert.rejects(fault.transaction(tx=>rebuild.apply(tx,actor,transfer.download.payload,{requestId:randomUUID(),ip:'test'})),/synthetic rebuild audit/);
     assert.ok(fault.insertTrace.includes('translatorLanguagePairs'));
     assert.equal((await target.store.transaction(tx=>tx.find('people'))).length,0);
+    assert.equal((await target.store.transaction(tx=>tx.find('capabilityDefinitions'))).length,0);
     if (target.apply) await target.apply(transfer.download.payload,transfer.download.sha256);
     else await target.store.transaction(tx=>rebuild.apply(tx,actor,transfer.download.payload,{requestId:randomUUID(),ip:'test'}));
-    for (const table of TRANSFER_TABLES) for (const row of transfer.bundle.tables[table]) {
+    for (const table of TRANSFER_TABLES) for (const row of transferRows(transfer.bundle,table)) {
         const restored=await target.store.transaction(tx=>tx.get(table,row.id)); assert.ok(restored);
         assert.equal(restored.personId,row.personId); assert.equal(restored.sourceId,row.sourceId); assert.equal(restored.revision,row.revision);
         for (const [key,value] of Object.entries(row.data)) assert.deepEqual((restored as unknown as Record<string,unknown>)[key],value,table+'.'+key);
+    }
+    for (const definition of transfer.bundle.capabilityDefinitions??[]) {
+        const restored = await target.store.transaction(tx=>tx.get('capabilityDefinitions',definition.id));
+        assert.ok(restored); const {workspaceId,...actual}=restored; assert.deepEqual(actual,definition);
     }
     assert.equal((await target.store.transaction(tx=>tx.find('evidence'))).length,0,'do not invent historical Evidence');
     assert.equal((await target.store.transaction(tx=>tx.find('servicePrincipals'))).length,0);

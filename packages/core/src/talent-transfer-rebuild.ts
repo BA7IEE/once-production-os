@@ -1,15 +1,19 @@
 import type { Actor, Clock, TableMap } from './model.ts';
 import type { Tx } from './store.ts';
 import { invariant } from './errors.ts';
-import { TRANSFER_TABLES, validateTransferLinks, type TalentTransfer } from './talent-transfer.ts';
+import { transferRows, TRANSFER_TABLES, validateTransferLinks, type TalentTransfer } from './talent-transfer.ts';
 
 export async function validateTalentRebuild(tx: Tx, actor: Actor, clock: Clock, bundle: TalentTransfer, people: string[], sources: string[]) {
     validateTransferLinks(bundle, people);
     const dictionary = await tx.find('dictionary', {workspaceId: actor.workspaceId, status: 'ACTIVE'});
     const catalog = (namespace: string, value: unknown) => invariant(dictionary.some(d => d.namespace === namespace && d.code === value), 'REBUILD_CATALOG_MISSING', '目标缺少专业资料使用的启用字典代码', 409);
     const overlap = (a: Record<string,unknown>, b: Record<string,unknown>) => (!a.validFrom || !b.validUntil || String(a.validFrom)<String(b.validUntil)) && (!b.validFrom || !a.validUntil || String(b.validFrom)<String(a.validUntil));
-    for (const table of TRANSFER_TABLES) for (const row of bundle.tables[table]) {
-        const d = row.data, same = bundle.tables[table].filter(r => r.personId === row.personId && r.id !== row.id);
+    for (const definition of bundle.capabilityDefinitions??[]) {
+        invariant(Date.parse(definition.createdAt)<=Date.parse(definition.updatedAt)&&Date.parse(definition.updatedAt)<=clock.now().getTime(),'TD2_TRANSFER_TIME_INVALID','能力定义时间不合法',422);
+        for(const role of definition.applicableRoleCodes) catalog('role',role);
+    }
+    for (const table of TRANSFER_TABLES) for (const row of transferRows(bundle,table)) {
+        const d = row.data, same = transferRows(bundle,table).filter(r => r.personId === row.personId && r.id !== row.id);
         invariant(sources.includes(row.sourceId), 'REBUILD_SOURCE_MISSING', '专业资料来源必须包含在重建清单', 422);
         invariant(Date.parse(row.createdAt) <= Date.parse(row.updatedAt) && Date.parse(row.updatedAt) <= clock.now().getTime(), 'TD2_TRANSFER_TIME_INVALID', '专业记录时间不合法', 422);
         invariant(!d.validFrom || !d.validUntil || String(d.validFrom)<String(d.validUntil), 'PERIOD_INVALID', '专业资料有效期不合法', 422);
@@ -39,8 +43,9 @@ export async function validateTalentRebuild(tx: Tx, actor: Actor, clock: Clock, 
 }
 
 export async function applyTalentRebuild(tx: Tx, actor: Actor, bundle: TalentTransfer) {
+    for (const definition of bundle.capabilityDefinitions??[]) await tx.insert('capabilityDefinitions',{...definition,workspaceId:actor.workspaceId});
     // Foreign keys are deferred; insertion order still puts owners before their dependents.
-    for (const table of TRANSFER_TABLES) for (const row of bundle.tables[table]) {
+    for (const table of TRANSFER_TABLES) for (const row of transferRows(bundle,table)) {
         const { data, ...identity } = row;
         await tx.insert(table, { ...identity, workspaceId: actor.workspaceId, ...data,
             ...(table === 'talentProfiles' ? {supersededById:null} : {}),

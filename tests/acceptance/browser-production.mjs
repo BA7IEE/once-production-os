@@ -434,8 +434,10 @@ try {
  // TD2 transfer: approve person fields and each fact source using the real forms.
  const transferSource=(await cmd(owner,'POST','/sources',source('TD2第二语言来源'),201)).resourceId;
  const transferLanguage=(await cmd(owner,'POST',`/td2/people/${tdCanonical}/languages`,{schemaVersion:tdSchema,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceId:transferSource,sourceRevision:1,values:{languageCode:'zh',speakingLevelCode:'NATIVE'}},201)).resourceId;
+ const transferDefinition=(await cmd(owner,'POST','/td2/capability-definitions',{schemaVersion:tdSchema,code:'transfer-camera',labelZh:'镜头表现',labelEn:'Camera performance',aliases:['镜头感'],applicableRoleCodes:['model'],levelSchemeCode:'ABILITY_5',semanticVersion:'1.0.0'},201)).resourceId;
+ const transferCapability=(await cmd(owner,'POST',`/td2/people/${tdCanonical}/capabilities`,{schemaVersion:tdSchema,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceId:tdSource,sourceRevision:1,values:{capabilityCode:'transfer-camera',personRoleId:tdRole,levelCode:'PROFESSIONAL'}},201)).resourceId;
  await owner.getByRole('button',{name:/内部导出/}).click();
- const transferLabels=['2.0 人才主档案（内部简介与状态）','2.0 职业及有效期','2.0 语言、熟练度及有效期'];
+ const transferLabels=['2.0 人才主档案（内部简介与状态）','2.0 职业及有效期','2.0 语言、熟练度及有效期','2.0 能力、等级及所用字典'];
  const sourceLabels=['来源标题','来源类型','提供方说明','内部依据类型','依据说明','有效起点','有效截止','来源状态'];
  const transferPermits=[];
  for(const [kind,id,labels] of [['PERSON',tdCanonical,['姓名 / 展示名','档案状态',...transferLabels]],['SOURCE',tdSource,[...sourceLabels,...transferLabels]],['SOURCE',transferSource,[...sourceLabels,transferLabels[2]]]]){
@@ -454,6 +456,11 @@ try {
  const typedDownload=owner.waitForEvent('download');await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();
  const typedFile=await typedDownload,typedPayload=JSON.parse(readFileSync(await typedFile.path(),'utf8'));
  assert.equal(typedPayload.schemaVersion,'once-export-v2-talent');
+ assert.equal(typedPayload.manifest.talent.schemaVersion,'once-talent-transfer-v2');
+ assert.equal(typedPayload.manifest.talent.tables.personCapabilities.find(r=>r.id===transferCapability).data.personRoleId,tdRole);
+ assert.equal(typedPayload.manifest.talent.capabilityDefinitions.length,1);
+ assert.equal(typedPayload.manifest.talent.capabilityDefinitions[0].id,transferDefinition);
+ assert.deepEqual(typedPayload.manifest.talent.capabilityDefinitions[0].aliases,['镜头感']);
  assert.equal(typedPayload.manifest.talent.tables.personLanguages.find(r=>r.id===transferLanguage).sourceId,transferSource);
  assert.ok(typedPayload.manifest.talent.tables.personRoles.some(r=>r.id===tdRole));
  assert.equal('personCredentials' in typedPayload.manifest.talent.tables,false);
