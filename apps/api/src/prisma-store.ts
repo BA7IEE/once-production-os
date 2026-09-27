@@ -3,10 +3,10 @@ import type { Table, TableMap } from '../../../packages/core/src/model.ts';
 import type { Store, Tx } from '../../../packages/core/src/store.ts';
 import type { TalentQueryFilters, TalentQueryResult } from '../../../packages/core/src/search-query-model.ts';
 import { AppError } from '../../../packages/core/src/errors.ts';
-const DELEGATE: Record<Table, string> = { talentProfiles: 'talentProfile', personRoles: 'personRole', capabilityDefinitions: 'capabilityDefinition', personCapabilities: 'personCapability', personLanguages: 'personLanguage', talentLocations: 'talentLocation', castingProfiles: 'castingProfile', measurementSets: 'measurementSet', adultEligibilities: 'adultEligibility', organizations: 'talentOrganization', representations: 'representation', personExternalRefs: 'personExternalRef', personCredentials: 'personCredential', translatorLanguagePairs: 'translatorLanguagePair', translatorServiceModes: 'translatorServiceMode', mediaCollections: 'mediaCollection', mediaCollectionTags: 'mediaCollectionTag', mediaCollectionItems: 'mediaCollectionItem', servicePrincipals: 'servicePrincipal', fieldProposals: 'fieldProposal', talentMigrationReviews: 'talentMigrationReview',  recoveryRuns: 'recoveryRun', personMerges: 'personMergeDecision', personAliases: 'personAlias', deletionRequests: 'deletionRequest', deletionItems: 'deletionItem', usePermissions: 'usePermission', exports: 'exportJob', exportDependencies: 'exportDependency', shortlists: 'shortlist', shortlistItems: 'shortlistItem', shortlistItemAssets: 'shortlistItemAsset', works: 'work', workAssets: 'workAsset', workCredits: 'workCredit', projects: 'project', projectParticipants: 'projectParticipant', projectWorks: 'projectWork', workspaces: 'workspace', users: 'user', memberships: 'membership', sessions: 'session', activations: 'activation',
+const DELEGATE: Record<Table, string> = { mergeHistoryErasures: 'mergeHistoryErasure', talentProfiles: 'talentProfile', personRoles: 'personRole', capabilityDefinitions: 'capabilityDefinition', personCapabilities: 'personCapability', personLanguages: 'personLanguage', talentLocations: 'talentLocation', castingProfiles: 'castingProfile', measurementSets: 'measurementSet', adultEligibilities: 'adultEligibility', organizations: 'talentOrganization', representations: 'representation', personExternalRefs: 'personExternalRef', personCredentials: 'personCredential', translatorLanguagePairs: 'translatorLanguagePair', translatorServiceModes: 'translatorServiceMode', mediaCollections: 'mediaCollection', mediaCollectionTags: 'mediaCollectionTag', mediaCollectionItems: 'mediaCollectionItem', servicePrincipals: 'servicePrincipal', fieldProposals: 'fieldProposal', talentMigrationReviews: 'talentMigrationReview',  recoveryRuns: 'recoveryRun', personMerges: 'personMergeDecision', personAliases: 'personAlias', deletionRequests: 'deletionRequest', deletionItems: 'deletionItem', usePermissions: 'usePermission', exports: 'exportJob', exportDependencies: 'exportDependency', shortlists: 'shortlist', shortlistItems: 'shortlistItem', shortlistItemAssets: 'shortlistItemAsset', works: 'work', workAssets: 'workAsset', workCredits: 'workCredit', projects: 'project', projectParticipants: 'projectParticipant', projectWorks: 'projectWork', workspaces: 'workspace', users: 'user', memberships: 'membership', sessions: 'session', activations: 'activation',
     scopes: 'accessScope', scopeMembers: 'scopeMember', sources: 'sourceRecord', sourceHistory: 'sourceHistory', people: 'person', contacts: 'contact', evidence: 'fieldEvidence',
     dictionary: 'dictionaryItem', receipts: 'commandReceipt', audits: 'auditEvent', rateBuckets: 'rateBucket', imports: 'importBatch', jobs: 'durableJob', handoffs: 'recordHandoff', uploads: 'mediaUpload', assets: 'mediaAsset' };
-const DATES = new Set(['originalReviewedAt','createdAt','updatedAt','idleUntil','absoluteUntil','revokedAt','expiresAt','consumedAt','validFrom','validUntil','reviewedAt','until','leaseUntil','acceptedAt','closedAt','purgedAt','planFrozenAt','cleanupStartedAt','cleanupLeaseUntil','dependencyCleanupCompletedAt','decidedAt','cleanedAt','finalizedAt','finalizationLeaseUntil','preparedAt','checkedAt','approvedAt','verifiedAt','resolvedAt']);
+const DATES = new Set(['recordCreatedAt','recordUpdatedAt','erasedAt','reasonErasedAt','originalReviewedAt','createdAt','updatedAt','idleUntil','absoluteUntil','revokedAt','expiresAt','consumedAt','validFrom','validUntil','reviewedAt','until','leaseUntil','acceptedAt','closedAt','purgedAt','planFrozenAt','cleanupStartedAt','cleanupLeaseUntil','dependencyCleanupCompletedAt','decidedAt','cleanedAt','finalizedAt','finalizationLeaseUntil','preparedAt','checkedAt','approvedAt','verifiedAt','resolvedAt']);
 interface Delegate {
     findUnique(input: unknown): Promise<unknown>;
     findMany(input: unknown): Promise<unknown[]>;
@@ -40,6 +40,7 @@ export class PrismaStore implements Store {
                     find: async <K extends Table>(t: K, where: Partial<TableMap[K]> = {}) => plain(await delegate(t).findMany({ where: Object.fromEntries(Object.entries(data(where)).map(([k, v]) => [k, Array.isArray(v) ? { equals: v } : v])) })) as TableMap[K][],
                     insert: async <K extends Table>(t: K, row: TableMap[K]) => { await delegate(t).create({ data: data(row) }); },
                     replace: async <K extends Table>(t: K, row: TableMap[K]) => {
+                        if (t === 'mergeHistoryErasures') throw new AppError(409,'HISTORY_IMMUTABLE','历史清理证据只允许追加');
                         if (t === 'sourceHistory')
                             throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加');
                         if (t === 'talentProfiles' || t === 'castingProfiles') {
@@ -50,6 +51,7 @@ export class PrismaStore implements Store {
                         await delegate(t).update({ where: { id }, data: update });
                     },
                     remove: async (t, id) => {
+                        if (t === 'mergeHistoryErasures') throw new AppError(409,'HISTORY_IMMUTABLE','历史清理证据只允许追加');
                         if (t === 'sourceHistory')
                             throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加');
                         if (t === 'talentProfiles' || t === 'castingProfiles') {
@@ -66,6 +68,20 @@ export class PrismaStore implements Store {
                                     'id',"sourceId"::text,'workspaceId',"workspaceId"::text,
                                     'revision',"sourceRevision",'scopeId',"scopeId"::text,'erased',true)
                             WHERE "id"=${id}::uuid AND ("snapshot"->>'erased') IS DISTINCT FROM 'true'`;
+                    },
+                    eraseRetiredProfile: async (table,id,erasureId) => {
+                        const e=await tx.get('mergeHistoryErasures',erasureId);
+                        if(!e||e.recordId!==id||e.recordKind!==(table==='talentProfiles'?'TALENT_PROFILE':'CASTING_PROFILE')||!e.requestId)
+                            throw new AppError(409,'HISTORY_ERASURE_REQUIRED','缺少匹配的冻结历史清理记录');
+                        await delegate(table).delete({where:{id}});
+                    },
+                    redactMergeReason: async (id,erasureId,at) => {
+                        const e=await tx.get('mergeHistoryErasures',erasureId);
+                        if(!e||e.mergeDecisionId!==id||e.erasedAt!==at||!e.requestId)
+                            throw new AppError(409,'HISTORY_ERASURE_REQUIRED','缺少匹配的历史说明清理记录');
+                        await p.$executeRaw`UPDATE "personMerges" SET "revision"="revision"+1,"updatedAt"=${new Date(at)},"reasonErasedAt"=${new Date(at)},
+                            "decisionManifest"=jsonb_set("decisionManifest",'{reason}','"[ERASED]"'::jsonb,false)
+                            WHERE "id"=${id}::uuid AND "reasonErasedAt" IS NULL`;
                     },
                     talentQuery: async (input: TalentQueryFilters): Promise<TalentQueryResult> => {
                         if (!input.visibleScopeIds.length || !input.visibleSourceIds.length)

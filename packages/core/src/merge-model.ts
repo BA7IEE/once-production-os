@@ -9,6 +9,7 @@ export type PersonMergeCollisionKind = 'WORK_CREDIT' | 'PROJECT_PARTICIPANT' | '
 export type PersonMergeCollisionChoice = 'KEEP_CANONICAL' | 'KEEP_DUPLICATE';
 
 export interface PersonMergeDecision extends Base {
+    reasonErasedAt?: string | null;
     actorId: string | null;
     originalActorWorkspaceId?: string | null;
     originalActorMembershipId?: string | null;

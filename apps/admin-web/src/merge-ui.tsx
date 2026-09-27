@@ -159,7 +159,9 @@ function PreviewPanel({ preview, fieldChoices, collisionChoices, setFieldChoice,
     </div>;
 }
 
-export function PersonMergePanel({ me }: { me: Me }) {
+export interface HistoricalIdentity { id: string; displayName: string; revision: number; status: string }
+interface HistoryRow { table: string; originalPersonId: string; oldIdentity: HistoricalIdentity; erased?: boolean; record: Record<string, unknown> }
+export function PersonMergePanel({ me, onReviewDeletion }: { me: Me; onReviewDeletion: (person: HistoricalIdentity) => void }) {
     const [canonical, setCanonical] = useState<Person | null>(null);
     const [duplicate, setDuplicate] = useState<Person | null>(null);
     const [preview, setPreview] = useState<PersonMergePreview | null>(null);
@@ -169,7 +171,7 @@ export function PersonMergePanel({ me }: { me: Me }) {
     const [ackMedia, setAckMedia] = useState(false);
     const [professionalChoices, setProfessionalChoices] = useState<Record<string, boolean>>({});
     const [conflictChoices, setConflictChoices] = useState<Record<string, ProfessionalConflictChoice | undefined>>({});
-    const [history, setHistory] = useState<Array<{ table: string; originalPersonId: string; record: unknown }> | null>(null);
+    const [history, setHistory] = useState<Array<HistoryRow> | null>(null);
     const [reason, setReason] = useState('');
     const [done, setDone] = useState<Receipt | null>(null);
     const action = useAction();
@@ -235,9 +237,9 @@ export function PersonMergePanel({ me }: { me: Me }) {
         </div>
         <ErrorBox error={action.error}/>
         {canonical && <button type="button" disabled={action.busy} onClick={() => void action.run(async () => {
-            const data = await read<Page<{ table: string; originalPersonId: string; record: unknown }>>('person.mergeHistory', { id: canonical.id }, { page: '1', pageSize: '100' }); setHistory(data.items);
+            const data = await read<Page<HistoryRow>>('person.mergeHistory', { id: canonical.id }, { page: '1', pageSize: '100' }); setHistory(data.items);
         })}>查看合并保留资料</button>}
-        {history && <section className="panel padded"><h2>合并保留资料</h2><p>这些资料只供核对，不再作为当前可用资料。这里只显示当前来源和权限允许读取的内容，最多 100 条。</p>{history.length ? history.map((x, i) => <div key={i}><h3>{professionalLabel[x.table] ?? x.table}</h3><p>原档案：{x.originalPersonId}</p><ProfessionalValues value={x.record}/></div>) : <p>没有当前可读的保留资料。</p>}</section>}
+        {history && <section className="panel padded"><h2>合并保留资料</h2><p>这些资料只供核对，不再作为当前可用资料。这里只显示当前来源和权限允许读取的内容，最多 100 条。</p>{history.length ? history.map((x, i) => <div key={i}><h3>{professionalLabel[x.table] ?? x.table}</h3><p>原档案：{x.originalPersonId}</p>{x.erased ? <p>已清理 · {String(x.record.erasedAt)}。仅保留编号和清理记录，原资料已移除。</p> : <><ProfessionalValues value={x.record}/>{x.oldIdentity.status === 'ARCHIVED' && me.permissions.includes('data.delete') && history.findIndex(r => r.originalPersonId === x.originalPersonId) === i && <button onClick={() => onReviewDeletion(x.oldIdentity)}>评估清理旧身份：{x.oldIdentity.displayName}</button>}</>}</div>) : <p>没有当前可读的保留资料。</p>}</section>}
         {!preview && <div className="merge-scan-bar"><div><strong>影响预览不会修改任何数据</strong><small>系统会检查范围、来源、删除流程、交接、用途许可、联系方式、媒体、作品、项目和候选清单关系。</small></div><button className="primary" disabled={!canonical || !duplicate || action.busy} onClick={() => void action.run(scan)}>{action.busy ? '正在扫描…' : '预览合并影响'}</button></div>}
 
         {preview && <>

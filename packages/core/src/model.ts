@@ -1,3 +1,4 @@
+import type {MergeHistoryErasure} from './merge-history-erasure-model.ts';
 import type { TalentV2Tables, TalentOwnerRefs } from './talent-v2-model.ts';
 import type { Work, WorkAsset, WorkCredit, Project, ProjectParticipant, ProjectWork } from './production-model.ts';
 import type { Shortlist, ShortlistItem, ShortlistItemAsset } from './shortlist-model.ts';
@@ -215,6 +216,7 @@ export interface RecordHandoff extends Base {
 }
 export interface TableMap extends TalentV2Tables {
     recoveryRuns: RecoveryRun;
+    mergeHistoryErasures: MergeHistoryErasure;
     personMerges: PersonMergeDecision;
     personAliases: PersonAlias;
     deletionRequests: DeletionRequest;

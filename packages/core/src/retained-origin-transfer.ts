@@ -16,7 +16,7 @@ export function validateRetainedOrigins(bundle:TalentTransfer,sources:CurrentSou
  const used=new Set<string>(),now=clock.now().getTime();
  const current=new Map(sources.filter(s=>s.data.status==='CONFIRMED'&&Date.parse(s.data.validFrom)<=now&&Date.parse(s.data.validUntil)>now).map(s=>[s.id,s]));
  for(const person of people)if(ids.has(person.sourceId)){
-  invariant(bundle.schemaVersion===IDENTITY_ORIGIN_VERSION,'TD2_RETAINED_IDENTITY_VERSION','保留身份的最初来源需要 v13 迁移格式',422);used.add(person.sourceId);
+  invariant((bundle.schemaVersion===IDENTITY_ORIGIN_VERSION||bundle.schemaVersion==='once-talent-transfer-v14'),'TD2_RETAINED_IDENTITY_VERSION','保留身份的最初来源需要 v13 迁移格式',422);used.add(person.sourceId);
   for(const field of ['displayName','aliases','intro'])invariant(bundle.identityFields?.includes('person.'+field)&&Object.hasOwn(person.data,field)&&(bundle.identityEvidence??[]).some(e=>e.personId===person.id&&e.fieldPath===field&&e.valueDigest===digest(person.data[field])&&current.get(e.sourceId)?.revision===e.sourceRevision),'TD2_RETAINED_IDENTITY_BASIS','保留身份必须包含全部身份字段及当前同值的独立依据',422);
  }
  for(const [table,rows] of Object.entries(bundle.tables))for(const row of rows)if(ids.has(row.sourceId)) {
@@ -26,7 +26,8 @@ export function validateRetainedOrigins(bundle:TalentTransfer,sources:CurrentSou
   for(const field of Object.keys(fields))invariant((bundle.evidence??[]).some(e=>e.ownerKind===table&&e.ownerId===row.id&&e.fieldPath===field&&e.valueDigest===digest(row.data[field]??null)&&current.get(e.sourceId)?.revision===e.sourceRevision),
    'TD2_RETAINED_ORIGIN_BASIS','保留资料的每个字段都必须包含独立、当前、同值的已登记字段依据',422);
  }
+ if(bundle.schemaVersion==='once-talent-transfer-v14'&&bundle.mergeHistory){const h=bundle.mergeHistory;for(const row of [...h.people.filter(p=>p.status==='ERASED'),...h.erasures??[]])if(ids.has(row.sourceId))used.add(row.sourceId);}
  invariant(origins.every(o=>used.has(o.id)),'TD2_RETAINED_ORIGIN_UNUSED','已删来源头没有被所选专业资料引用',422);
  for(const row of [...bundle.evidence??[],...bundle.identityEvidence??[],...bundle.assets??[],...bundle.organizations??[]])invariant(!ids.has(row.sourceId),'TD2_RETAINED_ORIGIN_OWNER','已删来源不能充当现行证据、原件或机构来源',422);
- if(bundle.mergeHistory)for(const row of [...bundle.mergeHistory.people,...bundle.mergeHistory.talentProfiles,...bundle.mergeHistory.castingProfiles,...bundle.mergeHistory.evidence])invariant(!ids.has(row.sourceId),'TD2_RETAINED_ORIGIN_OWNER','合并保留历史的已删来源须另行处置',422);
+ if(bundle.mergeHistory){const h=bundle.mergeHistory;for(const row of [...h.people,...h.talentProfiles,...h.castingProfiles,...h.evidence])invariant(!ids.has(row.sourceId)||(bundle.schemaVersion==='once-talent-transfer-v14'&&'status'in row&&row.status==='ERASED'&&h.erasures?.some(e=>e.recordKind==='PERSON'&&e.recordId===row.id)),'TD2_RETAINED_ORIGIN_OWNER','合并保留历史的已删来源须明确的身份清理标识',422);}
 }

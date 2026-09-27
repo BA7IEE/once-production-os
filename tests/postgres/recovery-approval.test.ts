@@ -1,3 +1,4 @@
+import {verifyHistoryErasure} from '../support/merge-history-erasure.ts';
 import {exportRetainedIdentity} from '../support/identity-origin-transfer.ts';
 import {verifySourceFactErasure} from '../support/talent-source-fact-erasure.ts';
 import {digest} from '../../packages/core/src/json.ts';
@@ -174,6 +175,9 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
 
         const sourceRetention=await verifySourceFactErasure({app:sourceApp,store:sourceStore,clock,owner},td2);
         const retainedIdentity=await exportRetainedIdentity({app:sourceApp,store:sourceStore,clock,owner});
+        const erasedHistory=await verifyHistoryErasure({app:sourceApp,store:sourceStore,clock,owner});
+        const erasedHistoryRows=await sourceClient.mergeHistoryErasure.findMany({where:{mergeDecisionId:erasedHistory.s.mergeId},orderBy:{id:'asc'}});
+        const erasedHistoryDecision=await sourceClient.personMergeDecision.findUniqueOrThrow({where:{id:erasedHistory.s.mergeId}});
         const retainedLanguage=await sourceClient.personLanguage.findUniqueOrThrow({where:{id:sourceRetention.s.languageId}});
         const retainedLanguageEvidence=await sourceClient.fieldEvidence.findMany({where:{personLanguageId:retainedLanguage.id},orderBy:{id:'asc'}});
         const retainedCandidate=await sourceClient.shortlistItem.findUniqueOrThrow({where:{id:sourceRetention.s.candidateId}});
@@ -288,6 +292,12 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         assert.equal(restoredIdentityPermission.sourceId,restoredIdentity.sourceId);
         assert.equal(restoredIdentityPermission.retentionBasisSourceId,retainedIdentity.person.basisId);
         assert.equal(restoredIdentityPermission.status,'REVOKED');
+        assert.deepEqual(await restoreClient.mergeHistoryErasure.findMany({where:{mergeDecisionId:erasedHistory.s.mergeId},orderBy:{id:'asc'}}),erasedHistoryRows);
+        assert.deepEqual(await restoreClient.personMergeDecision.findUniqueOrThrow({where:{id:erasedHistory.s.mergeId}}),erasedHistoryDecision);
+        assert.equal((await restoreClient.person.findUniqueOrThrow({where:{id:erasedHistory.s.b.personId}})).status,'ERASED');
+        assert.equal(await restoreClient.talentProfile.count({where:{personId:erasedHistory.s.b.personId}}),0);
+        assert.equal(report.talent.tableCounts.mergeHistoryErasures,3);
+        console.log('PASS actual backup/restore preserves append-only merge-history erasures and redacted reason without resurrecting deleted old profiles');
         console.log('PASS actual backup/restore preserves distinct erased identity origin and independent permission basis while revoking old permission');
         console.log('PASS actual backup/restore preserves erased historical source, retained language and exact independent evidence plus pending candidate role review');
         assert.equal(report.talent.credentialCount, 1);

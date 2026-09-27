@@ -194,7 +194,7 @@ export class Exports {
         invariant(!d.fields.includes(MEDIA_TRANSFER_CODE)||(transferFields.includes('person.td2.personCredentials')||transferFields.includes('person.td2.mediaCollections')||transferFields.includes('person.td2.adultEligibilities')),'TD2_TRANSFER_MEDIA_OWNER_REQUIRED','原件必须随资质或媒体集合导出',422);
         const identityFields=d.fields.includes(IDENTITY_EVIDENCE_CODE)?d.fields.filter(identityField):undefined;
         const talent = transferFields.length||identityFields||d.fields.includes(MERGE_HISTORY_CODE) ? await collectTalentTransfer(tx, actor, this.clock, peopleIds, transferFields, withEvidence, withIdentifiers, d.fields.includes(MEDIA_TRANSFER_CODE),identityFields,d.fields.includes(MERGE_HISTORY_CODE)) : null;
-        invariant(!people.some(p=>sources.get(p.sourceId)?.status==='ERASED')||talent?.schemaVersion==='once-talent-transfer-v13','TD2_RETAINED_IDENTITY_FIELDS','原始来源已删的人物须同时迁移完整身份字段与独立依据',422);
+        invariant(!people.some(p=>sources.get(p.sourceId)?.status==='ERASED')||(talent?.schemaVersion==='once-talent-transfer-v13'||talent?.schemaVersion==='once-talent-transfer-v14'),'TD2_RETAINED_IDENTITY_FIELDS','原始来源已删的人物须同时迁移完整身份字段与独立依据',422);
         const sourceTransferFields = new Map<string, Set<ExportFieldCode>>();
         if (talent) for (const table of TRANSFER_TABLES) for (const row of transferRows(talent,table)) {
             if(talent.retainedOrigins?.some(o=>o.id===row.sourceId))continue;
@@ -213,8 +213,8 @@ export class Exports {
         }
         if(talent?.mergeHistory) {
             const h=talent.mergeHistory;
-            for(const id of new Set([...h.people,...h.talentProfiles,...h.castingProfiles,...h.evidence].map(r=>r.sourceId).concat(h.decisions.flatMap(d=>[d.canonicalSourceId,d.duplicateSourceId])))){
-                sources.set(id,await sourceFor(tx,actor,id,this.clock));const fields=sourceTransferFields.get(id)??new Set<ExportFieldCode>();fields.add(MERGE_HISTORY_CODE);if(h.evidence.some(e=>e.sourceId===id))fields.add(EVIDENCE_TRANSFER_CODE);sourceTransferFields.set(id,fields);
+            for(const id of new Set([...h.people,...h.talentProfiles,...h.castingProfiles,...h.evidence,...h.erasures??[]].map(r=>r.sourceId).concat(h.decisions.flatMap(d=>[d.canonicalSourceId,d.duplicateSourceId])))){
+                const minimal=talent.retainedOrigins?.some(o=>o.id===id)??false;sources.set(id,await sourceFor(tx,actor,id,this.clock,!minimal,minimal));if(minimal)continue;const fields=sourceTransferFields.get(id)??new Set<ExportFieldCode>();fields.add(MERGE_HISTORY_CODE);if(h.evidence.some(e=>e.sourceId===id))fields.add(EVIDENCE_TRANSFER_CODE);sourceTransferFields.set(id,fields);
             }
             validateMergeHistory(this.clock,h,talent,people,[...sources.values()]);
         }

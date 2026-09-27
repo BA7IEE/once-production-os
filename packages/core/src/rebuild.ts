@@ -110,7 +110,7 @@ export class JsonRebuild {
                 'REBUILD_SOURCE_NOT_CURRENT', '重建只接受当前仍有效的 INTERNAL_USE 来源快照', 409);
         }
         for (const row of [...people, ...works, ...projects])
-            invariant(sourceIds.has(row.sourceId)||(people.includes(row as typeof people[number])&&payload.manifest.talent?.schemaVersion==='once-talent-transfer-v13'&&payload.manifest.talent.retainedOrigins?.some(o=>o.id===row.sourceId)), 'REBUILD_SOURCE_MISSING', '业务对象引用的来源没有包含在重建清单中', 422);
+            invariant(sourceIds.has(row.sourceId)||(people.includes(row as typeof people[number])&&(payload.manifest.talent?.schemaVersion==='once-talent-transfer-v13'||payload.manifest.talent?.schemaVersion==='once-talent-transfer-v14')&&payload.manifest.talent.retainedOrigins?.some(o=>o.id===row.sourceId)), 'REBUILD_SOURCE_MISSING', '业务对象引用的来源没有包含在重建清单中', 422);
         const assetIdentity = new Map<string,string>();
         for (const row of media) {
             invariant(workIds.has(row.workId) && sourceIds.has(row.sourceId), 'REBUILD_MEDIA_REFERENCE_INVALID',
@@ -125,7 +125,7 @@ export class JsonRebuild {
 
         for(const e of payload.manifest.talent?.evidence??[]) invariant(e.sourceRevision<=(sources.find(s=>s.id===e.sourceId)?.revision??0),'TD2_TRANSFER_EVIDENCE_SOURCE_REVISION','字段证据引用了不存在的来源版本',422);
         const referencedSources = new Set([
-            ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent?.assets??[]).map(a=>a.sourceId), ...(payload.manifest.talent?.evidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.identityEvidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.mergeHistory?[...payload.manifest.talent.mergeHistory.people,...payload.manifest.talent.mergeHistory.talentProfiles,...payload.manifest.talent.mergeHistory.castingProfiles,...payload.manifest.talent.mergeHistory.evidence].map(r=>r.sourceId):[]), ...(payload.manifest.talent?.organizations??[]).map(o=>o.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>transferRows(payload.manifest.talent!,t).map(r=>r.sourceId)) : [])
+            ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent?.assets??[]).map(a=>a.sourceId), ...(payload.manifest.talent?.evidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.identityEvidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.mergeHistory?[...payload.manifest.talent.mergeHistory.people,...payload.manifest.talent.mergeHistory.talentProfiles,...payload.manifest.talent.mergeHistory.castingProfiles,...payload.manifest.talent.mergeHistory.evidence,...payload.manifest.talent.mergeHistory.erasures??[]].map(r=>r.sourceId):[]), ...(payload.manifest.talent?.organizations??[]).map(o=>o.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>transferRows(payload.manifest.talent!,t).map(r=>r.sourceId)) : [])
         ]);
         invariant(sources.every(x => referencedSources.has(x.id)), 'REBUILD_UNUSED_SOURCE',
             '来源清单包含没有被本次业务图引用的记录', 422);
@@ -221,7 +221,7 @@ export class JsonRebuild {
                 mediaIdentities: media.length
             },
             ...(payload.manifest.talent ? {encryptedCredentialCount:transferRows(payload.manifest.talent,'personCredentials').filter(r=>r.data.identifierCiphertext).length, fieldEvidence:(payload.manifest.talent.evidence?.length??0)+(payload.manifest.talent.identityEvidence?.length??0), organizations:payload.manifest.talent.organizations?.length??0, capabilityDefinitions: payload.manifest.talent.capabilityDefinitions?.length??0, professionalRecords: TRANSFER_TABLES.reduce((n,t)=>n+transferRows(payload.manifest.talent!,t).length,0)} : {}),
-            ...(payload.manifest.talent?.mergeHistory?{mergeHistory:{people:payload.manifest.talent.mergeHistory.people.length,aliases:payload.manifest.talent.mergeHistory.aliases.length,decisions:payload.manifest.talent.mergeHistory.decisions.length,profiles:payload.manifest.talent.mergeHistory.talentProfiles.length+payload.manifest.talent.mergeHistory.castingProfiles.length,evidence:payload.manifest.talent.mergeHistory.evidence.length}}:{}),
+            ...(payload.manifest.talent?.mergeHistory?{mergeHistory:{people:payload.manifest.talent.mergeHistory.people.length,aliases:payload.manifest.talent.mergeHistory.aliases.length,decisions:payload.manifest.talent.mergeHistory.decisions.length,profiles:payload.manifest.talent.mergeHistory.talentProfiles.length+payload.manifest.talent.mergeHistory.castingProfiles.length,evidence:payload.manifest.talent.mergeHistory.evidence.length,...(payload.manifest.talent.mergeHistory.erasures?{erasures:payload.manifest.talent.mergeHistory.erasures.length}:{})}}:{}),
             mediaRestored: payload.manifest.talent?.assets?.length??0
         };
         return { payload, target, summary };

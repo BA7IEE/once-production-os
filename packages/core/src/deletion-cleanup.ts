@@ -4,7 +4,7 @@ import { eraseSourceFacts, assertSourceFactGroupDone, validateSourceFactPlan, SO
 import { eraseTalentSourceEvidence } from './talent-source-erasure.ts';
 import { deletionWorkerActor } from './deletion-worker-policy.ts';
 import { eraseTalentAssetReferences } from './talent-asset-erasure.ts';
-import { eraseTalentPersonGraph } from './talent-v2-erasure.ts';
+import { eraseTalentPersonGraph,validatePersonErasurePlan } from './talent-v2-erasure.ts';
 import { randomUUID } from 'node:crypto';
 import type { Actor, Clock, Config, Table } from './model.ts';
 import type { Store, Tx } from './store.ts';
@@ -87,6 +87,7 @@ export class DeletionCleanup {
             cleanupErrorCode: null, cleanedAt: null }));
         const executionPlanDigest = digest(executionPlan(row, prepared));
         for (const item of prepared) await tx.replace('deletionItems', item);
+        await validatePersonErasurePlan(tx,actor,row,items);
         await validateSourceFactPlan(tx, actor, row, items, this.clock);
         const next: DeletionRequest = { ...touch(row, this.clock), state: 'CLEANING', executionPlanDigest,
             cleanupStartedAt: this.clock.now().toISOString(), cleanupStartedById: actor.membershipId,

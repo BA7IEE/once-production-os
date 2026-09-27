@@ -64,6 +64,14 @@ if(mainStatus!==0){process.exitCode=mainStatus;}else{
    },240000);
   }
   if(status===0){
+   const historyErasure=await fresh('once_test_td2_history_erasure_','Talent 2 historical identity erasure');
+   status=runNode('tests/postgres/merge-history-erasure.test.ts',{...process.env,DATABASE_URL_TD2_TEST:historyErasure,ALLOW_TD2_DB_TESTS:'yes'},240000);
+  }
+  if(status===0){
+   const source=await fresh('once_test_td2_erased_history_','Erased history transfer source'),target=await fresh('once_rebuild_erased_history_','Erased history transfer target');
+   status=runNode('tests/postgres/merge-erasure-transfer.test.ts',{...process.env,DATABASE_URL_TD2_TEST:source,DATABASE_URL_TALENT_REBUILD_TEST:target,ALLOW_TD2_DB_TESTS:'yes'},240000);
+  }
+  if(status===0){
    const typedMerge=await fresh('once_test_td2_merge_','Talent 2 professional merge');
    status=runNode('tests/postgres/talent-v2-merge.test.ts',{
     ...process.env,DATABASE_URL_TD2_TEST:typedMerge,ALLOW_TD2_DB_TESTS:'yes'

@@ -49,6 +49,7 @@ function detailText(code: string) {
     if (source) return `删除本来源的 ${source[1]} 条字段依据和 ${source[2]} 条修改建议；不改动关联的 ${source[3]} 项资料及其他来源记录，不改写原核验归属。`;
     const asset = /^TD2_ASSET_GRAPH_[a-f0-9]{64}:C(\d+):Q(\d+):A(\d+):P(\d+)$/.exec(code);
     if (asset) return `移出 ${asset[1]} 项作品集引用、撤销 ${asset[2]} 项资质的当前有效状态、将 ${asset[3]} 项成年资格改为未知，并使 ${asset[4]} 项待审建议失效。原核验历史保留；其他图片和专业资料保留。`;
+    if (/^TD2_GRAPH_[a-f0-9]{64}:H[1-9][0-9]*$/.test(code))return `清理人物专业资料，并清除 ${code.split(':H')[1]} 个合并旧身份及其保留档案的个人内容；原编号映射、原合并决定和明确清理记录保留。只删除旧身份时，当前人物资料保持不变。`;
     if (code.startsWith('TD2_GRAPH_')) return '清理整份人物专业档案及其证据和建议；独立图片原件另行决定。';
     return detailLabel[code] ?? code;
 }
@@ -232,8 +233,8 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
     </section>;
 }
 
-export function DeletionImpactPanel({ me }: { me: Me }) {
-    const [refresh, setRefresh] = useState(0), [kind, setKind] = useState<DeletionTargetKind>('PERSON'), [targetId, setTargetId] = useState('');
+export function DeletionImpactPanel({ me, initialPerson }: { me: Me; initialPerson?: {id:string;displayName:string;revision:number} | null }) {
+    const [refresh, setRefresh] = useState(0), [kind, setKind] = useState<DeletionTargetKind>('PERSON'), [targetId, setTargetId] = useState(initialPerson?.id ?? '');
     const [preview, setPreview] = useState<DeletionPreview | null>(null), [reason, setReason] = useState('');
     const [selectedRequest, setSelectedRequest] = useState<string | null>(null), [page, setPage] = useState(1);
     const inspect = useAction(), create = useAction();
@@ -248,16 +249,16 @@ export function DeletionImpactPanel({ me }: { me: Me }) {
     const requests = useLoad(() => read<Page<DeletionRequestSummary>>('deletion.list', {}, { page: String(page), pageSize: '20' }), 'delete-requests:' + page + ':' + refresh);
 
     const options = useMemo<Option[]>(() => {
-        if (kind === 'PERSON') return (people.data?.items ?? []).map(x => ({ id: x.id, name: x.displayName, revision: x.revision }));
+        if (kind === 'PERSON') { const rows = (people.data?.items ?? []).map(x => ({ id: x.id, name: x.displayName, revision: x.revision })); return initialPerson && !rows.some(x => x.id === initialPerson.id) ? [{id:initialPerson.id,name:'合并旧身份：' + initialPerson.displayName,revision:initialPerson.revision},...rows] : rows; }
         if (kind === 'WORK') return (works.data?.items ?? []).map(x => ({ id: x.id, name: x.title, revision: x.revision }));
         if (kind === 'PROJECT') return (projects.data?.items ?? []).map(x => ({ id: x.id, name: x.title, revision: x.revision }));
         if (kind === 'SOURCE') return (sources.data?.items ?? []).map(x => ({ id: x.id, name: x.title, revision: x.revision }));
         return (assets.data?.items ?? []).map(x => ({ id: x.id, name: x.fileName, revision: x.revision }));
-    }, [kind, people.data, works.data, projects.data, sources.data, assets.data]);
+    }, [kind, people.data, works.data, projects.data, sources.data, assets.data, initialPerson]);
     const selected = options.find(x => x.id === targetId);
     const allowedKinds: DeletionTargetKind[] = ['PERSON', 'WORK', 'PROJECT', ...(me.permissions.includes('sources.read') ? ['SOURCE' as const] : []), ...(me.permissions.includes('assets.read') ? ['ASSET' as const] : [])];
 
-    useEffect(() => { setTargetId(''); setPreview(null); setReason(''); }, [kind]);
+    useEffect(() => { setTargetId(kind === 'PERSON' ? initialPerson?.id ?? '' : ''); setPreview(null); setReason(''); }, [kind, initialPerson]);
     useEffect(() => { setPreview(null); setReason(''); }, [targetId]);
 
     async function runPreview() {

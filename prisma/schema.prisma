@@ -9,6 +9,7 @@ datasource db {
 }
 
 model Workspace {
+  historyErasures MergeHistoryErasure[] @relation("HistoryErasure_workspace")
   TalentProfile_workspaceId_td2 TalentProfile[] @relation("TalentProfile_workspaceId_td2")
   PersonRole_workspaceId_td2 PersonRole[] @relation("PersonRole_workspaceId_td2")
   CapabilityDefinition_workspaceId_td2 CapabilityDefinition[] @relation("CapabilityDefinition_workspaceId_td2")
@@ -95,6 +96,7 @@ model User {
 }
 
 model Membership {
+  historyErasures MergeHistoryErasure[] @relation("HistoryErasure_actor")
   AdultEligibility_verifiedByMembershipId_td2 AdultEligibility[] @relation("AdultEligibility_verifiedByMembershipId_td2")
   ServicePrincipal_defaultMaintainerMembershipId_td2 ServicePrincipal[] @relation("ServicePrincipal_defaultMaintainerMembershipId_td2")
   FieldProposal_actorId_td2 FieldProposal[] @relation("FieldProposal_actorId_td2")
@@ -231,6 +233,7 @@ model ScopeMember {
 }
 
 model SourceRecord {
+  historyErasures MergeHistoryErasure[] @relation("HistoryErasure_source")
   TalentProfile_sourceId_td2 TalentProfile[] @relation("TalentProfile_sourceId_td2")
   PersonRole_sourceId_td2 PersonRole[] @relation("PersonRole_sourceId_td2")
   PersonCapability_sourceId_td2 PersonCapability[] @relation("PersonCapability_sourceId_td2")
@@ -299,6 +302,7 @@ model SourceRecord {
 }
 
 model Person {
+  historyErasures MergeHistoryErasure[] @relation("HistoryErasure_person")
   TalentProfile_personId_td2 TalentProfile[] @relation("TalentProfile_personId_td2")
   PersonRole_personId_td2 PersonRole[] @relation("PersonRole_personId_td2")
   PersonCapability_personId_td2 PersonCapability[] @relation("PersonCapability_personId_td2")
@@ -1044,6 +1048,7 @@ model ExportDependency {
 }
 
 model DeletionRequest {
+  historyErasures MergeHistoryErasure[] @relation("HistoryErasure_request")
   DeletionItem_requestRef DeletionItem[] @relation("DeletionItem_requestRef")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
@@ -1173,6 +1178,8 @@ model RecoveryRun {
 }
 
 model PersonMergeDecision {
+  reasonErasedAt DateTime? @db.Timestamptz(3)
+  historyErasures MergeHistoryErasure[] @relation("HistoryErasure_merge")
   PersonAlias_mergeDecisionRef PersonAlias[] @relation("PersonAlias_mergeDecisionRef")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
@@ -1833,4 +1840,39 @@ model TalentMigrationReview {
   @@unique([workspaceId, personId, id])
   @@index([workspaceId, createdAt], map: "talentMigrationReviews_td2_created_idx")
   @@map("talentMigrationReviews")
+}
+
+model MergeHistoryErasure {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ revision Int
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ mergeDecisionId String @db.Uuid
+ personId String @db.Uuid
+ sourceId String @db.Uuid
+ recordKind String @db.Text
+ recordStatusBefore String? @db.Text
+ recordId String @db.Uuid
+ recordRevision Int
+ recordCreatedAt DateTime @db.Timestamptz(3)
+ recordUpdatedAt DateTime @db.Timestamptz(3)
+ supersededById String? @db.Uuid
+ retiredMeasurementSetId String? @db.Uuid
+ erasedAt DateTime @db.Timestamptz(3)
+ requestId String? @db.Uuid
+ actorId String? @db.Uuid
+ originalWorkspaceId String? @db.Uuid
+ originalRequestId String? @db.Uuid
+ originalActorId String? @db.Uuid
+ workspace Workspace @relation("HistoryErasure_workspace",fields:[workspaceId],references:[id],onDelete:Restrict,onUpdate:NoAction,map:"mergeHistoryErasures_workspaceId_fkey")
+ merge PersonMergeDecision @relation("HistoryErasure_merge",fields:[workspaceId,mergeDecisionId],references:[workspaceId,id],onDelete:Restrict,onUpdate:NoAction,map:"mergeHistoryErasures_workspaceId_mergeDecisionId_fkey")
+ person Person @relation("HistoryErasure_person",fields:[workspaceId,personId],references:[workspaceId,id],onDelete:Restrict,onUpdate:NoAction,map:"mergeHistoryErasures_workspaceId_personId_fkey")
+ source SourceRecord @relation("HistoryErasure_source",fields:[workspaceId,sourceId],references:[workspaceId,id],onDelete:Restrict,onUpdate:NoAction,map:"mergeHistoryErasures_workspaceId_sourceId_fkey")
+ request DeletionRequest? @relation("HistoryErasure_request",fields:[workspaceId,requestId],references:[workspaceId,id],onDelete:Restrict,onUpdate:NoAction,map:"mergeHistoryErasures_workspaceId_requestId_fkey")
+ actor Membership? @relation("HistoryErasure_actor",fields:[workspaceId,actorId],references:[workspaceId,id],onDelete:Restrict,onUpdate:NoAction,map:"mergeHistoryErasures_workspaceId_actorId_fkey")
+ @@unique([workspaceId,id])
+ @@unique([workspaceId,recordKind,recordId])
+ @@index([workspaceId,mergeDecisionId],map:"mergeHistoryErasures_merge_idx")
+ @@map("mergeHistoryErasures")
 }

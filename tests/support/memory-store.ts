@@ -1,7 +1,7 @@
 import { AppError } from '../../packages/core/src/errors.ts';
 import type { Store, Tx } from '../../packages/core/src/store.ts';
 import type { Table, TableMap } from '../../packages/core/src/model.ts';
-const tables: Table[] = ['talentProfiles', 'personRoles', 'capabilityDefinitions', 'personCapabilities', 'personLanguages', 'talentLocations', 'castingProfiles', 'measurementSets', 'adultEligibilities', 'organizations', 'representations', 'personExternalRefs', 'personCredentials', 'translatorLanguagePairs', 'translatorServiceModes', 'mediaCollections', 'mediaCollectionTags', 'mediaCollectionItems', 'servicePrincipals', 'fieldProposals', 'talentMigrationReviews', 'recoveryRuns', 'personMerges', 'personAliases', 'deletionRequests', 'deletionItems', 'usePermissions', 'exports', 'exportDependencies', 'shortlists', 'shortlistItems', 'shortlistItemAssets', 'works', 'workAssets', 'workCredits', 'projects', 'projectParticipants', 'projectWorks', 'workspaces', 'users', 'memberships', 'sessions', 'activations', 'scopes', 'scopeMembers', 'sources', 'sourceHistory', 'people', 'contacts', 'evidence', 'dictionary', 'receipts', 'audits', 'rateBuckets', 'imports', 'jobs', 'handoffs', 'uploads', 'assets'];
+const tables: Table[] = ['mergeHistoryErasures','talentProfiles', 'personRoles', 'capabilityDefinitions', 'personCapabilities', 'personLanguages', 'talentLocations', 'castingProfiles', 'measurementSets', 'adultEligibilities', 'organizations', 'representations', 'personExternalRefs', 'personCredentials', 'translatorLanguagePairs', 'translatorServiceModes', 'mediaCollections', 'mediaCollectionTags', 'mediaCollectionItems', 'servicePrincipals', 'fieldProposals', 'talentMigrationReviews', 'recoveryRuns', 'personMerges', 'personAliases', 'deletionRequests', 'deletionItems', 'usePermissions', 'exports', 'exportDependencies', 'shortlists', 'shortlistItems', 'shortlistItemAssets', 'works', 'workAssets', 'workCredits', 'projects', 'projectParticipants', 'projectWorks', 'workspaces', 'users', 'memberships', 'sessions', 'activations', 'scopes', 'scopeMembers', 'sources', 'sourceHistory', 'people', 'contacts', 'evidence', 'dictionary', 'receipts', 'audits', 'rateBuckets', 'imports', 'jobs', 'handoffs', 'uploads', 'assets'];
 type Data = {
     [K in Table]: Map<string, TableMap[K]>;
 };
@@ -34,6 +34,7 @@ export class MemoryStore implements Store {
                 (draft[table] as Map<string, TableMap[K]>).set(row.id, structuredClone(row));
             },
             replace: async <K extends Table>(table: K, row: TableMap[K]): Promise<void> => {
+                if (table === 'mergeHistoryErasures') throw new AppError(409,'HISTORY_IMMUTABLE','历史清理证据只允许追加');
                 if (table === 'sourceHistory')
                     throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加');
                 if ((table === 'talentProfiles' || table === 'castingProfiles') && draft[table].get(row.id)?.supersededById)
@@ -43,6 +44,7 @@ export class MemoryStore implements Store {
                 (draft[table] as Map<string, TableMap[K]>).set(row.id, structuredClone(row));
             },
             remove: async (table, id) => {
+                if (table === 'mergeHistoryErasures') throw new AppError(409,'HISTORY_IMMUTABLE','历史清理证据只允许追加');
                 if (table === 'sourceHistory')
                     throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加');
                 if ((table === 'talentProfiles' || table === 'castingProfiles') && draft[table].get(id)?.supersededById)
@@ -56,6 +58,18 @@ export class MemoryStore implements Store {
                 draft.sourceHistory.set(id, { ...row, updatedAt: at,
                     decisionReason: row.decisionReason === null ? null : '[ERASED]',
                     snapshot: { id: row.sourceId, workspaceId: row.workspaceId, revision: row.sourceRevision, scopeId: row.scopeId, erased: true } });
+            },
+            eraseRetiredProfile: async (table,id,erasureId) => {
+                const e=draft.mergeHistoryErasures.get(erasureId),r=e?.requestId?draft.deletionRequests.get(e.requestId):null,old=draft[table].get(id);
+                if(!e||!r||r.state!=='CLEANING'||!r.planDigest||!r.executionPlanDigest||e.recordId!==id||e.recordRevision!==old?.revision||!old.supersededById||e.recordKind!==(table==='talentProfiles'?'TALENT_PROFILE':'CASTING_PROFILE'))
+                    throw new AppError(409,'HISTORY_ERASURE_REQUIRED','缺少匹配的冻结历史清理记录');
+                draft[table].delete(id);
+            },
+            redactMergeReason: async (id,erasureId,at) => {
+                const e=draft.mergeHistoryErasures.get(erasureId),r=e?.requestId?draft.deletionRequests.get(e.requestId):null,old=draft.personMerges.get(id);
+                if(!e||!r||r.state!=='CLEANING'||!r.planDigest||!r.executionPlanDigest||!old||e.mergeDecisionId!==id||e.erasedAt!==at)
+                    throw new AppError(409,'HISTORY_ERASURE_REQUIRED','缺少匹配的历史说明清理记录');
+                if(!old.reasonErasedAt)draft.personMerges.set(id,{...old,revision:old.revision+1,updatedAt:at,reasonErasedAt:at,decisionManifest:{...(old.decisionManifest as Record<string,unknown>),reason:'[ERASED]'}});
             },
             talentQuery: async input => {
                 const scopeIds = new Set(input.visibleScopeIds), sourceIds = new Set(input.visibleSourceIds);

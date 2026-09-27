@@ -3,7 +3,7 @@ import {IDENTITY_RETENTION,IDENTITY_DEPENDENCY,identityItemCode,validateIdentity
 import { sourceFactGraph, sourceFactItemCode, validateSourceFactDecision, validateSourceFactPlan, SOURCE_FACT_GROUP, SOURCE_FACT_ITEM } from './talent-source-fact-erasure.ts';
 import { previewTalentSourceErasure } from './talent-source-erasure.ts';
 import { previewTalentAssetErasure, previewTalentSourceAssets } from './talent-asset-erasure.ts';
-import { previewTalentErasure } from './talent-v2-erasure.ts';
+import { previewTalentErasure,validatePersonErasurePlan } from './talent-v2-erasure.ts';
 import { talentDependencyCounts } from './talent-v2-integrity.ts';
 import type { Actor, Clock, Person, Source } from './model.ts';
 import type { Tx } from './store.ts';
@@ -249,7 +249,7 @@ export class Deletions {
             if (talent.blocker) miss(talent.blocker);
             else if (talent.count) add({ resourceKind: 'talentGraph', resourceId: targetId,
                 dependencyKind: 'PERSON_TALENT_GRAPH', proposedAction: 'ERASE_PAYLOAD',
-                evidenceState: 'REVIEW_REQUIRED', detailCode: `TD2_GRAPH_${talent.digest}` });
+                evidenceState: 'REVIEW_REQUIRED', detailCode: `TD2_GRAPH_${talent.digest}${talent.historyIdentityCount?':H'+talent.historyIdentityCount:''}` });
         } else if (targetKind === 'ASSET') {
             const talent = await previewTalentAssetErasure(tx, actor, targetId);
             if (talent.blocker) miss(talent.blocker);
@@ -400,6 +400,8 @@ export class Deletions {
                 o.row.roleCode, o.row.languageCode, o.row.capabilityCode, o.row.title, o.row.locationCode, o.row.credentialTypeCode,
                 o.row.validFrom, o.row.validUntil].filter(v => typeof v === 'string' && v.length).join(' · '));
         }
+        let historySummary='';
+        if(row.targetKind==='PERSON'&&items.some(i=>i.resourceKind==='talentGraph')&&['DRAFT','BLOCKED_FOR_USE'].includes(row.state)){const p=await previewTalentErasure(tx,actor,row.targetId);if(p.blocker)missing();historySummary=p.historySummary;}
         const safe = items.map(item => ({
             id: item.id,
             dependencyKind: item.dependencyKind,
@@ -432,6 +434,7 @@ export class Deletions {
             const group = (await tx.find('deletionItems', {workspaceId:actor.workspaceId,requestId:row.id})).find(i => i.resourceKind === SOURCE_FACT_GROUP);
             invariant(!graph.blocker && group?.detailCode === graph.detailCode, 'TD2_ERASURE_GRAPH_STALE', '专业资料或依据已经变化，请重新评估删除计划', 409);
         }
+        if(item.resourceKind==='talentGraph')await validatePersonErasurePlan(tx,actor,row,await tx.find('deletionItems',{workspaceId:actor.workspaceId,requestId:row.id}));
         let retentionSourceId: string | null = null, retentionSourceRevision: number | null = null, retentionSourceProtectionEpoch: number | null = null;
         if (d.decision === 'RETAIN_WITH_BASIS') {
             invariant(!['talentGraph','talentAssetGraph','talentSourceEvidenceGraph','talentSourceAssetGraph',SOURCE_FACT_GROUP,SOURCE_IDENTITY_EVIDENCE].includes(item.resourceKind), 'TD2_ERASURE_RETENTION_UNSUPPORTED',
@@ -478,6 +481,7 @@ export class Deletions {
                 && basis.protectionEpoch === item.retentionSourceProtectionEpoch,
                 'RETENTION_BASIS_CHANGED', '保留依据已经变化，请重新作出保留决定', 409);
         }
+        await validatePersonErasurePlan(tx,actor,row,items);
         await validateSourceFactPlan(tx, actor, row, items, this.clock);
         const planDigest = digest(frozenDeletionPlan(row, items));
         const next: DeletionRequest = { ...touch(row, this.clock), planDigest,

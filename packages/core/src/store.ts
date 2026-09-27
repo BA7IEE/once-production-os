@@ -9,6 +9,9 @@ export interface Tx {
     remove<K extends Table>(table: K, id: string): Promise<void>;
     /** One-way reviewed SourceHistory payload redaction. Generic replace/remove stay forbidden. */
     redactSourceHistory(id: string, at: string): Promise<void>;
+    /** Dedicated frozen-plan erasure; generic retired profile mutations remain forbidden. */
+    eraseRetiredProfile(table:'talentProfiles'|'castingProfiles',id:string,erasureId:string):Promise<void>;
+    redactMergeReason(id:string,erasureId:string,at:string):Promise<void>;
     /** Bounded internal talent search adapter. Authorization inputs are computed by core policy first. */
     talentQuery(input: TalentQueryFilters): Promise<TalentQueryResult>;
 }

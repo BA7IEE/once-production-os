@@ -10,7 +10,7 @@ import { touch } from './helpers.ts';
 /** All TD2 rows and their security-relevant endpoints participate in one recovery digest.
  * Do not return raw rows, encrypted identifiers or machine credential hashes in a report. */
 export const TD2_INTEGRITY_TABLES = [...TALENT_V2_TABLES, 'people', 'sources', 'scopes',
-    'memberships', 'assets', 'evidence', 'shortlistItems', 'personAliases', 'personMerges'] as const;
+    'memberships', 'assets', 'evidence', 'shortlistItems', 'personAliases', 'personMerges', 'mergeHistoryErasures'] as const;
 export type IntegrityTable = typeof TD2_INTEGRITY_TABLES[number];
 type Row = { id: string; workspaceId: string; [key: string]: unknown };
 export interface TalentIntegrityReport {
@@ -58,7 +58,22 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
             check(!!def && Object.hasOwn(def.fields, String(row.fieldPath)));
         }
     };
+    for(const e of data.mergeHistoryErasures){
+        ref(e,'mergeDecisionId','personMerges',false,true);ref(e,'personId','people',false,true);ref(e,'sourceId','sources',false,true);ref(e,'actorId','memberships');
+        const merge=maps.personMerges.get(String(e.mergeDecisionId));check(merge?.duplicatePersonId===e.personId);
+        const local=e.requestId!=null&&e.actorId!=null,origin=[e.originalWorkspaceId,e.originalRequestId,e.originalActorId].filter(v=>v!=null);check(local?origin.length===0:e.requestId==null&&e.actorId==null&&origin.length===3);
+        check(e.revision===1&&e.createdAt===e.updatedAt&&e.createdAt===e.erasedAt&&Number(e.recordRevision)>0&&Date.parse(String(e.recordCreatedAt))<=Date.parse(String(e.recordUpdatedAt))&&Date.parse(String(e.recordUpdatedAt))<=Date.parse(String(e.erasedAt)));
+        if(local){const request=await tx.get('deletionRequests',String(e.requestId));check(!!request&&request.workspaceId===workspaceId&&request.targetKind==='PERSON'&&[merge?.canonicalPersonId,merge?.duplicatePersonId].includes(request.targetId)&&!!request.planDigest&&!!request.executionPlanDigest&&request.cleanupStartedById===e.actorId);}
+        if(e.recordKind==='PERSON')check(maps.people.get(String(e.personId))?.status==='ERASED'&&maps.people.get(String(e.personId))?.sourceId===e.sourceId&&e.recordId===e.personId&&['ARCHIVED','ERASED'].includes(String(e.recordStatusBefore))&&e.supersededById==null&&e.retiredMeasurementSetId==null);
+        else {
+            const table=e.recordKind==='TALENT_PROFILE'?'talentProfiles':e.recordKind==='CASTING_PROFILE'?'castingProfiles':null;check(!!table);
+            if(table){check(!maps[table].has(String(e.recordId))&&e.recordStatusBefore==null&&typeof e.supersededById==='string'&&e.supersededById!==e.recordId&&(table==='castingProfiles'||e.retiredMeasurementSetId==null));
+                const choices=(merge?.decisionManifest as {professionalConflicts?:Array<Record<string,unknown>>}|undefined)?.professionalConflicts;check(Array.isArray(choices)&&choices.some(c=>c.table===table&&c.duplicateId===e.recordId&&c.canonicalId===e.supersededById&&c.choice==='RETAIN_DUPLICATE_HISTORY'));
+            }
+        }
+    }
     for(const row of data.personMerges){
+        if(row.reasonErasedAt)check((row.decisionManifest as {reason?:unknown}).reason==='[ERASED]'&&Date.parse(String(row.completedAt))<=Date.parse(String(row.reasonErasedAt))&&Date.parse(String(row.reasonErasedAt))<=Date.parse(String(row.updatedAt))&&data.mergeHistoryErasures.some(e=>e.mergeDecisionId===row.id&&e.erasedAt===row.reasonErasedAt));
         ref(row,'actorId','memberships');ref(row,'canonicalPersonId','people',false,true);ref(row,'duplicatePersonId','people',false,true);ref(row,'canonicalSourceId','sources',false,true);ref(row,'duplicateSourceId','sources',false,true);
         const originals=[row.originalActorWorkspaceId,row.originalActorMembershipId].filter(v=>v!=null);check(row.actorId!=null?originals.length===0:originals.length===2);
         check(maps.people.get(String(row.canonicalPersonId))?.sourceId===row.canonicalSourceId&&maps.people.get(String(row.duplicatePersonId))?.sourceId===row.duplicateSourceId);
@@ -147,7 +162,7 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
         ...(pendingProposalCount ? ['TD2_PROPOSAL_NOT_INVALIDATED'] : [])
     ];
     return { schemaVersion: 'once-talent-integrity-v1', graphDigest: digest(data),
-        tableCounts: Object.fromEntries(TALENT_V2_TABLES.map(t => [t, data[t].length])), relationFailures,
+        tableCounts: Object.fromEntries([...TALENT_V2_TABLES,'mergeHistoryErasures' as const].map(t => [t, data[t].length])), relationFailures,
         credentialCount, credentialDecryptFailures, activeMachineCount, remainingMachineSecretCount,
         pendingProposalCount, blockers };
 }

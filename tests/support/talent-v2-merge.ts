@@ -128,8 +128,8 @@ export async function verifyProfessionalConflicts(app: Application, store: Store
     assert.equal(after.measurementSets.find(r => r.id === b.measurementId)!.personId, a.personId);
     assert.equal(after.personCredentials.find(r => r.id === b.credentialId)!.personRoleId, before.personCredentials.find(r => r.id === b.credentialId)!.personRoleId);
     const deletion = ok(await owner.raw('POST', '/deletion-requests/preview', { targetKind: 'PERSON', targetId: a.personId, expectedRevision: (await a.current()).revision }), 200);
-    assert.equal(deletion.complete, false);
-    assert.ok(deletion.unresolved.some((r: any) => r.code === 'TD2_MERGE_HISTORY_RETENTION_REQUIRED'));
+    assert.equal(deletion.complete, true);
+    assert.ok(deletion.items.some((r: any) => r.resourceKind === 'talentGraph'));
     const history = ok(await owner.raw('GET', `/people/${a.personId}/merge-history`), 200);
     assert.equal(history.items.length, 2); assert.ok(history.items.every((r: any) => r.record.usable === false && r.originalPersonId === b.personId));
     assert.equal(JSON.stringify(history).includes('SYNTHETIC-PRIVATE'), false);
