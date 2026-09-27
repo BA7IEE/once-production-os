@@ -1,0 +1,13 @@
+
+> once-production-os@0.1.0-dev.1 build:web /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> vite build --config apps/admin-web/vite.config.ts
+
+vite v6.4.1 building for production...
+transforming...
+✓ 49 modules transformed.
+rendering chunks...
+computing gzip size...
+../../dist/web/index.html                   0.47 kB │ gzip:   0.33 kB
+../../dist/web/assets/index-DpHhiSdk.css   23.58 kB │ gzip:   5.56 kB
+../../dist/web/assets/index-CqzDtrRE.js   429.68 kB │ gzip: 129.17 kB
+✓ built in 546ms

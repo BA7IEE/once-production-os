@@ -37,12 +37,16 @@ const detailLabel: Record<string, string> = {
     EXPORT_PAYLOAD_DEPENDS_ON_SOURCE: '旧导出 payload 依赖来源'
 };
 function detailText(code: string) {
+    const source = /^TD2_SOURCE_EVIDENCE_[a-f0-9]{64}:E(\d+):P(\d+):F(\d+)$/.exec(code);
+    if (source) return `删除本来源的 ${source[1]} 条字段依据和 ${source[2]} 条修改建议；不改动关联的 ${source[3]} 项资料及其他来源记录，不改写原核验归属。`;
     const asset = /^TD2_ASSET_GRAPH_[a-f0-9]{64}:C(\d+):Q(\d+):A(\d+):P(\d+)$/.exec(code);
     if (asset) return `移出 ${asset[1]} 项作品集引用、撤销 ${asset[2]} 项资质的当前有效状态、将 ${asset[3]} 项成年资格改为未知，并使 ${asset[4]} 项待审建议失效。原核验历史保留；其他图片和专业资料保留。`;
     if (code.startsWith('TD2_GRAPH_')) return '清理整份人物专业档案及其证据和建议；独立图片原件另行决定。';
     return detailLabel[code] ?? code;
 }
 const unresolvedLabel: Record<string, string> = {
+    TD2_SOURCE_INDEPENDENT_EVIDENCE_REQUIRED: '部分字段没有另一份有效且支持当前值的已登记依据，不能直接删除本来源',
+    TD2_SOURCE_RETENTION_REVIEW_REQUIRED: '来源仍拥有专业资料，需要逐项完成保留与清理方案',
     HIDDEN_PERSON_DEPENDENCY: '存在当前不可见的人才依赖',
     HIDDEN_WORK_DEPENDENCY: '存在当前不可见的作品依赖',
     HIDDEN_PROJECT_DEPENDENCY: '存在当前不可见的项目依赖',
@@ -83,7 +87,7 @@ function DecisionModal({ request, item, sources, canRetain, onClose, onDone }: {
                 <Field label="本项决定">
                     <select value={decision} onChange={e => { setDecision(e.target.value as 'APPLY_PROPOSED' | 'RETAIN_WITH_BASIS'); setRetentionSourceId(''); }}>
                         <option value="APPLY_PROPOSED">按系统建议处置</option>
-                        {canRetain && !['PERSON_TALENT_GRAPH','ASSET_TALENT_REFERENCES'].includes(item.dependencyKind) && <option value="RETAIN_WITH_BASIS">有独立依据，保留</option>}
+                        {canRetain && !['PERSON_TALENT_GRAPH','ASSET_TALENT_REFERENCES','SOURCE_TALENT_EVIDENCE'].includes(item.dependencyKind) && <option value="RETAIN_WITH_BASIS">有独立依据，保留</option>}
                     </select>
                 </Field>
                 {decision === 'RETAIN_WITH_BASIS' && <Field label="独立保留依据" hint="必须是另一份当前有效的正式 INTERNAL_USE 来源；目标原来源不能自证保留。">

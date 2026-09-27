@@ -1,3 +1,4 @@
+import { previewTalentSourceErasure } from './talent-source-erasure.ts';
 import { previewTalentAssetErasure } from './talent-asset-erasure.ts';
 import { previewTalentErasure } from './talent-v2-erasure.ts';
 import { talentDependencyCounts } from './talent-v2-integrity.ts';
@@ -252,7 +253,16 @@ export class Deletions {
                 evidenceState: 'REVIEW_REQUIRED', detailCode: talent.detailCode });
         } else if (targetKind === 'SOURCE') {
             const talent = await talentDependencyCounts(tx, actor.workspaceId, targetKind, targetId);
-            if (talent.count) miss('TD2_SOURCE_RETENTION_REVIEW_REQUIRED');
+            if (talent.count) {
+                const graph = await previewTalentSourceErasure(tx, actor, targetId, this.clock);
+                const ids = new Set(graph.evidence.map(e => e.id));
+                for (const [key, impact] of impacts) if (impact.resourceKind === 'evidence' && ids.has(impact.resourceId)) impacts.delete(key);
+                if (graph.blocker) miss(graph.blocker);
+                else if (graph.count) {
+                    add({resourceKind:'talentSourceEvidenceGraph',resourceId:targetId,dependencyKind:'SOURCE_TALENT_EVIDENCE',
+                        proposedAction:'ERASE_PAYLOAD',evidenceState:'REVIEW_REQUIRED',detailCode:graph.detailCode});
+                }
+            }
         }
 
         const sorted = [...impacts.values()].sort((a, b) => [a.resourceKind, a.resourceId, a.dependencyKind].join(':').localeCompare([b.resourceKind, b.resourceId, b.dependencyKind].join(':')));
@@ -381,8 +391,8 @@ export class Deletions {
 
         let retentionSourceId: string | null = null, retentionSourceRevision: number | null = null, retentionSourceProtectionEpoch: number | null = null;
         if (d.decision === 'RETAIN_WITH_BASIS') {
-            invariant(!['talentGraph','talentAssetGraph'].includes(item.resourceKind), 'TD2_ERASURE_RETENTION_UNSUPPORTED',
-                '不能在删除主体或原件的同时保留完整专业档案或有效证明引用；需要保留时请停止本次删除', 422);
+            invariant(!['talentGraph','talentAssetGraph','talentSourceEvidenceGraph'].includes(item.resourceKind), 'TD2_ERASURE_RETENTION_UNSUPPORTED',
+                '本项必须清理指定对象的资料或引用；独立来源证据不能改记来源，需要保留时请停止本次删除', 422);
             requirePermission(actor, 'sources.review');
             invariant(!!d.retentionSourceId && d.retentionSourceId !== row.targetSourceId, 'RETENTION_BASIS_REQUIRED', '保留必须选择另一份独立且当前有效的来源依据', 422);
             const basis = await sourceFor(tx, actor, d.retentionSourceId, this.clock);

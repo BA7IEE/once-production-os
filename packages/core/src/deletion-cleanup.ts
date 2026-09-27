@@ -1,3 +1,4 @@
+import { eraseTalentSourceEvidence } from './talent-source-erasure.ts';
 import { deletionWorkerActor } from './deletion-worker-policy.ts';
 import { eraseTalentAssetReferences } from './talent-asset-erasure.ts';
 import { eraseTalentPersonGraph } from './talent-v2-erasure.ts';
@@ -23,7 +24,7 @@ const relationTable: Record<string, Table> = {
     shortlistItem: 'shortlistItems'
 };
 const actionPriority = (item: DeletionItem) => {
-    if (['talentGraph','talentAssetGraph'].includes(item.resourceKind)) return 5;
+    if (['talentGraph','talentAssetGraph','talentSourceEvidenceGraph'].includes(item.resourceKind)) return 5;
     if (item.resourceKind === 'shortlistItemAsset') return 10;
     if (item.resolvedAction === 'REMOVE_RELATION') return item.resourceKind === 'shortlistItem' ? 30 : 20;
     if (item.resolvedAction === 'REVOKE_PERMISSION') return 40;
@@ -229,6 +230,10 @@ export class DeletionCleanup {
             return { outcome: 'DONE' };
         }
         if (action === 'ERASE_PAYLOAD') {
+            if (item.resourceKind === 'talentSourceEvidenceGraph') {
+                await eraseTalentSourceEvidence(tx, request, item, this.clock);
+                return { outcome: 'DONE' };
+            }
             if (item.resourceKind === 'talentAssetGraph') {
                 await eraseTalentAssetReferences(tx, request, item, this.clock);
                 return { outcome: 'DONE' };

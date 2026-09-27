@@ -45,5 +45,8 @@ test('TD2 real PostgreSQL professional merge rollback and retry', async () => {
         console.log('PASS TD2 PG: explicit conflicts, immutable history, raw SQL lineage guards; typed merge stable IDs, original sources, role links, audit rollback, retry and replay');
         await verifyTalentEvidenceHistory(app,store,clock,owner);
         console.log('PASS TD2 evidence history PG: paginated current/stale field support, suspended sources and original review attribution; restricted fields and machine reads rejected');
-    } finally { await store.close(); }
+        const { verifyIndependentSourceErasure } = await import('../support/talent-source-erasure.ts');
+    await verifyIndependentSourceErasure({app,store,clock,owner});
+    console.log('PASS real PostgreSQL independent source evidence cleanup: preserved facts/provenance, audit rollback/retry and final erasure');
+} finally { await store.close(); }
 });
