@@ -147,9 +147,20 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         const historyDuplicate = result(await owner.cmd('POST', '/td2/people', {schemaVersion:'once-talent-v2.0.0',originSourceId:sourceId,sourceRevision:1,displayName:'合成恢复历史',createTalent:true}));
         const historyPersonId = historyDuplicate.resourceId;
         assert.ok(historyPersonId);
+        const reviewListId=result(await owner.cmd('POST','/shortlists',{title:'合成恢复待核实候选',scopeId:td2Person.scopeId})).resourceId;
+        assert.ok(reviewListId);
+        const reviewItems=[];
+        for(const [position,candidateId] of [personId,historyPersonId].entries()) {
+            const candidate=await sourceClient.person.findUniqueOrThrow({where:{id:candidateId}});
+            reviewItems.push(await sourceClient.shortlistItem.create({data:{id:randomUUID(),workspaceId:candidate.workspaceId,createdAt:candidate.createdAt,updatedAt:candidate.updatedAt,revision:1,shortlistId:reviewListId,personId:candidateId,position,note:'合成迁移输入',addedPersonRevision:candidate.revision,addedPersonSourceRevision:1,roleContextState:'LEGACY_REVIEW'}}));
+        }
+        const candidateReview=await sourceClient.talentMigrationReview.create({data:{id:randomUUID(),workspaceId:td2Person.workspaceId,createdAt:reviewItems[1]!.createdAt,updatedAt:reviewItems[1]!.updatedAt,revision:1,personId:historyPersonId,shortlistItemId:reviewItems[1]!.id,reason:'SHORTLIST_ROLE_REQUIRED',state:'PENDING'}});
         const historyPreview = await mergePreview(sourceStore, owner, personId, historyPersonId);
         const historyMerge = await owner.cmd('POST', '/people/merge', { ...mergeInput(historyPreview), professionalConflicts: historyPreview.professional.conflicts.map((c: any) => ({table:c.table,canonicalId:c.canonicalId,duplicateId:c.duplicateId,choice:'RETAIN_DUPLICATE_HISTORY'})) });
         assert.equal(historyMerge.status,200,JSON.stringify(historyMerge.body));
+        const preservedCandidateReview=await sourceClient.talentMigrationReview.findUniqueOrThrow({where:{id:candidateReview.id}});
+        assert.deepEqual(preservedCandidateReview.previousShortlistItemIds,[reviewItems[1]!.id]);
+        assert.equal(preservedCandidateReview.shortlistItemId,reviewItems[0]!.id);assert.equal(preservedCandidateReview.state,'PENDING');
         const historyId = (await sourceClient.talentProfile.findFirstOrThrow({where:{personId:historyPersonId}})).id;
 
         const mergeBase=await sourceClient.personMergeDecision.findUniqueOrThrow({where:{id:result(historyMerge).resourceId}});
@@ -250,6 +261,7 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         assert.equal(await restoreClient.personAlias.count({where:{oldPersonId:historyPersonId,canonicalPersonId:personId}}),1);
         const restoredEvidence=await restoreClient.fieldEvidence.findUniqueOrThrow({where:{id:importedEvidence.id}});
         assert.deepEqual(restoredEvidence,importedEvidence);
+        assert.deepEqual(await restoreClient.talentMigrationReview.findUniqueOrThrow({where:{id:candidateReview.id}}),preservedCandidateReview);
         assert.deepEqual(await restoreClient.personMergeDecision.findUniqueOrThrow({where:{id:importedMerge.id}}),importedMerge);
         assert.deepEqual(await restoreClient.personAlias.findUniqueOrThrow({where:{id:importedAlias.id}}),importedAlias);
         assert.deepEqual(await restoreClient.adultEligibility.findUniqueOrThrow({where:{id:importedAdult.id}}),importedAdult);

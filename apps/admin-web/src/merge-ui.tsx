@@ -147,7 +147,7 @@ function PreviewPanel({ preview, fieldChoices, collisionChoices, setFieldChoice,
         </section>}
 
         {!!preview.collisions.length && <section className="panel">
-            <div className="panel-heading"><div><h2>关系冲突</h2><p>两条身份在同一业务对象上已有重复关系，必须保留其中一条。</p></div></div>
+            <div className="panel-heading"><div><h2>关系冲突</h2><p>两条身份在同一业务对象上已有重复关系，必须保留其中一条。职业不明的候选合并后仍需复核；两边的复核记录都会保留，并记录原候选编号。</p></div></div>
             <div className="table-wrap"><table><thead><tr><th>类型</th><th>对象</th><th>主档案关系</th><th>重复档案关系</th><th>决定</th></tr></thead><tbody>{preview.collisions.map(x =>
                 <tr key={x.id}><td>{collisionLabel[x.kind] ?? x.kind}</td><td>{x.rootLabel}</td><td className="merge-value">{valueText(x.canonicalValue)}</td><td className="merge-value">{valueText(x.duplicateValue)}</td><td>
                     <select aria-label={'关系决定 ' + x.id} value={collisionChoices[x.id] ?? ''} onChange={e => setCollisionChoice(x.id, (e.target.value || undefined) as PersonMergeCollisionChoice | undefined)}>

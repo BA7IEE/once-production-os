@@ -220,6 +220,8 @@ export interface FieldProposal extends Base {
     decidedById: string | null;
 }
 export interface TalentMigrationReview extends Base {
+    /** Prior candidate UUIDs, appended when an explicit identity merge keeps the other candidate. */
+    previousShortlistItemIds?: string[];
     personId: string;
     shortlistItemId: string | null;
     reason: 'HEIGHT_SEMANTICS_REQUIRED' | 'SHORTLIST_ROLE_REQUIRED';

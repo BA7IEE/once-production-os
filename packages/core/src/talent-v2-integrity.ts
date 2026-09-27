@@ -106,6 +106,8 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
             if(row.state==='VERIFIED_ADULT')check(row.verifiedAt!=null&&(row.verifiedByMembershipId!=null||originals.length===2));
         }
         if (table === 'talentMigrationReviews') {
+            const previous = row.previousShortlistItemIds ?? [];
+            check(Array.isArray(previous) && previous.length <= 100 && new Set(previous).size === previous.length && previous.every(id => typeof id === 'string' && /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(id) && id !== row.shortlistItemId));
             ref(row, 'shortlistItemId', 'shortlistItems', true);
             ref(row, 'resolvedById', 'memberships');
         }

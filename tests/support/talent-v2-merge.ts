@@ -174,3 +174,44 @@ export async function verifyRoleCandidateMerge(app: Application,store: Store,clo
     assert.equal(ok(await client.cmd('POST','/people/merge',input,key),200).replayed,true);assert.deepEqual(await snapshot(),after);
     assert.equal((await store.transaction(tx=>inspectTalentIntegrity(tx,workspaceId,app.config.contactKey))).relationFailures,0);
 }
+
+export async function verifyUnknownRoleCandidateMerge(app: Application, store: Store, clock: FakeClock, owner: Client) {
+    for (const choice of ['KEEP_CANONICAL', 'KEEP_DUPLICATE'] as const) {
+        const {a,b,list,ids}=await seedRoleCandidates(app,store,clock,owner);
+        const workspaceId=(await a.current()).workspaceId, reviews=[randomUUID(),randomUUID()];
+        await store.transaction(async tx=>{
+            for(const [index,id] of [ids[0]!,ids[2]!].entries()) {
+                const row=(await tx.get('shortlistItems',id))!;
+                await tx.replace('shortlistItems',{...row,personRoleId:null,personRoleRevision:null,roleContextState:'LEGACY_REVIEW'});
+                await tx.insert('talentMigrationReviews',{id:reviews[index]!,workspaceId,createdAt:clock.now().toISOString(),updatedAt:clock.now().toISOString(),revision:1,personId:row.personId,shortlistItemId:id,previousShortlistItemIds:[],reason:'SHORTLIST_ROLE_REQUIRED',state:'PENDING',resolvedAt:null,resolvedById:null});
+            }
+        });
+        const snapshot=()=>store.transaction(tx=>talentSnapshot(tx,workspaceId)),before=await snapshot();
+        const p=await mergePreview(store,owner,a.personId,b.personId);assert.equal(p.complete,true,JSON.stringify(p.blockers));
+        assert.equal(p.collisions.filter((c:any)=>c.kind==='SHORTLIST_ITEM').length,1);
+        const input={...mergeInput(p),collisionDecisions:p.collisions.map((c:any)=>({collisionId:c.id,choice})),professionalConflicts:p.professional.conflicts.map((c:any)=>({table:c.table,canonicalId:c.canonicalId,duplicateId:c.duplicateId,choice:c.choices.includes('RETAIN_DUPLICATE_HISTORY')?'RETAIN_DUPLICATE_HISTORY':'KEEP_CANONICAL_ACTIVE'}))};
+        assert.equal((await owner.cmd('POST','/people/merge',{...input,collisionDecisions:[]})).status,422);
+        const fault=new FaultStore(store);fault.afterInsert=(t,r)=>{if(t==='audits'&&'action' in r&&r.action==='person.merge')throw new AppError(503,'STORE_UNAVAILABLE','synthetic review merge audit failure');};
+        const client=new Client(new Application(fault,app.config,clock));client.jar={...owner.jar};client.csrf=owner.csrf;
+        const key=randomUUID();assert.equal((await client.cmd('POST','/people/merge',input,key)).status,503);assert.deepEqual(await snapshot(),before);
+        fault.afterInsert=null;ok(await client.cmd('POST','/people/merge',input,key),200);
+        const after=await snapshot(),kept=choice==='KEEP_CANONICAL'?ids[0]!:ids[2]!,removed=choice==='KEEP_CANONICAL'?ids[2]!:ids[0]!;
+        assert.equal(after.shortlistItems.some(r=>r.id===removed),false);
+        const candidate=after.shortlistItems.find(r=>r.id===kept)!;
+        assert.equal(candidate.personId,a.personId);assert.equal(candidate.personRoleId,null);assert.equal(candidate.roleContextState,'LEGACY_REVIEW');
+        assert.equal(candidate.note,before.shortlistItems.find(r=>r.id===kept)!.note);
+        for(const id of reviews) {
+            const old=before.talentMigrationReviews.find(r=>r.id===id)!,row=after.talentMigrationReviews.find(r=>r.id===id)!;
+            assert.equal(row.personId,a.personId);assert.equal(row.shortlistItemId,kept);assert.equal(row.state,'PENDING');assert.equal(row.reason,old.reason);
+            assert.equal(row.resolvedAt,null);assert.equal(row.resolvedById,null);assert.equal(row.createdAt,old.createdAt);
+            assert.deepEqual(row.previousShortlistItemIds,old.shortlistItemId===removed?[removed]:[]);
+        }
+        assert.equal(ok(await client.cmd('POST','/people/merge',input,key),200).replayed,true);assert.deepEqual(await snapshot(),after);
+        assert.equal((await store.transaction(tx=>inspectTalentIntegrity(tx,workspaceId,app.config.contactKey))).relationFailures,0);
+        const role=await store.transaction(tx=>tx.get('personRoles',a.roleId));
+        const root=await store.transaction(tx=>tx.get('shortlists',list));
+        ok(await owner.cmd('POST',`/td2/shortlists/${list}/role`,{schemaVersion,expectedRevision:root!.revision,itemId:kept,personRoleId:role!.id,personRoleRevision:role!.revision}),200);
+        const resolved=await snapshot();
+        for(const id of reviews){const row=resolved.talentMigrationReviews.find(r=>r.id===id)!;assert.equal(row.state,'RESOLVED');assert.ok(row.resolvedById);assert.deepEqual(row.previousShortlistItemIds,after.talentMigrationReviews.find(r=>r.id===id)!.previousShortlistItemIds);}
+    }
+}

@@ -1809,6 +1809,7 @@ model FieldProposal {
 }
 
 model TalentMigrationReview {
+  previousShortlistItemIds String[] @default([]) @db.Uuid
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)

@@ -128,8 +128,10 @@ export async function scanTalentMerge(tx: Tx, actor: Actor, clock: Clock, canoni
     for (const b of shortlists.filter(r => r.personId === duplicateId)) {
         const a=shortlists.find(a => a.personId === canonicalId && a.shortlistId === b.shortlistId
             && (a.workId ?? null) === (b.workId ?? null) && (a.personRoleId ?? null) === (b.personRoleId ?? null));
-        if(a && (a.personRoleId || b.personRoleId || data.talentMigrationReviews.some(r=>r.shortlistItemId===a.id||r.shortlistItemId===b.id)))
+        if(a && (a.personRoleId || b.personRoleId))
             blockers.add('TD2_MERGE_SHORTLIST_CONFLICT');
+        if(a && data.talentMigrationReviews.some(r=>(r.shortlistItemId===a.id||r.shortlistItemId===b.id) && Array.isArray(r.previousShortlistItemIds) && r.previousShortlistItemIds.length>=100))
+            blockers.add('TD2_MERGE_LIMIT');
     }
     const count = [...selected.values()].reduce((n, rows) => n + rows.length, 0);
     if (count > 500) blockers.add('TD2_MERGE_LIMIT');

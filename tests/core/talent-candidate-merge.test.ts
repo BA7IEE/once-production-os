@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {fixture,result} from '../support/fixtures.ts';
-import {seedRoleCandidates,verifyRoleCandidateMerge,mergePreview,mergeInput} from '../support/talent-v2-merge.ts';
+import {seedRoleCandidates,verifyRoleCandidateMerge,verifyUnknownRoleCandidateMerge,mergePreview,mergeInput} from '../support/talent-v2-merge.ts';
 
 test('TD2 identity merge preserves separate role candidates, notes and inactive role context with atomic retry',async()=>{
     const f=await fixture();await verifyRoleCandidateMerge(f.app,f.store,f.clock,f.owner);
@@ -20,15 +20,8 @@ test('TD2 shortlist scope loss hides candidate acknowledgements and shortlist ch
         }
     }
 });
-test('TD2 unknown-role collisions with migration review evidence remain blocked without deleting their review',async()=>{
-    const f=await fixture(),g=await seedRoleCandidates(f.app,f.store,f.clock,f.owner);
-    await f.store.transaction(async tx=>{
-        for(const id of [g.ids[0]!,g.ids[2]!]){const row=(await tx.get('shortlistItems',id))!;await tx.replace('shortlistItems',{...row,personRoleId:null,personRoleRevision:null,roleContextState:'LEGACY_REVIEW'});}
-        await tx.insert('talentMigrationReviews',{id:randomUUID(),workspaceId:f.workspaceId,createdAt:f.clock.now().toISOString(),updatedAt:f.clock.now().toISOString(),revision:1,personId:g.b.personId,shortlistItemId:g.ids[2]!,reason:'SHORTLIST_ROLE_REQUIRED',state:'PENDING',resolvedAt:null,resolvedById:null});
-    });
-    const p=await mergePreview(f.store,f.owner,g.a.personId,g.b.personId);assert.equal(p.complete,false);assert.ok(p.blockers.some((b:any)=>b.code==='TD2_MERGE_SHORTLIST_CONFLICT'));
-    assert.equal((await f.owner.cmd('POST','/people/merge',mergeInput(p))).status,409);
-    assert.equal(f.store.rows('shortlistItems').filter(r=>r.shortlistId===g.list).length,4);assert.equal(f.store.rows('talentMigrationReviews').filter(r=>r.shortlistItemId===g.ids[2]).length,1);
+test('TD2 unknown-role collisions preserve both pending reviews with explicit choice, atomic retry and later human role binding',async()=>{
+    const f=await fixture();await verifyUnknownRoleCandidateMerge(f.app,f.store,f.clock,f.owner);
 });
 test('TD2 selected media requires current asset permission and its links bind the merge preview',async()=>{
     const f=await fixture(),g=await seedRoleCandidates(f.app,f.store,f.clock,f.owner);
@@ -46,4 +39,18 @@ test('TD2 selected media requires current asset permission and its links bind th
     assert.equal(hidden.preview.restricted,true);assert.deepEqual(hidden.preview.items,[]);
     await f.store.transaction(tx=>tx.remove('shortlistItemAssets',f.store.rows('shortlistItemAssets')[0]!.id));
     const changed=await f.store.transaction(tx=>scanTalentMerge(tx,actor,f.clock,g.a.personId,g.b.personId));assert.notEqual(changed.digest,visible.digest);
+});
+
+test('TD2 candidate review changes stale merge plans and oversized lineage blocks the merge',async()=>{
+    const f=await fixture(),g=await seedRoleCandidates(f.app,f.store,f.clock,f.owner),reviewId=randomUUID();
+    await f.store.transaction(async tx=>{
+        for(const id of [g.ids[0]!,g.ids[2]!]){const row=(await tx.get('shortlistItems',id))!;await tx.replace('shortlistItems',{...row,personRoleId:null,personRoleRevision:null,roleContextState:'LEGACY_REVIEW'});}
+        await tx.insert('talentMigrationReviews',{id:reviewId,workspaceId:f.workspaceId,createdAt:f.clock.now().toISOString(),updatedAt:f.clock.now().toISOString(),revision:1,personId:g.b.personId,shortlistItemId:g.ids[2]!,previousShortlistItemIds:[],reason:'SHORTLIST_ROLE_REQUIRED',state:'PENDING',resolvedAt:null,resolvedById:null});
+    });
+    const p=await mergePreview(f.store,f.owner,g.a.personId,g.b.personId);assert.equal(p.complete,true);
+    await f.store.transaction(async tx=>{const r=(await tx.get('talentMigrationReviews',reviewId))!;await tx.replace('talentMigrationReviews',{...r,revision:r.revision+1});});
+    assert.equal((await f.owner.cmd('POST','/people/merge',mergeInput(p))).status,409);
+    assert.ok(f.store.rows('shortlistItems').some(r=>r.id===g.ids[2]));
+    await f.store.transaction(async tx=>{const r=(await tx.get('talentMigrationReviews',reviewId))!;await tx.replace('talentMigrationReviews',{...r,previousShortlistItemIds:Array.from({length:100},()=>randomUUID())});});
+    const bounded=await mergePreview(f.store,f.owner,g.a.personId,g.b.personId);assert.equal(bounded.complete,false);assert.ok(bounded.blockers.some((b:any)=>b.code==='TD2_MERGE_LIMIT'));
 });

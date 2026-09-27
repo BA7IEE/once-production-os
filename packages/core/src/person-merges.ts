@@ -185,6 +185,7 @@ export class PersonMerges {
             else projectParticipantMoveIds.push(row.id);
         }
 
+        const candidateReviews = await tx.find('talentMigrationReviews', { workspaceId: actor.workspaceId });
         const duplicateShort = await tx.find('shortlistItems', { workspaceId: actor.workspaceId, personId: duplicate.id });
         const canonicalShort = await tx.find('shortlistItems', { workspaceId: actor.workspaceId, personId: canonical.id });
         for (const row of duplicateShort) {
@@ -194,8 +195,8 @@ export class PersonMerges {
             const existing = canonicalShort.find(x => x.shortlistId === row.shortlistId && (x.workId ?? null) === (row.workId ?? null)
                 && (x.personRoleId ?? null) === (row.personRoleId ?? null));
             if (existing) collisions.push({ id: row.id, kind: 'SHORTLIST_ITEM', rootId: row.shortlistId, rootLabel: root.title,
-                canonicalEntryId: existing.id, duplicateEntryId: row.id, canonicalValue: { note: existing.note, workId: existing.workId },
-                duplicateValue: { note: row.note, workId: row.workId } });
+                canonicalEntryId: existing.id, duplicateEntryId: row.id, canonicalValue: { note: existing.note, workId: existing.workId, migrationReviewCount: candidateReviews.filter(r=>r.shortlistItemId===existing.id).length },
+                duplicateValue: { note: row.note, workId: row.workId, migrationReviewCount: candidateReviews.filter(r=>r.shortlistItemId===row.id).length } });
             else shortlistItemMoveIds.push(row.id);
         }
         if (collisions.length > L.collisions) blocker(blockers, 'MERGE_COLLISION_LIMIT', collisions.length);
@@ -255,7 +256,13 @@ export class PersonMerges {
         return unique([...(a as string[]), ...(b as string[])]);
     }
 
-    private async deleteShortlistItem(tx: Tx, workspaceId: string, id: string) {
+    private async deleteShortlistItem(tx: Tx, workspaceId: string, id: string, keptId: string) {
+        for (const review of await tx.find('talentMigrationReviews', { workspaceId, shortlistItemId: id })) {
+            const previous = review.previousShortlistItemIds ?? [];
+            invariant(previous.length < 100 && !previous.includes(keptId), 'TD2_MERGE_LIMIT', '候选复核历史不能继续合并', 409);
+            await tx.replace('talentMigrationReviews', { ...touch(review, this.clock), shortlistItemId: keptId,
+                previousShortlistItemIds: [...previous, id] });
+        }
         for (const child of await tx.find('shortlistItemAssets', { workspaceId, itemId: id })) await tx.remove('shortlistItemAssets', child.id);
         await tx.remove('shortlistItems', id);
     }
@@ -389,9 +396,9 @@ export class PersonMerges {
                 const old = await workspaceRow(tx, 'shortlistItems', collision.duplicateEntryId, actor.workspaceId);
                 const keep = await workspaceRow(tx, 'shortlistItems', collision.canonicalEntryId, actor.workspaceId);
                 if (!old || !keep) throw new AppError(409,'MERGE_PREVIEW_STALE','关系已经变化，请重新预览');
-                if (choice === 'KEEP_CANONICAL') await this.deleteShortlistItem(tx, actor.workspaceId, old.id);
+                if (choice === 'KEEP_CANONICAL') await this.deleteShortlistItem(tx, actor.workspaceId, old.id, keep.id);
                 else {
-                    await this.deleteShortlistItem(tx, actor.workspaceId, keep.id);
+                    await this.deleteShortlistItem(tx, actor.workspaceId, keep.id, old.id);
                     const stillOld = await workspaceRow(tx, 'shortlistItems', old.id, actor.workspaceId);
                     if (stillOld) await tx.replace('shortlistItems', { ...touch(stillOld, this.clock),
                         personId: plan.canonical.id, addedPersonRevision: plan.canonical.revision,

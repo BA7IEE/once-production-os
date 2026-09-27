@@ -399,6 +399,15 @@ try {
  for(const personId of [tdCanonical,tdDuplicate]) await cmd(owner,'POST',`/works/${tdCandidateWork}/credits`,{expectedRevision:(await prisma.work.findUniqueOrThrow({where:{id:tdCandidateWork}})).revision,personId,roleCode:'model',note:'合成署名'},200);
  const tdCandidateList=(await cmd(owner,'POST','/shortlists',{title:'TD2保留职业候选',scopeId:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).scopeId},201)).resourceId;
  for(const [personId,personRoleId,note] of [[tdCanonical,tdCanonicalRole,'保留主档案候选备注'],[tdDuplicate,tdRole,'保留重复档案候选备注']]) await cmd(owner,'POST',`/shortlists/${tdCandidateList}/items`,{expectedRevision:(await prisma.shortlist.findUniqueOrThrow({where:{id:tdCandidateList}})).revision,personId,personRoleId,personRoleRevision:1,workId:tdCandidateWork,workAssetIds:[tdCandidateWorkAsset],note},200);
+ // Legacy unknown-role candidates are seeded as historical migration input, never inferred from pictures.
+ const tdUnknownList=(await cmd(owner,'POST','/shortlists',{title:'TD2职业待核实候选',scopeId:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).scopeId},201)).resourceId;
+ const tdUnknownItems=[],tdUnknownReviews=[];
+ for(const [personId,personRoleId] of [[tdCanonical,tdCanonicalRole],[tdDuplicate,tdRole]]) {
+  await cmd(owner,'POST',`/shortlists/${tdUnknownList}/items`,{expectedRevision:(await prisma.shortlist.findUniqueOrThrow({where:{id:tdUnknownList}})).revision,personId,personRoleId,personRoleRevision:1,note:'待核实历史候选',workAssetIds:[]},200);
+  const item=await prisma.shortlistItem.findFirstOrThrow({where:{shortlistId:tdUnknownList,personId}});tdUnknownItems.push(item.id);
+  await prisma.shortlistItem.update({where:{id:item.id},data:{personRoleId:null,personRoleRevision:null,roleContextState:'LEGACY_REVIEW'}});
+  const review=await prisma.talentMigrationReview.create({data:{id:randomUUID(),workspaceId:item.workspaceId,createdAt:item.createdAt,updatedAt:item.updatedAt,revision:1,personId,shortlistItemId:item.id,reason:'SHORTLIST_ROLE_REQUIRED',state:'PENDING'}});tdUnknownReviews.push(review.id);
+ }
  const tdCandidateBefore=await prisma.shortlistItem.findMany({where:{shortlistId:tdCandidateList},orderBy:{position:'asc'}});
  const tdCandidateLinksBefore=await prisma.shortlistItemAsset.findMany({where:{itemId:{in:tdCandidateBefore.map(r=>r.id)}},orderBy:{id:'asc'}});
  await owner.getByRole('button',{name:/概览/}).click();
@@ -411,7 +420,8 @@ try {
  }
  const tdPreview=await writeUI(owner,'POST','/people/merge-preview',()=>owner.getByRole('button',{name:'预览合并影响',exact:true}).click());
  assert.equal(tdPreview.complete,true);
- assert.equal(tdPreview.collisions.filter(c=>c.kind==='SHORTLIST_ITEM').length,0);
+ assert.equal(tdPreview.collisions.filter(c=>c.kind==='SHORTLIST_ITEM').length,1);
+ await owner.getByText(/职业不明的候选合并后仍需复核/).waitFor();
  assert.ok(tdPreview.professional.items.some(r=>r.table==='shortlistItems'&&r.id===tdCandidateBefore[1].id));
  for(const collision of tdPreview.collisions) await owner.getByLabel('关系决定 '+collision.id,{exact:true}).selectOption('KEEP_CANONICAL');
  for(const field of tdPreview.fieldConflicts)await owner.getByLabel('字段决定 '+field.field,{exact:true}).selectOption('CANONICAL');
@@ -428,6 +438,10 @@ try {
  owner.once('dialog',dialog=>void dialog.accept());
  await writeUI(owner,'POST','/people/merge',()=>owner.getByRole('button',{name:'执行受控合并',exact:true}).click());
  await owner.getByText('合并已完成',{exact:true}).waitFor();
+ const mergedUnknown=await prisma.shortlistItem.findUniqueOrThrow({where:{id:tdUnknownItems[0]}});assert.equal(mergedUnknown.personRoleId,null);assert.equal(mergedUnknown.roleContextState,'LEGACY_REVIEW');
+ assert.equal(await prisma.shortlistItem.count({where:{id:tdUnknownItems[1]}}),0);
+ for(const [index,id] of tdUnknownReviews.entries()){const row=await prisma.talentMigrationReview.findUniqueOrThrow({where:{id}});assert.equal(row.personId,tdCanonical);assert.equal(row.shortlistItemId,tdUnknownItems[0]);assert.equal(row.state,'PENDING');assert.equal(row.resolvedById,null);assert.deepEqual(row.previousShortlistItemIds,index===1?[tdUnknownItems[1]]:[]);}
+ console.log('PASS TD2 browser: explicit unknown-role collision keeps both pending review identities and original candidate lineage without inferring a role');
  const tdCandidateAfter=await prisma.shortlistItem.findMany({where:{shortlistId:tdCandidateList},orderBy:{position:'asc'}});
  assert.equal(tdCandidateAfter.length,2);
  for(let i=0;i<2;i++){assert.equal(tdCandidateAfter[i].id,tdCandidateBefore[i].id);assert.equal(tdCandidateAfter[i].personId,tdCanonical);assert.equal(tdCandidateAfter[i].personRoleId,tdCandidateBefore[i].personRoleId);assert.equal(tdCandidateAfter[i].note,tdCandidateBefore[i].note);}
