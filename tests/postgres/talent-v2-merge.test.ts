@@ -1,3 +1,4 @@
+import { verifyTalentEvidenceHistory } from '../support/talent-evidence-history.ts';
 /** Fresh disposable PostgreSQL only. Same domain assertions as MemoryStore, real FK/audit rollback. */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -42,5 +43,7 @@ test('TD2 real PostgreSQL professional merge rollback and retry', async () => {
         const ordinary = await client.talentProfile.findFirstOrThrow({ where: { supersededById: null, id: { not: retired.supersededById! } } });
         await assert.rejects(client.$executeRaw`UPDATE "talentProfiles" SET "supersededById"=${retired.supersededById}::uuid,"revision"="revision"+1 WHERE "id"=${ordinary.id}::uuid`, /matching completed identity merge/);
         console.log('PASS TD2 PG: explicit conflicts, immutable history, raw SQL lineage guards; typed merge stable IDs, original sources, role links, audit rollback, retry and replay');
+        await verifyTalentEvidenceHistory(app,store,clock,owner);
+        console.log('PASS TD2 evidence history PG: paginated current/stale field support, suspended sources and original review attribution; restricted fields and machine reads rejected');
     } finally { await store.close(); }
 });

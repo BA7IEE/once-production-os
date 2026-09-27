@@ -16,3 +16,8 @@ export interface TalentSchema {
     schemaVersion: typeof TALENT_VERSION;
     capabilities: Array<{id:string;code:string;labelZh:string;applicableRoleCodes:string[];levelSchemeCode:string|null}>;
 }
+export interface TalentEvidenceRecord {
+    id: string; createdAt: string; fieldPath: string; valueMatchesCurrent: boolean; supportsCurrentValue: boolean;
+    source: { id: string; title: string; recordedRevision: number; currentRevision: number; current: boolean; revisionMatches: boolean };
+    review: { origin: 'ORIGINAL' | 'CURRENT'; workspaceId: string; membershipId?: string | null; reviewedAt?: string | null } | null;
+}

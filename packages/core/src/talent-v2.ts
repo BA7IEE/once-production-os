@@ -4,7 +4,8 @@ import type { Tx } from './store.ts';
 import { AppError, invariant, missing } from './errors.ts';
 import { base, cas, page, touch, workspaceRow } from './helpers.ts';
 import { digest } from './json.ts';
-import { sourceFor, requirePermission, requireScope } from './policy.ts';
+import { uuid } from './validation.ts';
+import { sourceFor, sourceCurrent, requirePermission, requireScope } from './policy.ts';
 import { encryptContact } from './crypto.ts';
 import { TD2Schemas as S, TD2_FACTS, TD2_TABLES, FACT_SCHEMAS, OWNER_KEYS, VERSION, rowDefaults, valuesSchema, fieldSchema, type FactRow, type FactTable } from './talent-v2-schema.ts';
 import { loadTalentGraph, td2PersonFor, rawFact, insertFact, replaceFact, asRow, periodCurrent } from './talent-v2-graph.ts';
@@ -191,6 +192,31 @@ export class TalentV2 {
         const def=TD2_FACTS[kind as FactTable];invariant(!!def && Object.hasOwn(def.fields,key),'FIELD_UNREGISTERED','字段未在当前资料类型登记',422);
         invariant(!patch||!(def.immutable as readonly string[]).includes(key),'FIELD_IMMUTABLE','该关联或代码不能通过字段建议改写',422);
         return fieldSchema((def.fields as Record<string,string>)[key]!,key);
+    }
+    async evidenceHistory(tx: Tx, actor: Actor, query: Record<string,string>) {
+        humanReview(actor); requirePermission(actor,'records.read'); requirePermission(actor,'sources.read');
+        page([],query,['ownerKind','ownerId','fieldPath']);
+        const kind=query.ownerKind??'', id=uuid.parse(query.ownerId), field=query.fieldPath??'';
+        invariant(Object.hasOwn(OWNER_KEYS,kind),'FACT_KIND_INVALID','资料类型未注册',400); this.field(kind,field);
+        let row: Record<string,unknown>;
+        if(kind==='person') { const graph=await loadTalentGraph(tx,actor,this.clock); graph.get(id); row=asRow(await td2PersonFor(tx,actor,id)); }
+        else row=(await this.owner(tx,actor,kind,id)).row;
+        const entries=await tx.find('evidence',{workspaceId:actor.workspaceId,[OWNER_KEYS[kind]!]:id,fieldPath:field} as never);
+        const items=[];
+        for(const entry of entries) {
+            let source;
+            try { source=await sourceFor(tx,actor,entry.sourceId,this.clock,false); }
+            catch(error) { if(error instanceof AppError&&error.status===404)continue; throw error; }
+            if(source.status==='ERASED')continue;
+            const valueMatchesCurrent=entry.valueDigest===digest(row[field]??null), current=sourceCurrent(source,this.clock), revisionMatches=source.revision===entry.sourceRevision;
+            items.push({id:entry.id,createdAt:entry.createdAt,fieldPath:entry.fieldPath,valueMatchesCurrent,
+                supportsCurrentValue:valueMatchesCurrent&&current&&revisionMatches,
+                source:{id:source.id,title:source.title,recordedRevision:entry.sourceRevision,currentRevision:source.revision,current,revisionMatches},
+                review:entry.originalReviewWorkspaceId?{origin:'ORIGINAL' as const,workspaceId:entry.originalReviewWorkspaceId,membershipId:entry.originalReviewMembershipId,reviewedAt:entry.originalReviewedAt}
+                    :entry.reviewedAt?{origin:'CURRENT' as const,workspaceId:actor.workspaceId,membershipId:entry.reviewerId,reviewedAt:entry.reviewedAt}:null});
+        }
+        items.sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||a.id.localeCompare(b.id));
+        return page(items,query,['ownerKind','ownerId','fieldPath']);
     }
     async addEvidence(tx:Tx,actor:Actor,input:unknown){
         humanReview(actor);const d=S.evidence.parse(input),o=await this.owner(tx,actor,d.ownerKind,d.ownerId);cas(o.row as {revision:number},d.expectedRevision);this.field(d.ownerKind,d.fieldPath);

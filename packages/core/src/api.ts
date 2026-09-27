@@ -297,6 +297,7 @@ export class Application {
                     case 'td2.person.create': return command('person',()=>this.talentV2.createPerson(tx,actor,data));
                     case 'td2.person.patch': return command('person',()=>this.talentV2.patchPerson(tx,actor,id,data));
                     case 'td2.person.enroll': return command('person',()=>this.talentV2.enroll(tx,actor,id,data));
+                    case 'td2.evidence.list': return this.talentV2.evidenceHistory(tx,actor,query);
                     case 'td2.evidence': return command('person',()=>this.talentV2.addEvidence(tx,actor,data));
                     case 'td2.proposal.create': return command('fieldProposal',()=>this.talentV2.proposal(tx,actor,data));
                     case 'td2.proposal.list': return this.talentV2.proposals(tx,actor,query);

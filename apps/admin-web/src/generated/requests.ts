@@ -8,6 +8,7 @@ export interface Inputs {
   "td2.person.get": undefined;
   "td2.person.patch": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "displayName"?: string; "aliases"?: Array<string>; "intro"?: string; "status"?: "DRAFT" | "ACTIVE" | "ARCHIVED" };
   "td2.person.enroll": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "sourceRevision": number };
+  "td2.evidence.list": undefined;
   "td2.evidence": { "schemaVersion": "once-talent-v2.0.0"; "ownerKind": "person" | "talentProfiles" | "personRoles" | "personCapabilities" | "personLanguages" | "talentLocations" | "castingProfiles" | "measurementSets" | "adultEligibilities" | "representations" | "personExternalRefs" | "personCredentials" | "translatorLanguagePairs" | "translatorServiceModes" | "mediaCollections" | "mediaCollectionTags"; "ownerId": string; "fieldPath": string; "expectedRevision": number; "sourceId": string; "sourceRevision": number };
   "td2.proposal.create": { "schemaVersion": "once-talent-v2.0.0"; "ownerKind": "person" | "talentProfiles" | "personRoles" | "personCapabilities" | "personLanguages" | "talentLocations" | "castingProfiles" | "measurementSets" | "adultEligibilities" | "representations" | "personExternalRefs" | "personCredentials" | "translatorLanguagePairs" | "translatorServiceModes" | "mediaCollections" | "mediaCollectionTags"; "ownerId": string; "fieldPath": string; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "proposedValue": unknown };
   "td2.proposal.list": undefined;
@@ -207,6 +208,11 @@ export const ENDPOINTS = {
     "method": "POST",
     "path": "/td2/people/{id}/enroll",
     "mode": "COMMAND"
+  },
+  "td2.evidence.list": {
+    "method": "GET",
+    "path": "/td2/evidence",
+    "mode": "READ"
   },
   "td2.evidence": {
     "method": "POST",

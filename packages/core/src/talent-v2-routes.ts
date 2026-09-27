@@ -9,6 +9,7 @@ export const TD2_ROUTES:RouteDefinition[]=[
     {method:'GET',path:'/td2/people/{id}',operation:'td2.person.get',mode:'READ',permission:'records.read'},
     {method:'PATCH',path:'/td2/people/{id}',operation:'td2.person.patch',mode:'COMMAND',schema:S.personPatch},
     {method:'POST',path:'/td2/people/{id}/enroll',operation:'td2.person.enroll',mode:'COMMAND',schema:S.enroll},
+    {method:'GET',path:'/td2/evidence',operation:'td2.evidence.list',mode:'READ',permission:'sources.review'},
     {method:'POST',path:'/td2/evidence',operation:'td2.evidence',mode:'COMMAND',permission:'sources.review',schema:S.evidence},
     {method:'POST',path:'/td2/proposals',operation:'td2.proposal.create',mode:'COMMAND',schema:S.proposal},
     {method:'GET',path:'/td2/proposals',operation:'td2.proposal.list',mode:'READ',permission:'sources.review'},
