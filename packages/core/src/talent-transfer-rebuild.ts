@@ -1,3 +1,4 @@
+import {rekeyCredential,type CredentialRebuildKeys} from './credential-transfer-crypto.ts';
 import { TALENT_OWNER_EMPTY } from './talent-v2-model.ts';
 import { TD2_FACTS } from './talent-v2-schema.ts';
 import type { Actor, Clock, TableMap } from './model.ts';
@@ -53,13 +54,13 @@ export async function validateTalentRebuild(tx: Tx, actor: Actor, clock: Clock, 
     }
 }
 
-export async function applyTalentRebuild(tx: Tx, actor: Actor, bundle: TalentTransfer, scopeId: string) {
+export async function applyTalentRebuild(tx: Tx, actor: Actor, bundle: TalentTransfer, scopeId: string, keys?:CredentialRebuildKeys) {
     for (const organization of bundle.organizations??[]) await tx.insert('organizations',{...organization,workspaceId:actor.workspaceId,scopeId});
     for (const definition of bundle.capabilityDefinitions??[]) await tx.insert('capabilityDefinitions',{...definition,workspaceId:actor.workspaceId});
     // Foreign keys are deferred; insertion order still puts owners before their dependents.
     for (const table of TRANSFER_TABLES) for (const row of transferRows(bundle,table)) {
         const { data, ...identity } = row;
-        await tx.insert(table, { ...identity, workspaceId: actor.workspaceId, ...data,
+        await tx.insert(table, { ...identity, workspaceId: actor.workspaceId, ...(table==='personCredentials'?rekeyCredential(bundle,row,actor.workspaceId,keys):data),
             ...(table === 'talentProfiles' ? {supersededById:null} : {}),
             ...(table === 'castingProfiles' ? {supersededById:null,retiredCurrentMeasurementSetId:null} : {})
         } as unknown as TableMap[typeof table]);

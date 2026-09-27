@@ -26,11 +26,18 @@ test('TD2 PostgreSQL controlled multi-source export and isolated typed rebuild p
             const app=new Application(store,{origin:'https://transfer.test.invalid',secureCookies:true,contactKey:randomBytes(32),csrfKey:randomBytes(32),recoveryEpoch:randomBytes(24).toString('hex'),accessMode:'INTERNAL',environment:'test',dataEgressMode:'INTERNAL_APPROVED',dataCleanupMode:'INTERNAL_APPROVED',dataMergeMode:'INTERNAL_APPROVED'},clock);
             await app.identity.bootstrap('owner','合成专业迁移管理员',SYNTHETIC_PASSWORD);const owner=new Client(app);assert.equal((await owner.login()).status,200);sides.push({app,store,clock,owner});
         }
+        const sourceKey=join(tmp,'source.key'),targetKey=join(tmp,'target.key');
+        writeFileSync(sourceKey,sides[0]!.app.config.contactKey.toString('hex'),{mode:0o600});writeFileSync(targetKey,sides[1]!.app.config.contactKey.toString('hex'),{mode:0o600});
+        const keyEnv={REBUILD_SOURCE_CONTACT_KEY_FILE:sourceKey,CONTACT_KEY_FILE:targetKey};
         const transfer=await roundTripTransfer(sides[0]!,{...sides[1]!,apply:async(payload,sha256)=>{
             const input=join(tmp,'apply.json');writeFileSync(input,JSON.stringify(payload),{mode:0o600});
+            const wrongKey=join(tmp,'wrong.key');writeFileSync(wrongKey,randomBytes(32).toString('hex'),{mode:0o600});
+            const denied=spawnSync('pnpm',['--silent','rebuild:json','--','--input',input,'--actor-login','owner','--expected-sha256',sha256,'--apply'],{encoding:'utf8',env:{...process.env,...keyEnv,REBUILD_SOURCE_CONTACT_KEY_FILE:wrongKey,DATABASE_URL_REBUILD:urls[1],ALLOW_REBUILD:'yes'},timeout:60000});
+            assert.equal(denied.status,1);assert.match(denied.stderr,/REBUILD_CREDENTIAL_DECRYPT_FAILED/);assert.equal(await stores[1]!.client.person.count(),0);
+            assert.ok(!denied.stderr.includes('SYNTHETIC-PRIVATE'));
             for(const apply of [false,true]){
-                const run=spawnSync('pnpm',['--silent','rebuild:json','--','--input',input,'--actor-login','owner','--expected-sha256',sha256,...(apply?['--apply']:[])],{encoding:'utf8',env:{...process.env,DATABASE_URL_REBUILD:urls[1],ALLOW_REBUILD:'yes'},timeout:60000});
-                assert.equal(run.status,0,run.stderr);assert.equal(JSON.parse(run.stdout).professionalRecords,16);assert.equal(JSON.parse(run.stdout).capabilityDefinitions,1);assert.equal(JSON.parse(run.stdout).organizations,1);assert.equal(JSON.parse(run.stdout).fieldEvidence,(payload as any).manifest.talent.evidence.length);
+                const run=spawnSync('pnpm',['--silent','rebuild:json','--','--input',input,'--actor-login','owner','--expected-sha256',sha256,...(apply?['--apply']:[])],{encoding:'utf8',env:{...process.env,...keyEnv,DATABASE_URL_REBUILD:urls[1],ALLOW_REBUILD:'yes'},timeout:60000});
+                assert.equal(run.status,0,run.stderr);assert.equal(JSON.parse(run.stdout).professionalRecords,19);assert.equal(JSON.parse(run.stdout).capabilityDefinitions,1);assert.equal(JSON.parse(run.stdout).organizations,1);assert.equal(JSON.parse(run.stdout).fieldEvidence,(payload as any).manifest.talent.evidence.length);
             }
         }});
         const imported=await stores[1]!.client.fieldEvidence.findFirstOrThrow({where:{originalReviewMembershipId:{not:null}}});
@@ -40,8 +47,8 @@ test('TD2 PostgreSQL controlled multi-source export and isolated typed rebuild p
         assert.equal((await stores[1]!.client.fieldEvidence.findUniqueOrThrow({where:{id:imported.id}})).reviewerId,null);
         // Exact CLI parser must recognize this version and retain the populated-target guard.
         const path=join(tmp,'transfer.json');writeFileSync(path,JSON.stringify(transfer.download.payload),{mode:0o600});
-        const cli=spawnSync('pnpm',['--silent','rebuild:json','--','--input',path,'--actor-login','owner','--expected-sha256',transfer.download.sha256],{encoding:'utf8',env:{...process.env,DATABASE_URL_REBUILD:urls[1]},timeout:60000});
+        const cli=spawnSync('pnpm',['--silent','rebuild:json','--','--input',path,'--actor-login','owner','--expected-sha256',transfer.download.sha256],{encoding:'utf8',env:{...process.env,...keyEnv,DATABASE_URL_REBUILD:urls[1]},timeout:60000});
         assert.equal(cli.status,1);assert.match(cli.stderr,/REBUILD_TARGET_NOT_EMPTY/);
-        console.log('PASS TD2 transfer PG: real CLI check/apply, exact source permits, typed UUID/role/measurement links, original field values, unknown/cross-person references rejected, audit rollback and retry, populated target rejected, revoked source grant blocks download');
+        console.log('PASS TD2 transfer PG: real CLI check/apply, exact source permits, typed UUID/role/measurement links, original field values, credential identifiers re-encrypted under target key and workspace, wrong key rejected without writes, unknown/cross-person references rejected, audit rollback and retry, populated target rejected, revoked source grant blocks download');
     } finally { for(const store of stores) await store.close();rmSync(tmp,{recursive:true,force:true}); }
 });

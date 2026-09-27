@@ -1,3 +1,4 @@
+import {loadCredentialRebuildKeys} from './rebuild-credential-keys.ts';
 /** Controlled FR-29/T29 JSON rebuild CLI.
  * This is migration tooling, not backup restore. It never drops, truncates or auto-migrates a database. */
 import { readFileSync, statSync } from 'node:fs';
@@ -83,9 +84,9 @@ if (input.expectedSha256 && input.expectedSha256 !== inputDigest) {
 
 const client = new PrismaClient({ datasources: { db: { url: targetUrl() } }, log: [] });
 const store = new PrismaStore(client);
-const rebuild = new JsonRebuild({ now: () => new Date() });
 
 try {
+    const rebuild = new JsonRebuild({ now: () => new Date() },loadCredentialRebuildKeys(payload,process.env));
     await client.$connect();
     const actor = await store.transaction(tx => rebuild.actorFromTarget(tx, input.actorLogin));
     const summary = input.apply

@@ -5,7 +5,9 @@
 
 ## 本轮接续
 
-当前在 `936d025` 上补字段来源证据导出与重建，见 [TD2_FIELD_EVIDENCE_TRANSFER.md](TD2_FIELD_EVIDENCE_TRANSFER.md)。十一类所选资料的同源/多源证据按独立许可进入 v5，原核验归属保留但不创建目标账号、不伪造目标核验。资质、媒体、合并历史等仍待完成。
+当前在 `23e0017` 上补无附件资质及加密编号迁移，见 [TD2_CREDENTIAL_TRANSFER.md](TD2_CREDENTIAL_TRANSFER.md)。编号独立许可，目标密钥重新加密；带证明附件及已核验资质仍阻断，整体未完成。
+
+前批在 `936d025` 上补字段来源证据导出与重建，见 [TD2_FIELD_EVIDENCE_TRANSFER.md](TD2_FIELD_EVIDENCE_TRANSFER.md)。十一类所选资料的同源/多源证据按独立许可进入 v5，原核验归属保留但不创建目标账号、不伪造目标核验。资质、媒体、合并历史等仍待完成。
 
 前批在 `1cd4e22` 上修复不同职业候选的合并误冲突，见 [TD2_ROLE_CANDIDATE_MERGE.md](TD2_ROLE_CANDIDATE_MERGE.md)。逐项确认后保留独立候选、原职业、备注与选图；职业不明且关联复核的真实碰撞继续阻断。
 

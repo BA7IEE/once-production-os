@@ -1,4 +1,6 @@
-当前接续：[字段来源证据迁移](TD2_FIELD_EVIDENCE_TRANSFER.md)新增独立许可和v5；不复制原账号、不伪造目标核验。完整TD2-06仍未完成。
+当前接续：[无附件资质与加密编号迁移](TD2_CREDENTIAL_TRANSFER.md)。编号需独立许可和原/目标密钥，目标重新加密；不丢弃附件换取通过。完整TD2-06仍未完成。
+
+前批：[字段来源证据迁移](TD2_FIELD_EVIDENCE_TRANSFER.md)新增独立许可和v5；不复制原账号、不伪造目标核验。完整TD2-06仍未完成。
 
 # 当前实现状态｜Talent Domain 2.0 业务衔接
 

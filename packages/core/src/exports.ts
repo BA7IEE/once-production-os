@@ -1,4 +1,4 @@
-import { EVIDENCE_TRANSFER_CODE, transferRows, collectTalentTransfer, isTransferCode, TALENT_EXPORT_VERSION, TRANSFER_TABLES, transferCode, type TalentTransfer } from './talent-transfer.ts';
+import { CREDENTIAL_IDENTIFIER_CODE, EVIDENCE_TRANSFER_CODE, transferRows, collectTalentTransfer, isTransferCode, TALENT_EXPORT_VERSION, TRANSFER_TABLES, transferCode, type TalentTransfer } from './talent-transfer.ts';
 import { randomUUID } from 'node:crypto';
 import type { Actor, Clock, Config, Person, RequestMeta, Source } from './model.ts';
 import type { Store, Tx } from './store.ts';
@@ -79,7 +79,7 @@ export class Exports {
         requirePermission(actor, 'sources.review');
         const d = S.permissionCreate.parse(input);
         invariant(unique(d.fields).length === d.fields.length, 'DUPLICATE_FIELD', '导出字段不能重复', 400);
-        const allowed = d.fields.filter(f => fieldsFor(d.subjectKind, [f]).length || (d.subjectKind === 'SOURCE' && (isTransferCode(f)||f===EVIDENCE_TRANSFER_CODE)));
+        const allowed = d.fields.filter(f => fieldsFor(d.subjectKind, [f]).length || (d.subjectKind === 'SOURCE' && (isTransferCode(f)||f===EVIDENCE_TRANSFER_CODE||f===CREDENTIAL_IDENTIFIER_CODE)));
         invariant(allowed.length === d.fields.length, 'EXPORT_FIELD_SUBJECT_MISMATCH', '导出许可字段与对象类型不匹配', 422);
         const subject = await this.subject(tx, actor, d.subjectKind, d.subjectId);
         invariant(subject.source.id === d.sourceId, 'EXPORT_SOURCE_MISMATCH', '导出许可的来源与对象不一致', 422);
@@ -175,13 +175,14 @@ export class Exports {
         for (const id of workIds) { const row = await workFor(tx, actor, id, this.clock); works.push(row); sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock)); }
         for (const id of projectIds) { const row = await projectFor(tx, actor, id, this.clock); projects.push(row); sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock)); }
 
-        const withEvidence=d.fields.includes(EVIDENCE_TRANSFER_CODE);
+        const withEvidence=d.fields.includes(EVIDENCE_TRANSFER_CODE),withIdentifiers=d.fields.includes(CREDENTIAL_IDENTIFIER_CODE);
+        invariant(!withIdentifiers||transferFields.includes('person.td2.personCredentials'),'TD2_TRANSFER_CREDENTIAL_REQUIRED','编号迁移必须同时选择资质记录',422);
         invariant(!withEvidence||transferFields.length>0,'TD2_TRANSFER_EVIDENCE_OWNER','字段证据必须同时选择专业资料',422);
-        const talent = transferFields.length ? await collectTalentTransfer(tx, actor, this.clock, peopleIds, transferFields, withEvidence) : null;
+        const talent = transferFields.length ? await collectTalentTransfer(tx, actor, this.clock, peopleIds, transferFields, withEvidence, withIdentifiers) : null;
         const sourceTransferFields = new Map<string, Set<ExportFieldCode>>();
         if (talent) for (const table of TRANSFER_TABLES) for (const row of transferRows(talent,table)) {
             sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock));
-            const fields = sourceTransferFields.get(row.sourceId) ?? new Set<ExportFieldCode>(); fields.add(transferCode(table)); sourceTransferFields.set(row.sourceId, fields);
+            const fields = sourceTransferFields.get(row.sourceId) ?? new Set<ExportFieldCode>(); fields.add(transferCode(table)); if(table==='personCredentials'&&row.data.identifierCiphertext) fields.add(CREDENTIAL_IDENTIFIER_CODE); sourceTransferFields.set(row.sourceId, fields);
         }
         for(const e of talent?.evidence??[]) {
             sources.set(e.sourceId,await sourceFor(tx,actor,e.sourceId,this.clock));
@@ -191,6 +192,7 @@ export class Exports {
         for (const organization of talent?.organizations??[]) {
             sources.set(organization.sourceId,await sourceFor(tx,actor,organization.sourceId,this.clock));
             const fields=sourceTransferFields.get(organization.sourceId)??new Set<ExportFieldCode>();
+            if(transferRows(talent!,'personCredentials').some(r=>r.data.issuerOrganizationId===organization.id)) fields.add('person.td2.personCredentials');
             if(transferRows(talent!,'personExternalRefs').some(r=>r.data.issuerOrganizationId===organization.id)) fields.add('person.td2.personExternalRefs');
             if(transferRows(talent!,'representations').some(r=>r.data.agencyOrganizationId===organization.id)) fields.add('person.td2.representations');
             sourceTransferFields.set(organization.sourceId,fields);
@@ -213,7 +215,7 @@ export class Exports {
             const source = sources.get(row.sourceId)!;
             const permission = this.choosePermission(permissions, used, 'PERSON', row.id, row.sourceId, personFields);
             dependencies.push(this.dependency(actor.workspaceId, job.id, 'PERSON', row.id, personFields, source, row.revision, row.protectionEpoch, permission, initialExpiry));
-            return { id: row.id, sourceId: row.sourceId, revision: row.revision, data: dataFields('person.', personFields.filter(f => !isTransferCode(f)&&f!==EVIDENCE_TRANSFER_CODE), row as unknown as Record<string, unknown>) };
+            return { id: row.id, sourceId: row.sourceId, revision: row.revision, data: dataFields('person.', personFields.filter(f => !isTransferCode(f)&&f!==EVIDENCE_TRANSFER_CODE&&f!==CREDENTIAL_IDENTIFIER_CODE), row as unknown as Record<string, unknown>) };
         });
         const manifestWorks = works.map(row => {
             const source = sources.get(row.sourceId)!;
@@ -328,7 +330,7 @@ export class Exports {
         if (row.schemaVersion === TALENT_EXPORT_VERSION) {
             const manifest = row.recordManifest as { people: Array<{id:string}>; talent: TalentTransfer };
             try {
-                const current = await collectTalentTransfer(tx, actor, this.clock, manifest.people.map(p => p.id), row.fields.filter(isTransferCode),row.fields.includes(EVIDENCE_TRANSFER_CODE));
+                const current = await collectTalentTransfer(tx, actor, this.clock, manifest.people.map(p => p.id), row.fields.filter(isTransferCode),row.fields.includes(EVIDENCE_TRANSFER_CODE),row.fields.includes(CREDENTIAL_IDENTIFIER_CODE));
                 invariant(digest(current) === digest(manifest.talent), 'EXPORT_STALE', '专业资料已经变化，请重新生成导出', 409);
             } catch (error) { safeError(error); }
         }

@@ -1,3 +1,4 @@
+import {validateCredentialKeys,type CredentialRebuildKeys} from './credential-transfer-crypto.ts';
 import { transferRows, TALENT_EXPORT_VERSION, TRANSFER_TABLES } from './talent-transfer.ts';
 import { validateTalentRebuild, applyTalentRebuild, applyTransferEvidence } from './talent-transfer-rebuild.ts';
 import type { Actor, Clock, Person, Source, SourceHistory } from './model.ts';
@@ -25,7 +26,8 @@ function businessTime(clock: Clock) {
 
 export class JsonRebuild {
     clock: Clock;
-    constructor(clock: Clock) { this.clock = clock; }
+    private credentialKeys?:CredentialRebuildKeys;
+    constructor(clock: Clock, credentialKeys?:CredentialRebuildKeys) { this.clock = clock; this.credentialKeys=credentialKeys; }
 
     private async target(tx: Tx, actor: Actor) {
         invariant(actor.role === 'ADMIN', 'REBUILD_ADMIN_REQUIRED', '隔离重建只能由目标环境唯一管理员执行', 403);
@@ -39,7 +41,7 @@ export class JsonRebuild {
         const memberships = await tx.find('memberships', { workspaceId: actor.workspaceId });
         invariant(users.length === 1 && memberships.length === 1
             && users[0]?.id === actor.userId && memberships[0]?.id === actor.membershipId
-            && users[0]?.status === 'ACTIVE' && memberships[0]?.status === 'ACTIVE',
+            && users[0]?.status === 'ACTIVE' && memberships[0]?.status === 'ACTIVE' && memberships[0]?.role === 'ADMIN',
             'REBUILD_TARGET_NOT_ISOLATED', '目标必须只保留执行重建的一个已激活管理员账号', 409);
         invariant((await tx.find('activations', { workspaceId: actor.workspaceId })).length === 0,
             'REBUILD_TARGET_NOT_ISOLATED', '目标存在待处理激活凭证，不能开始重建', 409);
@@ -54,7 +56,7 @@ export class JsonRebuild {
             const rows = await tx.find(table, { workspaceId: actor.workspaceId } as never);
             invariant(rows.length === 0, 'REBUILD_TARGET_NOT_EMPTY', '目标已存在业务数据，隔离重建拒绝覆盖或合并现有记录', 409);
         }
-        return { workspace: workspaces[0]!, scope: scopes[0]! };
+        return { workspace: workspaces[0]!, scope: scopes[0]!, member: memberships[0]! };
     }
 
     private async catalog(tx: Tx, actor: Actor, namespace: 'role' | 'city' | 'language' | 'skill' | 'industry' | 'workType', codes: string[]) {
@@ -70,6 +72,11 @@ export class JsonRebuild {
         const typed = payload.schemaVersion === TALENT_EXPORT_VERSION;
         invariant(payload.schemaVersion === payload.manifest.schemaVersion && typed === !!payload.manifest.talent, 'REBUILD_SCHEMA_MISMATCH', '导出版本与专业资料结构不一致', 422);
         if (payload.manifest.talent) await validateTalentRebuild(tx, actor, this.clock, payload.manifest.talent, payload.manifest.people.map(p=>p.id), payload.manifest.sources.map(s=>s.id));
+        if(payload.manifest.talent&&transferRows(payload.manifest.talent,'personCredentials').some(r=>r.data.identifierCiphertext)) {
+            requirePermission(actor,'sensitive.write');
+            requirePermission({...actor,permissions:permissionsFor(target.member)},'sensitive.write');
+        }
+        if(payload.manifest.talent) validateCredentialKeys(payload.manifest.talent,this.credentialKeys);
         const now = this.clock.now().getTime();
         invariant(Date.parse(payload.frozenAt) <= now && Date.parse(payload.manifest.frozenAt) <= now,
             'REBUILD_EXPORT_TIME_INVALID', '导出时间不能晚于目标环境当前时间', 422);
@@ -203,7 +210,7 @@ export class JsonRebuild {
                 projectWorks: relations.projectWorks.length,
                 mediaIdentities: media.length
             },
-            ...(payload.manifest.talent ? {fieldEvidence:payload.manifest.talent.evidence?.length??0, organizations:payload.manifest.talent.organizations?.length??0, capabilityDefinitions: payload.manifest.talent.capabilityDefinitions?.length??0, professionalRecords: TRANSFER_TABLES.reduce((n,t)=>n+transferRows(payload.manifest.talent!,t).length,0)} : {}),
+            ...(payload.manifest.talent ? {encryptedCredentialCount:transferRows(payload.manifest.talent,'personCredentials').filter(r=>r.data.identifierCiphertext).length, fieldEvidence:payload.manifest.talent.evidence?.length??0, organizations:payload.manifest.talent.organizations?.length??0, capabilityDefinitions: payload.manifest.talent.capabilityDefinitions?.length??0, professionalRecords: TRANSFER_TABLES.reduce((n,t)=>n+transferRows(payload.manifest.talent!,t).length,0)} : {}),
             mediaRestored: 0
         };
         return { payload, target, summary };
@@ -286,7 +293,7 @@ export class JsonRebuild {
             await tx.insert('projectWorks', relation);
         }
 
-        if (payload.manifest.talent) await applyTalentRebuild(tx, actor, payload.manifest.talent, target.scope.id);
+        if (payload.manifest.talent) await applyTalentRebuild(tx, actor, payload.manifest.talent, target.scope.id,this.credentialKeys);
         if (payload.manifest.talent) await applyTransferEvidence(tx,actor,payload.manifest.talent);
 
         await audit(tx, actor, actor.workspaceId, 'rebuild.apply', 'rebuild-export', payload.exportId,

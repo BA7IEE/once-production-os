@@ -41,6 +41,7 @@ export interface RebuildSummary {
         projectWorks: number;
         mediaIdentities: number;
     };
+    encryptedCredentialCount?: number;
     fieldEvidence?: number;
     professionalRecords?: number;
     capabilityDefinitions?: number;

@@ -1,4 +1,4 @@
-import { TRANSFER_CODES, EVIDENCE_TRANSFER_CODE, TALENT_EXPORT_VERSION } from './talent-transfer.ts';
+import { TRANSFER_CODES, CREDENTIAL_IDENTIFIER_CODE, EVIDENCE_TRANSFER_CODE, TALENT_EXPORT_VERSION } from './talent-transfer.ts';
 import type { Base } from './model.ts';
 
 export const EXPORT_FIELD_CODES = [
@@ -6,7 +6,7 @@ export const EXPORT_FIELD_CODES = [
     'work.title', 'work.description', 'work.industryCode', 'work.workTypeCodes', 'work.origin', 'work.originNote', 'work.status', 'work.relations',
     'project.title', 'project.brief', 'project.locationNote', 'project.dateNote', 'project.reviewNote', 'project.status', 'project.relations',
     'source.title', 'source.type', 'source.providerClaim', 'source.basisMode', 'source.basisDescription', 'source.validFrom', 'source.validUntil', 'source.status',
-    'media.identity', ...TRANSFER_CODES, EVIDENCE_TRANSFER_CODE
+    'media.identity', ...TRANSFER_CODES, CREDENTIAL_IDENTIFIER_CODE, EVIDENCE_TRANSFER_CODE
 ] as const;
 export type ExportFieldCode = typeof EXPORT_FIELD_CODES[number];
 export type ExportSubjectKind = 'SOURCE' | 'PERSON' | 'WORK' | 'PROJECT' | 'ASSET';

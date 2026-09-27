@@ -14425,6 +14425,7 @@
                         "person.td2.personRoles",
                         "person.td2.personCapabilities",
                         "person.td2.representations",
+                        "person.td2.personCredentials",
                         "person.td2.personExternalRefs",
                         "person.td2.personLanguages",
                         "person.td2.talentLocations",
@@ -14432,11 +14433,12 @@
                         "person.td2.castingProfiles",
                         "person.td2.translatorLanguagePairs",
                         "person.td2.translatorServiceModes",
+                        "person.td2.credentialIdentifiers",
                         "person.td2.fieldEvidence"
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 45
+                    "maxItems": 47
                   },
                   "validUntil": {
                     "type": "string",
@@ -14725,6 +14727,7 @@
                         "person.td2.personRoles",
                         "person.td2.personCapabilities",
                         "person.td2.representations",
+                        "person.td2.personCredentials",
                         "person.td2.personExternalRefs",
                         "person.td2.personLanguages",
                         "person.td2.talentLocations",
@@ -14732,11 +14735,12 @@
                         "person.td2.castingProfiles",
                         "person.td2.translatorLanguagePairs",
                         "person.td2.translatorServiceModes",
+                        "person.td2.credentialIdentifiers",
                         "person.td2.fieldEvidence"
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 45
+                    "maxItems": 47
                   },
                   "usePermissionRefs": {
                     "type": "array",
