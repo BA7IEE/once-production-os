@@ -1,0 +1,49 @@
+TAP version 13
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# PASS v14 erased history rebuild: minimal erased identity, original alias/merge choice, distinct original erasure attribution, no deleted profile resurrection, audit rollback and retry
+# Subtest: TD2 v14 export and rebuild explicitly preserve historical erasure without restoring deleted profiles or old identity payload
+ok 1 - TD2 v14 export and rebuild explicitly preserve historical erasure without restoring deleted profiles or old identity payload
+  ---
+  duration_ms: 399.595
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# Subtest: TD2 v14 rejects incomplete erasure lineage, payload resurrection, fabricated reason or old format before writes
+ok 2 - TD2 v14 rejects incomplete erasure lineage, payload resurrection, fabricated reason or old format before writes
+  ---
+  duration_ms: 342.512958
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# PASS source after separately reviewed old identity erasure: exact prior aliases/decisions/markers preserved, remaining source facts removed atomically with audit rollback/retry, canonical identity remains readable
+# PASS v14 erased history rebuild: minimal erased identity, original alias/merge choice, distinct original erasure attribution, no deleted profile resurrection, audit rollback and retry
+# Subtest: TD2 source cleanup after reviewed history erasure exports and rebuilds both minimal erased origin and old identity
+ok 3 - TD2 source cleanup after reviewed history erasure exports and rebuilds both minimal erased origin and old identity
+  ---
+  duration_ms: 451.63775
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# Subtest: TD2 source cleanup still blocks unreviewed merged payload and requires merge permission after separate historical cleanup
+ok 4 - TD2 source cleanup still blocks unreviewed merged payload and requires merge permission after separate historical cleanup
+  ---
+  duration_ms: 512.06575
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# PASS source after separately reviewed old identity erasure: exact prior aliases/decisions/markers preserved, remaining source facts removed atomically with audit rollback/retry, canonical identity remains readable
+# Subtest: TD2 source freeze rechecks separately cleared old identity scopes and its exact prior history
+ok 5 - TD2 source freeze rechecks separately cleared old identity scopes and its exact prior history
+  ---
+  duration_ms: 432.76225
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1332.15125

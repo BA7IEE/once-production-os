@@ -1,3 +1,5 @@
+已独立清理的合并旧身份可衔接后续来源删除：复查当前权限/范围和原清理证据，保留原映射/决定/清理记录，再逐项处理来源剩余资料；v14 重建同时保留原始来源与旧身份的最小 ERASED 头。458/458 CORE_MEMORY_TESTED，最终受影响5/5；完整 PostgreSQL 链与真实双库 CLI/回滚/重试 DB_TESTED，完整 Chromium 分步确认与实际下载 BROWSER_TESTED，类型/契约/静态检查/最终构建 PASS。无迁移，42次既有迁移冻结。见 `docs/release/TD2_SOURCE_HISTORY_CLEARANCE.md`、`artifacts/td2-source-history-clearance-20260928/`。前批 `5bff720` / Actions36357399190 已确认5/5；本批新head另行核对。仍有载荷的 SOURCE 历史组合及 TD2 全量验收继续，未合并、未部署。
+
 合并历史的 PERSON 专用清理和 v14 导出/重建已接通：整个人物或单独旧身份显式确认后清除旧内容，保留原编号映射/原合并决定及追加清理记录；单旧身份清理不改变主档案。455/455 CORE_MEMORY_TESTED；完整 PostgreSQL 链、真实回滚/重试、双库 CLI、已有库升级及实际备份恢复 DB_TESTED；真实 Chromium 旧身份入口→逐项确认→清理→历史显示→v14 下载 BROWSER_TESTED；类型/契约/静态检查/构建 PASS。第42次前向迁移已应用并冻结，两个旧库各59表旧内容摘要未变。见 `docs/release/TD2_MERGE_HISTORY_ERASURE.md`、`artifacts/td2-merge-history-erasure-20260928/`。前批 `89c5a80` / Actions36355302767 已确认5/5；本批新head另行核对。SOURCE 合并历史组合及全量交付继续，未合并、未部署。
 
 来源拥有专业资料并同时提供其他人物身份证据的组合清理已接通：逐项确认具体人物/字段，撤回指定来源证据，保留原身份与独立核验；最终完成重查冻结依据。448/448 CORE_MEMORY_TESTED，最终受影响17/17；完整 PostgreSQL 链与真实事务回滚/重试 DB_TESTED；真实 Chromium 逐项撤回和人物/字段显示 BROWSER_TESTED；类型/契约/静态检查/最终构建 PASS。无新迁移，既有41次保持冻结。见 `docs/release/TD2_SOURCE_OTHER_IDENTITY.md`、`artifacts/td2-source-other-identity-20260928/`。前批 `180eccd` / Actions36354263739 已确认5/5；本批新head另行核对。合并历史清理及整体交付继续，未合并、未部署。
@@ -108,13 +110,13 @@
 `verify:postgres` 新建独立 `once_test_td2_*` 数据库，并纳入专业档案删除、故障回滚和恢复检查。
 `tests/postgres/recovery-approval.test.ts` 扩展原真实数据库+私有媒体备份恢复演练。
 
-## 尚未实现，必须继续
+## 当前仍须继续（前述按日期保留的增量不是当前缺口清单）
 
-1. TD2 typed merge 剩余：职业候选碰撞、已保留档案的专用删除策略；其他本轮支持范围见上文。
-2. TD2白名单导出 + 用途许可/来源依赖，以及对应T29类型化JSON重建。
-3. SOURCE多来源保留清理、ASSET被资质/成人核验/集合引用时的专用处置。
-4. 专业资料的前端组合工作台和真实Chromium新增业务流程。
-5. 旧库升级/新空库/数据重建/恢复的完整TD2-T01～18证据、生产介质和全量性能。
+1. SOURCE 同一份申请内处理仍有载荷的合并旧身份/退休档案；目前已支持先独立 PERSON 清理、再删除来源。
+2. 已核验资格与受限编号的独立保留；普通字段依据不能自动代替原资格核验或敏感字段授权。
+3. TD2-T01～18 在同一指定实现提交上的逐项证据矩阵和最终验收，不能用旧总通过数替代。
+4. Phase C 旧/新查询对照和所有迁移复核；Phase D 只能在规定条件满足后新增迁移，不能提前删旧列。
+5. 全量性能、生产介质与后续 DEV-08 AI。专业工作台和维护已有实测范围见最新增量文档；部署/接管仍需单独授权。
 
 当前采用明确阻断而不是假完成：
 - 上批对全部 TD2 合并统一阻断；本轮改为具体冲突/资格阻断，并支持无冲突专业图显式迁移。

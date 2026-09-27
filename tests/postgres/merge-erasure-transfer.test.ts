@@ -16,10 +16,11 @@ test('TD2 PostgreSQL redacted merge-history export and real CLI rebuild preserve
  const stores=urls.map(url=>new PrismaStore(new PrismaClient({datasources:{db:{url}},log:[]}))),clock=new FakeClock(),tmp=mkdtempSync(join(tmpdir(),'once-erased-history-rebuild-'));
  try{
   const sides=[];for(const store of stores){assert.equal(await store.client.workspace.count(),0);const app=new Application(store,{origin:'https://retained.test.invalid',secureCookies:true,contactKey:randomBytes(32),csrfKey:randomBytes(32),recoveryEpoch:randomBytes(24).toString('hex'),accessMode:'INTERNAL',environment:'test',dataEgressMode:'INTERNAL_APPROVED',dataCleanupMode:'INTERNAL_APPROVED',dataMergeMode:'INTERNAL_APPROVED'},clock);await app.identity.bootstrap('owner','合成已删来源保留资料重建',SYNTHETIC_PASSWORD);const owner=new Client(app);assert.equal((await owner.login()).status,200);sides.push({app,store,clock,owner});}
+  const eraseOrigin=process.env.TEST_ERASE_HISTORY_ORIGIN==='yes';
   await roundTripErasedHistory(sides[0]!,sides[1]!,async(payload,sha256)=>{
    const path=join(tmp,'retained.json');writeFileSync(path,JSON.stringify(payload),{mode:0o600});
    for(const apply of [false,true]){const run=spawnSync('pnpm',['--silent','rebuild:json','--','--input',path,'--actor-login','owner','--expected-sha256',sha256,...(apply?['--apply']:[])],{encoding:'utf8',env:{...process.env,DATABASE_URL_REBUILD:urls[1],ALLOW_REBUILD:'yes'},timeout:60000});assert.equal(run.status,0,run.stderr);const result=JSON.parse(run.stdout);assert.equal(result.mergeHistory.erasures,3);assert.equal(result.counts.sources,2);}
-  });
+  },eraseOrigin);
   console.log('PASS v14 PG: actual CLI preview/apply restores only erased identity header, aliases, original merge choices and explicit erasure attribution; retired profile payload absent; SQL shape and immutable records preserved; audit rollback/retry');
  }finally{for(const store of stores)await store.close();rmSync(tmp,{recursive:true,force:true});}
 });

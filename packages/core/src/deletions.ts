@@ -412,7 +412,7 @@ export class Deletions {
             decisionReason: item.decisionReason === 'AUTO_PROVEN' ? '' : item.decisionReason,
             retentionBasisPresent: item.retentionSourceId !== null,
             decidedAt: item.decidedAt,
-            ...([SOURCE_FACT_ITEM,SOURCE_IDENTITY_EVIDENCE].includes(item.resourceKind) ? {recordSummary: factLabels.get(item.resourceId) ?? ''} : {})
+            ...([SOURCE_FACT_ITEM,SOURCE_IDENTITY_EVIDENCE].includes(item.resourceKind) ? {recordSummary: factLabels.get(item.resourceId) ?? ''} : item.resourceKind==='talentGraph'&&historySummary ? {recordSummary:historySummary} : {})
         }));
         return page(safe, query);
     }

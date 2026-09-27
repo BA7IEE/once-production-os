@@ -26,3 +26,5 @@ test('TD2 v14 rejects incomplete erasure lineage, payload resurrection, fabricat
   assert.equal(target.store.rows('people').length,0);assert.equal(target.store.rows('sources').length,0);assert.equal(target.store.rows('mergeHistoryErasures').length,0);
  }
 });
+
+test('TD2 source cleanup after reviewed history erasure exports and rebuilds both minimal erased origin and old identity',async()=>{await roundTripErasedHistory(await fixture(),await fixture(),undefined,true);});

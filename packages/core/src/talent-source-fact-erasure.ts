@@ -1,3 +1,4 @@
+import {sourceHistoryClearance} from './source-history-clearance.ts';
 import {SOURCE_IDENTITY_EVIDENCE,identityWithdrawal,identityWithdrawalFields} from './talent-source-identity-evidence.ts';
 import {validateIdentityRetention,IDENTITY_DEPENDENCY,validateIdentityDependency} from './talent-identity-retention.ts';
 import {snapshotTalentSourceAssets,applyTalentAssetGraph} from './talent-asset-erasure.ts';
@@ -60,7 +61,7 @@ export async function sourceFactGraph(tx:Tx,actor:Actor,sourceId:string,clock:Cl
  const scopes=data.scopes.filter(s=>[...people,...sources,...lists,...works,...projects,...assets,...organizations].some(r=>r.scopeId===s.id));
  let blocker:string|null=sources.length!==sourceIds.size?'TD2_SOURCE_OWNER_MISSING':null;
  for(const withdrawal of identityWithdrawals)if(withdrawal.blocker)blocker=withdrawal.blocker;
- if(data.personAliases.some(a=>ownedIds.has(String(a.oldPersonId))||ownedIds.has(String(a.canonicalPersonId))))blocker='TD2_MERGE_HISTORY_RETENTION_REQUIRED';
+ const history=await sourceHistoryClearance(tx,actor,sourceId,data);if(history.blocker)blocker=history.blocker;
  if(media.blocker)blocker=media.blocker;
  if(TALENT_V2_TABLES.some(t=>!TALENT_FACT_TABLES.includes(t as FactTable)&&t!=='fieldProposals'&&data[t].some(r=>r.sourceId===sourceId)))blocker='TD2_SOURCE_RETENTION_REVIEW_REQUIRED';
  if(rows.length>500)blocker='TD2_SOURCE_FACT_LIMIT';
@@ -68,7 +69,7 @@ export async function sourceFactGraph(tx:Tx,actor:Actor,sourceId:string,clock:Cl
  if(rows.some(o=>o.row.identifierCiphertext)&&!actor.permissions.includes('sensitive.write'))blocker='TD2_SENSITIVE_WRITE_REQUIRED';
  for(const row of [...people,...sources,...lists,...works,...projects,...assets,...organizations])if(!await scopeVisible(tx,actor,String(row.scopeId)))blocker='TD2_HIDDEN_DEPENDENCY';
  for(const person of people)if(!(person.status==='ERASED'&&ownedIds.has(person.id))&&(person.status==='ERASED'||await deletionBlocked(tx,actor.workspaceId,'PERSON',person.id)))blocker=blocker??'TD2_SOURCE_OWNER_UNAVAILABLE';
- const graphDigest=digest({...(identityWithdrawals.length?{identityWithdrawals}:{}),ownedPeople,identityDependencies,projects,media:media.detailCode,rows,evidence,proposals,proposalOwners,collectionItems,candidates,candidateAssets,works,assets,parents,organizations,reviews,lists,
+ const graphDigest=digest({...(history.snapshot?{history:history.snapshot}:{}),...(identityWithdrawals.length?{identityWithdrawals}:{}),ownedPeople,identityDependencies,projects,media:media.detailCode,rows,evidence,proposals,proposalOwners,collectionItems,candidates,candidateAssets,works,assets,parents,organizations,reviews,lists,
   people:people.map(p=>({id:p.id,scopeId:p.scopeId})),scopes,sources:sources.map(s=>s.id===sourceId?{id:s.id,scopeId:s.scopeId}:s)});
  return {data,media,identityWithdrawals,ownedPeople,ownedIds,reviews,selected,rows,evidence,proposals,collectionItems,candidates,lists,people,sources,blocker,
   detailCode:`TD2_SOURCE_FACT_GRAPH_${Buffer.from(graphDigest,'hex').toString('base64url')}:F${rows.length}:C${candidates.length}:I${collectionItems.length}:M${media.ownedAssets.length}:Q${media.credentials.length}:A${media.adults.length}:L${media.links.length}:H${ownedPeople.length}`};

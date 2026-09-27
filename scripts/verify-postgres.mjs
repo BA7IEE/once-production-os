@@ -72,6 +72,10 @@ if(mainStatus!==0){process.exitCode=mainStatus;}else{
    status=runNode('tests/postgres/merge-erasure-transfer.test.ts',{...process.env,DATABASE_URL_TD2_TEST:source,DATABASE_URL_TALENT_REBUILD_TEST:target,ALLOW_TD2_DB_TESTS:'yes'},240000);
   }
   if(status===0){
+   const source=await fresh('once_test_td2_erased_origin_','Historical source clearance source'),target=await fresh('once_rebuild_erased_origin_','Historical source clearance target');
+   status=runNode('tests/postgres/merge-erasure-transfer.test.ts',{...process.env,DATABASE_URL_TD2_TEST:source,DATABASE_URL_TALENT_REBUILD_TEST:target,ALLOW_TD2_DB_TESTS:'yes',TEST_ERASE_HISTORY_ORIGIN:'yes'},240000);
+  }
+  if(status===0){
    const typedMerge=await fresh('once_test_td2_merge_','Talent 2 professional merge');
    status=runNode('tests/postgres/talent-v2-merge.test.ts',{
     ...process.env,DATABASE_URL_TD2_TEST:typedMerge,ALLOW_TD2_DB_TESTS:'yes'
