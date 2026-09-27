@@ -34,3 +34,5 @@ Agent用Machine Actor；无权限/冲突写入Proposal；unknown field/code/sche
 恢复始终MAINTENANCE和数据执行闸门关闭，approve不自动开放INTERNAL或解隔离。
 日志/审计失败必须fail closed；异常不等于事务没提交；缺证据不能人工勾选忽略。
 只在隔离测试库运行测试，不执行生产迁移、生产媒体清理、正式部署或隐式后台任务。
+
+云端运行 36337909271 暴露组合用例按数组首项断言的问题：资质按随机 UUID 排序，首项可能是已撤销记录。已改为按本用例创建并核验的资质 UUID 定位，仍要求 VERIFIED，未跳过或放宽状态断言。专项6/6重新通过，新的最终 head CI另行核对。

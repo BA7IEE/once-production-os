@@ -254,3 +254,5 @@ Express 入口还增加严格 UTF-8、1MB 请求体限制和禁用压缩体；�
 静态检查使用 TypeScript AST/语法输出与生成契约比对，涵盖测试适配器不入生产、危险存储/HTML 标识符、命令头、延期路径等。它不是 lint 全集、依赖解析、完整安全扫描或模型证明。
 
 最终具体条数与执行命令见 [TEST_REPORT.md](TEST_REPORT.md)；当前源码指纹见 artifacts/verification.json，整包指纹见 MANIFEST.sha256。没有修改 SRVF 仓库、连接生产库或云服务。
+
+云端运行 36337909271 暴露组合用例按数组首项断言的问题：资质按随机 UUID 排序，首项可能是已撤销记录。已改为按本用例创建并核验的资质 UUID 定位，仍要求 VERIFIED，未跳过或放宽状态断言。专项6/6重新通过，新的最终 head CI另行核对。
