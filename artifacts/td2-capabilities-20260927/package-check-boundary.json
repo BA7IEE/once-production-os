@@ -1,0 +1,10 @@
+{
+  "scope": "package file presence, Markdown local links, recorded source digests",
+  "passed": false,
+  "issuesByType": {
+    "excluded-file": 10019,
+    "broken-link": 55,
+    "source-drift-after-verification": 42
+  },
+  "explanation": "Legacy source-package checker was run in a development checkout including .git, dist and node_modules. Its fingerprint source is the retained historical artifacts/verification.json, not this delivery. No old evidence or checker was changed. This does not qualify a new release package."
+}
