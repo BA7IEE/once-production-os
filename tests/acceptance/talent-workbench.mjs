@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import {mkdirSync} from 'node:fs';
+import {mkdirSync,existsSync} from 'node:fs';
 import {join} from 'node:path';
 /** Real visible form actions; API is used only for source setup and external concurrent edits. */
-export async function verifyTalentWorkbench({owner,prisma,cmd,writeUI,source,assetId,prepare,binary,queue,until,mediaBytes,login,password,json}) {
+export async function verifyTalentWorkbench({owner,prisma,cmd,writeUI,source,assetId,prepare,binary,queue,until,mediaBytes,login,password,json,mediaRoot}) {
  const chooseSource=async(form,id)=>{
   const picker=form.locator('.talent-source'),select=picker.getByLabel('资料来源',{exact:true});
   await until(()=>select.isEnabled());
@@ -87,6 +87,19 @@ export async function verifyTalentWorkbench({owner,prisma,cmd,writeUI,source,ass
  // The typed search must find the same multi-role person using current confirmed facts, not legacy flat fields.
  await owner.getByRole('button',{name:'人物与专业检索',exact:true}).click();dialog=owner.getByRole('dialog',{name:'人物与专业检索',exact:true});await dialog.getByLabel('姓名或别名',{exact:true}).fill('工作台模特兼翻译');await dialog.getByLabel('职业',{exact:true}).selectOption('translator');await dialog.getByLabel('翻译源语言',{exact:true}).selectOption('zh');await dialog.getByLabel('翻译目标语言',{exact:true}).selectOption('en');await dialog.getByLabel('成年资格',{exact:true}).selectOption('VERIFIED_ADULT');await dialog.getByLabel('已确认身高下限（厘米）',{exact:true}).fill('173');await dialog.getByLabel('已确认身高上限（厘米）',{exact:true}).fill('175');
  const matchedResponse=owner.waitForResponse(r=>r.request().method()==='GET'&&r.url().includes('/api/v1/td2/people?')&&r.url().includes('heightMin=173'));await dialog.getByRole('button',{name:'查询专业资料',exact:true}).click();const matched=await(await matchedResponse).json();assert.equal(matched.total,1);assert.equal(matched.items[0].id,pid);await dialog.getByRole('button').filter({has:owner.getByRole('heading',{name:'工作台模特兼翻译',exact:true})}).click();await owner.getByRole('button',{name:'返回检索结果',exact:true}).click();await owner.getByRole('button',{name:'返回人才档案',exact:true}).click();
+ // Explicitly delete a shared collection/proof image through the actual impact, decision and cleanup pages.
+ const proofEvidence=await prisma.fieldEvidence.findMany({where:{OR:[{adultEligibilityId:adult},{personCredentialId:credential}]},orderBy:{id:'asc'}});
+ assert.equal(existsSync(join(mediaRoot,'uploads',extra)),true);
+ await owner.getByRole('button',{name:/删除影响评估/}).click();await owner.getByLabel('删除目标类型',{exact:true}).selectOption('ASSET');await owner.getByLabel('删除目标',{exact:true}).selectOption(extra);
+ const impact=await writeUI(owner,'POST','/deletion-requests/preview',()=>owner.getByRole('button',{name:'预览影响',exact:true}).click());assert.equal(impact.complete,true);assert.ok(impact.items.some(i=>i.resourceKind==='talentAssetGraph'));
+ await owner.getByText(/移出 1 项作品集引用、撤销 1 项资质/).waitFor();
+ await owner.getByLabel('申请原因',{exact:true}).fill('合成验收：删除共享证明原件，保留历史核验并撤销当前资格');const removal=(await writeUI(owner,'POST','/deletion-requests',()=>owner.getByRole('button',{name:'创建 DRAFT 申请',exact:true}).click(),201)).resourceId;
+ const cleanupPanel=owner.locator('.deletion-request-detail');await cleanupPanel.getByRole('heading',{name:'删除申请',exact:true}).waitFor();owner.once('dialog',d=>void d.accept());await writeUI(owner,'POST',`/deletion-requests/${removal}/block`,()=>cleanupPanel.getByRole('button',{name:'阻断正常使用',exact:true}).click());
+ await cleanupPanel.getByRole('button',{name:'做决定',exact:true}).click();const decision=owner.getByRole('dialog',{name:'记录保留决定',exact:true});assert.equal(await decision.getByLabel('本项决定',{exact:true}).locator('option[value="RETAIN_WITH_BASIS"]').count(),0);await decision.getByLabel('决定说明',{exact:true}).fill('确认移出集合与证明引用；保留其他原件和历史核验记录');await writeUI(owner,'POST',`/deletion-requests/${removal}/decisions`,()=>decision.getByRole('button',{name:'保存决定',exact:true}).click());
+ owner.once('dialog',d=>void d.accept());await writeUI(owner,'POST',`/deletion-requests/${removal}/plan/freeze`,()=>cleanupPanel.getByRole('button',{name:'冻结清理计划',exact:true}).click());owner.once('dialog',d=>void d.accept());await writeUI(owner,'POST',`/deletion-requests/${removal}/cleaning/start`,()=>cleanupPanel.getByRole('button',{name:'开始不可逆依赖清理',exact:true}).click());await cleanupPanel.getByText('删除流程已完成',{exact:true}).waitFor();
+ assert.equal((await prisma.deletionRequest.findUniqueOrThrow({where:{id:removal}})).state,'COMPLETED');assert.equal(existsSync(join(mediaRoot,'uploads',extra)),false);assert.equal(existsSync(join(mediaRoot,'uploads',assetId)),true);
+ assert.equal((await prisma.adultEligibility.findUniqueOrThrow({where:{id:adult}})).state,'UNKNOWN');assert.equal((await prisma.personCredential.findUniqueOrThrow({where:{id:credential}})).status,'REVOKED');assert.equal(await prisma.mediaCollectionItem.count({where:{assetId:extra}}),0);assert.equal((await prisma.mediaAsset.findUniqueOrThrow({where:{id:assetId}})).state,'READY');assert.deepEqual(await prisma.fieldEvidence.findMany({where:{OR:[{adultEligibilityId:adult},{personCredentialId:credential}]},orderBy:{id:'asc'}}),proofEvidence);
+ console.log('PASS TD2 shared proof browser: human impact/decision -> frozen plan -> real original/preview purge; collection link removed and current credentials revoked, prior evidence and independent media retained');
  // A real VIEWER can read shared professional facts but receives no write or sensitive controls.
  const viewerAccount=await cmd(owner,'POST','/memberships',{loginName:'td_workbench_viewer',displayName:'合成工作台只读成员',role:'VIEWER',extraPermissions:[]},201);
  const viewer=await owner.context().browser().newPage();await viewer.goto(new URL('/activate',owner.url()).toString(),{waitUntil:'networkidle'});await viewer.getByLabel('激活凭证').fill(viewerAccount.activationToken);await viewer.getByLabel('设置密码（至少 12 个字符）').fill(password);await viewer.getByRole('button',{name:'激活账号',exact:true}).click();await viewer.getByText('账号已激活').waitFor();await login(viewer,'td_workbench_viewer');

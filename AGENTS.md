@@ -23,7 +23,7 @@ Talent 2.0 已有类型化模型/前向迁移/业务接口/机器身份/建议/�
 
 1. typed merge 已支持无冲突迁移和主档案历史保留、成人资格/重叠有效期显式决定，见 `docs/release/TD2_CONFLICT_MERGE.md`；不同职业候选已可逐项确认后分别保留，见 `docs/release/TD2_ROLE_CANDIDATE_MERGE.md`；职业不明且关联复核的真实碰撞已支持显式保留与原候选历史追加，见 `docs/release/TD2_CANDIDATE_REVIEW_MERGE.md`；历史删除仍阻断。
 2. 十一类专业资料（含能力字典、外部标识、代表关系及所用机构）已实现双层许可导出与真实 CLI 重建，见 `docs/release/TD2_REPRESENTATION_TRANSFER.md`；旧 v1/v2/v3 格式兼容。字段级多来源证据已可单独批准后以 v5 迁移，见 `docs/release/TD2_FIELD_EVIDENCE_TRANSFER.md`，原核验归属不冒充目标账号/批准。无附件未核验/已撤销资质及独立授权的加密编号已可按目标密钥重建，见 `docs/release/TD2_CREDENTIAL_TRANSFER.md`；资质证明原件与已核验资质已支持独立媒体许可、v7 文件下载及隔离重建，见 `docs/release/TD2_PROOF_MEDIA_TRANSFER.md`。媒体集合、内容标签及原项目关系已可按 v8 迁移，见 `docs/release/TD2_COLLECTION_TRANSFER.md`。成年资格及原核验归属已可按 v9 迁移，见 `docs/release/TD2_ADULT_TRANSFER.md`，必须同时保留原字段核验证据。普通联系人和人才身份字段证据已支持 v10 独立许可与重建，见 `docs/release/TD2_IDENTITY_EVIDENCE_TRANSFER.md`。合并保留历史已支持 v11 明确许可与隔离重建，见 `docs/release/TD2_MERGE_HISTORY_TRANSFER.md`；原操作者不替换为目标管理员，数据库历史保护不关闭。旧扁平字段不可假装完整人才2.0。
-3. Source多来源保留与Asset引用专用清理；当前新依赖下保守阻断，不宣告删除完成。
+3. Asset引用专用清理已覆盖集合、资质、成年证明与待审建议，见 `docs/release/TD2_SHARED_ASSET_ERASURE.md`；继续Source多来源保留及保留合并历史清理，剩余新依赖保持明确阻断。
 4. 专业工作台、专业组合检索及新增真实Chromium流程已接通，见 `docs/release/TD2_PROFESSIONAL_WORKBENCH.md`；角色化候选选择/复核及旧候选升级已接通，见 `docs/release/TD2_CANDIDATE_CONTEXT.md`；继续完整证据浏览与未关闭业务边界，不能宣告全部UI验收完成。
 5. TD2-T01～18全证据及前序DEV-09剩余运维/并发/长期保留门关闭后才启动AI。
 

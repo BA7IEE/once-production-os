@@ -1,3 +1,4 @@
+import { deletionWorkerActor } from './deletion-worker-policy.ts';
 import { assertTalentFinalizationClean } from './talent-v2-erasure.ts';
 import { randomUUID } from 'node:crypto';
 import type { Clock, Config } from './model.ts';
@@ -32,6 +33,7 @@ export class DeletionFinalization {
         invariant(row && row.state === 'CLEANING' && row.finalizationLeaseToken === claim.finalizationLeaseToken
             && !!row.finalizationLeaseUntil && Date.parse(row.finalizationLeaseUntil) > this.clock.now().getTime(),
             'LEASE_LOST', '最终化任务租约已失效', 409);
+        await deletionWorkerActor(tx, row);
         return row;
     }
 

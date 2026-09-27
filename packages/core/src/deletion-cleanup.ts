@@ -1,3 +1,5 @@
+import { deletionWorkerActor } from './deletion-worker-policy.ts';
+import { eraseTalentAssetReferences } from './talent-asset-erasure.ts';
 import { eraseTalentPersonGraph } from './talent-v2-erasure.ts';
 import { randomUUID } from 'node:crypto';
 import type { Actor, Clock, Config, Table } from './model.ts';
@@ -21,7 +23,7 @@ const relationTable: Record<string, Table> = {
     shortlistItem: 'shortlistItems'
 };
 const actionPriority = (item: DeletionItem) => {
-    if (item.resourceKind === 'talentGraph') return 5;
+    if (['talentGraph','talentAssetGraph'].includes(item.resourceKind)) return 5;
     if (item.resourceKind === 'shortlistItemAsset') return 10;
     if (item.resolvedAction === 'REMOVE_RELATION') return item.resourceKind === 'shortlistItem' ? 30 : 20;
     if (item.resolvedAction === 'REVOKE_PERMISSION') return 40;
@@ -227,6 +229,10 @@ export class DeletionCleanup {
             return { outcome: 'DONE' };
         }
         if (action === 'ERASE_PAYLOAD') {
+            if (item.resourceKind === 'talentAssetGraph') {
+                await eraseTalentAssetReferences(tx, request, item, this.clock);
+                return { outcome: 'DONE' };
+            }
             if (item.resourceKind === 'talentGraph') {
                 await eraseTalentPersonGraph(tx, request, item, this.clock);
                 return { outcome: 'DONE' };
@@ -262,6 +268,7 @@ export class DeletionCleanup {
             return await this.store.transaction(async tx => {
                 await this.enabled(tx, claim.workspaceId);
                 const request = await this.owned(tx, claim);
+                await deletionWorkerActor(tx, request);
                 const item = await workspaceRow(tx, 'deletionItems', itemId, claim.workspaceId);
                 if (!item || item.requestId !== request.id) missing();
                 if (item.cleanupState === 'DONE') return 'DONE';

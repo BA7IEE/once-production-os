@@ -36,6 +36,12 @@ const detailLabel: Record<string, string> = {
     EXPORT_PAYLOAD_DEPENDS_ON_TARGET: '旧导出 payload 依赖目标',
     EXPORT_PAYLOAD_DEPENDS_ON_SOURCE: '旧导出 payload 依赖来源'
 };
+function detailText(code: string) {
+    const asset = /^TD2_ASSET_GRAPH_[a-f0-9]{64}:C(\d+):Q(\d+):A(\d+):P(\d+)$/.exec(code);
+    if (asset) return `移出 ${asset[1]} 项作品集引用、撤销 ${asset[2]} 项资质的当前有效状态、将 ${asset[3]} 项成年资格改为未知，并使 ${asset[4]} 项待审建议失效。原核验历史保留；其他图片和专业资料保留。`;
+    if (code.startsWith('TD2_GRAPH_')) return '清理整份人物专业档案及其证据和建议；独立图片原件另行决定。';
+    return detailLabel[code] ?? code;
+}
 const unresolvedLabel: Record<string, string> = {
     HIDDEN_PERSON_DEPENDENCY: '存在当前不可见的人才依赖',
     HIDDEN_WORK_DEPENDENCY: '存在当前不可见的作品依赖',
@@ -72,12 +78,12 @@ function DecisionModal({ request, item, sources, canRetain, onClose, onDone }: {
             onDone();
         }); }}>
             <div className="modal-body"><ErrorBox error={action.error}/>
-                <div className="notice"><strong>{evidenceLabel[item.evidenceState] ?? item.evidenceState}</strong><p>{detailLabel[item.detailCode] ?? item.detailCode}</p></div>
+                <div className="notice"><strong>{evidenceLabel[item.evidenceState] ?? item.evidenceState}</strong><p>{detailText(item.detailCode)}</p></div>
                 <dl className="detail-grid"><div><dt>依赖类型</dt><dd><code>{item.dependencyKind}</code></dd></div><div><dt>系统建议</dt><dd>{actionLabel[item.proposedAction] ?? item.proposedAction}</dd></div></dl>
                 <Field label="本项决定">
                     <select value={decision} onChange={e => { setDecision(e.target.value as 'APPLY_PROPOSED' | 'RETAIN_WITH_BASIS'); setRetentionSourceId(''); }}>
                         <option value="APPLY_PROPOSED">按系统建议处置</option>
-                        {canRetain && <option value="RETAIN_WITH_BASIS">有独立依据，保留</option>}
+                        {canRetain && !['PERSON_TALENT_GRAPH','ASSET_TALENT_REFERENCES'].includes(item.dependencyKind) && <option value="RETAIN_WITH_BASIS">有独立依据，保留</option>}
                     </select>
                 </Field>
                 {decision === 'RETAIN_WITH_BASIS' && <Field label="独立保留依据" hint="必须是另一份当前有效的正式 INTERNAL_USE 来源；目标原来源不能自证保留。">
@@ -165,7 +171,7 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
                         <td>{actionLabel[item.proposedAction] ?? item.proposedAction}</td>
                         <td>{evidenceLabel[item.evidenceState] ?? item.evidenceState}</td>
                         <td>{item.decision === 'PENDING' ? '待决定' : item.decision === 'RETAIN_WITH_BASIS' ? '有独立依据保留' : '按建议处置'}</td>
-                        <td>{item.decisionReason || (item.retentionBasisPresent ? '已记录独立保留依据' : detailLabel[item.detailCode] ?? item.detailCode)}</td>
+                        <td>{item.decisionReason || (item.retentionBasisPresent ? '已记录独立保留依据' : detailText(item.detailCode))}</td>
                         <td>{item.decision === 'PENDING' && !load.data?.planFrozen && <button onClick={() => setEditing(item)}>做决定</button>}</td>
                     </tr>)}</tbody></table></div>
                     <Pager page={itemPage} pageSize={20} total={items.data.total} setPage={setItemPage}/>
@@ -264,7 +270,7 @@ export function DeletionImpactPanel({ me }: { me: Me }) {
                 <h3>影响摘要</h3>
                 <div className="table-wrap"><table><thead><tr><th>依赖类型</th><th>建议动作</th><th>证据状态</th><th>数量</th></tr></thead><tbody>{preview.summary.map((x, i) => <tr key={i}><td><code>{x.dependencyKind}</code></td><td>{actionLabel[x.proposedAction] ?? x.proposedAction}</td><td>{evidenceLabel[x.evidenceState] ?? x.evidenceState}</td><td>{x.count}</td></tr>)}</tbody></table></div>
                 <h3>当前可见具体影响</h3>
-                <div className="table-wrap deletion-impact-table"><table><thead><tr><th>对象</th><th>依赖</th><th>建议动作</th><th>判断</th><th>原因</th></tr></thead><tbody>{preview.items.map(x => <tr key={[x.resourceKind,x.resourceId,x.dependencyKind,x.proposedAction].join(':')}><td><strong>{x.resourceKind}</strong><small>{x.resourceId}</small></td><td><code>{x.dependencyKind}</code></td><td>{actionLabel[x.proposedAction] ?? x.proposedAction}</td><td>{evidenceLabel[x.evidenceState] ?? x.evidenceState}</td><td>{detailLabel[x.detailCode] ?? x.detailCode}</td></tr>)}</tbody></table></div>
+                <div className="table-wrap deletion-impact-table"><table><thead><tr><th>对象</th><th>依赖</th><th>建议动作</th><th>判断</th><th>原因</th></tr></thead><tbody>{preview.items.map(x => <tr key={[x.resourceKind,x.resourceId,x.dependencyKind,x.proposedAction].join(':')}><td><strong>{x.resourceKind}</strong><small>{x.resourceId}</small></td><td><code>{x.dependencyKind}</code></td><td>{actionLabel[x.proposedAction] ?? x.proposedAction}</td><td>{evidenceLabel[x.evidenceState] ?? x.evidenceState}</td><td>{detailText(x.detailCode)}</td></tr>)}</tbody></table></div>
                 <div className="deletion-freeze-box">
                     <h3>2. 冻结为 DRAFT 删除申请</h3>
                     <Field label="申请原因" hint="这里只说明为什么需要进入后续删除评估；本操作不会阻断或清理目标。"><textarea rows={4} required minLength={4} maxLength={2000} disabled={!preview.complete} value={reason} onChange={e => setReason(e.target.value)}/></Field>

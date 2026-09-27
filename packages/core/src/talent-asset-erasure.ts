@@ -1,0 +1,71 @@
+import { deletionWorkerActor } from './deletion-worker-policy.ts';
+import type { Actor, Clock } from './model.ts';
+import type { Tx } from './store.ts';
+import type { DeletionItem, DeletionRequest } from './deletion-model.ts';
+import { TALENT_V2_TABLES } from './talent-v2-model.ts';
+import { talentSnapshot } from './talent-v2-integrity.ts';
+import { digest } from './json.ts';
+import { scopeVisible } from './policy.ts';
+import { invariant } from './errors.ts';
+import { touch } from './helpers.ts';
+
+/** Freeze all shared references together, including order and proof-review history. No file IO here. */
+async function assetGraph(tx: Tx, workspaceId: string, assetId: string) {
+    const data = await talentSnapshot(tx, workspaceId);
+    const links = data.mediaCollectionItems.filter(r => r.assetId === assetId);
+    const collections = data.mediaCollections.filter(r => links.some(l => l.collectionId === r.id));
+    const orderedItems = data.mediaCollectionItems.filter(r => collections.some(c => c.id === r.collectionId));
+    const adults = data.adultEligibilities.filter(r => r.evidenceAssetId === assetId);
+    const credentials = data.personCredentials.filter(r => r.evidenceAssetId === assetId);
+    const evidence = data.evidence.filter(r => adults.some(a => a.id === r.adultEligibilityId) || credentials.some(c => c.id === r.personCredentialId));
+    const proposals = data.fieldProposals.filter(r => r.state === 'PENDING' && (adults.some(a => a.id === r.adultEligibilityId) || credentials.some(c => c.id === r.personCredentialId)
+        || (r.fieldPath === 'evidenceAssetId' && r.proposedValue === assetId)));
+    const relatedOwners = [...adults, ...credentials, ...collections,
+        ...data.adultEligibilities.filter(a => proposals.some(p => p.adultEligibilityId === a.id)),
+        ...data.personCredentials.filter(c => proposals.some(p => p.personCredentialId === c.id))];
+    const personIds = new Set(relatedOwners.map(r => r.personId));
+    const people = data.people.filter(r => personIds.has(r.id));
+    const sourceIds = new Set([...relatedOwners, ...proposals, ...evidence].map(r => r.sourceId));
+    const sources = data.sources.filter(r => sourceIds.has(r.id));
+    const scopeIds = new Set([...people, ...sources].map(r => r.scopeId));
+    const scopes = data.scopes.filter(r => scopeIds.has(r.id));
+    const unknownReference = TALENT_V2_TABLES.some(table => !['mediaCollectionItems','adultEligibilities','personCredentials'].includes(table) && data[table].some(r => r.assetId === assetId || r.evidenceAssetId === assetId));
+    const missingEndpoint = collections.length !== new Set(links.map(l => l.collectionId)).size || people.length !== personIds.size || sources.length !== sourceIds.size;
+    return { links, collections, adults, credentials, proposals, people, sources, unknownReference, missingEndpoint,
+        count: links.length + adults.length + credentials.length + proposals.length,
+        digest: digest({ links, collections, orderedItems, adults, credentials, evidence, proposals,
+            people: people.map(r => ({ id: r.id, scopeId: r.scopeId })),
+            sources, scopes }) };
+}
+function graphCode(graph: Awaited<ReturnType<typeof assetGraph>>) {
+    return `TD2_ASSET_GRAPH_${graph.digest}:C${graph.links.length}:Q${graph.credentials.length}:A${graph.adults.length}:P${graph.proposals.length}`;
+}
+export async function previewTalentAssetErasure(tx: Tx, actor: Actor, assetId: string) {
+    const graph = await assetGraph(tx, actor.workspaceId, assetId);
+    if (graph.unknownReference || graph.missingEndpoint) return { count: graph.count, detailCode: graphCode(graph), blocker: 'TD2_ASSET_REFERENCE_UNREGISTERED' };
+    for (const row of [...graph.people, ...graph.sources]) if (!await scopeVisible(tx, actor, String(row.scopeId)))
+        return { count: graph.count, detailCode: graphCode(graph), blocker: 'TD2_HIDDEN_DEPENDENCY' };
+    return { count: graph.count, detailCode: graphCode(graph), blocker: null };
+}
+export async function eraseTalentAssetReferences(tx: Tx, request: DeletionRequest, item: DeletionItem, clock: Clock) {
+    invariant(request.targetKind === 'ASSET' && request.targetId === item.resourceId, 'TD2_ERASURE_TARGET_INVALID', '图片关联清理必须绑定图片删除申请', 409);
+    const graph = await assetGraph(tx, request.workspaceId, item.resourceId);
+    invariant(item.detailCode === graphCode(graph) && !graph.unknownReference && !graph.missingEndpoint, 'TD2_ERASURE_GRAPH_STALE', '共享图片引用或证明记录发生变化，拒绝使用旧清理计划', 409);
+    const actor = await deletionWorkerActor(tx, request);
+    for (const row of [...graph.people, ...graph.sources]) invariant(await scopeVisible(tx, actor, String(row.scopeId)), 'TD2_HIDDEN_DEPENDENCY', '清理发起者已失去关联资料的范围权限', 403);
+    for (const link of graph.links) await tx.remove('mediaCollectionItems', link.id);
+    for (const collection of graph.collections) {
+        const row = (await tx.get('mediaCollections', collection.id))!;
+        const rest = (await tx.find('mediaCollectionItems', { workspaceId: request.workspaceId, collectionId: row.id })).sort((a,b) => a.orderIndex-b.orderIndex || a.id.localeCompare(b.id));
+        for (const [index, entry] of rest.entries()) if (entry.orderIndex !== index) await tx.replace('mediaCollectionItems', { ...touch(entry, clock), orderIndex: index });
+        await tx.replace('mediaCollections', touch(row, clock));
+    }
+    // Preserve earlier reviewer/timestamps and append-only field evidence as history, never as current eligibility.
+    for (const old of graph.adults) { const row = (await tx.get('adultEligibilities', old.id))!;
+        await tx.replace('adultEligibilities', { ...touch(row, clock), evidenceAssetId: null, state: 'UNKNOWN' }); }
+    for (const old of graph.credentials) { const row = (await tx.get('personCredentials', old.id))!;
+        await tx.replace('personCredentials', { ...touch(row, clock), evidenceAssetId: null, status: 'REVOKED' }); }
+    for (const old of graph.proposals) { const row = (await tx.get('fieldProposals', old.id))!;
+        await tx.replace('fieldProposals', { ...touch(row, clock), state: 'STALE', decidedAt: clock.now().toISOString(), decidedById: actor.membershipId }); }
+    for (const person of graph.people) { const row = (await tx.get('people', person.id))!; await tx.replace('people', touch(row, clock)); }
+}
