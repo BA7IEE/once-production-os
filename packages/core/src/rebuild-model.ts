@@ -43,5 +43,6 @@ export interface RebuildSummary {
     };
     professionalRecords?: number;
     capabilityDefinitions?: number;
+    organizations?: number;
     mediaRestored: 0;
 }

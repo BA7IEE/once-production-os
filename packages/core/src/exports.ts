@@ -181,6 +181,11 @@ export class Exports {
             sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock));
             const fields = sourceTransferFields.get(row.sourceId) ?? new Set<ExportFieldCode>(); fields.add(transferCode(table)); sourceTransferFields.set(row.sourceId, fields);
         }
+        for (const organization of talent?.organizations??[]) {
+            sources.set(organization.sourceId,await sourceFor(tx,actor,organization.sourceId,this.clock));
+            const fields=sourceTransferFields.get(organization.sourceId)??new Set<ExportFieldCode>();
+            fields.add('person.td2.personExternalRefs');sourceTransferFields.set(organization.sourceId,fields);
+        }
         const now = this.clock.now().toISOString();
         const initialExpiry = new Date(this.clock.now().getTime() + L.ttlMs).toISOString();
         const job: ExportJob = { ...base(actor.workspaceId, this.clock), actorId: actor.membershipId, format: 'JSON', schemaVersion: talent ? TALENT_EXPORT_VERSION : 'once-export-v1',

@@ -1,0 +1,3 @@
+PASS retained synthetic PostgreSQL upgrade: all 59 existing tables have identical original columns and records
+retained ERASED exports: 1
+schema migration: 202609270005_external_ref_transfer

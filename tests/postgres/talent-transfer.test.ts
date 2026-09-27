@@ -30,7 +30,7 @@ test('TD2 PostgreSQL controlled multi-source export and isolated typed rebuild p
             const input=join(tmp,'apply.json');writeFileSync(input,JSON.stringify(payload),{mode:0o600});
             for(const apply of [false,true]){
                 const run=spawnSync('pnpm',['--silent','rebuild:json','--','--input',input,'--actor-login','owner','--expected-sha256',sha256,...(apply?['--apply']:[])],{encoding:'utf8',env:{...process.env,DATABASE_URL_REBUILD:urls[1],ALLOW_REBUILD:'yes'},timeout:60000});
-                assert.equal(run.status,0,run.stderr);assert.equal(JSON.parse(run.stdout).professionalRecords,11);assert.equal(JSON.parse(run.stdout).capabilityDefinitions,1);
+                assert.equal(run.status,0,run.stderr);assert.equal(JSON.parse(run.stdout).professionalRecords,14);assert.equal(JSON.parse(run.stdout).capabilityDefinitions,1);assert.equal(JSON.parse(run.stdout).organizations,1);
             }
         }});
         // Exact CLI parser must recognize this version and retain the populated-target guard.

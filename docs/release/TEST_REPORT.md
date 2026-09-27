@@ -1,3 +1,11 @@
+# 2026-09-27 外部标识及机构迁移验证
+
+基线 `148ffac`，最终 **369/369 CORE_MEMORY_TESTED**（新增4项并扩展原往返）；164请求契约、服务/React/core/transport类型检查、构建和静态检查 PASS。真实 PostgreSQL 16 原合同67/67及完整重建/恢复链 DB_TESTED；双库 CLI check/apply逐项核对14条专业记录、1条能力定义和1条独立来源机构，审计失败后人物/定义/机构均为零，重试成功。保留合成库59表原记录摘要一致，保留ERASED导出。真实Chrome批准人物及各来源外部标识分组、下载v3、核对机构原ID/来源及核验状态、撤销机构来源许可后再次下载拒绝 BROWSER_TESTED。新证据 `artifacts/td2-external-20260927/`，范围见 [TD2_EXTERNAL_TRANSFER.md](TD2_EXTERNAL_TRANSFER.md)。正式迁移、部署、新交付包验收和完整TD2-06 NOT_RUN；CI以本次最终head为准。
+
+初次新测试把“机构名称变更后新申请”也误判为必须拒绝；实际规则是旧快照失效、新申请使用新名称。修正为同时验证旧下载/排队任务拒绝、新申请成功。首次启动测试容器后数据库尚未就绪，包装脚本连接失败；确认 pg_isready 成功后才运行迁移和测试，没有清库或改超时。历史源码包检查未在本轮重跑，不冒称已修复。
+
+---
+
 # 2026-09-27 能力与字典迁移验证
 
 基线 `83d9224`。最终 **365/365 CORE_MEMORY_TESTED**（新增 4 项并扩展原往返）；能力专项 8/8。164 请求契约、服务/React/core/transport 类型检查、构建和静态检查 PASS。真实 PostgreSQL 原合同 67/67、恢复链、双库 CLI 预检/重建 DB_TESTED，逐项核对 11 条专业事实与 1 条能力定义，审计故障回滚包含字典。保留合成库 59 表记录摘要不变，含 ERASED 导出。真实 Chrome 人物/双来源许可、能力及字典 JSON 下载、撤销后再次下载拒绝 BROWSER_TESTED。详见 [本轮范围](TD2_CAPABILITY_TRANSFER.md)，证据 `artifacts/td2-capabilities-20260927/`。

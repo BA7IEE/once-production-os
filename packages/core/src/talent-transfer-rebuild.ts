@@ -8,6 +8,10 @@ export async function validateTalentRebuild(tx: Tx, actor: Actor, clock: Clock, 
     const dictionary = await tx.find('dictionary', {workspaceId: actor.workspaceId, status: 'ACTIVE'});
     const catalog = (namespace: string, value: unknown) => invariant(dictionary.some(d => d.namespace === namespace && d.code === value), 'REBUILD_CATALOG_MISSING', '目标缺少专业资料使用的启用字典代码', 409);
     const overlap = (a: Record<string,unknown>, b: Record<string,unknown>) => (!a.validFrom || !b.validUntil || String(a.validFrom)<String(b.validUntil)) && (!b.validFrom || !a.validUntil || String(b.validFrom)<String(a.validUntil));
+    for (const organization of bundle.organizations??[]) {
+        invariant(sources.includes(organization.sourceId),'REBUILD_SOURCE_MISSING','关联机构来源必须包含在重建清单',422);
+        invariant(Date.parse(organization.createdAt)<=Date.parse(organization.updatedAt)&&Date.parse(organization.updatedAt)<=clock.now().getTime(),'TD2_TRANSFER_TIME_INVALID','关联机构时间不合法',422);
+    }
     for (const definition of bundle.capabilityDefinitions??[]) {
         invariant(Date.parse(definition.createdAt)<=Date.parse(definition.updatedAt)&&Date.parse(definition.updatedAt)<=clock.now().getTime(),'TD2_TRANSFER_TIME_INVALID','能力定义时间不合法',422);
         for(const role of definition.applicableRoleCodes) catalog('role',role);
@@ -42,7 +46,8 @@ export async function validateTalentRebuild(tx: Tx, actor: Actor, clock: Clock, 
     }
 }
 
-export async function applyTalentRebuild(tx: Tx, actor: Actor, bundle: TalentTransfer) {
+export async function applyTalentRebuild(tx: Tx, actor: Actor, bundle: TalentTransfer, scopeId: string) {
+    for (const organization of bundle.organizations??[]) await tx.insert('organizations',{...organization,workspaceId:actor.workspaceId,scopeId});
     for (const definition of bundle.capabilityDefinitions??[]) await tx.insert('capabilityDefinitions',{...definition,workspaceId:actor.workspaceId});
     // Foreign keys are deferred; insertion order still puts owners before their dependents.
     for (const table of TRANSFER_TABLES) for (const row of transferRows(bundle,table)) {

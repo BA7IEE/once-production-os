@@ -14423,6 +14423,7 @@
                         "person.td2.talentProfiles",
                         "person.td2.personRoles",
                         "person.td2.personCapabilities",
+                        "person.td2.personExternalRefs",
                         "person.td2.personLanguages",
                         "person.td2.talentLocations",
                         "person.td2.measurementSets",
@@ -14432,7 +14433,7 @@
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 42
+                    "maxItems": 43
                   },
                   "validUntil": {
                     "type": "string",
@@ -14720,6 +14721,7 @@
                         "person.td2.talentProfiles",
                         "person.td2.personRoles",
                         "person.td2.personCapabilities",
+                        "person.td2.personExternalRefs",
                         "person.td2.personLanguages",
                         "person.td2.talentLocations",
                         "person.td2.measurementSets",
@@ -14729,7 +14731,7 @@
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 42
+                    "maxItems": 43
                   },
                   "usePermissionRefs": {
                     "type": "array",

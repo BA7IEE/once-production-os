@@ -436,11 +436,14 @@ try {
  const transferLanguage=(await cmd(owner,'POST',`/td2/people/${tdCanonical}/languages`,{schemaVersion:tdSchema,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceId:transferSource,sourceRevision:1,values:{languageCode:'zh',speakingLevelCode:'NATIVE'}},201)).resourceId;
  const transferDefinition=(await cmd(owner,'POST','/td2/capability-definitions',{schemaVersion:tdSchema,code:'transfer-camera',labelZh:'镜头表现',labelEn:'Camera performance',aliases:['镜头感'],applicableRoleCodes:['model'],levelSchemeCode:'ABILITY_5',semanticVersion:'1.0.0'},201)).resourceId;
  const transferCapability=(await cmd(owner,'POST',`/td2/people/${tdCanonical}/capabilities`,{schemaVersion:tdSchema,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceId:tdSource,sourceRevision:1,values:{capabilityCode:'transfer-camera',personRoleId:tdRole,levelCode:'PROFESSIONAL'}},201)).resourceId;
+ const transferOrganization=(await cmd(owner,'POST','/td2/organizations',{schemaVersion:tdSchema,sourceId:transferSource,sourceRevision:1,name:'合成外部编号签发机构',kind:'ISSUER'},201)).resourceId;
+ const transferExternal=(await cmd(owner,'POST',`/td2/people/${tdCanonical}/external-refs`,{schemaVersion:tdSchema,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceId:tdSource,sourceRevision:1,values:{providerCode:'AGENCY_INTERNAL',namespaceCode:'browser-transfer',issuerOrganizationId:transferOrganization,externalKey:'synthetic-account'}},201)).resourceId;
+ await cmd(owner,'POST',`/td2/external-refs/${transferExternal}/verify`,{schemaVersion:tdSchema,expectedRevision:1,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceRevision:1},200);
  await owner.getByRole('button',{name:/内部导出/}).click();
- const transferLabels=['2.0 人才主档案（内部简介与状态）','2.0 职业及有效期','2.0 语言、熟练度及有效期','2.0 能力、等级及所用字典'];
+ const transferLabels=['2.0 人才主档案（内部简介与状态）','2.0 职业及有效期','2.0 语言、熟练度及有效期','2.0 能力、等级及所用字典','2.0 外部标识、核验状态及关联机构'];
  const sourceLabels=['来源标题','来源类型','提供方说明','内部依据类型','依据说明','有效起点','有效截止','来源状态'];
  const transferPermits=[];
- for(const [kind,id,labels] of [['PERSON',tdCanonical,['姓名 / 展示名','档案状态',...transferLabels]],['SOURCE',tdSource,[...sourceLabels,...transferLabels]],['SOURCE',transferSource,[...sourceLabels,transferLabels[2]]]]){
+ for(const [kind,id,labels] of [['PERSON',tdCanonical,['姓名 / 展示名','档案状态',...transferLabels]],['SOURCE',tdSource,[...sourceLabels,...transferLabels]],['SOURCE',transferSource,[...sourceLabels,transferLabels[2],transferLabels[4]]]]){
   await owner.getByRole('button',{name:'＋ 批准导出用途',exact:true}).click();
   f=await dialogReady(owner,'批准内部导出用途');
   await f.getByLabel('对象类型',{exact:true}).selectOption(kind);await f.getByLabel('批准对象',{exact:true}).selectOption(id);
@@ -456,8 +459,13 @@ try {
  const typedDownload=owner.waitForEvent('download');await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();
  const typedFile=await typedDownload,typedPayload=JSON.parse(readFileSync(await typedFile.path(),'utf8'));
  assert.equal(typedPayload.schemaVersion,'once-export-v2-talent');
- assert.equal(typedPayload.manifest.talent.schemaVersion,'once-talent-transfer-v2');
+ assert.equal(typedPayload.manifest.talent.schemaVersion,'once-talent-transfer-v3');
  assert.equal(typedPayload.manifest.talent.tables.personCapabilities.find(r=>r.id===transferCapability).data.personRoleId,tdRole);
+ assert.equal(typedPayload.manifest.talent.organizations.length,1);
+ assert.equal(typedPayload.manifest.talent.organizations[0].id,transferOrganization);
+ assert.equal(typedPayload.manifest.talent.organizations[0].sourceId,transferSource);
+ const downloadedExternal=typedPayload.manifest.talent.tables.personExternalRefs.find(r=>r.id===transferExternal);
+ assert.equal(downloadedExternal.data.issuerOrganizationId,transferOrganization);assert.equal(downloadedExternal.data.state,'VERIFIED');assert.ok(downloadedExternal.data.verifiedAt);
  assert.equal(typedPayload.manifest.talent.capabilityDefinitions.length,1);
  assert.equal(typedPayload.manifest.talent.capabilityDefinitions[0].id,transferDefinition);
  assert.deepEqual(typedPayload.manifest.talent.capabilityDefinitions[0].aliases,['镜头感']);

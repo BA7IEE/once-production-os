@@ -5,7 +5,9 @@
 
 ## 本轮接续
 
-当前在 `83d9224` 上补齐能力及其引用字典的双层许可导出与真实 CLI 重建，见 [TD2_CAPABILITY_TRANSFER.md](TD2_CAPABILITY_TRANSFER.md)。旧八类文件继续兼容；定义变更失效、只迁移所用字典及停用状态保留均有新增验证。全量人才迁移与 TD2-06 尚未完成。
+当前在 `148ffac` 上补外部标识和所用机构导出/重建，见 [TD2_EXTERNAL_TRANSFER.md](TD2_EXTERNAL_TRANSFER.md)。机构自己的来源也需明确许可，重建保留核验/撤销状态，旧 v1/v2 兼容。总体仍未完成。
+
+前批在 `83d9224` 上补齐能力及其引用字典的双层许可导出与真实 CLI 重建，见 [TD2_CAPABILITY_TRANSFER.md](TD2_CAPABILITY_TRANSFER.md)。旧八类文件继续兼容；定义变更失效、只迁移所用字典及停用状态保留均有新增验证。全量人才迁移与 TD2-06 尚未完成。
 
 前批在 `8e2b80d` 上补齐八类专业资料导出与真实 CLI 重建，见 [TD2_TYPED_TRANSFER.md](TD2_TYPED_TRANSFER.md)。双层许可、类型化原 ID/来源/关联、往返回滚与新浏览器流程已验；全量导出/重建尚未完成。
 
