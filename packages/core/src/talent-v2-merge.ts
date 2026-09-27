@@ -7,6 +7,8 @@ import type { FactRow, FactTable } from './talent-v2-schema.ts';
 import { sourceFor, requirePermission } from './policy.ts';
 import { AppError, invariant } from './errors.ts';
 import { digest } from './json.ts';
+import { shortlistFor } from './shortlists.ts';
+import { readyAsset, workFor } from './production-policy.ts';
 import { touch } from './helpers.ts';
 
 const MOVE_TABLES = [...TALENT_FACT_TABLES, 'mediaCollectionItems', 'talentMigrationReviews'] as const;
@@ -101,13 +103,34 @@ export async function scanTalentMerge(tx: Tx, actor: Actor, clock: Clock, canoni
         try { await sourceFor(tx, actor, sourceId, clock); }
         catch (error) { if (error instanceof AppError && error.status === 404) blockers.add('TD2_MERGE_HIDDEN_DEPENDENCY'); else throw error; }
     }
-    // No legacy collision handler may discard role context or rows still referenced by migration reviews.
+    // Match the existing shortlist add rule: person + work + exact role UUID.
+    // Distinct roles survive identity merge; unknown-role collisions with review evidence stay blocked.
     const shortlists = data.shortlistItems.filter(r => r.personId === canonicalId || r.personId === duplicateId);
-    for (const b of shortlists.filter(r => r.personId === duplicateId))
-        if (shortlists.some(a => a.personId === canonicalId && a.shortlistId === b.shortlistId && (a.workId ?? null) === (b.workId ?? null))
-            && (b.personRoleId || shortlists.some(a => a.personId === canonicalId && a.shortlistId === b.shortlistId && a.personRoleId)
-                || data.talentMigrationReviews.some(r => shortlists.some(s => s.id === r.shortlistItemId))))
+    const professionalShortlists = shortlists.filter(r => r.personRoleId
+        || data.talentProfiles.some(p=>p.personId===canonicalId||p.personId===duplicateId)
+        || data.talentMigrationReviews.some(review=>review.shortlistItemId===r.id));
+    selected.set('shortlistItems',professionalShortlists);
+    const shortlistEndpoints: unknown[]=[];
+    for(const row of professionalShortlists) {
+        try {
+            shortlistEndpoints.push(await shortlistFor(tx,actor,String(row.shortlistId)));
+            if(row.workId)shortlistEndpoints.push(await workFor(tx,actor,String(row.workId),clock));
+            const links=(await tx.find('shortlistItemAssets',{workspaceId:actor.workspaceId,itemId:row.id})).sort((a,b)=>a.id.localeCompare(b.id));
+            if(links.length&&!actor.permissions.includes('assets.read'))blockers.add('TD2_MERGE_HIDDEN_DEPENDENCY');
+            shortlistEndpoints.push(...links);
+            for(const link of links)shortlistEndpoints.push(await readyAsset(tx,actor,link.assetId,clock));
+        } catch(error) {
+            if(error instanceof AppError&&error.status===404)blockers.add('TD2_MERGE_HIDDEN_DEPENDENCY');else throw error;
+        }
+        const collision=shortlists.some(a=>a.personId===canonicalId&&a.shortlistId===row.shortlistId&&(a.workId??null)===(row.workId??null)&&(a.personRoleId??null)===(row.personRoleId??null));
+        if(row.personId===duplicateId&&!collision)items.push({table:'shortlistItems',id:row.id,revision:Number(row.revision),action:'MOVE'});
+    }
+    for (const b of shortlists.filter(r => r.personId === duplicateId)) {
+        const a=shortlists.find(a => a.personId === canonicalId && a.shortlistId === b.shortlistId
+            && (a.workId ?? null) === (b.workId ?? null) && (a.personRoleId ?? null) === (b.personRoleId ?? null));
+        if(a && (a.personRoleId || b.personRoleId || data.talentMigrationReviews.some(r=>r.shortlistItemId===a.id||r.shortlistItemId===b.id)))
             blockers.add('TD2_MERGE_SHORTLIST_CONFLICT');
+    }
     const count = [...selected.values()].reduce((n, rows) => n + rows.length, 0);
     if (count > 500) blockers.add('TD2_MERGE_LIMIT');
     const hidden = blockers.has('TD2_MERGE_HIDDEN_DEPENDENCY') || blockers.has('TD2_MERGE_SENSITIVE_REQUIRED');
@@ -117,7 +140,7 @@ export async function scanTalentMerge(tx: Tx, actor: Actor, clock: Clock, canoni
     // This conservative snapshot may also invalidate on unrelated workspace edits.
     return { selected, conflicts, count, blockers: [...blockers].sort(),
         preview: { items: hidden ? [] : items, conflicts: hidden ? [] : conflicts, restricted: hidden },
-        digest: digest(data) };
+        digest: digest({data,shortlistEndpoints}) };
 }
 export type TalentMergePlan = Awaited<ReturnType<typeof scanTalentMerge>>;
 

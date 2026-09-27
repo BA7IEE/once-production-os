@@ -9,7 +9,7 @@ const professionalLabel: Record<string, string> = {
     talentLocations: '地点', castingProfiles: '外观档案', measurementSets: '量尺历史', adultEligibilities: '成人资格',
     representations: '代表关系', personExternalRefs: '外部标识', personCredentials: '资质', translatorLanguagePairs: '翻译语言对',
     translatorServiceModes: '翻译服务方式', mediaCollections: '媒体集合', mediaCollectionTags: '集合标签',
-    mediaCollectionItems: '集合素材引用', talentMigrationReviews: '迁移复核', fieldProposals: '字段建议'
+    mediaCollectionItems: '集合素材引用', talentMigrationReviews: '迁移复核', fieldProposals: '字段建议', shortlistItems: '职业候选（保留职业、备注和选图）'
 };
 const fieldLabel: Record<string, string> = {
     displayName: '展示名', aliases: '别名', roles: '角色', cityCode: '城市',

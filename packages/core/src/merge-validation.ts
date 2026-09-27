@@ -25,7 +25,7 @@ export const MergeSchemas = {
             choice: v.enum(['KEEP_CANONICAL','KEEP_DUPLICATE'])
         }), L.collisions),
         professionalDecisions: v.optional(v.array(v.object({
-            table: v.enum([...TALENT_FACT_TABLES, 'mediaCollectionItems', 'talentMigrationReviews', 'fieldProposals'] as const),
+            table: v.enum([...TALENT_FACT_TABLES, 'mediaCollectionItems', 'talentMigrationReviews', 'fieldProposals', 'shortlistItems'] as const),
             id: uuid,
             action: v.enum(['MOVE', 'REBIND_AGENT', 'STALE_PROPOSAL', 'RETAIN_HISTORY'])
         }), L.collisions)),

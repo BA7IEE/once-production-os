@@ -191,7 +191,8 @@ export class PersonMerges {
             const root = await this.visibleShortlist(tx, actor, row.shortlistId);
             if (!root) { blocker(blockers, 'HIDDEN_SHORTLIST_REFERENCE'); continue; }
             affectedShortlistIds.add(row.shortlistId);
-            const existing = canonicalShort.find(x => x.shortlistId === row.shortlistId && (x.workId ?? null) === (row.workId ?? null));
+            const existing = canonicalShort.find(x => x.shortlistId === row.shortlistId && (x.workId ?? null) === (row.workId ?? null)
+                && (x.personRoleId ?? null) === (row.personRoleId ?? null));
             if (existing) collisions.push({ id: row.id, kind: 'SHORTLIST_ITEM', rootId: row.shortlistId, rootLabel: root.title,
                 canonicalEntryId: existing.id, duplicateEntryId: row.id, canonicalValue: { note: existing.note, workId: existing.workId },
                 duplicateValue: { note: row.note, workId: row.workId } });

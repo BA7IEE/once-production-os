@@ -12365,7 +12365,8 @@
                             "mediaCollectionTags",
                             "mediaCollectionItems",
                             "talentMigrationReviews",
-                            "fieldProposals"
+                            "fieldProposals",
+                            "shortlistItems"
                           ]
                         },
                         "id": {

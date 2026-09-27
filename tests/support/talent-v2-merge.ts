@@ -140,3 +140,37 @@ export async function verifyProfessionalConflicts(app: Application, store: Store
     await store.transaction(async tx => { const source = (await tx.get('sources', b.sourceId))!; await tx.replace('sources', { ...source, status: 'SUSPENDED', revision: source.revision + 1 }); });
     assert.equal(ok(await owner.raw('GET', `/people/${a.personId}/merge-history`), 200).items.length, 0);
 }
+
+export async function seedRoleCandidates(app: Application,store: Store,clock: FakeClock,owner: Client) {
+    const a=await seedProfessionalGraph(app,store,clock,owner),b=await seedProfessionalGraph(app,store,clock,owner);
+    const list=ok(await owner.cmd('POST','/shortlists',{title:'合成多职业候选合并',scopeId:(await a.current()).scopeId})).resourceId as string;
+    const ids:string[]=[];
+    for(const [personId,role,note] of [[a.personId,a.roleId,'主档案模特备注'],[a.personId,a.translatorId,'主档案翻译备注'],[b.personId,b.roleId,'重复档案模特备注'],[b.personId,b.translatorId,'重复档案翻译备注']]) {
+        const revision=(await store.transaction(tx=>tx.get('shortlists',list)))!.revision;
+        ok(await owner.cmd('POST',`/shortlists/${list}/items`,{expectedRevision:revision,personId,personRoleId:role,personRoleRevision:1,note,workAssetIds:[]}),200);
+        ids.push((await store.transaction(tx=>tx.find('shortlistItems',{shortlistId:list}))).find(r=>r.personId===personId&&r.personRoleId===role)!.id);
+    }
+    return {a,b,list,ids};
+}
+export async function verifyRoleCandidateMerge(app: Application,store: Store,clock: FakeClock,owner: Client) {
+    const {a,b,list,ids}=await seedRoleCandidates(app,store,clock,owner);
+    const workspaceId=(await a.current()).workspaceId,snapshot=()=>store.transaction(tx=>talentSnapshot(tx,workspaceId));
+    const before=await snapshot(),p=await mergePreview(store,owner,a.personId,b.personId);
+    assert.equal(p.complete,true,JSON.stringify(p.blockers));assert.equal(p.collisions.filter((c:any)=>c.kind==='SHORTLIST_ITEM').length,0);
+    assert.equal(p.moves.shortlistItems,2);assert.equal(p.professional.items.filter((r:any)=>r.table==='shortlistItems').length,2);
+    const input={...mergeInput(p),professionalConflicts:p.professional.conflicts.map((c:any)=>({table:c.table,canonicalId:c.canonicalId,duplicateId:c.duplicateId,choice:c.choices.includes('RETAIN_DUPLICATE_HISTORY')?'RETAIN_DUPLICATE_HISTORY':'KEEP_CANONICAL_ACTIVE'}))};
+    assert.equal((await owner.cmd('POST','/people/merge',{...input,professionalDecisions:input.professionalDecisions.filter((r:any)=>r.table!=='shortlistItems')})).status,422);
+    const fault=new FaultStore(store);fault.afterInsert=(t,r)=>{if(t==='audits'&&'action' in r&&r.action==='person.merge')throw new AppError(503,'STORE_UNAVAILABLE','synthetic candidate audit failure');};
+    const client=new Client(new Application(fault,app.config,clock));client.jar={...owner.jar};client.csrf=owner.csrf;
+    const key=randomUUID();assert.equal((await client.cmd('POST','/people/merge',input,key)).status,503);assert.deepEqual(await snapshot(),before);
+    fault.afterInsert=null;ok(await client.cmd('POST','/people/merge',input,key),200);
+    const after=await snapshot();
+    for(const id of ids) {
+        const old=before.shortlistItems.find(r=>r.id===id)!,row=after.shortlistItems.find(r=>r.id===id)!;
+        assert.ok(row);assert.equal(row.personId,a.personId);assert.equal(row.personRoleId,old.personRoleId);assert.equal(row.note,old.note);assert.equal(row.personRoleRevision,old.personRoleRevision);assert.equal(row.roleContextState,old.roleContextState);
+    }
+    const detail=ok(await owner.raw('GET','/shortlists/'+list),200);assert.equal(detail.items.length,4);
+    assert.equal(detail.items.filter((r:any)=>r.unavailable).length,2,'candidates tied to explicitly deactivated roles remain stored but unavailable');
+    assert.equal(ok(await client.cmd('POST','/people/merge',input,key),200).replayed,true);assert.deepEqual(await snapshot(),after);
+    assert.equal((await store.transaction(tx=>inspectTalentIntegrity(tx,workspaceId,app.config.contactKey))).relationFailures,0);
+}

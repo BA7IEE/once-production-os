@@ -19,7 +19,7 @@ Talent 2.0 已有类型化模型/前向迁移/业务接口/机器身份/建议/�
 
 ## 继续开发顺序
 
-1. typed merge 已支持无冲突迁移和主档案历史保留、成人资格/重叠有效期显式决定，见 `docs/release/TD2_CONFLICT_MERGE.md`；职业候选碰撞与历史删除策略仍待完成。
+1. typed merge 已支持无冲突迁移和主档案历史保留、成人资格/重叠有效期显式决定，见 `docs/release/TD2_CONFLICT_MERGE.md`；不同职业候选已可逐项确认后分别保留，见 `docs/release/TD2_ROLE_CANDIDATE_MERGE.md`；职业不明且关联复核的真实碰撞与历史删除仍阻断。
 2. 十一类专业资料（含能力字典、外部标识、代表关系及所用机构）已实现双层许可导出与真实 CLI 重建，见 `docs/release/TD2_REPRESENTATION_TRANSFER.md`；旧 v1/v2/v3 格式兼容。继续补资质/媒体/合并历史与字段级多来源迁移，旧扁平字段不可假装完整人才2.0。
 3. Source多来源保留与Asset引用专用清理；当前新依赖下保守阻断，不宣告删除完成。
 4. 人才2.0前端组合工作台与新业务Chromium验收。

@@ -392,6 +392,15 @@ try {
  assert.equal((await binary(owner,tdUpload.resourceId,tdBytes)).status(),200);await queue(owner,tdUpload.resourceId);
  await until(async()=>await prisma.mediaAsset.count({where:{id:tdUpload.resourceId,state:'READY'}})===1);
  await cmd(owner,'POST',`/td2/collections/${tdCollection}/items`,{schemaVersion:tdSchema,expectedRevision:1,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdDuplicate}})).revision,assetId:tdUpload.resourceId});
+ const tdCanonicalRole=(await prisma.personRole.findFirstOrThrow({where:{personId:tdCanonical,roleCode:'model'}})).id;
+ const tdCandidateWork=(await cmd(owner,'POST','/works',{title:'TD2候选同一作品',sourceId:tdSource},201)).resourceId;
+ await cmd(owner,'POST',`/works/${tdCandidateWork}/assets`,{expectedRevision:1,assetId:tdUpload.resourceId},200);
+ const tdCandidateWorkAsset=(await prisma.workAsset.findFirstOrThrow({where:{workId:tdCandidateWork}})).id;
+ for(const personId of [tdCanonical,tdDuplicate]) await cmd(owner,'POST',`/works/${tdCandidateWork}/credits`,{expectedRevision:(await prisma.work.findUniqueOrThrow({where:{id:tdCandidateWork}})).revision,personId,roleCode:'model',note:'合成署名'},200);
+ const tdCandidateList=(await cmd(owner,'POST','/shortlists',{title:'TD2保留职业候选',scopeId:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).scopeId},201)).resourceId;
+ for(const [personId,personRoleId,note] of [[tdCanonical,tdCanonicalRole,'保留主档案候选备注'],[tdDuplicate,tdRole,'保留重复档案候选备注']]) await cmd(owner,'POST',`/shortlists/${tdCandidateList}/items`,{expectedRevision:(await prisma.shortlist.findUniqueOrThrow({where:{id:tdCandidateList}})).revision,personId,personRoleId,personRoleRevision:1,workId:tdCandidateWork,workAssetIds:[tdCandidateWorkAsset],note},200);
+ const tdCandidateBefore=await prisma.shortlistItem.findMany({where:{shortlistId:tdCandidateList},orderBy:{position:'asc'}});
+ const tdCandidateLinksBefore=await prisma.shortlistItemAsset.findMany({where:{itemId:{in:tdCandidateBefore.map(r=>r.id)}},orderBy:{id:'asc'}});
  await owner.getByRole('button',{name:/概览/}).click();
  await owner.getByRole('button',{name:/人才合并/}).click();
  for(const [index,label,name] of [[0,'主档案（保留）','TD2保留身份'],[1,'重复档案（归档并建立旧 ID 映射）','TD2专业重复']]){
@@ -402,6 +411,9 @@ try {
  }
  const tdPreview=await writeUI(owner,'POST','/people/merge-preview',()=>owner.getByRole('button',{name:'预览合并影响',exact:true}).click());
  assert.equal(tdPreview.complete,true);
+ assert.equal(tdPreview.collisions.filter(c=>c.kind==='SHORTLIST_ITEM').length,0);
+ assert.ok(tdPreview.professional.items.some(r=>r.table==='shortlistItems'&&r.id===tdCandidateBefore[1].id));
+ for(const collision of tdPreview.collisions) await owner.getByLabel('关系决定 '+collision.id,{exact:true}).selectOption('KEEP_CANONICAL');
  for(const field of tdPreview.fieldConflicts)await owner.getByLabel('字段决定 '+field.field,{exact:true}).selectOption('CANONICAL');
  await owner.getByLabel('合并依据 *',{exact:true}).fill('合成验收：保留专业资料原来源和稳定编号');
  assert.equal(await owner.getByRole('button',{name:'执行受控合并',exact:true}).isEnabled(),false);
@@ -416,6 +428,11 @@ try {
  owner.once('dialog',dialog=>void dialog.accept());
  await writeUI(owner,'POST','/people/merge',()=>owner.getByRole('button',{name:'执行受控合并',exact:true}).click());
  await owner.getByText('合并已完成',{exact:true}).waitFor();
+ const tdCandidateAfter=await prisma.shortlistItem.findMany({where:{shortlistId:tdCandidateList},orderBy:{position:'asc'}});
+ assert.equal(tdCandidateAfter.length,2);
+ for(let i=0;i<2;i++){assert.equal(tdCandidateAfter[i].id,tdCandidateBefore[i].id);assert.equal(tdCandidateAfter[i].personId,tdCanonical);assert.equal(tdCandidateAfter[i].personRoleId,tdCandidateBefore[i].personRoleId);assert.equal(tdCandidateAfter[i].note,tdCandidateBefore[i].note);}
+ assert.deepEqual(await prisma.shortlistItemAsset.findMany({where:{itemId:{in:tdCandidateBefore.map(r=>r.id)}},orderBy:{id:'asc'}}),tdCandidateLinksBefore);
+ const tdCandidateDetail=await json(owner,'/shortlists/'+tdCandidateList);assert.equal(tdCandidateDetail.items.filter(r=>r.unavailable).length,1);
  const tdDetail=await json(owner,'/td2/people/'+tdCanonical);
  assert.equal(tdDetail.facts.personLanguages[0].id,tdLanguage);
  assert.equal(tdDetail.facts.personRoles.find(r=>r.status==='ACTIVE').id,tdRole);

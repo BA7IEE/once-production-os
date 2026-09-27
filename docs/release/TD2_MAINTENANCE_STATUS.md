@@ -5,7 +5,9 @@
 
 ## 本轮接续
 
-当前在 `2a7d914` 上补代表关系迁移，见 [TD2_REPRESENTATION_TRANSFER.md](TD2_REPRESENTATION_TRANSFER.md)。个人代表需显式选择并独立批准；机构来源须批准实际使用的每个分组。职业/有效期/停用状态保留，旧 v1/v2/v3 兼容。整体仍未完成。
+当前在 `1cd4e22` 上修复不同职业候选的合并误冲突，见 [TD2_ROLE_CANDIDATE_MERGE.md](TD2_ROLE_CANDIDATE_MERGE.md)。逐项确认后保留独立候选、原职业、备注与选图；职业不明且关联复核的真实碰撞继续阻断。
+
+前批在 `2a7d914` 上补代表关系迁移，见 [TD2_REPRESENTATION_TRANSFER.md](TD2_REPRESENTATION_TRANSFER.md)。个人代表需显式选择并独立批准；机构来源须批准实际使用的每个分组。职业/有效期/停用状态保留，旧 v1/v2/v3 兼容。整体仍未完成。
 
 前批在 `148ffac` 上补外部标识和所用机构导出/重建，见 [TD2_EXTERNAL_TRANSFER.md](TD2_EXTERNAL_TRANSFER.md)。机构自己的来源也需明确许可，重建保留核验/撤销状态，旧 v1/v2 兼容。总体仍未完成。
 

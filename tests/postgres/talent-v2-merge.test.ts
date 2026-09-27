@@ -6,7 +6,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaStore } from '../../apps/api/src/prisma-store.ts';
 import { Application } from '../../packages/core/src/api.ts';
 import { FakeClock, Client, SYNTHETIC_PASSWORD } from '../support/fixtures.ts';
-import { verifyProfessionalConflicts, verifyProfessionalMerge } from '../support/talent-v2-merge.ts';
+import { verifyRoleCandidateMerge, verifyProfessionalConflicts, verifyProfessionalMerge } from '../support/talent-v2-merge.ts';
 
 test('TD2 real PostgreSQL professional merge rollback and retry', async () => {
     assert.equal(process.env.ALLOW_TD2_DB_TESTS, 'yes');
@@ -28,6 +28,7 @@ test('TD2 real PostgreSQL professional merge rollback and retry', async () => {
         const owner = new Client(app); assert.equal((await owner.login()).status, 200);
         await verifyProfessionalMerge(app, store, clock, owner);
         await verifyProfessionalConflicts(app, store, clock, owner);
+        await verifyRoleCandidateMerge(app,store,clock,owner);
         const retired = await client.talentProfile.findFirstOrThrow({ where: { supersededById: { not: null } } });
         await assert.rejects(client.$executeRaw`UPDATE "talentProfiles" SET "revision"="revision"+1 WHERE "id"=${retired.id}::uuid`, /retired profile is immutable/);
         await assert.rejects(client.$executeRaw`DELETE FROM "talentProfiles" WHERE "id"=${retired.id}::uuid`, /retired profile is immutable/);
