@@ -33,7 +33,7 @@ test('TD2-T16 source retention stays blocked while singleton merge requires expl
     }), 200);
     assert.ok(merge.professional.conflicts.some((r: any) => r.table === 'talentProfiles' && r.choices.includes('RETAIN_DUPLICATE_HISTORY')));
     assert.equal(merge.complete, true);
-    await assert.rejects(f.store.transaction(tx => assertTalentFinalizationClean(tx, f.workspaceId, 'PERSON', p.personId)));
+    await assert.rejects(f.store.transaction(tx => assertTalentFinalizationClean(tx, f.workspaceId, 'PERSON', p.personId, f.clock)));
 });
 test('TD2-T16 legacy export cannot serialize stale flat professional fields for an upgraded person', async () => {
     const f = await fixture(), p = await seedProfessionalGraph(f.app, f.store, f.clock, f.owner);

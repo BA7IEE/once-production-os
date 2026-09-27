@@ -1,3 +1,4 @@
+import { eraseSourceFacts, assertSourceFactGroupDone, validateSourceFactPlan, SOURCE_FACT_GROUP, SOURCE_FACT_ITEM } from './talent-source-fact-erasure.ts';
 import { eraseTalentSourceEvidence } from './talent-source-erasure.ts';
 import { deletionWorkerActor } from './deletion-worker-policy.ts';
 import { eraseTalentAssetReferences } from './talent-asset-erasure.ts';
@@ -24,6 +25,8 @@ const relationTable: Record<string, Table> = {
     shortlistItem: 'shortlistItems'
 };
 const actionPriority = (item: DeletionItem) => {
+    if (item.resourceKind === SOURCE_FACT_GROUP) return 4;
+    if (item.resourceKind === SOURCE_FACT_ITEM) return 6;
     if (['talentGraph','talentAssetGraph','talentSourceEvidenceGraph'].includes(item.resourceKind)) return 5;
     if (item.resourceKind === 'shortlistItemAsset') return 10;
     if (item.resolvedAction === 'REMOVE_RELATION') return item.resourceKind === 'shortlistItem' ? 30 : 20;
@@ -82,6 +85,7 @@ export class DeletionCleanup {
             cleanupErrorCode: null, cleanedAt: null }));
         const executionPlanDigest = digest(executionPlan(row, prepared));
         for (const item of prepared) await tx.replace('deletionItems', item);
+        await validateSourceFactPlan(tx, actor, row, items, this.clock);
         const next: DeletionRequest = { ...touch(row, this.clock), state: 'CLEANING', executionPlanDigest,
             cleanupStartedAt: this.clock.now().toISOString(), cleanupStartedById: actor.membershipId,
             cleanupLeaseToken: null, cleanupLeaseUntil: null, dependencyCleanupCompletedAt: null, cleanupErrorCode: null };
@@ -131,6 +135,7 @@ export class DeletionCleanup {
     }
 
     private async apply(tx: Tx, request: DeletionRequest, item: DeletionItem): Promise<CleanupResult> {
+        if (item.resourceKind === SOURCE_FACT_ITEM) { await assertSourceFactGroupDone(tx, request); return { outcome: 'DONE' }; }
         const action = item.resolvedAction;
         invariant(action, 'CLEANUP_ACTION_MISSING', '清理项没有冻结执行动作', 409);
         if (action === 'RETAIN_WITH_BASIS') {
@@ -230,6 +235,7 @@ export class DeletionCleanup {
             return { outcome: 'DONE' };
         }
         if (action === 'ERASE_PAYLOAD') {
+            if (item.resourceKind === SOURCE_FACT_GROUP) { await eraseSourceFacts(tx, request, item, this.clock); return { outcome: 'DONE' }; }
             if (item.resourceKind === 'talentSourceEvidenceGraph') {
                 await eraseTalentSourceEvidence(tx, request, item, this.clock);
                 return { outcome: 'DONE' };

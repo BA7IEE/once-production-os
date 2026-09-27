@@ -37,6 +37,12 @@ const detailLabel: Record<string, string> = {
     EXPORT_PAYLOAD_DEPENDS_ON_SOURCE: '旧导出 payload 依赖来源'
 };
 function detailText(code: string) {
+    const facts = /^TD2_SOURCE_FACT_GRAPH_[a-f0-9]{64}:F(\d+):C(\d+):I(\d+)$/.exec(code);
+    if (facts) return `按逐项决定处理 ${facts[1]} 项专业资料；涉及 ${facts[2]} 条候选职业关系和 ${facts[3]} 项集合关联。删除职业后原候选保留并标记待核实，不猜测新职业。`;
+    if (code.startsWith('TD2_SOURCE_FACT_')) {
+        const names:Record<string,string>={talentProfiles:'专业主档案',personRoles:'职业',personCapabilities:'能力',personLanguages:'工作语言',talentLocations:'工作地区',castingProfiles:'选角资料',measurementSets:'量尺',adultEligibilities:'成年资格',representations:'经纪关系',personExternalRefs:'外部标识',personCredentials:'资质',translatorLanguagePairs:'翻译方向',translatorServiceModes:'翻译服务',mediaCollections:'媒体集合',mediaCollectionTags:'集合标签'};
+        return `${names[code.split(':')[0]!.replace('TD2_SOURCE_FACT_','')]??'专业资料'}：选择删除，或依据已有逐字段核验保留。保留不会改记原来源。`;
+    }
     const source = /^TD2_SOURCE_EVIDENCE_[a-f0-9]{64}:E(\d+):P(\d+):F(\d+)$/.exec(code);
     if (source) return `删除本来源的 ${source[1]} 条字段依据和 ${source[2]} 条修改建议；不改动关联的 ${source[3]} 项资料及其他来源记录，不改写原核验归属。`;
     const asset = /^TD2_ASSET_GRAPH_[a-f0-9]{64}:C(\d+):Q(\d+):A(\d+):P(\d+)$/.exec(code);
@@ -45,6 +51,8 @@ function detailText(code: string) {
     return detailLabel[code] ?? code;
 }
 const unresolvedLabel: Record<string, string> = {
+    TD2_SOURCE_IDENTITY_RETENTION_REQUIRED: '来源包含人物身份资料，仍需完成身份字段保留方案',
+    TD2_SOURCE_MEDIA_RETENTION_REQUIRED: '来源包含原件，仍需完成原件与专业引用联合清理方案',
     TD2_SOURCE_INDEPENDENT_EVIDENCE_REQUIRED: '部分字段没有另一份有效且支持当前值的已登记依据，不能直接删除本来源',
     TD2_SOURCE_RETENTION_REVIEW_REQUIRED: '来源仍拥有专业资料，需要逐项完成保留与清理方案',
     HIDDEN_PERSON_DEPENDENCY: '存在当前不可见的人才依赖',
@@ -82,12 +90,12 @@ function DecisionModal({ request, item, sources, canRetain, onClose, onDone }: {
             onDone();
         }); }}>
             <div className="modal-body"><ErrorBox error={action.error}/>
-                <div className="notice"><strong>{evidenceLabel[item.evidenceState] ?? item.evidenceState}</strong><p>{detailText(item.detailCode)}</p></div>
+                <div className="notice"><strong>{evidenceLabel[item.evidenceState] ?? item.evidenceState}</strong><p>{item.recordSummary}</p><p>{detailText(item.detailCode)}</p></div>
                 <dl className="detail-grid"><div><dt>依赖类型</dt><dd><code>{item.dependencyKind}</code></dd></div><div><dt>系统建议</dt><dd>{actionLabel[item.proposedAction] ?? item.proposedAction}</dd></div></dl>
                 <Field label="本项决定">
                     <select value={decision} onChange={e => { setDecision(e.target.value as 'APPLY_PROPOSED' | 'RETAIN_WITH_BASIS'); setRetentionSourceId(''); }}>
-                        <option value="APPLY_PROPOSED">按系统建议处置</option>
-                        {canRetain && !['PERSON_TALENT_GRAPH','ASSET_TALENT_REFERENCES','SOURCE_TALENT_EVIDENCE'].includes(item.dependencyKind) && <option value="RETAIN_WITH_BASIS">有独立依据，保留</option>}
+                        <option value="APPLY_PROPOSED">{item.dependencyKind==='SOURCE_TALENT_FACT'?'删除这项专业资料':item.dependencyKind==='SOURCE_TALENT_FACT_GROUP'?'确认按逐项决定执行':'按系统建议处置'}</option>
+                        {canRetain && !['PERSON_TALENT_GRAPH','ASSET_TALENT_REFERENCES','SOURCE_TALENT_EVIDENCE','SOURCE_TALENT_FACT_GROUP'].includes(item.dependencyKind) && <option value="RETAIN_WITH_BASIS">有独立依据，保留</option>}
                     </select>
                 </Field>
                 {decision === 'RETAIN_WITH_BASIS' && <Field label="独立保留依据" hint="必须是另一份当前有效的正式 INTERNAL_USE 来源；目标原来源不能自证保留。">
@@ -171,7 +179,7 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
                 <div className="panel-heading"><div><h3>保留决定</h3><p>这里不显示被冻结依赖的底层对象 ID。PROVEN 项自动采用系统建议；只有 REVIEW_REQUIRED 项需要人工判断。</p></div></div>
                 {items.busy && !items.data ? <p>正在读取安全决策槽…</p> : items.data && <>
                     <div className="table-wrap"><table><thead><tr><th>依赖类型</th><th>系统建议</th><th>证据</th><th>当前决定</th><th>说明</th><th/></tr></thead><tbody>{items.data.items.map(item => <tr key={item.id}>
-                        <td><code>{item.dependencyKind}</code></td>
+                        <td><code>{item.dependencyKind}</code>{item.recordSummary&&<p>{item.recordSummary}</p>}</td>
                         <td>{actionLabel[item.proposedAction] ?? item.proposedAction}</td>
                         <td>{evidenceLabel[item.evidenceState] ?? item.evidenceState}</td>
                         <td>{item.decision === 'PENDING' ? '待决定' : item.decision === 'RETAIN_WITH_BASIS' ? '有独立依据保留' : '按建议处置'}</td>

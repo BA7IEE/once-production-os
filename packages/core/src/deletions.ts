@@ -1,3 +1,4 @@
+import { sourceFactGraph, sourceFactItemCode, validateSourceFactDecision, validateSourceFactPlan, SOURCE_FACT_GROUP, SOURCE_FACT_ITEM } from './talent-source-fact-erasure.ts';
 import { previewTalentSourceErasure } from './talent-source-erasure.ts';
 import { previewTalentAssetErasure } from './talent-asset-erasure.ts';
 import { previewTalentErasure } from './talent-v2-erasure.ts';
@@ -257,7 +258,16 @@ export class Deletions {
                 const graph = await previewTalentSourceErasure(tx, actor, targetId, this.clock);
                 const ids = new Set(graph.evidence.map(e => e.id));
                 for (const [key, impact] of impacts) if (impact.resourceKind === 'evidence' && ids.has(impact.resourceId)) impacts.delete(key);
-                if (graph.blocker) miss(graph.blocker);
+                if (graph.blocker === 'TD2_SOURCE_RETENTION_REVIEW_REQUIRED') {
+                    const facts = await sourceFactGraph(tx, actor, targetId, this.clock);
+                    if (facts.blocker) miss(facts.blocker);
+                    else if (facts.rows.length) {
+                        const evidenceIds = new Set(facts.evidence.map(e => e.id));
+                        for (const [key, impact] of impacts) if (impact.resourceKind === 'evidence' && evidenceIds.has(impact.resourceId)) impacts.delete(key);
+                        add({resourceKind:SOURCE_FACT_GROUP,resourceId:targetId,dependencyKind:'SOURCE_TALENT_FACT_GROUP',proposedAction:'ERASE_PAYLOAD',evidenceState:'REVIEW_REQUIRED',detailCode:facts.detailCode});
+                        for (const fact of facts.rows) add({resourceKind:SOURCE_FACT_ITEM,resourceId:fact.row.id,dependencyKind:'SOURCE_TALENT_FACT',proposedAction:'REVIEW_RETENTION',evidenceState:'REVIEW_REQUIRED',detailCode:sourceFactItemCode(fact)});
+                    } else miss(graph.blocker);
+                } else if (graph.blocker) miss(graph.blocker);
                 else if (graph.count) {
                     add({resourceKind:'talentSourceEvidenceGraph',resourceId:targetId,dependencyKind:'SOURCE_TALENT_EVIDENCE',
                         proposedAction:'ERASE_PAYLOAD',evidenceState:'REVIEW_REQUIRED',detailCode:graph.detailCode});
@@ -364,6 +374,14 @@ export class Deletions {
         const row = await this.requestFor(tx, actor, id);
         const items = (await tx.find('deletionItems', { workspaceId: actor.workspaceId, requestId: row.id }))
             .sort((a, b) => (a.evidenceState === b.evidenceState ? a.id.localeCompare(b.id) : a.evidenceState.localeCompare(b.evidenceState)));
+        const factLabels = new Map<string,string>();
+        if (items.some(i => i.resourceKind === SOURCE_FACT_GROUP) && ['DRAFT','BLOCKED_FOR_USE'].includes(row.state)) {
+            const g = await sourceFactGraph(tx, actor, row.targetId, this.clock);
+            if (g.blocker === 'TD2_HIDDEN_DEPENDENCY') missing();
+            for (const o of g.rows) factLabels.set(o.row.id, [g.people.find(p => p.id === o.row.personId)?.displayName,
+                o.row.roleCode, o.row.languageCode, o.row.capabilityCode, o.row.title, o.row.locationCode, o.row.credentialTypeCode,
+                o.row.validFrom, o.row.validUntil].filter(v => typeof v === 'string' && v.length).join(' · '));
+        }
         const safe = items.map(item => ({
             id: item.id,
             dependencyKind: item.dependencyKind,
@@ -373,7 +391,8 @@ export class Deletions {
             decision: item.decision,
             decisionReason: item.decisionReason === 'AUTO_PROVEN' ? '' : item.decisionReason,
             retentionBasisPresent: item.retentionSourceId !== null,
-            decidedAt: item.decidedAt
+            decidedAt: item.decidedAt,
+            ...(item.resourceKind === SOURCE_FACT_ITEM ? {recordSummary: factLabels.get(item.resourceId) ?? ''} : {})
         }));
         return page(safe, query);
     }
@@ -389,14 +408,21 @@ export class Deletions {
         if (!item || item.requestId !== row.id) missing();
         invariant(item.evidenceState === 'REVIEW_REQUIRED', 'DELETION_DECISION_NOT_REQUIRED', '该影响项已有可证明的自动处置，不需要人工覆盖', 409);
 
+        if ([SOURCE_FACT_GROUP,SOURCE_FACT_ITEM].includes(item.resourceKind)) {
+            const graph = await sourceFactGraph(tx, actor, row.targetId, this.clock);
+            if (graph.blocker === 'TD2_HIDDEN_DEPENDENCY') missing();
+            const group = (await tx.find('deletionItems', {workspaceId:actor.workspaceId,requestId:row.id})).find(i => i.resourceKind === SOURCE_FACT_GROUP);
+            invariant(!graph.blocker && group?.detailCode === graph.detailCode, 'TD2_ERASURE_GRAPH_STALE', '专业资料或依据已经变化，请重新评估删除计划', 409);
+        }
         let retentionSourceId: string | null = null, retentionSourceRevision: number | null = null, retentionSourceProtectionEpoch: number | null = null;
         if (d.decision === 'RETAIN_WITH_BASIS') {
-            invariant(!['talentGraph','talentAssetGraph','talentSourceEvidenceGraph'].includes(item.resourceKind), 'TD2_ERASURE_RETENTION_UNSUPPORTED',
+            invariant(!['talentGraph','talentAssetGraph','talentSourceEvidenceGraph',SOURCE_FACT_GROUP].includes(item.resourceKind), 'TD2_ERASURE_RETENTION_UNSUPPORTED',
                 '本项必须清理指定对象的资料或引用；独立来源证据不能改记来源，需要保留时请停止本次删除', 422);
             requirePermission(actor, 'sources.review');
             invariant(!!d.retentionSourceId && d.retentionSourceId !== row.targetSourceId, 'RETENTION_BASIS_REQUIRED', '保留必须选择另一份独立且当前有效的来源依据', 422);
             const basis = await sourceFor(tx, actor, d.retentionSourceId, this.clock);
             invariant(basis.basisMode === 'INTERNAL_USE', 'RETENTION_BASIS_INVALID', '保留依据必须是当前有效的正式内部依据', 422);
+            if (item.resourceKind === SOURCE_FACT_ITEM) await validateSourceFactDecision(tx, actor, row, item, basis.id, this.clock);
             retentionSourceId = basis.id;
             retentionSourceRevision = basis.revision;
             retentionSourceProtectionEpoch = basis.protectionEpoch;
@@ -433,6 +459,7 @@ export class Deletions {
                 && basis.protectionEpoch === item.retentionSourceProtectionEpoch,
                 'RETENTION_BASIS_CHANGED', '保留依据已经变化，请重新作出保留决定', 409);
         }
+        await validateSourceFactPlan(tx, actor, row, items, this.clock);
         const planDigest = digest(frozenDeletionPlan(row, items));
         const next: DeletionRequest = { ...touch(row, this.clock), planDigest,
             planFrozenAt: this.clock.now().toISOString(), planFrozenById: actor.membershipId };

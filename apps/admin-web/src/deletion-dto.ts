@@ -66,6 +66,7 @@ export interface DeletionRequestDetail extends DeletionRequestSummary {
     executionNote: string;
 }
 export interface DeletionDecisionItem {
+    recordSummary?: string;
     id: string;
     dependencyKind: string;
     proposedAction: DeletionAction;

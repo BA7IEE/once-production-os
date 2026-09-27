@@ -48,5 +48,8 @@ test('TD2 real PostgreSQL professional merge rollback and retry', async () => {
         const { verifyIndependentSourceErasure } = await import('../support/talent-source-erasure.ts');
     await verifyIndependentSourceErasure({app,store,clock,owner});
     console.log('PASS real PostgreSQL independent source evidence cleanup: preserved facts/provenance, audit rollback/retry and final erasure');
+    const { verifySourceFactErasure } = await import('../support/talent-source-fact-erasure.ts');
+    await verifySourceFactErasure({app,store,clock,owner});
+    console.log('PASS real PostgreSQL source fact choices: independent complete retention, cross-source children, candidate role review, atomic rollback and final retained origin');
 } finally { await store.close(); }
 });

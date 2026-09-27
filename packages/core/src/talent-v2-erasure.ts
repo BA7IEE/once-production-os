@@ -1,3 +1,4 @@
+import { assertSourceFactRetentionComplete } from './talent-source-fact-erasure.ts';
 import type { Actor, Clock, Table } from './model.ts';
 import type { Tx } from './store.ts';
 import type { DeletionItem, DeletionRequest } from './deletion-model.ts';
@@ -88,8 +89,9 @@ export async function eraseTalentPersonGraph(tx: Tx, request: DeletionRequest, i
 }
 
 /** Older persisted requests must not finalize a root while newly introduced dependencies survive. */
-export async function assertTalentFinalizationClean(tx: Tx, workspaceId: string, kind: string, id: string) {
+export async function assertTalentFinalizationClean(tx: Tx, workspaceId: string, kind: string, id: string, clock: Clock) {
     if (kind !== 'PERSON' && kind !== 'SOURCE' && kind !== 'ASSET') return;
+    if (kind === 'SOURCE' && await assertSourceFactRetentionComplete(tx, workspaceId, id, clock)) return;
     const deps = await talentDependencyCounts(tx, workspaceId, kind, id);
     invariant(deps.count === 0, 'TD2_CLEANUP_INCOMPLETE', '人才2.0关联资料尚未清理，不能宣告根对象删除完成', 409);
 }

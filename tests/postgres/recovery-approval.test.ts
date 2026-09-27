@@ -1,3 +1,4 @@
+import {verifySourceFactErasure} from '../support/talent-source-fact-erasure.ts';
 import {digest} from '../../packages/core/src/json.ts';
 import { mergeInput, mergePreview } from '../support/talent-v2-merge.ts';
 import { seedProfessionalGraph } from '../support/talent-v2-maintenance.ts';
@@ -170,6 +171,12 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         const aliasBase=await sourceClient.personAlias.findFirstOrThrow({where:{oldPersonId:historyPersonId}});
         const importedAlias=await sourceClient.personAlias.create({data:{...aliasBase,id:randomUUID(),oldPersonId:importedHistoryPerson.id,mergeDecisionId:importedMerge.id}});
 
+        const sourceRetention=await verifySourceFactErasure({app:sourceApp,store:sourceStore,clock,owner},td2);
+        const retainedLanguage=await sourceClient.personLanguage.findUniqueOrThrow({where:{id:sourceRetention.s.languageId}});
+        const retainedLanguageEvidence=await sourceClient.fieldEvidence.findMany({where:{personLanguageId:retainedLanguage.id},orderBy:{id:'asc'}});
+        const retainedCandidate=await sourceClient.shortlistItem.findUniqueOrThrow({where:{id:sourceRetention.s.candidateId}});
+        const retainedRoleReview=await sourceClient.talentMigrationReview.findFirstOrThrow({where:{shortlistItemId:retainedCandidate.id,reason:'SHORTLIST_ROLE_REQUIRED',state:'PENDING'}});
+
         const backup=run('pnpm',['--silent','recovery:backup','--','--output-dir',backupDir],{
             ...process.env,DATABASE_URL_BACKUP:sourceUrl,SAFETY_JOURNAL_FILE:journal,
             CONTACT_KEY_FILE:contactFile,RECOVERY_EPOCH_FILE:oldEpochFile,
@@ -266,6 +273,13 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         assert.deepEqual(await restoreClient.personAlias.findUniqueOrThrow({where:{id:importedAlias.id}}),importedAlias);
         assert.deepEqual(await restoreClient.adultEligibility.findUniqueOrThrow({where:{id:importedAdult.id}}),importedAdult);
         assert.equal(restoredEvidence.reviewerId,null);assert.equal(restoredEvidence.reviewedAt,null);
+        assert.deepEqual(await restoreClient.personLanguage.findUniqueOrThrow({where:{id:retainedLanguage.id}}),retainedLanguage);
+        assert.deepEqual(await restoreClient.fieldEvidence.findMany({where:{personLanguageId:retainedLanguage.id},orderBy:{id:'asc'}}),retainedLanguageEvidence);
+        assert.deepEqual(await restoreClient.shortlistItem.findUniqueOrThrow({where:{id:retainedCandidate.id}}),retainedCandidate);
+        assert.deepEqual(await restoreClient.talentMigrationReview.findUniqueOrThrow({where:{id:retainedRoleReview.id}}),retainedRoleReview);
+        assert.equal((await restoreClient.sourceRecord.findUniqueOrThrow({where:{id:sourceRetention.s.sourceId}})).status,'ERASED');
+        assert.equal((await restoreClient.deletionRequest.findUniqueOrThrow({where:{id:sourceRetention.r.requestId}})).state,'RETAINED_WITH_BASIS');
+        console.log('PASS actual backup/restore preserves erased historical source, retained language and exact independent evidence plus pending candidate role review');
         assert.equal(report.talent.credentialCount, 1);
         assert.equal(report.talent.credentialDecryptFailures, 0);
         assert.equal(report.talent.tableCounts.personRoles, 2);
