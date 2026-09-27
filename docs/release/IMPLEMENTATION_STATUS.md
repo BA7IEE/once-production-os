@@ -2,7 +2,7 @@
 
 应用 `0.1.0-dev.1`。当前分支 `feat/talent-domain-2`，PR #26，基于 PR #25。
 
-2026-09-27 当前增量：[外部标识及关联机构迁移](TD2_EXTERNAL_TRANSFER.md)，保留[能力 v2](TD2_CAPABILITY_TRANSFER.md)及[旧八类 v1](TD2_TYPED_TRANSFER.md)兼容；其余专业关系仍未完成。前批：专业主档案只读历史保留，职业/语言/常驻地/成人资格逐项冲突决定，以及授权历史查看，详见 [TD2_CONFLICT_MERGE.md](TD2_CONFLICT_MERGE.md)。历史删除、职业候选碰撞仍阻断；TD2-06 未完成。
+2026-09-27 当前增量：[代表关系迁移](TD2_REPRESENTATION_TRANSFER.md)，保留[外部标识 v3](TD2_EXTERNAL_TRANSFER.md)、[能力 v2](TD2_CAPABILITY_TRANSFER.md)及[旧八类 v1](TD2_TYPED_TRANSFER.md)兼容；其余专业关系仍未完成。前批：专业主档案只读历史保留，职业/语言/常驻地/成人资格逐项冲突决定，以及授权历史查看，详见 [TD2_CONFLICT_MERGE.md](TD2_CONFLICT_MERGE.md)。历史删除、职业候选碰撞仍阻断；TD2-06 未完成。
 
 当前2.0实现、测试与未完成边界见 [TD2_MAINTENANCE_STATUS.md](TD2_MAINTENANCE_STATUS.md)。以下DEV-09说明是历史切片，不代表当前人才2.0总体通过。
 

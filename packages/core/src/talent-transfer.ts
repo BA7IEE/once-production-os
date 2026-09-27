@@ -12,6 +12,7 @@ export const TALENT_TRANSFER_FIELDS = {
     talentProfiles: ['internalSummary', 'status'],
     personRoles: ['roleCode', 'validFrom', 'validUntil', 'status'],
     personCapabilities: ['personRoleId', 'capabilityCode', 'levelCode', 'validFrom', 'validUntil', 'status'],
+    representations: ['personRoleId','agencyOrganizationId','agentPersonId','relationCode','territoryCode','validFrom','validUntil','status'],
     personExternalRefs: ['providerCode', 'namespaceCode', 'issuerOrganizationId', 'externalKey', 'state', 'verifiedAt'],
     personLanguages: ['languageCode', 'speakingLevelCode', 'listeningLevelCode', 'readingLevelCode', 'writingLevelCode', 'validFrom', 'validUntil', 'status', 'verifiedAt'],
     talentLocations: ['locationCode', 'relationCode', 'validFrom', 'validUntil', 'status', 'verifiedAt'],
@@ -28,12 +29,13 @@ export const TALENT_EXPORT_VERSION = 'once-export-v2-talent' as const;
 export const TRANSFER_VERSION = 'once-talent-transfer-v1' as const;
 export const CAPABILITY_TRANSFER_VERSION = 'once-talent-transfer-v2' as const;
 export const EXTERNAL_TRANSFER_VERSION = 'once-talent-transfer-v3' as const;
+export const REPRESENTATION_TRANSFER_VERSION = 'once-talent-transfer-v4' as const;
 export const transferCode = (table: TransferTable): TransferCode => `person.td2.${table}`;
 export const isTransferCode = (code: string): code is TransferCode => (TRANSFER_CODES as readonly string[]).includes(code);
 export interface TransferRow { id: string; personId: string; sourceId: string; revision: number; createdAt: string; updatedAt: string; data: Record<string, unknown> }
 export interface TransferDefinition { id: string; revision: number; createdAt: string; updatedAt: string; code: string; labelZh: string; labelEn: string; aliases: string[]; applicableRoleCodes: string[]; levelSchemeCode: 'ABILITY_5' | null; semanticVersion: string; schemaVersion: typeof TALENT_SCHEMA_VERSION; status: 'ACTIVE' | 'INACTIVE' }
 export interface TransferOrganization { id: string; sourceId: string; revision: number; createdAt: string; updatedAt: string; name: string; kind: 'AGENCY' | 'ISSUER' | 'OTHER'; status: 'ACTIVE' }
-export interface TalentTransfer { schemaVersion: typeof TRANSFER_VERSION | typeof CAPABILITY_TRANSFER_VERSION | typeof EXTERNAL_TRANSFER_VERSION; selectedFields: TransferCode[]; tables: Record<TransferTable, TransferRow[]>; capabilityDefinitions?: TransferDefinition[]; organizations?: TransferOrganization[] }
+export interface TalentTransfer { schemaVersion: typeof TRANSFER_VERSION | typeof CAPABILITY_TRANSFER_VERSION | typeof EXTERNAL_TRANSFER_VERSION | typeof REPRESENTATION_TRANSFER_VERSION; selectedFields: TransferCode[]; tables: Record<TransferTable, TransferRow[]>; capabilityDefinitions?: TransferDefinition[]; organizations?: TransferOrganization[] }
 // Old v1/v2 payloads lack later tables. Keep their bytes and digest unchanged.
 export const transferRows = (bundle: TalentTransfer, table: TransferTable): TransferRow[] => bundle.tables[table] ?? [];
 const definitionSchema = v.object({ id: uuid, revision, createdAt: dateIso, updatedAt: dateIso, code,
@@ -51,18 +53,21 @@ for (const table of TRANSFER_TABLES) {
     }
     tableSchemas[table] = v.array(v.object({ id: uuid, personId: uuid, sourceId: uuid, revision, createdAt: dateIso, updatedAt: dateIso, data: v.object(shape) }), 500);
 }
-const legacyTables = Object.fromEntries(Object.entries(tableSchemas).filter(([table])=>table!=='personCapabilities'&&table!=='personExternalRefs'));
-const legacyCodes = TRANSFER_CODES.filter(c=>c!=='person.td2.personCapabilities'&&c!=='person.td2.personExternalRefs');
+const legacyTables = Object.fromEntries(Object.entries(tableSchemas).filter(([table])=>table!=='personCapabilities'&&table!=='personExternalRefs'&&table!=='representations'));
+const legacyCodes = TRANSFER_CODES.filter(c=>c!=='person.td2.personCapabilities'&&c!=='person.td2.personExternalRefs'&&c!=='person.td2.representations');
 const legacySchema = v.object({ schemaVersion: v.enum([TRANSFER_VERSION]), selectedFields: v.array(v.enum(legacyCodes),legacyCodes.length,1), tables: v.object(legacyTables) });
-const capabilityCodes=TRANSFER_CODES.filter(c=>c!=='person.td2.personExternalRefs');
-const capabilityTables=Object.fromEntries(Object.entries(tableSchemas).filter(([table])=>table!=='personExternalRefs'));
+const capabilityCodes=TRANSFER_CODES.filter(c=>c!=='person.td2.personExternalRefs'&&c!=='person.td2.representations');
+const capabilityTables=Object.fromEntries(Object.entries(tableSchemas).filter(([table])=>table!=='personExternalRefs'&&table!=='representations'));
 const capabilitySchema = v.object({ schemaVersion: v.enum([CAPABILITY_TRANSFER_VERSION]), selectedFields: v.array(v.enum(capabilityCodes),capabilityCodes.length,1), tables: v.object(capabilityTables), capabilityDefinitions: v.array(definitionSchema,500) });
-const externalSchema = v.object({schemaVersion:v.enum([EXTERNAL_TRANSFER_VERSION]),selectedFields:v.array(v.enum(TRANSFER_CODES),TRANSFER_CODES.length,1),tables:v.object(tableSchemas),capabilityDefinitions:v.array(definitionSchema,500),organizations:v.array(organizationSchema,500)});
+const externalCodes=TRANSFER_CODES.filter(c=>c!=='person.td2.representations');
+const externalTables=Object.fromEntries(Object.entries(tableSchemas).filter(([table])=>table!=='representations'));
+const externalSchema = v.object({schemaVersion:v.enum([EXTERNAL_TRANSFER_VERSION]),selectedFields:v.array(v.enum(externalCodes),externalCodes.length,1),tables:v.object(externalTables),capabilityDefinitions:v.array(definitionSchema,500),organizations:v.array(organizationSchema,500)});
+const representationSchema=v.object({schemaVersion:v.enum([REPRESENTATION_TRANSFER_VERSION]),selectedFields:v.array(v.enum(TRANSFER_CODES),TRANSFER_CODES.length,1),tables:v.object(tableSchemas),capabilityDefinitions:v.array(definitionSchema,500),organizations:v.array(organizationSchema,500)});
 export const TransferSchema: Schema<TalentTransfer> = {
-    json: {oneOf:[legacySchema.json,capabilitySchema.json,externalSchema.json]},
+    json: {oneOf:[legacySchema.json,capabilitySchema.json,externalSchema.json,representationSchema.json]},
     parse(input,path) {
         const version = input && typeof input==='object' ? (input as Record<string,unknown>).schemaVersion : undefined;
-        return (version===EXTERNAL_TRANSFER_VERSION ? externalSchema : version===CAPABILITY_TRANSFER_VERSION ? capabilitySchema : legacySchema).parse(input,path) as unknown as TalentTransfer;
+        return (version===REPRESENTATION_TRANSFER_VERSION ? representationSchema : version===EXTERNAL_TRANSFER_VERSION ? externalSchema : version===CAPABILITY_TRANSFER_VERSION ? capabilitySchema : legacySchema).parse(input,path) as unknown as TalentTransfer;
     }
 };
 
@@ -90,6 +95,7 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
         }
         tables[table].sort((a,b) => a.id.localeCompare(b.id));
     }
+    const withRepresentations=codes.includes('person.td2.representations');
     const withExternal = codes.includes('person.td2.personExternalRefs');
     const withCapabilities = codes.includes('person.td2.personCapabilities');
     const capabilityDefinitions: TransferDefinition[] = [];
@@ -104,8 +110,8 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
         capabilityDefinitions.sort((a,b)=>a.id.localeCompare(b.id));
     }
     const organizations: TransferOrganization[]=[];
-    if(withExternal) {
-        const ids=new Set(tables.personExternalRefs.map(r=>r.data.issuerOrganizationId).filter(Boolean));
+    if(withExternal||withRepresentations) {
+        const ids=new Set([...tables.personExternalRefs.map(r=>r.data.issuerOrganizationId),...tables.representations.map(r=>r.data.agencyOrganizationId)].filter(Boolean));
         for(const id of ids) {
             invariant(graph.organizationReadable(String(id)),'TD2_EXPORT_RESTRICTED','关联机构当前不可读，不能省略后导出',409);
             const row=graph.rows('organizations').find(o=>o.id===id)!;
@@ -113,9 +119,11 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
             organizations.push(organizationSchema.parse(Object.fromEntries(Object.keys(organizationSchema.json.properties as object).map(k=>[k,(row as unknown as Record<string,unknown>)[k]]))));
         }
         organizations.sort((a,b)=>a.id.localeCompare(b.id));
-    } else delete (tables as Partial<typeof tables>).personExternalRefs;
-    if(!withCapabilities&&!withExternal) delete (tables as Partial<typeof tables>).personCapabilities;
-    const transfer = TransferSchema.parse({ schemaVersion: withExternal ? EXTERNAL_TRANSFER_VERSION : withCapabilities ? CAPABILITY_TRANSFER_VERSION : TRANSFER_VERSION, selectedFields: [...codes].sort(), tables, ...(withCapabilities||withExternal?{capabilityDefinitions}:{}), ...(withExternal?{organizations}:{}) });
+    }
+    if(!withRepresentations) delete (tables as Partial<typeof tables>).representations;
+    if(!withExternal&&!withRepresentations) delete (tables as Partial<typeof tables>).personExternalRefs;
+    if(!withCapabilities&&!withExternal&&!withRepresentations) delete (tables as Partial<typeof tables>).personCapabilities;
+    const transfer = TransferSchema.parse({ schemaVersion: withRepresentations ? REPRESENTATION_TRANSFER_VERSION : withExternal ? EXTERNAL_TRANSFER_VERSION : withCapabilities ? CAPABILITY_TRANSFER_VERSION : TRANSFER_VERSION, selectedFields: [...codes].sort(), tables, ...(withCapabilities||withExternal||withRepresentations?{capabilityDefinitions}:{}), ...(withExternal||withRepresentations?{organizations}:{}) });
     validateTransferLinks(transfer, peopleIds);
     return transfer;
 }
@@ -157,9 +165,15 @@ export function validateTransferLinks(bundle: TalentTransfer, personIds: string[
         if(row.data.personRoleId && definition.applicableRoleCodes.length) invariant(definition.applicableRoleCodes.includes(String(maps.personRoles.get(String(row.data.personRoleId))?.data.roleCode)),'CAPABILITY_ROLE_MISMATCH','能力与适用职业不匹配',422);
     }
     const organizations=bundle.organizations??[], external=transferRows(bundle,'personExternalRefs');
-    const organizationIds=new Set(external.map(r=>r.data.issuerOrganizationId).filter(Boolean));
+    const representations=transferRows(bundle,'representations');
+    for(const row of representations) {
+        const d=row.data;
+        invariant(Number(!!d.agencyOrganizationId)+Number(!!d.agentPersonId)===1,'REPRESENTATION_SUBJECT_REQUIRED','代表机构与代表人必须且只能选择一个',422);
+        if(d.agentPersonId) invariant(d.agentPersonId!==row.personId&&people.has(String(d.agentPersonId)),'TD2_TRANSFER_AGENT_MISSING','代表人必须另行选择并批准导出，且不能是本人',422);
+    }
+    const organizationIds=new Set([...external.map(r=>r.data.issuerOrganizationId),...representations.map(r=>r.data.agencyOrganizationId)].filter(Boolean));
     invariant(organizations.length===new Set(organizations.map(o=>o.id)).size,'TD2_TRANSFER_ORGANIZATION_DUPLICATE','关联机构编号重复',422);
-    invariant(organizations.length===organizationIds.size && organizations.every(o=>organizationIds.has(o.id)),'TD2_TRANSFER_ORGANIZATION_MISSING','机构清单必须恰好包含标识引用的机构',422);
+    invariant(organizations.length===organizationIds.size && organizations.every(o=>organizationIds.has(o.id)),'TD2_TRANSFER_ORGANIZATION_MISSING','机构清单必须恰好包含所选资料引用的机构',422);
     const activeKeys=new Set<string>();
     for(const row of external) {
         const d=row.data;

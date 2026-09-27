@@ -11,7 +11,7 @@ import { FaultStore } from './fault-store.ts';
 import { seedProfessionalGraph, expectResponse as ok } from './talent-v2-maintenance.ts';
 import { FakeClock, Client, sourceInput } from './fixtures.ts';
 export const SOURCE_FIELDS = ['source.title','source.type','source.providerClaim','source.basisMode','source.basisDescription','source.validFrom','source.validUntil','source.status'];
-export async function controlledTransfer(app: Application, store: Store, clock: FakeClock, owner: Client, includeCapabilities = true, includeExternal = false) {
+export async function controlledTransfer(app: Application, store: Store, clock: FakeClock, owner: Client, includeCapabilities = true, includeExternal = false, includeRepresentations = false) {
     const graph = await seedProfessionalGraph(app, store, clock, owner);
     const secondSource = ok(await owner.cmd('POST','/sources',{...sourceInput(),title:'第二份专业来源'})).resourceId as string;
     const secondLanguage = ok(await owner.cmd('POST',`/td2/people/${graph.personId}/languages`,{schemaVersion:'once-talent-v2.0.0',expectedPersonRevision:(await graph.current()).revision,sourceId:secondSource,sourceRevision:1,values:{languageCode:'zh',speakingLevelCode:'NATIVE'}})).resourceId as string;
@@ -25,14 +25,20 @@ export async function controlledTransfer(app: Application, store: Store, clock: 
             if(revoked) ok(await owner.cmd('POST',`/td2/external-refs/${id}/revoke`,{schemaVersion:'once-talent-v2.0.0',expectedRevision:2,expectedPersonRevision:(await graph.current()).revision,sourceRevision:1}),200);
         }
     }
+    let agentId: string|null=null;
+    if(includeRepresentations) {
+        agentId=(await store.transaction(tx=>tx.find('representations',{personId:graph.personId})))[0]!.agentPersonId;
+        if(organizationId) ok(await owner.cmd('POST',`/td2/people/${graph.personId}/representations`,{schemaVersion:'once-talent-v2.0.0',expectedPersonRevision:(await graph.current()).revision,sourceId:graph.sourceId,sourceRevision:1,values:{agencyOrganizationId:organizationId,relationCode:'AGENCY',personRoleId:graph.roleId,validUntil:'2026-11-01T00:00:00.000Z',status:'INACTIVE'}}));
+    }
     const permission = async(kind: string,id: string,sourceId: string,fields: string[]) => ok(await owner.cmd('POST','/use-permissions',{subjectKind:kind,subjectId:id,sourceId,fields,validUntil:'2026-10-01T00:00:00.000Z',evidenceNote:'合成验收：明确允许所列资料内部重建'})).resourceId as string;
-    const codes = TRANSFER_CODES.filter(c=>(includeCapabilities || c!=='person.td2.personCapabilities')&&(includeExternal || c!=='person.td2.personExternalRefs'));
+    const codes = TRANSFER_CODES.filter(c=>(includeCapabilities || c!=='person.td2.personCapabilities')&&(includeExternal || c!=='person.td2.personExternalRefs')&&(includeRepresentations || c!=='person.td2.representations'));
     const personFields = ['person.displayName','person.aliases','person.intro','person.status',...codes];
     const personPermission = await permission('PERSON',graph.personId,graph.sourceId,personFields);
+    const agentPermission=agentId?await permission('PERSON',agentId,graph.sourceId,personFields):null;
     const primaryPermission = await permission('SOURCE',graph.sourceId,graph.sourceId,[...SOURCE_FIELDS,...codes]);
     const secondaryPermission = await permission('SOURCE',secondSource,secondSource,[...SOURCE_FIELDS,'person.td2.personLanguages']);
-    const organizationPermission=organizationSource?await permission('SOURCE',organizationSource,organizationSource,[...SOURCE_FIELDS,'person.td2.personExternalRefs']):null;
-    const input = {format:'JSON',selectedIds:{people:[graph.personId],works:[],projects:[]},fields:[...personFields,...SOURCE_FIELDS],usePermissionRefs:[personPermission,primaryPermission,secondaryPermission,...(organizationPermission?[organizationPermission]:[])]};
+    const organizationPermission=organizationSource?await permission('SOURCE',organizationSource,organizationSource,[...SOURCE_FIELDS,'person.td2.personExternalRefs',...(includeRepresentations?['person.td2.representations']:[])]):null;
+    const input = {format:'JSON',selectedIds:{people:[graph.personId,...(agentId?[agentId]:[])],works:[],projects:[]},fields:[...personFields,...SOURCE_FIELDS],usePermissionRefs:[personPermission,primaryPermission,secondaryPermission,...(agentPermission?[agentPermission]:[]),...(organizationPermission?[organizationPermission]:[])]};
     if(organizationPermission) assert.equal((await owner.cmd('POST','/exports',{...input,usePermissionRefs:input.usePermissionRefs.filter(id=>id!==organizationPermission)})).status,422,'issuing organization needs its own source grant');
     const before = await store.transaction(tx=>tx.find('exports'));
     assert.equal((await owner.cmd('POST','/exports',{...input,usePermissionRefs:[personPermission]})).status,422,'person permission alone cannot authorize fact sources');
@@ -47,13 +53,13 @@ export async function controlledTransfer(app: Application, store: Store, clock: 
     assert.equal(bundle.tables.castingProfiles[0]!.data.currentMeasurementSetId,graph.measurementId);
     const encoded=JSON.stringify(download.payload);
     for (const secret of ['SYNTHETIC-PRIVATE','identifierCiphertext','credentialHash','proposedValue',...(!includeExternal?['personExternalRefs']:[]),'mediaCollections','adultEligibilities']) assert.equal(encoded.includes(secret),false,secret+' must not enter this whitelist');
-    return {organizationId,organizationSource,organizationPermission,graph,secondSource,secondLanguage,jobId,input,download,bundle,secondaryPermission};
+    return {agentId,agentPermission,organizationId,organizationSource,organizationPermission,graph,secondSource,secondLanguage,jobId,input,download,bundle,secondaryPermission};
 }
 export async function roundTripTransfer(source: {app:Application;store:Store;clock:FakeClock;owner:Client}, target: {store:Store;clock:FakeClock;apply?: (payload: unknown, sha256: string) => Promise<void>}) {
-    const transfer = await controlledTransfer(source.app,source.store,source.clock,source.owner,true,true);
+    const transfer = await controlledTransfer(source.app,source.store,source.clock,source.owner,true,true,true);
     const rebuild = new JsonRebuild(target.clock), actor = await target.store.transaction(tx=>rebuild.actorFromTarget(tx,'owner'));
     const preview = await target.store.transaction(tx=>rebuild.preview(tx,actor,transfer.download.payload));
-    assert.equal(preview.schemaVersion,TALENT_EXPORT_VERSION); assert.equal(preview.professionalRecords,14);
+    assert.equal(preview.schemaVersion,TALENT_EXPORT_VERSION); assert.equal(preview.professionalRecords,16);
     assert.equal(preview.capabilityDefinitions,1);assert.equal(preview.organizations,1);
     const malformed=structuredClone(transfer.download.payload); malformed.manifest.talent.tables.translatorLanguagePairs[0].data.personRoleId=randomUUID();
     await assert.rejects(target.store.transaction(tx=>rebuild.preview(tx,actor,malformed)),/专业关联/);

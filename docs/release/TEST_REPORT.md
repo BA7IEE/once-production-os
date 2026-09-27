@@ -1,3 +1,11 @@
+# 2026-09-27 代表关系迁移验证
+
+基线 `2a7d914`。**373/373 CORE_MEMORY_TESTED**（新增4项并扩展原往返）；164请求契约、服务/React/core/transport类型检查、构建和静态检查 PASS。PostgreSQL 16 原合同67/67及完整恢复/重建链 DB_TESTED；双库真实CLI check/apply核对16条专业记录、1条能力定义、1条共享机构及2个人物。独立个人代表原ID和机构/职业/有效期/停用状态保持，审计失败后人物/机构/定义均为零，重试成功。新空库全迁移和保留合成库59表原记录摘要一致；ERASED导出保留。真实Chrome独立批准代表人、选择个人/机构代表关系、下载v4并核对两种关联、撤销关联来源后下载拒绝 BROWSER_TESTED。
+
+证据 `artifacts/td2-representations-20260927/`；范围见 [TD2_REPRESENTATION_TRANSFER.md](TD2_REPRESENTATION_TRANSFER.md)。没有跳过或放宽失败断言、没有改超时。本地通过不替代最终head五条CI；正式迁移/部署、新源码包、完整TD2-06 NOT_RUN。历史包检查未重跑，不冒称已修复。
+
+---
+
 # 2026-09-27 外部标识及机构迁移验证
 
 基线 `148ffac`，最终 **369/369 CORE_MEMORY_TESTED**（新增4项并扩展原往返）；164请求契约、服务/React/core/transport类型检查、构建和静态检查 PASS。真实 PostgreSQL 16 原合同67/67及完整重建/恢复链 DB_TESTED；双库 CLI check/apply逐项核对14条专业记录、1条能力定义和1条独立来源机构，审计失败后人物/定义/机构均为零，重试成功。保留合成库59表原记录摘要一致，保留ERASED导出。真实Chrome批准人物及各来源外部标识分组、下载v3、核对机构原ID/来源及核验状态、撤销机构来源许可后再次下载拒绝 BROWSER_TESTED。新证据 `artifacts/td2-external-20260927/`，范围见 [TD2_EXTERNAL_TRANSFER.md](TD2_EXTERNAL_TRANSFER.md)。正式迁移、部署、新交付包验收和完整TD2-06 NOT_RUN；CI以本次最终head为准。

@@ -5,7 +5,9 @@
 
 ## 本轮接续
 
-当前在 `148ffac` 上补外部标识和所用机构导出/重建，见 [TD2_EXTERNAL_TRANSFER.md](TD2_EXTERNAL_TRANSFER.md)。机构自己的来源也需明确许可，重建保留核验/撤销状态，旧 v1/v2 兼容。总体仍未完成。
+当前在 `2a7d914` 上补代表关系迁移，见 [TD2_REPRESENTATION_TRANSFER.md](TD2_REPRESENTATION_TRANSFER.md)。个人代表需显式选择并独立批准；机构来源须批准实际使用的每个分组。职业/有效期/停用状态保留，旧 v1/v2/v3 兼容。整体仍未完成。
+
+前批在 `148ffac` 上补外部标识和所用机构导出/重建，见 [TD2_EXTERNAL_TRANSFER.md](TD2_EXTERNAL_TRANSFER.md)。机构自己的来源也需明确许可，重建保留核验/撤销状态，旧 v1/v2 兼容。总体仍未完成。
 
 前批在 `83d9224` 上补齐能力及其引用字典的双层许可导出与真实 CLI 重建，见 [TD2_CAPABILITY_TRANSFER.md](TD2_CAPABILITY_TRANSFER.md)。旧八类文件继续兼容；定义变更失效、只迁移所用字典及停用状态保留均有新增验证。全量人才迁移与 TD2-06 尚未完成。
 

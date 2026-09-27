@@ -439,11 +439,14 @@ try {
  const transferOrganization=(await cmd(owner,'POST','/td2/organizations',{schemaVersion:tdSchema,sourceId:transferSource,sourceRevision:1,name:'合成外部编号签发机构',kind:'ISSUER'},201)).resourceId;
  const transferExternal=(await cmd(owner,'POST',`/td2/people/${tdCanonical}/external-refs`,{schemaVersion:tdSchema,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceId:tdSource,sourceRevision:1,values:{providerCode:'AGENCY_INTERNAL',namespaceCode:'browser-transfer',issuerOrganizationId:transferOrganization,externalKey:'synthetic-account'}},201)).resourceId;
  await cmd(owner,'POST',`/td2/external-refs/${transferExternal}/verify`,{schemaVersion:tdSchema,expectedRevision:1,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceRevision:1},200);
+ const transferAgent=(await cmd(owner,'POST','/td2/people',{schemaVersion:tdSchema,originSourceId:transferSource,sourceRevision:1,displayName:'合成代表联系人'},201)).resourceId;
+ const transferredRepresentations=[];
+ for(const subject of [{agentPersonId:transferAgent,relationCode:'AGENT'},{agencyOrganizationId:transferOrganization,relationCode:'AGENCY'}]) transferredRepresentations.push((await cmd(owner,'POST',`/td2/people/${tdCanonical}/representations`,{schemaVersion:tdSchema,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceId:tdSource,sourceRevision:1,values:{...subject,personRoleId:tdRole}},201)).resourceId);
  await owner.getByRole('button',{name:/内部导出/}).click();
- const transferLabels=['2.0 人才主档案（内部简介与状态）','2.0 职业及有效期','2.0 语言、熟练度及有效期','2.0 能力、等级及所用字典','2.0 外部标识、核验状态及关联机构'];
+ const transferLabels=['2.0 人才主档案（内部简介与状态）','2.0 职业及有效期','2.0 语言、熟练度及有效期','2.0 能力、等级及所用字典','2.0 外部标识、核验状态及关联机构','2.0 代表关系、有效期及关联机构'];
  const sourceLabels=['来源标题','来源类型','提供方说明','内部依据类型','依据说明','有效起点','有效截止','来源状态'];
  const transferPermits=[];
- for(const [kind,id,labels] of [['PERSON',tdCanonical,['姓名 / 展示名','档案状态',...transferLabels]],['SOURCE',tdSource,[...sourceLabels,...transferLabels]],['SOURCE',transferSource,[...sourceLabels,transferLabels[2],transferLabels[4]]]]){
+ for(const [kind,id,labels] of [['PERSON',tdCanonical,['姓名 / 展示名','档案状态',...transferLabels]],['SOURCE',tdSource,[...sourceLabels,...transferLabels]],['SOURCE',transferSource,[...sourceLabels,transferLabels[2],transferLabels[4],transferLabels[5]]],['PERSON',transferAgent,['姓名 / 展示名','档案状态',...transferLabels]]]){
   await owner.getByRole('button',{name:'＋ 批准导出用途',exact:true}).click();
   f=await dialogReady(owner,'批准内部导出用途');
   await f.getByLabel('对象类型',{exact:true}).selectOption(kind);await f.getByLabel('批准对象',{exact:true}).selectOption(id);
@@ -459,8 +462,12 @@ try {
  const typedDownload=owner.waitForEvent('download');await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();
  const typedFile=await typedDownload,typedPayload=JSON.parse(readFileSync(await typedFile.path(),'utf8'));
  assert.equal(typedPayload.schemaVersion,'once-export-v2-talent');
- assert.equal(typedPayload.manifest.talent.schemaVersion,'once-talent-transfer-v3');
+ assert.equal(typedPayload.manifest.talent.schemaVersion,'once-talent-transfer-v4');
  assert.equal(typedPayload.manifest.talent.tables.personCapabilities.find(r=>r.id===transferCapability).data.personRoleId,tdRole);
+ assert.ok(typedPayload.manifest.people.some(p=>p.id===transferAgent));
+ assert.equal(typedPayload.manifest.talent.tables.representations.length,2);
+ assert.equal(typedPayload.manifest.talent.tables.representations.find(r=>r.id===transferredRepresentations[0]).data.agentPersonId,transferAgent);
+ assert.equal(typedPayload.manifest.talent.tables.representations.find(r=>r.id===transferredRepresentations[1]).data.agencyOrganizationId,transferOrganization);
  assert.equal(typedPayload.manifest.talent.organizations.length,1);
  assert.equal(typedPayload.manifest.talent.organizations[0].id,transferOrganization);
  assert.equal(typedPayload.manifest.talent.organizations[0].sourceId,transferSource);

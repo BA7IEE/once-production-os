@@ -184,7 +184,9 @@ export class Exports {
         for (const organization of talent?.organizations??[]) {
             sources.set(organization.sourceId,await sourceFor(tx,actor,organization.sourceId,this.clock));
             const fields=sourceTransferFields.get(organization.sourceId)??new Set<ExportFieldCode>();
-            fields.add('person.td2.personExternalRefs');sourceTransferFields.set(organization.sourceId,fields);
+            if(transferRows(talent!,'personExternalRefs').some(r=>r.data.issuerOrganizationId===organization.id)) fields.add('person.td2.personExternalRefs');
+            if(transferRows(talent!,'representations').some(r=>r.data.agencyOrganizationId===organization.id)) fields.add('person.td2.representations');
+            sourceTransferFields.set(organization.sourceId,fields);
         }
         const now = this.clock.now().toISOString();
         const initialExpiry = new Date(this.clock.now().getTime() + L.ttlMs).toISOString();
