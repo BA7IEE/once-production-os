@@ -13,6 +13,7 @@ import {FakeClock,Client,SYNTHETIC_PASSWORD,sourceInput} from '../support/fixtur
 import {expectResponse as ok} from '../support/talent-v2-maintenance.ts';
 import {seedSharedProof} from '../support/talent-asset-erasure.ts';
 import {TALENT_SCHEMA_VERSION as schemaVersion} from '../../packages/core/src/talent-v2-model.ts';
+import {verifyLegacyProjection,verifyDelegatedLegacyProjection} from '../support/talent-legacy-projection.ts';
 import {decryptContact} from '../../packages/core/src/crypto.ts';
 
 test('TD2-T01 through T15 and T18: actual PostgreSQL domain contracts and private media',async t=>{
@@ -110,5 +111,7 @@ test('TD2-T01 through T15 and T18: actual PostgreSQL domain contracts and privat
    const invalidated=ok(await owner.cmd('POST','/td2/proposals',{...currentInput,proposedValue:'NATIVE'})).resourceId as string;
    ok(await owner.cmd('POST',`/sources/${basisId}/suspend`,{expectedRevision:1,reason:'合成采纳依据暂停，不回退到旧值'}),200);assert.equal((await view()).facts.personLanguages.find((r:any)=>r.id===g.languageId).speakingLevelCode,null);ok(await owner.cmd('POST',`/td2/proposals/${invalidated}/decide`,{schemaVersion,expectedRevision:1,decision:'APPLY'}),200);assert.equal((await client.fieldProposal.findUniqueOrThrow({where:{id:invalidated}})).state,'STALE');
   });
+  await t.test('Phase C legacy projections and write protection use the same PostgreSQL facts',async()=>{await verifyLegacyProjection(owner);});
+  await t.test('Phase C basic handoff cannot expand professional source/scope access',async()=>{await verifyDelegatedLegacyProjection(owner,clock.now());});
  }finally{await store.close();rmSync(tmp,{recursive:true,force:true});}
 });

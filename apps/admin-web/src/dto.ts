@@ -31,6 +31,7 @@ export interface CatalogItem {
     revision: number;
 }
 export interface Person {
+    professionalManaged?: boolean;
     access?: {
         mode: 'NATIVE' | 'HANDOFF';
         canEdit: boolean;
