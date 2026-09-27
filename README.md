@@ -1,10 +1,10 @@
-> 当前增量：**DEV-09D Write-ahead Safety Intent + PostgreSQL/private media 同包备份恢复**。恢复证据见 [WP9_RECOVERY_WRITEAHEAD_MEDIA.md](docs/release/WP9_RECOVERY_WRITEAHEAD_MEDIA.md)。当前仍是开发 Draft，不接管正式资料。
+> 当前入口：[人才 2.0 状态](docs/release/TD2_MAINTENANCE_STATUS.md)与[无冲突专业图合并](docs/release/TD2_MERGE_CONTINUATION.md)。PR #26 基于 PR #25，尚未合入 main；以下旧阶段证据不替代当前 head 验收。
 
 # ONCE Production OS
 
 **交付版本：0.1.0-dev.1｜持续开发源码，不是一期完工版。**
 
-当前内部链路已贯通：账号/范围 → 来源/人才 → 导入/交接 → 私有静态图片 → 作品/项目 → 检索/候选 → 受控导出 → 删除最终化 → Person merge → T29 隔离重建 → **恢复隔离/检查/零增量批准 → write-ahead + DB/private media 同包备份恢复**。
+历史内部链路已贯通：账号/范围 → 来源/人才 → 导入/交接 → 私有静态图片 → 作品/项目 → 检索/候选 → 受控导出 → 删除最终化 → Person merge → T29 隔离重建 → **恢复隔离/检查/零增量批准 → write-ahead + DB/private media 同包备份恢复**。
 
 DEV-09D 功能冻结 head `9cc30cf71dc4e6fc97bd81f2308dd884a267c230` 在 Actions `36249594313` 五个 job 全绿：103 routes、295/295 core/transport、67/67 原 PG，以及真实 pg_dump/pg_restore + private media 恢复演练。当前仍只适合隔离合成数据继续开发，**不应接管正式模特资料或公开上线**。
 
@@ -16,12 +16,12 @@ Person merge 不是自动去重。它要求 `data.merge + records.write`、显�
 
 ## 仍未完成
 
-- DEV-09E：post-backup Safety Intent 的 committed/failed 配对与逐条 resolution；
+- 人才 2.0：冲突资料合并、专业资料导出/重建、复杂来源与媒体引用清理、组合工作台；
 - 正式 COS / PDF / 视频 provider；
 - DEV-08 四类有界 AI；
 - 最终性能/生产接管门。
 
-当前恢复链对任何 post-backup journal delta 都会保守阻断；在 09E 完成前，不允许用人工勾选绕过。
+DEV-09E 已有逐条 delta resolution 实现；正式运维、长期保留与并发故障 Gate 仍未关闭，不允许人工勾选绕过。
 
 ## 继续开发入口
 
@@ -39,4 +39,4 @@ Person merge 不是自动去重。它要求 `data.merge + records.write`、显�
 - [开发 Agent 入口](AGENTS.md)
 - [原始 v0.3 规格](docs/spec/00_README.md)
 
-下一刀是 **DEV-09E Safety Delta Resolution**。根目录 `MANIFEST.sha256` 是文件一致性清单，不是代码签名或安全认证。
+下一步是 **人才 2.0 冲突资料合并、白名单导出与类型化重建**。根目录 `MANIFEST.sha256` 是文件一致性清单，不是代码签名或安全认证。

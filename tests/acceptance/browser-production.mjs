@@ -377,5 +377,52 @@ try {
  assert.equal((await json(owner,'/people?q='+encodeURIComponent('DEV07G重复档案'))).items.some(x=>x.id===mergeCanonicalId),false);
  console.log('PASS DEV-07G browser: explicit preview/decision/merge -> one alias; old Person id resolves read-only and disappears from normal lists');
 
+ // TD2: the actual merge form requires each professional move to be acknowledged.
+ const tdSchema='once-talent-v2.0.0';
+ const tdSource=(await cmd(owner,'POST','/sources',source('TD2专业合并来源'),201)).resourceId;
+ const tdCanonical=(await cmd(owner,'POST','/td2/people',{schemaVersion:tdSchema,originSourceId:tdSource,sourceRevision:1,displayName:'TD2保留身份'},201)).resourceId;
+ const tdDuplicate=(await cmd(owner,'POST','/td2/people',{schemaVersion:tdSchema,originSourceId:tdSource,sourceRevision:1,displayName:'TD2专业重复',createTalent:true},201)).resourceId;
+ const tdAdd=async(slug,values)=>cmd(owner,'POST',`/td2/people/${tdDuplicate}/${slug}`,{schemaVersion:tdSchema,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdDuplicate}})).revision,sourceId:tdSource,sourceRevision:1,values},201);
+ const tdRole=(await tdAdd('roles',{roleCode:'model'})).resourceId;
+ const tdLanguage=(await tdAdd('languages',{languageCode:'en',speakingLevelCode:'WORKING'})).resourceId;
+ const tdCollection=(await tdAdd('collections',{personRoleId:tdRole,collectionTypeCode:'PORTFOLIO',title:'TD2合成集合'})).resourceId;
+ const tdBytes=await sharp({create:{width:40,height:40,channels:3,background:'#345678'}}).png().toBuffer();
+ const tdUpload=await prepare(owner,await prisma.person.findUniqueOrThrow({where:{id:tdDuplicate}}),tdBytes,'TD2-merge.png');
+ assert.equal((await binary(owner,tdUpload.resourceId,tdBytes)).status(),200);await queue(owner,tdUpload.resourceId);
+ await until(async()=>await prisma.mediaAsset.count({where:{id:tdUpload.resourceId,state:'READY'}})===1);
+ await cmd(owner,'POST',`/td2/collections/${tdCollection}/items`,{schemaVersion:tdSchema,expectedRevision:1,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdDuplicate}})).revision,assetId:tdUpload.resourceId});
+ await owner.getByRole('button',{name:/概览/}).click();
+ await owner.getByRole('button',{name:/人才合并/}).click();
+ for(const [index,label,name] of [[0,'主档案（保留）','TD2保留身份'],[1,'重复档案（归档并建立旧 ID 映射）','TD2专业重复']]){
+  const picker=owner.locator('.merge-picker').nth(index);
+  const response=owner.waitForResponse(r=>r.request().method()==='GET'&&r.url().includes('/api/v1/people?')&&decodeURIComponent(r.url()).includes('q='+name));
+  await picker.getByLabel(label,{exact:true}).fill(name);assert.equal((await response).status(),200);
+  await picker.getByRole('button',{name:new RegExp(name)}).click();
+ }
+ const tdPreview=await writeUI(owner,'POST','/people/merge-preview',()=>owner.getByRole('button',{name:'预览合并影响',exact:true}).click());
+ assert.equal(tdPreview.complete,true);
+ for(const field of tdPreview.fieldConflicts)await owner.getByLabel('字段决定 '+field.field,{exact:true}).selectOption('CANONICAL');
+ await owner.getByLabel('合并依据 *',{exact:true}).fill('合成验收：保留专业资料原来源和稳定编号');
+ assert.equal(await owner.getByRole('button',{name:'执行受控合并',exact:true}).isEnabled(),false);
+ const tdPanel=owner.locator('section').filter({has:owner.getByRole('heading',{name:'专业资料迁移',exact:true})});
+ assert.equal(await tdPanel.getByRole('checkbox').count(),tdPreview.professional.items.length);
+ if(tdPreview.media.uploadsToDetach+tdPreview.media.assetsToDetach>0)await owner.getByLabel(/我确认解除/).check();
+ for(const box of await tdPanel.getByRole('checkbox').all())await box.check();
+ assert.equal(await owner.getByRole('button',{name:'执行受控合并',exact:true}).isEnabled(),true);
+ owner.once('dialog',dialog=>void dialog.accept());
+ await writeUI(owner,'POST','/people/merge',()=>owner.getByRole('button',{name:'执行受控合并',exact:true}).click());
+ await owner.getByText('合并已完成',{exact:true}).waitFor();
+ const tdDetail=await json(owner,'/td2/people/'+tdCanonical);
+ assert.equal(tdDetail.facts.personLanguages[0].id,tdLanguage);
+ assert.equal(tdDetail.facts.personRoles[0].id,tdRole);
+ assert.equal(tdDetail.facts.mediaCollections[0].id,tdCollection);
+ assert.equal(tdDetail.facts.mediaCollections[0].items[0].assetId,tdUpload.resourceId);
+ assert.equal(await prisma.personAlias.count({where:{oldPersonId:tdDuplicate,canonicalPersonId:tdCanonical}}),1);
+ console.log('PASS TD2 browser: per-record confirmation gates professional merge; stable role/language/collection/item IDs and original media survive');
+
  assert.deepEqual(errors,[]);
+} catch(error) {
+ console.error('Browser page errors:',JSON.stringify(errors));
+ if(browser)for(const context of browser.contexts())for(const page of context.pages())console.error('Page route:',new URL(page.url()).pathname);
+ throw error;
 } finally {if(browser)await browser.close();await stop(worker);await stop(api);await prisma.$disconnect();rmSync(tmp,{recursive:true,force:true});}

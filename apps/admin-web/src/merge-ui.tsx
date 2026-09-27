@@ -4,11 +4,25 @@ import type { Me, Page, Person, Receipt } from './dto.ts';
 import type { PersonMergeCollisionChoice, PersonMergeFieldChoice, PersonMergePreview } from './merge-dto.ts';
 import { ErrorBox, Field, PageTitle, Submit, useAction, useLoad } from './ui.tsx';
 
+const professionalLabel: Record<string, string> = {
+    talentProfiles: '人才主档案', personRoles: '职业', personCapabilities: '能力', personLanguages: '语言',
+    talentLocations: '地点', castingProfiles: '外观档案', measurementSets: '量尺历史', adultEligibilities: '成人资格',
+    representations: '代表关系', personExternalRefs: '外部标识', personCredentials: '资质', translatorLanguagePairs: '翻译语言对',
+    translatorServiceModes: '翻译服务方式', mediaCollections: '媒体集合', mediaCollectionTags: '集合标签',
+    mediaCollectionItems: '集合素材引用', talentMigrationReviews: '迁移复核', fieldProposals: '字段建议'
+};
 const fieldLabel: Record<string, string> = {
     displayName: '展示名', aliases: '别名', roles: '角色', cityCode: '城市',
     languageCodes: '语言', skillCodes: '技能', heightCm: '身高', intro: '简介'
 };
 const blockerLabel: Record<string, string> = {
+    TD2_MERGE_HIDDEN_DEPENDENCY: '存在当前不可读或不可用的专业资料依赖',
+    TD2_MERGE_SENSITIVE_REQUIRED: '迁移资格编号需要维护敏感字段权限',
+    TD2_MERGE_SINGLETON_CONFLICT: '两份专业主档案或当前资格发生冲突，尚不能无损合并',
+    TD2_MERGE_SELF_REPRESENTATION: '合并后会形成自己代表自己的关系',
+    TD2_MERGE_SHORTLIST_CONFLICT: '候选关系发生职业冲突，需先完成专用处置',
+    TD2_MERGE_PERIOD_CONFLICT: '同类职业、语言或常驻地的有效期重叠，需先复核冲突',
+    TD2_MERGE_LIMIT: '专业资料数量超过单次安全上限',
     SCOPE_MISMATCH: '两条档案不在同一访问范围',
     ERASED_PERSON: '至少一条档案已经擦除',
     CANONICAL_ALREADY_ALIAS: '主档案已经是旧 ID 别名',
@@ -129,6 +143,7 @@ export function PersonMergePanel({ me }: { me: Me }) {
     const [collisionChoices, setCollisionChoices] = useState<Record<string, PersonMergeCollisionChoice | undefined>>({});
     const [ackRevocations, setAckRevocations] = useState(false);
     const [ackMedia, setAckMedia] = useState(false);
+    const [professionalChoices, setProfessionalChoices] = useState<Record<string, boolean>>({});
     const [reason, setReason] = useState('');
     const [done, setDone] = useState<Receipt | null>(null);
     const action = useAction();
@@ -138,11 +153,12 @@ export function PersonMergePanel({ me }: { me: Me }) {
     const allFields = !!preview && preview.fieldConflicts.every(x => !!fieldChoices[x.field]);
     const allCollisions = !!preview && preview.collisions.every(x => !!collisionChoices[x.id]);
     const ready = !!preview?.complete && allFields && allCollisions && reason.trim().length >= 4
+        && preview.professional.items.every(x => professionalChoices[x.table + x.id])
         && (revocationCount === 0 || ackRevocations) && (detachCount === 0 || ackMedia);
 
     const previewKey = useMemo(() => canonical?.id + ':' + canonical?.revision + '|' + duplicate?.id + ':' + duplicate?.revision, [canonical, duplicate]);
     function invalidate(next?: () => void) {
-        setPreview(null); setFieldChoices({}); setCollisionChoices({}); setAckRevocations(false); setAckMedia(false); setReason(''); setDone(null);
+        setPreview(null); setFieldChoices({}); setCollisionChoices({}); setAckRevocations(false); setAckMedia(false); setProfessionalChoices({}); setReason(''); setDone(null);
         next?.();
     }
     async function scan() {
@@ -158,6 +174,7 @@ export function PersonMergePanel({ me }: { me: Me }) {
         setCollisionChoices({});
         setAckRevocations(false);
         setAckMedia(false);
+        setProfessionalChoices({});
         setReason('');
         setDone(null);
     }
@@ -172,6 +189,7 @@ export function PersonMergePanel({ me }: { me: Me }) {
             previewDigest: preview.previewDigest,
             fieldDecisions: preview.fieldConflicts.map(x => ({ field: x.field, choice: fieldChoices[x.field]! })),
             collisionDecisions: preview.collisions.map(x => ({ collisionId: x.id, choice: collisionChoices[x.id]! })),
+            professionalDecisions: preview.professional.items.map(({ table, id, action }) => ({ table, id, action })),
             acknowledgeRevocations: ackRevocations,
             acknowledgeMediaDetach: ackMedia,
             reason: reason.trim()
@@ -194,6 +212,16 @@ export function PersonMergePanel({ me }: { me: Me }) {
             <PreviewPanel preview={preview} fieldChoices={fieldChoices} collisionChoices={collisionChoices}
                 setFieldChoice={(field, choice) => setFieldChoices(x => ({ ...x, [field]: choice }))}
                 setCollisionChoice={(id, choice) => setCollisionChoices(x => ({ ...x, [id]: choice }))}/>
+            {(preview.professional.items.length > 0 || preview.professional.conflicts.length > 0 || preview.professional.restricted) && <section className="panel padded">
+                <h2>专业资料迁移</h2>
+                <p>迁移保留原记录编号和来源。已有建议会失效，需要按合并后的档案重新核对。</p>
+                {preview.professional.restricted && <p>依赖受限，不能显示明细或执行迁移。</p>}
+                {preview.professional.conflicts.map(x => <p key={x.table + x.duplicateId}>{professionalLabel[x.table] ?? x.table}：主档案记录 {x.canonicalId} 与重复档案记录 {x.duplicateId} 冲突，暂不执行合并。</p>)}
+                {preview.professional.items.map(x => <label className="check-chip" key={x.table + x.id}>
+                    <input type="checkbox" checked={!!professionalChoices[x.table + x.id]} onChange={e => setProfessionalChoices(v => ({ ...v, [x.table + x.id]: e.target.checked }))}/>
+                    {professionalLabel[x.table] ?? x.table} · {x.id} · {x.action === 'STALE_PROPOSAL' ? '使建议失效' : x.action === 'REBIND_AGENT' ? '更新经纪人关联' : '保留来源迁移'}
+                </label>)}
+            </section>}
             {preview.complete && <section className="panel padded merge-execute">
                 <h2>执行确认</h2>
                 <p className="muted">执行时会按同一组版本和 Preview Digest 再扫描一次。任何依赖变化都会拒绝旧预览，而不是继续执行。</p>

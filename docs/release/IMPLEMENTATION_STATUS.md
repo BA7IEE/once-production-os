@@ -2,6 +2,8 @@
 
 应用 `0.1.0-dev.1`。当前分支 `feat/talent-domain-2`，PR #26，基于 PR #25。
 
+2026-09-27 本轮增加无冲突专业图合并、逐项确认与真实 PG/浏览器验收；双主档案等冲突仍阻断，详见 [TD2_MERGE_CONTINUATION.md](TD2_MERGE_CONTINUATION.md)。TD2-06 仍未完成。
+
 当前2.0实现、测试与未完成边界见 [TD2_MAINTENANCE_STATUS.md](TD2_MAINTENANCE_STATUS.md)。以下DEV-09说明是历史切片，不代表当前人才2.0总体通过。
 
 本批实现与限制详见 [WP10_RECOVERY_DELTA_RESOLUTION.md](WP10_RECOVERY_DELTA_RESOLUTION.md)。隔离本地核心回归 321/321；完整 CI 须查验最终 head，不依据本文件推定通过；main 尚未包含整条开发链。
@@ -15,7 +17,7 @@
 | DEV-04 媒体 | local/test 私有图片、删除物理 purge、**backup manifest v2 私有媒体备份/恢复** | 正式 COS、PDF/视频提供方 |
 | DEV-05 作品项目 | 组图/封面/署名、项目参与、参考/交付、复盘 | 主体关联、内部双语文本 |
 | DEV-06 检索清单 | 结构化检索、命中依据、Shortlist、SQL 下推 | visible IDs 完整 SQL 下推、规格 P95、AI parse_search |
-| DEV-07 维护 | 导出、删除闭环、Person merge、T29 隔离 JSON 重建 | 当前主要规格切片已具备实现证据 |
+| DEV-07 维护 | 导出、删除闭环、Person merge、T29 隔离 JSON 重建 | TD2 冲突合并、专业资料导出/重建及复杂来源/媒体清理尚未完成 |
 | DEV-08 AI | 未开发 | 四类有界任务、预算、证据与采纳 |
 | DEV-09 运维恢复 | **09A～09D + 09E 逐条 delta resolution、精确请求关联与审批 digest** | **最终 head CI、正式运维长期保留策略、恢复并发/故障 Gate** |
 | DEV-10 总体验收 | core / PG / Chromium 多链回归；真实 rebuild/restore drill | 完整性能/生产介质/最终接管门 |

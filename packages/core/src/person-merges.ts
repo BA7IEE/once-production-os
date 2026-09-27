@@ -1,4 +1,4 @@
-import { talentDependencyCounts } from './talent-v2-integrity.ts';
+import { scanTalentMerge, applyTalentMerge, type TalentMergePlan } from './talent-v2-merge.ts';
 import type { Actor, Clock, Config, Contact, Person, Source } from './model.ts';
 import type { Tx } from './store.ts';
 import type { PersonMergeCollisionChoice, PersonMergeDecision, PersonMergeField, PersonMergeFieldChoice } from './merge-model.ts';
@@ -46,6 +46,7 @@ type ScanPlan = {
     affectedProjectIds: string[];
     affectedShortlistIds: string[];
     previewDigest: string;
+    talent: TalentMergePlan;
 };
 const ARRAY_FIELDS = new Set<PersonMergeField>(['aliases','roles','languageCodes','skillCodes']);
 function same(a: unknown, b: unknown) { return digest(a) === digest(b); }
@@ -88,8 +89,8 @@ export class PersonMerges {
         const canonicalSource = await sourceFor(tx, actor, canonical.sourceId, this.clock);
         const duplicateSource = await sourceFor(tx, actor, duplicate.sourceId, this.clock);
         const blockers = new Map<string,number>();
-        const talentDeps = await Promise.all([canonical.id, duplicate.id].map(id => talentDependencyCounts(tx, actor.workspaceId, 'PERSON', id)));
-        if (talentDeps.some(x => x.count > 0)) blocker(blockers, 'TD2_TYPED_MERGE_REVIEW_REQUIRED');
+        const talent = await scanTalentMerge(tx, actor, this.clock, canonical.id, duplicate.id);
+        for (const code of talent.blockers) blocker(blockers, code);
 
         if (canonical.scopeId !== duplicate.scopeId) blocker(blockers, 'SCOPE_MISMATCH');
         if (canonical.status === 'ERASED' || duplicate.status === 'ERASED') blocker(blockers, 'ERASED_PERSON');
@@ -212,7 +213,7 @@ export class PersonMerges {
             media: { uploadsToDetach: uploadIds.length, assetsToReassign: assetReassignIds.length, assetsToDetach: assetDetachIds.length },
             moves: { workCredits: workCreditMoveIds.length, projectParticipants: projectParticipantMoveIds.length, shortlistItems: shortlistItemMoveIds.length }
         };
-        const internal = { ...responseCore,
+        const internal = { ...responseCore, talentDigest: talent.digest,
             activeHandoffIds: activeHandoffs.map(x=>x.id).sort(), activePermissionIds: activePermissions.map(x=>x.id).sort(),
             contactIds: contactRows.map(x=>x.id).sort(), evidenceIds: evidenceRows.map(x=>x.id).sort(), uploadIds,
             assetReassignIds, assetDetachIds, workCreditMoveIds: workCreditMoveIds.sort(),
@@ -225,7 +226,7 @@ export class PersonMerges {
             workCreditMoveIds: internal.workCreditMoveIds, projectParticipantMoveIds: internal.projectParticipantMoveIds,
             shortlistItemMoveIds: internal.shortlistItemMoveIds, affectedWorkIds: internal.affectedWorkIds,
             affectedProjectIds: internal.affectedProjectIds, affectedShortlistIds: internal.affectedShortlistIds,
-            previewDigest: digest(internal) };
+            previewDigest: digest(internal), talent };
     }
 
     async preview(tx: Tx, actor: Actor, input: unknown) {
@@ -240,7 +241,7 @@ export class PersonMerges {
             contactsToReencrypt: actor.permissions.includes('sensitive.write') ? plan.contactIds.length : null,
             media: { uploadsToDetach: plan.uploadIds.length, assetsToReassign: plan.assetReassignIds.length, assetsToDetach: plan.assetDetachIds.length },
             moves: { workCredits: plan.workCreditMoveIds.length, projectParticipants: plan.projectParticipantMoveIds.length, shortlistItems: plan.shortlistItemMoveIds.length },
-            previewDigest: plan.previewDigest
+            previewDigest: plan.previewDigest, professional: plan.talent.preview
         };
     }
 
@@ -304,6 +305,12 @@ export class PersonMerges {
         }
         invariant(collisionMap.size === plan.collisions.length && plan.collisions.every(c=>collisionMap.has(c.id)),
             'MERGE_COLLISION_DECISIONS_INCOMPLETE', '必须逐项处理全部关系冲突', 422);
+
+        const talentDecisions = d.professionalDecisions ?? [];
+        const requested = talentDecisions.map(r => `${r.table}:${r.id}:${r.action}`).sort();
+        const required = plan.talent.preview.items.map(r => `${r.table}:${r.id}:${r.action}`).sort();
+        invariant(same(requested, required), 'TD2_MERGE_DECISIONS_INCOMPLETE', '必须逐项确认专业资料迁移及建议失效', 422);
+        const professional = await applyTalentMerge(tx, actor, this.clock, plan.talent, plan.canonical.id, plan.duplicate.id);
 
         const now = this.clock.now().toISOString();
         // Revoke purpose grants and handoffs rather than moving them to a different identity.
@@ -407,6 +414,7 @@ export class PersonMerges {
         await this.bumpRoots(tx, actor, plan);
 
         const manifest = {
+            professional, professionalDecisions: talentDecisions,
             reason: d.reason, fieldDecisions: [...fieldMap].sort(), collisionDecisions: [...collisionMap].sort(),
             revokedHandoffs: plan.activeHandoffIds.length, revokedUsePermissions: plan.activePermissionIds.length,
             contactsReencrypted: plan.contactIds.length, evidenceMoved: plan.evidenceIds.length,

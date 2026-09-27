@@ -1,3 +1,9 @@
+# 2026-09-27 人才 2.0 无冲突专业图合并 Review
+
+将统一阻断细分为可证明安全的迁移与具体冲突。专业 UUID/来源/证据保持，PENDING 建议失效；不把 singleton 冲突简化成删掉一条。500 条边界、逐项确认、事务内权限复查、摘要漂移、回滚重试和原候选职业外键均纳入检查。详见 [本轮范围](TD2_MERGE_CONTINUATION.md)。这是同一 Agent 的代码复核与测试，不是独立第三方审计。
+
+---
+
 > 当前增量详见 [WP7_JSON_REBUILD.md](WP7_JSON_REBUILD.md)。当前结论以 PR #18 最终 head 与对应 Actions 为准。
 
 # 第一批源码 Review

@@ -1,3 +1,4 @@
+import { TALENT_FACT_TABLES } from './talent-v2-model.ts';
 import { v, uuid, revision } from './validation.ts';
 import { MERGE_LIMITS as L, PERSON_MERGE_FIELDS as F } from './merge-model.ts';
 
@@ -23,6 +24,11 @@ export const MergeSchemas = {
             collisionId: uuid,
             choice: v.enum(['KEEP_CANONICAL','KEEP_DUPLICATE'])
         }), L.collisions),
+        professionalDecisions: v.optional(v.array(v.object({
+            table: v.enum([...TALENT_FACT_TABLES, 'mediaCollectionItems', 'talentMigrationReviews', 'fieldProposals'] as const),
+            id: uuid,
+            action: v.enum(['MOVE', 'REBIND_AGENT', 'STALE_PROPOSAL'])
+        }), L.collisions)),
         acknowledgeRevocations: v.boolean(),
         acknowledgeMediaDetach: v.boolean(),
         reason: v.string(L.reason,4)

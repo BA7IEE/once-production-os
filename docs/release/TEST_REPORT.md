@@ -1,3 +1,9 @@
+# 2026-09-27 人才 2.0 无冲突专业图合并验证
+
+基线 `e8906b3`；本轮核心回归 **354/354，CORE_MEMORY_TESTED**。完整服务/React 类型检查、163 请求契约、静态检查与构建 PASS。新增共享专业合并断言在真实 PostgreSQL 16 新空库通过，DB_TESTED，覆盖稳定 ID/原来源、候选职业关联、密文解密、审计后回滚、同键重试/重放。完整 PostgreSQL 验收通过：原合同 67/67、T29 重建、恢复检查、DB+media 恢复、TD2 删除/恢复及新增独立合并库全部 PASS；真实 Chrome 的 production 主链与新增逐项确认/职业/语言/集合/素材保留验收通过，BROWSER_TESTED。远端最终 CI 以 PR #26 当前 head 的 Actions 为准。本轮日志在 `artifacts/td2-merge-20260927/`，没有覆盖旧阶段证据。详见 [本轮范围与边界](TD2_MERGE_CONTINUATION.md)。
+
+---
+
 ## Talent 2.0 当前验收边界
 
 当前分支PR #26。详见 [TD2_MAINTENANCE_STATUS.md](TD2_MAINTENANCE_STATUS.md)。

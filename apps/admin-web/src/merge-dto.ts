@@ -1,3 +1,4 @@
+import type { Inputs } from './generated/requests.ts';
 export type PersonMergeField = 'displayName' | 'aliases' | 'roles' | 'cityCode' | 'languageCodes' | 'skillCodes' | 'heightCm' | 'intro';
 export type PersonMergeFieldChoice = 'CANONICAL' | 'DUPLICATE' | 'UNION';
 export type PersonMergeCollisionChoice = 'KEEP_CANONICAL' | 'KEEP_DUPLICATE';
@@ -27,5 +28,10 @@ export interface PersonMergePreview {
     contactsToReencrypt: number | null;
     media: { uploadsToDetach: number; assetsToReassign: number; assetsToDetach: number };
     moves: { workCredits: number; projectParticipants: number; shortlistItems: number };
+    professional: {
+        items: Array<NonNullable<Inputs['person.merge']['professionalDecisions']>[number] & { revision: number }>;
+        conflicts: Array<{ table: string; canonicalId: string; duplicateId: string; code: string }>;
+        restricted: boolean;
+    };
     previewDigest: string;
 }

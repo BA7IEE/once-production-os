@@ -27,11 +27,11 @@ test('TD2-T16 unsupported cross-source retention and typed merge fail closed rat
     const f = await fixture(), p = await seedProfessionalGraph(f.app, f.store, f.clock, f.owner);
     const preview = expectResponse(await f.owner.raw('POST', '/deletion-requests/preview', { targetKind: 'SOURCE', targetId: p.sourceId, expectedRevision: 1 }), 200);
     assert.equal(preview.complete, false); assert.ok(preview.unresolved.some((r: any) => r.code === 'TD2_SOURCE_RETENTION_REVIEW_REQUIRED'));
-    const second = expectResponse(await f.owner.cmd('POST', '/td2/people', { schemaVersion, originSourceId: p.sourceId, sourceRevision: 1, displayName: '合成重复人物' }));
+    const second = expectResponse(await f.owner.cmd('POST', '/td2/people', { schemaVersion, originSourceId: p.sourceId, sourceRevision: 1, displayName: '合成重复人物', createTalent: true }));
     const merge = expectResponse(await f.owner.raw('POST', '/people/merge-preview', {
         canonicalId: p.personId, duplicateId: second.resourceId, expectedCanonicalRevision: (await p.current()).revision, expectedDuplicateRevision: 1
     }), 200);
-    assert.ok(merge.blockers.some((r: any) => r.code === 'TD2_TYPED_MERGE_REVIEW_REQUIRED'));
+    assert.ok(merge.blockers.some((r: any) => r.code === 'TD2_MERGE_SINGLETON_CONFLICT'));
     await assert.rejects(f.store.transaction(tx => assertTalentFinalizationClean(tx, f.workspaceId, 'PERSON', p.personId)));
 });
 test('TD2-T16 legacy export cannot serialize stale flat professional fields for an upgraded person', async () => {
