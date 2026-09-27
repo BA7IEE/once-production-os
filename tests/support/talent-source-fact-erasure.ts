@@ -10,9 +10,9 @@ import {DeletionCleanup} from '../../packages/core/src/deletion-cleanup.ts';
 import {inspectTalentIntegrity} from '../../packages/core/src/talent-v2-integrity.ts';
 const schemaVersion='once-talent-v2.0.0';
 export type FactErasureContext={app:Application;store:Store;clock:FakeClock;owner:Client};
-export async function seedSourceFacts(f:FactErasureContext,existingGraph?:Awaited<ReturnType<typeof seedProfessionalGraph>>) {
+export async function seedSourceFacts(f:FactErasureContext,existingGraph?:Awaited<ReturnType<typeof seedProfessionalGraph>>,existingSourceId?:string) {
  const g=existingGraph??await seedProfessionalGraph(f.app,f.store,f.clock,f.owner);
- const sourceId=ok(await f.owner.cmd('POST','/sources',{...sourceInput(),title:'合成专业事实待删来源'})).resourceId as string;
+ const sourceId=existingSourceId??ok(await f.owner.cmd('POST','/sources',{...sourceInput(),title:'合成专业事实待删来源'})).resourceId as string;
  const basisId=ok(await f.owner.cmd('POST','/sources',{...sourceInput(),title:'合成完整独立字段依据'})).resourceId as string;
  const add=async(table:FactTable,source:string,values:Record<string,unknown>)=>ok(await f.owner.cmd('POST',`/td2/people/${g.personId}/${TD2_FACTS[table].slug}`,{schemaVersion,expectedPersonRevision:(await g.current()).revision,sourceId:source,sourceRevision:1,values})).resourceId as string;
  const roleId=await add('personRoles',sourceId,{roleCode:'photographer'}),languageId=await add('personLanguages',sourceId,{languageCode:'zh',speakingLevelCode:'FLUENT'});
@@ -25,9 +25,9 @@ export async function seedSourceFacts(f:FactErasureContext,existingGraph?:Awaite
  const candidateId=(await f.store.transaction(tx=>tx.find('shortlistItems',{shortlistId:listId})))[0]!.id;
  return {g,sourceId,basisId,roleId,languageId,collectionId,tagId,listId,candidateId,prove};
 }
-export async function prepareSourceFacts(f:FactErasureContext,s:Awaited<ReturnType<typeof seedSourceFacts>>,retainIds:string[]=[s.languageId]) {
+export async function prepareSourceFacts(f:FactErasureContext,s:Awaited<ReturnType<typeof seedSourceFacts>>,retainIds:string[]=[s.languageId],expectedFacts=4) {
  const preview=ok(await f.owner.raw('POST','/deletion-requests/preview',{targetKind:'SOURCE',targetId:s.sourceId,expectedRevision:1}),200);assert.equal(preview.complete,true,JSON.stringify(preview.unresolved));
- assert.equal(preview.items.filter((i:any)=>i.resourceKind==='talentSourceFact').length,4);
+ assert.equal(preview.items.filter((i:any)=>i.resourceKind==='talentSourceFact').length,expectedFacts);
  const requestId=ok(await f.owner.cmd('POST','/deletion-requests',{targetKind:'SOURCE',targetId:s.sourceId,expectedRevision:1,previewDigest:preview.previewDigest,reason:'合成逐项保留语言，删除职业及其集合关系'})).resourceId as string;
  const current=()=>f.store.transaction(async tx=>(await tx.get('deletionRequests',requestId))!);
  ok(await f.owner.cmd('POST',`/deletion-requests/${requestId}/block`,{expectedRevision:1,previewDigest:preview.previewDigest,acknowledgeBlock:true}),200);

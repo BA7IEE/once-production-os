@@ -1,3 +1,4 @@
+import {snapshotTalentSourceAssets,applyTalentAssetGraph} from './talent-asset-erasure.ts';
 import type { Actor, Clock, Source, TableMap } from './model.ts';
 import type { Tx } from './store.ts';
 import type { DeletionItem, DeletionRequest } from './deletion-model.ts';
@@ -19,6 +20,7 @@ const parentReferences=[['personRoleId','personRoles'],['collectionId','mediaCol
 export async function sourceFactGraph(tx:Tx,actor:Actor,sourceId:string,clock:Clock) {
  requirePermission(actor,'records.read');
  const data=await talentSnapshot(tx,actor.workspaceId),selected=new Map<string,Selected>();
+ const media=await snapshotTalentSourceAssets(tx,actor,sourceId);
  for(const table of TALENT_FACT_TABLES)for(const row of data[table])if(row.sourceId===sourceId)selected.set(key(table,row.id),{table,row});
  for(const record of data.evidence.filter(e=>e.sourceId===sourceId))for(const [field,table] of Object.entries(TALENT_OWNER_TABLES))if(record[field]&&TALENT_FACT_TABLES.includes(table as FactTable)){const row=data[table].find(r=>r.id===record[field]);if(row)selected.set(key(table,row.id),{table:table as FactTable,row});}
  // Expose every affected child as an explicit decision. No automatic cascade into another source's facts.
@@ -50,19 +52,20 @@ export async function sourceFactGraph(tx:Tx,actor:Actor,sourceId:string,clock:Cl
  let blocker:string|null=sources.length!==sourceIds.size?'TD2_SOURCE_OWNER_MISSING':null;
  if(data.evidence.some(e=>e.sourceId===sourceId&&e.personId))blocker='TD2_SOURCE_IDENTITY_RETENTION_REQUIRED';
  if(data.people.some(p=>p.sourceId===sourceId))blocker='TD2_SOURCE_RETENTION_REVIEW_REQUIRED';
- if(data.assets.some(a=>a.sourceId===sourceId&&a.state!=='ERASED'))blocker='TD2_SOURCE_MEDIA_RETENTION_REQUIRED';
+ if(media.blocker)blocker=media.blocker;
  if(TALENT_V2_TABLES.some(t=>!TALENT_FACT_TABLES.includes(t as FactTable)&&t!=='fieldProposals'&&data[t].some(r=>r.sourceId===sourceId)))blocker='TD2_SOURCE_RETENTION_REVIEW_REQUIRED';
  if(rows.length>500)blocker='TD2_SOURCE_FACT_LIMIT';
  if(rows.some(o=>o.row.supersededById)||(['talentProfiles','castingProfiles'] as const).some(t=>data[t].some(r=>r.supersededById&&selected.has(key(t,r.supersededById))||r.retiredCurrentMeasurementSetId&&selected.has(key('measurementSets',r.retiredCurrentMeasurementSetId)))))blocker='TD2_MERGE_HISTORY_RETENTION_REQUIRED';
  if(rows.some(o=>o.row.identifierCiphertext)&&!actor.permissions.includes('sensitive.write'))blocker='TD2_SENSITIVE_WRITE_REQUIRED';
  for(const row of [...people,...sources,...lists,...works,...assets,...organizations])if(!await scopeVisible(tx,actor,String(row.scopeId)))blocker='TD2_HIDDEN_DEPENDENCY';
  for(const person of people)if(person.status==='ERASED'||await deletionBlocked(tx,actor.workspaceId,'PERSON',person.id))blocker=blocker??'TD2_SOURCE_OWNER_UNAVAILABLE';
- const graphDigest=digest({rows,evidence,proposals,proposalOwners,collectionItems,candidates,candidateAssets,works,assets,parents,organizations,reviews,lists,
+ const graphDigest=digest({media:media.detailCode,rows,evidence,proposals,proposalOwners,collectionItems,candidates,candidateAssets,works,assets,parents,organizations,reviews,lists,
   people:people.map(p=>({id:p.id,scopeId:p.scopeId})),scopes,sources:sources.map(s=>s.id===sourceId?{id:s.id,scopeId:s.scopeId}:s)});
- return {data,selected,rows,evidence,proposals,collectionItems,candidates,lists,people,sources,blocker,
-  detailCode:`TD2_SOURCE_FACT_GRAPH_${graphDigest}:F${rows.length}:C${candidates.length}:I${collectionItems.length}`};
+ return {data,media,selected,rows,evidence,proposals,collectionItems,candidates,lists,people,sources,blocker,
+  detailCode:`TD2_SOURCE_FACT_GRAPH_${Buffer.from(graphDigest,'hex').toString('base64url')}:F${rows.length}:C${candidates.length}:I${collectionItems.length}:M${media.ownedAssets.length}:Q${media.credentials.length}:A${media.adults.length}:L${media.links.length}`};
 }
-export function sourceFactItemCode(o:Selected){return `TD2_SOURCE_FACT_${o.table}:${digest(o.row)}`;}
+function factContentDigest(row:Row){const {revision,updatedAt,...content}=row;return digest(content);}
+export function sourceFactItemCode(o:Selected){return `TD2_SOURCE_FACT_${o.table}:${factContentDigest(o.row)}`;}
 export function parseSourceFactItem(item:Pick<DeletionItem,'detailCode'|'resourceId'>):FactTable {
  const table=item.detailCode.split(':')[0]!.replace('TD2_SOURCE_FACT_','') as FactTable;
  invariant(TALENT_FACT_TABLES.includes(table),'TD2_SOURCE_FACT_UNREGISTERED','专业资料清理类型未登记',409);return table;
@@ -96,6 +99,7 @@ export async function validateSourceFactPlan(tx:Tx,actor:Actor,request:DeletionR
  invariant(decisions.size===g.rows.length,'TD2_SOURCE_DECISIONS_INCOMPLETE','专业资料决定不完整',409);
  for(const o of g.rows){const item=decisions.get(key(o.table,o.row.id));invariant(item&&item.detailCode===sourceFactItemCode(o)&&item.decision!=='PENDING','TD2_SOURCE_DECISIONS_INCOMPLETE','专业资料决定未完成',409);
   if(item.decision!=='RETAIN_WITH_BASIS')continue;
+  invariant(!g.media.ownedAssets.some(a=>a.id===o.row.evidenceAssetId),'TD2_SOURCE_RETAINED_PROOF_ERASED','不能保留仍指向本次待删除原件的证明资料，请明确删除或先完成证明失效与重新核验',409);
   invariant(!!item.retentionSourceId,'RETENTION_BASIS_MISSING','保留资料缺少独立依据',409);
   await supportedRetention(tx,actor,request.targetId,o,item.retentionSourceId,clock);
   for(const [field,parent] of parentReferences)if(g.selected.has(key(parent,o.row[field])))invariant(decisions.get(key(parent,o.row[field]))?.decision==='RETAIN_WITH_BASIS','TD2_SOURCE_PARENT_ERASED','不能保留依赖已决定删除的上级资料，请重新核对逐项决定',409);
@@ -108,9 +112,12 @@ export async function eraseSourceFacts(tx:Tx,request:DeletionRequest,item:Deleti
  const actor=await deletionWorkerActor(tx,request),items=await tx.find('deletionItems',{workspaceId:request.workspaceId,requestId:request.id});
  const checked=await validateSourceFactPlan(tx,actor,request,items,clock);invariant(checked,'TD2_SOURCE_DECISIONS_INCOMPLETE','专业来源清理计划缺失',409);
  const {g,decisions}=checked,erased=new Map([...g.selected].filter(([id])=>decisions.get(id)!.decision!=='RETAIN_WITH_BASIS'));
+ invariant(g.media.ownedAssets.every(a=>items.some(i=>i.resourceKind==='asset'&&i.resourceId===a.id&&i.resolvedAction==='ERASE_PAYLOAD')),'TD2_SOURCE_MEDIA_PLAN_INCOMPLETE','联合清理缺少原件删除计划',409);
+ // Both snapshots were checked before any change. Media invalidation and fact decisions share this transaction.
+ await applyTalentAssetGraph(tx,actor,g.media,clock);
  for(const row of g.proposals)if(row.sourceId===request.targetId||ownerSelected(row,erased))await tx.remove('fieldProposals',row.id);
  for(const row of g.evidence)if(row.sourceId===request.targetId||ownerSelected(row,erased))await tx.remove('evidence',row.id);
- for(const row of g.collectionItems)if(erased.has(key('mediaCollections',row.collectionId)))await tx.remove('mediaCollectionItems',row.id);
+ for(const row of g.collectionItems)if(erased.has(key('mediaCollections',row.collectionId))&&await tx.get('mediaCollectionItems',row.id))await tx.remove('mediaCollectionItems',row.id);
  for(const old of g.candidates)if(erased.has(key('personRoles',old.personRoleId))){
   const row=(await tx.get('shortlistItems',old.id))!;await tx.replace('shortlistItems',{...touch(row,clock),personRoleId:null,personRoleRevision:null,roleContextState:'LEGACY_REVIEW'});
   if(!(await tx.find('talentMigrationReviews',{workspaceId:request.workspaceId,shortlistItemId:row.id,reason:'SHORTLIST_ROLE_REQUIRED',state:'PENDING'})).length)await tx.insert('talentMigrationReviews',{...base(request.workspaceId,clock),personId:row.personId,shortlistItemId:row.id,previousShortlistItemIds:[],reason:'SHORTLIST_ROLE_REQUIRED',state:'PENDING',resolvedAt:null,resolvedById:null});
@@ -131,7 +138,9 @@ export async function assertSourceFactRetentionComplete(tx:Tx,workspaceId:string
  const request=requests.find(r=>r.state==='CLEANING');if(!request)return false;
  const items=await tx.find('deletionItems',{workspaceId,requestId:request.id});
  if(!items.some(i=>i.resourceKind===SOURCE_FACT_GROUP&&i.cleanupState==='DONE'))return false;
- const actor=await deletionWorkerActor(tx,request),data=await talentSnapshot(tx,workspaceId);
+ const actor=await deletionWorkerActor(tx,request),graph=await sourceFactGraph(tx,actor,sourceId,clock);
+ invariant(!graph.blocker,'TD2_CLEANUP_INCOMPLETE','保留资料或关联范围发生变化，不能完成来源清理',409);
+ const data=graph.data;
  invariant(!data.people.some(p=>p.sourceId===sourceId),'TD2_CLEANUP_INCOMPLETE','来源仍拥有人物身份',409);
  invariant(!data.evidence.some(e=>e.sourceId===sourceId)&&!data.fieldProposals.some(p=>p.sourceId===sourceId),'TD2_CLEANUP_INCOMPLETE','来源字段证据或建议仍未清理',409);
  for(const table of TALENT_V2_TABLES)for(const row of data[table])if(row.sourceId===sourceId){

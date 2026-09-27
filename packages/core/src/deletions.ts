@@ -258,15 +258,15 @@ export class Deletions {
                 const graph = await previewTalentSourceErasure(tx, actor, targetId, this.clock);
                 const ids = new Set(graph.evidence.map(e => e.id));
                 for (const [key, impact] of impacts) if (impact.resourceKind === 'evidence' && ids.has(impact.resourceId)) impacts.delete(key);
-                if (graph.blocker === 'TD2_SOURCE_RETENTION_REVIEW_REQUIRED') {
+                if (graph.blocker === 'TD2_SOURCE_RETENTION_REVIEW_REQUIRED' || (!graph.blocker && assets.size > 0)) {
                     const facts = await sourceFactGraph(tx, actor, targetId, this.clock);
                     if (facts.blocker) miss(facts.blocker);
-                    else if (facts.rows.length) {
+                    else if (facts.rows.length || facts.proposals.length || facts.media.count) {
                         const evidenceIds = new Set(facts.evidence.map(e => e.id));
                         for (const [key, impact] of impacts) if (impact.resourceKind === 'evidence' && evidenceIds.has(impact.resourceId)) impacts.delete(key);
                         add({resourceKind:SOURCE_FACT_GROUP,resourceId:targetId,dependencyKind:'SOURCE_TALENT_FACT_GROUP',proposedAction:'ERASE_PAYLOAD',evidenceState:'REVIEW_REQUIRED',detailCode:facts.detailCode});
                         for (const fact of facts.rows) add({resourceKind:SOURCE_FACT_ITEM,resourceId:fact.row.id,dependencyKind:'SOURCE_TALENT_FACT',proposedAction:'REVIEW_RETENTION',evidenceState:'REVIEW_REQUIRED',detailCode:sourceFactItemCode(fact)});
-                    } else miss(graph.blocker);
+                    } else if (graph.blocker) miss(graph.blocker);
                 } else if (graph.blocker) miss(graph.blocker);
                 else if (graph.count) {
                     add({resourceKind:'talentSourceEvidenceGraph',resourceId:targetId,dependencyKind:'SOURCE_TALENT_EVIDENCE',
@@ -279,7 +279,8 @@ export class Deletions {
             const media = await previewTalentSourceAssets(tx, actor, targetId);
             if (media.blocker) miss(media.blocker);
             else if (media.count) {
-                if ([...impacts.values()].some(i => [SOURCE_FACT_GROUP,'talentSourceEvidenceGraph'].includes(i.resourceKind))) miss('TD2_SOURCE_COMBINED_RETENTION_REQUIRED');
+                if ([...impacts.values()].some(i => i.resourceKind === SOURCE_FACT_GROUP)) { /* The atomic fact group owns the same media snapshot. */ }
+                else if ([...impacts.values()].some(i => i.resourceKind === 'talentSourceEvidenceGraph')) miss('TD2_SOURCE_COMBINED_RETENTION_REQUIRED');
                 else add({resourceKind:'talentSourceAssetGraph',resourceId:targetId,dependencyKind:'SOURCE_ASSET_TALENT_REFERENCES',proposedAction:'ERASE_PAYLOAD',evidenceState:'REVIEW_REQUIRED',detailCode:media.detailCode});
             }
         }

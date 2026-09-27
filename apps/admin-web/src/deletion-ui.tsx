@@ -37,8 +37,8 @@ const detailLabel: Record<string, string> = {
     EXPORT_PAYLOAD_DEPENDS_ON_SOURCE: '旧导出 payload 依赖来源'
 };
 function detailText(code: string) {
-    const facts = /^TD2_SOURCE_FACT_GRAPH_[a-f0-9]{64}:F(\d+):C(\d+):I(\d+)$/.exec(code);
-    if (facts) return `按逐项决定处理 ${facts[1]} 项专业资料；涉及 ${facts[2]} 条候选职业关系和 ${facts[3]} 项集合关联。删除职业后原候选保留并标记待核实，不猜测新职业。`;
+    const facts = /^TD2_SOURCE_FACT_GRAPH_(?:[a-f0-9]{64}|[A-Za-z0-9_-]{43}):F(\d+):C(\d+):I(\d+)(?::M(\d+):Q(\d+):A(\d+):L(\d+))?$/.exec(code);
+    if (facts) return `按逐项决定处理 ${facts[1]} 项专业资料；涉及 ${facts[2]} 条候选职业关系和 ${facts[3]} 项集合关联。删除职业后原候选保留并标记待核实，不猜测新职业。${Number(facts[4])>0?`同时删除 ${facts[4]} 份原件，移出 ${facts[7]} 处图片引用，撤销 ${facts[5]} 项资质当前状态、将 ${facts[6]} 项成年资格改为未知。`:``}`;
     if (code.startsWith('TD2_SOURCE_FACT_')) {
         const names:Record<string,string>={talentProfiles:'专业主档案',personRoles:'职业',personCapabilities:'能力',personLanguages:'工作语言',talentLocations:'工作地区',castingProfiles:'选角资料',measurementSets:'量尺',adultEligibilities:'成年资格',representations:'经纪关系',personExternalRefs:'外部标识',personCredentials:'资质',translatorLanguagePairs:'翻译方向',translatorServiceModes:'翻译服务',mediaCollections:'媒体集合',mediaCollectionTags:'集合标签'};
         return `${names[code.split(':')[0]!.replace('TD2_SOURCE_FACT_','')]??'专业资料'}：选择删除，或依据已有逐字段核验保留。保留不会改记原来源。`;
@@ -112,8 +112,18 @@ function DecisionModal({ request, item, sources, canRetain, onClose, onDone }: {
 function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sources: Source[]; canRetain: boolean; onChanged: () => void }) {
     const [tick, setTick] = useState(0), [itemPage, setItemPage] = useState(1), [editing, setEditing] = useState<DeletionDecisionItem | null>(null);
     const block = useAction(), freeze = useAction(), cleanup = useAction();
-    const load = useLoad(() => read<DeletionRequestDetail>('deletion.get', { id }), id + ':' + tick);
-    const items = useLoad(() => read<Page<DeletionDecisionItem>>('deletion.items', { id }, { page: String(itemPage), pageSize: '20' }), id + ':items:' + itemPage + ':' + tick);
+    const snapshotKey = id + ':' + itemPage + ':' + tick;
+    const snapshot = useLoad(async () => {
+        const [detail, entries] = await Promise.all([
+            read<DeletionRequestDetail>('deletion.get', { id }),
+            read<Page<DeletionDecisionItem>>('deletion.items', { id }, { page: String(itemPage), pageSize: '20' })
+        ]);
+        return { key: snapshotKey, detail, entries };
+    }, snapshotKey);
+    // Keep the displayed items and command revision from one completed refresh.
+    const refreshing = snapshot.busy || snapshot.data?.key !== snapshotKey;
+    const load = { data: snapshot.data?.detail, busy: refreshing, error: snapshot.error };
+    const items = { data: snapshot.data?.entries, busy: refreshing, error: snapshot.error };
     useEffect(() => {
         if (load.data?.state !== 'CLEANING') return;
         const timer = setInterval(() => setTick(x => x + 1), 1500);
@@ -174,7 +184,7 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
                 {load.data.finalizationErrorCode && <p><strong>最终化状态：</strong><code>{load.data.finalizationErrorCode}</code></p>}
             </div>
 
-            {load.data.blockAvailable && <div className="button-row"><button className="danger" disabled={block.busy} onClick={() => void block.run(blockUse)}>阻断正常使用</button></div>}
+            {load.data.blockAvailable && <div className="button-row"><button className="danger" disabled={block.busy || refreshing} onClick={() => void block.run(blockUse)}>阻断正常使用</button></div>}
 
             {load.data.state === 'BLOCKED_FOR_USE' && <div className="deletion-decision-workspace">
                 <div className="panel-heading"><div><h3>保留决定</h3><p>这里不显示被冻结依赖的底层对象 ID。PROVEN 项自动采用系统建议；只有 REVIEW_REQUIRED 项需要人工判断。</p></div></div>
@@ -185,17 +195,17 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
                         <td>{evidenceLabel[item.evidenceState] ?? item.evidenceState}</td>
                         <td>{item.decision === 'PENDING' ? '待决定' : item.decision === 'RETAIN_WITH_BASIS' ? '有独立依据保留' : '按建议处置'}</td>
                         <td>{item.decisionReason || (item.retentionBasisPresent ? '已记录独立保留依据' : detailText(item.detailCode))}</td>
-                        <td>{item.decision === 'PENDING' && !load.data?.planFrozen && <button onClick={() => setEditing(item)}>做决定</button>}</td>
+                        <td>{item.decision === 'PENDING' && !load.data?.planFrozen && <button disabled={refreshing} onClick={() => { if (!refreshing) setEditing(item); }}>做决定</button>}</td>
                     </tr>)}</tbody></table></div>
                     <Pager page={itemPage} pageSize={20} total={items.data.total} setPage={setItemPage}/>
                 </>}
                 {!load.data.planFrozen && <div className="deletion-freeze-box">
                     <h3>冻结清理计划</h3>
                     <p className="muted">待决定为 0 后才可冻结。冻结只锁定“未来要做什么”，不会进入 CLEANING，也不会删除任何行、媒体或导出 payload。</p>
-                    <button className="danger" disabled={freeze.busy || load.data.pendingDecisionCount > 0} onClick={() => void freeze.run(freezePlan)}>{load.data.pendingDecisionCount > 0 ? `仍有 ${load.data.pendingDecisionCount} 项待决定` : '冻结清理计划'}</button>
+                    <button className="danger" disabled={freeze.busy || refreshing || load.data.pendingDecisionCount > 0} onClick={() => void freeze.run(freezePlan)}>{load.data.pendingDecisionCount > 0 ? `仍有 ${load.data.pendingDecisionCount} 项待决定` : '冻结清理计划'}</button>
                 </div>}
                 {load.data.planFrozen && <div className="notice"><strong>计划已冻结</strong><p>冻结时间：{date(load.data.planFrozenAt)}。Plan Digest：<code>{load.data.planDigest}</code></p>
-                    {load.data.cleanupStartAvailable ? <><p>下一步将真实执行依赖清理；部署侧仍需明确启用 DATA_CLEANUP_MODE。</p><button className="danger" disabled={cleanup.busy} onClick={() => void cleanup.run(startCleanup)}>开始不可逆依赖清理</button></>
+                    {load.data.cleanupStartAvailable ? <><p>下一步将真实执行依赖清理；部署侧仍需明确启用 DATA_CLEANUP_MODE。</p><button className="danger" disabled={cleanup.busy || refreshing} onClick={() => void cleanup.run(startCleanup)}>开始不可逆依赖清理</button></>
                         : <p>当前不能再次启动清理。</p>}
                 </div>}
             </div>}

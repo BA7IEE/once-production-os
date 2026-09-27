@@ -48,12 +48,16 @@ export async function previewTalentAssetErasure(tx: Tx, actor: Actor, assetId: s
         return { count: graph.count, detailCode: graphCode(graph), blocker: 'TD2_HIDDEN_DEPENDENCY' };
     return { count: graph.count, detailCode: graphCode(graph), blocker: null };
 }
-export async function previewTalentSourceAssets(tx: Tx, actor: Actor, sourceId: string) {
+export async function snapshotTalentSourceAssets(tx: Tx, actor: Actor, sourceId: string) {
     const ids=(await tx.find('assets',{workspaceId:actor.workspaceId,sourceId})).filter(a=>a.state!=='ERASED').map(a=>a.id).sort();
     const graph=await assetGraph(tx,actor.workspaceId,ids,sourceId);
-    if(graph.unknownReference||graph.missingEndpoint)return {count:graph.count,detailCode:graphCode(graph),blocker:'TD2_ASSET_REFERENCE_UNREGISTERED'};
-    for(const row of [...graph.people,...graph.sources,...graph.ownedAssets])if(!await scopeVisible(tx,actor,String(row.scopeId)))return {count:graph.count,detailCode:graphCode(graph),blocker:'TD2_HIDDEN_DEPENDENCY'};
-    return {count:graph.count,detailCode:graphCode(graph),blocker:null};
+    let blocker:string|null=graph.unknownReference||graph.missingEndpoint?'TD2_ASSET_REFERENCE_UNREGISTERED':null;
+    for(const row of [...graph.people,...graph.sources,...graph.ownedAssets])if(!await scopeVisible(tx,actor,String(row.scopeId)))blocker='TD2_HIDDEN_DEPENDENCY';
+    return {...graph,detailCode:graphCode(graph),blocker};
+}
+export async function previewTalentSourceAssets(tx: Tx, actor: Actor, sourceId: string) {
+    const graph=await snapshotTalentSourceAssets(tx,actor,sourceId);
+    return {count:graph.count,detailCode:graph.detailCode,blocker:graph.blocker};
 }
 export async function eraseTalentAssetReferences(tx: Tx, request: DeletionRequest, item: DeletionItem, clock: Clock) {
     const sourceGroup = request.targetKind === 'SOURCE' && item.resourceKind === 'talentSourceAssetGraph';
@@ -66,11 +70,15 @@ export async function eraseTalentAssetReferences(tx: Tx, request: DeletionReques
     const graph = await assetGraph(tx, request.workspaceId, assetIds, sourceGroup ? request.targetId : undefined);
     invariant(item.detailCode === graphCode(graph) && !graph.unknownReference && !graph.missingEndpoint, 'TD2_ERASURE_GRAPH_STALE', '共享图片引用或证明记录发生变化，拒绝使用旧清理计划', 409);
     const actor = await deletionWorkerActor(tx, request);
+    await applyTalentAssetGraph(tx,actor,graph,clock);
+}
+/** Internal transaction component: caller first binds this complete snapshot to its frozen plan. */
+export async function applyTalentAssetGraph(tx:Tx,actor:Actor,graph:Awaited<ReturnType<typeof assetGraph>>,clock:Clock) {
     for (const row of [...graph.people, ...graph.sources, ...graph.ownedAssets]) invariant(await scopeVisible(tx, actor, String(row.scopeId)), 'TD2_HIDDEN_DEPENDENCY', '清理发起者已失去关联资料的范围权限', 403);
     for (const link of graph.links) await tx.remove('mediaCollectionItems', link.id);
     for (const collection of graph.collections) {
         const row = (await tx.get('mediaCollections', collection.id))!;
-        const rest = (await tx.find('mediaCollectionItems', { workspaceId: request.workspaceId, collectionId: row.id })).sort((a,b) => a.orderIndex-b.orderIndex || a.id.localeCompare(b.id));
+        const rest = (await tx.find('mediaCollectionItems', { workspaceId: actor.workspaceId, collectionId: row.id })).sort((a,b) => a.orderIndex-b.orderIndex || a.id.localeCompare(b.id));
         for (const [index, entry] of rest.entries()) if (entry.orderIndex !== index) await tx.replace('mediaCollectionItems', { ...touch(entry, clock), orderIndex: index });
         await tx.replace('mediaCollections', touch(row, clock));
     }
