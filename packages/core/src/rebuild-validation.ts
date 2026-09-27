@@ -1,3 +1,4 @@
+import { TALENT_EXPORT_VERSION, TransferSchema } from './talent-transfer.ts';
 import { v, uuid, revision, code, dateIso } from './validation.ts';
 import { REBUILD_LIMITS as L, REBUILD_SCHEMA_VERSION } from './rebuild-model.ts';
 
@@ -15,7 +16,7 @@ const sourceData = v.object({
 const personData = v.object({
     displayName: v.string(120, 1),
     aliases: v.optional(v.array(v.string(120, 1), 20)),
-    roles: v.array(code, 10, 1),
+    roles: v.optional(v.array(code, 10)),
     cityCode: v.optional(v.nullable(code)),
     languageCodes: v.optional(v.array(code, 20)),
     skillCodes: v.optional(v.array(code, 30)),
@@ -70,19 +71,20 @@ const relations = v.object({
     }), L.relations)
 });
 const manifest = v.object({
-    schemaVersion: v.enum([REBUILD_SCHEMA_VERSION]),
+    schemaVersion: v.enum([REBUILD_SCHEMA_VERSION, TALENT_EXPORT_VERSION]),
     frozenAt: dateIso,
     people: v.array(person, L.people),
     works: v.array(work, L.works),
     projects: v.array(project, L.projects),
     sources: v.array(source, L.sources, 1),
     media: v.array(media, L.media),
-    relations
+    relations,
+    talent: v.optional(TransferSchema)
 });
 
 export const RebuildSchemas = {
     payload: v.object({
-        schemaVersion: v.enum([REBUILD_SCHEMA_VERSION]),
+        schemaVersion: v.enum([REBUILD_SCHEMA_VERSION, TALENT_EXPORT_VERSION]),
         exportId: uuid,
         frozenAt: dateIso,
         manifest

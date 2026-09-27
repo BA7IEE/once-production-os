@@ -1,3 +1,9 @@
+# 2026-09-27 专业导出与重建验证
+
+基线 `8e2b80d`。**361/361 CORE_MEMORY_TESTED**；164请求契约、服务/React/core/transport类型检查、构建和静态检查 PASS。原PostgreSQL合同67/67、完整恢复/重建链及新增双库专业往返 DB_TESTED；新格式真实CLI check/apply通过。旧合成库59张业务表原列/记录摘要一致，含1条ERASED导出。真实Chrome双来源许可、下载、撤销后应用再次下载拒绝 BROWSER_TESTED。范围、失败原因与未完成项见 [TD2_TYPED_TRANSFER.md](TD2_TYPED_TRANSFER.md)，新证据 `artifacts/td2-transfer-20260927/`。最终云端以PR #26当前head为准；正式迁移/部署/完整TD2-06 NOT_RUN。
+
+---
+
 # 2026-09-27 专业冲突合并验证
 
 接续 `ad24bd8`，本轮 **357/357 CORE_MEMORY_TESTED**（原 354，加 3 个核心用例并扩展既有断言）。164 请求契约、服务/React/core/transport 类型检查、静态检查和构建 PASS。真实 PostgreSQL 16 空库、保留合成库前向升级、专业冲突/SQL历史不可改/回滚重试、完整原合同 67/67、重建和 DB+私有媒体恢复链均 DB_TESTED。实际恢复演练含已保留的专业历史及其别名。真实 Chrome production 链通过，新增逐项冲突选择与只读历史查看 BROWSER_TESTED。详见 [范围和未完成项](TD2_CONFLICT_MERGE.md)，日志 `artifacts/td2-conflicts-20260927/`。最终远端结果以本次提交的 PR #26 Actions 为准；正式迁移、部署、生产提供方和完整 TD2-06 NOT_RUN。

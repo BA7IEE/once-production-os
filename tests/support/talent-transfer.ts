@@ -1,0 +1,70 @@
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import type { Application } from '../../packages/core/src/api.ts';
+import type { Store } from '../../packages/core/src/store.ts';
+import { AppError } from '../../packages/core/src/errors.ts';
+import { TRANSFER_CODES, TRANSFER_TABLES, TALENT_EXPORT_VERSION, type TalentTransfer } from '../../packages/core/src/talent-transfer.ts';
+import { JsonRebuild } from '../../packages/core/src/rebuild.ts';
+import { digest } from '../../packages/core/src/json.ts';
+import { inspectTalentIntegrity } from '../../packages/core/src/talent-v2-integrity.ts';
+import { FaultStore } from './fault-store.ts';
+import { seedProfessionalGraph, expectResponse as ok } from './talent-v2-maintenance.ts';
+import { FakeClock, Client, sourceInput } from './fixtures.ts';
+export const SOURCE_FIELDS = ['source.title','source.type','source.providerClaim','source.basisMode','source.basisDescription','source.validFrom','source.validUntil','source.status'];
+export async function controlledTransfer(app: Application, store: Store, clock: FakeClock, owner: Client) {
+    const graph = await seedProfessionalGraph(app, store, clock, owner);
+    const secondSource = ok(await owner.cmd('POST','/sources',{...sourceInput(),title:'第二份专业来源'})).resourceId as string;
+    const secondLanguage = ok(await owner.cmd('POST',`/td2/people/${graph.personId}/languages`,{schemaVersion:'once-talent-v2.0.0',expectedPersonRevision:(await graph.current()).revision,sourceId:secondSource,sourceRevision:1,values:{languageCode:'zh',speakingLevelCode:'NATIVE'}})).resourceId as string;
+    const permission = async(kind: string,id: string,sourceId: string,fields: string[]) => ok(await owner.cmd('POST','/use-permissions',{subjectKind:kind,subjectId:id,sourceId,fields,validUntil:'2026-10-01T00:00:00.000Z',evidenceNote:'合成验收：明确允许所列资料内部重建'})).resourceId as string;
+    const personFields = ['person.displayName','person.aliases','person.intro','person.status',...TRANSFER_CODES];
+    const personPermission = await permission('PERSON',graph.personId,graph.sourceId,personFields);
+    const primaryPermission = await permission('SOURCE',graph.sourceId,graph.sourceId,[...SOURCE_FIELDS,...TRANSFER_CODES]);
+    const secondaryPermission = await permission('SOURCE',secondSource,secondSource,[...SOURCE_FIELDS,'person.td2.personLanguages']);
+    const input = {format:'JSON',selectedIds:{people:[graph.personId],works:[],projects:[]},fields:[...personFields,...SOURCE_FIELDS],usePermissionRefs:[personPermission,primaryPermission,secondaryPermission]};
+    const before = await store.transaction(tx=>tx.find('exports'));
+    assert.equal((await owner.cmd('POST','/exports',{...input,usePermissionRefs:[personPermission]})).status,422,'person permission alone cannot authorize fact sources');
+    assert.equal((await store.transaction(tx=>tx.find('exports'))).length,before.length);
+    const jobId = ok(await owner.cmd('POST','/exports',input),202).resourceId as string;
+    const claim = await app.exports.claim(); assert.ok(claim); assert.equal(claim.id,jobId); await app.exports.process(claim);
+    const download = ok(await owner.raw('POST',`/exports/${jobId}/download`,{}),200);
+    assert.equal(download.sha256,digest(download.payload)); assert.equal(download.payload.schemaVersion,TALENT_EXPORT_VERSION);
+    const bundle = download.payload.manifest.talent as TalentTransfer;
+    assert.equal(bundle.tables.personLanguages.find(r=>r.id===secondLanguage)!.sourceId,secondSource);
+    assert.equal(bundle.tables.translatorLanguagePairs[0]!.data.personRoleId,graph.translatorId);
+    assert.equal(bundle.tables.castingProfiles[0]!.data.currentMeasurementSetId,graph.measurementId);
+    const encoded=JSON.stringify(download.payload);
+    for (const secret of ['SYNTHETIC-PRIVATE','identifierCiphertext','credentialHash','proposedValue','personExternalRefs','mediaCollections','adultEligibilities']) assert.equal(encoded.includes(secret),false,secret+' must not enter this whitelist');
+    return {graph,secondSource,secondLanguage,jobId,input,download,bundle,secondaryPermission};
+}
+export async function roundTripTransfer(source: {app:Application;store:Store;clock:FakeClock;owner:Client}, target: {store:Store;clock:FakeClock;apply?: (payload: unknown, sha256: string) => Promise<void>}) {
+    const transfer = await controlledTransfer(source.app,source.store,source.clock,source.owner);
+    const rebuild = new JsonRebuild(target.clock), actor = await target.store.transaction(tx=>rebuild.actorFromTarget(tx,'owner'));
+    const preview = await target.store.transaction(tx=>rebuild.preview(tx,actor,transfer.download.payload));
+    assert.equal(preview.schemaVersion,TALENT_EXPORT_VERSION); assert.equal(preview.professionalRecords,10);
+    const malformed=structuredClone(transfer.download.payload); malformed.manifest.talent.tables.translatorLanguagePairs[0].data.personRoleId=randomUUID();
+    await assert.rejects(target.store.transaction(tx=>rebuild.preview(tx,actor,malformed)),/专业关联/);
+    const crossPerson=structuredClone(transfer.download.payload), foreignPerson=randomUUID();
+    crossPerson.manifest.people.push({...crossPerson.manifest.people[0],id:foreignPerson});
+    crossPerson.manifest.talent.tables.translatorLanguagePairs[0].personId=foreignPerson;
+    await assert.rejects(target.store.transaction(tx=>rebuild.preview(tx,actor,crossPerson)),/专业关联/);
+    const unknown=structuredClone(transfer.download.payload); unknown.manifest.talent.tables.talentProfiles[0].data.identifierCiphertext='forbidden';
+    await assert.rejects(target.store.transaction(tx=>rebuild.preview(tx,actor,unknown)),/未知字段/);
+    const fault = new FaultStore(target.store); fault.afterInsert=(table,row)=>{if(table==='audits'&&'action' in row&&row.action==='rebuild.apply')throw new AppError(503,'STORE_UNAVAILABLE','synthetic rebuild audit failure');};
+    await assert.rejects(fault.transaction(tx=>rebuild.apply(tx,actor,transfer.download.payload,{requestId:randomUUID(),ip:'test'})),/synthetic rebuild audit/);
+    assert.ok(fault.insertTrace.includes('translatorLanguagePairs'));
+    assert.equal((await target.store.transaction(tx=>tx.find('people'))).length,0);
+    if (target.apply) await target.apply(transfer.download.payload,transfer.download.sha256);
+    else await target.store.transaction(tx=>rebuild.apply(tx,actor,transfer.download.payload,{requestId:randomUUID(),ip:'test'}));
+    for (const table of TRANSFER_TABLES) for (const row of transfer.bundle.tables[table]) {
+        const restored=await target.store.transaction(tx=>tx.get(table,row.id)); assert.ok(restored);
+        assert.equal(restored.personId,row.personId); assert.equal(restored.sourceId,row.sourceId); assert.equal(restored.revision,row.revision);
+        for (const [key,value] of Object.entries(row.data)) assert.deepEqual((restored as unknown as Record<string,unknown>)[key],value,table+'.'+key);
+    }
+    assert.equal((await target.store.transaction(tx=>tx.find('evidence'))).length,0,'do not invent historical Evidence');
+    assert.equal((await target.store.transaction(tx=>tx.find('servicePrincipals'))).length,0);
+    const integrity=await target.store.transaction(tx=>inspectTalentIntegrity(tx,actor.workspaceId,source.app.config.contactKey)); assert.equal(integrity.relationFailures,0);
+    await assert.rejects(target.store.transaction(tx=>rebuild.apply(tx,actor,transfer.download.payload,{requestId:randomUUID(),ip:'test'})),/业务数据/);
+    ok(await source.owner.cmd('POST',`/use-permissions/${transfer.secondaryPermission}/revoke`,{expectedRevision:1}),200);
+    assert.equal((await source.owner.raw('POST',`/exports/${transfer.jobId}/download`,{})).status,409);
+    return transfer;
+}

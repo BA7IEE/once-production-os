@@ -14419,11 +14419,19 @@
                         "source.validFrom",
                         "source.validUntil",
                         "source.status",
-                        "media.identity"
+                        "media.identity",
+                        "person.td2.talentProfiles",
+                        "person.td2.personRoles",
+                        "person.td2.personLanguages",
+                        "person.td2.talentLocations",
+                        "person.td2.measurementSets",
+                        "person.td2.castingProfiles",
+                        "person.td2.translatorLanguagePairs",
+                        "person.td2.translatorServiceModes"
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 33
+                    "maxItems": 41
                   },
                   "validUntil": {
                     "type": "string",
@@ -14707,11 +14715,19 @@
                         "source.validFrom",
                         "source.validUntil",
                         "source.status",
-                        "media.identity"
+                        "media.identity",
+                        "person.td2.talentProfiles",
+                        "person.td2.personRoles",
+                        "person.td2.personLanguages",
+                        "person.td2.talentLocations",
+                        "person.td2.measurementSets",
+                        "person.td2.castingProfiles",
+                        "person.td2.translatorLanguagePairs",
+                        "person.td2.translatorServiceModes"
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 33
+                    "maxItems": 41
                   },
                   "usePermissionRefs": {
                     "type": "array",

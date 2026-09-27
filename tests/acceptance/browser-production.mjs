@@ -2,7 +2,7 @@
  * Never reads a .env target, resets a DB, or sends requests to a production host. */
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID, createHash } from 'node:crypto';
-import { existsSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
@@ -429,6 +429,38 @@ try {
  assert.ok((await historySection.innerText()).includes(tdDuplicate));
  assert.equal(await prisma.talentProfile.count({where:{personId:tdDuplicate,supersededById:{not:null}}}),1);
  console.log('PASS TD2 browser: explicit conflict selection and retained history; per-record confirmation gates professional merge; stable role/language/collection/item IDs and original media survive');
+
+
+ // TD2 transfer: approve person fields and each fact source using the real forms.
+ const transferSource=(await cmd(owner,'POST','/sources',source('TD2第二语言来源'),201)).resourceId;
+ const transferLanguage=(await cmd(owner,'POST',`/td2/people/${tdCanonical}/languages`,{schemaVersion:tdSchema,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceId:transferSource,sourceRevision:1,values:{languageCode:'zh',speakingLevelCode:'NATIVE'}},201)).resourceId;
+ await owner.getByRole('button',{name:/内部导出/}).click();
+ const transferLabels=['2.0 人才主档案（内部简介与状态）','2.0 职业及有效期','2.0 语言、熟练度及有效期'];
+ const sourceLabels=['来源标题','来源类型','提供方说明','内部依据类型','依据说明','有效起点','有效截止','来源状态'];
+ const transferPermits=[];
+ for(const [kind,id,labels] of [['PERSON',tdCanonical,['姓名 / 展示名','档案状态',...transferLabels]],['SOURCE',tdSource,[...sourceLabels,...transferLabels]],['SOURCE',transferSource,[...sourceLabels,transferLabels[2]]]]){
+  await owner.getByRole('button',{name:'＋ 批准导出用途',exact:true}).click();
+  f=await dialogReady(owner,'批准内部导出用途');
+  await f.getByLabel('对象类型',{exact:true}).selectOption(kind);await f.getByLabel('批准对象',{exact:true}).selectOption(id);
+  for(const label of labels) await f.getByLabel(label,{exact:true}).check();
+  await f.getByLabel('许可截止时间',{exact:true}).fill(expiry.getFullYear()+'-'+pad(expiry.getMonth()+1)+'-'+pad(expiry.getDate())+'T'+pad(expiry.getHours())+':'+pad(expiry.getMinutes()));
+  await f.getByLabel('审批依据',{exact:true}).fill('合成验收：所选人物和实际来源的专业资料用于内部重建');
+  transferPermits.push((await writeUI(owner,'POST','/use-permissions',()=>f.getByRole('button',{name:'批准用途',exact:true}).click(),201)).resourceId);
+ }
+ for(const permit of transferPermits) await owner.getByLabel('选择导出许可 '+permit,{exact:true}).check();
+ const typedExport=(await writeUI(owner,'POST','/exports',()=>owner.getByRole('button',{name:'生成内部 JSON',exact:true}).click(),202)).resourceId;
+ await until(async()=>await prisma.exportJob.count({where:{id:typedExport,state:'READY'}})===1);
+ await owner.getByRole('button',{name:'下载 JSON',exact:true}).waitFor();
+ const typedDownload=owner.waitForEvent('download');await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();
+ const typedFile=await typedDownload,typedPayload=JSON.parse(readFileSync(await typedFile.path(),'utf8'));
+ assert.equal(typedPayload.schemaVersion,'once-export-v2-talent');
+ assert.equal(typedPayload.manifest.talent.tables.personLanguages.find(r=>r.id===transferLanguage).sourceId,transferSource);
+ assert.ok(typedPayload.manifest.talent.tables.personRoles.some(r=>r.id===tdRole));
+ assert.equal('personCredentials' in typedPayload.manifest.talent.tables,false);
+ await cmd(owner,'POST',`/use-permissions/${transferPermits[2]}/revoke`,{expectedRevision:1});
+ const blockedTransfer=await writeUI(owner,'POST','/exports/'+typedExport+'/download',()=>owner.getByRole('button',{name:'下载 JSON',exact:true}).click(),409);
+ assert.equal(blockedTransfer.error.code,'EXPORT_STALE');
+ console.log('PASS TD2 transfer browser: explicit person and two source grants -> typed JSON download -> source grant revocation blocks download');
 
  assert.deepEqual(errors,[]);
 } catch(error) {

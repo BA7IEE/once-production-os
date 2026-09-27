@@ -1,3 +1,4 @@
+import { collectTalentTransfer, isTransferCode, TALENT_EXPORT_VERSION, TRANSFER_TABLES, transferCode, type TalentTransfer } from './talent-transfer.ts';
 import { randomUUID } from 'node:crypto';
 import type { Actor, Clock, Config, Person, RequestMeta, Source } from './model.ts';
 import type { Store, Tx } from './store.ts';
@@ -78,7 +79,7 @@ export class Exports {
         requirePermission(actor, 'sources.review');
         const d = S.permissionCreate.parse(input);
         invariant(unique(d.fields).length === d.fields.length, 'DUPLICATE_FIELD', '导出字段不能重复', 400);
-        const allowed = fieldsFor(d.subjectKind, d.fields);
+        const allowed = d.fields.filter(f => fieldsFor(d.subjectKind, [f]).length || (d.subjectKind === 'SOURCE' && isTransferCode(f)));
         invariant(allowed.length === d.fields.length, 'EXPORT_FIELD_SUBJECT_MISMATCH', '导出许可字段与对象类型不匹配', 422);
         const subject = await this.subject(tx, actor, d.subjectKind, d.subjectId);
         invariant(subject.source.id === d.sourceId, 'EXPORT_SOURCE_MISMATCH', '导出许可的来源与对象不一致', 422);
@@ -159,6 +160,7 @@ export class Exports {
         invariant(unique(d.fields).length === d.fields.length && unique(d.usePermissionRefs).length === d.usePermissionRefs.length, 'DUPLICATE_FIELD', '导出字段或许可不能重复', 400);
         invariant(peopleIds.length + workIds.length + projectIds.length > 0, 'EXPORT_EMPTY', '至少选择一条记录', 400);
         const personFields = fieldsFor('PERSON', d.fields), workFields = fieldsFor('WORK', d.fields), projectFields = fieldsFor('PROJECT', d.fields);
+        const transferFields = d.fields.filter(isTransferCode);
         const sourceFields = fieldsFor('SOURCE', d.fields), mediaFields = fieldsFor('ASSET', d.fields);
         invariant((peopleIds.length > 0) === (personFields.length > 0), 'EXPORT_FIELDS_REQUIRED', '人才选择与人才字段必须同时存在', 422);
         invariant((workIds.length > 0) === (workFields.length > 0), 'EXPORT_FIELDS_REQUIRED', '作品选择与作品字段必须同时存在', 422);
@@ -173,13 +175,20 @@ export class Exports {
         for (const id of workIds) { const row = await workFor(tx, actor, id, this.clock); works.push(row); sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock)); }
         for (const id of projectIds) { const row = await projectFor(tx, actor, id, this.clock); projects.push(row); sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock)); }
 
+        const talent = transferFields.length ? await collectTalentTransfer(tx, actor, this.clock, peopleIds, transferFields) : null;
+        const sourceTransferFields = new Map<string, Set<ExportFieldCode>>();
+        if (talent) for (const table of TRANSFER_TABLES) for (const row of talent.tables[table]) {
+            sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock));
+            const fields = sourceTransferFields.get(row.sourceId) ?? new Set<ExportFieldCode>(); fields.add(transferCode(table)); sourceTransferFields.set(row.sourceId, fields);
+        }
         const now = this.clock.now().toISOString();
         const initialExpiry = new Date(this.clock.now().getTime() + L.ttlMs).toISOString();
-        const job: ExportJob = { ...base(actor.workspaceId, this.clock), actorId: actor.membershipId, format: 'JSON', schemaVersion: 'once-export-v1',
+        const job: ExportJob = { ...base(actor.workspaceId, this.clock), actorId: actor.membershipId, format: 'JSON', schemaVersion: talent ? TALENT_EXPORT_VERSION : 'once-export-v1',
             state: 'QUEUED', recordManifest: {}, fields: [...d.fields].sort(), usePermissionRefs: [], payload: null, payloadDigest: null,
             expiresAt: initialExpiry, errorCode: null, leaseToken: null, leaseUntil: null, attempts: 0 };
 
         const legacyProfessionalFields = ['person.roles','person.cityCode','person.languageCodes','person.skillCodes','person.heightCm'];
+        invariant(!talent || !personFields.some(f=>legacyProfessionalFields.includes(f)), 'TD2_TYPED_EXPORT_REQUIRED', '专业导出不能混用旧版扁平专业字段', 409);
         if (personFields.some(f => legacyProfessionalFields.includes(f))) {
             const ids = new Set(people.map(p => p.id));
             const upgraded = (await tx.find('talentProfiles', { workspaceId: actor.workspaceId })).some(p => ids.has(p.personId));
@@ -190,7 +199,7 @@ export class Exports {
             const source = sources.get(row.sourceId)!;
             const permission = this.choosePermission(permissions, used, 'PERSON', row.id, row.sourceId, personFields);
             dependencies.push(this.dependency(actor.workspaceId, job.id, 'PERSON', row.id, personFields, source, row.revision, row.protectionEpoch, permission, initialExpiry));
-            return { id: row.id, sourceId: row.sourceId, revision: row.revision, data: dataFields('person.', personFields, row as unknown as Record<string, unknown>) };
+            return { id: row.id, sourceId: row.sourceId, revision: row.revision, data: dataFields('person.', personFields.filter(f => !isTransferCode(f)), row as unknown as Record<string, unknown>) };
         });
         const manifestWorks = works.map(row => {
             const source = sources.get(row.sourceId)!;
@@ -240,19 +249,21 @@ export class Exports {
         }
 
         const manifestSources: unknown[] = [];
-        if (sourceFields.length) {
+        if (sourceFields.length || sourceTransferFields.size) {
             for (const source of [...sources.values()].sort((a, b) => a.id.localeCompare(b.id))) {
-                const permission = this.choosePermission(permissions, used, 'SOURCE', source.id, source.id, sourceFields);
-                dependencies.push(this.dependency(actor.workspaceId, job.id, 'SOURCE', source.id, sourceFields, source, source.revision, source.protectionEpoch, permission, initialExpiry));
-                manifestSources.push({ id: source.id, revision: source.revision, protectionEpoch: source.protectionEpoch,
+                const requiredSourceFields = unique([...sourceFields, ...(sourceTransferFields.get(source.id) ?? [])]);
+                if (!requiredSourceFields.length) continue;
+                const permission = this.choosePermission(permissions, used, 'SOURCE', source.id, source.id, requiredSourceFields);
+                dependencies.push(this.dependency(actor.workspaceId, job.id, 'SOURCE', source.id, requiredSourceFields, source, source.revision, source.protectionEpoch, permission, initialExpiry));
+                if (sourceFields.length) manifestSources.push({ id: source.id, revision: source.revision, protectionEpoch: source.protectionEpoch,
                     data: dataFields('source.', sourceFields, source as unknown as Record<string, unknown>) });
             }
         }
         invariant(used.size === d.usePermissionRefs.length, 'EXPORT_PERMISSION_UNUSED', '提交了未被本次导出使用的许可，请移除后重试', 422);
         job.usePermissionRefs = [...used].sort();
         job.expiresAt = minIso(initialExpiry, ...dependencies.map(dep => dep.validUntil));
-        job.recordManifest = { schemaVersion: 'once-export-v1', frozenAt: now, people: manifestPeople, works: manifestWorks, projects: manifestProjects,
-            sources: manifestSources, media, relations };
+        job.recordManifest = { schemaVersion: job.schemaVersion, frozenAt: now, people: manifestPeople, works: manifestWorks, projects: manifestProjects,
+            sources: manifestSources, media, relations, ...(talent ? { talent } : {}) };
         await tx.insert('exports', job);
         for (const dependency of dependencies) await tx.insert('exportDependencies', dependency);
         return job;
@@ -268,6 +279,7 @@ export class Exports {
     private async validateDependency(tx: Tx, actor: Actor, dependency: ExportDependency) {
         try {
             const source = await sourceFor(tx, actor, dependency.sourceId, this.clock);
+            if (dependency.fields.some(isTransferCode)) invariant(source.revision === dependency.sourceRevision, 'EXPORT_SOURCE_CHANGED', '专业资料来源版本已变化', 409);
             invariant(source.protectionEpoch === dependency.sourceProtectionEpoch, 'EXPORT_SOURCE_CHANGED', '来源安全状态已变化', 409);
             const permission = await this.permissionFor(tx, actor, dependency.usePermissionId);
             invariant(permission.revision === dependency.usePermissionRevision && dependency.fields.every(field => permission.fields.includes(field)),
@@ -299,6 +311,13 @@ export class Exports {
         invariant(!deps.some(dep => dep.kind === 'PERSON' && dep.personId && upgraded.has(dep.personId)
             && dep.fields.some(field => professional.has(field))), 'EXPORT_STALE',
             '人才资料已升级为2.0，旧版专业字段导出不再可下载', 409);
+        if (row.schemaVersion === TALENT_EXPORT_VERSION) {
+            const manifest = row.recordManifest as { people: Array<{id:string}>; talent: TalentTransfer };
+            try {
+                const current = await collectTalentTransfer(tx, actor, this.clock, manifest.people.map(p => p.id), row.fields.filter(isTransferCode));
+                invariant(digest(current) === digest(manifest.talent), 'EXPORT_STALE', '专业资料已经变化，请重新生成导出', 409);
+            } catch (error) { safeError(error); }
+        }
         for (const dep of deps) contentChanged = (await this.validateDependency(tx, actor, dep)) || contentChanged;
         return { contentChanged, dependencyCount: deps.length };
     }

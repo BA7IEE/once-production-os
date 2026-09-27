@@ -7,10 +7,20 @@ import type { ExportDetail, ExportDownload, ExportSummary, UsePermissionDto } fr
 import type { ExportFieldCode, ExportSubjectKind } from '../../../packages/core/src/export-model.ts';
 import { ErrorBox, Field, Modal, PageTitle, Pager, Submit, Tag, date, useAction, useLoad } from './ui.tsx';
 
+const professionalFields: Array<[ExportFieldCode,string]> = [
+    ['person.td2.talentProfiles','2.0 人才主档案（内部简介与状态）'],
+    ['person.td2.personRoles','2.0 职业及有效期'],
+    ['person.td2.personLanguages','2.0 语言、熟练度及有效期'],
+    ['person.td2.talentLocations','2.0 常驻与服务地点'],
+    ['person.td2.castingProfiles','2.0 外观及当前量尺关联'],
+    ['person.td2.measurementSets','2.0 完整量尺历史'],
+    ['person.td2.translatorLanguagePairs','2.0 翻译方向及职业关联'],
+    ['person.td2.translatorServiceModes','2.0 翻译服务方式及职业关联']
+];
 const fieldGroups: Record<ExportSubjectKind, Array<[ExportFieldCode, string]>> = {
     PERSON: [
         ['person.displayName', '姓名 / 展示名'], ['person.aliases', '别名'], ['person.roles', '角色'], ['person.cityCode', '城市'],
-        ['person.languageCodes', '语言'], ['person.skillCodes', '技能'], ['person.heightCm', '身高'], ['person.intro', '简介'], ['person.status', '档案状态']
+        ['person.languageCodes', '语言'], ['person.skillCodes', '技能'], ['person.heightCm', '身高'], ['person.intro', '简介'], ['person.status', '档案状态'], ...professionalFields
     ],
     WORK: [
         ['work.title', '作品标题'], ['work.description', '作品说明'], ['work.industryCode', '行业'], ['work.workTypeCodes', '作品类型'],
@@ -22,7 +32,7 @@ const fieldGroups: Record<ExportSubjectKind, Array<[ExportFieldCode, string]>> =
     ],
     SOURCE: [
         ['source.title', '来源标题'], ['source.type', '来源类型'], ['source.providerClaim', '提供方说明'], ['source.basisMode', '内部依据类型'],
-        ['source.basisDescription', '依据说明'], ['source.validFrom', '有效起点'], ['source.validUntil', '有效截止'], ['source.status', '来源状态']
+        ['source.basisDescription', '依据说明'], ['source.validFrom', '有效起点'], ['source.validUntil', '有效截止'], ['source.status', '来源状态'], ...professionalFields
     ],
     ASSET: [['media.identity', '媒体身份清单（文件名 / 类型 / Hash / 尺寸，不含原件地址）']]
 };
@@ -92,7 +102,7 @@ function PermissionForm({ resources, onClose, onDone }: { resources: ResourceSet
             onDone();
         }); }}>
             <div className="modal-body"><ErrorBox error={action.error ?? work.error ?? project.error}/>
-                <div className="notice">这是额外的数据导出许可，不等于“当前能看就能导出”。临时整理来源无法批准导出；许可到期、撤销或来源安全状态变化都会使旧导出失效。</div>
+                <div className="notice">这是额外的数据导出许可，不等于“当前能看就能导出”。临时整理来源无法批准导出；许可到期、撤销或来源安全状态变化都会使旧导出失效。2.0 专业资料需同时批准人物字段和每个实际来源的专业字段；来源许可只适用于另外取得人物许可的资料。</div>
                 <Field label="对象类型"><select value={kind} onChange={e => setKind(e.target.value as ExportSubjectKind)}>
                     <option value="PERSON">人才</option><option value="WORK">作品</option><option value="PROJECT">项目</option><option value="SOURCE">资料来源</option><option value="ASSET">图片身份</option>
                 </select></Field>
@@ -187,13 +197,14 @@ export function ExportPanel({ me }: { me: Me }) {
         <ErrorBox error={people.error ?? works.error ?? projects.error ?? sources.error ?? assets.error ?? permissions.error ?? exports.error ?? create.error ?? revoke.error}/>
         <div className="notice"><strong>三道安全门</strong><p>账号必须有 data.export；对象必须有当前有效的精确用途许可；部署侧 DATA_EGRESS_MODE 必须明确开放。生产默认关闭出口。</p></div>
 
+        <div className="notice"><strong>2.0 专业资料导出范围</strong><p>可选择主档案、职业、语言、地点、外观、量尺历史和翻译资料；请同时选择必要关联。包含每个来源的全部来源字段后，可用于隔离重建。资质、成人资格、外部账号、能力、代表关系、媒体集合和合并历史尚不支持；这份 JSON 不是完整备份。专业资料变化会使旧文件失效。</p></div>
         <section className="panel padded"><div className="panel-heading"><div><h2>可用导出许可</h2><p>先由资料核验人员批准对象、字段和截止时间。导出任务只能使用这里的现行许可。</p></div><button onClick={() => setRefresh(x => x + 1)}>刷新</button></div>
             <div className="table-wrap"><table><thead><tr>{canExport && <th>用于本次导出</th>}<th>对象</th><th>允许字段</th><th>截止</th><th>状态</th>{canApprove && <th>操作</th>}</tr></thead>
                 <tbody>{permissions.data?.items.map(p => <tr key={p.id}>{canExport && <td><input aria-label={'选择导出许可 ' + p.id} type="checkbox" disabled={p.status !== 'ACTIVE' || Date.parse(p.validUntil) <= Date.now()} checked={selectedPermissions.includes(p.id)} onChange={e => setSelectedPermissions(e.target.checked ? [...selectedPermissions, p.id] : selectedPermissions.filter(x => x !== p.id))}/></td>}<td><strong>{kindNames[p.subjectKind]} · {subjectLabel(p, resources)}</strong><small>{p.subjectId}</small></td><td>{p.fields.map(x => fieldGroups[p.subjectKind].find(([c]) => c === x)?.[1] ?? x).join(' / ')}</td><td>{date(p.validUntil)}</td><td>{p.status === 'ACTIVE' ? '有效' : '已撤销'}</td>{canApprove && <td>{p.status === 'ACTIVE' && <button className="danger-text" disabled={revoke.busy} onClick={() => {
                     if (confirm('撤销后，依赖此许可的旧导出会立即不可下载。确认撤销？')) void revoke.run(async () => { await call('usePermission.revoke', { expectedRevision: p.revision }, { id: p.id }); setRefresh(x => x + 1); });
                 }}>撤销</button>}</td>}</tr>)}</tbody></table></div>
             {!permissions.data?.items.length && <p className="muted">暂无当前可见的导出许可。</p>}
-            {canExport && <div className="export-create-bar"><div><strong>已选 {selectedPermissions.length} 个许可</strong><small>人才/作品/项目决定导出记录；来源/图片许可只为相应已选记录补充来源字段或媒体身份。</small></div><button className="primary" disabled={create.busy || !selectedPermissions.length} onClick={() => void create.run(createExport)}>生成内部 JSON</button></div>}
+            {canExport && <div className="export-create-bar"><div><strong>已选 {selectedPermissions.length} 个许可</strong><small>人才/作品/项目决定导出记录；来源许可还需覆盖每条专业资料的实际来源；图片许可仅补充媒体身份。</small></div><button className="primary" disabled={create.busy || !selectedPermissions.length} onClick={() => void create.run(createExport)}>生成内部 JSON</button></div>}
         </section>
 
         {canExport && <section className="panel"><div className="panel-heading"><div><h2>我的导出任务</h2><p>导出文件最长保留 24 小时，下载前会再次复查全部依赖。</p></div></div>

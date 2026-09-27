@@ -63,6 +63,13 @@ if(mainStatus!==0){process.exitCode=mainStatus;}else{
     ...process.env,DATABASE_URL_TD2_TEST:typedMerge,ALLOW_TD2_DB_TESTS:'yes'
    },240000);
   }
+  if(status===0){
+   const transferSource=await fresh('once_test_td2_transfer_','Talent 2 transfer source');
+   const transferTarget=await fresh('once_rebuild_td2_','Talent 2 transfer target');
+   status=runNode('tests/postgres/talent-transfer.test.ts',{
+    ...process.env,DATABASE_URL_TD2_TEST:transferSource,DATABASE_URL_TALENT_REBUILD_TEST:transferTarget,ALLOW_TD2_DB_TESTS:'yes'
+   },240000);
+  }
   process.exitCode=status;
  }catch(error){console.error(error instanceof Error?error.message:'Could not create a fresh isolated sibling database.');process.exitCode=1;}
  finally{await admin.$disconnect();}

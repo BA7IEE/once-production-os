@@ -1,3 +1,5 @@
+import { TALENT_EXPORT_VERSION, TRANSFER_TABLES } from './talent-transfer.ts';
+import { validateTalentRebuild, applyTalentRebuild } from './talent-transfer-rebuild.ts';
 import type { Actor, Clock, Person, Source, SourceHistory } from './model.ts';
 import type { Work, WorkCredit, Project, ProjectParticipant, ProjectWork } from './production-model.ts';
 import { PRODUCTION_LIMITS as PL } from './production-model.ts';
@@ -65,6 +67,9 @@ export class JsonRebuild {
     private async plan(tx: Tx, actor: Actor, input: unknown) {
         const payload = RebuildSchemas.payload.parse(input);
         const target = await this.target(tx, actor);
+        const typed = payload.schemaVersion === TALENT_EXPORT_VERSION;
+        invariant(payload.schemaVersion === payload.manifest.schemaVersion && typed === !!payload.manifest.talent, 'REBUILD_SCHEMA_MISMATCH', '导出版本与专业资料结构不一致', 422);
+        if (payload.manifest.talent) await validateTalentRebuild(tx, actor, this.clock, payload.manifest.talent, payload.manifest.people.map(p=>p.id), payload.manifest.sources.map(s=>s.id));
         const now = this.clock.now().getTime();
         invariant(Date.parse(payload.frozenAt) <= now && Date.parse(payload.manifest.frozenAt) <= now,
             'REBUILD_EXPORT_TIME_INVALID', '导出时间不能晚于目标环境当前时间', 422);
@@ -102,17 +107,19 @@ export class JsonRebuild {
         }
 
         const referencedSources = new Set([
-            ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId)
+            ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>payload.manifest.talent!.tables[t].map(r=>r.sourceId)) : [])
         ]);
         invariant(sources.every(x => referencedSources.has(x.id)), 'REBUILD_UNUSED_SOURCE',
             '来源清单包含没有被本次业务图引用的记录', 422);
 
         for (const row of people) {
-            invariant(unique(row.data.roles).length === row.data.roles.length
+            invariant(typed || (row.data.roles?.length ?? 0)>0, 'REBUILD_ROLE_REQUIRED', '旧版人物重建必须明确提供角色', 422);
+            if (typed) invariant(!(row.data.roles?.length || row.data.cityCode || row.data.languageCodes?.length || row.data.skillCodes?.length || row.data.heightCm), 'TD2_TYPED_EXPORT_REQUIRED', '专业导出不能混用旧版扁平专业字段', 422);
+            invariant(unique(row.data.roles ?? []).length === (row.data.roles ?? []).length
                 && unique(row.data.languageCodes ?? []).length === (row.data.languageCodes ?? []).length
                 && unique(row.data.skillCodes ?? []).length === (row.data.skillCodes ?? []).length,
                 'REBUILD_DUPLICATE_CODE', '人才分类字段包含重复代码，不能静默归一化重建', 422);
-            await this.catalog(tx, actor, 'role', row.data.roles);
+            await this.catalog(tx, actor, 'role', row.data.roles ?? []);
             if (row.data.cityCode) await this.catalog(tx, actor, 'city', [row.data.cityCode]);
             await this.catalog(tx, actor, 'language', row.data.languageCodes ?? []);
             await this.catalog(tx, actor, 'skill', row.data.skillCodes ?? []);
@@ -180,7 +187,7 @@ export class JsonRebuild {
         }
 
         const summary: RebuildSummary = {
-            schemaVersion: REBUILD_SCHEMA_VERSION,
+            schemaVersion: payload.schemaVersion,
             exportId: payload.exportId,
             inputDigest: digest(payload),
             workspaceId: actor.workspaceId,
@@ -195,6 +202,7 @@ export class JsonRebuild {
                 projectWorks: relations.projectWorks.length,
                 mediaIdentities: media.length
             },
+            ...(payload.manifest.talent ? {professionalRecords: TRANSFER_TABLES.reduce((n,t)=>n+payload.manifest.talent!.tables[t].length,0)} : {}),
             mediaRestored: 0
         };
         return { payload, target, summary };
@@ -234,7 +242,7 @@ export class JsonRebuild {
             const person: Person = {
                 id: row.id, workspaceId: actor.workspaceId, ...stamp, revision: row.revision,
                 scopeId: target.scope.id, sourceId: row.sourceId, maintainerId: actor.membershipId,
-                displayName: row.data.displayName, aliases: unique(row.data.aliases ?? []), roles: unique(row.data.roles),
+                displayName: row.data.displayName, aliases: unique(row.data.aliases ?? []), roles: unique(row.data.roles ?? []),
                 cityCode: row.data.cityCode ?? null, languageCodes: unique(row.data.languageCodes ?? []),
                 skillCodes: unique(row.data.skillCodes ?? []), heightCm: row.data.heightCm ?? null,
                 intro: row.data.intro ?? '', status: row.data.status, protectionEpoch: 1
@@ -277,8 +285,10 @@ export class JsonRebuild {
             await tx.insert('projectWorks', relation);
         }
 
+        if (payload.manifest.talent) await applyTalentRebuild(tx, actor, payload.manifest.talent);
+
         await audit(tx, actor, actor.workspaceId, 'rebuild.apply', 'rebuild-export', payload.exportId,
-            ['sources', 'people', 'works', 'projects', 'relations', ...(payload.manifest.media.length ? ['media.identity-only'] : [])],
+            ['sources', 'people', 'works', 'projects', 'relations', ...(payload.manifest.talent ? ['talent.typed'] : []), ...(payload.manifest.media.length ? ['media.identity-only'] : [])],
             meta, this.clock);
         return summary;
     }

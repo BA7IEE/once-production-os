@@ -1,3 +1,4 @@
+import { TALENT_EXPORT_VERSION } from './talent-transfer.ts';
 import { TALENT_V2_TABLES } from './talent-v2-model.ts';
 import type { Table } from './model.ts';
 
@@ -25,7 +26,7 @@ export const REBUILD_LIMITS = Object.freeze({
 });
 
 export interface RebuildSummary {
-    schemaVersion: typeof REBUILD_SCHEMA_VERSION;
+    schemaVersion: typeof REBUILD_SCHEMA_VERSION | typeof TALENT_EXPORT_VERSION;
     exportId: string;
     inputDigest: string;
     workspaceId: string;
@@ -40,5 +41,6 @@ export interface RebuildSummary {
         projectWorks: number;
         mediaIdentities: number;
     };
+    professionalRecords?: number;
     mediaRestored: 0;
 }
