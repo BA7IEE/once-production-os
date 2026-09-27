@@ -1,3 +1,9 @@
+## Talent 2.0 当前验收边界
+
+当前分支PR #26。详见 [TD2_MAINTENANCE_STATUS.md](TD2_MAINTENANCE_STATUS.md)。
+本批本地核心347/347；新增真实PG专业图删除/恢复与原DB+media演练中的TD2记录。
+最终远端结果按PR当前head核实，不能用下述历史运行作为TD2全Gate通过证据。
+
 # 实际测试与验证记录
 
 ## WP7｜DEV-07H / T29 隔离 JSON 重建

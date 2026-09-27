@@ -103,7 +103,7 @@ export function executionPlan(request: Pick<DeletionRequest, 'id' | 'targetKind'
         previewDigest: request.previewDigest, planDigest: request.planDigest,
         items: [...items].sort((a,b)=>a.id.localeCompare(b.id)).map(item => ({
             itemId: item.id, dependencyKind: item.dependencyKind, resourceKind: item.resourceKind,
-            resourceId: item.resourceId, decision: item.decision, resolvedAction: resolveDeletionAction(item),
+            resourceId: item.resourceId, ...(item.resourceKind === 'talentGraph' ? { resourceDigest: item.detailCode } : {}), decision: item.decision, resolvedAction: resolveDeletionAction(item),
             retentionSourceId: item.retentionSourceId, retentionSourceRevision: item.retentionSourceRevision,
             retentionSourceProtectionEpoch: item.retentionSourceProtectionEpoch
         }))
@@ -120,6 +120,7 @@ export function frozenDeletionPlan(request: Pick<DeletionRequest, 'id' | 'target
             itemId: item.id,
             dependencyKind: item.dependencyKind,
             proposedAction: item.proposedAction,
+            ...(item.resourceKind === 'talentGraph' ? { resourceDigest: item.detailCode } : {}),
             evidenceState: item.evidenceState,
             decision: item.decision,
             decisionReason: item.decisionReason,

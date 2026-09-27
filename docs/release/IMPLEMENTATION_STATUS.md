@@ -1,6 +1,8 @@
-# 当前实现状态｜DEV-09E 增量归并与恢复审批
+# 当前实现状态｜Talent Domain 2.0 业务衔接
 
-应用 `0.1.0-dev.1`。当前分支 `feat/recovery-delta-resolution`，PR #25，基于 DEV-09D / PR #22。
+应用 `0.1.0-dev.1`。当前分支 `feat/talent-domain-2`，PR #26，基于 PR #25。
+
+当前2.0实现、测试与未完成边界见 [TD2_MAINTENANCE_STATUS.md](TD2_MAINTENANCE_STATUS.md)。以下DEV-09说明是历史切片，不代表当前人才2.0总体通过。
 
 本批实现与限制详见 [WP10_RECOVERY_DELTA_RESOLUTION.md](WP10_RECOVERY_DELTA_RESOLUTION.md)。隔离本地核心回归 321/321；完整 CI 须查验最终 head，不依据本文件推定通过；main 尚未包含整条开发链。
 
@@ -72,4 +74,4 @@ CI 明确输出：
 
 先完成 DEV-09 整体 Gate 和开发分支整合，再合入已冻结的 Talent Domain 2.0 R1（PR #24）。
 
-顺序：DEV-09 → TD2-01～06 → TD2-T01～18 → DEV-08 AI。人才 2.0 仍是 SPEC_ONLY / NOT_IMPLEMENTED，AI 未启动。
+顺序：DEV-09 → TD2-01～06 → TD2-T01～18 → DEV-08 AI。人才 2.0 已有实现但 TD2-06 整体 Gate 未关闭，AI 未启动。

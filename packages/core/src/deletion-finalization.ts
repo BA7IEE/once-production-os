@@ -1,3 +1,4 @@
+import { assertTalentFinalizationClean } from './talent-v2-erasure.ts';
 import { randomUUID } from 'node:crypto';
 import type { Clock, Config } from './model.ts';
 import type { Store, Tx } from './store.ts';
@@ -78,6 +79,7 @@ export class DeletionFinalization {
                     && (item.resourceKind === 'asset' || item.resourceKind === 'upload'))
                     ids.add(item.resourceId);
             if (row.targetKind === 'ASSET') ids.add(row.targetId);
+            for (const id of ids) await assertTalentFinalizationClean(tx, row.workspaceId, 'ASSET', id);
             return [...ids].sort().map(mediaId => ({ mediaId }));
         });
     }
@@ -123,6 +125,9 @@ export class DeletionFinalization {
     }
 
     private async tombstone(tx: Tx, kind: DeletionRequest['targetKind'], id: string): Promise<Record<string, unknown>> {
+        const rootTable = { SOURCE: 'sources', PERSON: 'people', WORK: 'works', PROJECT: 'projects', ASSET: 'assets' } as const;
+        const root = await tx.get(rootTable[kind], id);
+        if (root) await assertTalentFinalizationClean(tx, root.workspaceId, kind, id);
         if (kind === 'SOURCE') {
             const row = await tx.get('sources', id); if (!row) missing();
             const next = { ...touch(row, this.clock), title: '[ERASED]', type: 'MANUAL' as const, providerClaim: '', textPayload: '',

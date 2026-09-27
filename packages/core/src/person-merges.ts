@@ -1,3 +1,4 @@
+import { talentDependencyCounts } from './talent-v2-integrity.ts';
 import type { Actor, Clock, Config, Contact, Person, Source } from './model.ts';
 import type { Tx } from './store.ts';
 import type { PersonMergeCollisionChoice, PersonMergeDecision, PersonMergeField, PersonMergeFieldChoice } from './merge-model.ts';
@@ -87,6 +88,8 @@ export class PersonMerges {
         const canonicalSource = await sourceFor(tx, actor, canonical.sourceId, this.clock);
         const duplicateSource = await sourceFor(tx, actor, duplicate.sourceId, this.clock);
         const blockers = new Map<string,number>();
+        const talentDeps = await Promise.all([canonical.id, duplicate.id].map(id => talentDependencyCounts(tx, actor.workspaceId, 'PERSON', id)));
+        if (talentDeps.some(x => x.count > 0)) blocker(blockers, 'TD2_TYPED_MERGE_REVIEW_REQUIRED');
 
         if (canonical.scopeId !== duplicate.scopeId) blocker(blockers, 'SCOPE_MISMATCH');
         if (canonical.status === 'ERASED' || duplicate.status === 'ERASED') blocker(blockers, 'ERASED_PERSON');

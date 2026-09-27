@@ -1,3 +1,4 @@
+import { eraseTalentPersonGraph } from './talent-v2-erasure.ts';
 import { randomUUID } from 'node:crypto';
 import type { Actor, Clock, Config, Table } from './model.ts';
 import type { Store, Tx } from './store.ts';
@@ -20,6 +21,7 @@ const relationTable: Record<string, Table> = {
     shortlistItem: 'shortlistItems'
 };
 const actionPriority = (item: DeletionItem) => {
+    if (item.resourceKind === 'talentGraph') return 5;
     if (item.resourceKind === 'shortlistItemAsset') return 10;
     if (item.resolvedAction === 'REMOVE_RELATION') return item.resourceKind === 'shortlistItem' ? 30 : 20;
     if (item.resolvedAction === 'REVOKE_PERMISSION') return 40;
@@ -225,6 +227,10 @@ export class DeletionCleanup {
             return { outcome: 'DONE' };
         }
         if (action === 'ERASE_PAYLOAD') {
+            if (item.resourceKind === 'talentGraph') {
+                await eraseTalentPersonGraph(tx, request, item, this.clock);
+                return { outcome: 'DONE' };
+            }
             if (item.resourceKind === 'contact') {
                 if (await tx.get('contacts', item.resourceId)) await tx.remove('contacts', item.resourceId);
                 return { outcome: 'DONE' };

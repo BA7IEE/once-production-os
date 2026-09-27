@@ -1,3 +1,4 @@
+import { seedProfessionalGraph } from '../support/talent-v2-maintenance.ts';
 /** DEV-09C actual pg_dump -> pg_restore -> recovery approve drill. */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -127,6 +128,14 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
             objectToken,state:'READY'
         });
 
+        const td2 = await seedProfessionalGraph(sourceApp, sourceStore, clock, owner, sourceId, personId);
+        const td2Person = await td2.current();
+        const linked = await owner.cmd('POST', `/td2/collections/${td2.collectionId}/items`, {
+            schemaVersion: 'once-talent-v2.0.0', expectedRevision: 1,
+            expectedPersonRevision: td2Person.revision, assetId: uploadId
+        });
+        assert.equal(linked.status, 200, JSON.stringify(linked.body));
+
         const backup=run('pnpm',['--silent','recovery:backup','--','--output-dir',backupDir],{
             ...process.env,DATABASE_URL_BACKUP:sourceUrl,SAFETY_JOURNAL_FILE:journal,
             CONTACT_KEY_FILE:contactFile,RECOVERY_EPOCH_FILE:oldEpochFile,
@@ -212,6 +221,16 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         const report=JSON.parse(inspected.stdout);
         assert.deepEqual(report.blockers,[]);
         assert.equal(report.contactDecryptFailures,0);
+        assert.equal(report.talent.relationFailures, 0);
+        assert.equal(report.talent.credentialCount, 1);
+        assert.equal(report.talent.credentialDecryptFailures, 0);
+        assert.equal(report.talent.tableCounts.personRoles, 2);
+        assert.equal(report.talent.tableCounts.mediaCollectionItems, 1);
+        assert.equal((await restoreClient.servicePrincipal.findUniqueOrThrow({where:{id:td2.principalId}})).credentialHash, null);
+        assert.equal((await restoreClient.fieldProposal.findUniqueOrThrow({where:{id:td2.proposalId}})).state, 'STALE');
+        assert.equal((await restoreClient.measurementSet.findUniqueOrThrow({where:{id:td2.measurementId}})).heightCm, 175);
+        assert.equal((await restoreClient.personExternalRef.findUniqueOrThrow({where:{id:td2.externalRefId}})).personId, personId);
+
         assert.equal(report.media.verifiedAssetIds[0],uploadId);
         assert.equal(report.media.backupIdentityDigest,manifest.media.identityDigest);
 
@@ -276,6 +295,7 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         const hidden=await restoredOwner.raw('GET','/people/'+personId);
         assert.equal(hidden.status,404,'suspended source remains restricted after recovery approval');
 
+        console.log('PASS TD2 pg_dump/pg_restore+media: stable roles, measurements, external refs, collection links, encrypted credential and revoked machine identity');
         console.log('PASS DEV-09E pg_dump/pg_restore+media: contained post-backup delta resolves and approves; unresolved committed member.disable remains blocked');
     }finally{
         await sourceStore.close();

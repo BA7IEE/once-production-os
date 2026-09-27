@@ -1,3 +1,4 @@
+import type { TalentIntegrityReport } from './talent-v2-integrity.ts';
 import type { Base } from './model.ts';
 
 export type RecoveryState = 'PREPARED' | 'INSPECTED' | 'APPROVED';
@@ -22,6 +23,7 @@ export interface RecoveryCheckReport {
     migrationDigest: string;
     migrationMatch: boolean;
     contactKeyDigest: string;
+    talent?: TalentIntegrityReport;
     contactCount: number;
     contactDecryptFailures: number;
     media: RecoveryMediaCheck;

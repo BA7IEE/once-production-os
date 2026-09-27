@@ -1,3 +1,4 @@
+import { inspectTalentIntegrity, quarantineTalentActors } from './talent-v2-integrity.ts';
 import type { Actor, Clock, Config, Source } from './model.ts';
 import type { Tx } from './store.ts';
 import { RECOVERY_PREPARE_CONTAINED_OPERATIONS, type RecoveryApprovalEvidence, type RecoveryCheckReport, type RecoveryDeltaResolutionReport, type RecoveryExternalCheck, type RecoveryPrepareSummary, type RecoveryRun } from './recovery-model.ts';
@@ -194,6 +195,7 @@ export class RecoveryOps {
             'restore-check 必须加载恢复后的 CONTACT_KEY_FILE', 503);
         const external = this.external(externalInput);
         const state = await this.safetyState(tx, actor);
+        const talent = await inspectTalentIntegrity(tx, actor.workspaceId, this.config.contactKey);
         const currentAssets = state.assets.filter(x => x.state !== 'ERASED');
         const expectedAssetIds = currentAssets.map(x => x.id).sort();
         const currentMediaIdentityDigest = digest(currentAssets.map(x => ({
@@ -243,14 +245,15 @@ export class RecoveryOps {
             workspaceId: actor.workspaceId,
             targetEpochDigest: run.targetEpochDigest,
             checkedAt: this.clock.now().toISOString(),
-            databaseStateDigest: state.databaseStateDigest,
+            databaseStateDigest: digest({ legacy: state.databaseStateDigest, talent: talent.graphDigest }),
+            talent,
             migrationDigest: external.migrationDigest,
             migrationMatch: external.migrationMatch,
             contactKeyDigest: hashSecret(this.config.contactKey.toString('hex')),
             contactCount: state.contacts.length,
             contactDecryptFailures,
             media: external.media,
-            blockers: unique(blockers).sort()
+            blockers: unique([...blockers, ...talent.blockers]).sort()
         };
         return { run, report };
     }
@@ -413,6 +416,7 @@ export class RecoveryOps {
 
         const runBase = base(actor.workspaceId, this.clock);
         const now = runBase.createdAt;
+        await quarantineTalentActors(tx, actor, this.clock);
 
         for (const row of await tx.find('sessions', { workspaceId: actor.workspaceId }))
             if (!row.revokedAt) await tx.replace('sessions', { ...touch(row, this.clock), revokedAt: now });
@@ -480,7 +484,7 @@ export class RecoveryOps {
         };
         await tx.insert('recoveryRuns', run);
         await audit(tx, actor, actor.workspaceId, 'recovery.prepare', 'recovery', run.id,
-            ['sessions','activations','accounts','handoffs','usePermissions','exports','jobs','uploads','assets','sources'],
+            ['sessions','activations','accounts','handoffs','usePermissions','exports','jobs','uploads','assets','sources','servicePrincipals','fieldProposals'],
             meta, this.clock);
         return run;
     }

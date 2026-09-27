@@ -1,3 +1,5 @@
+import { previewTalentErasure } from './talent-v2-erasure.ts';
+import { talentDependencyCounts } from './talent-v2-integrity.ts';
 import type { Actor, Clock, Person, Source } from './model.ts';
 import type { Tx } from './store.ts';
 import type { DeletionAction, DeletionEvidenceState, DeletionItem, DeletionRequest, DeletionTargetKind } from './deletion-model.ts';
@@ -235,6 +237,19 @@ export class Deletions {
             }
         }
 
+        if (targetKind === 'PERSON') {
+            const talent = await previewTalentErasure(tx, actor, targetId);
+            if (talent.blocker) miss(talent.blocker);
+            else if (talent.count) add({ resourceKind: 'talentGraph', resourceId: targetId,
+                dependencyKind: 'PERSON_TALENT_GRAPH', proposedAction: 'ERASE_PAYLOAD',
+                evidenceState: 'REVIEW_REQUIRED', detailCode: `TD2_GRAPH_${talent.digest}` });
+        } else if (targetKind === 'SOURCE' || targetKind === 'ASSET') {
+            const talent = await talentDependencyCounts(tx, actor.workspaceId, targetKind, targetId);
+            // Cross-source retention / per-asset verification history needs its own review plan.
+            // Do not claim legacy cleanup covered these newly introduced relationships.
+            if (talent.count) miss(targetKind === 'SOURCE' ? 'TD2_SOURCE_RETENTION_REVIEW_REQUIRED' : 'TD2_ASSET_REFERENCE_REVIEW_REQUIRED');
+        }
+
         const sorted = [...impacts.values()].sort((a, b) => [a.resourceKind, a.resourceId, a.dependencyKind].join(':').localeCompare([b.resourceKind, b.resourceId, b.dependencyKind].join(':')));
         const truncated = sorted.length > L.impacts;
         const items = sorted.slice(0, L.impacts);
@@ -361,6 +376,8 @@ export class Deletions {
 
         let retentionSourceId: string | null = null, retentionSourceRevision: number | null = null, retentionSourceProtectionEpoch: number | null = null;
         if (d.decision === 'RETAIN_WITH_BASIS') {
+            invariant(item.resourceKind !== 'talentGraph', 'TD2_ERASURE_RETENTION_UNSUPPORTED',
+                '不能在删除人物的同时保留其整份专业档案；需要保留时请停止本次删除', 422);
             requirePermission(actor, 'sources.review');
             invariant(!!d.retentionSourceId && d.retentionSourceId !== row.targetSourceId, 'RETENTION_BASIS_REQUIRED', '保留必须选择另一份独立且当前有效的来源依据', 422);
             const basis = await sourceFor(tx, actor, d.retentionSourceId, this.clock);

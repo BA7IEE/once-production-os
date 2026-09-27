@@ -1,8 +1,10 @@
+import { TALENT_V2_TABLES } from './talent-v2-model.ts';
 import type { Table } from './model.ts';
 
 export const REBUILD_SCHEMA_VERSION = 'once-export-v1' as const;
 
 export const REBUILD_EMPTY_TABLES: Table[] = [
+    ...TALENT_V2_TABLES,
     'personMerges', 'personAliases', 'deletionRequests', 'deletionItems',
     'usePermissions', 'exports', 'exportDependencies',
     'shortlists', 'shortlistItems', 'shortlistItemAssets',

@@ -51,6 +51,12 @@ if(mainStatus!==0){process.exitCode=mainStatus;}else{
     ALLOW_RECOVERY_APPROVAL_TESTS:'yes'
    },300000);
   }
+  if(status===0){
+   const td2=await fresh('once_test_td2_','Talent 2 maintenance');
+   status=runNode('tests/postgres/talent-v2-maintenance.test.ts',{
+    ...process.env,DATABASE_URL_TD2_TEST:td2,ALLOW_TD2_DB_TESTS:'yes'
+   },240000);
+  }
   process.exitCode=status;
  }catch(error){console.error(error instanceof Error?error.message:'Could not create a fresh isolated sibling database.');process.exitCode=1;}
  finally{await admin.$disconnect();}

@@ -179,6 +179,13 @@ export class Exports {
             state: 'QUEUED', recordManifest: {}, fields: [...d.fields].sort(), usePermissionRefs: [], payload: null, payloadDigest: null,
             expiresAt: initialExpiry, errorCode: null, leaseToken: null, leaseUntil: null, attempts: 0 };
 
+        const legacyProfessionalFields = ['person.roles','person.cityCode','person.languageCodes','person.skillCodes','person.heightCm'];
+        if (personFields.some(f => legacyProfessionalFields.includes(f))) {
+            const ids = new Set(people.map(p => p.id));
+            const upgraded = (await tx.find('talentProfiles', { workspaceId: actor.workspaceId })).some(p => ids.has(p.personId));
+            invariant(!upgraded, 'TD2_TYPED_EXPORT_REQUIRED', '人才2.0专业资料不能按旧版扁平字段导出，请使用专用资料导出流程', 409);
+        }
+
         const manifestPeople = people.map(row => {
             const source = sources.get(row.sourceId)!;
             const permission = this.choosePermission(permissions, used, 'PERSON', row.id, row.sourceId, personFields);
@@ -287,6 +294,11 @@ export class Exports {
         let contentChanged = false;
         const deps = await tx.find('exportDependencies', { workspaceId: row.workspaceId, exportId: row.id });
         invariant(deps.length > 0, 'EXPORT_DEPENDENCY_MISSING', '导出依赖清单不完整', 409);
+        const professional = new Set(['person.roles','person.cityCode','person.languageCodes','person.skillCodes','person.heightCm']);
+        const upgraded = new Set((await tx.find('talentProfiles', { workspaceId: actor.workspaceId })).map(p => p.personId));
+        invariant(!deps.some(dep => dep.kind === 'PERSON' && dep.personId && upgraded.has(dep.personId)
+            && dep.fields.some(field => professional.has(field))), 'EXPORT_STALE',
+            '人才资料已升级为2.0，旧版专业字段导出不再可下载', 409);
         for (const dep of deps) contentChanged = (await this.validateDependency(tx, actor, dep)) || contentChanged;
         return { contentChanged, dependencyCount: deps.length };
     }
