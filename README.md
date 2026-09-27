@@ -1,4 +1,6 @@
-当前接续：[无附件资质与加密编号迁移](docs/release/TD2_CREDENTIAL_TRANSFER.md)已接入独立许可和隔离重建；带证明附件的资质仍阻断，完整人才2.0未完成。
+当前接续：[资质证明原件迁移](docs/release/TD2_PROOF_MEDIA_TRANSFER.md)已接入独立图片/来源许可、真实文件下载和隔离重建；已核验状态与附件关系保留。完整人才 2.0 尚未完成，证据见该页与当前 head CI。
+
+前批：[无附件资质与加密编号迁移](docs/release/TD2_CREDENTIAL_TRANSFER.md)已接入独立许可和隔离重建；带证明附件的资质仍阻断，完整人才2.0未完成。
 
 前批：已支持的十一类专业资料可另行批准[字段来源证据迁移](docs/release/TD2_FIELD_EVIDENCE_TRANSFER.md)，保留原记录和核验归属；完整人才2.0仍未完成。
 

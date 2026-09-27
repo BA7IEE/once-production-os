@@ -1,3 +1,5 @@
+import {randomUUID} from 'node:crypto';
+import type { MediaAsset, MediaUpload } from './media-model.ts';
 import {validateCredentialKeys,type CredentialRebuildKeys} from './credential-transfer-crypto.ts';
 import { transferRows, TALENT_EXPORT_VERSION, TRANSFER_TABLES } from './talent-transfer.ts';
 import { validateTalentRebuild, applyTalentRebuild, applyTransferEvidence } from './talent-transfer-rebuild.ts';
@@ -27,7 +29,8 @@ function businessTime(clock: Clock) {
 export class JsonRebuild {
     clock: Clock;
     private credentialKeys?:CredentialRebuildKeys;
-    constructor(clock: Clock, credentialKeys?:CredentialRebuildKeys) { this.clock = clock; this.credentialKeys=credentialKeys; }
+    private verifiedMediaDigest?:string;
+    constructor(clock: Clock, credentialKeys?:CredentialRebuildKeys, verifiedMediaDigest?:string) { this.clock = clock; this.credentialKeys=credentialKeys; this.verifiedMediaDigest=verifiedMediaDigest; }
 
     private async target(tx: Tx, actor: Actor) {
         invariant(actor.role === 'ADMIN', 'REBUILD_ADMIN_REQUIRED', '隔离重建只能由目标环境唯一管理员执行', 403);
@@ -115,7 +118,7 @@ export class JsonRebuild {
 
         for(const e of payload.manifest.talent?.evidence??[]) invariant(e.sourceRevision<=(sources.find(s=>s.id===e.sourceId)?.revision??0),'TD2_TRANSFER_EVIDENCE_SOURCE_REVISION','字段证据引用了不存在的来源版本',422);
         const referencedSources = new Set([
-            ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent?.evidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.organizations??[]).map(o=>o.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>transferRows(payload.manifest.talent!,t).map(r=>r.sourceId)) : [])
+            ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent?.assets??[]).map(a=>a.sourceId), ...(payload.manifest.talent?.evidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.organizations??[]).map(o=>o.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>transferRows(payload.manifest.talent!,t).map(r=>r.sourceId)) : [])
         ]);
         invariant(sources.every(x => referencedSources.has(x.id)), 'REBUILD_UNUSED_SOURCE',
             '来源清单包含没有被本次业务图引用的记录', 422);
@@ -211,7 +214,7 @@ export class JsonRebuild {
                 mediaIdentities: media.length
             },
             ...(payload.manifest.talent ? {encryptedCredentialCount:transferRows(payload.manifest.talent,'personCredentials').filter(r=>r.data.identifierCiphertext).length, fieldEvidence:payload.manifest.talent.evidence?.length??0, organizations:payload.manifest.talent.organizations?.length??0, capabilityDefinitions: payload.manifest.talent.capabilityDefinitions?.length??0, professionalRecords: TRANSFER_TABLES.reduce((n,t)=>n+transferRows(payload.manifest.talent!,t).length,0)} : {}),
-            mediaRestored: 0
+            mediaRestored: payload.manifest.talent?.assets?.length??0
         };
         return { payload, target, summary };
     }
@@ -222,6 +225,7 @@ export class JsonRebuild {
 
     async apply(tx: Tx, actor: Actor, input: unknown, meta: { requestId: string; ip: string }): Promise<RebuildSummary> {
         const { payload, target, summary } = await this.plan(tx, actor, input);
+        invariant(!(payload.manifest.talent?.assets?.length)||this.verifiedMediaDigest===digest(payload),'REBUILD_MEDIA_NOT_VERIFIED','必须先校验证明原件并写入隔离存储，才能应用重建',409);
         const at = this.clock.now().toISOString();
         const stamp = businessTime(this.clock);
 
@@ -293,6 +297,17 @@ export class JsonRebuild {
             await tx.insert('projectWorks', relation);
         }
 
+        for(const a of payload.manifest.talent?.assets??[]) {
+            const source=await tx.get('sources',a.sourceId);
+            invariant(source,'REBUILD_SOURCE_MISSING','原件来源缺失',422);
+            const upload:MediaUpload={...base(actor.workspaceId,this.clock),id:a.id,actorId:actor.membershipId,actorRevision:target.member.revision,actorEpoch:actor.userEpoch,
+                sourceId:a.sourceId,sourceRevision:source.revision,sourceEpoch:source.protectionEpoch,scopeId:target.scope.id,scopeRevision:target.scope.revision,
+                personId:a.personId,personEpoch:a.personId?1:null,personScopeId:a.personId?target.scope.id:null,personScopeRevision:a.personId?target.scope.revision:null,
+                fileName:a.fileName,mime:a.mime,expectedBytes:a.bytes,expectedHash:a.sha256,state:'READY',expiresAt:new Date(this.clock.now().getTime()+300000).toISOString(),renewals:0,attempts:1,receiveToken:randomUUID(),leaseToken:null,leaseUntil:null,errorCode:null,purgedAt:null};
+            await tx.insert('uploads',upload);
+            const asset:MediaAsset={...a,workspaceId:actor.workspaceId,scopeId:target.scope.id,uploadId:a.id,objectToken:a.id,state:'READY'};
+            await tx.insert('assets',asset);
+        }
         if (payload.manifest.talent) await applyTalentRebuild(tx, actor, payload.manifest.talent, target.scope.id,this.credentialKeys);
         if (payload.manifest.talent) await applyTransferEvidence(tx,actor,payload.manifest.talent);
 

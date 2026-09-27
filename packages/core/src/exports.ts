@@ -1,3 +1,4 @@
+import { MEDIA_TRANSFER_CODE, transferAsset } from './media-transfer.ts';
 import { CREDENTIAL_IDENTIFIER_CODE, EVIDENCE_TRANSFER_CODE, transferRows, collectTalentTransfer, isTransferCode, TALENT_EXPORT_VERSION, TRANSFER_TABLES, transferCode, type TalentTransfer } from './talent-transfer.ts';
 import { randomUUID } from 'node:crypto';
 import type { Actor, Clock, Config, Person, RequestMeta, Source } from './model.ts';
@@ -79,7 +80,7 @@ export class Exports {
         requirePermission(actor, 'sources.review');
         const d = S.permissionCreate.parse(input);
         invariant(unique(d.fields).length === d.fields.length, 'DUPLICATE_FIELD', '导出字段不能重复', 400);
-        const allowed = d.fields.filter(f => fieldsFor(d.subjectKind, [f]).length || (d.subjectKind === 'SOURCE' && (isTransferCode(f)||f===EVIDENCE_TRANSFER_CODE||f===CREDENTIAL_IDENTIFIER_CODE)));
+        const allowed = d.fields.filter(f => fieldsFor(d.subjectKind, [f]).length || (d.subjectKind === 'SOURCE' && (isTransferCode(f)||f===EVIDENCE_TRANSFER_CODE||f===CREDENTIAL_IDENTIFIER_CODE||f===MEDIA_TRANSFER_CODE)));
         invariant(allowed.length === d.fields.length, 'EXPORT_FIELD_SUBJECT_MISMATCH', '导出许可字段与对象类型不匹配', 422);
         const subject = await this.subject(tx, actor, d.subjectKind, d.subjectId);
         invariant(subject.source.id === d.sourceId, 'EXPORT_SOURCE_MISMATCH', '导出许可的来源与对象不一致', 422);
@@ -161,11 +162,11 @@ export class Exports {
         invariant(peopleIds.length + workIds.length + projectIds.length > 0, 'EXPORT_EMPTY', '至少选择一条记录', 400);
         const personFields = fieldsFor('PERSON', d.fields), workFields = fieldsFor('WORK', d.fields), projectFields = fieldsFor('PROJECT', d.fields);
         const transferFields = d.fields.filter(isTransferCode);
-        const sourceFields = fieldsFor('SOURCE', d.fields), mediaFields = fieldsFor('ASSET', d.fields);
+        const sourceFields = fieldsFor('SOURCE', d.fields);
         invariant((peopleIds.length > 0) === (personFields.length > 0), 'EXPORT_FIELDS_REQUIRED', '人才选择与人才字段必须同时存在', 422);
         invariant((workIds.length > 0) === (workFields.length > 0), 'EXPORT_FIELDS_REQUIRED', '作品选择与作品字段必须同时存在', 422);
         invariant((projectIds.length > 0) === (projectFields.length > 0), 'EXPORT_FIELDS_REQUIRED', '项目选择与项目字段必须同时存在', 422);
-        invariant(mediaFields.length === 0 || workIds.length > 0, 'EXPORT_MEDIA_REQUIRES_WORK', '媒体身份清单只能随已选作品导出', 422);
+        invariant(!d.fields.includes('media.identity') || workIds.length > 0, 'EXPORT_MEDIA_REQUIRES_WORK', '媒体身份清单只能随已选作品导出', 422);
 
         const permissions: UsePermission[] = [];
         for (const id of d.usePermissionRefs) permissions.push(await this.permissionFor(tx, actor, id));
@@ -178,7 +179,8 @@ export class Exports {
         const withEvidence=d.fields.includes(EVIDENCE_TRANSFER_CODE),withIdentifiers=d.fields.includes(CREDENTIAL_IDENTIFIER_CODE);
         invariant(!withIdentifiers||transferFields.includes('person.td2.personCredentials'),'TD2_TRANSFER_CREDENTIAL_REQUIRED','编号迁移必须同时选择资质记录',422);
         invariant(!withEvidence||transferFields.length>0,'TD2_TRANSFER_EVIDENCE_OWNER','字段证据必须同时选择专业资料',422);
-        const talent = transferFields.length ? await collectTalentTransfer(tx, actor, this.clock, peopleIds, transferFields, withEvidence, withIdentifiers) : null;
+        invariant(!d.fields.includes(MEDIA_TRANSFER_CODE)||transferFields.includes('person.td2.personCredentials'),'TD2_TRANSFER_CREDENTIAL_REQUIRED','证明原件必须随资质记录导出',422);
+        const talent = transferFields.length ? await collectTalentTransfer(tx, actor, this.clock, peopleIds, transferFields, withEvidence, withIdentifiers, d.fields.includes(MEDIA_TRANSFER_CODE)) : null;
         const sourceTransferFields = new Map<string, Set<ExportFieldCode>>();
         if (talent) for (const table of TRANSFER_TABLES) for (const row of transferRows(talent,table)) {
             sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock));
@@ -246,16 +248,16 @@ export class Exports {
         }
 
         const media: unknown[] = [], mediaDependencies = new Set<string>();
-        if (mediaFields.length) {
+        if (d.fields.includes('media.identity')) {
             for (const work of works) {
                 const entries = (await tx.find('workAssets', { workspaceId: actor.workspaceId, workId: work.id })).sort((a, b) => a.position - b.position);
                 for (const entry of entries) {
                     const asset = await readyAsset(tx, actor, entry.assetId, this.clock);
                     const source = await sourceFor(tx, actor, asset.sourceId, this.clock);
                     sources.set(source.id, source);
-                    const permission = this.choosePermission(permissions, used, 'ASSET', asset.id, asset.sourceId, mediaFields);
+                    const permission = this.choosePermission(permissions, used, 'ASSET', asset.id, asset.sourceId, ['media.identity']);
                     if (!mediaDependencies.has(asset.id)) {
-                        dependencies.push(this.dependency(actor.workspaceId, job.id, 'ASSET', asset.id, mediaFields, source, asset.revision, null, permission, initialExpiry));
+                        dependencies.push(this.dependency(actor.workspaceId, job.id, 'ASSET', asset.id, ['media.identity'], source, asset.revision, null, permission, initialExpiry));
                         mediaDependencies.add(asset.id);
                     }
                     media.push({ id: asset.id, workId: work.id, position: entry.position, isCover: entry.id === work.coverEntryId, sourceId: asset.sourceId,
@@ -264,6 +266,12 @@ export class Exports {
             }
         }
 
+        for(const asset of talent?.assets??[]) {
+            const source=await sourceFor(tx,actor,asset.sourceId,this.clock);sources.set(source.id,source);
+            const permission=this.choosePermission(permissions,used,'ASSET',asset.id,asset.sourceId,[MEDIA_TRANSFER_CODE]);
+            dependencies.push(this.dependency(actor.workspaceId,job.id,'ASSET',asset.id,[MEDIA_TRANSFER_CODE],source,asset.revision,null,permission,initialExpiry));
+            const fields=sourceTransferFields.get(source.id)??new Set<ExportFieldCode>();fields.add(MEDIA_TRANSFER_CODE);sourceTransferFields.set(source.id,fields);
+        }
         const manifestSources: unknown[] = [];
         if (sourceFields.length || sourceTransferFields.size) {
             for (const source of [...sources.values()].sort((a, b) => a.id.localeCompare(b.id))) {
@@ -330,7 +338,7 @@ export class Exports {
         if (row.schemaVersion === TALENT_EXPORT_VERSION) {
             const manifest = row.recordManifest as { people: Array<{id:string}>; talent: TalentTransfer };
             try {
-                const current = await collectTalentTransfer(tx, actor, this.clock, manifest.people.map(p => p.id), row.fields.filter(isTransferCode),row.fields.includes(EVIDENCE_TRANSFER_CODE),row.fields.includes(CREDENTIAL_IDENTIFIER_CODE));
+                const current = await collectTalentTransfer(tx, actor, this.clock, manifest.people.map(p => p.id), row.fields.filter(isTransferCode),row.fields.includes(EVIDENCE_TRANSFER_CODE),row.fields.includes(CREDENTIAL_IDENTIFIER_CODE),row.fields.includes(MEDIA_TRANSFER_CODE));
                 invariant(digest(current) === digest(manifest.talent), 'EXPORT_STALE', '专业资料已经变化，请重新生成导出', 409);
             } catch (error) { safeError(error); }
         }
@@ -371,6 +379,18 @@ export class Exports {
         await this.validateDependencies(tx, actor, row);
         await audit(tx, actor, actor.workspaceId, 'export.download', 'export', row.id, [], meta, this.clock);
         return { fileName: 'once-export-' + row.id + '.json', sha256: row.payloadDigest, payload: row.payload };
+    }
+
+    async mediaDownload(tx:Tx,actor:Actor,id:string,assetId:string,meta?:RequestMeta) {
+        const job=await this.exportFor(tx,actor,id);
+        invariant(job.state==='READY'&&job.payload&&job.fields.includes(MEDIA_TRANSFER_CODE),'EXPORT_NOT_READY','原件导出尚未可下载',409);
+        await this.validateDependencies(tx,actor,job);
+        const frozen=(job.recordManifest as {talent?:TalentTransfer}).talent?.assets?.find(a=>a.id===assetId);
+        invariant(frozen,'NOT_FOUND','没有可导出的证明原件',404);
+        const asset=await readyAsset(tx,actor,assetId,this.clock);
+        invariant(digest(transferAsset(asset))===digest(frozen),'EXPORT_STALE','证明原件已经变化',409);
+        if(meta) await audit(tx,actor,actor.workspaceId,'export.download','export',id,['media.originals'],meta,this.clock);
+        return asset;
     }
 
     async actorFor(tx: Tx, row: ExportJob): Promise<Actor> {

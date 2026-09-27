@@ -1,11 +1,13 @@
 # Talent Domain 2.0｜业务衔接实施状态
 
-日期：2026-09-27。开发分支 `feat/talent-domain-2`，PR #26，基于 PR #25。
+日期：2026-09-28。开发分支 `feat/talent-domain-2`，PR #26，基于 PR #25。
 规格以 PR #24 / `54166a6f0f6753863d17f083a533b2cad5a9b3c2` 的 R1 冻结版为准。
 
 ## 本轮接续
 
-当前在 `23e0017` 上补无附件资质及加密编号迁移，见 [TD2_CREDENTIAL_TRANSFER.md](TD2_CREDENTIAL_TRANSFER.md)。编号独立许可，目标密钥重新加密；带证明附件及已核验资质仍阻断，整体未完成。
+当前在 `4c9ce20` 上补 [资质证明原件迁移](TD2_PROOF_MEDIA_TRANSFER.md)：v7 显式媒体许可、原件/预览实际下载和隔离重建，保留已核验资质及附件。成人资格、集合、历史与清理/工作台等仍待完成。
+
+前批在 `23e0017` 上补无附件资质及加密编号迁移，见 [TD2_CREDENTIAL_TRANSFER.md](TD2_CREDENTIAL_TRANSFER.md)。编号独立许可，目标密钥重新加密；带证明附件及已核验资质仍阻断，整体未完成。
 
 前批在 `936d025` 上补字段来源证据导出与重建，见 [TD2_FIELD_EVIDENCE_TRANSFER.md](TD2_FIELD_EVIDENCE_TRANSFER.md)。十一类所选资料的同源/多源证据按独立许可进入 v5，原核验归属保留但不创建目标账号、不伪造目标核验。资质、媒体、合并历史等仍待完成。
 

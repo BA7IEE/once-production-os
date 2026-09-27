@@ -111,6 +111,8 @@ export const ROUTES: RouteDefinition[] = [
     { method: 'GET', path: '/exports', operation: 'export.list', mode: 'READ', permission: 'data.export' },
     { method: 'POST', path: '/exports', operation: 'export.create', mode: 'COMMAND', permission: 'data.export', schema: ES.create },
     { method: 'GET', path: '/exports/{id}', operation: 'export.get', mode: 'READ', permission: 'data.export' },
+    { method: 'GET', path: '/exports/{id}/media/{assetId}/original', operation: 'export.mediaOriginal', mode: 'BINARY', permission: 'data.export' },
+    { method: 'GET', path: '/exports/{id}/media/{assetId}/preview', operation: 'export.mediaPreview', mode: 'BINARY', permission: 'data.export' },
     { method: 'POST', path: '/exports/{id}/download', operation: 'export.download', mode: 'READ', permission: 'data.export', schema: ES.download },
     { method: 'GET', path: '/talent-search', operation: 'talent.search', mode: 'READ', permission: 'records.read' },
     { method: 'GET', path: '/shortlists', operation: 'shortlist.list', mode: 'READ', permission: 'records.read' },

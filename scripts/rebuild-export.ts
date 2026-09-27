@@ -1,3 +1,4 @@
+import {prepareRebuildMedia} from './rebuild-media.ts';
 import {loadCredentialRebuildKeys} from './rebuild-credential-keys.ts';
 /** Controlled FR-29/T29 JSON rebuild CLI.
  * This is migration tooling, not backup restore. It never drops, truncates or auto-migrates a database. */
@@ -86,11 +87,15 @@ const client = new PrismaClient({ datasources: { db: { url: targetUrl() } }, log
 const store = new PrismaStore(client);
 
 try {
-    const rebuild = new JsonRebuild({ now: () => new Date() },loadCredentialRebuildKeys(payload,process.env));
+    const clock={now:()=>new Date()},keys=loadCredentialRebuildKeys(payload,process.env);
+    const rebuild = new JsonRebuild(clock,keys);
     await client.$connect();
     const actor = await store.transaction(tx => rebuild.actorFromTarget(tx, input.actorLogin));
+    await store.transaction(tx=>rebuild.preview(tx,actor,payload));
+    const verifiedMedia=await prepareRebuildMedia(payload,actor.workspaceId,process.env,input.apply);
+    const prepared=new JsonRebuild(clock,keys,verifiedMedia);
     const summary = input.apply
-        ? await store.transaction(tx => rebuild.apply(tx, actor, payload, { requestId: randomUUID(), ip: 'CLI' }))
+        ? await store.transaction(tx => prepared.apply(tx, actor, payload, { requestId: randomUUID(), ip: 'CLI' }))
         : await store.transaction(tx => rebuild.preview(tx, actor, payload));
     console.log(JSON.stringify({ mode: input.apply ? 'APPLY' : 'CHECK', ...summary }, null, 2));
 }

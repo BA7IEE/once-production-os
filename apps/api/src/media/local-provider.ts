@@ -1,7 +1,7 @@
 import { constants } from 'node:fs';
 import { mkdir, realpath, lstat, open, chmod, rename, rm, readdir, readFile, writeFile } from 'node:fs/promises';
 import type { FileHandle } from 'node:fs/promises';
-import { join, resolve, isAbsolute } from 'node:path';
+import { join, resolve, isAbsolute, dirname } from 'node:path';
 import { Transform, Writable, type Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { createHash } from 'node:crypto';
@@ -68,6 +68,7 @@ export class LocalMediaProvider {
     staging(u: MediaUpload) { return join(this.group(u.id), 'ingest-' + uuid.parse(u.receiveToken) + '.bin'); }
     work(id: string, token: string) { return join(this.group(id), 'work-' + uuid.parse(token)); }
     private async checkedFile(path: string) {
+        invariant(await realpath(dirname(path)) === dirname(path), 'MEDIA_FILE_INVALID', '媒体对象目录不能经过符号链接', 503);
         const file = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW);
         try {
             const st = await file.stat();
@@ -145,19 +146,18 @@ export class LocalMediaProvider {
         invariant(mime === u.mime, 'MEDIA_TYPE_INVALID', '文件真实类型与声明不符或不支持', 422);
         return { path, preview: join(dir, 'preview.jpg') };
     }
-    async verifyAsset(a: MediaAsset): Promise<void> {
-        const originalPath = join(this.work(a.uploadId, a.objectToken), 'original.bin');
-        const original = await this.checkedFile(originalPath);
+    async readOriginal(a:MediaAsset):Promise<Buffer> {
+        invariant(a.bytes>0&&a.bytes<=L.imageBytes,'MEDIA_FILE_INVALID','原件长度超过限制',503);
+        const {file,st}=await this.checkedFile(join(this.work(a.uploadId,a.objectToken),'original.bin'));
         try {
-            invariant(original.st.size === a.bytes && (original.st.mode & 0o222) === 0,
-                'MEDIA_FILE_INVALID', '原始文件长度或只读权限与数据库约定不一致', 503);
-            const body = await original.file.readFile();
-            invariant(body.length === a.bytes && createHash('sha256').update(body).digest('hex') === a.sha256,
-                'MEDIA_FILE_INVALID', '原始文件摘要与数据库不一致', 503);
-        }
-        finally {
-            await original.file.close();
-        }
+            invariant(st.size===a.bytes&&(st.mode&0o222)===0,'MEDIA_FILE_INVALID','原件长度或权限不符合约定',503);
+            const bytes=await file.readFile();
+            invariant(bytes.length===a.bytes&&createHash('sha256').update(bytes).digest('hex')===a.sha256,'MEDIA_FILE_INVALID','原件摘要不符合约定',503);
+            return bytes;
+        } finally {await file.close();}
+    }
+    async verifyAsset(a: MediaAsset): Promise<void> {
+        await this.readOriginal(a);
         await this.readPreview(a);
     }
     async readPreview(a: MediaAsset): Promise<Buffer> {

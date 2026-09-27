@@ -459,17 +459,18 @@ try {
  const transferAgent=(await cmd(owner,'POST','/td2/people',{schemaVersion:tdSchema,originSourceId:transferSource,sourceRevision:1,displayName:'合成代表联系人'},201)).resourceId;
  const transferredRepresentations=[];
  for(const subject of [{agentPersonId:transferAgent,relationCode:'AGENT'},{agencyOrganizationId:transferOrganization,relationCode:'AGENCY'}]) transferredRepresentations.push((await cmd(owner,'POST',`/td2/people/${tdCanonical}/representations`,{schemaVersion:tdSchema,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceId:tdSource,sourceRevision:1,values:{...subject,personRoleId:tdRole}},201)).resourceId);
- const transferCredential=(await cmd(owner,'POST',`/td2/people/${tdCanonical}/credentials`,{schemaVersion:tdSchema,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceId:tdSource,sourceRevision:1,values:{credentialTypeCode:'TRANSLATION_CERTIFICATE',issuerOrganizationId:transferOrganization,issuedOn:'2020-01-01',expiresOn:'2030-01-01'}},201)).resourceId;
+ const transferCredential=(await cmd(owner,'POST',`/td2/people/${tdCanonical}/credentials`,{schemaVersion:tdSchema,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceId:tdSource,sourceRevision:1,values:{credentialTypeCode:'TRANSLATION_CERTIFICATE',evidenceAssetId:tdUpload.resourceId,issuerOrganizationId:transferOrganization,issuedOn:'2020-01-01',expiresOn:'2030-01-01'}},201)).resourceId;
  await cmd(owner,'POST',`/td2/credentials/${transferCredential}/identifier`,{schemaVersion:tdSchema,expectedRevision:1,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,identifier:'SYNTHETIC-BROWSER-1234'},200);
+ await cmd(owner,'POST',`/td2/credentials/${transferCredential}/verify`,{schemaVersion:tdSchema,expectedRevision:2,expectedPersonRevision:(await prisma.person.findUniqueOrThrow({where:{id:tdCanonical}})).revision,sourceRevision:1},200);
  const transferCredentialBefore=await prisma.personCredential.findUniqueOrThrow({where:{id:transferCredential}});
  const transferEvidenceSource=(await cmd(owner,'POST','/sources',source('TD2字段证据独立来源'),201)).resourceId;
  await cmd(owner,'POST','/td2/evidence',{schemaVersion:tdSchema,ownerKind:'personLanguages',ownerId:transferLanguage,fieldPath:'speakingLevelCode',expectedRevision:1,sourceId:transferEvidenceSource,sourceRevision:1},200);
  const transferEvidenceBefore=await prisma.fieldEvidence.findFirstOrThrow({where:{personLanguageId:transferLanguage,sourceId:transferEvidenceSource}});
  await owner.getByRole('button',{name:/内部导出/}).click();
- const transferLabels=['2.0 人才主档案（内部简介与状态）','2.0 职业及有效期','2.0 语言、熟练度及有效期','2.0 能力、等级及所用字典','2.0 外部标识、核验状态及关联机构','2.0 代表关系、有效期及关联机构','2.0 所选专业字段的来源证据与原核验记录','2.0 资质记录（暂不含证明附件）','2.0 资质加密编号（单独批准）'];
+ const transferLabels=['2.0 人才主档案（内部简介与状态）','2.0 职业及有效期','2.0 语言、熟练度及有效期','2.0 能力、等级及所用字典','2.0 外部标识、核验状态及关联机构','2.0 代表关系、有效期及关联机构','2.0 所选专业字段的来源证据与原核验记录','2.0 资质记录与核验状态','2.0 资质加密编号（单独批准）'];
  const sourceLabels=['来源标题','来源类型','提供方说明','内部依据类型','依据说明','有效起点','有效截止','来源状态'];
  const transferPermits=[];
- for(const [kind,id,labels] of [['PERSON',tdCanonical,['姓名 / 展示名','档案状态',...transferLabels]],['SOURCE',tdSource,[...sourceLabels,...transferLabels]],['SOURCE',transferSource,[...sourceLabels,transferLabels[2],transferLabels[4],transferLabels[5],transferLabels[6],transferLabels[7]]],['PERSON',transferAgent,['姓名 / 展示名','档案状态',...transferLabels]],['SOURCE',transferEvidenceSource,[...sourceLabels,transferLabels[2],transferLabels[6]]]]){
+ for(const [kind,id,labels] of [['PERSON',tdCanonical,['姓名 / 展示名','档案状态',...transferLabels]],['SOURCE',tdSource,[...sourceLabels,...transferLabels,'资质证明原件及预览（单独批准）']],['SOURCE',transferSource,[...sourceLabels,transferLabels[2],transferLabels[4],transferLabels[5],transferLabels[6],transferLabels[7]]],['PERSON',transferAgent,['姓名 / 展示名','档案状态',...transferLabels]],['SOURCE',transferEvidenceSource,[...sourceLabels,transferLabels[2],transferLabels[6]]],['ASSET',tdUpload.resourceId,['资质证明原件及预览（单独批准）']]]){
   await owner.getByRole('button',{name:'＋ 批准导出用途',exact:true}).click();
   f=await dialogReady(owner,'批准内部导出用途');
   await f.getByLabel('对象类型',{exact:true}).selectOption(kind);await f.getByLabel('批准对象',{exact:true}).selectOption(id);
@@ -485,9 +486,9 @@ try {
  const typedDownload=owner.waitForEvent('download');await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();
  const typedFile=await typedDownload,typedPayload=JSON.parse(readFileSync(await typedFile.path(),'utf8'));
  assert.equal(typedPayload.schemaVersion,'once-export-v2-talent');
- assert.equal(typedPayload.manifest.talent.schemaVersion,'once-talent-transfer-v6');
+ assert.equal(typedPayload.manifest.talent.schemaVersion,'once-talent-transfer-v7');
  const exportedCredential=typedPayload.manifest.talent.tables.personCredentials.find(r=>r.id===transferCredential);
- assert.ok(exportedCredential);assert.equal(exportedCredential.data.identifierCiphertext,transferCredentialBefore.identifierCiphertext);assert.equal(exportedCredential.data.maskedIdentifier,'***1234');assert.equal(exportedCredential.data.status,'UNVERIFIED');
+ assert.ok(exportedCredential);assert.equal(exportedCredential.data.identifierCiphertext,transferCredentialBefore.identifierCiphertext);assert.equal(exportedCredential.data.maskedIdentifier,'***1234');assert.equal(exportedCredential.data.status,'VERIFIED');
  assert.equal(typedPayload.manifest.talent.identifierContextWorkspaceId,transferCredentialBefore.workspaceId);
  assert.ok(!JSON.stringify(typedPayload).includes('SYNTHETIC-BROWSER-1234'));
  const originalEvidence=typedPayload.manifest.talent.evidence.find(e=>e.id===transferEvidenceBefore.id);
@@ -509,10 +510,19 @@ try {
  assert.equal(typedPayload.manifest.talent.tables.personLanguages.find(r=>r.id===transferLanguage).sourceId,transferSource);
  assert.ok(typedPayload.manifest.talent.tables.personRoles.some(r=>r.id===tdRole));
  assert.equal(typedPayload.manifest.talent.tables.personCredentials.length,1);
+ assert.equal(exportedCredential.data.status,'VERIFIED');assert.equal(exportedCredential.data.evidenceAssetId,tdUpload.resourceId);
+ for(const [part,label] of [['original','下载证明原件'],['preview','下载证明预览']]) {
+  const downloadedProof=owner.waitForEvent('download');await owner.getByRole('button',{name:label,exact:true}).click();const file=await downloadedProof;
+  assert.equal(file.suggestedFilename(),tdUpload.resourceId+(part==='original'?'.original.bin':'.preview.jpg'));
+  const bytes=readFileSync(await file.path()),asset=typedPayload.manifest.talent.assets[0];assert.equal(hash(bytes),part==='original'?asset.sha256:asset.previewHash);
+  if(part==='original')assert.deepEqual(bytes,tdBytes);
+ }
+
  await cmd(owner,'POST',`/use-permissions/${transferPermits[4]}/revoke`,{expectedRevision:1});
  const blockedTransfer=await writeUI(owner,'POST','/exports/'+typedExport+'/download',()=>owner.getByRole('button',{name:'下载 JSON',exact:true}).click(),409);
  assert.equal(blockedTransfer.error.code,'EXPORT_STALE');
- console.log('PASS TD2 transfer browser: explicit person, fact and evidence source grants -> v6 JSON preserves credential ciphertext without plaintext plus original field evidence and reviewer attribution -> evidence-only grant revocation blocks download');
+ assert.equal(await getStatus(owner,`/exports/${typedExport}/media/${tdUpload.resourceId}/original`),409);
+ console.log('PASS TD2 transfer browser: original and preview downloads match exact hashes, verified credential retains attachment; explicit person, fact and evidence source grants -> v7 JSON preserves credential ciphertext without plaintext plus original field evidence and reviewer attribution -> evidence-only grant revocation blocks download');
 
  assert.deepEqual(errors,[]);
 } catch(error) {

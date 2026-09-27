@@ -14421,6 +14421,7 @@
                         "source.validUntil",
                         "source.status",
                         "media.identity",
+                        "media.originals",
                         "person.td2.talentProfiles",
                         "person.td2.personRoles",
                         "person.td2.personCapabilities",
@@ -14438,7 +14439,7 @@
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 47
+                    "maxItems": 48
                   },
                   "validUntil": {
                     "type": "string",
@@ -14723,6 +14724,7 @@
                         "source.validUntil",
                         "source.status",
                         "media.identity",
+                        "media.originals",
                         "person.td2.talentProfiles",
                         "person.td2.personRoles",
                         "person.td2.personCapabilities",
@@ -14740,7 +14742,7 @@
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 47
+                    "maxItems": 48
                   },
                   "usePermissionRefs": {
                     "type": "array",
@@ -14806,6 +14808,94 @@
         },
         "x-permission": "data.export",
         "x-mode": "READ"
+      }
+    },
+    "/api/v1/exports/{id}/media/{assetId}/original": {
+      "get": {
+        "operationId": "export.mediaOriginal",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "person",
+                "source"
+              ]
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "data.export",
+        "x-mode": "BINARY"
+      }
+    },
+    "/api/v1/exports/{id}/media/{assetId}/preview": {
+      "get": {
+        "operationId": "export.mediaPreview",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "person",
+                "source"
+              ]
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "data.export",
+        "x-mode": "BINARY"
       }
     },
     "/api/v1/exports/{id}/download": {

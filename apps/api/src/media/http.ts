@@ -45,6 +45,21 @@ export function registerMediaHttp(server: Express, core: Application, provider: 
             clearTimeout(timer);
         }
     });
+    for(const part of ['original','preview'] as const) server.get('/api/v1/exports/:id/media/:assetId/'+part,async(req,res)=>{
+        headers(res);
+        try {
+            invariant(provider,'MEDIA_DISABLED','私有图片存储尚未启用',503);
+            invariant(!req.url.includes('?'),'QUERY_INVALID','下载地址不接受额外参数',400);
+            const id=uuid.parse(req.params.id),assetId=uuid.parse(req.params.assetId),r=request(req);
+            const asset=await core.authenticated(r,'data.export',(tx,actor)=>core.exports.mediaDownload(tx,actor,id,assetId));
+            const bytes=part==='original'?await provider.readOriginal(asset):await provider.readPreview(asset);
+            await core.authenticated(r,'data.export',async(tx,actor)=>{
+                const current=await core.exports.mediaDownload(tx,actor,id,assetId,{requestId:randomUUID(),ip:r.ip});
+                invariant(current.revision===asset.revision&&current.objectToken===asset.objectToken&&current.uploadId===asset.uploadId,'EXPORT_STALE','原件已经变化',409);
+            });
+            res.set({'Content-Type':'application/octet-stream','Content-Disposition':`attachment; filename="${assetId}.${part==='original'?'original.bin':'preview.jpg'}"`,'Content-Security-Policy':"default-src 'none'; sandbox"}).status(200).send(bytes);
+        } catch(e) {error(res,e);}
+    });
     server.get('/api/v1/assets/:id/preview', async (req, res) => {
         headers(res);
         try {

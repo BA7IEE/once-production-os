@@ -11,6 +11,10 @@ export async function validateTalentRebuild(tx: Tx, actor: Actor, clock: Clock, 
     const dictionary = await tx.find('dictionary', {workspaceId: actor.workspaceId, status: 'ACTIVE'});
     const catalog = (namespace: string, value: unknown) => invariant(dictionary.some(d => d.namespace === namespace && d.code === value), 'REBUILD_CATALOG_MISSING', '目标缺少专业资料使用的启用字典代码', 409);
     const overlap = (a: Record<string,unknown>, b: Record<string,unknown>) => (!a.validFrom || !b.validUntil || String(a.validFrom)<String(b.validUntil)) && (!b.validFrom || !a.validUntil || String(b.validFrom)<String(a.validUntil));
+    for(const a of bundle.assets??[]) {
+        invariant(sources.includes(a.sourceId),'REBUILD_SOURCE_MISSING','证明原件来源必须包含在清单',422);
+        invariant(Date.parse(a.createdAt)<=Date.parse(a.updatedAt)&&Date.parse(a.updatedAt)<=clock.now().getTime(),'TD2_TRANSFER_TIME_INVALID','证明原件时间不合法',422);
+    }
     for(const e of bundle.evidence??[]) {
         invariant(sources.includes(e.sourceId),'REBUILD_SOURCE_MISSING','字段证据来源必须包含在重建清单',422);
         invariant(Date.parse(e.createdAt)<=Date.parse(e.updatedAt)&&Date.parse(e.updatedAt)<=clock.now().getTime(),'TD2_TRANSFER_TIME_INVALID','字段证据时间不合法',422);

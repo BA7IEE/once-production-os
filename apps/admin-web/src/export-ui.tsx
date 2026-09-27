@@ -8,7 +8,7 @@ import type { ExportFieldCode, ExportSubjectKind } from '../../../packages/core/
 import { ErrorBox, Field, Modal, PageTitle, Pager, Submit, Tag, date, useAction, useLoad } from './ui.tsx';
 
 const professionalFields: Array<[ExportFieldCode,string]> = [
-    ['person.td2.personCredentials','2.0 资质记录（暂不含证明附件）'],
+    ['person.td2.personCredentials','2.0 资质记录与核验状态'],
     ['person.td2.credentialIdentifiers','2.0 资质加密编号（单独批准）'],
     ['person.td2.fieldEvidence','2.0 所选专业字段的来源证据与原核验记录'],
     ['person.td2.talentProfiles','2.0 人才主档案（内部简介与状态）'],
@@ -38,9 +38,9 @@ const fieldGroups: Record<ExportSubjectKind, Array<[ExportFieldCode, string]>> =
     ],
     SOURCE: [
         ['source.title', '来源标题'], ['source.type', '来源类型'], ['source.providerClaim', '提供方说明'], ['source.basisMode', '内部依据类型'],
-        ['source.basisDescription', '依据说明'], ['source.validFrom', '有效起点'], ['source.validUntil', '有效截止'], ['source.status', '来源状态'], ...professionalFields
+        ['source.basisDescription', '依据说明'], ['source.validFrom', '有效起点'], ['source.validUntil', '有效截止'], ['source.status', '来源状态'], ...professionalFields, ['media.originals','资质证明原件及预览（单独批准）']
     ],
-    ASSET: [['media.identity', '媒体身份清单（文件名 / 类型 / Hash / 尺寸，不含原件地址）']]
+    ASSET: [['media.originals','资质证明原件及预览（单独批准）'], ['media.identity', '媒体身份清单（文件名 / 类型 / Hash / 尺寸，不含原件地址）']]
 };
 const kindNames: Record<ExportSubjectKind, string> = { PERSON: '人才', WORK: '作品', PROJECT: '项目', SOURCE: '来源', ASSET: '图片' };
 
@@ -134,8 +134,12 @@ function ExportDetailPanel({ id, onChanged }: { id: string; onChanged: () => voi
         return () => clearInterval(timer);
     }, [load.data?.effectiveState]);
 
+    const [proofs,setProofs]=useState<Array<{id:string;fileName:string}>>([]);
+    useEffect(()=>setProofs([]),[id]);
     async function download() {
         const result = await call<'export.download', ExportDownload>('export.download', {}, { id });
+        const payload=result.payload as {manifest?:{talent?:{assets?:Array<{id:string;fileName:string}>}}};
+        setProofs(payload.manifest?.talent?.assets??[]);
         const blob = new Blob([JSON.stringify(result.payload, null, 2) + '\n'], { type: 'application/json' });
         const href = URL.createObjectURL(blob);
         try {
@@ -144,6 +148,12 @@ function ExportDetailPanel({ id, onChanged }: { id: string; onChanged: () => voi
         }
         finally { URL.revokeObjectURL(href); }
         onChanged();
+    }
+    async function downloadProof(assetId:string,part:'original'|'preview') {
+        const response=await fetch(`/api/v1/exports/${encodeURIComponent(id)}/media/${encodeURIComponent(assetId)}/${part}`,{credentials:'same-origin',cache:'no-store',redirect:'error'});
+        if(!response.ok) {const error=await response.json() as {error?:{message?:string}};throw new Error(error.error?.message??'原件下载失败，请核对导出许可');}
+        const href=URL.createObjectURL(await response.blob());
+        try {const a=document.createElement('a');a.href=href;a.download=assetId+(part==='original'?'.original.bin':'.preview.jpg');a.click();}finally{URL.revokeObjectURL(href);}
     }
     return <section className="panel padded export-detail"><ErrorBox error={load.error ?? action.error}/>
         {load.busy && !load.data ? <p>正在核对导出依赖…</p> : load.data && <>
@@ -158,6 +168,7 @@ function ExportDetailPanel({ id, onChanged }: { id: string; onChanged: () => voi
             </dl>
             <p className="muted">普通内容修改不会重写旧快照；来源暂停、范围/保护版本变化、许可撤销/到期会整件阻断旧导出。</p>
             <div className="button-row"><button onClick={() => setTick(x => x + 1)}>刷新状态</button>{load.data.downloadable && <button className="primary" disabled={action.busy} onClick={() => void action.run(download)}>下载 JSON</button>}</div>
+            {load.data.downloadable&&proofs.length>0&&<div><p>请将下列原件与预览全部保存到同一私有目录，供重建时校验。只保存 JSON 不能恢复这些证明。</p>{proofs.map(p=><div className="button-row" key={p.id}><span>{p.fileName}</span><button disabled={action.busy} onClick={()=>void action.run(()=>downloadProof(p.id,'original'))}>下载证明原件</button><button disabled={action.busy} onClick={()=>void action.run(()=>downloadProof(p.id,'preview'))}>下载证明预览</button></div>)}</div>}
         </>}
     </section>;
 }
@@ -203,7 +214,7 @@ export function ExportPanel({ me }: { me: Me }) {
         <ErrorBox error={people.error ?? works.error ?? projects.error ?? sources.error ?? assets.error ?? permissions.error ?? exports.error ?? create.error ?? revoke.error}/>
         <div className="notice"><strong>三道安全门</strong><p>账号必须有 data.export；对象必须有当前有效的精确用途许可；部署侧 DATA_EGRESS_MODE 必须明确开放。生产默认关闭出口。</p></div>
 
-        <div className="notice"><strong>2.0 专业资料导出范围</strong><p>可选择主档案、职业、能力及所用字典、外部标识、代表关系及关联机构、语言、地点、外观、量尺历史和翻译资料；请同时选择必要关联；代表人须另行批准并一起选择导出。若需保留字段依据，请同时批准“所选专业字段的来源证据与原核验记录”，并批准每条证据来源及其对应专业资料；未选择时仍是旧版资料快照，不含字段证据。原核验仅保留历史归属，不等于新环境里的核验。包含每个来源的全部来源字段后，可用于隔离重建。无证明附件的资质可迁移；如有编号，必须另外批准加密编号并在隔离重建时提供原环境和目标环境密钥。带证明附件或已核验资质、成人资格、媒体集合和合并历史尚不支持；这份 JSON 不是完整备份。专业资料、所用能力定义或关联机构变化会使旧文件失效。</p></div>
+        <div className="notice"><strong>2.0 专业资料导出范围</strong><p>可选择主档案、职业、能力及所用字典、外部标识、代表关系及关联机构、语言、地点、外观、量尺历史和翻译资料；请同时选择必要关联；代表人须另行批准并一起选择导出。若需保留字段依据，请同时批准“所选专业字段的来源证据与原核验记录”，并批准每条证据来源及其对应专业资料；未选择时仍是旧版资料快照，不含字段证据。原核验仅保留历史归属，不等于新环境里的核验。包含每个来源的全部来源字段后，可用于隔离重建。无证明附件的资质可迁移；如有编号，必须另外批准加密编号并在隔离重建时提供原环境和目标环境密钥。带证明附件或已核验资质须同时批准图片及来源的“资质证明原件及预览”，下载 JSON 后再逐项保存原件和预览。成人资格、媒体集合和合并历史尚不支持；这份 JSON 不是完整备份。专业资料、所用能力定义或关联机构变化会使旧文件失效。</p></div>
         <section className="panel padded"><div className="panel-heading"><div><h2>可用导出许可</h2><p>先由资料核验人员批准对象、字段和截止时间。导出任务只能使用这里的现行许可。</p></div><button onClick={() => setRefresh(x => x + 1)}>刷新</button></div>
             <div className="table-wrap"><table><thead><tr>{canExport && <th>用于本次导出</th>}<th>对象</th><th>允许字段</th><th>截止</th><th>状态</th>{canApprove && <th>操作</th>}</tr></thead>
                 <tbody>{permissions.data?.items.map(p => <tr key={p.id}>{canExport && <td><input aria-label={'选择导出许可 ' + p.id} type="checkbox" disabled={p.status !== 'ACTIVE' || Date.parse(p.validUntil) <= Date.now()} checked={selectedPermissions.includes(p.id)} onChange={e => setSelectedPermissions(e.target.checked ? [...selectedPermissions, p.id] : selectedPermissions.filter(x => x !== p.id))}/></td>}<td><strong>{kindNames[p.subjectKind]} · {subjectLabel(p, resources)}</strong><small>{p.subjectId}</small></td><td>{p.fields.map(x => fieldGroups[p.subjectKind].find(([c]) => c === x)?.[1] ?? x).join(' / ')}</td><td>{date(p.validUntil)}</td><td>{p.status === 'ACTIVE' ? '有效' : '已撤销'}</td>{canApprove && <td>{p.status === 'ACTIVE' && <button className="danger-text" disabled={revoke.busy} onClick={() => {
