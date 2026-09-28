@@ -134,3 +134,7 @@ test('AI person deletion uses the normal impact, decision, freeze and cleanup wo
     await f.app.deletionFinalization.finish(final);
     assert.equal(request().state, 'COMPLETED');
 });
+
+test('AI may report no supported fields without guessing or treating confirmed usage as unknown',async()=>{
+ const f=await fixture(),t=await aiBusinessFixture(f),id=await t.create();assert.equal((await t.dispatch(id,[])).state,'SETTLED');const task=result(await f.owner.raw('GET','/ai-jobs/'+id));assert.equal(task.state,'SUCCEEDED');assert.equal(task.proposalState,'NONE');assert.equal(task.output.changes.length,0);assert.equal(task.settledUnits,10);assert.equal(f.store.rows('people')[0]!.revision,1);assert.equal(f.store.rows('aiBudgets')[0]!.reservedUnits,0);
+});

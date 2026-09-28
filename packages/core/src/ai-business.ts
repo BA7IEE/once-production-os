@@ -214,7 +214,7 @@ export class AiBusiness {
         for (const e of c.evidence) {
             const source = await sourceFor(tx, actor, e.sourceId, this.clock);
             invariant(source.textPayload?.slice(e.start, e.end) === e.quote, 'AI_QUOTE_INVALID', '建议原文定位不匹配', 422);
-        } await tx.replace('aiTasks', { ...touch(row, this.clock), output, proposalState: 'PENDING' }); }
+        } await tx.replace('aiTasks', { ...touch(row, this.clock), output, proposalState: output.changes.length ? 'PENDING' : 'NONE' }); }
     async apply(tx: Tx, actor: Actor, id: string, input: unknown) {
         const row = await this.access(tx, actor, id, true), d = S.apply.parse(input);
         cas(row, d.expectedRevision);
