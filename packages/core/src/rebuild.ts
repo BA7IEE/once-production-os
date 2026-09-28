@@ -1,3 +1,5 @@
+import {mediaByteLimit} from './media-model.ts';
+import {validateParties,applyParties} from './project-parties.ts';
 import {LOCALE_EXPORT_VERSION} from './locale-transfer.ts';
 import {validateLocaleRebuild,applyLocaleRebuild} from './locale-transfer-rebuild.ts';
 import {validateRetainedOrigins} from './retained-origin-transfer.ts';
@@ -108,6 +110,7 @@ export class JsonRebuild {
         const personIds = new Set(people.map(x => x.id));
         const workIds = new Set(works.map(x => x.id));
         const projectIds = new Set(projects.map(x => x.id));
+        if(payload.manifest.parties)validateParties(payload.manifest.parties,projectIds,new Set(sources.map(s=>s.id)),this.clock);
         for (const row of sources) {
             invariant(Date.parse(row.data.validFrom) <= now && now < Date.parse(row.data.validUntil),
                 'REBUILD_SOURCE_NOT_CURRENT', '重建只接受当前仍有效的 INTERNAL_USE 来源快照', 409);
@@ -116,6 +119,7 @@ export class JsonRebuild {
             invariant(sourceIds.has(row.sourceId)||(people.includes(row as typeof people[number])&&payload.manifest.talent?.schemaVersion==='once-talent-transfer-v14'&&payload.manifest.talent.retainedOrigins?.some(o=>o.id===row.sourceId)), 'REBUILD_SOURCE_MISSING', '业务对象引用的来源没有包含在重建清单中', 422);
         const assetIdentity = new Map<string,string>();
         for (const row of media) {
+            invariant(row.bytes<=mediaByteLimit(row.mime),'MEDIA_SIZE_INVALID','媒体超过对应类型上限',422);
             invariant(workIds.has(row.workId) && sourceIds.has(row.sourceId), 'REBUILD_MEDIA_REFERENCE_INVALID',
                 '媒体身份必须引用本次导出的作品和来源', 422);
             const identityDigest = digest({ sourceId: row.sourceId, revision: row.revision, fileName: row.fileName,
@@ -128,7 +132,7 @@ export class JsonRebuild {
 
         for(const e of payload.manifest.talent?.evidence??[]) invariant(e.sourceRevision<=(sources.find(s=>s.id===e.sourceId)?.revision??0),'TD2_TRANSFER_EVIDENCE_SOURCE_REVISION','字段证据引用了不存在的来源版本',422);
         const referencedSources = new Set([
-            ...(payload.manifest.locales?.texts.flatMap(t=>[...t.dependencies,...t.importedBasis?.dependencies??[]].map(d=>d.sourceId))??[]), ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent?.assets??[]).map(a=>a.sourceId), ...(payload.manifest.talent?.evidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.identityEvidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.mergeHistory?[...payload.manifest.talent.mergeHistory.people,...payload.manifest.talent.mergeHistory.talentProfiles,...payload.manifest.talent.mergeHistory.castingProfiles,...payload.manifest.talent.mergeHistory.evidence,...payload.manifest.talent.mergeHistory.erasures??[]].map(r=>r.sourceId):[]), ...(payload.manifest.talent?.organizations??[]).map(o=>o.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>transferRows(payload.manifest.talent!,t).map(r=>r.sourceId)) : [])
+            ...(payload.manifest.locales?.texts.flatMap(t=>[...t.dependencies,...t.importedBasis?.dependencies??[]].map(d=>d.sourceId))??[]), ...(payload.manifest.parties?[...payload.manifest.parties.brands,...payload.manifest.parties.organizations].map(r=>r.sourceId):[]), ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent?.assets??[]).map(a=>a.sourceId), ...(payload.manifest.talent?.evidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.identityEvidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.mergeHistory?[...payload.manifest.talent.mergeHistory.people,...payload.manifest.talent.mergeHistory.talentProfiles,...payload.manifest.talent.mergeHistory.castingProfiles,...payload.manifest.talent.mergeHistory.evidence,...payload.manifest.talent.mergeHistory.erasures??[]].map(r=>r.sourceId):[]), ...(payload.manifest.talent?.organizations??[]).map(o=>o.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>transferRows(payload.manifest.talent!,t).map(r=>r.sourceId)) : [])
         ]);
         invariant(sources.every(x => referencedSources.has(x.id)), 'REBUILD_UNUSED_SOURCE',
             '来源清单包含没有被本次业务图引用的记录', 422);
@@ -331,6 +335,7 @@ export class JsonRebuild {
         if (payload.manifest.talent?.mergeHistory) await applyHistoryPeople(tx,actor,target.scope.id,payload.manifest.talent.mergeHistory);
         if (payload.manifest.talent) await applyTalentRebuild(tx, actor, payload.manifest.talent, target.scope.id,this.credentialKeys);
         if (payload.manifest.talent) await applyTransferEvidence(tx,actor,payload.manifest.talent);
+        if(payload.manifest.parties)await applyParties(tx,actor,target.scope.id,payload.manifest.parties);
         if(payload.manifest.locales)await applyLocaleRebuild(tx,actor,this.clock,payload.manifest.locales);
         if (payload.manifest.talent?.identityEvidence) await applyIdentityEvidence(tx,actor,payload.manifest.talent.identityEvidence);
 

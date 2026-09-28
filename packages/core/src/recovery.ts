@@ -1,3 +1,4 @@
+import {inspectPartyIntegrity} from './project-parties.ts';
 import {connectionKey} from './ai-connection.ts';
 import {isolateAi} from './ai-maintenance.ts';
 import {inspectAiLedger} from './ai-ledger-integrity.ts';
@@ -122,7 +123,7 @@ export class RecoveryOps {
         invariant(/^[a-f0-9]{64}$/.test(input.migrationDigest), 'RECOVERY_CHECK_INVALID', '迁移摘要格式无效', 400);
         invariant(typeof input.migrationMatch === 'boolean', 'RECOVERY_CHECK_INVALID', '迁移匹配状态无效', 400);
         const media = input.media;
-        invariant(media && ['disabled','local'].includes(media.provider), 'RECOVERY_CHECK_INVALID', '媒体检查模式无效', 400);
+        invariant(media && ['disabled','local','cos'].includes(media.provider), 'RECOVERY_CHECK_INVALID', '媒体检查模式无效', 400);
         invariant(/^[a-f0-9]{64}$/.test(media.identityDigest) && /^[a-f0-9]{64}$/.test(media.backupIdentityDigest), 'RECOVERY_CHECK_INVALID', '媒体身份摘要格式无效', 400);
         const arrays = [media.expectedAssetIds, media.verifiedAssetIds, media.missingAssetIds, media.mismatchAssetIds];
         invariant(arrays.every(Array.isArray), 'RECOVERY_CHECK_INVALID', '媒体检查清单格式无效', 400);
@@ -200,6 +201,7 @@ export class RecoveryOps {
         const external = this.external(externalInput);
         const state = await this.safetyState(tx, actor);
         const locale = await inspectLocaleIntegrity(tx, actor.workspaceId);
+        const parties=await inspectPartyIntegrity(tx,actor.workspaceId);
         const ai = await inspectAiLedger(tx, actor.workspaceId);
         for(const row of await tx.find('aiConnections',{workspaceId:actor.workspaceId})){
             try{connectionKey(row,this.config as Config);}catch{ai.blockers.push('AI_CONNECTION_KEY_INVALID');}
@@ -257,7 +259,7 @@ export class RecoveryOps {
             workspaceId: actor.workspaceId,
             targetEpochDigest: run.targetEpochDigest,
             checkedAt: this.clock.now().toISOString(),
-            databaseStateDigest: digest({ legacy: state.databaseStateDigest, talent: talent.graphDigest, locale: locale.graphDigest, ai: ai.graphDigest }),
+            databaseStateDigest: digest({ legacy: state.databaseStateDigest, talent: talent.graphDigest, locale: locale.graphDigest, ai: ai.graphDigest,parties }),
             talent,
             migrationDigest: external.migrationDigest,
             migrationMatch: external.migrationMatch,
@@ -267,7 +269,7 @@ export class RecoveryOps {
             contactCount: state.contacts.length,
             contactDecryptFailures,
             media: external.media,
-            blockers: unique([...blockers, ...talent.blockers, ...locale.blockers, ...ai.blockers]).sort()
+            blockers: unique([...blockers, ...talent.blockers, ...locale.blockers, ...ai.blockers,...parties.blockers]).sort()
         };
         return { run, report };
     }

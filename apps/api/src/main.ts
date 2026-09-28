@@ -1,6 +1,6 @@
 import { registerMediaHttp } from './media/http.ts';
 import { SafetyJournalWriter } from './recovery/safety-journal.ts';
-import { LocalMediaProvider } from './media/local-provider.ts';
+import {configuredMediaProvider} from './media/cos-provider.ts';
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { All, Controller, Module, Req, Res } from '@nestjs/common';
@@ -68,7 +68,7 @@ async function main() {
             res.setHeader('Strict-Transport-Security', 'max-age=31536000');
         next();
     });
-    const mediaProvider = config.mediaEnabled ? await LocalMediaProvider.create(process.env.MEDIA_ROOT!) : null;
+    const mediaProvider = config.mediaEnabled ? await configuredMediaProvider() : null;
     registerMediaHttp(server, core, mediaProvider);
     app.use('/api/v1', express.raw({ type: 'application/json', limit: '1mb', inflate: false }));
     app.use('/api/v1', (error: unknown, _req: Request, res: Response, _next: NextFunction) => {

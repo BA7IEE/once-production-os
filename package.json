@@ -49,6 +49,7 @@
     "@nestjs/platform-express": "11.2.5",
     "@prisma/client": "6.19.3",
     "ai": "7.0.118",
+    "cos-nodejs-sdk-v5": "3.0.0",
     "express": "5.1.0",
     "react": "19.1.1",
     "react-dom": "19.1.1",

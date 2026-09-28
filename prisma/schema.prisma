@@ -9,6 +9,9 @@ datasource db {
 }
 
 model Workspace {
+  brands Brand[] @relation("BrandWorkspace")
+  projectParties ProjectParty[] @relation("PartyWorkspace")
+
   aiResponseMetadata AiResponseMetadata[]
   aiConnections AiConnection[]
  aiReconciliations AiReconciliation[]
@@ -207,6 +210,8 @@ model Activation {
 }
 
 model AccessScope {
+  brands Brand[] @relation("BrandScope")
+
   AiGrant_scopeId AiGrant[] @relation("AiGrant_scopeId")
   AiTask_targetScopeId AiTask[] @relation("AiTask_targetScopeId")
   AiDependency_scopeId AiDependency[] @relation("AiDependency_scopeId")
@@ -258,6 +263,8 @@ model ScopeMember {
 }
 
 model SourceRecord {
+  brands Brand[] @relation("BrandSource")
+
  aiReconciliations AiReconciliation[]
   AiGrant_sourceId AiGrant[] @relation("AiGrant_sourceId")
   AiDependency_sourceId AiDependency[] @relation("AiDependency_sourceId")
@@ -829,6 +836,8 @@ model WorkCredit {
 }
 
 model Project {
+  parties ProjectParty[] @relation("PartyProject")
+
   AiTask_projectId AiTask[] @relation("AiTask_projectId")
   LocaleDependency_project_locale LocaleDependency[] @relation("LocaleDependency_project_locale")
   LocaleText_project_locale LocaleText[] @relation("LocaleText_project_locale")
@@ -1540,6 +1549,9 @@ model AdultEligibility {
 }
 
 model TalentOrganization {
+  brands Brand[] @relation("BrandOrganization")
+  clientProjects ProjectParty[] @relation("PartyClient")
+
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -2240,4 +2252,41 @@ model AiResponseMetadata {
  run AiRun @relation(fields:[workspaceId,runId],references:[workspaceId,id],onDelete:Restrict)
  @@unique([workspaceId,runId])
  @@map("aiResponseMetadata")
+}
+
+model Brand {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ sourceId String @db.Uuid
+ scopeId String @db.Uuid
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ revision Int
+ name String
+ organizationId String? @db.Uuid
+ status String
+ workspace Workspace @relation("BrandWorkspace",fields:[workspaceId],references:[id],onDelete:NoAction,onUpdate:NoAction)
+ source SourceRecord @relation("BrandSource",fields:[workspaceId,sourceId],references:[workspaceId,id],onDelete:NoAction,onUpdate:NoAction)
+ scope AccessScope @relation("BrandScope",fields:[workspaceId,scopeId],references:[workspaceId,id],onDelete:NoAction,onUpdate:NoAction)
+ organization TalentOrganization? @relation("BrandOrganization",fields:[workspaceId,organizationId],references:[workspaceId,id],onDelete:NoAction,onUpdate:NoAction)
+ projects ProjectParty[] @relation("PartyBrand")
+ @@unique([workspaceId,id])
+ @@map("brands")
+}
+model ProjectParty {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ revision Int
+ projectId String @db.Uuid
+ clientOrganizationId String? @db.Uuid
+ brandId String? @db.Uuid
+ workspace Workspace @relation("PartyWorkspace",fields:[workspaceId],references:[id],onDelete:NoAction,onUpdate:NoAction)
+ project Project @relation("PartyProject",fields:[workspaceId,projectId],references:[workspaceId,id],onDelete:NoAction,onUpdate:NoAction)
+ client TalentOrganization? @relation("PartyClient",fields:[workspaceId,clientOrganizationId],references:[workspaceId,id],onDelete:NoAction,onUpdate:NoAction)
+ brand Brand? @relation("PartyBrand",fields:[workspaceId,brandId],references:[workspaceId,id],onDelete:NoAction,onUpdate:NoAction)
+ @@unique([workspaceId,projectId])
+ @@unique([workspaceId,id])
+ @@map("projectParties")
 }

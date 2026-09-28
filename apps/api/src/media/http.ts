@@ -26,7 +26,7 @@ export function registerMediaHttp(server: Express, core: Application, provider: 
         let claimed: Awaited<ReturnType<typeof core.media.beginReceive>> | null = null;
         const abort = new AbortController(), timer = setTimeout(() => abort.abort(), L.receiveMs);
         try {
-            invariant(provider, 'MEDIA_DISABLED', '私有图片存储尚未启用', 503);
+            invariant(provider, 'MEDIA_DISABLED', '私有媒体存储尚未启用', 503);
             invariant(req.headers['content-type'] === 'application/octet-stream' && !req.headers['content-encoding'], 'BINARY_REQUIRED', '请使用无压缩的二进制上传', 415);
             invariant(/^\d+$/.test(req.headers['content-length'] ?? ''), 'CONTENT_LENGTH_REQUIRED', '上传需要明确的Content-Length', 411);
             invariant(!req.headers['transfer-encoding'] && !req.url.includes('?'), 'BINARY_REQUEST_INVALID', '不支持该传输格式', 400);
@@ -48,7 +48,7 @@ export function registerMediaHttp(server: Express, core: Application, provider: 
     for(const part of ['original','preview'] as const) server.get('/api/v1/exports/:id/media/:assetId/'+part,async(req,res)=>{
         headers(res);
         try {
-            invariant(provider,'MEDIA_DISABLED','私有图片存储尚未启用',503);
+            invariant(provider,'MEDIA_DISABLED','私有媒体存储尚未启用',503);
             invariant(!req.url.includes('?'),'QUERY_INVALID','下载地址不接受额外参数',400);
             const id=uuid.parse(req.params.id),assetId=uuid.parse(req.params.assetId),r=request(req);
             const asset=await core.authenticated(r,'data.export',(tx,actor)=>core.exports.mediaDownload(tx,actor,id,assetId));
@@ -63,7 +63,7 @@ export function registerMediaHttp(server: Express, core: Application, provider: 
     server.get('/api/v1/assets/:id/preview', async (req, res) => {
         headers(res);
         try {
-            invariant(provider, 'MEDIA_DISABLED', '私有图片存储尚未启用', 503);
+            invariant(provider, 'MEDIA_DISABLED', '私有媒体存储尚未启用', 503);
             invariant(!req.url.includes('?'), 'QUERY_INVALID', '预览地址不接受额外参数', 400);
             const id = uuid.parse(req.params.id), r = request(req), meta = { requestId: randomUUID(), ip: r.ip };
             const a = await core.authenticated(r, 'assets.read', (tx, actor) => core.media.preview(tx, actor, id, meta));

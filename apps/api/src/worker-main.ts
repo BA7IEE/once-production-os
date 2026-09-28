@@ -1,7 +1,7 @@
 import {installedModelClient} from './ai/installed-client.ts';
 import {AiWorker} from './ai/worker.ts';
 import { SafetyJournalWriter } from './recovery/safety-journal.ts';
-import { LocalMediaProvider } from './media/local-provider.ts';
+import {configuredMediaProvider} from './media/cos-provider.ts';
 import { DeletionFinalizer } from './deletion/finalizer.ts';
 import { MediaWorker } from './media/worker.ts';
 import { digest } from '../../../packages/core/src/json.ts';
@@ -21,7 +21,7 @@ async function run() {
         ? await SafetyJournalWriter.open(process.env.SAFETY_JOURNAL_FILE)
         : null;
     const core = new Application(store, config, undefined, safetyJournal);
-    const mediaProvider = config.mediaEnabled ? await LocalMediaProvider.create(process.env.MEDIA_ROOT!) : null;
+    const mediaProvider = config.mediaEnabled ? await configuredMediaProvider() : null;
     const media = mediaProvider ? new MediaWorker(core, mediaProvider) : null;
     const deletionFinalizer = new DeletionFinalizer(core, mediaProvider, safetyJournal);
     // Model credentials are resolved server-side for the current workspace.

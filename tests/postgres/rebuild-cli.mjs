@@ -110,6 +110,9 @@ try {
     assert.equal(await targetClient.auditEvent.count(), 1);
 
     const value = payload();
+    const partyStamp={revision:1,createdAt:'2026-09-23T07:00:00.000Z',updatedAt:'2026-09-23T07:00:00.000Z'};
+    const orgId=randomUUID(),brandId=randomUUID();
+    value.manifest.parties={organizations:[{...partyStamp,id:orgId,sourceId:value.manifest.sources[0].id,name:'CLI 客户机构',kind:'OTHER',status:'ACTIVE'}],brands:[{...partyStamp,id:brandId,sourceId:value.manifest.sources[0].id,name:'CLI 品牌',organizationId:orgId,status:'ACTIVE'}],links:[{...partyStamp,id:randomUUID(),projectId:value.manifest.projects[0].id,clientOrganizationId:orgId,brandId}]};
     const expectedDigest = digest(value);
     const input = join(tmp, 't29-export.json');
     writeFileSync(input, JSON.stringify(value), { mode: 0o600 });
@@ -148,6 +151,8 @@ try {
         workCredits: 3, projectParticipants: 2, projectWorks: 3, mediaIdentities: 0
     });
     assert.equal(summary.workspaceId, ids.workspaceId);
+    assert.equal((await targetClient.brand.findUniqueOrThrow({where:{id:brandId}})).organizationId,orgId);
+    assert.equal((await targetClient.projectParty.findFirstOrThrow({where:{projectId:value.manifest.projects[0].id}})).brandId,brandId);
 
     assert.equal(await targetClient.sourceRecord.count(), 1);
     assert.equal(await targetClient.sourceHistory.count(), 1);

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-28T19:06:24.478Z",
+  "generatedAt": "2026-09-28T20:15:12.004Z",
   "node": "v22.22.3",
   "typescript": "5.8.3",
   "scope": "static-source-and-contract",
@@ -10,7 +10,7 @@
       "name": "typescript-syntax-transpile",
       "passed": true,
       "detail": {
-        "files": 153,
+        "files": 155,
         "diagnostics": [],
         "note": "Syntax emit only. Not dependency resolution, full typecheck, Nest/Vite build, or browser execution."
       }
@@ -32,7 +32,7 @@
       "name": "unique-route-operation-identities",
       "passed": true,
       "detail": {
-        "routes": 194
+        "routes": 198
       }
     },
     {

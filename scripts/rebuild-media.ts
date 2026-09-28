@@ -1,3 +1,4 @@
+import {CosMediaProvider} from '../apps/api/src/media/cos-provider.ts';
 import { constants } from 'node:fs';
 import { open, mkdir, realpath, lstat, readFile, writeFile, chmod, rename } from 'node:fs/promises';
 import { join, resolve, isAbsolute } from 'node:path';
@@ -69,6 +70,10 @@ export async function prepareRebuildMedia(input:unknown,workspaceId:string,env:N
             }
         }
         await provider.verifyAsset({...a,workspaceId,scopeId:workspaceId,uploadId:a.id,objectToken:a.id,state:'READY'});
+    }
+    if(env.MEDIA_PROVIDER==='cos'){
+        const cloud=await CosMediaProvider.connect({...env,MEDIA_ROOT:root});
+        for(const a of assets)await cloud.publishSealed(a.id,a.id,new AbortController().signal);
     }
     // Persist file names and the ownership marker before the database may commit.
     for(const path of [marker,...assets.map(a=>provider.work(a.id,a.id)),...assets.map(a=>provider.group(a.id)),join(root,'uploads'),root]) {

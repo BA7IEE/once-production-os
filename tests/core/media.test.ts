@@ -63,3 +63,10 @@ test('M1 accepted basic profile handoff does not grant its media or sources', as
     assert.equal((await recipient.client.raw('GET', '/assets/' + m.id)).status, 404);
     assert.equal((await recipient.client.cmd('POST', '/uploads', m.input)).status, 404);
 });
+
+test('PDF and selected MP4 have independent byte limits without widening image limits',async()=>{
+ for(const [mime,limit] of [['application/pdf',50000000],['video/mp4',200000000]] as const){
+  const f=await setup(),m=await make(f);assert.equal((await f.owner.cmd('POST','/uploads',{...m.input,mime,expectedBytes:limit})).status,201);
+  assert.equal((await f.owner.cmd('POST','/uploads',{...m.input,mime,expectedBytes:limit+1})).status,400);
+ }
+});

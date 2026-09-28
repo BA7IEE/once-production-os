@@ -6,6 +6,11 @@ import type { MediaUpload } from '../../../../packages/core/src/media-model.ts';
 import { MEDIA_LIMITS as L } from '../../../../packages/core/src/media-model.ts';
 import { LocalMediaProvider } from './local-provider.ts';
 import { AppError } from '../../../../packages/core/src/errors.ts';
+async function processRss(pid:number):Promise<number>{
+ const [status,children]=await Promise.all([readFile(`/proc/${pid}/status`,'utf8'),readFile(`/proc/${pid}/task/${pid}/children`,'utf8')]);
+ const descendants=await Promise.all(children.trim().split(/\s+/).filter(Boolean).map(id=>processRss(Number(id)).catch(()=>0)));
+ return Number(status.match(/^VmRSS:\s+(\d+)/m)?.[1]??0)+descendants.reduce((a,b)=>a+b,0);
+}
 async function decode(path: string, preview: string, mime: string, signal: AbortSignal): Promise<{
     width: number;
     height: number;
@@ -16,10 +21,10 @@ async function decode(path: string, preview: string, mime: string, signal: Abort
     const module = fileURLToPath(new URL('./decoder.js', import.meta.url));
     return new Promise((resolve, reject) => {
         const child = spawn(process.execPath, ['--max-old-space-size=128', module, path, preview, mime], {
-            env: { PATH: process.env.PATH ?? '/usr/bin:/bin', LANG: 'C.UTF-8', VIPS_CONCURRENCY: '1' }, stdio: ['ignore', 'pipe', 'ignore']
+            detached:process.platform!=='win32', env: { PATH: process.env.PATH ?? '/usr/bin:/bin', LANG: 'C.UTF-8', VIPS_CONCURRENCY: '1' }, stdio: ['ignore', 'pipe', 'ignore']
         });
         let output = '', ended = false;
-        const abort = () => child.kill('SIGKILL');
+        const abort = () => {try{if(process.platform!=='win32'&&child.pid)process.kill(-child.pid,'SIGKILL');else child.kill('SIGKILL');}catch{}};
         const timer = setTimeout(abort, L.parseMs);
         // RSS includes native allocations; V8's heap switch alone cannot bound libvips memory.
         let reading = false;
@@ -27,7 +32,7 @@ async function decode(path: string, preview: string, mime: string, signal: Abort
             if (reading || !child.pid || process.platform !== 'linux')
                 return;
             reading = true;
-            void readFile('/proc/' + child.pid + '/status', 'utf8').then(s => { const kb = Number(s.match(/^VmRSS:\s+(\d+)/m)?.[1] ?? 0); if (kb > 256 * 1024)
+            void processRss(child.pid).then(kb => { if (kb > 256 * 1024)
                 abort(); }).catch(() => { }).finally(() => { reading = false; });
         }, 100);
         const clean = () => { ended = true; clearTimeout(timer); clearInterval(memory); signal.removeEventListener('abort', abort); };
@@ -88,6 +93,8 @@ export class MediaWorker {
             const sealed = await this.provider.seal(claim, controller.signal);
             const result = await decode(sealed.path, sealed.preview, claim.mime, controller.signal);
             await chmod(sealed.preview, 0o400);
+            await this.core.media.heartbeat(claim);
+            await this.provider.publish(claim,controller.signal);
             await this.core.media.finish(claim, { ...result, mime: claim.mime, sha256: claim.expectedHash });
             // Do not delete READY objects if the completion response or housekeeping is uncertain.
             await this.provider.removeStaging(claim).catch(() => { });

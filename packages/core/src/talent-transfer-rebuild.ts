@@ -1,3 +1,4 @@
+import {mediaByteLimit} from './media-model.ts';
 import {rekeyCredential,type CredentialRebuildKeys} from './credential-transfer-crypto.ts';
 import { TALENT_OWNER_EMPTY } from './talent-v2-model.ts';
 import { TD2_FACTS } from './talent-v2-schema.ts';
@@ -13,6 +14,7 @@ export async function validateTalentRebuild(tx: Tx, actor: Actor, clock: Clock, 
     const overlap = (a: Record<string,unknown>, b: Record<string,unknown>) => (!a.validFrom || !b.validUntil || String(a.validFrom)<String(b.validUntil)) && (!b.validFrom || !a.validUntil || String(b.validFrom)<String(a.validUntil));
     for(const i of bundle.collectionItems??[]) invariant(Date.parse(i.createdAt)<=Date.parse(i.updatedAt)&&Date.parse(i.updatedAt)<=clock.now().getTime(),'TD2_TRANSFER_TIME_INVALID','集合项目时间不合法',422);
     for(const a of bundle.assets??[]) {
+        invariant(a.bytes<=mediaByteLimit(a.mime),'MEDIA_SIZE_INVALID','原件超过对应类型上限',422);
         invariant(sources.includes(a.sourceId),'REBUILD_SOURCE_MISSING','证明原件来源必须包含在清单',422);
         invariant(Date.parse(a.createdAt)<=Date.parse(a.updatedAt)&&Date.parse(a.updatedAt)<=clock.now().getTime(),'TD2_TRANSFER_TIME_INVALID','证明原件时间不合法',422);
     }

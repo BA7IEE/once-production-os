@@ -1,3 +1,4 @@
+import type {Brand,ProjectParty} from './project-parties.ts';
 import type {AiResponseMetadata} from './ai-dispatch.ts';
 import type {AiConnection} from './ai-connection.ts';
 import type {AiApproval,AiBudgetRelease,AiReconciliation} from './ai-operations.ts';
@@ -144,7 +145,7 @@ export interface CommandReceipt extends Base {
     operation: string;
     commandKey: string;
     requestDigest: string;
-    resourceKind: 'aiConnectionTest' | 'aiConnection' | 'aiApproval' | 'aiAttempt' | 'aiBudget' | 'aiTask' | 'aiGrant' | 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
+    resourceKind: 'brand' | 'aiConnectionTest' | 'aiConnection' | 'aiApproval' | 'aiAttempt' | 'aiBudget' | 'aiTask' | 'aiGrant' | 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
     resourceId: string;
     result: ReceiptResult;
 }
@@ -222,6 +223,7 @@ export interface RecordHandoff extends Base {
     closedById: string | null;
 }
 export interface TableMap extends TalentV2Tables {
+    brands:Brand;projectParties:ProjectParty;
     aiResponseMetadata: AiResponseMetadata;
     aiConnections: AiConnection;
     aiGrants: AiGrant;

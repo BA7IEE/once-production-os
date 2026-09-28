@@ -16,7 +16,7 @@ async function sourceEvidenceGraph(tx: Tx, actor: Actor, sourceId: string, clock
     const evidence = data.evidence.filter(r => r.sourceId === sourceId);
     const proposals = data.fieldProposals.filter(r => r.sourceId === sourceId);
     const sourceOwned = data.people.some(r => r.sourceId === sourceId)
-        || TALENT_V2_TABLES.some(t => t !== 'fieldProposals' && data[t].some(r => r.sourceId === sourceId));
+        || TALENT_V2_TABLES.some(t => t !== 'fieldProposals' && t !== 'organizations' && data[t].some(r => r.sourceId === sourceId));
     type Row = typeof data.people[number];
     const owners = new Map<string, {table: keyof typeof data; row: Row}>();
     let missingOwner = false;

@@ -1,3 +1,4 @@
+import {PartyTransferSchema} from './project-parties.ts';
 import {LOCALE_EXPORT_VERSION,LocaleTransferSchema} from './locale-transfer.ts';
 import { TALENT_EXPORT_VERSION, TransferSchema } from './talent-transfer.ts';
 import { v, uuid, revision, code, dateIso } from './validation.ts';
@@ -55,7 +56,7 @@ const media = v.object({
     sourceId: uuid,
     revision,
     fileName: v.string(255, 1),
-    mime: v.enum(['image/jpeg', 'image/png', 'image/webp']),
+    mime: v.enum(['image/jpeg', 'image/png', 'image/webp', 'application/pdf', 'video/mp4']),
     bytes: v.number(1),
     sha256,
     width: v.number(1),
@@ -77,6 +78,7 @@ const manifest = v.object({
     people: v.array(person, L.people),
     works: v.array(work, L.works),
     projects: v.array(project, L.projects),
+    parties:v.optional(PartyTransferSchema),
     sources: v.array(source, L.sources, 1),
     media: v.array(media, L.media),
     relations,

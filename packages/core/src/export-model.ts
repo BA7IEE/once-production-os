@@ -9,7 +9,7 @@ export const EXPORT_FIELD_CODES = [
     ...LOCALE_TRANSFER_CODES,
     'person.displayName', 'person.aliases', 'person.roles', 'person.cityCode', 'person.languageCodes', 'person.skillCodes', 'person.heightCm', 'person.intro', 'person.status',
     'work.title', 'work.description', 'work.industryCode', 'work.workTypeCodes', 'work.origin', 'work.originNote', 'work.status', 'work.relations',
-    'project.title', 'project.brief', 'project.locationNote', 'project.dateNote', 'project.reviewNote', 'project.status', 'project.relations',
+    'project.parties', 'project.title', 'project.brief', 'project.locationNote', 'project.dateNote', 'project.reviewNote', 'project.status', 'project.relations',
     'source.title', 'source.type', 'source.providerClaim', 'source.basisMode', 'source.basisDescription', 'source.validFrom', 'source.validUntil', 'source.status',
     MERGE_HISTORY_CODE, IDENTITY_EVIDENCE_CODE, 'media.identity', MEDIA_TRANSFER_CODE, ...TRANSFER_CODES, CREDENTIAL_IDENTIFIER_CODE, EVIDENCE_TRANSFER_CODE
 ] as const;

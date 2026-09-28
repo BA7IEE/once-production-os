@@ -4,7 +4,7 @@ import type { Base } from './model.ts';
 export type RecoveryState = 'PREPARED' | 'INSPECTED' | 'APPROVED';
 
 export interface RecoveryMediaCheck {
-    provider: 'disabled' | 'local';
+    provider: 'disabled' | 'local' | 'cos';
     identityDigest: string;
     backupIdentityDigest: string;
     expectedAssetIds: string[];

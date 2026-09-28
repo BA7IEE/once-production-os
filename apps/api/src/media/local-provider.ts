@@ -5,8 +5,8 @@ import { join, resolve, isAbsolute, dirname } from 'node:path';
 import { Transform, Writable, type Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { createHash } from 'node:crypto';
-import type { MediaAsset, MediaUpload, ImageMime } from '../../../../packages/core/src/media-model.ts';
-import { MEDIA_LIMITS as L } from '../../../../packages/core/src/media-model.ts';
+import type { MediaAsset, MediaUpload, MediaMime } from '../../../../packages/core/src/media-model.ts';
+import { MEDIA_LIMITS as L, mediaByteLimit } from '../../../../packages/core/src/media-model.ts';
 import { invariant } from '../../../../packages/core/src/errors.ts';
 import { uuid } from '../../../../packages/core/src/validation.ts';
 function sink(file: FileHandle): Writable {
@@ -23,7 +23,7 @@ function sink(file: FileHandle): Writable {
  * Only local/test installations may enable it until the deployment sandbox/storage review is done. */
 export class LocalMediaProvider {
     readonly root: string;
-    private constructor(root: string) { this.root = root; }
+    protected constructor(root: string) { this.root = root; }
     static async create(root: string) {
         invariant(isAbsolute(root) && resolve(root) !== '/', 'MEDIA_ROOT_INVALID', 'MEDIA_ROOT必须是独立的绝对目录', 503);
         await mkdir(root, { recursive: true, mode: 0o700 });
@@ -88,7 +88,7 @@ export class LocalMediaProvider {
         const hash = createHash('sha256');
         const meter = new Transform({ transform(chunk: Buffer, _encoding, done) {
                 bytes += chunk.length;
-                if (bytes > u.expectedBytes || bytes > L.imageBytes)
+                if (bytes > u.expectedBytes || bytes > mediaByteLimit(u.mime))
                     return done(new Error('size exceeded'));
                 hash.update(chunk);
                 done(null, chunk);
@@ -140,14 +140,14 @@ export class LocalMediaProvider {
         finally {
             await f.file.close();
         }
-        const mime: ImageMime | null = magic.subarray(0, 3).equals(Buffer.from([255, 216, 255])) ? 'image/jpeg' :
+        const mime: MediaMime | null = magic.toString('ascii',0,5)==='%PDF-' ? 'application/pdf' : magic.toString('ascii',4,8)==='ftyp' ? 'video/mp4' : magic.subarray(0, 3).equals(Buffer.from([255, 216, 255])) ? 'image/jpeg' :
             magic.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) ? 'image/png' :
                 magic.toString('ascii', 0, 4) === 'RIFF' && magic.toString('ascii', 8, 12) === 'WEBP' ? 'image/webp' : null;
         invariant(mime === u.mime, 'MEDIA_TYPE_INVALID', '文件真实类型与声明不符或不支持', 422);
         return { path, preview: join(dir, 'preview.jpg') };
     }
     async readOriginal(a:MediaAsset):Promise<Buffer> {
-        invariant(a.bytes>0&&a.bytes<=L.imageBytes,'MEDIA_FILE_INVALID','原件长度超过限制',503);
+        invariant(a.bytes>0&&a.bytes<=mediaByteLimit(a.mime),'MEDIA_FILE_INVALID','原件长度超过限制',503);
         const {file,st}=await this.checkedFile(join(this.work(a.uploadId,a.objectToken),'original.bin'));
         try {
             invariant(st.size===a.bytes&&(st.mode&0o222)===0,'MEDIA_FILE_INVALID','原件长度或权限不符合约定',503);
@@ -185,5 +185,6 @@ export class LocalMediaProvider {
         await rm(trash, { recursive: true, force: true });
         // A delayed writer cannot recreate a group: only the one-shot OPEN -> RECEIVING does mkdir.
     }
+    async publish(_u:MediaUpload,_signal:AbortSignal):Promise<void> {}
     async removeStaging(u: MediaUpload) { await rm(this.staging(u), { force: true }); }
 }

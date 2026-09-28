@@ -1,3 +1,4 @@
+import {brandFor} from './project-parties.ts';
 import {aiOperator} from './ai-operations.ts';
 import {AiBusiness} from './ai-business.ts';
 import {LocaleTexts} from './locale.ts';
@@ -19,6 +20,7 @@ import { personFor, sourceFor, sourceCurrent, requireScope, requirePermission } 
 export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandReceipt, clock: Clock, config?: Config): Promise<void> {
     const id = receipt.resourceId;
     switch (receipt.resourceKind) {
+        case 'brand': await brandFor(tx,actor,id,clock);return;
         case 'aiConnectionTest': case 'aiConnection': case 'aiApproval': case 'aiAttempt': case 'aiBudget': {
             aiOperator(actor);const table=receipt.resourceKind==='aiConnectionTest'?'aiRuns':receipt.resourceKind==='aiConnection'?'aiConnections':receipt.resourceKind==='aiApproval'?'aiApprovals':receipt.resourceKind==='aiAttempt'?'aiAttempts':'aiBudgets';
             if(!await workspaceRow(tx,table,id,actor.workspaceId))missing();return;

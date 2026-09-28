@@ -41,9 +41,10 @@ const fieldGroups: Record<ExportSubjectKind, Array<[ExportFieldCode, string]>> =
     PROJECT: [
         ['project.localeTexts','项目内部中英文文本、依据与原复核记录'],
         ['project.title', '项目标题'], ['project.brief', '项目说明'], ['project.locationNote', '地点说明'], ['project.dateNote', '日期说明'],
-        ['project.reviewNote', '内部复盘'], ['project.status', '项目状态'], ['project.relations', '与已选人才/作品的关系']
+        ['project.parties','客户机构、品牌及所属机构'], ['project.reviewNote', '内部复盘'], ['project.status', '项目状态'], ['project.relations', '与已选人才/作品的关系']
     ],
     SOURCE: [
+        ['project.parties','客户机构、品牌及所属机构'],
         ['person.localeTexts','人物内部中英文文本、依据与原复核记录'],['work.localeTexts','作品内部中英文文本、依据与原复核记录'],['project.localeTexts','项目内部中英文文本、依据与原复核记录'],
         ['source.title', '来源标题'], ['source.type', '来源类型'], ['source.providerClaim', '提供方说明'], ['source.basisMode', '内部依据类型'],
         ['source.basisDescription', '依据说明'], ['source.validFrom', '有效起点'], ['source.validUntil', '有效截止'], ['source.status', '来源状态'], ['person.identityEvidence','身份字段的来源证据与原核验记录'], ['person.displayName','姓名 / 展示名'], ['person.aliases','别名'], ['person.intro','简介'], ...professionalFields, ['media.originals','图片原件及预览（单独批准）']

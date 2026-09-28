@@ -1,3 +1,4 @@
+import {verifyParties,exportParties,erasePartySource} from '../support/project-parties.ts';
 import {verifyAiProcessCrash} from '../support/ai-process-crash.ts';
 import {verifyAiConnections} from '../support/ai-connections.ts';
 import {verifyAiOperations} from '../support/ai-operations.ts';
@@ -125,6 +126,12 @@ test('TD2-T01 through T15 and T18: actual PostgreSQL domain contracts and privat
   await t.test('Legacy structured search has current typed reviews, same-work/occupation matching and complete facets',async()=>{await verifyStructuredCompatibility(owner);});
   await t.test('Manual height dismissal and credential identifier clearing preserve history and roll back with audit failure',async()=>{await verifyManualMaintenance(f,503,{credentialId:g.credentialId,personId:g.personId});await proof.provider.verifyAsset((await store.transaction(tx=>tx.get('assets',proof.assetId)))!);});
   await t.test('Revoked credential history survives source cleanup only after explicit secret clearance',async()=>{await verifyClearedCredentialRetention(f,proof.assetId);await proof.provider.verifyAsset((await store.transaction(tx=>tx.get('assets',proof.assetId)))!);});
+  await t.test('Brands and project parties: actual audit rollback, permissions, export and source cleanup',async()=>{
+   const parties=await verifyParties(f);await exportParties(f);await erasePartySource(f);await erasePartySource(f,'organization');
+   const link=await client.projectParty.findFirstOrThrow({where:{projectId:parties.projectId}});
+   await assert.rejects(client.projectParty.create({data:{...link,id:randomUUID()}}));
+   await assert.rejects(client.projectParty.update({where:{id:link.id},data:{brandId:randomUUID()}}));
+  });
   await t.test('AI PostgreSQL proposal adoption and immutable task inputs',async()=>{
    const ai=await verifyAiBusiness(f),task=await client.aiTask.findFirstOrThrow({where:{actorId:ai.member.id}});
    await assert.rejects(client.aiTask.update({where:{id:task.id},data:{proposalState:'PENDING'}}));

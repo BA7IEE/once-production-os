@@ -60,6 +60,7 @@ export interface Participant extends Credit {
     state: 'NOMINATED' | 'CONFIRMED' | 'ACTUAL' | null;
 }
 export interface ProjectDetail extends ProjectSummary {
+    parties:{client:{id:string;name:string}|null;brand:{id:string;name:string}|null;hasUnavailable:boolean};
     sourceId: string;
     scopeId: string;
     maintainerId: string;

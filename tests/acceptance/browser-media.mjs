@@ -105,6 +105,17 @@ try {
  const dto=await json(editor,'/assets/'+upload.id);for(const key of['objectToken','sha256','previewHash','originalUrl','storageKey'])assert.equal(Object.hasOwn(dto,key),false);
  assert.equal(await getStatus(editor,'/assets/'+upload.id+'/original'),404);
  console.log('PASS M1 browser: upload/unknown-complete replay/worker/decoded preview; metadata stripped and private scope enforced');
+ // PDF is stored without parsing; the real page must not suggest a rendered preview.
+ await editor.getByRole('button',{name:'上传另一份',exact:true}).click();
+ const pdf=Buffer.from('%PDF-1.7\nOpaque external Agent attachment');
+ await editor.locator('input[type=file]').setInputFiles({name:'external-agent.pdf',mimeType:'application/pdf',buffer:pdf});
+ await editor.getByRole('button',{name:'上传并检查',exact:true}).click();
+ await editor.getByText('PDF附件 · 未解析，内容处理交给外部Agent',{exact:true}).waitFor();
+ const pdfAsset=await prisma.mediaAsset.findFirstOrThrow({where:{mime:'application/pdf'}});
+ assert.equal(pdfAsset.bytes,pdf.length);assert.equal(await getStatus(owner,'/assets/'+pdfAsset.id+'/preview'),404);
+ assert.equal(await editor.locator('[data-asset-id="'+pdfAsset.id+'"] img').count(),0);
+ console.log('PASS PDF attachment: actual upload/worker/DB and explicit unparsed page, no administrator scope bypass');
+
  // Queue malformed and cancelled files using real bounded binary API, not response mocks.
  const bad=Buffer.from('<html>not a png</html>'),b=await prepare(editor,person,bad,'invalid.png');assert.equal((await binary(editor,b.resourceId,bad)).status(),200);await queue(editor,b.resourceId);
  await until(async()=>(await prisma.mediaUpload.findUniqueOrThrow({where:{id:b.resourceId}})).state==='FAILED');assert.equal(await prisma.mediaAsset.count({where:{id:b.resourceId}}),0);assert.equal(await getStatus(editor,'/assets/'+b.resourceId+'/preview'),404);

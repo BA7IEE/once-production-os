@@ -134,6 +134,19 @@ try {
  await d.getByRole('button',{name:'编辑项目',exact:true}).click();f=await dialogReady(owner,'编辑项目');await f.getByLabel('内部复盘',{exact:true}).fill('合成复盘：第一次合作注意素材统一命名');await writeUI(owner,'PATCH',ppath,()=>f.getByRole('button',{name:'保存项目',exact:true}).click());await owner.getByRole('heading',{name:'项目人员',exact:true}).waitFor();d=await dialogReady(owner,'WP1家具拍摄项目');await writeUI(owner,'PATCH',ppath,()=>d.getByRole('button',{name:'标记项目完成',exact:true}).click());await until(async()=>(await prisma.project.findUniqueOrThrow({where:{id:projectId}})).status==='COMPLETED');
  await d.getByRole('button',{name:'关闭',exact:true}).last().click();
 
+ // Actual form: independent client organization, brand registration and project binding.
+ const partyOrg=(await cmd(owner,'POST','/td2/organizations',{schemaVersion:'once-talent-v2.0.0',sourceId:ps,sourceRevision:(await prisma.sourceRecord.findUniqueOrThrow({where:{id:ps}})).revision,name:'WP1客户机构',kind:'OTHER'},201)).resourceId;
+ await owner.getByRole('button',{name:/WP1家具拍摄项目/}).click();d=await dialogReady(owner,'WP1家具拍摄项目');
+ await d.getByRole('button',{name:'客户与品牌',exact:true}).click();f=await dialogReady(owner,'客户与品牌');
+ await f.getByLabel('品牌名称',{exact:true}).fill('WP1独立品牌');await f.getByLabel('品牌所属机构（修改时留空表示清除）',{exact:true}).selectOption(partyOrg);
+ const brandCreated=await writeUI(owner,'POST','/brands',()=>f.getByRole('button',{name:'登记新品牌',exact:true}).click(),201);
+ await f.getByText('WP1独立品牌',{exact:true}).filter({visible:true}).first().waitFor();
+ await f.getByLabel('项目客户机构',{exact:true}).selectOption(partyOrg);await f.getByLabel('项目品牌',{exact:true}).selectOption(brandCreated.resourceId);
+ await f.getByLabel('确认按上述选择替换项目关联；留空会清除对应关联',{exact:true}).check();
+ await writeUI(owner,'POST',ppath+'/parties',()=>f.getByRole('button',{name:'保存项目关联',exact:true}).click());
+ assert.equal((await prisma.projectParty.findFirstOrThrow({where:{projectId}})).brandId,brandCreated.resourceId);
+ await f.getByRole('button',{name:'返回项目',exact:true}).click();d=await dialogReady(owner,'WP1家具拍摄项目');await d.getByText(/客户：WP1客户机构/).waitFor();await d.getByRole('button',{name:'关闭',exact:true}).last().click();
+
  // DEV-07A: explicit purpose approval -> frozen JSON export -> browser download.
  await owner.getByRole('button',{name:/内部导出/}).click();
  await owner.getByRole('button',{name:'＋ 批准导出用途',exact:true}).click();

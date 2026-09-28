@@ -1,3 +1,4 @@
+import {ProjectParties} from './project-parties.ts';
 import type { Actor, Clock } from './model.ts';
 import type { Tx } from './store.ts';
 import type { Project } from './production-model.ts';
@@ -61,7 +62,7 @@ export class Projects {
             const w = await visibleOrNull(() => workFor(tx, actor, e.workId, this.clock));
             works.push({ id: e.id, work: w ? workHeader(w) : null, relation: w ? e.relation : null });
         }
-        return { ...projectHeader(p), sourceId: p.sourceId, scopeId: p.scopeId, maintainerId: p.maintainerId, brief: p.brief, locationNote: p.locationNote, dateNote: p.dateNote, reviewNote: p.reviewNote,
+        return { ...projectHeader(p), parties:await new ProjectParties(this.clock).get(tx,actor,id), sourceId: p.sourceId, scopeId: p.scopeId, maintainerId: p.maintainerId, brief: p.brief, locationNote: p.locationNote, dateNote: p.dateNote, reviewNote: p.reviewNote,
             participants: participants.sort((a, b) => a.id.localeCompare(b.id)), works: works.sort((a, b) => a.id.localeCompare(b.id)), canEdit: actor.permissions.includes('records.write') && p.status !== 'ARCHIVED' };
     }
     private async edit(tx: Tx, actor: Actor, id: string, expected: number) { requirePermission(actor, 'records.write'); const p = await projectFor(tx, actor, id, this.clock); cas(p, expected); editable(p); return p; }

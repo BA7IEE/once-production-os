@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { Actor, Clock, Config, RequestMeta } from './model.ts';
 import type { Store, Tx } from './store.ts';
-import { MEDIA_LIMITS as L, terminalUpload } from './media-model.ts';
+import { MEDIA_LIMITS as L, terminalUpload, mediaByteLimit } from './media-model.ts';
 import type { MediaUpload, MediaAsset, MediaResult } from './media-model.ts';
 import { audit, base, cas, page, touch, workspaceRow } from './helpers.ts';
 import { AppError, invariant, missing } from './errors.ts';
@@ -42,7 +42,7 @@ export class Media {
     clock: Clock;
     config: Config;
     constructor(store: Store, clock: Clock, config: Config) { this.store = store; this.clock = clock; this.config = config; }
-    enabled() { invariant(this.config.mediaEnabled === true, 'MEDIA_DISABLED', '私有图片存储尚未启用', 503); }
+    enabled() { invariant(this.config.mediaEnabled === true, 'MEDIA_DISABLED', '私有媒体存储尚未启用', 503); }
     async context(tx: Tx, actor: Actor, u: MediaUpload): Promise<void> {
         requirePermission(actor, 'assets.upload');
         invariant(u.actorId === actor.membershipId && u.actorEpoch === actor.userEpoch, 'MEDIA_CONTEXT_CHANGED', '上传人资格已经变化', 409);
@@ -63,8 +63,9 @@ export class Media {
         requirePermission(actor, 'assets.upload');
         const d = MediaSchemas.create.parse(input), s = await sourceFor(tx, actor, d.sourceId, this.clock);
         cas(s, d.expectedSourceRevision);
+        invariant(d.expectedBytes<=mediaByteLimit(d.mime),'MEDIA_SIZE_INVALID','文件超过该类型大小限制',400);
         const p = d.personId ? await personFor(tx, actor, d.personId, this.clock) : null;
-        invariant(!p || p.sourceId === s.id, 'MEDIA_SOURCE_MISMATCH', '本次图片必须使用所选人才的主来源', 422);
+        invariant(!p || p.sourceId === s.id, 'MEDIA_SOURCE_MISMATCH', '本次文件必须使用所选人才的主来源', 422);
         const all = await tx.find('uploads', { workspaceId: actor.workspaceId });
         invariant(all.length < L.records && all.filter(u => u.actorId === actor.membershipId && Date.parse(u.createdAt) > this.clock.now().getTime() - 3600000).length < L.actorHourly, 'UPLOAD_RATE_LIMIT', '上传创建次数已达到当前限制，请稍后再试', 429);
         const active = all.filter(u => !terminalUpload(u.state));

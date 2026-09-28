@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: real image/png is sealed and re-encoded; EXIF removed and original inaccessible
+ok 1 - real image/png is sealed and re-encoded; EXIF removed and original inaccessible
+  ---
+  duration_ms: 242.513667
+  type: 'test'
+  ...
+# Subtest: real image/jpeg is sealed and re-encoded; EXIF removed and original inaccessible
+ok 2 - real image/jpeg is sealed and re-encoded; EXIF removed and original inaccessible
+  ---
+  duration_ms: 219.492375
+  type: 'test'
+  ...
+# Subtest: real image/webp is sealed and re-encoded; EXIF removed and original inaccessible
+ok 3 - real image/webp is sealed and re-encoded; EXIF removed and original inaccessible
+  ---
+  duration_ms: 218.390084
+  type: 'test'
+  ...
+# Subtest: HTML disguised as PNG never reaches READY
+ok 4 - HTML disguised as PNG never reaches READY
+  ---
+  duration_ms: 132.824583
+  type: 'test'
+  ...
+# Subtest: truncated PNG magic is rejected by actual decoder
+ok 5 - truncated PNG magic is rejected by actual decoder
+  ---
+  duration_ms: 205.147458
+  type: 'test'
+  ...
+# Subtest: changed staging bytes fail seal digest; no unsafe preview
+ok 6 - changed staging bytes fail seal digest; no unsafe preview
+  ---
+  duration_ms: 133.847792
+  type: 'test'
+  ...
+# Subtest: preview tampering is detected before bytes returned
+ok 7 - preview tampering is detected before bytes returned
+  ---
+  duration_ms: 214.213625
+  type: 'test'
+  ...
+# Subtest: per-attempt final paths prevent delayed worker from replacing successful preview
+ok 8 - per-attempt final paths prevent delayed worker from replacing successful preview
+  ---
+  duration_ms: 218.973833
+  type: 'test'
+  ...
+# Subtest: atomic terminal purge prevents an old worker from recreating final group
+ok 9 - atomic terminal purge prevents an old worker from recreating final group
+  ---
+  duration_ms: 130.989917
+  type: 'test'
+  ...
+# Subtest: provider rejects path traversal IDs and symlink roots
+ok 10 - provider rejects path traversal IDs and symlink roots
+  ---
+  duration_ms: 1.711417
+  type: 'test'
+  ...
+# Subtest: stream byte limit cuts oversize receive and cannot rewrite the same staging key
+ok 11 - stream byte limit cuts oversize receive and cannot rewrite the same staging key
+  ---
+  duration_ms: 129.403166
+  type: 'test'
+  ...
+# Subtest: restore-check opens existing media read-only and verifies original plus preview digests
+ok 12 - restore-check opens existing media read-only and verifies original plus preview digests
+  ---
+  duration_ms: 212.613958
+  type: 'test'
+  ...
+# Subtest: restore-check opener refuses an unregistered root without initializing it
+ok 13 - restore-check opener refuses an unregistered root without initializing it
+  ---
+  duration_ms: 0.578625
+  type: 'test'
+  ...
+# Subtest: PDF is an opaque private attachment: original preserved, no content interpretation
+ok 14 - PDF is an opaque private attachment: original preserved, no content interpretation
+  ---
+  duration_ms: 307.586833
+  type: 'test'
+  ...
+# Subtest: selected MP4 produces a bounded private cover without modifying the original
+ok 15 - selected MP4 produces a bounded private cover without modifying the original
+  ---
+  duration_ms: 469.750209
+  type: 'test'
+  ...
+# Subtest: spoofed MP4 header fails actual probing
+ok 16 - spoofed MP4 header fails actual probing
+  ---
+  duration_ms: 250.100125
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3300.708917

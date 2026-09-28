@@ -132,6 +132,11 @@ export class DeletionFinalization {
         const rootTable = { SOURCE: 'sources', PERSON: 'people', WORK: 'works', PROJECT: 'projects', ASSET: 'assets' } as const;
         const root = await tx.get(rootTable[kind], id);
         if(root)invariant((await affectedAi(tx,root.workspaceId,[[kind,new Set([id])]])).length===0,'AI_DEPENDENCIES_REMAIN','AI 关联内容尚未清除',409);
+        if(root){
+            const brands=await tx.find('brands',{workspaceId:root.workspaceId}),links=await tx.find('projectParties',{workspaceId:root.workspaceId});
+            invariant(kind!=='SOURCE'||!brands.some(b=>b.sourceId===id),'BRAND_DEPENDENCIES_REMAIN','品牌资料尚未清除',409);
+            invariant(kind!=='PROJECT'||!links.some(l=>l.projectId===id),'PARTY_DEPENDENCIES_REMAIN','项目主体尚未清除',409);
+        }
         if (root) await assertLocaleFinalizationClean(tx,root.workspaceId,kind,id);
         if (root) await assertTalentFinalizationClean(tx, root.workspaceId, kind, id, this.clock);
         if (kind === 'SOURCE') {

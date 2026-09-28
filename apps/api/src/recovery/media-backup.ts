@@ -3,6 +3,8 @@ import { join } from 'node:path';
 import type { PrismaClient } from '@prisma/client';
 import { digest } from '../../../../packages/core/src/json.ts';
 import { invariant } from '../../../../packages/core/src/errors.ts';
+import {CosMediaProvider,configuredMediaProvider} from '../media/cos-provider.ts';
+import {writeFile} from 'node:fs/promises';
 import { LocalMediaProvider } from '../media/local-provider.ts';
 import { sha256File } from './backup-manifest.ts';
 
@@ -61,30 +63,30 @@ async function makeBundleRoot(root: string) {
 export async function backupPrivateMedia(client: PrismaClient, providerMode: string, mediaRoot: string|undefined,
     destinationRoot: string): Promise<BackupMediaManifest> {
     const {assets,identityDigest}=await currentMediaIdentity(client);
-    invariant(providerMode==='disabled'||providerMode==='local','BACKUP_MEDIA_PROVIDER_INVALID','备份仅支持 disabled/local 媒体提供方',503);
+    invariant(['disabled','local','cos'].includes(providerMode),'BACKUP_MEDIA_PROVIDER_INVALID','媒体提供方无效',503);
     if(providerMode==='disabled'){
         invariant(assets.length===0,'BACKUP_MEDIA_REQUIRED','数据库存在私有媒体，不能在 MEDIA_PROVIDER=disabled 下生成完整备份',503);
         return {provider:'disabled',identityDigest,assetCount:0,totalBytes:0,assets:[]};
     }
     invariant(!!mediaRoot,'BACKUP_MEDIA_ROOT_REQUIRED','私有媒体备份需要 MEDIA_ROOT',503);
-    const provider=await LocalMediaProvider.openExisting(mediaRoot!);
+    const provider=await configuredMediaProvider({...process.env,MEDIA_PROVIDER:providerMode,MEDIA_ROOT:mediaRoot},true);invariant(provider,'BACKUP_MEDIA_REQUIRED','需要媒体提供方',503);
     await makeBundleRoot(destinationRoot);
     const rows:BackupMediaAsset[]=[];
     let totalBytes=0;
     for(const asset of assets){
-        await provider.verifyAsset({
+        const mediaAsset={
             id:asset.id,workspaceId:asset.workspaceId,createdAt:asset.createdAt.toISOString(),updatedAt:asset.updatedAt.toISOString(),
             revision:asset.revision,uploadId:asset.uploadId,sourceId:asset.sourceId,scopeId:asset.scopeId,personId:asset.personId,
-            fileName:asset.fileName,mime:asset.mime as 'image/jpeg'|'image/png'|'image/webp',bytes:asset.bytes,sha256:asset.sha256,
+            fileName:asset.fileName,mime:asset.mime as import('../../../../packages/core/src/media-model.ts').MediaMime,bytes:asset.bytes,sha256:asset.sha256,
             width:asset.width,height:asset.height,previewBytes:asset.previewBytes,previewHash:asset.previewHash,
             objectToken:asset.objectToken,state:asset.state as 'READY'|'QUARANTINED'|'ERASED'
-        });
-        const source=provider.work(asset.uploadId,asset.objectToken);
+        };
+        await provider.verifyAsset(mediaAsset);
         const target=join(destinationRoot,'uploads',asset.uploadId,'work-'+asset.objectToken);
         await mkdir(target,{recursive:true,mode:0o700});
         const originalTarget=join(target,'original.bin'),previewTarget=join(target,'preview.jpg');
-        await copyFile(join(source,'original.bin'),originalTarget);await chmod(originalTarget,0o400);
-        await copyFile(join(source,'preview.jpg'),previewTarget);await chmod(previewTarget,0o400);
+        await writeFile(originalTarget,await provider.readOriginal(mediaAsset),{flag:'wx',mode:0o400});
+        await writeFile(previewTarget,await provider.readPreview(mediaAsset),{flag:'wx',mode:0o400});
         const original=await sha256File(originalTarget),preview=await sha256File(previewTarget);
         invariant(original.bytes===asset.bytes&&original.sha256===asset.sha256
             &&preview.bytes===asset.previewBytes&&preview.sha256===asset.previewHash,
@@ -111,6 +113,10 @@ export async function restorePrivateMedia(manifest: BackupMediaManifest, bundleR
         invariant(original.bytes===row.original.bytes&&original.sha256===row.original.sha256
             &&preview.bytes===row.preview.bytes&&preview.sha256===row.preview.sha256,
             'RESTORE_MEDIA_COPY_INVALID','恢复后的媒体文件与备份清单不一致',503);
+    }
+    if(process.env.MEDIA_PROVIDER==='cos'){
+        const cloud=await CosMediaProvider.connect({...process.env,MEDIA_ROOT:targetRoot});
+        for(const row of manifest.assets)await cloud.publishSealed(row.uploadId,row.objectToken,new AbortController().signal);
     }
     const targetStat=await stat(targetRoot);
     invariant(targetStat.isDirectory()&&(targetStat.mode&0o077)===0,'RESTORE_MEDIA_COPY_INVALID','恢复媒体目录权限不安全',503);

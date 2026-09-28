@@ -63,6 +63,6 @@ jobs:
           SUITE: ${{ matrix.suite }}
         run: |
           if [ "$SUITE" = browser-resume ]; then node --test tests/acceptance/checkpoint.test.mjs; fi
-          if [ "$SUITE" = browser-media ]; then node --experimental-strip-types --test tests/media/local-images.test.mjs; fi
+          if [ "$SUITE" = browser-media ]; then sudo apt-get update && sudo apt-get install -y ffmpeg; node --experimental-strip-types --test tests/media/local-images.test.mjs; fi
           if [ "$SUITE" = browser-production ]; then node --experimental-strip-types --test tests/ui/field-accessibility.test.mjs; fi
           node "tests/acceptance/$SUITE.mjs"

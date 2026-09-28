@@ -1,3 +1,4 @@
+import {ProjectParties,brandFor} from './project-parties.ts';
 import {readConnection,saveConnection,testConnection} from './ai-connection.ts';
 import {AiOperations,aiOperator} from './ai-operations.ts';
 import {AiBusiness} from './ai-business.ts';
@@ -312,6 +313,10 @@ export class Application {
                     case 'ai.preview': return this.ai.preview(tx,actor,data);
                     case 'ai.list': return this.ai.list(tx,actor,query);
                     case 'ai.create': return command('aiTask',()=>this.ai.create(tx,actor,data,request.headers['idempotency-key']??'',meta));
+                    case 'brand.create': return command('brand',()=>new ProjectParties(this.clock).create(tx,actor,data));
+                    case 'brand.list': return new ProjectParties(this.clock).list(tx,actor,query);
+                    case 'brand.patch': return command('brand',()=>new ProjectParties(this.clock).patch(tx,actor,id,data));
+                    case 'project.parties': return command('project',()=>new ProjectParties(this.clock).bind(tx,actor,id,data));
                     case 'ai.proposal':
                     case 'ai.get': return this.ai.get(tx,actor,id);
                     case 'ai.cancel': return command('aiTask',()=>this.ai.cancel(tx,actor,id,data,meta));
@@ -476,7 +481,7 @@ export class Application {
             if (['ai.create', 'import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation))
                 response.status = 202;
             else if (route.operation.startsWith('td2.') && route.operation.endsWith('.create')) response.status = 201;
-            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['ai.grant', 'locale.create', 'deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
+            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['brand.create', 'ai.grant', 'locale.create', 'deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
                 response.status = 201;
             return response;
         }
@@ -512,6 +517,7 @@ export class Application {
                 if(row.resourceKind==='aiTask')await this.ai.access(tx,actor,row.resourceId);
                 if(row.resourceKind==='aiGrant')await this.ai.grantAccess(tx,actor,row.resourceId);
                 if(row.resourceKind==='aiRun'){const task=(await tx.find('aiTasks',{workspaceId:actor.workspaceId,runId:row.resourceId}))[0];if(!task)continue;await this.ai.access(tx,actor,task.id);}
+                if(row.resourceKind==='brand')await brandFor(tx,actor,row.resourceId,this.clock);
                 if(row.resourceKind==='localeText')await this.localeTexts.access(tx,actor,row.resourceId);
                 if((TD2_RESOURCE_KINDS as readonly string[]).includes(row.resourceKind)) await authorizeTd2Resource(tx,actor,row.resourceKind,row.resourceId,this.clock);
                 if (row.resourceKind === 'upload')

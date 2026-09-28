@@ -1,0 +1,136 @@
+TAP version 13
+# Subtest: COS stores private objects, verifies retries and round-trips original and preview
+ok 1 - COS stores private objects, verifies retries and round-trips original and preview
+  ---
+  duration_ms: 10.051625
+  type: 'test'
+  ...
+# Subtest: COS refuses public or versioned buckets and detects changed or oversized objects
+ok 2 - COS refuses public or versioned buckets and detects changed or oversized objects
+  ---
+  duration_ms: 3.54
+  type: 'test'
+  ...
+# Subtest: COS failed purge stays incomplete and never leaks SDK errors
+ok 3 - COS failed purge stays incomplete and never leaks SDK errors
+  ---
+  duration_ms: 2.495125
+  type: 'test'
+  ...
+# Subtest: COS purge blocks on an uncertain publication and prevents later publishing
+ok 4 - COS purge blocks on an uncertain publication and prevents later publishing
+  ---
+  duration_ms: 2.273417
+  type: 'test'
+  ...
+# Subtest: project parties current-source redaction, CAS, replay and audit rollback
+ok 5 - project parties current-source redaction, CAS, replay and audit rollback
+  ---
+  duration_ms: 138.881875
+  type: 'test'
+  ...
+# Subtest: project parties explicit multi-source export, stale protection and complete isolated rebuild
+ok 6 - project parties explicit multi-source export, stale protection and complete isolated rebuild
+  ---
+  duration_ms: 254.354959
+  type: 'test'
+  ...
+# Subtest: source erasure removes its brand and preserves independently sourced project client
+ok 7 - source erasure removes its brand and preserves independently sourced project client
+  ---
+  duration_ms: 130.756083
+  type: 'test'
+  ...
+# Subtest: brand write rejects viewer, hidden sources and unknown fields
+ok 8 - brand write rejects viewer, hidden sources and unknown fields
+  ---
+  duration_ms: 238.897417
+  type: 'test'
+  ...
+# Subtest: organization source cleanup detaches both references but retains an independently sourced brand
+ok 9 - organization source cleanup detaches both references but retains an independently sourced brand
+  ---
+  duration_ms: 130.03225
+  type: 'test'
+  ...
+# Subtest: private brands are absent from administrator list, replay and audit
+ok 10 - private brands are absent from administrator list, replay and audit
+  ---
+  duration_ms: 238.741125
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 preview is zero-write and accepts a closed 10 people / 3 works / 1 project graph
+ok 11 - DEV-07H T29 preview is zero-write and accepts a closed 10 people / 3 works / 1 project graph
+  ---
+  duration_ms: 127.488458
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 apply preserves exported business ids and relations while rebinding target ownership/scope
+ok 12 - DEV-07H T29 apply preserves exported business ids and relations while rebinding target ownership/scope
+  ---
+  duration_ms: 122.998125
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 rejects non-rebuildable missing or unknown fields before any write
+ok 13 - DEV-07H T29 rejects non-rebuildable missing or unknown fields before any write
+  ---
+  duration_ms: 234.918042
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 rejects missing source closure, unknown target catalog codes, ACTUAL-without-note and ACTIVE work without bytes
+ok 14 - DEV-07H T29 rejects missing source closure, unknown target catalog codes, ACTUAL-without-note and ACTIVE work without bytes
+  ---
+  duration_ms: 472.007708
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 refuses to merge into an already-used target
+ok 15 - DEV-07H T29 refuses to merge into an already-used target
+  ---
+  duration_ms: 122.412625
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 cannot bypass normal per-work or per-project relationship limits
+ok 16 - DEV-07H T29 cannot bypass normal per-work or per-project relationship limits
+  ---
+  duration_ms: 239.081625
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 rejects states normal record APIs would not create
+ok 17 - DEV-07H T29 rejects states normal record APIs would not create
+  ---
+  duration_ms: 584.928917
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 media identity permits cross-work reuse but rejects duplicate links and order gaps
+ok 18 - DEV-07H T29 media identity permits cross-work reuse but rejects duplicate links and order gaps
+  ---
+  duration_ms: 461.352625
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 allows target-local catalog preparation through normal commands
+ok 19 - DEV-07H T29 allows target-local catalog preparation through normal commands
+  ---
+  duration_ms: 116.732667
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 audit failure rolls the complete rebuild transaction back
+ok 20 - DEV-07H T29 audit failure rolls the complete rebuild transaction back
+  ---
+  duration_ms: 118.811584
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 cannot be replayed into the same target after a successful rebuild
+ok 21 - DEV-07H T29 cannot be replayed into the same target after a successful rebuild
+  ---
+  duration_ms: 116.744959
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2870.434958

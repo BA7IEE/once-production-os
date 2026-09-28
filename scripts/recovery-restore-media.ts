@@ -28,7 +28,7 @@ try{
     }else{
         await restorePrivateMedia(manifest.media,input.bundle,input.target);
         console.log(JSON.stringify({
-            mode:'RESTORE_MEDIA',provider:'local',assetCount:manifest.media.assetCount,
+            mode:'RESTORE_MEDIA',provider:process.env.MEDIA_PROVIDER==='cos'?'cos':'local',assetCount:manifest.media.assetCount,
             identityDigest:manifest.media.identityDigest,targetRoot:input.target
         },null,2));
     }
