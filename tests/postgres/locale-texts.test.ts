@@ -1,3 +1,4 @@
+import {verifyAiLedger} from '../support/ai-ledger.ts';
 import {verifyLocaleMerge} from '../support/locale-merge.ts';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -28,5 +29,12 @@ test('internal locale typed graph and actual PostgreSQL deferred constraints',as
   const saved=await client.localeText.findUniqueOrThrow({where:{id:merged.current.id}});assert.equal((saved.mergeHistory as any[]).length,2);
   const forged=structuredClone(saved.mergeHistory) as any[];forged[0].text='changed immutable original';
   await assert.rejects(client.localeText.update({where:{id:saved.id},data:{mergeHistory:forged}}));
+  const ledger=await verifyAiLedger(store,clock);
+  await assert.rejects(client.aiAttempt.update({where:{id:ledger.attempt.id},data:{providerIdempotencyKey:randomUUID()}}));
+  await assert.rejects(client.aiAttempt.delete({where:{id:ledger.attempt.id}}));
+  await assert.rejects(client.aiRun.update({where:{id:ledger.run.id},data:{settledUnits:0}}));
+  const budget=await client.aiBudget.findFirstOrThrow();
+  await assert.rejects(client.aiBudget.update({where:{id:budget.id},data:{reservedUnits:1}}));
+  await assert.rejects(client.aiBudget.update({where:{id:budget.id},data:{frozen:false}}));
  }finally{await store.close();}
 });

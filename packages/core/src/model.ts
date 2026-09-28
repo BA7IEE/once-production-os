@@ -1,3 +1,4 @@
+import type {AiBudget,AiRun,AiAttempt} from './ai-ledger-model.ts';
 import type {LocaleText,LocaleDependency} from './locale-model.ts';
 import type {MergeHistoryErasure} from './merge-history-erasure-model.ts';
 import type { TalentV2Tables, TalentOwnerRefs } from './talent-v2-model.ts';
@@ -216,6 +217,9 @@ export interface RecordHandoff extends Base {
     closedById: string | null;
 }
 export interface TableMap extends TalentV2Tables {
+    aiBudgets: AiBudget;
+    aiRuns: AiRun;
+    aiAttempts: AiAttempt;
     localeTexts: LocaleText;
     localeDependencies: LocaleDependency;
     recoveryRuns: RecoveryRun;

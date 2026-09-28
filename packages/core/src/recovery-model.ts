@@ -25,6 +25,7 @@ export interface RecoveryCheckReport {
     contactKeyDigest: string;
     talent?: TalentIntegrityReport;
     locale?: {textCount:number;dependencyCount:number;relationFailures:number;graphDigest:string;blockers:string[]};
+    ai?: {runCount:number;attemptCount:number;unresolvedCount:number;relationFailures:number;graphDigest:string;blockers:string[]};
     contactCount: number;
     contactDecryptFailures: number;
     media: RecoveryMediaCheck;

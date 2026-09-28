@@ -1,3 +1,4 @@
+import {inspectAiLedger} from './ai-ledger-integrity.ts';
 import {inspectLocaleIntegrity} from './locale-integrity.ts';
 import { inspectTalentIntegrity, quarantineTalentActors } from './talent-v2-integrity.ts';
 import type { Actor, Clock, Config, Source } from './model.ts';
@@ -197,6 +198,7 @@ export class RecoveryOps {
         const external = this.external(externalInput);
         const state = await this.safetyState(tx, actor);
         const locale = await inspectLocaleIntegrity(tx, actor.workspaceId);
+        const ai = await inspectAiLedger(tx, actor.workspaceId);
         const talent = await inspectTalentIntegrity(tx, actor.workspaceId, this.config.contactKey);
         const currentAssets = state.assets.filter(x => x.state !== 'ERASED');
         const expectedAssetIds = currentAssets.map(x => x.id).sort();
@@ -247,16 +249,17 @@ export class RecoveryOps {
             workspaceId: actor.workspaceId,
             targetEpochDigest: run.targetEpochDigest,
             checkedAt: this.clock.now().toISOString(),
-            databaseStateDigest: digest({ legacy: state.databaseStateDigest, talent: talent.graphDigest, locale: locale.graphDigest }),
+            databaseStateDigest: digest({ legacy: state.databaseStateDigest, talent: talent.graphDigest, locale: locale.graphDigest, ai: ai.graphDigest }),
             talent,
             migrationDigest: external.migrationDigest,
             migrationMatch: external.migrationMatch,
             contactKeyDigest: hashSecret(this.config.contactKey.toString('hex')),
             locale,
+            ai,
             contactCount: state.contacts.length,
             contactDecryptFailures,
             media: external.media,
-            blockers: unique([...blockers, ...talent.blockers, ...locale.blockers]).sort()
+            blockers: unique([...blockers, ...talent.blockers, ...locale.blockers, ...ai.blockers]).sort()
         };
         return { run, report };
     }

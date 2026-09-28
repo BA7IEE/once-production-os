@@ -9,6 +9,9 @@ datasource db {
 }
 
 model Workspace {
+  aiBudgets AiBudget[]
+  aiRuns AiRun[]
+  aiAttempts AiAttempt[]
   LocaleDependency_workspace_locale LocaleDependency[] @relation("LocaleDependency_workspace_locale")
   LocaleText_workspace_locale LocaleText[] @relation("LocaleText_workspace_locale")
   historyErasures MergeHistoryErasure[] @relation("HistoryErasure_workspace")
@@ -98,6 +101,7 @@ model User {
 }
 
 model Membership {
+  aiRuns AiRun[]
   LocaleText_reviewer_locale LocaleText[] @relation("LocaleText_reviewer_locale")
   historyErasures MergeHistoryErasure[] @relation("HistoryErasure_actor")
   AdultEligibility_verifiedByMembershipId_td2 AdultEligibility[] @relation("AdultEligibility_verifiedByMembershipId_td2")
@@ -1962,4 +1966,69 @@ model LocaleDependency {
   @@index([workspaceId, sourceId])
   @@index([workspaceId, sourceSubjectId])
   @@map("localeDependencies")
+}
+
+model AiBudget {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  period String @db.Text
+  currency String @db.Text
+  reservedUnits Int
+  settledUnits Int
+  frozen Boolean
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  @@unique([workspaceId,id])
+  runs AiRun[]
+  @@unique([workspaceId,period,currency])
+  @@map("aiBudgets")
+}
+
+model AiRun {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  actorId String @db.Uuid
+  budgetId String @db.Uuid
+  requestKey String @db.Text
+  requestDigest String @db.Text
+  inputDigest String @db.Text
+  providerIdentityHash String @db.Text
+  configRevision Int
+  recoveryEpoch String @db.Text
+  state String @db.Text
+  reservedUnits Int
+  settledUnits Int?
+  cancelRequested Boolean
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  @@unique([workspaceId,id])
+  budget AiBudget @relation(fields: [workspaceId,budgetId], references: [workspaceId,id], onDelete: Restrict)
+  actor Membership @relation(fields: [workspaceId,actorId], references: [workspaceId,id], onDelete: Restrict)
+  attempts AiAttempt[]
+  @@unique([workspaceId,actorId,requestKey])
+  @@map("aiRuns")
+}
+
+model AiAttempt {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  runId String @db.Uuid
+  attemptNo Int
+  state String @db.Text
+  requestDigest String @db.Text
+  providerIdempotencyKey String @db.Text
+  settlementDigest String? @db.Text
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  @@unique([workspaceId,id])
+  run AiRun @relation(fields: [workspaceId,runId], references: [workspaceId,id], onDelete: Restrict)
+  @@unique([workspaceId,runId,attemptNo])
+  @@unique([providerIdempotencyKey])
+  @@map("aiAttempts")
 }
