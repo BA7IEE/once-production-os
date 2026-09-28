@@ -1,3 +1,4 @@
+import {authorizePartyCleanup} from './project-parties.ts';
 import {affectedAi,aiErasureSnapshot,validateAiErasure} from './ai-maintenance.ts';
 import {affectedLocales,localeErasureSnapshot,validateLocaleErasurePlan} from './locale-maintenance.ts';
 import {SOURCE_IDENTITY_EVIDENCE} from './talent-source-identity-evidence.ts';
@@ -226,23 +227,24 @@ export class Deletions {
             }
         }
 
+        const partyVisible=async(row:{workspaceId:string;scopeId:string;sourceId:string})=>{try{await authorizePartyCleanup(tx,actor,row,this.clock);return true;}catch(e){if(e instanceof AppError&&e.status===404)return false;throw e;}};
         const ownedBrands=(await tx.find('brands',{workspaceId:actor.workspaceId})).filter(b=>sources.has(b.sourceId));
         const affectedOrganizations=new Set((await tx.find('organizations',{workspaceId:actor.workspaceId})).filter(o=>sources.has(o.sourceId)).map(o=>o.id));
         for(const id of affectedOrganizations){
             const organization=(await tx.get('organizations',id))!;
-            if(!await scopeVisible(tx,actor,organization.scopeId)){miss('HIDDEN_ORGANIZATION_DEPENDENCY');continue;}
+            if(!await partyVisible(organization)){miss('HIDDEN_ORGANIZATION_DEPENDENCY');continue;}
             const references=[...(await tx.find('representations',{workspaceId:actor.workspaceId,agencyOrganizationId:id})),...(await tx.find('personCredentials',{workspaceId:actor.workspaceId,issuerOrganizationId:id})),...(await tx.find('personExternalRefs',{workspaceId:actor.workspaceId,issuerOrganizationId:id}))];
             if(references.length){miss('ORGANIZATION_PROFESSIONAL_REFERENCES_REQUIRE_REVIEW');continue;}
             add({resourceKind:'organization',resourceId:id,dependencyKind:'SOURCE_ORGANIZATION',proposedAction:'ERASE_DERIVATIVE',evidenceState:'REVIEW_REQUIRED',detailCode:digest(organization)});
         }
         const brandIds=new Set(ownedBrands.map(b=>b.id));
-        for(const b of ownedBrands){if(!(await scopeVisible(tx,actor,b.scopeId))){miss('HIDDEN_BRAND_DEPENDENCY');continue;}add({resourceKind:'brand',resourceId:b.id,dependencyKind:'SOURCE_BRAND',proposedAction:'ERASE_DERIVATIVE',evidenceState:'REVIEW_REQUIRED',detailCode:digest(b)});}
+        for(const b of ownedBrands){if(!(await partyVisible(b))){miss('HIDDEN_BRAND_DEPENDENCY');continue;}add({resourceKind:'brand',resourceId:b.id,dependencyKind:'SOURCE_BRAND',proposedAction:'ERASE_DERIVATIVE',evidenceState:'REVIEW_REQUIRED',detailCode:digest(b)});}
         for(const b of await tx.find('brands',{workspaceId:actor.workspaceId}))if(b.organizationId&&affectedOrganizations.has(b.organizationId)&&!brandIds.has(b.id)){
-            if(!(await scopeVisible(tx,actor,b.scopeId))){miss('HIDDEN_BRAND_DEPENDENCY');continue;}
+            if(!(await partyVisible(b))){miss('HIDDEN_BRAND_DEPENDENCY');continue;}
             add({resourceKind:'brandOrganization',resourceId:b.id,dependencyKind:'BRAND_ORGANIZATION',proposedAction:'REMOVE_RELATION',evidenceState:'REVIEW_REQUIRED',detailCode:digest(b)});
         }
         for(const r of await tx.find('projectParties',{workspaceId:actor.workspaceId}))if(projects.has(r.projectId)||r.brandId&&brandIds.has(r.brandId)||r.clientOrganizationId&&affectedOrganizations.has(r.clientOrganizationId)){
-            const p=await workspaceRow(tx,'projects',r.projectId,actor.workspaceId);if(!p||!(await scopeVisible(tx,actor,p.scopeId))){miss('HIDDEN_PROJECT_DEPENDENCY');continue;}
+            const p=await workspaceRow(tx,'projects',r.projectId,actor.workspaceId);if(!p||!(await partyVisible(p))){miss('HIDDEN_PROJECT_DEPENDENCY');continue;}
             add({resourceKind:'projectParty',resourceId:r.id,dependencyKind:'PROJECT_PARTY',proposedAction:'REMOVE_RELATION',evidenceState:'REVIEW_REQUIRED',detailCode:digest(r)});
         }
         const targetSets: Array<[DeletionTargetKind, Set<string>]> = [['SOURCE', sources], ['PERSON', people], ['WORK', works], ['PROJECT', projects], ['ASSET', assets]];

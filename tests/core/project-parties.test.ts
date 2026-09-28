@@ -30,3 +30,12 @@ test('private brands are absent from administrator list, replay and audit',async
  assert.ok(!JSON.stringify(result(await f.owner.raw('GET','/audit-events'))).includes(id));
  assert.equal((await f.owner.cmd('PATCH',`/brands/${id}`,{expectedRevision:1,name:'跨范围修改'})).status,404);
 });
+test('deletion preview does not expose a brand after only its source scope becomes private',async()=>{
+ const f=await fixture(),g=await seedParties(f),ed=await member(f,'partyrestriction');
+ const scope=result(await f.owner.cmd('POST','/scopes',{name:'来源已收窄',membershipIds:[ed.id]})).resourceId;
+ await f.store.transaction(async tx=>{const source=(await tx.get('sources',g.brandSource))!;await tx.replace('sources',{...source,scopeId:scope,revision:source.revision+1});});
+ const response=await f.owner.raw('POST','/deletion-requests/preview',{targetKind:'SOURCE',targetId:g.orgSource,expectedRevision:1});
+ assert.equal(response.status,200);const preview=result(response);assert.equal(preview.complete,false);
+ assert.ok(preview.unresolved.some((r:any)=>r.code==='HIDDEN_BRAND_DEPENDENCY'));
+ assert.ok(!JSON.stringify(preview).includes(g.brandId));
+});

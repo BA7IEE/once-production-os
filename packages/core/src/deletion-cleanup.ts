@@ -1,3 +1,4 @@
+import {authorizePartyCleanup} from './project-parties.ts';
 import {eraseAi,validateAiErasure} from './ai-maintenance.ts';
 import {eraseLocale,validateLocaleErasurePlan} from './locale-maintenance.ts';
 import {SOURCE_IDENTITY_EVIDENCE} from './talent-source-identity-evidence.ts';
@@ -204,9 +205,9 @@ export class DeletionCleanup {
             throw new AppError(409, 'CLEANUP_ACTION_UNSUPPORTED', '人物解绑对象类型尚未注册');
         }
         if (action === 'REMOVE_RELATION') {
-            if(item.resourceKind==='brandOrganization'){const b=await tx.get('brands',item.resourceId);if(b){invariant(digest(b)===item.detailCode,'PARTY_PLAN_STALE','品牌资料已变化',409);await tx.replace('brands',{...touch(b,this.clock),organizationId:null});}return {outcome:'DONE'};}
+            if(item.resourceKind==='brandOrganization'){const b=await tx.get('brands',item.resourceId);if(b){await authorizePartyCleanup(tx,await deletionWorkerActor(tx,request),b,this.clock);invariant(digest(b)===item.detailCode,'PARTY_PLAN_STALE','品牌资料已变化',409);await tx.replace('brands',{...touch(b,this.clock),organizationId:null});}return {outcome:'DONE'};}
             if(item.resourceKind==='projectParty'){const r=await tx.get('projectParties',item.resourceId);if(r){invariant(digest(r)===item.detailCode,'PARTY_PLAN_STALE','项目主体已变化',409);
-             const project=await tx.get('projects',r.projectId);
+             const project=await tx.get('projects',r.projectId);invariant(project,'NOT_FOUND','项目不可用',404);await authorizePartyCleanup(tx,await deletionWorkerActor(tx,request),project,this.clock);
              if(request.targetKind==='SOURCE'&&project?.sourceId!==request.targetId){
               const brand=r.brandId?await tx.get('brands',r.brandId):null,client=r.clientOrganizationId?await tx.get('organizations',r.clientOrganizationId):null;
               await tx.replace('projectParties',{...touch(r,this.clock),brandId:brand?.sourceId===request.targetId?null:r.brandId,clientOrganizationId:client?.sourceId===request.targetId?null:r.clientOrganizationId});return {outcome:'DONE'};
@@ -224,8 +225,8 @@ export class DeletionCleanup {
             return { outcome: 'DONE' };
         }
         if (action === 'ERASE_DERIVATIVE') {
-            if(item.resourceKind==='organization'){const o=await tx.get('organizations',item.resourceId);if(o){invariant(digest(o)===item.detailCode,'PARTY_PLAN_STALE','机构资料已变化',409);invariant(!(await tx.find('representations',{agencyOrganizationId:o.id})).length&&!(await tx.find('personCredentials',{issuerOrganizationId:o.id})).length&&!(await tx.find('personExternalRefs',{issuerOrganizationId:o.id})).length,'ORGANIZATION_REFERENCED','机构仍有关联资料',409);await tx.remove('organizations',o.id);}return {outcome:'DONE'};}
-            if(item.resourceKind==='brand'){const b=await tx.get('brands',item.resourceId);if(b){invariant(digest(b)===item.detailCode,'PARTY_PLAN_STALE','品牌资料已变化',409);await tx.remove('brands',b.id);}return {outcome:'DONE'};}
+            if(item.resourceKind==='organization'){const o=await tx.get('organizations',item.resourceId);if(o){await authorizePartyCleanup(tx,await deletionWorkerActor(tx,request),o,this.clock);invariant(digest(o)===item.detailCode,'PARTY_PLAN_STALE','机构资料已变化',409);invariant(!(await tx.find('representations',{agencyOrganizationId:o.id})).length&&!(await tx.find('personCredentials',{issuerOrganizationId:o.id})).length&&!(await tx.find('personExternalRefs',{issuerOrganizationId:o.id})).length,'ORGANIZATION_REFERENCED','机构仍有关联资料',409);await tx.remove('organizations',o.id);}return {outcome:'DONE'};}
+            if(item.resourceKind==='brand'){const b=await tx.get('brands',item.resourceId);if(b){await authorizePartyCleanup(tx,await deletionWorkerActor(tx,request),b,this.clock);invariant(digest(b)===item.detailCode,'PARTY_PLAN_STALE','品牌资料已变化',409);await tx.remove('brands',b.id);}return {outcome:'DONE'};}
             if(['aiTask','aiGrant'].includes(item.resourceKind)){await eraseAi(tx,await deletionWorkerActor(tx,request),item,this.clock,{requestId:request.id,ip:'worker'});return {outcome:'DONE'};}
             if(item.resourceKind==='localeText'){await eraseLocale(tx,await deletionWorkerActor(tx,request),item,this.clock);return {outcome:'DONE'};}
             if (item.resourceKind === 'exportDependency') {

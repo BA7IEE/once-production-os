@@ -80,3 +80,8 @@ export async function inspectPartyIntegrity(tx:Tx,workspaceId:string){
  }
  return {brands,links,blockers:[...blockers].sort()};
 }
+
+export async function authorizePartyCleanup(tx:Tx,actor:Actor,row:{workspaceId:string;scopeId:string;sourceId:string},clock:Clock){
+ invariant(row.workspaceId===actor.workspaceId,'NOT_FOUND','资料不可用',404);
+ await requireScope(tx,actor,row.scopeId);await sourceFor(tx,actor,row.sourceId,clock,false,true);
+}
