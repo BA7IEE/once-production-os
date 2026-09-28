@@ -1,3 +1,4 @@
+import {currentAiConfig} from './ai-connection.ts';
 import {approvedAi} from './ai-operations.ts';
 import type { Actor, Clock, Config, RequestMeta } from './model.ts';
 import type { Tx, Store } from './store.ts';
@@ -21,13 +22,13 @@ export class AiBusiness {
     readonly clock: Clock;
     readonly config: Config;
     constructor(clock: Clock, config: Config) { this.clock = clock; this.config = config; }
-    async settings(tx:Tx,workspaceId:string) { const c = this.config.ai; let approved=false; try{await approvedAi(tx,workspaceId,this.config);approved=true;}catch(e){if(!(e instanceof AppError&&[403,409].includes(e.status)))throw e;} return { configured: !!c, enabled: approved, currency: c?.currency ?? null, perTaskLimitUnits: c?.perTaskLimitUnits ?? null, dailyLimitUnits: c?.dailyLimitUnits ?? null, note: '真实供应商未验证前不启用外部调用。费用为预留或核对记录，不是账单。' }; }
+    async settings(tx:Tx,workspaceId:string) { const c = await currentAiConfig(tx,workspaceId,this.config); let approved=false; try{await approvedAi(tx,workspaceId,this.config);approved=true;}catch(e){if(!(e instanceof AppError&&[403,409].includes(e.status)))throw e;} return { configured: !!c, enabled: approved, currency: c?.currency ?? null, perTaskLimitUnits: c?.perTaskLimitUnits ?? null, dailyLimitUnits: c?.dailyLimitUnits ?? null, note: '模型连接须由管理员启用。费用预留与用量记录不等于供应商账单。' }; }
     private configured(tx:Tx,workspaceId:string) { return approvedAi(tx,workspaceId,this.config); }
     async grant(tx: Tx, actor: Actor, input: unknown) {
         requirePermission(actor, 'sources.review');
         requirePermission(actor, 'sensitive.read');
         invariant(actor.actorKind !== 'MACHINE', 'HUMAN_AI_REQUIRED', '用途许可需要人工审核', 403);
-        const c = this.config.ai;
+        const c = await currentAiConfig(tx,actor.workspaceId,this.config);
         invariant(c, 'AI_DISABLED', '请先配置供应商身份', 409);
         const d = S.grant.parse(input), s = await sourceFor(tx, actor, d.sourceId, this.clock);
         cas(s, d.expectedRevision);
@@ -188,7 +189,7 @@ export class AiBusiness {
         }
         catch {
             stale = true;
-        } return { id: row.id, revision: row.revision, taskType: row.taskType, state: run!.state, proposalState: row.proposalState, stale, oldValues: row.oldValues, output: row.output, selectedFields: row.selectedFields, discardedFields: row.discardedFields, reservedUnits: run!.reservedUnits, settledUnits: run!.settledUnits, cancelRequested: run!.cancelRequested }; }
+        } return { id: row.id, revision: row.revision, taskType: row.taskType, state: run!.state, proposalState: row.proposalState, stale, oldValues: row.oldValues, output: row.output, selectedFields: row.selectedFields, discardedFields: row.discardedFields, reservedUnits: run!.reservedUnits, settledUnits: run!.settledUnits, responseMetadata:(await tx.find('aiResponseMetadata',{workspaceId:actor.workspaceId,runId:run!.id}))[0]??null, cancelRequested: run!.cancelRequested }; }
     async list(tx: Tx, actor: Actor, query: Record<string, string>) { human(actor); const rows = []; for (const row of await tx.find('aiTasks', { workspaceId: actor.workspaceId, actorId: actor.membershipId }))
         try {
             rows.push(await this.get(tx, actor, row.id));
@@ -219,9 +220,9 @@ export class AiBusiness {
     async apply(tx: Tx, actor: Actor, id: string, input: unknown) {
         const row = await this.access(tx, actor, id, true), d = S.apply.parse(input);
         cas(row, d.expectedRevision);
-        await this.configured(tx, actor.workspaceId);
+        const currentConfig=await this.configured(tx, actor.workspaceId);
         const run = await tx.get('aiRuns', row.runId);
-        invariant(run?.state === 'SUCCEEDED' && !run.cancelRequested && run.configRevision === this.config.ai!.configRevision && run.providerIdentityHash === this.config.ai!.providerIdentityHash && run.recoveryEpoch === this.config.recoveryEpoch, 'AI_PROPOSAL_STALE', '任务配置或状态已变化', 409);
+        invariant(run && (run.state === 'SUCCEEDED' || run.state === 'UNKNOWN' && (await tx.find('aiResponseMetadata',{workspaceId:actor.workspaceId,runId:run.id})).length>0) && !run.cancelRequested && run.configRevision === currentConfig.configRevision && run.providerIdentityHash === currentConfig.providerIdentityHash && run.recoveryEpoch === this.config.recoveryEpoch, 'AI_PROPOSAL_STALE', '任务配置或状态已变化', 409);
         invariant(row.proposalState === 'PENDING', 'AI_PROPOSAL_FINAL', '提议只允许采纳一次', 409);
         const output = this.validateOutput(row, row.output);
         invariant(new Set(d.selectedFields).size === d.selectedFields.length && d.selectedFields.every(f => output.changes.some(c => c.field === f)), 'AI_SELECTION_INVALID', '请仅选择本次建议字段', 400);
@@ -255,6 +256,6 @@ export class AiBusiness {
         string,
         string
     ] => typeof entry[1] === 'string'))); }
-    async dispatch(store: Store, id: string, workspaceId: string, adapter: AiDispatchAdapter, meta: RequestMeta, signal?:AbortSignal) { const c = this.config.ai; invariant(c,'AI_DISABLED','AI 调用未配置',409); const actorFor = async (tx: Tx, actorId: string): Promise<Actor> => { const m = await workspaceRow(tx, 'memberships', actorId, workspaceId), u = m ? await tx.get('users', m.userId) : null; invariant(m?.status === 'ACTIVE' && u?.status === 'ACTIVE', 'FORBIDDEN', '发起成员已失效', 403); return { workspaceId, membershipId: m.id, userId: m.userId, role: m.role, permissions: permissionsFor(m), displayName: u.displayName, userEpoch: u.sessionEpoch, sessionId: 'ai-worker', actorKind: 'HUMAN' }; }; const row = await store.transaction(tx => workspaceRow(tx, 'aiTasks', id, workspaceId)); if (!row)
-        missing(); return dispatchAi(store, this.clock, c, workspaceId, row.runId, meta, adapter, { authorize: async (tx) => { invariant(digest(this.config.ai)===digest(c),'AI_CONFIG_CHANGED','AI 配置已变化',409); const actor = await actorFor(tx, row.actorId); await this.access(tx, actor, id, true); return (await this.build(tx, actor, row.inputSpec, id)).external; }, proposal: async (tx, _run, output) => this.acceptOutput(tx, await actorFor(tx, row.actorId), id, output) }, 60000, signal); }
+    async dispatch(store: Store, id: string, workspaceId: string, adapter: AiDispatchAdapter, meta: RequestMeta, signal?:AbortSignal) { const c = await store.transaction(tx=>this.configured(tx,workspaceId)); invariant(c,'AI_DISABLED','AI 调用未配置',409); invariant(!adapter.providerIdentityHash||adapter.providerIdentityHash===c.providerIdentityHash,'AI_ADAPTER_MISMATCH','模型连接已变化',409); const actorFor = async (tx: Tx, actorId: string): Promise<Actor> => { const m = await workspaceRow(tx, 'memberships', actorId, workspaceId), u = m ? await tx.get('users', m.userId) : null; invariant(m?.status === 'ACTIVE' && u?.status === 'ACTIVE', 'FORBIDDEN', '发起成员已失效', 403); return { workspaceId, membershipId: m.id, userId: m.userId, role: m.role, permissions: permissionsFor(m), displayName: u.displayName, userEpoch: u.sessionEpoch, sessionId: 'ai-worker', actorKind: 'HUMAN' }; }; const row = await store.transaction(tx => workspaceRow(tx, 'aiTasks', id, workspaceId)); if (!row)
+        missing(); return dispatchAi(store, this.clock, c, workspaceId, row.runId, meta, adapter, { authorize: async (tx) => { invariant(digest(await this.configured(tx,workspaceId))===digest(c),'AI_CONFIG_CHANGED','AI 配置已变化',409); const actor = await actorFor(tx, row.actorId); await this.access(tx, actor, id, true); return (await this.build(tx, actor, row.inputSpec, id)).external; }, proposal: async (tx, _run, output) => this.acceptOutput(tx, await actorFor(tx, row.actorId), id, output) }, 60000, signal); }
 }

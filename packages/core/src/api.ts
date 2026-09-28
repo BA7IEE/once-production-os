@@ -1,3 +1,4 @@
+import {readConnection,saveConnection,testConnection} from './ai-connection.ts';
 import {AiOperations,aiOperator} from './ai-operations.ts';
 import {AiBusiness} from './ai-business.ts';
 import {LocaleTexts} from './locale.ts';
@@ -298,6 +299,9 @@ export class Application {
                 }
                 switch (route.operation) {
                     case 'ai.settings': return this.ai.settings(tx,actor.workspaceId);
+                    case 'ai.connection.test': return command('aiConnectionTest',()=>testConnection(tx,actor,data,this.clock,this.config,request.headers['idempotency-key']??'',meta));
+                    case 'ai.connection': return readConnection(tx,actor);
+                    case 'ai.connection.save': return command('aiConnection',()=>saveConnection(tx,actor,data,this.clock,this.config));
                     case 'ai.operations': return new AiOperations(this.clock,this.config).status(tx,actor);
                     case 'ai.approval': return command('aiApproval',()=>new AiOperations(this.clock,this.config).approval(tx,actor,data));
                     case 'ai.reconcile': return command('aiAttempt',()=>new AiOperations(this.clock,this.config).reconcile(tx,actor,id,data,meta));
@@ -504,7 +508,7 @@ export class Application {
         const result = [];
         for (const row of await tx.find('audits', { workspaceId: actor.workspaceId })) {
             try {
-                if(['aiApproval','aiAttempt','aiBudget'].includes(row.resourceKind))aiOperator(actor);
+                if(['aiConnectionTest','aiConnection','aiApproval','aiAttempt','aiBudget'].includes(row.resourceKind))aiOperator(actor);
                 if(row.resourceKind==='aiTask')await this.ai.access(tx,actor,row.resourceId);
                 if(row.resourceKind==='aiGrant')await this.ai.grantAccess(tx,actor,row.resourceId);
                 if(row.resourceKind==='aiRun'){const task=(await tx.find('aiTasks',{workspaceId:actor.workspaceId,runId:row.resourceId}))[0];if(!task)continue;await this.ai.access(tx,actor,task.id);}

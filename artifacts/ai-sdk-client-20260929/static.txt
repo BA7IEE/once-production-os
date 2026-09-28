@@ -1,3 +1,7 @@
+
+> once-production-os@0.1.0-dev.1 review:static /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> node scripts/static-review.mjs
+
 {
   "generatedAt": "2026-09-28T17:27:32.852Z",
   "node": "v22.22.3",

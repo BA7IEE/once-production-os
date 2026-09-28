@@ -1,5 +1,8 @@
 // Generated from packages/core/src/routes.ts and validation.ts. Do not edit.
 export interface Inputs {
+  "ai.connection.test": { "expectedRevision": number; "confirmTest": boolean };
+  "ai.connection": undefined;
+  "ai.connection.save": { "expectedRevision": number; "connection": { "name": string; "baseURL": string; "protocol": "openai-chat" | "openai-responses" | "anthropic-messages"; "model": string; "timeoutMs": number; "maxOutputTokens": number }; "apiKey": string; "currency": string; "perTaskLimitUnits": number; "dailyLimitUnits": number };
   "ai.operations": undefined;
   "ai.approval": { "configDigest": string; "expectedRevision": number; "enabled": boolean; "confirmConfiguration": boolean };
   "ai.reconcile": { "expectedRevision": number; "outcome": "SUCCEEDED" | "NOT_EXECUTED"; "amountUnits": number; "evidenceSourceId": string; "evidenceSourceRevision": number; "providerIdempotencyKey": string; "providerIdentityHash": string; "confirmProviderResult": boolean };
@@ -193,6 +196,21 @@ export interface Inputs {
   "shortlist.reorder": { "expectedRevision": number; "entryIds": Array<string> };
 }
 export const ENDPOINTS = {
+  "ai.connection.test": {
+    "method": "POST",
+    "path": "/ai-connection/test",
+    "mode": "COMMAND"
+  },
+  "ai.connection": {
+    "method": "GET",
+    "path": "/ai-connection",
+    "mode": "READ"
+  },
+  "ai.connection.save": {
+    "method": "POST",
+    "path": "/ai-connection",
+    "mode": "COMMAND"
+  },
   "ai.operations": {
     "method": "GET",
     "path": "/ai-operations",

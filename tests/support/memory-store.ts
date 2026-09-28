@@ -1,7 +1,7 @@
 import { AppError } from '../../packages/core/src/errors.ts';
 import type { Store, Tx } from '../../packages/core/src/store.ts';
 import type { Table, TableMap } from '../../packages/core/src/model.ts';
-const tables: Table[] = ['aiReconciliations','aiBudgetReleases','aiApprovals','aiGrants','aiTasks','aiDependencies','aiBudgets','aiRuns','aiAttempts','localeTexts','localeDependencies','mergeHistoryErasures','talentProfiles', 'personRoles', 'capabilityDefinitions', 'personCapabilities', 'personLanguages', 'talentLocations', 'castingProfiles', 'measurementSets', 'adultEligibilities', 'organizations', 'representations', 'personExternalRefs', 'personCredentials', 'translatorLanguagePairs', 'translatorServiceModes', 'mediaCollections', 'mediaCollectionTags', 'mediaCollectionItems', 'servicePrincipals', 'fieldProposals', 'talentMigrationReviews', 'recoveryRuns', 'personMerges', 'personAliases', 'deletionRequests', 'deletionItems', 'usePermissions', 'exports', 'exportDependencies', 'shortlists', 'shortlistItems', 'shortlistItemAssets', 'works', 'workAssets', 'workCredits', 'projects', 'projectParticipants', 'projectWorks', 'workspaces', 'users', 'memberships', 'sessions', 'activations', 'scopes', 'scopeMembers', 'sources', 'sourceHistory', 'people', 'contacts', 'evidence', 'dictionary', 'receipts', 'audits', 'rateBuckets', 'imports', 'jobs', 'handoffs', 'uploads', 'assets'];
+const tables: Table[] = ['aiResponseMetadata','aiConnections','aiReconciliations','aiBudgetReleases','aiApprovals','aiGrants','aiTasks','aiDependencies','aiBudgets','aiRuns','aiAttempts','localeTexts','localeDependencies','mergeHistoryErasures','talentProfiles', 'personRoles', 'capabilityDefinitions', 'personCapabilities', 'personLanguages', 'talentLocations', 'castingProfiles', 'measurementSets', 'adultEligibilities', 'organizations', 'representations', 'personExternalRefs', 'personCredentials', 'translatorLanguagePairs', 'translatorServiceModes', 'mediaCollections', 'mediaCollectionTags', 'mediaCollectionItems', 'servicePrincipals', 'fieldProposals', 'talentMigrationReviews', 'recoveryRuns', 'personMerges', 'personAliases', 'deletionRequests', 'deletionItems', 'usePermissions', 'exports', 'exportDependencies', 'shortlists', 'shortlistItems', 'shortlistItemAssets', 'works', 'workAssets', 'workCredits', 'projects', 'projectParticipants', 'projectWorks', 'workspaces', 'users', 'memberships', 'sessions', 'activations', 'scopes', 'scopeMembers', 'sources', 'sourceHistory', 'people', 'contacts', 'evidence', 'dictionary', 'receipts', 'audits', 'rateBuckets', 'imports', 'jobs', 'handoffs', 'uploads', 'assets'];
 type Data = {
     [K in Table]: Map<string, TableMap[K]>;
 };
@@ -34,7 +34,7 @@ export class MemoryStore implements Store {
                 (draft[table] as Map<string, TableMap[K]>).set(row.id, structuredClone(row));
             },
             replace: async <K extends Table>(table: K, row: TableMap[K]): Promise<void> => {
-                if (['aiReconciliations','aiBudgetReleases','mergeHistoryErasures'].includes(table)) throw new AppError(409,'HISTORY_IMMUTABLE','历史清理证据只允许追加');
+                if (['aiResponseMetadata','aiReconciliations','aiBudgetReleases','mergeHistoryErasures'].includes(table)) throw new AppError(409,'HISTORY_IMMUTABLE','历史清理证据只允许追加');
                 if (table === 'sourceHistory')
                     throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加');
                 if ((table === 'talentProfiles' || table === 'castingProfiles') && draft[table].get(row.id)?.supersededById)
@@ -44,7 +44,7 @@ export class MemoryStore implements Store {
                 (draft[table] as Map<string, TableMap[K]>).set(row.id, structuredClone(row));
             },
             remove: async (table, id) => {
-                if (['aiReconciliations','aiBudgetReleases','mergeHistoryErasures'].includes(table)) throw new AppError(409,'HISTORY_IMMUTABLE','历史清理证据只允许追加');
+                if (['aiResponseMetadata','aiReconciliations','aiBudgetReleases','mergeHistoryErasures'].includes(table)) throw new AppError(409,'HISTORY_IMMUTABLE','历史清理证据只允许追加');
                 if (table === 'sourceHistory')
                     throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加');
                 if ((table === 'talentProfiles' || table === 'castingProfiles') && draft[table].get(id)?.supersededById)

@@ -9,6 +9,8 @@ datasource db {
 }
 
 model Workspace {
+  aiResponseMetadata AiResponseMetadata[]
+  aiConnections AiConnection[]
  aiReconciliations AiReconciliation[]
   aiBudgetReleases AiBudgetRelease[]
   aiApprovals AiApproval[]
@@ -2009,6 +2011,7 @@ model AiBudget {
 }
 
 model AiRun {
+  responseMetadata AiResponseMetadata?
   AiTask_runId AiTask[] @relation("AiTask_runId")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
@@ -2202,4 +2205,39 @@ model AiReconciliation {
  @@unique([workspaceId,id])
  @@unique([workspaceId,attemptId])
  @@map("aiReconciliations")
+}
+
+model AiConnection {
+ id String @id @db.Uuid
+ workspaceId String @unique @db.Uuid
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ revision Int
+ settings Json
+ keyCipher String @db.Text
+ currency String @db.Text
+ perTaskLimitUnits Int
+ dailyLimitUnits Int
+ workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Restrict)
+ @@map("aiConnections")
+}
+
+model AiResponseMetadata {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ revision Int
+ runId String @unique @db.Uuid
+ inputTokens Int?
+ outputTokens Int?
+ cacheReadTokens Int?
+ cacheWriteTokens Int?
+ reasoningTokens Int?
+ providerResponseId String? @db.Text
+ outputStatus String @db.Text
+ workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Restrict)
+ run AiRun @relation(fields:[workspaceId,runId],references:[workspaceId,id],onDelete:Restrict)
+ @@unique([workspaceId,runId])
+ @@map("aiResponseMetadata")
 }

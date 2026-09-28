@@ -1,3 +1,4 @@
+import {installedModelClient} from './ai/installed-client.ts';
 import {AiWorker} from './ai/worker.ts';
 import { SafetyJournalWriter } from './recovery/safety-journal.ts';
 import { LocalMediaProvider } from './media/local-provider.ts';
@@ -23,9 +24,8 @@ async function run() {
     const mediaProvider = config.mediaEnabled ? await LocalMediaProvider.create(process.env.MEDIA_ROOT!) : null;
     const media = mediaProvider ? new MediaWorker(core, mediaProvider) : null;
     const deletionFinalizer = new DeletionFinalizer(core, mediaProvider, safetyJournal);
-    // Real adapter installation remains blocked until a supplier is verified.
-    // Abandoned attempts are still isolated while external calling is disabled.
-    const ai = new AiWorker(core, null);
+    // Model credentials are resolved server-side for the current workspace.
+    const ai = new AiWorker(core,workspaceId=>installedModelClient(core,workspaceId));
     let nextJournalSync = 0;
     console.log('ONCE internal worker starting');
     try {

@@ -1,3 +1,4 @@
+import {ConnectionSaveSchema,ConnectionTestSchema} from './ai-connection.ts';
 import {AiSchemas as AS} from './ai-validation.ts';
 import {LocaleSchemas as LS} from './locale-validation.ts';
 import { TD2_ROUTES } from './talent-v2-routes.ts';
@@ -18,6 +19,9 @@ export interface RouteDefinition {
     schema?: Schema<unknown>;
 }
 export const ROUTES: RouteDefinition[] = [
+    {method:'POST',path:'/ai-connection/test',operation:'ai.connection.test',mode:'COMMAND',permission:'members.manage',schema:ConnectionTestSchema},
+    {method:'GET',path:'/ai-connection',operation:'ai.connection',mode:'READ',permission:'members.manage'},
+    {method:'POST',path:'/ai-connection',operation:'ai.connection.save',mode:'COMMAND',permission:'members.manage',schema:ConnectionSaveSchema},
     {method:'GET',path:'/ai-operations',operation:'ai.operations',mode:'READ',permission:'members.manage'},
     {method:'POST',path:'/ai-operations/approval',operation:'ai.approval',mode:'COMMAND',permission:'members.manage',schema:AS.approval},
     {method:'POST',path:'/ai-attempts/{id}/reconcile',operation:'ai.reconcile',mode:'COMMAND',permission:'members.manage',schema:AS.reconcile},

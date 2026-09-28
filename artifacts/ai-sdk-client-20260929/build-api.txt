@@ -1,0 +1,4 @@
+
+> once-production-os@0.1.0-dev.1 build:api /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> tsc -p tsconfig.server.json
+

@@ -1,3 +1,4 @@
+import {connectionKey} from './ai-connection.ts';
 import {isolateAi} from './ai-maintenance.ts';
 import {inspectAiLedger} from './ai-ledger-integrity.ts';
 import {inspectLocaleIntegrity} from './locale-integrity.ts';
@@ -200,6 +201,9 @@ export class RecoveryOps {
         const state = await this.safetyState(tx, actor);
         const locale = await inspectLocaleIntegrity(tx, actor.workspaceId);
         const ai = await inspectAiLedger(tx, actor.workspaceId);
+        for(const row of await tx.find('aiConnections',{workspaceId:actor.workspaceId})){
+            try{connectionKey(row,this.config as Config);}catch{ai.blockers.push('AI_CONNECTION_KEY_INVALID');}
+        }
         const talent = await inspectTalentIntegrity(tx, actor.workspaceId, this.config.contactKey);
         const currentAssets = state.assets.filter(x => x.state !== 'ERASED');
         const expectedAssetIds = currentAssets.map(x => x.id).sort();

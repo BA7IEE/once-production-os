@@ -41,10 +41,14 @@
     "recovery:restore-media": "node --experimental-strip-types scripts/recovery-restore-media.ts"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "4.0.65",
+    "@ai-sdk/openai": "4.0.78",
+    "@ai-sdk/openai-compatible": "3.0.57",
     "@nestjs/common": "11.2.5",
     "@nestjs/core": "11.2.5",
     "@nestjs/platform-express": "11.2.5",
     "@prisma/client": "6.19.3",
+    "ai": "7.0.118",
     "express": "5.1.0",
     "react": "19.1.1",
     "react-dom": "19.1.1",

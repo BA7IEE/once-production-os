@@ -1,3 +1,4 @@
+import {verifyAiConnections} from '../support/ai-connections.ts';
 import {verifyAiOperations} from '../support/ai-operations.ts';
 import {verifyAiBusiness} from '../support/ai-business.ts';
 /** Explicit TD2 domain acceptance on real PostgreSQL, including direct constraint probes.
@@ -130,6 +131,8 @@ test('TD2-T01 through T15 and T18: actual PostgreSQL domain contracts and privat
    const operations=await verifyAiOperations(f);
    await assert.rejects(client.aiApproval.update({where:{id:operations.approvalId},data:{configDigest:'f'.repeat(64)}}));
    const release=await client.aiBudgetRelease.findFirstOrThrow({where:{budgetId:operations.budgetId}});await assert.rejects(client.aiBudgetRelease.delete({where:{id:release.id}}));
+   const connection=await verifyAiConnections(f);
+   await assert.rejects(client.aiResponseMetadata.delete({where:{id:connection.responseId}}));
    await client.aiBudget.update({where:{id:operations.budgetId},data:{frozen:true,revision:{increment:1}}});
    await assert.rejects(client.aiBudget.update({where:{id:operations.budgetId},data:{frozen:false,revision:{increment:1}}}));
    const dep=await client.aiDependency.findFirstOrThrow({where:{taskId:task.id,grantId:{not:null}}});await assert.rejects(client.aiDependency.delete({where:{id:dep.id}}));
