@@ -6,11 +6,11 @@ export type TalentGraph=Awaited<ReturnType<typeof loadTalentGraph>>;
 /** Legacy-only records remain readable during Phase C. Enrolled records and ordinary TD2
  * contacts never fall back to stale flat facts, including after a typed fact is revoked. */
 export function professionallyManaged(person:Person,graph:TalentGraph):boolean{
- return person.roles.length===0 || graph.rows('talentProfiles').some(row=>row.personId===person.id);
+ return person.roles.length===0 || graph.personRows('talentProfiles',person.id).length>0;
 }
 export function legacyProfessionalProjection(person:Person,graph:TalentGraph){
  if(!professionallyManaged(person,graph))return {professionalManaged:false,roles:person.roles,cityCode:person.cityCode,languageCodes:person.languageCodes,skillCodes:person.skillCodes,heightCm:person.heightCm};
- const current=(table:FactTable)=>graph.rows(table).filter(row=>row.personId===person.id).map(row=>graph.project(table,row as unknown as FactRow)).filter((row):row is Record<string,unknown>=>!!row&&row.usable===true);
+ const current=(table:FactTable)=>graph.personRows(table,person.id).map(row=>graph.project(table,row as unknown as FactRow)).filter((row):row is Record<string,unknown>=>!!row&&row.usable===true);
  const codes=(table:FactTable,key:string)=>[...new Set(current(table).map(row=>row[key]).filter((value):value is string=>typeof value==='string'))];
  const baseLocation=current('talentLocations').find(row=>row.relationCode==='BASE');
  const casting=current('castingProfiles')[0],measurement=casting?current('measurementSets').find(row=>row.id===casting.currentMeasurementSetId):undefined;

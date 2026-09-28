@@ -17,11 +17,11 @@ export function compatibleTalentSearch(graph:TalentGraph,query:Record<string,str
   const projection=legacyProfessionalProjection(person,graph),p:Person={...person,...projection};
   if(q&&![p.displayName,...p.aliases].some(value=>value.toLocaleLowerCase().includes(q)))continue;
   if(query.role&&!p.roles.includes(query.role)||query.cityCode&&p.cityCode!==query.cityCode||query.languageCode&&!p.languageCodes.includes(query.languageCode)||query.skillCode&&!p.skillCodes.includes(query.skillCode)||query.status&&p.status!==query.status)continue;
-  const workIds=new Set(graph.rows('workCredits').filter(c=>c.personId===p.id&&(!query.role||c.roleCode===query.role)).map(c=>c.workId));
-  const works=graph.rows('works').filter(w=>workIds.has(w.id)&&w.status!=='ERASED'&&graph.visibility.scopeVisible(w.scopeId)&&graph.sourceUsable(w.sourceId)&&!graph.visibility.blocked('WORK',w.id));
+  const workIds=new Set(graph.personRows('workCredits',p.id).filter(c=>!query.role||c.roleCode===query.role).map(c=>c.workId));
+  const works=[...workIds].map(id=>graph.record('works',id)).filter((w):w is NonNullable<typeof w>=>!!w&&w.status!=='ERASED'&&graph.visibility.scopeVisible(w.scopeId)&&graph.sourceUsable(w.sourceId)&&!graph.visibility.blocked('WORK',w.id));
   if((query.industryCode||query.workTypeCode)&&!works.some(w=>(!query.industryCode||w.industryCode===query.industryCode)&&(!query.workTypeCode||w.workTypeCodes.includes(query.workTypeCode))))continue;
-  const projectIds=new Set(graph.rows('projectParticipants').filter(r=>r.personId===p.id&&r.state==='ACTUAL'&&(!query.role||r.roleCode===query.role)).map(r=>r.projectId));
-  const projects=graph.rows('projects').filter(r=>projectIds.has(r.id)&&r.status!=='ERASED'&&graph.visibility.scopeVisible(r.scopeId)&&graph.sourceUsable(r.sourceId)&&!graph.visibility.blocked('PROJECT',r.id));
+  const projectIds=new Set(graph.personRows('projectParticipants',p.id).filter(r=>r.state==='ACTUAL'&&(!query.role||r.roleCode===query.role)).map(r=>r.projectId));
+  const projects=[...projectIds].map(id=>graph.record('projects',id)).filter((r):r is NonNullable<typeof r>=>!!r&&r.status!=='ERASED'&&graph.visibility.scopeVisible(r.scopeId)&&graph.sourceUsable(r.sourceId)&&!graph.visibility.blocked('PROJECT',r.id));
   if(query.actualProject&&!projects.length)continue;
   rows.push({person:p,actualProjectCount:projects.length,industryCodes:[...new Set(works.map(w=>w.industryCode).filter((v):v is string=>!!v))].sort(),workTypeCodes:[...new Set(works.flatMap(w=>w.workTypeCodes))].sort()});
  }
@@ -31,7 +31,7 @@ export function compatibleTalentSearch(graph:TalentGraph,query:Record<string,str
   const owner=Object.entries(OWNER_KEYS).find(([,key])=>typeof asRow(evidence)[key]==='string');if(!owner)continue;
   let personId:string,value:unknown;
   if(owner[0]==='person'){
-   personId=String(asRow(evidence)[owner[1]]);const person=graph.rows('people').find(p=>p.id===personId);if(!person||!selected.has(personId))continue;
+   personId=String(asRow(evidence)[owner[1]]);const person=graph.record('people',personId);if(!person||!selected.has(personId))continue;
    if(professionallyManaged(person,graph)&&(LEGACY_PROFESSIONAL_FIELDS as readonly string[]).includes(evidence.fieldPath))continue;
    value=asRow(person)[evidence.fieldPath];
   }else{
