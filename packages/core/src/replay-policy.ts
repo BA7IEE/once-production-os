@@ -16,7 +16,7 @@ import { personFor, sourceFor, sourceCurrent, requireScope, requirePermission } 
 export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandReceipt, clock: Clock, config?: Config): Promise<void> {
     const id = receipt.resourceId;
     switch (receipt.resourceKind) {
-        case 'talentFact': case 'fieldProposal': case 'servicePrincipal': case 'organization': case 'capabilityDefinition':
+        case 'talentMigrationReview': case 'talentFact': case 'fieldProposal': case 'servicePrincipal': case 'organization': case 'capabilityDefinition':
             return authorizeTd2Resource(tx,actor,receipt.resourceKind,id,clock);
         case 'merge': {
             requirePermission(actor, 'data.merge');

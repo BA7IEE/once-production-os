@@ -19,6 +19,10 @@ export function authorizeTd2Operation(actor:Actor,operation:string,mode:string){
     if(operation==='td2.proposal.create')invariant(actor.permissions.includes('records.write')||actor.permissions.includes('sources.review'),'FORBIDDEN','当前账号不能提交修改建议',403);
 }
 export async function authorizeTd2Resource(tx:Tx,actor:Actor,kind:string,id:string,clock:Clock){
+    if(kind==='talentMigrationReview'){
+        invariant(actor.actorKind!=='MACHINE','HUMAN_REVIEW_REQUIRED','旧资料复核需要内部成员',403);requirePermission(actor,'sources.review');requirePermission(actor,'records.write');
+        const row=await workspaceRow(tx,'talentMigrationReviews',id,actor.workspaceId);if(!row||row.reason!=='HEIGHT_SEMANTICS_REQUIRED')missing();const person=await td2PersonFor(tx,actor,row.personId);await sourceFor(tx,actor,person.sourceId,clock);return;
+    }
     if(kind==='talentFact'){
         const g=await loadTalentGraph(tx,actor,clock);
         for(const table of TD2_TABLES){const row=g.fact(table,id);if(row&&g.readable(table,row))return;}
@@ -42,4 +46,4 @@ export async function authorizeTd2Resource(tx:Tx,actor:Actor,kind:string,id:stri
     }
     missing();
 }
-export const TD2_RESOURCE_KINDS=['talentFact','fieldProposal','servicePrincipal','organization','capabilityDefinition'] as const;
+export const TD2_RESOURCE_KINDS=['talentMigrationReview','talentFact','fieldProposal','servicePrincipal','organization','capabilityDefinition'] as const;

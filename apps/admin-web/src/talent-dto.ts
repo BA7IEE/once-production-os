@@ -21,3 +21,8 @@ export interface TalentEvidenceRecord {
     source: { id: string; title: string; recordedRevision: number; currentRevision: number; current: boolean; revisionMatches: boolean };
     review: { origin: 'ORIGINAL' | 'CURRENT'; workspaceId: string; membershipId?: string | null; reviewedAt?: string | null } | null;
 }
+export interface HeightMigrationReviews {
+    personId:string; personRevision:number; sourceRevision:number; legacyHeightCm:number|null; canDismiss:boolean;
+    items:Array<{id:string;revision:number;state:'PENDING'|'RESOLVED';resolvedAt:string|null}>;
+    total:number;page:number;pageSize:number;
+}

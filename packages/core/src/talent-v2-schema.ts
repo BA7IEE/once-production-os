@@ -328,6 +328,8 @@ export const TD2Schemas={
     personCreate:v.object({schemaVersion:VERSION,originSourceId:uuid,sourceRevision:revision,displayName:v.string(120,1),aliases:v.optional(v.array(v.string(120,1),20)),intro:v.optional(v.string(5000)),createTalent:v.optional(v.boolean())}),
     personPatch:v.object({schemaVersion:VERSION,expectedRevision:revision,displayName:v.optional(v.string(120,1)),aliases:v.optional(v.array(v.string(120,1),20)),intro:v.optional(v.string(5000)),status:v.optional(v.enum(['DRAFT','ACTIVE','ARCHIVED']))}),
     enroll:v.object({schemaVersion:VERSION,expectedRevision:revision,sourceRevision:revision}),
+    heightReviewDismiss:v.object({schemaVersion:VERSION,expectedRevision:revision,expectedPersonRevision:revision,sourceRevision:revision,resolution:v.enum(['DO_NOT_USE_LEGACY_HEIGHT']),acknowledge:v.boolean()}),
+    credentialSecretClear:v.object({schemaVersion:VERSION,expectedRevision:revision,expectedPersonRevision:revision,sourceRevision:revision,acknowledge:v.boolean()}),
     factConfirm:v.object({schemaVersion:VERSION,expectedRevision:revision,expectedPersonRevision:revision,sourceRevision:revision}),
     adultVerify:v.object({schemaVersion:VERSION,expectedRevision:revision,expectedPersonRevision:revision,sourceRevision:revision,evidenceAssetId:uuid,validUntil:dateIso}),
     evidence:v.object({schemaVersion:VERSION,ownerKind:v.enum(['person',...TD2_TABLES]),ownerId:uuid,fieldPath:v.string(80,1),expectedRevision:revision,sourceId:uuid,sourceRevision:revision}),

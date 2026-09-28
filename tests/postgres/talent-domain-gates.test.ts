@@ -16,6 +16,7 @@ import {TALENT_SCHEMA_VERSION as schemaVersion} from '../../packages/core/src/ta
 import {verifyLegacyProjection,verifyDelegatedLegacyProjection} from '../support/talent-legacy-projection.ts';
 import {verifyHeightReview} from '../support/talent-height-review.ts';
 import {verifyStructuredCompatibility} from '../support/talent-structured-compatibility.ts';
+import {verifyManualMaintenance} from '../support/talent-manual-maintenance.ts';
 import {decryptContact} from '../../packages/core/src/crypto.ts';
 
 test('TD2-T01 through T15 and T18: actual PostgreSQL domain contracts and private media',async t=>{
@@ -117,5 +118,6 @@ test('TD2-T01 through T15 and T18: actual PostgreSQL domain contracts and privat
   await t.test('Phase C basic handoff cannot expand professional source/scope access',async()=>{await verifyDelegatedLegacyProjection(owner,clock.now());});
   await t.test('Legacy height review is resolved only by an actual height, with atomic audit rollback/retry',async()=>{await verifyHeightReview(f,503);});
   await t.test('Legacy structured search has current typed reviews, same-work/occupation matching and complete facets',async()=>{await verifyStructuredCompatibility(owner);});
+  await t.test('Manual height dismissal and credential identifier clearing preserve history and roll back with audit failure',async()=>{await verifyManualMaintenance(f,503,{credentialId:g.credentialId,personId:g.personId});await proof.provider.verifyAsset((await store.transaction(tx=>tx.get('assets',proof.assetId)))!);});
  }finally{await store.close();rmSync(tmp,{recursive:true,force:true});}
 });

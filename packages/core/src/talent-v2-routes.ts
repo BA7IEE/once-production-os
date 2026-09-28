@@ -1,6 +1,9 @@
 import type { RouteDefinition } from './routes.ts';
 import { TD2Schemas as S, TD2_TABLES, TD2_FACTS, FACT_SCHEMAS } from './talent-v2-schema.ts';
 export const TD2_ROUTES:RouteDefinition[]=[
+    {method:'GET',path:'/td2/people/{id}/height-reviews',operation:'td2.heightReview.list',mode:'READ',permission:'sources.review'},
+    {method:'POST',path:'/td2/height-reviews/{id}/dismiss',operation:'td2.heightReview.dismiss',mode:'COMMAND',permission:'sources.review',schema:S.heightReviewDismiss},
+    {method:'POST',path:'/td2/credentials/{id}/identifier/clear',operation:'td2.credential.secret.clear',mode:'COMMAND',permission:'sensitive.write',schema:S.credentialSecretClear},
     {method:'POST',path:'/td2/shortlists/{id}/role',operation:'td2.shortlist.role',mode:'COMMAND',permission:'records.write',schema:S.shortlistRole},
     {method:'GET',path:'/td2/schema',operation:'td2.schema',mode:'READ',permission:'records.read'},
     {method:'GET',path:'/td2/people',operation:'td2.person.list',mode:'READ',permission:'records.read'},

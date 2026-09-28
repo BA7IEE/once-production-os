@@ -291,6 +291,9 @@ export class Application {
                 }
                 switch (route.operation) {
                     case 'td2.shortlist.role': return command('shortlist',()=>this.shortlists.bindRole(tx,actor,id,data));
+                    case 'td2.heightReview.list': return this.talentV2.heightReviews(tx,actor,id,query);
+                    case 'td2.heightReview.dismiss': return command('talentMigrationReview',()=>this.talentV2.dismissHeightReview(tx,actor,id,data));
+                    case 'td2.credential.secret.clear': return command('talentFact',()=>this.talentV2.clearCredentialSecret(tx,actor,id,data));
                     case 'td2.schema': return this.talentV2.schema(tx,actor);
                     case 'td2.person.list': return searchTalentV2(tx,actor,this.clock,query);
                     case 'td2.person.get': return this.talentV2.get(tx,actor,id);

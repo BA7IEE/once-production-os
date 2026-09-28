@@ -1,5 +1,8 @@
 // Generated from packages/core/src/routes.ts and validation.ts. Do not edit.
 export interface Inputs {
+  "td2.heightReview.list": undefined;
+  "td2.heightReview.dismiss": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "sourceRevision": number; "resolution": "DO_NOT_USE_LEGACY_HEIGHT"; "acknowledge": boolean };
+  "td2.credential.secret.clear": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "sourceRevision": number; "acknowledge": boolean };
   "td2.shortlist.role": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "itemId": string; "personRoleId": string; "personRoleRevision": number };
   "td2.schema": undefined;
   "td2.person.list": undefined;
@@ -169,6 +172,21 @@ export interface Inputs {
   "shortlist.reorder": { "expectedRevision": number; "entryIds": Array<string> };
 }
 export const ENDPOINTS = {
+  "td2.heightReview.list": {
+    "method": "GET",
+    "path": "/td2/people/{id}/height-reviews",
+    "mode": "READ"
+  },
+  "td2.heightReview.dismiss": {
+    "method": "POST",
+    "path": "/td2/height-reviews/{id}/dismiss",
+    "mode": "COMMAND"
+  },
+  "td2.credential.secret.clear": {
+    "method": "POST",
+    "path": "/td2/credentials/{id}/identifier/clear",
+    "mode": "COMMAND"
+  },
   "td2.shortlist.role": {
     "method": "POST",
     "path": "/td2/shortlists/{id}/role",

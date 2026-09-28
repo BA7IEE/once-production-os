@@ -258,6 +258,17 @@ export class TalentV2 {
         }
         return page(result,query,['personId']);
     }
+    async heightReviews(tx:Tx,actor:Actor,id:string,query:Record<string,string>){
+        humanReview(actor);requirePermission(actor,'records.read');const person=await td2PersonFor(tx,actor,id),source=await sourceFor(tx,actor,person.sourceId,this.clock);
+        const rows=(await tx.find('talentMigrationReviews',{workspaceId:actor.workspaceId,personId:id,reason:'HEIGHT_SEMANTICS_REQUIRED'})).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||a.id.localeCompare(b.id));
+        return {...page(rows.map(row=>({id:row.id,revision:row.revision,state:row.state,resolvedAt:row.resolvedAt})),query),personId:id,personRevision:person.revision,sourceRevision:source.revision,legacyHeightCm:person.heightCm,canDismiss:actor.permissions.includes('records.write')&&person.status!=='ARCHIVED'};
+    }
+    async dismissHeightReview(tx:Tx,actor:Actor,id:string,input:unknown){
+        humanReview(actor);requirePermission(actor,'records.write');const d=S.heightReviewDismiss.parse(input);invariant(d.acknowledge,'EXPLICIT_CONFIRMATION_REQUIRED','请明确确认不采用旧身高记录',422);
+        const row=await workspaceRow(tx,'talentMigrationReviews',id,actor.workspaceId);if(!row||row.reason!=='HEIGHT_SEMANTICS_REQUIRED')missing();
+        const person=await this.parent(tx,actor,row.personId,d.expectedPersonRevision);await this.source(tx,actor,person.sourceId,d.sourceRevision);cas(row,d.expectedRevision);invariant(row.state==='PENDING','MIGRATION_REVIEW_DECIDED','这项复核已经处理',409);
+        const next={...touch(row,this.clock),state:'RESOLVED' as const,resolvedAt:this.clock.now().toISOString(),resolvedById:actor.membershipId};await tx.replace('talentMigrationReviews',next);await this.bump(tx,person);return next;
+    }
     async confirm(tx:Tx,actor:Actor,table:'measurementSets'|'personExternalRefs'|'personCredentials',id:string,input:unknown){
         humanReview(actor);requirePermission(actor,'records.write');const d=S.factConfirm.parse(input),row=await rawFact(tx,actor,table,id),p=await this.parent(tx,actor,row.personId,d.expectedPersonRevision);cas(row,d.expectedRevision);
         const source=await this.source(tx,actor,row.sourceId,d.sourceRevision);invariant(source.status==='CONFIRMED','CONFIRMED_SOURCE_REQUIRED','核验操作需要已确认的依据来源',409);
@@ -293,6 +304,11 @@ export class TalentV2 {
         }else if(action==='REMOVE'&&'itemId' in d){invariant(items.some(i=>i.id===d.itemId),'COLLECTION_ITEM_MISSING','此集合中没有该媒体条目',404);await tx.remove('mediaCollectionItems',d.itemId);let n=0;for(const item of items.filter(i=>i.id!==d.itemId))await tx.replace('mediaCollectionItems',{...touch(item,this.clock),orderIndex:n++});}
         else if('itemIds' in d){invariant(d.itemIds.length===items.length&&new Set(d.itemIds).size===items.length&&items.every(i=>d.itemIds.includes(i.id)),'COLLECTION_ORDER_INVALID','排序必须完整包含本集合的全部媒体条目',422);for(const item of items)await tx.replace('mediaCollectionItems',{...touch(item,this.clock),orderIndex:d.itemIds.indexOf(item.id)});}
         const next=touch(row,this.clock);await replaceFact(tx,'mediaCollections',next);await this.bump(tx,p);return next;
+    }
+    async clearCredentialSecret(tx:Tx,actor:Actor,id:string,input:unknown){
+        invariant(actor.actorKind!=='MACHINE','HUMAN_REVIEW_REQUIRED','受限编号清除需要内部成员确认',403);talentWrite(actor);requirePermission(actor,'sensitive.write');const d=S.credentialSecretClear.parse(input);invariant(d.acknowledge,'EXPLICIT_CONFIRMATION_REQUIRED','请明确确认清除受限编号',422);
+        const row=await rawFact(tx,actor,'personCredentials',id),person=await this.parent(tx,actor,row.personId,d.expectedPersonRevision);cas(row,d.expectedRevision);await this.source(tx,actor,row.sourceId,d.sourceRevision);
+        const next={...touch(row,this.clock),identifierCiphertext:null,maskedIdentifier:null};await replaceFact(tx,'personCredentials',next);await this.bump(tx,person);return next;
     }
     async credentialSecret(tx:Tx,actor:Actor,id:string,input:unknown){
         talentWrite(actor);requirePermission(actor,'sensitive.write');const d=S.credentialSecret.parse(input),row=await rawFact(tx,actor,'personCredentials',id),p=await this.parent(tx,actor,row.personId,d.expectedPersonRevision);cas(row,d.expectedRevision);await sourceFor(tx,actor,row.sourceId,this.clock);
