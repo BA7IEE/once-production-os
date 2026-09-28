@@ -12,6 +12,7 @@ export function legacyProfessionalProjection(person:Person,graph:TalentGraph){
  if(!professionallyManaged(person,graph))return {professionalManaged:false,roles:person.roles,cityCode:person.cityCode,languageCodes:person.languageCodes,skillCodes:person.skillCodes,heightCm:person.heightCm};
  const current=(table:FactTable)=>graph.rows(table).filter(row=>row.personId===person.id).map(row=>graph.project(table,row as unknown as FactRow)).filter((row):row is Record<string,unknown>=>!!row&&row.usable===true);
  const codes=(table:FactTable,key:string)=>[...new Set(current(table).map(row=>row[key]).filter((value):value is string=>typeof value==='string'))];
+ const baseLocation=current('talentLocations').find(row=>row.relationCode==='BASE');
  const casting=current('castingProfiles')[0],measurement=casting?current('measurementSets').find(row=>row.id===casting.currentMeasurementSetId):undefined;
- return {professionalManaged:true,roles:codes('personRoles','roleCode'),cityCode:current('talentLocations').find(row=>row.relationCode==='BASE')?.locationCode??null,languageCodes:codes('personLanguages','languageCode'),skillCodes:codes('personCapabilities','capabilityCode'),heightCm:typeof measurement?.heightCm==='number'?measurement.heightCm:null};
+ return {professionalManaged:true,roles:codes('personRoles','roleCode'),cityCode:typeof baseLocation?.locationCode==='string'?baseLocation.locationCode:null,languageCodes:codes('personLanguages','languageCode'),skillCodes:codes('personCapabilities','capabilityCode'),heightCm:typeof measurement?.heightCm==='number'?measurement.heightCm:null};
 }

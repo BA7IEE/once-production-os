@@ -268,7 +268,8 @@ export class TalentV2 {
             const casting=(await tx.find('castingProfiles',{workspaceId:actor.workspaceId,personId:p.id}))[0];
             invariant(!!casting,'CASTING_PROFILE_REQUIRED','请先建立选角档案',409);
             await tx.replace('castingProfiles',{...touch(casting,this.clock),currentMeasurementSetId:id});
-            for(const review of await tx.find('talentMigrationReviews',{workspaceId:actor.workspaceId,personId:p.id,reason:'HEIGHT_SEMANTICS_REQUIRED',state:'PENDING'}))await tx.replace('talentMigrationReviews',{...touch(review,this.clock),state:'RESOLVED',resolvedAt:this.clock.now().toISOString(),resolvedById:actor.membershipId});
+            // Shoe/clothing-only confirmation does not establish the semantics of an old height.
+            if(typeof row.heightCm==='number') for(const review of await tx.find('talentMigrationReviews',{workspaceId:actor.workspaceId,personId:p.id,reason:'HEIGHT_SEMANTICS_REQUIRED',state:'PENDING'}))await tx.replace('talentMigrationReviews',{...touch(review,this.clock),state:'RESOLVED',resolvedAt:this.clock.now().toISOString(),resolvedById:actor.membershipId});
         }else if(table==='personExternalRefs'){invariant(row.state==='OBSERVED','EXTERNAL_REF_STATE','此标识不能重复核验',409);next.state='VERIFIED';next.verifiedAt=this.clock.now().toISOString();}
         else{invariant(row.status==='UNVERIFIED','CREDENTIAL_STATE','资质已经核验或已撤销',409);invariant(!!row.evidenceAssetId&&(await loadTalentGraph(tx,actor,this.clock)).assetReadable(String(row.evidenceAssetId)),'CREDENTIAL_EVIDENCE_REQUIRED','资质核验需要可用的证明材料',422);next.status='VERIFIED';}
         await replaceFact(tx,table,next);await this.bump(tx,p);return next;

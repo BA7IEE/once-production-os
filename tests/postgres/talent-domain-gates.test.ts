@@ -14,6 +14,8 @@ import {expectResponse as ok} from '../support/talent-v2-maintenance.ts';
 import {seedSharedProof} from '../support/talent-asset-erasure.ts';
 import {TALENT_SCHEMA_VERSION as schemaVersion} from '../../packages/core/src/talent-v2-model.ts';
 import {verifyLegacyProjection,verifyDelegatedLegacyProjection} from '../support/talent-legacy-projection.ts';
+import {verifyHeightReview} from '../support/talent-height-review.ts';
+import {verifyStructuredCompatibility} from '../support/talent-structured-compatibility.ts';
 import {decryptContact} from '../../packages/core/src/crypto.ts';
 
 test('TD2-T01 through T15 and T18: actual PostgreSQL domain contracts and private media',async t=>{
@@ -113,5 +115,7 @@ test('TD2-T01 through T15 and T18: actual PostgreSQL domain contracts and privat
   });
   await t.test('Phase C legacy projections and write protection use the same PostgreSQL facts',async()=>{await verifyLegacyProjection(owner);});
   await t.test('Phase C basic handoff cannot expand professional source/scope access',async()=>{await verifyDelegatedLegacyProjection(owner,clock.now());});
+  await t.test('Legacy height review is resolved only by an actual height, with atomic audit rollback/retry',async()=>{await verifyHeightReview(f,503);});
+  await t.test('Legacy structured search has current typed reviews, same-work/occupation matching and complete facets',async()=>{await verifyStructuredCompatibility(owner);});
  }finally{await store.close();rmSync(tmp,{recursive:true,force:true});}
 });

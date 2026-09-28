@@ -5,6 +5,8 @@ import { invariant } from './errors.ts';
 import { digest } from './json.ts';
 import { requirePermission } from './policy.ts';
 import { loadVisibility } from './visibility.ts';
+import { loadTalentGraph } from './talent-v2-graph.ts';
+import { compatibleTalentSearch } from './talent-search-compatibility.ts';
 
 function facets(rows: TalentFacetRow[]) {
     const count = (codes: string[], matches: (row: TalentFacetRow, code: string) => boolean) =>
@@ -44,7 +46,11 @@ export class TalentSearch {
         invariant(days === null || [30, 90, 180, 365].includes(days), 'QUERY_INVALID', '核验时效仅支持30/90/180/365天', 400);
         const visibility = await loadVisibility(tx, actor, this.clock);
         const retainedPersonIds=visibility.hasErasedSources?(await tx.find('people',{workspaceId:actor.workspaceId})).filter(p=>visibility.source(p.sourceId)?.status==='ERASED'&&visibility.personVisible(p)).map(p=>p.id):[];
-        const raw = await tx.talentQuery({
+        // Do not load the professional graph for a wholly legacy workspace: preserve its SQL query budget.
+        const hasProfiles=(await tx.find('talentProfiles',{workspaceId:actor.workspaceId})).length>0;
+        const hasContacts=hasProfiles?false:(await tx.find('people',{workspaceId:actor.workspaceId,roles:[]})).some(p=>p.status!=='ERASED');
+        const compatibility=hasProfiles||hasContacts?compatibleTalentSearch(await loadTalentGraph(tx,actor,this.clock),query):null;
+        const raw = compatibility ? {rows:compatibility.rows,baseTotal:compatibility.rows.length,alreadyPaged:false,evidence:[],facets:facets(compatibility.rows.map(facetRow))} : await tx.talentQuery({
             retainedPersonIds,
             workspaceId: actor.workspaceId, visibleScopeIds: visibility.visibleScopeIds, visibleSourceIds: visibility.visibleSourceIds,
             q: query.q?.toLocaleLowerCase() ?? '', role: query.role ?? null, cityCode: query.cityCode ?? null,
@@ -61,7 +67,7 @@ export class TalentSearch {
         }
         const threshold = days === null ? null : this.clock.now().getTime() - days * 86400000;
         const enrich = (row: TalentQueryRow) => {
-            let latestVerifiedAt: string | null = null;
+            let latestVerifiedAt: string | null = compatibility?.latestByPerson.get(row.person.id)??null;
             for (const evidence of evidenceByPerson.get(row.person.id) ?? []) {
                 const source = visibility.source(evidence.sourceId);
                 if (!evidence.reviewedAt || !source || !visibility.sourceVisible(source.id) || evidence.sourceRevision !== source.revision) continue;
