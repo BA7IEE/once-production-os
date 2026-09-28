@@ -1,0 +1,208 @@
+TAP version 13
+# Subtest: AI extraction produces a reviewable proposal and applies selected fields exactly once
+ok 1 - AI extraction produces a reviewable proposal and applies selected fields exactly once
+  ---
+  duration_ms: 144.0985
+  type: 'test'
+  ...
+# Subtest: AI strict source permission and minimum input checks precede reservation
+ok 2 - AI strict source permission and minimum input checks precede reservation
+  ---
+  duration_ms: 123.900834
+  type: 'test'
+  ...
+# Subtest: AI source changes prevent dispatch and stale proposals cannot write facts
+ok 3 - AI source changes prevent dispatch and stale proposals cannot write facts
+  ---
+  duration_ms: 125.944417
+  type: 'test'
+  ...
+# Subtest: AI parse search confirms a restricted filter object and never writes facts
+ok 4 - AI parse search confirms a restricted filter object and never writes facts
+  ---
+  duration_ms: 122.664333
+  type: 'test'
+  ...
+# Subtest: AI locale creates an unreviewed draft and work tags stay within the approved dictionary
+ok 5 - AI locale creates an unreviewed draft and work tags stay within the approved dictionary
+  ---
+  duration_ms: 138.49125
+  type: 'test'
+  ...
+# Subtest: AI selected fields and proposal state roll back together on audit failure
+ok 6 - AI selected fields and proposal state roll back together on audit failure
+  ---
+  duration_ms: 124.610667
+  type: 'test'
+  ...
+# Subtest: AI malformed output and invented quotations never become proposals or verified facts
+ok 7 - AI malformed output and invented quotations never become proposals or verified facts
+  ---
+  duration_ms: 246.405584
+  type: 'test'
+  ...
+# Subtest: AI source-linked proposals and grant evidence erase together without releasing unknown fees
+ok 8 - AI source-linked proposals and grant evidence erase together without releasing unknown fees
+  ---
+  duration_ms: 129.171834
+  type: 'test'
+  ...
+# Subtest: AI explicit permission and current source scope govern content, counts and replay
+ok 9 - AI explicit permission and current source scope govern content, counts and replay
+  ---
+  duration_ms: 122.892792
+  type: 'test'
+  ...
+# Subtest: AI recovery revokes grants, rejects pending proposals and retains unresolved charges
+ok 10 - AI recovery revokes grants, rejects pending proposals and retains unresolved charges
+  ---
+  duration_ms: 122.555292
+  type: 'test'
+  ...
+# Subtest: AI person deletion uses the normal impact, decision, freeze and cleanup workflow
+ok 11 - AI person deletion uses the normal impact, decision, freeze and cleanup workflow
+  ---
+  duration_ms: 132.27925
+  type: 'test'
+  ...
+# Subtest: AI may report no supported fields without guessing or treating confirmed usage as unknown
+ok 12 - AI may report no supported fields without guessing or treating confirmed usage as unknown
+  ---
+  duration_ms: 124.3835
+  type: 'test'
+  ...
+# Subtest: AI reservations serialize and uncertain/cancelled attempts retain funds until reconciliation
+ok 13 - AI reservations serialize and uncertain/cancelled attempts retain funds until reconciliation
+  ---
+  duration_ms: 130.93725
+  type: 'test'
+  ...
+# Subtest: AI accounting and dispatch authorization roll back when audit fails
+ok 14 - AI accounting and dispatch authorization roll back when audit fails
+  ---
+  duration_ms: 122.141792
+  type: 'test'
+  ...
+# Subtest: AI sends fail closed on changed provider, recovery epoch, disabled actor or midnight reservation
+ok 15 - AI sends fail closed on changed provider, recovery epoch, disabled actor or midnight reservation
+  ---
+  duration_ms: 123.269042
+  type: 'test'
+  ...
+# Subtest: AI known not executed has a bounded attempt count; cancellation releases only unsent funds
+ok 16 - AI known not executed has a bounded attempt count; cancellation releases only unsent funds
+  ---
+  duration_ms: 122.46575
+  type: 'test'
+  ...
+# Subtest: AI request identity rejects reuse with different payload and invalid money/configuration
+ok 17 - AI request identity rejects reuse with different payload and invalid money/configuration
+  ---
+  duration_ms: 121.600916
+  type: 'test'
+  ...
+# Subtest: AI uncertain funds survive date rollover and an overrun freezes subsequent days too
+ok 18 - AI uncertain funds survive date rollover and an overrun freezes subsequent days too
+  ---
+  duration_ms: 119.593584
+  type: 'test'
+  ...
+# Subtest: AI in-flight settlement remains possible after actor disable and restoration, but never sends again
+ok 19 - AI in-flight settlement remains possible after actor disable and restoration, but never sends again
+  ---
+  duration_ms: 119.948875
+  type: 'test'
+  ...
+# Subtest: AI dispatcher commits its unique attempt before network and never repeats an uncertain request
+ok 20 - AI dispatcher commits its unique attempt before network and never repeats an uncertain request
+  ---
+  duration_ms: 119.946333
+  type: 'test'
+  ...
+# Subtest: AI dispatcher times out with reserved cost; late provider completion cannot create a proposal
+ok 21 - AI dispatcher times out with reserved cost; late provider completion cannot create a proposal
+  ---
+  duration_ms: 132.946292
+  type: 'test'
+  ...
+# Subtest: AI dispatcher checks input again before send and cancellation during HTTP suppresses proposals
+ok 22 - AI dispatcher checks input again before send and cancellation during HTTP suppresses proposals
+  ---
+  duration_ms: 122.20825
+  type: 'test'
+  ...
+# Subtest: AI proposal and settlement share a transaction; failed proposal does not create settled success
+ok 23 - AI proposal and settlement share a transaction; failed proposal does not create settled success
+  ---
+  duration_ms: 121.915166
+  type: 'test'
+  ...
+# Subtest: AI recovery inspection includes unresolved attempts and detects accounting or request-identity damage
+ok 24 - AI recovery inspection includes unresolved attempts and detects accounting or request-identity damage
+  ---
+  duration_ms: 123.572542
+  type: 'test'
+  ...
+# Subtest: AI approval binds the exact candidate and active human approver; disable is atomic and replayable
+ok 25 - AI approval binds the exact candidate and active human approver; disable is atomic and replayable
+  ---
+  duration_ms: 254.611541
+  type: 'test'
+  ...
+# Subtest: AI worker serializes send authority across concurrent workers and ignores cancelled sources
+ok 26 - AI worker serializes send authority across concurrent workers and ignores cancelled sources
+  ---
+  duration_ms: 129.228833
+  type: 'test'
+  ...
+# Subtest: AI worker restart isolates abandoned attempts even without an adapter and preserves reserved cost
+ok 27 - AI worker restart isolates abandoned attempts even without an adapter and preserves reserved cost
+  ---
+  duration_ms: 121.03475
+  type: 'test'
+  ...
+# Subtest: AI shutdown during provider work aborts and never creates a proposal or resend
+ok 28 - AI shutdown during provider work aborts and never creates a proposal or resend
+  ---
+  duration_ms: 122.537208
+  type: 'test'
+  ...
+# Subtest: AI reconciliation verifies original request evidence, rolls back with audit and never resends
+ok 29 - AI reconciliation verifies original request evidence, rolls back with audit and never resends
+  ---
+  duration_ms: 126.054958
+  type: 'test'
+  ...
+# Subtest: AI confirmed nonexecution releases funds but requires a new human task; unresolved cost blocks unfreeze
+ok 30 - AI confirmed nonexecution releases funds but requires a new human task; unresolved cost blocks unfreeze
+  ---
+  duration_ms: 126.205875
+  type: 'test'
+  ...
+# Subtest: AI approval is invalidated by approver qualification and recovery isolation
+ok 31 - AI approval is invalidated by approver qualification and recovery isolation
+  ---
+  duration_ms: 123.119875
+  type: 'test'
+  ...
+# Subtest: AI global egress and maintenance switches block queued sends without blocking reconciliation
+ok 32 - AI global egress and maintenance switches block queued sends without blocking reconciliation
+  ---
+  duration_ms: 125.626209
+  type: 'test'
+  ...
+# Subtest: AI approval rejects invalid limits and still permits stopping while global egress is off
+ok 33 - AI approval rejects invalid limits and still permits stopping while global egress is off
+  ---
+  duration_ms: 120.440209
+  type: 'test'
+  ...
+1..33
+# tests 33
+# suites 0
+# pass 33
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4781.926709

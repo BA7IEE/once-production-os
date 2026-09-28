@@ -4,7 +4,7 @@ import { base, cas, touch, workspaceRow } from './helpers.ts';
 import { AppError, invariant, missing } from './errors.ts';
 import { permissionsFor, requirePermission, sourceFor } from './policy.ts';
 import { digest } from './json.ts';
-import { AiLedger } from './ai-ledger.ts';
+import { AiLedger, validateAiConfig } from './ai-ledger.ts';
 import { AiSchemas as S } from './ai-validation.ts';
 export interface AiApproval extends Base { configDigest:string; configRevision:number; reviewerId:string; enabled:boolean; recoveryEpoch:string; }
 export interface AiBudgetRelease extends Base { budgetId:string; budgetRevision:number; approvalId:string; reviewerId:string; }
@@ -14,6 +14,8 @@ export const aiConfigDigest=(config:Config)=>config.ai?digest(config.ai):null;
 export async function approvedAi(tx:Tx,workspaceId:string,config:Config){
  const c=config.ai;
  invariant(c?.enabled,'AI_DISABLED','尚未安装已验证的 AI 供应商配置',409);
+ invariant(config.accessMode==='INTERNAL'&&config.dataEgressMode==='INTERNAL_APPROVED','AI_EGRESS_DISABLED','系统处于维护状态或数据外送未启用',409);
+ validateAiConfig(c);
  const approvals=await tx.find('aiApprovals',{workspaceId}),row=approvals.find(a=>a.configDigest===aiConfigDigest(config));
  invariant(!approvals.some(a=>a.configRevision>c.configRevision),'AI_CONFIG_CHANGED','不能恢复已被较新版本替代的 AI 配置',409);
  const m=row?await workspaceRow(tx,'memberships',row.reviewerId,workspaceId):null,u=m?await tx.get('users',m.userId):null;
@@ -34,6 +36,7 @@ export class AiOperations {
   aiOperator(actor);const d=S.approval.parse(input),c=this.config.ai;
   invariant(c?.enabled&&d.configDigest===aiConfigDigest(this.config),'AI_CONFIG_CHANGED','部署配置不存在或已经变化，请重新读取',409);
   invariant(d.confirmConfiguration,'AI_CONFIRM_REQUIRED','请确认供应商身份、费用上限及已完成的适配器验证',422);
+  if(d.enabled){validateAiConfig(c);invariant(this.config.accessMode==='INTERNAL'&&this.config.dataEgressMode==='INTERNAL_APPROVED','AI_EGRESS_DISABLED','系统处于维护状态或数据外送未启用',409);}
   const old=(await tx.find('aiApprovals',{workspaceId:actor.workspaceId,configDigest:d.configDigest}))[0];
   invariant(!(await tx.find('aiApprovals',{workspaceId:actor.workspaceId})).some(a=>a.configDigest!==d.configDigest&&a.configRevision>=c.configRevision),'AI_CONFIG_REVISION_REUSED','配置变化必须提升配置版本',409);
   invariant(old?old.revision===d.expectedRevision:d.expectedRevision===0,'REVISION_CONFLICT','配置审批已变化，请刷新',409);

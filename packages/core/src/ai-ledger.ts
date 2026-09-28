@@ -8,6 +8,12 @@ import {invariant,missing} from './errors.ts';
 
 const units=(n:number)=>invariant(Number.isSafeInteger(n)&&n>=0&&n<=2_000_000_000,'AI_AMOUNT_INVALID','AI 金额必须是有效的整数最小单位',400);
 const hash=(s:string)=>invariant(/^[a-f0-9]{64}$/.test(s),'AI_DIGEST_INVALID','AI 摘要格式无效',400);
+export function validateAiConfig(c:AiLedgerConfig){
+  invariant(c.enabled,'AI_DISABLED','AI 调用尚未启用',409);hash(c.providerIdentityHash);
+  invariant(Number.isSafeInteger(c.configRevision)&&c.configRevision>0&&c.recoveryEpoch.length>0&&/^[A-Z]{3}$/.test(c.currency)&&Number.isInteger(c.maxAttempts)&&c.maxAttempts>=1&&c.maxAttempts<=3,'AI_CONFIG_INVALID','AI 配置无效',409);
+  units(c.perTaskLimitUnits);units(c.dailyLimitUnits);
+  invariant(c.perTaskLimitUnits>0&&c.perTaskLimitUnits<=c.dailyLimitUnits,'AI_CONFIG_INVALID','AI 费用上限无效',409);
+ }
 /** Internal transaction primitive, not an authorization boundary or a provider adapter.
  * Caller must authorize the task, exact text/permissions and current source graph IN THE
  * SAME transaction before reserve/begin; no public route or worker is wired to this yet.
@@ -15,14 +21,8 @@ const hash=(s:string)=>invariant(/^[a-f0-9]{64}$/.test(s),'AI_DIGEST_INVALID','A
 export class AiLedger {
  readonly clock:Clock;
  constructor(clock:Clock){this.clock=clock;}
- private config(c:AiLedgerConfig){
-  invariant(c.enabled,'AI_DISABLED','AI 调用尚未启用',409);hash(c.providerIdentityHash);
-  invariant(Number.isSafeInteger(c.configRevision)&&c.configRevision>0&&c.recoveryEpoch.length>0&&/^[A-Z]{3}$/.test(c.currency)&&Number.isInteger(c.maxAttempts)&&c.maxAttempts>=1&&c.maxAttempts<=3,'AI_CONFIG_INVALID','AI 配置无效',409);
-  units(c.perTaskLimitUnits);units(c.dailyLimitUnits);
-  invariant(c.perTaskLimitUnits>0&&c.perTaskLimitUnits<=c.dailyLimitUnits,'AI_CONFIG_INVALID','AI 费用上限无效',409);
- }
  private async current(tx:Tx,run:AiRun,c:AiLedgerConfig){
-  this.config(c);
+  validateAiConfig(c);
   invariant(run.providerIdentityHash===c.providerIdentityHash&&run.configRevision===c.configRevision,'AI_CONFIG_CHANGED','AI 配置已变化，请重新确认任务',409);
   const workspace=await tx.get('workspaces',run.workspaceId);
   invariant(workspace?.recoveryEpoch===run.recoveryEpoch&&run.recoveryEpoch===c.recoveryEpoch,'AI_RECOVERY_CHANGED','恢复前的 AI 任务不能继续发送',409);
@@ -36,7 +36,7 @@ export class AiLedger {
   await audit(tx,null,run.workspaceId,action,'aiRun',run.id,['state','reservedUnits','settledUnits'],meta,this.clock);
  }
  async reserve(tx:Tx,workspaceId:string,actorId:string,key:string,inputDigest:string,reservedUnits:number,c:AiLedgerConfig,meta:RequestMeta){
-  this.config(c);hash(inputDigest);units(reservedUnits);
+  validateAiConfig(c);hash(inputDigest);units(reservedUnits);
   invariant(/^[A-Za-z0-9_-]{8,128}$/.test(key),'INVALID_COMMAND_KEY','请求键无效',400);
   invariant(reservedUnits>0&&reservedUnits<=c.perTaskLimitUnits,'BUDGET_NOT_AVAILABLE','任务预留费用超过上限',409);
   const requestDigest=digest({inputDigest,reservedUnits,providerIdentityHash:c.providerIdentityHash,configRevision:c.configRevision,currency:c.currency,recoveryEpoch:c.recoveryEpoch});

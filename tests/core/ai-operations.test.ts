@@ -46,3 +46,15 @@ test('AI approval is invalidated by approver qualification and recovery isolatio
  await f.store.transaction(tx=>tx.replace('memberships',{...t.member,extraPermissions:[...t.member.extraPermissions,'ai.use']}));assert.equal(result(await f.owner.raw('GET','/ai-settings')).enabled,true);
  const {isolateAi}=await import('../../packages/core/src/ai-maintenance.ts');await f.store.transaction(tx=>isolateAi(tx,t.workspaceId,f.clock,meta));assert.equal(result(await f.owner.raw('GET','/ai-settings')).enabled,false);assert.ok((await f.store.transaction(tx=>tx.find('aiApprovals'))).every(a=>!a.enabled));
 });
+test('AI global egress and maintenance switches block queued sends without blocking reconciliation',async()=>{
+ const f=await fixture(),t=await aiBusinessFixture(f),a=await uncertain(f,t);await t.create();let calls=0;
+ f.app.config.dataEgressMode='DISABLED';assert.equal(result(await f.owner.raw('GET','/ai-settings')).enabled,false);assert.equal((await f.owner.cmd('POST','/ai-jobs',t.input)).status,409);
+ await new AiWorker(f.app,{providerIdentityHash:f.app.config.ai!.providerIdentityHash,send:async()=>{calls++;throw new Error('must not send');}}).cycle(new AbortController().signal);assert.equal(calls,0);
+ assert.equal((await f.owner.cmd('POST','/ai-attempts/'+a.id+'/reconcile',{...proof(t,a),outcome:'NOT_EXECUTED',amountUnits:0})).status,200);
+ f.app.config.dataEgressMode='INTERNAL_APPROVED';f.app.config.accessMode='MAINTENANCE';const {approvedAi}=await import('../../packages/core/src/ai-operations.ts');await assert.rejects(f.store.transaction(tx=>approvedAi(tx,t.workspaceId,f.app.config)),{code:'AI_EGRESS_DISABLED'});
+});
+test('AI approval rejects invalid limits and still permits stopping while global egress is off',async()=>{
+ const f=await fixture();await aiBusinessFixture(f);const previous={...f.app.config.ai!};f.app.config.ai={...previous,configRevision:2,perTaskLimitUnits:0};
+ const c=await f.owner.cmd('POST','/ai-operations/approval',{configDigest:digest(f.app.config.ai),expectedRevision:0,enabled:true,confirmConfiguration:true});assert.equal(c.status,409);assert.equal((await f.store.transaction(tx=>tx.find('aiApprovals'))).length,1);
+ f.app.config.ai=previous;f.app.config.dataEgressMode='DISABLED';const row=result(await f.owner.raw('GET','/ai-operations'));assert.equal(row.enabled,false);assert.equal((await f.owner.cmd('POST','/ai-operations/approval',{configDigest:row.candidate.digest,expectedRevision:row.approval.revision,enabled:false,confirmConfiguration:true})).status,200);
+});
