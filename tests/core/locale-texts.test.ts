@@ -31,7 +31,7 @@ test('locale recovery inspection rejects missing roots, altered source digest an
  const id=ok(await f.owner.cmd('POST','/locale-texts',{subjectKind:'PERSON',subjectId:personId,locale:'zh',text:'合成恢复文本',expectedSubjectRevision:1,sourceRefs:[{id:sourceId,expectedRevision:1}],confirmCurrentBasis:false})).resourceId as string;
  assert.equal((await f.store.transaction(tx=>inspectLocaleIntegrity(tx,f.workspaceId))).relationFailures,0);
  const duplicateId=await createPerson(f.owner,'含文本合并阻断');
- const merge=ok(await f.owner.raw('POST','/people/merge-preview',{canonicalId:personId,duplicateId,expectedCanonicalRevision:1,expectedDuplicateRevision:1}),200);assert.equal(merge.complete,false);assert.ok(merge.blockers.some((b:any)=>b.code==='LOCALE_MERGE_REVIEW_REQUIRED'));
+ const merge=ok(await f.owner.raw('POST','/people/merge-preview',{canonicalId:personId,duplicateId,expectedCanonicalRevision:1,expectedDuplicateRevision:1}),200);assert.equal(merge.complete,true);assert.equal(merge.locales[0].options[0].id,id);
  const permissionId=ok(await f.owner.cmd('POST','/use-permissions',{sourceId,subjectKind:'PERSON',subjectId:personId,fields:['person.displayName'],validUntil:'2026-10-15T00:00:00.000Z',evidenceNote:'合成明确批准内部导出字段'})).resourceId;
  const blockedExport=await f.owner.cmd('POST','/exports',{format:'JSON',selectedIds:{people:[personId],works:[],projects:[]},fields:['person.displayName'],usePermissionRefs:[permissionId]});assert.equal(blockedExport.status,422);assert.equal((blockedExport.body as any).error.code,'LOCALE_FIELDS_REQUIRED');assert.equal(f.store.rows('exports').length,0);
 

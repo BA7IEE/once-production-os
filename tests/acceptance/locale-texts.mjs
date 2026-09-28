@@ -30,6 +30,25 @@ export async function verifyLocaleBrowser({owner,prisma,cmd,writeUI,source,json,
   }
   await dialog.getByRole('button',{name:'返回资料',exact:true}).click();await owner.getByRole('dialog').getByRole('button',{name:'关闭',exact:true}).first().click();
  }
+ const duplicateName='浏览器语言合并重复档案',duplicateId=(await cmd(owner,'POST','/people',{displayName:duplicateName,roles:['photographer'],sourceId},201)).resourceId;
+ await cmd(owner,'POST','/locale-texts',{subjectKind:'PERSON',subjectId:duplicateId,locale:'en',text:'Chosen browser merged English.',expectedSubjectRevision:1,sourceRefs:[{id:sourceId,expectedRevision:1}],confirmCurrentBasis:true},201);
+ await owner.getByRole('button',{name:/人才合并/}).click();
+ const pickers=owner.locator('.merge-picker');
+ await pickers.nth(0).getByLabel('主档案（保留）',{exact:true}).fill('浏览器语言PERSON');await pickers.nth(0).getByRole('button',{name:/浏览器语言PERSON/}).click();
+ await pickers.nth(1).getByLabel('重复档案（归档并建立旧 ID 映射）',{exact:true}).fill(duplicateName);await pickers.nth(1).getByRole('button',{name:new RegExp(duplicateName)}).click();
+ const mergePreview=await writeUI(owner,'POST','/people/merge-preview',()=>owner.getByRole('button',{name:'预览合并影响',exact:true}).click());
+ for(const field of mergePreview.fieldConflicts)await owner.getByLabel('字段决定 '+field.field,{exact:true}).selectOption('CANONICAL');
+ await owner.getByLabel('合并依据 *',{exact:true}).fill('人工核对同一合成人物并选择英文正文');
+ assert.equal(await owner.getByRole('button',{name:'执行受控合并',exact:true}).isEnabled(),false);
+ await owner.locator('label').filter({hasText:'采用重复档案文本'}).getByRole('radio').check();
+ owner.once('dialog',dialog=>void dialog.accept());await writeUI(owner,'POST','/people/merge',()=>owner.getByRole('button',{name:'执行受控合并',exact:true}).click());
+ await owner.getByText('合并已完成',{exact:true}).waitFor();
+ await owner.getByRole('button',{name:/人才档案/}).click();await owner.getByLabel('搜索姓名或别名',{exact:true}).fill('浏览器语言PERSON');await owner.getByRole('button',{name:'搜索',exact:true}).click();await owner.locator('.person-card').filter({has:owner.getByRole('heading',{name:'浏览器语言PERSON',exact:true})}).click();
+ await owner.getByRole('button',{name:'内部中英文文本',exact:true}).click();const mergedDialog=owner.getByRole('dialog',{name:'内部中英文文本',exact:true});
+ await mergedDialog.getByText('Chosen browser merged English.',{exact:true}).first().waitFor();await mergedDialog.getByText('合并保留原文（2）',{exact:true}).click();await mergedDialog.getByText('Synthetic text after uncertain response.',{exact:true}).waitFor();
+ assert.equal(await mergedDialog.getByText('待复核',{exact:true}).count(),1);
+ await mergedDialog.getByRole('button',{name:'返回资料',exact:true}).click();await owner.getByRole('dialog').getByRole('button',{name:'关闭',exact:true}).first().click();
+ console.log('PASS locale merge browser: explicit language choice, original text history, draft review state');
  await owner.getByRole('button',{name:/内部导出/}).click();
  const names={PERSON:'人物内部中英文文本、依据与原复核记录',WORK:'作品内部中英文文本、依据与原复核记录',PROJECT:'项目内部中英文文本、依据与原复核记录'},sourceLabels=['来源标题','来源类型','提供方说明','内部依据类型','依据说明','有效起点','有效截止','来源状态'],permits=[];
  const approvals=roots.map(({kind,id})=>[kind,id,[...(kind==='PERSON'?['姓名 / 展示名','角色','档案状态']:kind==='WORK'?['作品标题','制作归属','作品状态']:['项目标题','项目状态']),names[kind]]]);approvals.push(['SOURCE',sourceId,[...sourceLabels,...Object.values(names)]]);
@@ -42,7 +61,7 @@ export async function verifyLocaleBrowser({owner,prisma,cmd,writeUI,source,json,
  for(const id of permits)await owner.getByLabel('选择导出许可 '+id,{exact:true}).check();
  const exportId=(await writeUI(owner,'POST','/exports',()=>owner.getByRole('button',{name:'生成内部 JSON',exact:true}).click(),202)).resourceId;
  await until(async()=>await prisma.exportJob.count({where:{id:exportId,state:'READY'}})===1);await owner.getByRole('button',{name:'下载 JSON',exact:true}).waitFor();const downloading=owner.waitForEvent('download');await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();const file=await downloading,payload=JSON.parse(readFileSync(await file.path(),'utf8'));
- assert.equal(payload.schemaVersion,'once-export-v3-locale');assert.equal(payload.manifest.locales.texts.length,3);for(const text of payload.manifest.locales.texts){const row=await prisma.localeText.findUniqueOrThrow({where:{id:text.id}});assert.equal(text.text,row.text);assert.equal(text.originalReview?.membershipId??null,row.reviewedBy);assert.equal(text.dependencies.length,2);}
+ assert.equal(payload.schemaVersion,'once-export-v3-locale');assert.equal(payload.manifest.locales.texts.length,3);for(const text of payload.manifest.locales.texts){const row=await prisma.localeText.findUniqueOrThrow({where:{id:text.id}});assert.equal(text.text,row.text);assert.equal(text.originalReview?.membershipId??null,row.reviewedBy??row.originalReviewMembershipId);assert.equal(text.dependencies.length,2);assert.deepEqual(text.mergeHistory,row.mergeHistory??[]);}
  await cmd(owner,'POST','/use-permissions/'+permits.at(-1)+'/revoke',{expectedRevision:1});const denied=await writeUI(owner,'POST','/exports/'+exportId+'/download',()=>owner.getByRole('button',{name:'下载 JSON',exact:true}).click(),409);assert.equal(denied.error.code,'EXPORT_STALE');
  console.log('PASS internal locale v3 browser: explicit three owner grants and source grant -> real JSON download preserves typed dependencies and original review; source-only grant revocation blocks old download');
  console.log('PASS internal locale browser: person/work/project real editor, explicit source and review, persisted text, uncertain committed response freezes form and replays identical key/body');

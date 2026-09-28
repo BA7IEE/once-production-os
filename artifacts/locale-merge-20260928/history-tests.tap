@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: locale merge preserves both originals, forces re-review, rolls back audit failures and replays exact requests
+ok 1 - locale merge preserves both originals, forces re-review, rolls back audit failures and replays exact requests
+  ---
+  duration_ms: 157.869167
+  type: 'test'
+  ...
+# Subtest: locale merge rejects changed auxiliary sources and hides restricted text from preview
+ok 2 - locale merge rejects changed auxiliary sources and hides restricted text from preview
+  ---
+  duration_ms: 126.301458
+  type: 'test'
+  ...
+# Subtest: merged originals survive controlled export and rebuild; unrelated history sources are rejected
+ok 3 - merged originals survive controlled export and rebuild; unrelated history sources are rejected
+  ---
+  duration_ms: 266.221
+  type: 'test'
+  ...
+# Subtest: a later merge retains prior originals without nesting, and old identity deletion includes dependent text
+ok 4 - a later merge retains prior originals without nesting, and old identity deletion includes dependent text
+  ---
+  duration_ms: 138.088875
+  type: 'test'
+  ...
+# Subtest: language choices are explicit even for one-sided text and cannot select another language
+ok 5 - language choices are explicit even for one-sided text and cannot select another language
+  ---
+  duration_ms: 128.067625
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# PASS v14 erased history rebuild: minimal erased identity, original alias/merge choice, distinct original erasure attribution, no deleted profile resurrection, audit rollback and retry
+# Subtest: TD2 v14 export and rebuild explicitly preserve historical erasure without restoring deleted profiles or old identity payload
+ok 6 - TD2 v14 export and rebuild explicitly preserve historical erasure without restoring deleted profiles or old identity payload
+  ---
+  duration_ms: 412.18225
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# Subtest: TD2 v14 rejects incomplete erasure lineage, payload resurrection, fabricated reason or old format before writes
+ok 7 - TD2 v14 rejects incomplete erasure lineage, payload resurrection, fabricated reason or old format before writes
+  ---
+  duration_ms: 353.653709
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# PASS source after separately reviewed old identity erasure: exact prior aliases/decisions/markers preserved, remaining source facts removed atomically with audit rollback/retry, canonical identity remains readable
+# PASS v14 erased history rebuild: minimal erased identity, original alias/merge choice, distinct original erasure attribution, no deleted profile resurrection, audit rollback and retry
+# Subtest: TD2 source cleanup after reviewed history erasure exports and rebuilds both minimal erased origin and old identity
+ok 8 - TD2 source cleanup after reviewed history erasure exports and rebuilds both minimal erased origin and old identity
+  ---
+  duration_ms: 460.567416
+  type: 'test'
+  ...
+# Subtest: merge history rebuild preserves immutable alias, archived identity, retained profiles and original actor without replaying a merge
+ok 9 - merge history rebuild preserves immutable alias, archived identity, retained profiles and original actor without replaying a merge
+  ---
+  duration_ms: 299.060834
+  type: 'test'
+  ...
+# Subtest: merge history rejects cross-identity mapping, missing current profile or retired measurement, forged actor and unknown manifest payload
+ok 10 - merge history rejects cross-identity mapping, missing current profile or retired measurement, forged actor and unknown manifest payload
+  ---
+  duration_ms: 259.353458
+  type: 'test'
+  ...
+# Subtest: historical identity scope and explicit history or evidence grant remain required
+ok 11 - historical identity scope and explicit history or evidence grant remain required
+  ---
+  duration_ms: 143.836375
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3158.769334

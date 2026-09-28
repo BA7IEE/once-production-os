@@ -1,7 +1,9 @@
+import type {LocaleHistory} from './locale-history.ts';
 import type {ImportedLocaleBasis} from './locale-provenance.ts';
 import type {Base} from './model.ts';
 export type LocaleSubjectKind='PERSON'|'WORK'|'PROJECT';
 export interface LocaleText extends Base {
+ mergeHistory?:LocaleHistory|null;
  personId:string|null;workId:string|null;projectId:string|null;
  locale:'zh'|'en';text:string;state:'DRAFT'|'REVIEWED'|'ERASED';sourceDigest:string;
  reviewedBy:string|null;reviewedAt:string|null;

@@ -1,3 +1,4 @@
+import {LocaleHistorySchema} from './locale-history.ts';
 import {digest} from './json.ts';
 import type {Actor,Clock} from './model.ts';
 import type {Tx} from './store.ts';
@@ -14,7 +15,7 @@ export const localeTransferCode=(kind:'PERSON'|'WORK'|'PROJECT'):LocaleTransferC
 const text=v.object({id:uuid,workspaceId:uuid,createdAt:dateIso,updatedAt:dateIso,revision,
  personId:v.nullable(uuid),workId:v.nullable(uuid),projectId:v.nullable(uuid),locale:v.enum(['zh','en']),text:v.string(10000,1),
  state:v.enum(['DRAFT','REVIEWED']),needsReview:v.boolean(),sourceDigest:v.string(64,64,/^[a-f0-9]{64}$/),
- originalReview:v.nullable(LocaleReviewSchema),importedBasis:v.nullable(LocaleBasisSchema),dependencies:v.array(LocaleDependencySchema,21,2)
+ mergeHistory:LocaleHistorySchema,originalReview:v.nullable(LocaleReviewSchema),importedBasis:v.nullable(LocaleBasisSchema),dependencies:v.array(LocaleDependencySchema,21,2)
 });
 export const LocaleTransferSchema=v.object({schemaVersion:v.enum(['once-locale-transfer-v1']),texts:v.array(text,320)});
 export type LocaleTransfer=Parsed<typeof LocaleTransferSchema>;
@@ -27,7 +28,7 @@ export async function collectLocaleTransfer(tx:Tx,actor:Actor,clock:Clock,select
   const access=await domain.access(tx,actor,row.id);invariant(!access.securityChanged,'LOCALE_TEXT_RESTRICTED','内部文本依据范围已变化，请先人工复核再导出',409);
   texts.push({id:row.id,workspaceId:row.workspaceId,createdAt:row.createdAt,updatedAt:row.updatedAt,revision:row.revision,personId:row.personId,workId:row.workId,projectId:row.projectId,locale:row.locale,text:row.text,state:row.state,needsReview:access.needsReview,sourceDigest:row.sourceDigest,
    originalReview:row.reviewedBy?{workspaceId:row.workspaceId,membershipId:row.reviewedBy,reviewedAt:row.reviewedAt!,textDigest:digest(row.text)}:row.originalReviewWorkspaceId?{workspaceId:row.originalReviewWorkspaceId,membershipId:row.originalReviewMembershipId!,reviewedAt:row.originalReviewedAt!,textDigest:row.originalReviewTextDigest!}:null,
-   importedBasis:row.importedBasis??null,dependencies:[...access.deps].sort((a,b)=>a.id.localeCompare(b.id))});
+   mergeHistory:row.mergeHistory??[],importedBasis:row.importedBasis??null,dependencies:[...access.deps].sort((a,b)=>a.id.localeCompare(b.id))});
   invariant(texts.length<=320,'LOCALE_TRANSFER_LIMIT','单次最多迁移320份内部文本',422);
  }
  return LocaleTransferSchema.parse({schemaVersion:'once-locale-transfer-v1',texts});

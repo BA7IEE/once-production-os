@@ -34,5 +34,6 @@ export interface PersonMergePreview {
         conflicts: Array<{ table: string; canonicalId: string; duplicateId: string; code: string; choices: ProfessionalConflictChoice[]; canonicalValue: unknown; duplicateValue: unknown; dependentCount: number }>;
         restricted: boolean;
     };
+    locales:Array<{locale:'zh'|'en';options:Array<{id:string;personId:string;text:string;state:string}>}>;
     previewDigest: string;
 }

@@ -34,6 +34,7 @@ export const MergeSchemas = {
             canonicalId: uuid, duplicateId: uuid,
             choice: v.enum(['RETAIN_DUPLICATE_HISTORY', 'KEEP_CANONICAL_ACTIVE', 'KEEP_DUPLICATE_ACTIVE'])
         }), L.conflicts)),
+        localeDecisions:v.optional(v.array(v.object({locale:v.enum(['zh','en']),selectedTextId:uuid}),2)),
         acknowledgeRevocations: v.boolean(),
         acknowledgeMediaDetach: v.boolean(),
         reason: v.string(L.reason,4)

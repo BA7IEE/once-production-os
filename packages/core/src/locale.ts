@@ -1,3 +1,4 @@
+import {localeHistoryValid,localeHistoryDependencies} from './locale-history.ts';
 import {digest} from './json.ts';
 import type {Actor,Clock,Person,TableMap} from './model.ts';
 import type {Tx} from './store.ts';
@@ -5,7 +6,7 @@ import {AppError,invariant,missing} from './errors.ts';
 import {base,cas,page,touch,workspaceRow} from './helpers.ts';
 import {localeBasisDigest,localeStructureValid} from './locale-basis.ts';
 import {importedLocaleBasisValid} from './locale-provenance.ts';
-import {personFor,requirePermission,sourceFor} from './policy.ts';
+import {personFor,requirePermission,sourceFor,requireScope} from './policy.ts';
 import {workFor,projectFor} from './production-policy.ts';
 import {localeSubject,type LocaleSubjectKind,type LocaleText,type LocaleDependency} from './locale-model.ts';
 import {LocaleSchemas as S,localeSubjectKind} from './locale-validation.ts';
@@ -33,7 +34,12 @@ export class LocaleTexts{
  }
  async access(tx:Tx,actor:Actor,id:string){
   human(actor);requirePermission(actor,'records.read');const row=await workspaceRow(tx,'localeTexts',id,actor.workspaceId);if(!row||row.state==='ERASED')missing();const subject=localeSubject(row),target=await localeTarget(tx,actor,subject.kind,subject.id,this.clock);
-  const deps=await tx.find('localeDependencies',{workspaceId:actor.workspaceId,localeTextId:id});invariant(localeStructureValid(row,deps)&&importedLocaleBasisValid(row),'LOCALE_DEPENDENCIES_MISSING','语言文本依据不完整，需要维护检查',409);
+  const deps=await tx.find('localeDependencies',{workspaceId:actor.workspaceId,localeTextId:id});invariant(localeStructureValid(row,deps)&&importedLocaleBasisValid(row)&&localeHistoryValid(row),'LOCALE_DEPENDENCIES_MISSING','语言文本依据不完整，需要维护检查',409);
+  for(const dep of localeHistoryDependencies(row)){
+   await sourceFor(tx,actor,dep.sourceId,this.clock);
+   if(dep.workspaceId===actor.workspaceId){await requireScope(tx,actor,dep.sourceScopeId);await requireScope(tx,actor,dep.resourceScopeId);}
+   invariant(deps.some(d=>d.kind==='SOURCE'&&d.sourceId===dep.sourceId),'LOCALE_HISTORY_SOURCE_MISSING','合并保留资料的来源不能移除',409);
+  }
   let needsReview=row.state!=='REVIEWED',securityChanged=false;
   for(const dep of deps){
    const current=dep.kind==='SOURCE'?await sourceFor(tx,actor,dep.sourceSubjectId!,this.clock):await localeTarget(tx,actor,dep.kind,(dep.personId??dep.workId??dep.projectId)!,this.clock);
@@ -46,7 +52,7 @@ export class LocaleTexts{
  }
  async get(tx:Tx,actor:Actor,id:string){
   const {row,subject,target,deps,needsReview,securityChanged}=await this.access(tx,actor,id);
-  return {id:row.id,revision:row.revision,subjectKind:subject.kind,subjectId:subject.id,subjectRevision:target.revision,locale:row.locale,text:securityChanged?'':row.text,state:row.state,needsReview,textRestricted:securityChanged,reviewedAt:row.reviewedAt,reviewedBy:row.reviewedBy,originalReview:row.originalReviewedAt?{reviewedAt:row.originalReviewedAt,matchesCurrentText:row.originalReviewTextDigest===digest(row.text)}:null,hasImportedBasis:!!row.importedBasis,updatedAt:row.updatedAt,canEdit:actor.permissions.includes('records.write')&&target.status!=='ARCHIVED',sources:deps.filter(d=>d.kind==='SOURCE').map(d=>({id:d.sourceId,revision:d.sourceRevision})),note:'内部语言文本的人工确认，不代表原事实已经核验。'};
+  return {id:row.id,revision:row.revision,subjectKind:subject.kind,subjectId:subject.id,subjectRevision:target.revision,locale:row.locale,text:securityChanged?'':row.text,state:row.state,needsReview,textRestricted:securityChanged,reviewedAt:row.reviewedAt,reviewedBy:row.reviewedBy,originalReview:row.originalReviewedAt?{reviewedAt:row.originalReviewedAt,matchesCurrentText:row.originalReviewTextDigest===digest(row.text)}:null,hasImportedBasis:!!row.importedBasis,history:securityChanged?[]:(row.mergeHistory??[]).map(h=>({id:h.id,revision:h.revision,personId:h.personId,locale:h.locale,text:h.text,state:h.state,reviewedAt:h.reviewedAt??h.originalReviewedAt})),updatedAt:row.updatedAt,canEdit:actor.permissions.includes('records.write')&&target.status!=='ARCHIVED',sources:deps.filter(d=>d.kind==='SOURCE').map(d=>({id:d.sourceId,revision:d.sourceRevision})),note:'内部语言文本的人工确认，不代表原事实已经核验。'};
  }
  async list(tx:Tx,actor:Actor,query:Record<string,string>){
   human(actor);page([],query,['subjectKind','subjectId']);const kind=localeSubjectKind.parse(query.subjectKind),id=uuid.parse(query.subjectId);await localeTarget(tx,actor,kind,id,this.clock);
@@ -58,7 +64,7 @@ export class LocaleTexts{
  }
  async create(tx:Tx,actor:Actor,input:unknown){
   human(actor);requirePermission(actor,'records.write');const d=S.create.parse(input),key=d.subjectKind==='PERSON'?'personId':d.subjectKind==='WORK'?'workId':'projectId';
-  const row:LocaleText={...base(actor.workspaceId,this.clock),personId:null,workId:null,projectId:null,[key]:d.subjectId,locale:d.locale,text:d.text,state:d.confirmCurrentBasis?'REVIEWED':'DRAFT',sourceDigest:'',originalReviewWorkspaceId:null,originalReviewMembershipId:null,originalReviewedAt:null,originalReviewTextDigest:null,importedBasis:null,reviewedBy:d.confirmCurrentBasis?actor.membershipId:null,reviewedAt:d.confirmCurrentBasis?this.clock.now().toISOString():null};
+  const row:LocaleText={...base(actor.workspaceId,this.clock),personId:null,workId:null,projectId:null,[key]:d.subjectId,locale:d.locale,text:d.text,state:d.confirmCurrentBasis?'REVIEWED':'DRAFT',sourceDigest:'',originalReviewWorkspaceId:null,originalReviewMembershipId:null,originalReviewedAt:null,originalReviewTextDigest:null,importedBasis:null,mergeHistory:null,reviewedBy:d.confirmCurrentBasis?actor.membershipId:null,reviewedAt:d.confirmCurrentBasis?this.clock.now().toISOString():null};
   const deps=await this.dependencies(tx,actor,d.subjectKind,d.subjectId,d.expectedSubjectRevision,d.sourceRefs,row.id);
   invariant(!(await tx.find('localeTexts',{workspaceId:actor.workspaceId,[key]:d.subjectId,locale:d.locale})).some(r=>r.state!=='ERASED'),'LOCALE_EXISTS','该语言已有内部文本，请编辑已有版本',409);
   row.sourceDigest=localeBasisDigest(deps);await tx.insert('localeTexts',row);for(const dep of deps)await tx.insert('localeDependencies',dep);return row;
@@ -68,7 +74,17 @@ export class LocaleTexts{
   // Recheck the entire old graph first: hidden sources or broken dependencies
   // cannot be removed by replacing the text and submitting different sources.
   const {row,subject}=await this.access(tx,actor,id);cas(row,d.expectedRevision);
+  invariant(localeHistoryDependencies(row).every(dep=>d.sourceRefs.some(s=>s.id===dep.sourceId)),'LOCALE_HISTORY_SOURCE_REQUIRED','合并历史仍引用的来源不能移除',422);
   const deps=await this.dependencies(tx,actor,subject.kind,subject.id,d.expectedSubjectRevision,d.sourceRefs,id),next={...touch(row,this.clock),text:d.text,state:d.confirmCurrentBasis?'REVIEWED' as const:'DRAFT' as const,sourceDigest:localeBasisDigest(deps),reviewedBy:d.confirmCurrentBasis?actor.membershipId:null,reviewedAt:d.confirmCurrentBasis?this.clock.now().toISOString():null};
   for(const dep of await tx.find('localeDependencies',{workspaceId:actor.workspaceId,localeTextId:id}))await tx.remove('localeDependencies',dep.id);for(const dep of deps)await tx.insert('localeDependencies',dep);await tx.replace('localeTexts',next);return next;
  }
+ async replaceAfterMerge(tx:Tx,actor:Actor,row:LocaleText,input:unknown){
+  human(actor);requirePermission(actor,'data.merge');requirePermission(actor,'records.write');
+  const d=S.update.parse({...input as object,expectedRevision:row.revision}),subject=localeSubject(row);
+  const deps=await this.dependencies(tx,actor,subject.kind,subject.id,d.expectedSubjectRevision,d.sourceRefs,row.id);
+  for(const dep of await tx.find('localeDependencies',{workspaceId:actor.workspaceId,localeTextId:row.id}))await tx.remove('localeDependencies',dep.id);
+  for(const dep of deps)await tx.insert('localeDependencies',dep);
+  return {...touch(row,this.clock),text:d.text,state:'DRAFT' as const,sourceDigest:localeBasisDigest(deps),reviewedBy:null,reviewedAt:null};
+ }
+
 }

@@ -15,6 +15,7 @@ const hash=v.string(64,64,/^[a-f0-9]{64}$/),count=v.number(0);
 const originalReview=v.nullable(v.object({workspaceId:uuid,membershipId:uuid,reviewedAt:dateIso}));
 const historyPerson=v.object({...stamp,sourceId:uuid,displayName:v.string(120,1),aliases:v.array(v.string(120,1),20),intro:v.string(5000),roles:v.array(code,10),cityCode:v.nullable(code),languageCodes:v.array(code,20),skillCodes:v.array(code,30),heightCm:v.nullable(v.number(50,250,false)),status:v.enum(['ARCHIVED']),protectionEpoch:revision});
 const manifest=v.object({
+ localeResults:v.optional(v.array(v.object({locale:v.enum(['zh','en']),selectedTextId:uuid,resultTextId:uuid,retainedTextCount:v.number(1,20)}),2)),
  professional:v.optional(v.object({moved:count,staleProposals:count,retainedProfiles:v.optional(count),deactivated:v.optional(count)})),
  professionalDecisions:v.optional(v.array(v.object({table:v.enum([...TALENT_FACT_TABLES,'mediaCollectionItems','talentMigrationReviews','fieldProposals','shortlistItems']),id:uuid,action:v.enum(['MOVE','REBIND_AGENT','STALE_PROPOSAL','RETAIN_HISTORY'])}),500)),
  professionalConflicts:v.optional(v.array(v.object({table:v.enum(['talentProfiles','castingProfiles','adultEligibilities','personRoles','personLanguages','talentLocations']),canonicalId:uuid,duplicateId:uuid,choice:v.enum(['RETAIN_DUPLICATE_HISTORY','KEEP_CANONICAL_ACTIVE','KEEP_DUPLICATE_ACTIVE'])}),100)),

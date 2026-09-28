@@ -1,3 +1,4 @@
+import {scanLocaleMerge,applyLocaleMerge,type LocaleMergePlan} from './locale-merge.ts';
 import { scanTalentMerge, applyTalentMerge, type TalentMergePlan } from './talent-v2-merge.ts';
 import type { Actor, Clock, Config, Contact, Person, Source } from './model.ts';
 import type { Tx } from './store.ts';
@@ -47,6 +48,7 @@ type ScanPlan = {
     affectedShortlistIds: string[];
     previewDigest: string;
     talent: TalentMergePlan;
+    locales: LocaleMergePlan;
 };
 const ARRAY_FIELDS = new Set<PersonMergeField>(['aliases','roles','languageCodes','skillCodes']);
 function same(a: unknown, b: unknown) { return digest(a) === digest(b); }
@@ -90,7 +92,8 @@ export class PersonMerges {
         const canonicalSource = await sourceFor(tx, actor, canonical.sourceId, this.clock);
         const duplicateSource = await sourceFor(tx, actor, duplicate.sourceId, this.clock);
         const blockers = new Map<string,number>();
-        for(const locale of await tx.find('localeTexts',{workspaceId:actor.workspaceId}))if(locale.state!=='ERASED'&&(locale.personId===canonical.id||locale.personId===duplicate.id))blocker(blockers,'LOCALE_MERGE_REVIEW_REQUIRED');
+        const locales=await scanLocaleMerge(tx,actor,this.clock,canonical.id,duplicate.id);
+        for(const code of locales.blockers)blocker(blockers,code);
         const talent = await scanTalentMerge(tx, actor, this.clock, canonical.id, duplicate.id);
         for (const code of talent.blockers) blocker(blockers, code);
 
@@ -217,7 +220,7 @@ export class PersonMerges {
             media: { uploadsToDetach: uploadIds.length, assetsToReassign: assetReassignIds.length, assetsToDetach: assetDetachIds.length },
             moves: { workCredits: workCreditMoveIds.length, projectParticipants: projectParticipantMoveIds.length, shortlistItems: shortlistItemMoveIds.length }
         };
-        const internal = { ...responseCore, talentDigest: talent.digest,
+        const internal = { ...responseCore, talentDigest: talent.digest, localeDigest:locales.digest,
             activeHandoffIds: activeHandoffs.map(x=>x.id).sort(), activePermissionIds: activePermissions.map(x=>x.id).sort(),
             contactIds: contactRows.map(x=>x.id).sort(), evidenceIds: evidenceRows.map(x=>x.id).sort(), uploadIds,
             assetReassignIds, assetDetachIds, workCreditMoveIds: workCreditMoveIds.sort(),
@@ -230,7 +233,7 @@ export class PersonMerges {
             workCreditMoveIds: internal.workCreditMoveIds, projectParticipantMoveIds: internal.projectParticipantMoveIds,
             shortlistItemMoveIds: internal.shortlistItemMoveIds, affectedWorkIds: internal.affectedWorkIds,
             affectedProjectIds: internal.affectedProjectIds, affectedShortlistIds: internal.affectedShortlistIds,
-            previewDigest: digest(internal), talent };
+            previewDigest: digest(internal), talent, locales };
     }
 
     async preview(tx: Tx, actor: Actor, input: unknown) {
@@ -245,7 +248,7 @@ export class PersonMerges {
             contactsToReencrypt: actor.permissions.includes('sensitive.write') ? plan.contactIds.length : null,
             media: { uploadsToDetach: plan.uploadIds.length, assetsToReassign: plan.assetReassignIds.length, assetsToDetach: plan.assetDetachIds.length },
             moves: { workCredits: plan.workCreditMoveIds.length, projectParticipants: plan.projectParticipantMoveIds.length, shortlistItems: plan.shortlistItemMoveIds.length },
-            previewDigest: plan.previewDigest, professional: plan.talent.preview
+            previewDigest: plan.previewDigest, professional: plan.talent.preview, locales:plan.locales.preview
         };
     }
 
@@ -423,7 +426,9 @@ export class PersonMerges {
         await tx.replace('people', nextDuplicate);
         await this.bumpRoots(tx, actor, plan);
 
+        const localeResults=await applyLocaleMerge(tx,actor,this.clock,plan.locales,plan.canonical.id,plan.duplicate.id,d.localeDecisions??[]);
         const manifest = {
+            localeResults,
             professional, professionalDecisions: talentDecisions, professionalConflicts: d.professionalConflicts ?? [],
             reason: d.reason, fieldDecisions: [...fieldMap].sort(), collisionDecisions: [...collisionMap].sort(),
             revokedHandoffs: plan.activeHandoffIds.length, revokedUsePermissions: plan.activePermissionIds.length,

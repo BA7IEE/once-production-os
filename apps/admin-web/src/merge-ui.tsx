@@ -16,7 +16,8 @@ const fieldLabel: Record<string, string> = {
     languageCodes: '语言', skillCodes: '技能', heightCm: '身高', intro: '简介'
 };
 const blockerLabel: Record<string, string> = {
-    LOCALE_MERGE_REVIEW_REQUIRED: '档案含内部语言文本，需先接通语言合并处理，当前不能执行合并',
+    LOCALE_MERGE_RESTRICTED: '语言文本或依据当前不可读，请先核对来源与访问范围',
+    LOCALE_MERGE_LIMIT: '语言文本保留历史或来源数量超过当前上限',
     TD2_MERGE_HIDDEN_DEPENDENCY: '存在当前不可读或不可用的专业资料依赖',
     TD2_MERGE_REVIEW_REQUIRED: '决定成人资格需要来源核验权限',
     TD2_MERGE_SENSITIVE_REQUIRED: '迁移资格编号需要维护敏感字段权限',
@@ -168,6 +169,7 @@ export function PersonMergePanel({ me, onReviewDeletion }: { me: Me; onReviewDel
     const [preview, setPreview] = useState<PersonMergePreview | null>(null);
     const [fieldChoices, setFieldChoices] = useState<Partial<Record<string, PersonMergeFieldChoice>>>({});
     const [collisionChoices, setCollisionChoices] = useState<Record<string, PersonMergeCollisionChoice | undefined>>({});
+    const [localeChoices,setLocaleChoices]=useState<Record<string,string>>({});
     const [ackRevocations, setAckRevocations] = useState(false);
     const [ackMedia, setAckMedia] = useState(false);
     const [professionalChoices, setProfessionalChoices] = useState<Record<string, boolean>>({});
@@ -182,13 +184,14 @@ export function PersonMergePanel({ me, onReviewDeletion }: { me: Me; onReviewDel
     const allFields = !!preview && preview.fieldConflicts.every(x => !!fieldChoices[x.field]);
     const allCollisions = !!preview && preview.collisions.every(x => !!collisionChoices[x.id]);
     const ready = !!preview?.complete && allFields && allCollisions && reason.trim().length >= 4
+        && preview.locales.every(x=>!!localeChoices[x.locale])
         && preview.professional.conflicts.every(x => !!conflictChoices[x.table + ':' + x.canonicalId + ':' + x.duplicateId])
         && preview.professional.items.every(x => professionalChoices[x.table + x.id])
         && (revocationCount === 0 || ackRevocations) && (detachCount === 0 || ackMedia);
 
     const previewKey = useMemo(() => canonical?.id + ':' + canonical?.revision + '|' + duplicate?.id + ':' + duplicate?.revision, [canonical, duplicate]);
     function invalidate(next?: () => void) {
-        setPreview(null); setFieldChoices({}); setCollisionChoices({}); setAckRevocations(false); setAckMedia(false); setProfessionalChoices({}); setConflictChoices({}); setHistory(null); setReason(''); setDone(null);
+        setPreview(null); setLocaleChoices({}); setFieldChoices({}); setCollisionChoices({}); setAckRevocations(false); setAckMedia(false); setProfessionalChoices({}); setConflictChoices({}); setHistory(null); setReason(''); setDone(null);
         next?.();
     }
     async function scan() {
@@ -199,7 +202,7 @@ export function PersonMergePanel({ me, onReviewDeletion }: { me: Me; onReviewDel
             expectedCanonicalRevision: canonical.revision,
             expectedDuplicateRevision: duplicate.revision
         });
-        setPreview(data);
+        setPreview(data);setLocaleChoices({});
         setFieldChoices({});
         setCollisionChoices({});
         setAckRevocations(false);
@@ -221,6 +224,7 @@ export function PersonMergePanel({ me, onReviewDeletion }: { me: Me; onReviewDel
             collisionDecisions: preview.collisions.map(x => ({ collisionId: x.id, choice: collisionChoices[x.id]! })),
             professionalDecisions: preview.professional.items.map(({ table, id, action }) => ({ table, id, action })),
             professionalConflicts: preview.professional.conflicts.map(x => ({ table: x.table as NonNullable<import('./generated/requests.ts').Inputs['person.merge']['professionalConflicts']>[number]['table'], canonicalId: x.canonicalId, duplicateId: x.duplicateId, choice: conflictChoices[x.table + ':' + x.canonicalId + ':' + x.duplicateId]! })),
+            localeDecisions:preview.locales.map(x=>({locale:x.locale,selectedTextId:localeChoices[x.locale]!})),
             acknowledgeRevocations: ackRevocations,
             acknowledgeMediaDetach: ackMedia,
             reason: reason.trim()
@@ -267,6 +271,7 @@ export function PersonMergePanel({ me, onReviewDeletion }: { me: Me; onReviewDel
                     {professionalLabel[x.table] ?? x.table} · {x.id} · {x.action === 'STALE_PROPOSAL' ? '使建议失效' : x.action === 'REBIND_AGENT' ? '更新经纪人关联' : x.action === 'RETAIN_HISTORY' ? '保留为只读历史' : '保留来源迁移'}
                 </label>)}
             </section>}
+            {preview.locales.length>0&&<section className="panel padded"><h2>内部语言文本</h2><p>逐种语言选择合并后使用的正文。所有原文保留为只读历史，新正文仍需人工复核。</p>{preview.locales.map(group=><fieldset key={group.locale} disabled={action.busy}><legend>{group.locale==='zh'?'中文':'英文'}正文</legend>{group.options.map(option=><label className="talent-fact" key={option.id}><input type="radio" name={'merge-locale-'+group.locale} checked={localeChoices[group.locale]===option.id} onChange={()=>setLocaleChoices(v=>({...v,[group.locale]:option.id}))}/>{option.personId===preview.canonical.id?'采用主档案文本':'采用重复档案文本'}<p className="pre-line">{option.text}</p></label>)}</fieldset>)}</section>}
             {preview.complete && <section className="panel padded merge-execute">
                 <h2>执行确认</h2>
                 <p className="muted">执行时会按同一组版本和 Preview Digest 再扫描一次。任何依赖变化都会拒绝旧预览，而不是继续执行。</p>

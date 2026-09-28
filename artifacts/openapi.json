@@ -13008,6 +13008,34 @@
                     "minItems": 0,
                     "maxItems": 100
                   },
+                  "localeDecisions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "locale": {
+                          "type": "string",
+                          "enum": [
+                            "zh",
+                            "en"
+                          ]
+                        },
+                        "selectedTextId": {
+                          "type": "string",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                        }
+                      },
+                      "required": [
+                        "locale",
+                        "selectedTextId"
+                      ]
+                    },
+                    "minItems": 0,
+                    "maxItems": 2
+                  },
                   "acknowledgeRevocations": {
                     "type": "boolean"
                   },

@@ -1,3 +1,4 @@
+import {verifyLocaleMerge} from '../support/locale-merge.ts';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomBytes,randomUUID} from 'node:crypto';
@@ -22,5 +23,10 @@ test('internal locale typed graph and actual PostgreSQL deferred constraints',as
   assert.equal(await client.localeText.count(),3);assert.equal(await client.localeDependency.count(),6);
   await assert.rejects(client.localeDependency.update({where:{id:dep.id},data:{localeTextId:created[1]}}));
   for(const kind of ['SOURCE','PERSON','WORK','PROJECT'] as const)await verifyLocaleDeletion({app,store,clock,owner},kind);
+  const merged=await verifyLocaleMerge({app,store,clock,owner},503);
+  await assert.rejects(client.localeText.update({where:{id:merged.current.id},data:{mergeHistory:[]}}));
+  const saved=await client.localeText.findUniqueOrThrow({where:{id:merged.current.id}});assert.equal((saved.mergeHistory as any[]).length,2);
+  const forged=structuredClone(saved.mergeHistory) as any[];forged[0].text='changed immutable original';
+  await assert.rejects(client.localeText.update({where:{id:saved.id},data:{mergeHistory:forged}}));
  }finally{await store.close();}
 });

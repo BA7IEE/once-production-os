@@ -1,3 +1,4 @@
+import {localeHistoryDependencies} from './locale-history.ts';
 import type {Actor,Clock} from './model.ts';
 import type {Tx} from './store.ts';
 import type {DeletionItem,DeletionTargetKind} from './deletion-model.ts';
@@ -12,7 +13,7 @@ export async function affectedLocales(tx:Tx,workspaceId:string,targets:LocaleTar
  for(const d of await tx.find('localeDependencies',{workspaceId}))if(selected.get('SOURCE')?.has(d.sourceId)||selected.get('SOURCE')?.has(d.sourceSubjectId??'')||selected.get('PERSON')?.has(d.personId??'')||selected.get('WORK')?.has(d.workId??'')||selected.get('PROJECT')?.has(d.projectId??''))ids.add(d.localeTextId);
  for(const row of await tx.find('localeTexts',{workspaceId}))if(row.state!=='ERASED'){
   const subject=localeSubject(row);if(selected.get(subject.kind)?.has(subject.id))ids.add(row.id);
-  for(const dep of row.importedBasis?.dependencies??[])if(selected.get('SOURCE')?.has(dep.sourceId)||selected.get('PERSON')?.has(dep.personId??'')||selected.get('WORK')?.has(dep.workId??'')||selected.get('PROJECT')?.has(dep.projectId??''))ids.add(row.id);
+  for(const dep of [...row.importedBasis?.dependencies??[],...localeHistoryDependencies(row)])if(selected.get('SOURCE')?.has(dep.sourceId)||selected.get('PERSON')?.has(dep.personId??'')||selected.get('WORK')?.has(dep.workId??'')||selected.get('PROJECT')?.has(dep.projectId??''))ids.add(row.id);
  }
  return [...ids].sort();
 }
@@ -23,6 +24,7 @@ export async function localeErasureSnapshot(tx:Tx,actor:Actor,id:string){
  for(const d of deps){
   const source=await workspaceRow(tx,'sources',d.sourceId,actor.workspaceId);if(!source)missing();scopeIds.add(source.scopeId);scopeIds.add(d.resourceScopeId);scopeIds.add(d.sourceScopeId);
  }
+ for(const dep of localeHistoryDependencies(row))if(dep.workspaceId===actor.workspaceId){scopeIds.add(dep.sourceScopeId);scopeIds.add(dep.resourceScopeId);}
  const scopes=[];for(const id of [...scopeIds].sort()){await requireScope(tx,actor,id);const scope=await workspaceRow(tx,'scopes',id,actor.workspaceId);if(!scope)missing();scopes.push(scope);}
  return {row,deps,detailCode:'LOCALE_TEXT_'+digest({row,deps,scopes})};
 }
@@ -35,7 +37,7 @@ export async function validateLocaleErasurePlan(tx:Tx,actor:Actor,items:Deletion
 export async function eraseLocale(tx:Tx,actor:Actor,item:DeletionItem,clock:Clock){
  const row=await workspaceRow(tx,'localeTexts',item.resourceId,actor.workspaceId);if(!row||row.state==='ERASED')return;
  await validateLocaleErasurePlan(tx,actor,[item]);for(const d of await tx.find('localeDependencies',{workspaceId:actor.workspaceId,localeTextId:row.id}))await tx.remove('localeDependencies',d.id);
- await tx.replace('localeTexts',{...touch(row,clock),state:'ERASED',text:'',reviewedBy:null,reviewedAt:null,originalReviewWorkspaceId:null,originalReviewMembershipId:null,originalReviewedAt:null,originalReviewTextDigest:null,importedBasis:null});
+ await tx.replace('localeTexts',{...touch(row,clock),state:'ERASED',text:'',reviewedBy:null,reviewedAt:null,originalReviewWorkspaceId:null,originalReviewMembershipId:null,originalReviewedAt:null,originalReviewTextDigest:null,importedBasis:null,mergeHistory:null});
 }
 export async function assertLocaleFinalizationClean(tx:Tx,workspaceId:string,kind:DeletionTargetKind,id:string){
  const remaining=await affectedLocales(tx,workspaceId,[[kind,new Set([id])]]);invariant(remaining.length===0,'LOCALE_DEPENDENCIES_REMAIN','内部语言文本的依赖尚未清理，不能完成删除',409);
