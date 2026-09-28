@@ -14960,6 +14960,9 @@
                     "items": {
                       "type": "string",
                       "enum": [
+                        "person.localeTexts",
+                        "work.localeTexts",
+                        "project.localeTexts",
                         "person.displayName",
                         "person.aliases",
                         "person.roles",
@@ -15016,7 +15019,7 @@
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 53
+                    "maxItems": 56
                   },
                   "validUntil": {
                     "type": "string",
@@ -15268,6 +15271,9 @@
                     "items": {
                       "type": "string",
                       "enum": [
+                        "person.localeTexts",
+                        "work.localeTexts",
+                        "project.localeTexts",
                         "person.displayName",
                         "person.aliases",
                         "person.roles",
@@ -15324,7 +15330,7 @@
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 53
+                    "maxItems": 56
                   },
                   "usePermissionRefs": {
                     "type": "array",

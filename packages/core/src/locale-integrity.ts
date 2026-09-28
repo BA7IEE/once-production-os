@@ -1,23 +1,18 @@
 import type {LocaleText,LocaleDependency} from './locale-model.ts';
 import type {Tx} from './store.ts';
 import {digest} from './json.ts';
-export function localeBasisDigest(rows:LocaleDependency[]){
- return digest(rows.map(({id,localeTextId,createdAt,updatedAt,revision,...row})=>row).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))));
-}
-export function localeStructureValid(row:LocaleText,deps:LocaleDependency[]){
- const roots=deps.filter(d=>d.kind!=='SOURCE'),sources=deps.filter(d=>d.kind==='SOURCE');
- if(row.state==='ERASED')return row.text===''&&deps.length===0&&row.reviewedBy===null&&row.reviewedAt===null;
- return [row.personId,row.workId,row.projectId].filter(Boolean).length===1&&['zh','en'].includes(row.locale)&&['DRAFT','REVIEWED'].includes(row.state)&&row.text.length>0&&row.text.length<=10000&&
-  (row.state==='REVIEWED'?!!row.reviewedBy&&!!row.reviewedAt:row.reviewedBy===null&&row.reviewedAt===null)&&
-  roots.length===1&&sources.length>=1&&sources.length<=20&&new Set(sources.map(d=>d.sourceId)).size===sources.length&&deps.every(d=>d.workspaceId===row.workspaceId&&d.localeTextId===row.id)&&
-  roots.every(d=>d.personId===row.personId&&d.workId===row.workId&&d.projectId===row.projectId&&d.sourceSubjectId===null&&d.kind===(row.personId?'PERSON':row.workId?'WORK':'PROJECT'))&&
-  sources.every(d=>d.sourceSubjectId===d.sourceId&&d.personId===null&&d.workId===null&&d.projectId===null)&&row.sourceDigest===localeBasisDigest(deps);
-}
+export {localeBasisDigest,localeStructureValid} from './locale-basis.ts';
+import {localeStructureValid} from './locale-basis.ts';
+import {importedLocaleBasisValid,LocaleReviewSchema} from './locale-provenance.ts';
 export async function inspectLocaleIntegrity(tx:Tx,workspaceId:string){
  const texts=await tx.find('localeTexts',{workspaceId}),deps=await tx.find('localeDependencies',{workspaceId});let relationFailures=0;
  const exists=async(table:'people'|'works'|'projects'|'sources'|'scopes'|'memberships',id:string|null)=>!id||(await tx.get(table,id))?.workspaceId===workspaceId;
  for(const row of texts){
-  if(!localeStructureValid(row,deps.filter(d=>d.localeTextId===row.id)))relationFailures++;
+  if(!localeStructureValid(row,deps.filter(d=>d.localeTextId===row.id))||!importedLocaleBasisValid(row))relationFailures++;
+  const origin=[row.originalReviewWorkspaceId,row.originalReviewMembershipId,row.originalReviewedAt,row.originalReviewTextDigest].filter(Boolean);if(origin.length!==0&&origin.length!==4)relationFailures++;
+  if(row.state==='ERASED'&&(origin.length||row.importedBasis))relationFailures++;
+  if(origin.length===4)try{LocaleReviewSchema.parse({workspaceId:row.originalReviewWorkspaceId,membershipId:row.originalReviewMembershipId,reviewedAt:row.originalReviewedAt,textDigest:row.originalReviewTextDigest});}catch{relationFailures++;}
+  for(const dep of row.importedBasis?.dependencies??[])if(!await exists('sources',dep.sourceId))relationFailures++;
   for(const [table,id] of [['people',row.personId],['works',row.workId],['projects',row.projectId],['memberships',row.reviewedBy]] as const)if(!await exists(table,id))relationFailures++;
  }
  for(const dep of deps){

@@ -19,7 +19,7 @@ export async function mergeHistoryTransfer(f:{app:Application;store:Store;clock:
  const fields=['person.displayName','person.status','person.td2.talentProfiles','person.td2.personRoles','person.td2.castingProfiles','person.td2.measurementSets','person.td2.fieldEvidence','person.td2.mergeHistory',...SOURCE_FIELDS],refs=[];
  for(const [kind,id,sourceId,grantFields] of [['PERSON',personId,sources[0],fields.filter(f=>f.startsWith('person.'))],...sources.map(s=>['SOURCE',s,s,fields.filter(f=>f!=='person.displayName'&&f!=='person.status')])] as const)refs.push(ok(await f.owner.cmd('POST','/use-permissions',{subjectKind:kind,subjectId:id,sourceId,fields:grantFields,validUntil:'2026-10-01T00:00:00.000Z',evidenceNote:'合成：明确批准旧身份、保留档案、字段证据及原合并决定'})).resourceId as string);
  const input={format:'JSON',selectedIds:{people:[personId],works:[],projects:[]},fields,usePermissionRefs:refs};const jobId=ok(await f.owner.cmd('POST','/exports',input),202).resourceId as string,claim=await f.app.exports.claim();assert.ok(claim);await f.app.exports.process(claim);
- const download=ok(await f.owner.raw('POST',`/exports/${jobId}/download`,{}),200);assert.equal(download.payload.manifest.talent.schemaVersion,'once-talent-transfer-v11');
+ const download=ok(await f.owner.raw('POST',`/exports/${jobId}/download`,{}),200);assert.equal(download.payload.manifest.talent.schemaVersion,'once-talent-transfer-v14');
  const actor=await f.store.transaction(tx=>f.app.identity.authenticate(tx,f.owner.jar.once_session!));
  return {personId,oldPersonId,sources,measurements,mergeId,input,jobId,download,actor};
 }

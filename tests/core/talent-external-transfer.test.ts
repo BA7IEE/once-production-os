@@ -9,7 +9,7 @@ const external = async()=>{const f=await fixture();return {f,t:await controlledT
 test('TD2 external identity export requires issuing-source permission and remains fail-closed on organization changes',async()=>{
     for(const mode of ['name','scope','source','grant']) {
         const {f,t}=await external();
-        assert.equal(t.bundle.schemaVersion,'once-talent-transfer-v3');assert.equal(t.bundle.organizations!.length,1);
+        assert.equal(t.bundle.schemaVersion,'once-talent-transfer-v14');assert.equal(t.bundle.organizations!.length,1);
         assert.deepEqual(t.bundle.tables.personExternalRefs.map(r=>r.data.state).sort(),['OBSERVED','REVOKED','VERIFIED']);
         const queued=result(await f.owner.cmd('POST','/exports',t.input)).resourceId;
         if(mode==='name'||mode==='scope') await f.store.transaction(async tx=>{const row=(await tx.get('organizations',t.organizationId!))!;await tx.replace('organizations',{...row,...(mode==='name'?{name:'机构名称变更',revision:row.revision+1}:{scopeId:randomUUID()})});});
@@ -56,9 +56,9 @@ test('TD2 external roundtrip preserves revoked and observed identities without l
     assert.equal(target.store.rows('personExternalRefs').filter(r=>r.state==='REVOKED').length,1);
 });
 
-test('TD2 capability v2 export retains its shape and rebuilds without unrelated external identities or organizations',async()=>{
+test('TD2 current capability export excludes unrelated external identities and organizations',async()=>{
     const f=await fixture(),t=await controlledTransfer(f.app,f.store,f.clock,f.owner),target=await fixture();
-    assert.equal(t.bundle.schemaVersion,'once-talent-transfer-v2');assert.equal('organizations' in t.bundle,false);assert.equal('personExternalRefs' in t.bundle.tables,false);
+    assert.equal(t.bundle.schemaVersion,'once-talent-transfer-v14');assert.deepEqual(t.bundle.organizations,[]);assert.deepEqual(t.bundle.tables.personExternalRefs,[]);
     await f.store.transaction(async tx=>{const row=(await tx.get('personExternalRefs',t.graph.externalRefId))!;await tx.replace('personExternalRefs',{...row,state:'REVOKED',revision:row.revision+1});});
     assert.equal(result(await f.owner.raw('POST',`/exports/${t.jobId}/download`,{})).sha256,t.download.sha256);
     const rebuild=new JsonRebuild(target.clock),actor=await target.store.transaction(tx=>rebuild.actorFromTarget(tx,'owner'));

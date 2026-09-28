@@ -1,9 +1,11 @@
+import type {ImportedLocaleBasis} from './locale-provenance.ts';
 import type {Base} from './model.ts';
 export type LocaleSubjectKind='PERSON'|'WORK'|'PROJECT';
 export interface LocaleText extends Base {
  personId:string|null;workId:string|null;projectId:string|null;
  locale:'zh'|'en';text:string;state:'DRAFT'|'REVIEWED'|'ERASED';sourceDigest:string;
  reviewedBy:string|null;reviewedAt:string|null;
+ originalReviewWorkspaceId?:string|null;originalReviewMembershipId?:string|null;originalReviewedAt?:string|null;originalReviewTextDigest?:string|null;importedBasis?:ImportedLocaleBasis|null;
 }
 /** These are references to declared inputs, not copies of the source text. */
 export interface LocaleDependency extends Base {

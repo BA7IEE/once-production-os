@@ -18,7 +18,7 @@ export interface ExportSummary {
     id: string;
     state: 'QUEUED' | 'READY' | 'STALE' | 'FAILED' | 'ERASED';
     format: 'JSON';
-    schemaVersion: 'once-export-v1' | 'once-export-v2-talent';
+    schemaVersion: 'once-export-v1' | 'once-export-v2-talent' | 'once-export-v3-locale';
     fields: ExportFieldCode[];
     createdAt: string;
     expiresAt: string;

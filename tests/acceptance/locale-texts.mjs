@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
-export async function verifyLocaleBrowser({owner,prisma,cmd,writeUI,source,json}){
+import {readFileSync} from 'node:fs';
+export async function verifyLocaleBrowser({owner,prisma,cmd,writeUI,source,json,until}){
+ const roots=[];
  const basisTitle='浏览器内部文本依据',sourceId=(await cmd(owner,'POST','/sources',source(basisTitle),201)).resourceId;
  for(const kind of ['PERSON','WORK','PROJECT']){
   const name='浏览器语言'+kind,path=kind==='PERSON'?'/people':kind==='WORK'?'/works':'/projects';
   const id=(await cmd(owner,'POST',path,{...(kind==='PERSON'?{displayName:name,roles:['photographer']}:{title:name}),sourceId},201)).resourceId;
+  roots.push({kind,id});
   await owner.getByRole('button',{name:kind==='PERSON'?/人才档案/:kind==='WORK'?/作品库/:/项目库/}).click();
   const query=owner.getByLabel(kind==='PERSON'?'搜索姓名或别名':kind==='WORK'?'搜索作品':'搜索项目',{exact:true});await query.fill(name);await owner.getByRole('button',{name:'搜索',exact:true}).click();
   await owner.locator('.person-card').filter({has:owner.getByRole('heading',{name,exact:true})}).click();
@@ -27,5 +30,20 @@ export async function verifyLocaleBrowser({owner,prisma,cmd,writeUI,source,json}
   }
   await dialog.getByRole('button',{name:'返回资料',exact:true}).click();await owner.getByRole('dialog').getByRole('button',{name:'关闭',exact:true}).first().click();
  }
+ await owner.getByRole('button',{name:/内部导出/}).click();
+ const names={PERSON:'人物内部中英文文本、依据与原复核记录',WORK:'作品内部中英文文本、依据与原复核记录',PROJECT:'项目内部中英文文本、依据与原复核记录'},sourceLabels=['来源标题','来源类型','提供方说明','内部依据类型','依据说明','有效起点','有效截止','来源状态'],permits=[];
+ const approvals=roots.map(({kind,id})=>[kind,id,[...(kind==='PERSON'?['姓名 / 展示名','角色','档案状态']:kind==='WORK'?['作品标题','制作归属','作品状态']:['项目标题','项目状态']),names[kind]]]);approvals.push(['SOURCE',sourceId,[...sourceLabels,...Object.values(names)]]);
+ for(const [kind,id,labels] of approvals){
+  await owner.getByRole('button',{name:'＋ 批准导出用途',exact:true}).click();const form=owner.getByRole('dialog',{name:'批准内部导出用途',exact:true});
+  await form.getByLabel('对象类型',{exact:true}).selectOption(kind);await form.getByLabel('批准对象',{exact:true}).selectOption(id);for(const label of labels)await form.getByLabel(label,{exact:true}).check();
+  const expiry=new Date(Date.now()+86400000),pad=n=>String(n).padStart(2,'0');await form.getByLabel('许可截止时间',{exact:true}).fill(expiry.getFullYear()+'-'+pad(expiry.getMonth()+1)+'-'+pad(expiry.getDate())+'T'+pad(expiry.getHours())+':'+pad(expiry.getMinutes()));
+  await form.getByLabel('审批依据',{exact:true}).fill('合成明确批准内部中英文文本及其来源依据迁移');permits.push((await writeUI(owner,'POST','/use-permissions',()=>form.getByRole('button',{name:'批准用途',exact:true}).click(),201)).resourceId);
+ }
+ for(const id of permits)await owner.getByLabel('选择导出许可 '+id,{exact:true}).check();
+ const exportId=(await writeUI(owner,'POST','/exports',()=>owner.getByRole('button',{name:'生成内部 JSON',exact:true}).click(),202)).resourceId;
+ await until(async()=>await prisma.exportJob.count({where:{id:exportId,state:'READY'}})===1);await owner.getByRole('button',{name:'下载 JSON',exact:true}).waitFor();const downloading=owner.waitForEvent('download');await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();const file=await downloading,payload=JSON.parse(readFileSync(await file.path(),'utf8'));
+ assert.equal(payload.schemaVersion,'once-export-v3-locale');assert.equal(payload.manifest.locales.texts.length,3);for(const text of payload.manifest.locales.texts){const row=await prisma.localeText.findUniqueOrThrow({where:{id:text.id}});assert.equal(text.text,row.text);assert.equal(text.originalReview?.membershipId??null,row.reviewedBy);assert.equal(text.dependencies.length,2);}
+ await cmd(owner,'POST','/use-permissions/'+permits.at(-1)+'/revoke',{expectedRevision:1});const denied=await writeUI(owner,'POST','/exports/'+exportId+'/download',()=>owner.getByRole('button',{name:'下载 JSON',exact:true}).click(),409);assert.equal(denied.error.code,'EXPORT_STALE');
+ console.log('PASS internal locale v3 browser: explicit three owner grants and source grant -> real JSON download preserves typed dependencies and original review; source-only grant revocation blocks old download');
  console.log('PASS internal locale browser: person/work/project real editor, explicit source and review, persisted text, uncertain committed response freezes form and replays identical key/body');
 }

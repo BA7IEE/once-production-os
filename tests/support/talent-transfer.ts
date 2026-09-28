@@ -66,7 +66,8 @@ export async function controlledTransfer(app: Application, store: Store, clock: 
     assert.equal(bundle.tables.translatorLanguagePairs[0]!.data.personRoleId,graph.translatorId);
     assert.equal(bundle.tables.castingProfiles[0]!.data.currentMeasurementSetId,graph.measurementId);
     const encoded=JSON.stringify(download.payload);
-    for (const secret of ['SYNTHETIC-PRIVATE','SYNTHETIC-REVOKED',...(!includeCredentials?['identifierCiphertext']:[]),'credentialHash','proposedValue',...(!includeExternal?['personExternalRefs']:[]),'mediaCollections','adultEligibilities']) assert.equal(encoded.includes(secret),false,secret+' must not enter this whitelist');
+    for (const secret of ['SYNTHETIC-PRIVATE','SYNTHETIC-REVOKED',...(!includeCredentials?['identifierCiphertext']:[]),'credentialHash','proposedValue']) assert.equal(encoded.includes(secret),false,secret+' must not enter this whitelist');
+    assert.deepEqual(bundle.tables.mediaCollections,[]);assert.deepEqual(bundle.tables.adultEligibilities,[]);if(!includeExternal)assert.deepEqual(bundle.tables.personExternalRefs,[]);
     return {evidenceSource,evidencePermission,agentId,agentPermission,organizationId,organizationSource,organizationPermission,graph,secondSource,secondLanguage,jobId,input,download,bundle,secondaryPermission};
 }
 export async function roundTripTransfer(source: {app:Application;store:Store;clock:FakeClock;owner:Client}, target: {app:Application;store:Store;clock:FakeClock;apply?: (payload: unknown, sha256: string) => Promise<void>}) {

@@ -1,0 +1,418 @@
+TAP version 13
+# Subtest: adult transfer retains original reviewer without creating an account; re-export and local re-verification preserve attribution boundaries
+ok 1 - adult transfer retains original reviewer without creating an account; re-export and local re-verification preserve attribution boundaries
+  ---
+  duration_ms: 577.895625
+  type: 'test'
+  ...
+# Subtest: expired and inactive adult verifications retain history but cannot satisfy the adult filter; quarantining proof removes eligibility
+ok 2 - expired and inactive adult verifications retain history but cannot satisfy the adult filter; quarantining proof removes eligibility
+  ---
+  duration_ms: 866.874917
+  type: 'test'
+  ...
+# Subtest: adult origin, verification time, active uniqueness and proof omission cannot be forged in a rebuild
+ok 3 - adult origin, verification time, active uniqueness and proof omission cannot be forged in a rebuild
+  ---
+  duration_ms: 489.569333
+  type: 'test'
+  ...
+# Subtest: adult export requires reviewer access and its own source grant; changing origin attribution stales old exports
+ok 4 - adult export requires reviewer access and its own source grant; changing origin attribution stales old exports
+  ---
+  duration_ms: 411.684333
+  type: 'test'
+  ...
+# Subtest: adult verification uses one event timestamp even when the clock advances between persistence calls
+ok 5 - adult verification uses one event timestamp even when the clock advances between persistence calls
+  ---
+  duration_ms: 394.934625
+  type: 'test'
+  ...
+# Subtest: collections preserve typed UUIDs, source tags, archived state, featured captions and one shared original across credentials and collections
+ok 6 - collections preserve typed UUIDs, source tags, archived state, featured captions and one shared original across credentials and collections
+  ---
+  duration_ms: 689.668583
+  type: 'test'
+  ...
+# Subtest: collection references, duplicate tags/items, ordering and unselected owners are rejected before writes
+ok 7 - collection references, duplicate tags/items, ordering and unselected owners are rejected before writes
+  ---
+  duration_ms: 458.302333
+  type: 'test'
+  ...
+# Subtest: collection source permit, original grant, and media-read permission cannot be replaced by person approval
+ok 8 - collection source permit, original grant, and media-read permission cannot be replaced by person approval
+  ---
+  duration_ms: 424.039792
+  type: 'test'
+  ...
+# Subtest: collection-only exports need no credential selection or encryption keys, and changed captions stale the file
+ok 9 - collection-only exports need no credential selection or encryption keys, and changed captions stale the file
+  ---
+  duration_ms: 491.143667
+  type: 'test'
+  ...
+# Subtest: proof transfer requires original asset and source permits, refuses unrelated assets, and stales on quarantine
+ok 10 - proof transfer requires original asset and source permits, refuses unrelated assets, and stales on quarantine
+  ---
+  duration_ms: 407.072
+  type: 'test'
+  ...
+# Subtest: proof bytes rebuild verifies all files, preserves verified credential, and audit rollback leaves files reusable
+ok 11 - proof bytes rebuild verifies all files, preserves verified credential, and audit rollback leaves files reusable
+  ---
+  duration_ms: 472.232458
+  type: 'test'
+  ...
+# Subtest: missing, corrupt and linked proof files refuse preparation without creating a target
+ok 12 - missing, corrupt and linked proof files refuse preparation without creating a target
+  ---
+  duration_ms: 291.710875
+  type: 'test'
+  ...
+# Subtest: HTTP original download audits, rejects revoked permission and rechecks permission after file IO
+ok 13 - HTTP original download audits, rejects revoked permission and rechecks permission after file IO
+  ---
+  duration_ms: 334.9555
+  type: 'test'
+  ...
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# PASS retained identity v13: separately approved current basis, erased original header, actual identity evidence and original reviewers, audit rollback and rebuild without restoring old permissions
+# Subtest: TD2 v13 identity export and rebuild preserve erased origin and current independent proof
+ok 14 - TD2 v13 identity export and rebuild preserve erased origin and current independent proof
+  ---
+  duration_ms: 352.080166
+  type: 'test'
+  ...
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# Subtest: TD2 v13 rebuild rejects missing, stale or forged identity provenance before any writes
+ok 15 - TD2 v13 rebuild rejects missing, stale or forged identity provenance before any writes
+  ---
+  duration_ms: 304.971709
+  type: 'test'
+  ...
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# Subtest: TD2 retained identity permissions and command replays recheck the independent basis
+ok 16 - TD2 retained identity permissions and command replays recheck the independent basis
+  ---
+  duration_ms: 183.262541
+  type: 'test'
+  ...
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# PASS retained identity v13: separately approved current basis, erased original header, actual identity evidence and original reviewers, audit rollback and rebuild without restoring old permissions
+# Subtest: TD2 v13 jointly rebuilds retained identity and its typed professional records from the same erased origin
+ok 17 - TD2 v13 jointly rebuilds retained identity and its typed professional records from the same erased origin
+  ---
+  duration_ms: 323.179583
+  type: 'test'
+  ...
+# Subtest: ordinary contact identity evidence rebuild keeps IDs and original review; audit failure rolls back then retry succeeds
+ok 18 - ordinary contact identity evidence rebuild keeps IDs and original review; audit failure rolls back then retry succeeds
+  ---
+  duration_ms: 282.284459
+  type: 'test'
+  ...
+# Subtest: identity evidence needs person, field and actual source permission; review rights and current scope are rechecked
+ok 19 - identity evidence needs person, field and actual source permission; review rights and current scope are rechecked
+  ---
+  duration_ms: 141.539708
+  type: 'test'
+  ...
+# Subtest: missing identity owner or selected field, bad source version, duplicate ID and review metadata fail before writes
+ok 20 - missing identity owner or selected field, bad source version, duplicate ID and review metadata fail before writes
+  ---
+  duration_ms: 254.77725
+  type: 'test'
+  ...
+# Subtest: identity evidence changes and evidence-only source grant revocation stale queued and ready files
+ok 21 - identity evidence changes and evidence-only source grant revocation stale queued and ready files
+  ---
+  duration_ms: 272.955125
+  type: 'test'
+  ...
+# Subtest: identity transfer preserves previous value digests and excludes unselected fields; old formats reject new identity sections
+ok 22 - identity transfer preserves previous value digests and excludes unselected fields; old formats reject new identity sections
+  ---
+  duration_ms: 261.729291
+  type: 'test'
+  ...
+# Subtest: v10 identity evidence can accompany verified adult, credential and shared collection media without downgrading them
+ok 23 - v10 identity evidence can accompany verified adult, credential and shared collection media without downgrading them
+  ---
+  duration_ms: 487.820333
+  type: 'test'
+  ...
+# Subtest: locale transfer uses actual permissions and rebuilds typed dependencies without inventing local review
+ok 24 - locale transfer uses actual permissions and rebuilds typed dependencies without inventing local review
+  ---
+  duration_ms: 290.855708
+  type: 'test'
+  ...
+# Subtest: locale edit without a parent revision change and evidence-only permission revocation both stale a ready export
+ok 25 - locale edit without a parent revision change and evidence-only permission revocation both stale a ready export
+  ---
+  duration_ms: 271.169834
+  type: 'test'
+  ...
+# Subtest: locale rebuild rejects broken roots, forged original review association, missing source and omitted digest before any writes
+ok 26 - locale rebuild rejects broken roots, forged original review association, missing source and omitted digest before any writes
+  ---
+  duration_ms: 263.4295
+  type: 'test'
+  ...
+# Subtest: a second locale export retains original review and bounded original basis, while edits distinguish earlier reviewed text
+ok 27 - a second locale export retains original review and bounded original basis, while edits distinguish earlier reviewed text
+  ---
+  duration_ms: 394.62825
+  type: 'test'
+  ...
+# Subtest: source cleanup erases imported locale provenance along with bodies and current dependencies
+ok 28 - source cleanup erases imported locale provenance along with bodies and current dependencies
+  ---
+  duration_ms: 272.793
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# PASS v14 erased history rebuild: minimal erased identity, original alias/merge choice, distinct original erasure attribution, no deleted profile resurrection, audit rollback and retry
+# Subtest: TD2 v14 export and rebuild explicitly preserve historical erasure without restoring deleted profiles or old identity payload
+ok 29 - TD2 v14 export and rebuild explicitly preserve historical erasure without restoring deleted profiles or old identity payload
+  ---
+  duration_ms: 440.868625
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# Subtest: TD2 v14 rejects incomplete erasure lineage, payload resurrection, fabricated reason or old format before writes
+ok 30 - TD2 v14 rejects incomplete erasure lineage, payload resurrection, fabricated reason or old format before writes
+  ---
+  duration_ms: 366.453959
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# PASS source after separately reviewed old identity erasure: exact prior aliases/decisions/markers preserved, remaining source facts removed atomically with audit rollback/retry, canonical identity remains readable
+# PASS v14 erased history rebuild: minimal erased identity, original alias/merge choice, distinct original erasure attribution, no deleted profile resurrection, audit rollback and retry
+# Subtest: TD2 source cleanup after reviewed history erasure exports and rebuilds both minimal erased origin and old identity
+ok 31 - TD2 source cleanup after reviewed history erasure exports and rebuilds both minimal erased origin and old identity
+  ---
+  duration_ms: 477.126458
+  type: 'test'
+  ...
+# Subtest: merge history rebuild preserves immutable alias, archived identity, retained profiles and original actor without replaying a merge
+ok 32 - merge history rebuild preserves immutable alias, archived identity, retained profiles and original actor without replaying a merge
+  ---
+  duration_ms: 311.651084
+  type: 'test'
+  ...
+# Subtest: merge history rejects cross-identity mapping, missing current profile or retired measurement, forged actor and unknown manifest payload
+ok 33 - merge history rejects cross-identity mapping, missing current profile or retired measurement, forged actor and unknown manifest payload
+  ---
+  duration_ms: 272.92725
+  type: 'test'
+  ...
+# Subtest: historical identity scope and explicit history or evidence grant remain required
+ok 34 - historical identity scope and explicit history or evidence grant remain required
+  ---
+  duration_ms: 151.6915
+  type: 'test'
+  ...
+# Subtest: TD2 retained-origin export and rebuild keep erased source inert and preserve independently reviewed language, with audit rollback and repeat transfer
+ok 35 - TD2 retained-origin export and rebuild keep erased source inert and preserve independently reviewed language, with audit rollback and repeat transfer
+  ---
+  duration_ms: 393.406333
+  type: 'test'
+  ...
+# Subtest: TD2 retained-origin rebuild rejects missing or altered independent proof and active or colliding origin headers before writes
+ok 36 - TD2 retained-origin rebuild rejects missing or altered independent proof and active or colliding origin headers before writes
+  ---
+  duration_ms: 343.366666
+  type: 'test'
+  ...
+# Subtest: TD2 retained-origin transfer still requires evidence selection and current basis grant; erased origin scope changes invalidate ready exports
+ok 37 - TD2 retained-origin transfer still requires evidence selection and current basis grant; erased origin scope changes invalidate ready exports
+  ---
+  duration_ms: 444.519167
+  type: 'test'
+  ...
+# Subtest: TD2 retained-origin rebuild preserves explicitly unreviewed evidence without inventing reviewer attribution
+ok 38 - TD2 retained-origin rebuild preserves explicitly unreviewed evidence without inventing reviewer attribution
+  ---
+  duration_ms: 333.452667
+  type: 'test'
+  ...
+# Subtest: TD2 credential identifiers require separate record/source grants and current sensitive read permission
+ok 39 - TD2 credential identifiers require separate record/source grants and current sensitive read permission
+  ---
+  duration_ms: 253.025125
+  type: 'test'
+  ...
+# Subtest: TD2 credential key, context, mask, ciphertext and target permission failures leave the target empty
+ok 40 - TD2 credential key, context, mask, ciphertext and target permission failures leave the target empty
+  ---
+  duration_ms: 325.655167
+  type: 'test'
+  ...
+# Subtest: TD2 credential attachment, verified status, invalid issuer, dates and private evidence cannot be smuggled into rebuild
+ok 41 - TD2 credential attachment, verified status, invalid issuer, dates and private evidence cannot be smuggled into rebuild
+  ---
+  duration_ms: 327.877584
+  type: 'test'
+  ...
+# Subtest: TD2 changed identifiers, revoked identifier grants and lost sensitive permission stale queued and ready exports
+ok 42 - TD2 changed identifiers, revoked identifier grants and lost sensitive permission stale queued and ready exports
+  ---
+  duration_ms: 630.623542
+  type: 'test'
+  ...
+# Subtest: TD2 rebuild key files reject missing, public, symlink and malformed keys without disclosing contents
+ok 43 - TD2 rebuild key files reject missing, public, symlink and malformed keys without disclosing contents
+  ---
+  duration_ms: 200.519542
+  type: 'test'
+  ...
+# Subtest: TD2 v5 remains unchanged and rebuilds without key files or unrelated credentials
+ok 44 - TD2 v5 remains unchanged and rebuilds without key files or unrelated credentials
+  ---
+  duration_ms: 308.909875
+  type: 'test'
+  ...
+# Subtest: TD2 credentials with no identifier export and rebuild without granting sensitive fields or providing keys
+ok 45 - TD2 credentials with no identifier export and rebuild without granting sensitive fields or providing keys
+  ---
+  duration_ms: 248.562167
+  type: 'test'
+  ...
+# Subtest: TD2 evidence export requires explicit person, original field group and every evidence source grant
+ok 46 - TD2 evidence export requires explicit person, original field group and every evidence source grant
+  ---
+  duration_ms: 254.289042
+  type: 'test'
+  ...
+# Subtest: TD2 evidence changes and evidence-only source permission or scope loss stale queued and ready exports
+ok 47 - TD2 evidence changes and evidence-only source permission or scope loss stale queued and ready exports
+  ---
+  duration_ms: 689.697458
+  type: 'test'
+  ...
+# Subtest: TD2 malformed evidence owner, field, source revision, identity, review timestamp or unknown secret fails before writes
+ok 48 - TD2 malformed evidence owner, field, source revision, identity, review timestamp or unknown secret fails before writes
+  ---
+  duration_ms: 314.953583
+  type: 'test'
+  ...
+# Subtest: TD2 repeat transfer retains original reviewer attribution without creating target accounts or new approval
+ok 49 - TD2 repeat transfer retains original reviewer attribution without creating target accounts or new approval
+  ---
+  duration_ms: 309.228708
+  type: 'test'
+  ...
+# Subtest: TD2 historical field digests remain unchanged and excluded professional evidence does not enter the bundle
+ok 50 - TD2 historical field digests remain unchanged and excluded professional evidence does not enter the bundle
+  ---
+  duration_ms: 329.094584
+  type: 'test'
+  ...
+# Subtest: TD2 external identity export requires issuing-source permission and remains fail-closed on organization changes
+ok 51 - TD2 external identity export requires issuing-source permission and remains fail-closed on organization changes
+  ---
+  duration_ms: 736.424916
+  type: 'test'
+  ...
+# Subtest: TD2 external rebuild rejects ambiguous identities, missing or unrelated organizations, missing sources and fabricated verification
+ok 52 - TD2 external rebuild rejects ambiguous identities, missing or unrelated organizations, missing sources and fabricated verification
+  ---
+  duration_ms: 293.040334
+  type: 'test'
+  ...
+# Subtest: TD2 external roundtrip preserves revoked and observed identities without letting them resolve as verified
+ok 53 - TD2 external roundtrip preserves revoked and observed identities without letting them resolve as verified
+  ---
+  duration_ms: 286.421792
+  type: 'test'
+  ...
+# Subtest: TD2 current capability export excludes unrelated external identities and organizations
+ok 54 - TD2 current capability export excludes unrelated external identities and organizations
+  ---
+  duration_ms: 276.274208
+  type: 'test'
+  ...
+# Subtest: TD2 representatives require explicit person selection and grants plus the actual organization source group
+ok 55 - TD2 representatives require explicit person selection and grants plus the actual organization source group
+  ---
+  duration_ms: 227.611875
+  type: 'test'
+  ...
+# Subtest: TD2 representation rebuild rejects ambiguous subjects, absent agents, foreign roles, and invalid periods atomically
+ok 56 - TD2 representation rebuild rejects ambiguous subjects, absent agents, foreign roles, and invalid periods atomically
+  ---
+  duration_ms: 297.69325
+  type: 'test'
+  ...
+# Subtest: TD2 representative grant or visibility loss and relationship changes invalidate queued and ready files
+ok 57 - TD2 representative grant or visibility loss and relationship changes invalidate queued and ready files
+  ---
+  duration_ms: 544.576708
+  type: 'test'
+  ...
+# Subtest: TD2 current external export excludes unselected representatives
+ok 58 - TD2 current external export excludes unselected representatives
+  ---
+  duration_ms: 296.323125
+  type: 'test'
+  ...
+# Subtest: TD2 explicit person and fact-source permits export a typed whitelist and atomically rebuild stable relationships
+ok 59 - TD2 explicit person and fact-source permits export a typed whitelist and atomically rebuild stable relationships
+  ---
+  duration_ms: 388.118167
+  type: 'test'
+  ...
+# Subtest: TD2 frozen professional downloads fail closed after fact changes, source revocation, or disabled requestor
+ok 60 - TD2 frozen professional downloads fail closed after fact changes, source revocation, or disabled requestor
+  ---
+  duration_ms: 468.348333
+  type: 'test'
+  ...
+# Subtest: TD2 selected dependencies are explicit and unsupported typed fields cannot be smuggled into export
+ok 61 - TD2 selected dependencies are explicit and unsupported typed fields cannot be smuggled into export
+  ---
+  duration_ms: 284.527541
+  type: 'test'
+  ...
+# Subtest: TD2 foreign-source field evidence cannot be silently flattened and worker rechecks revoked grants
+ok 62 - TD2 foreign-source field evidence cannot be silently flattened and worker rechecks revoked grants
+  ---
+  duration_ms: 321.22075
+  type: 'test'
+  ...
+# Subtest: TD2 capability transfer preserves only referenced definitions and stales queued or ready exports when meaning changes
+ok 63 - TD2 capability transfer preserves only referenced definitions and stales queued or ready exports when meaning changes
+  ---
+  duration_ms: 164.723917
+  type: 'test'
+  ...
+# Subtest: TD2 capability rebuild rejects omitted, unrelated, duplicate, invalid-role and invalid-level definitions before writes
+ok 64 - TD2 capability rebuild rejects omitted, unrelated, duplicate, invalid-role and invalid-level definitions before writes
+  ---
+  duration_ms: 277.81675
+  type: 'test'
+  ...
+# Subtest: TD2 selected eight groups use current format without exporting unselected capabilities
+ok 65 - TD2 selected eight groups use current format without exporting unselected capabilities
+  ---
+  duration_ms: 279.180333
+  type: 'test'
+  ...
+# Subtest: TD2 shared inactive capability definitions and nullable role or level survive rebuild without reactivation
+ok 66 - TD2 shared inactive capability definitions and nullable role or level survive rebuild without reactivation
+  ---
+  duration_ms: 288.497667
+  type: 'test'
+  ...
+1..66
+# tests 66
+# suites 0
+# pass 66
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 26247.088458

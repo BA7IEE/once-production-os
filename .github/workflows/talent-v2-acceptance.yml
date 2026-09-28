@@ -45,7 +45,13 @@ jobs:
           echo 'ALLOW_BROWSER_TESTS=yes' >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - run: pnpm verify && pnpm typecheck:transport
+      # Shared checks run once. Each isolated browser runner still builds its own artifacts.
+      - name: Shared core, contract, type and build checks
+        if: matrix.suite == 'postgres-contract'
+        run: pnpm verify && pnpm typecheck:transport
+      - name: Build browser server and UI
+        if: matrix.suite != 'postgres-contract'
+        run: pnpm build
       - name: PostgreSQL, JSON rebuild and full backup recovery
         if: matrix.suite == 'postgres-contract'
         run: pnpm db:deploy && pnpm verify:postgres && node --experimental-strip-types tests/postgres/rebuild-cli.mjs

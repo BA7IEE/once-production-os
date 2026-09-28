@@ -66,7 +66,7 @@ test('v10 identity evidence can accompany verified adult, credential and shared 
  const dir=await mkdtemp(join(await realpath(tmpdir()),'once-identity-combined-'));try {
   const f=await fixture(),t=await adultTransfer(f,join(dir,'media'));
   const bundle=await f.store.transaction(tx=>collectTalentTransfer(tx,t.actor,f.clock,t.input.selectedIds.people,t.download.payload.manifest.talent.selectedFields,true,true,true,['person.displayName']));
-  assert.equal(bundle.schemaVersion,'once-talent-transfer-v10');assert.equal(bundle.assets!.length,1);assert.equal(bundle.tables.personCredentials.find(r=>r.id===t.graph.credentialId)!.data.status,'VERIFIED');assert.equal(bundle.tables.adultEligibilities[0].data.state,'VERIFIED_ADULT');
+  assert.equal(bundle.schemaVersion,'once-talent-transfer-v14');assert.equal(bundle.assets!.length,1);assert.equal(bundle.tables.personCredentials.find(r=>r.id===t.graph.credentialId)!.data.status,'VERIFIED');assert.equal(bundle.tables.adultEligibilities[0].data.state,'VERIFIED_ADULT');
   const target=await fixture(),rebuild=new JsonRebuild(target.clock,{sourceContactKey:f.app.config.contactKey,targetContactKey:target.app.config.contactKey}),actor=await target.store.transaction(tx=>rebuild.actorFromTarget(tx,'owner'));
   const p=structuredClone(t.download.payload);p.manifest.talent=bundle;await target.store.transaction(tx=>rebuild.preview(tx,actor,p));
  }finally{await rm(dir,{recursive:true,force:true});}

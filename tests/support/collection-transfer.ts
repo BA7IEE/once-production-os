@@ -25,6 +25,6 @@ export async function collectionTransfer(f:{app:Application;store:Store;clock:Fa
     const input={...t.input,fields:[...t.input.fields,...codes],usePermissionRefs:refs};
     const id=ok(await f.owner.cmd('POST','/exports',input),202).resourceId as string,claim=await f.app.exports.claim();assert.ok(claim);await f.app.exports.process(claim);
     const download=ok(await f.owner.raw('POST',`/exports/${id}/download`,{}),200);
-    assert.equal(download.payload.manifest.talent.schemaVersion,'once-talent-transfer-v8');
+    assert.equal(download.payload.manifest.talent.schemaVersion,'once-talent-transfer-v14');
     return {...t,input,download,jobId:id,secondCollectionId:second};
 }

@@ -1,3 +1,5 @@
+import {LOCALE_EXPORT_VERSION,collectLocaleTransfer,isLocaleCode,localeTransferCode,type LocaleTransfer} from './locale-transfer.ts';
+import {localeSubject} from './locale-model.ts';
 import {validateIdentityRetention} from './talent-identity-retention.ts';
 import {MERGE_HISTORY_CODE,validateMergeHistory} from './merge-history-transfer.ts';
 import {IDENTITY_EVIDENCE_CODE,identityField} from './identity-transfer.ts';
@@ -92,7 +94,7 @@ export class Exports {
         requirePermission(actor, 'sources.review');
         const d = S.permissionCreate.parse(input);
         invariant(unique(d.fields).length === d.fields.length, 'DUPLICATE_FIELD', '导出字段不能重复', 400);
-        const allowed = d.fields.filter(f => fieldsFor(d.subjectKind, [f]).length || (d.subjectKind === 'SOURCE' && (f===MERGE_HISTORY_CODE||identityField(f)||f===IDENTITY_EVIDENCE_CODE||isTransferCode(f)||f===EVIDENCE_TRANSFER_CODE||f===CREDENTIAL_IDENTIFIER_CODE||f===MEDIA_TRANSFER_CODE)));
+        const allowed = d.fields.filter(f => fieldsFor(d.subjectKind, [f]).length || (d.subjectKind === 'SOURCE' && (isLocaleCode(f)||f===MERGE_HISTORY_CODE||identityField(f)||f===IDENTITY_EVIDENCE_CODE||isTransferCode(f)||f===EVIDENCE_TRANSFER_CODE||f===CREDENTIAL_IDENTIFIER_CODE||f===MEDIA_TRANSFER_CODE)));
         invariant(allowed.length === d.fields.length, 'EXPORT_FIELD_SUBJECT_MISMATCH', '导出许可字段与对象类型不匹配', 422);
         const subject = d.retentionBasisSourceId?{source:await exportPermissionSource(tx,actor,d,this.clock)}:await this.subject(tx, actor, d.subjectKind, d.subjectId);
         invariant(!!d.retentionBasisSourceId || subject.source.id === d.sourceId, 'EXPORT_SOURCE_MISMATCH', '导出许可的来源与对象不一致', 422);
@@ -188,14 +190,15 @@ export class Exports {
         for (const id of workIds) { const row = await workFor(tx, actor, id, this.clock); works.push(row); sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock)); }
         for (const id of projectIds) { const row = await projectFor(tx, actor, id, this.clock); projects.push(row); sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock)); }
 
-        invariant(!(await tx.find('localeTexts',{workspaceId:actor.workspaceId})).some(row=>row.state!=='ERASED'&&(peopleIds.includes(row.personId??'')||workIds.includes(row.workId??'')||projectIds.includes(row.projectId??''))), 'LOCALE_TRANSFER_NOT_READY','所选档案含内部语言文本，完整语言迁移尚待接通，当前导出已阻断以免遗漏',409);
+        const localeBundle=await collectLocaleTransfer(tx,actor,this.clock,{people:peopleIds,works:workIds,projects:projectIds},d.fields);
+        const locales=d.fields.some(isLocaleCode)?localeBundle:null;
         const withEvidence=d.fields.includes(EVIDENCE_TRANSFER_CODE),withIdentifiers=d.fields.includes(CREDENTIAL_IDENTIFIER_CODE);
         invariant(!withIdentifiers||transferFields.includes('person.td2.personCredentials'),'TD2_TRANSFER_CREDENTIAL_REQUIRED','编号迁移必须同时选择资质记录',422);
         invariant(!withEvidence||transferFields.length>0,'TD2_TRANSFER_EVIDENCE_OWNER','字段证据必须同时选择专业资料',422);
         invariant(!d.fields.includes(MEDIA_TRANSFER_CODE)||(transferFields.includes('person.td2.personCredentials')||transferFields.includes('person.td2.mediaCollections')||transferFields.includes('person.td2.adultEligibilities')),'TD2_TRANSFER_MEDIA_OWNER_REQUIRED','原件必须随资质或媒体集合导出',422);
         const identityFields=d.fields.includes(IDENTITY_EVIDENCE_CODE)?d.fields.filter(identityField):undefined;
         const talent = transferFields.length||identityFields||d.fields.includes(MERGE_HISTORY_CODE) ? await collectTalentTransfer(tx, actor, this.clock, peopleIds, transferFields, withEvidence, withIdentifiers, d.fields.includes(MEDIA_TRANSFER_CODE),identityFields,d.fields.includes(MERGE_HISTORY_CODE)) : null;
-        invariant(!people.some(p=>sources.get(p.sourceId)?.status==='ERASED')||(talent?.schemaVersion==='once-talent-transfer-v13'||talent?.schemaVersion==='once-talent-transfer-v14'),'TD2_RETAINED_IDENTITY_FIELDS','原始来源已删的人物须同时迁移完整身份字段与独立依据',422);
+        invariant(!people.some(p=>sources.get(p.sourceId)?.status==='ERASED')||(talent?.schemaVersion==='once-talent-transfer-v14'),'TD2_RETAINED_IDENTITY_FIELDS','原始来源已删的人物须同时迁移完整身份字段与独立依据',422);
         const sourceTransferFields = new Map<string, Set<ExportFieldCode>>();
         if (talent) for (const table of TRANSFER_TABLES) for (const row of transferRows(talent,table)) {
             if(talent.retainedOrigins?.some(o=>o.id===row.sourceId))continue;
@@ -227,9 +230,16 @@ export class Exports {
             if(transferRows(talent!,'representations').some(r=>r.data.agencyOrganizationId===organization.id)) fields.add('person.td2.representations');
             sourceTransferFields.set(organization.sourceId,fields);
         }
+        for(const text of locales?.texts??[]){
+            const field=localeTransferCode(localeSubject(text).kind);
+            for(const sourceId of new Set([...text.dependencies,...text.importedBasis?.dependencies??[]].map(d=>d.sourceId))){
+                const source=await sourceFor(tx,actor,sourceId,this.clock);sources.set(source.id,source);
+                const fields=sourceTransferFields.get(source.id)??new Set<ExportFieldCode>();fields.add(field);sourceTransferFields.set(source.id,fields);
+            }
+        }
         const now = this.clock.now().toISOString();
         const initialExpiry = new Date(this.clock.now().getTime() + L.ttlMs).toISOString();
-        const job: ExportJob = { ...base(actor.workspaceId, this.clock), actorId: actor.membershipId, format: 'JSON', schemaVersion: talent ? TALENT_EXPORT_VERSION : 'once-export-v1',
+        const job: ExportJob = { ...base(actor.workspaceId, this.clock), actorId: actor.membershipId, format: 'JSON', schemaVersion: locales ? LOCALE_EXPORT_VERSION : talent ? TALENT_EXPORT_VERSION : 'once-export-v1',
             state: 'QUEUED', recordManifest: {}, fields: [...d.fields].sort(), usePermissionRefs: [], payload: null, payloadDigest: null,
             expiresAt: initialExpiry, errorCode: null, leaseToken: null, leaseUntil: null, attempts: 0 };
 
@@ -245,19 +255,19 @@ export class Exports {
             const source = sources.get(row.sourceId)!;
             const permission = this.choosePermission(permissions, used, 'PERSON', row.id, row.sourceId, personFields);
             dependencies.push(this.dependency(actor.workspaceId, job.id, 'PERSON', row.id, personFields, source, row.revision, row.protectionEpoch, permission, initialExpiry));
-            return { id: row.id, sourceId: row.sourceId, revision: row.revision, data: dataFields('person.', personFields.filter(f => !isTransferCode(f)&&f!==EVIDENCE_TRANSFER_CODE&&f!==CREDENTIAL_IDENTIFIER_CODE&&f!==IDENTITY_EVIDENCE_CODE&&f!==MERGE_HISTORY_CODE), row as unknown as Record<string, unknown>) };
+            return { id: row.id, sourceId: row.sourceId, revision: row.revision, data: dataFields('person.', personFields.filter(f => !isLocaleCode(f)&&!isTransferCode(f)&&f!==EVIDENCE_TRANSFER_CODE&&f!==CREDENTIAL_IDENTIFIER_CODE&&f!==IDENTITY_EVIDENCE_CODE&&f!==MERGE_HISTORY_CODE), row as unknown as Record<string, unknown>) };
         });
         const manifestWorks = works.map(row => {
             const source = sources.get(row.sourceId)!;
             const permission = this.choosePermission(permissions, used, 'WORK', row.id, row.sourceId, workFields);
             dependencies.push(this.dependency(actor.workspaceId, job.id, 'WORK', row.id, workFields, source, row.revision, null, permission, initialExpiry));
-            return { id: row.id, sourceId: row.sourceId, revision: row.revision, data: dataFields('work.', workFields.filter(x => x !== 'work.relations'), row as unknown as Record<string, unknown>) };
+            return { id: row.id, sourceId: row.sourceId, revision: row.revision, data: dataFields('work.', workFields.filter(x => !isLocaleCode(x)&&x !== 'work.relations'), row as unknown as Record<string, unknown>) };
         });
         const manifestProjects = projects.map(row => {
             const source = sources.get(row.sourceId)!;
             const permission = this.choosePermission(permissions, used, 'PROJECT', row.id, row.sourceId, projectFields);
             dependencies.push(this.dependency(actor.workspaceId, job.id, 'PROJECT', row.id, projectFields, source, row.revision, null, permission, initialExpiry));
-            return { id: row.id, sourceId: row.sourceId, revision: row.revision, data: dataFields('project.', projectFields.filter(x => x !== 'project.relations'), row as unknown as Record<string, unknown>) };
+            return { id: row.id, sourceId: row.sourceId, revision: row.revision, data: dataFields('project.', projectFields.filter(x => !isLocaleCode(x)&&x !== 'project.relations'), row as unknown as Record<string, unknown>) };
         });
 
         const selectedPeople = new Set(peopleIds), selectedWorks = new Set(workIds), selectedProjects = new Set(projectIds);
@@ -316,7 +326,7 @@ export class Exports {
         job.usePermissionRefs = [...used].sort();
         job.expiresAt = minIso(initialExpiry, ...dependencies.map(dep => dep.validUntil));
         job.recordManifest = { schemaVersion: job.schemaVersion, frozenAt: now, people: manifestPeople, works: manifestWorks, projects: manifestProjects,
-            sources: manifestSources, media, relations, ...(talent ? { talent } : {}) };
+            sources: manifestSources, media, relations, ...(talent ? { talent } : {}), ...(locales?{locales}:{}) };
         await tx.insert('exports', job);
         for (const dependency of dependencies) await tx.insert('exportDependencies', dependency);
         return job;
@@ -334,7 +344,7 @@ export class Exports {
             const permission = await this.permissionFor(tx, actor, dependency.usePermissionId);
             const source = await sourceFor(tx, actor, dependency.sourceId, this.clock,!(dependency.kind==='PERSON'&&permission.retentionBasisSourceId),!!(dependency.kind==='PERSON'&&permission.retentionBasisSourceId));
             if(permission.retentionBasisSourceId)invariant(dependency.kind==='PERSON'&&source.status==='ERASED'&&source.revision===dependency.sourceRevision,'EXPORT_SOURCE_CHANGED','原始来源头已变化',409);
-            if (dependency.fields.some(isTransferCode)) invariant(source.revision === dependency.sourceRevision, 'EXPORT_SOURCE_CHANGED', '专业资料来源版本已变化', 409);
+            if (dependency.fields.some(f=>isTransferCode(f)||isLocaleCode(f))) invariant(source.revision === dependency.sourceRevision, 'EXPORT_SOURCE_CHANGED', '专业资料来源版本已变化', 409);
             invariant(source.protectionEpoch === dependency.sourceProtectionEpoch, 'EXPORT_SOURCE_CHANGED', '来源安全状态已变化', 409);
             invariant(permission.revision === dependency.usePermissionRevision && dependency.fields.every(field => permission.fields.includes(field)),
                 'EXPORT_PERMISSION_CHANGED', '导出许可已变化', 409);
@@ -365,12 +375,18 @@ export class Exports {
         invariant(!deps.some(dep => dep.kind === 'PERSON' && dep.personId && upgraded.has(dep.personId)
             && dep.fields.some(field => professional.has(field))), 'EXPORT_STALE',
             '人才资料已升级为2.0，旧版专业字段导出不再可下载', 409);
-        if (row.schemaVersion === TALENT_EXPORT_VERSION) {
+        if ((row.recordManifest as {talent?:unknown}).talent) {
             const manifest = row.recordManifest as { people: Array<{id:string}>; talent: TalentTransfer };
             try {
                 const current = await collectTalentTransfer(tx, actor, this.clock, manifest.people.map(p => p.id), row.fields.filter(isTransferCode),row.fields.includes(EVIDENCE_TRANSFER_CODE),row.fields.includes(CREDENTIAL_IDENTIFIER_CODE),row.fields.includes(MEDIA_TRANSFER_CODE),row.fields.includes(IDENTITY_EVIDENCE_CODE)?row.fields.filter(identityField):undefined,row.fields.includes(MERGE_HISTORY_CODE));
                 invariant(digest(current) === digest(manifest.talent), 'EXPORT_STALE', '专业资料已经变化，请重新生成导出', 409);
             } catch (error) { safeError(error); }
+        }
+        if(row.schemaVersion===LOCALE_EXPORT_VERSION){
+            const manifest=row.recordManifest as {people:Array<{id:string}>;works:Array<{id:string}>;projects:Array<{id:string}>;locales:LocaleTransfer};
+            try{const current=await collectLocaleTransfer(tx,actor,this.clock,{people:manifest.people.map(r=>r.id),works:manifest.works.map(r=>r.id),projects:manifest.projects.map(r=>r.id)},row.fields);
+                invariant(digest(current)===digest(manifest.locales),'EXPORT_STALE','内部文本或其依据已经变化，请重新生成导出',409);
+            }catch(error){safeError(error);}
         }
         for (const dep of deps) contentChanged = (await this.validateDependency(tx, actor, dep)) || contentChanged;
         return { contentChanged, dependencyCount: deps.length };

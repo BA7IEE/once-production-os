@@ -8,7 +8,6 @@ import {TALENT_OWNER_EMPTY} from './talent-v2-model.ts';
 
 export const IDENTITY_EVIDENCE_CODE='person.identityEvidence' as const;
 export const IDENTITY_FIELDS=['person.displayName','person.aliases','person.intro'] as const;
-export const IDENTITY_TRANSFER_VERSION='once-talent-transfer-v10' as const;
 export const identityField=(field:string):field is typeof IDENTITY_FIELDS[number]=>(IDENTITY_FIELDS as readonly string[]).includes(field);
 export const IdentityEvidenceSchema=v.object({id:uuid,revision,createdAt:dateIso,updatedAt:dateIso,personId:uuid,fieldPath:v.enum(['displayName','aliases','intro']),valueDigest:v.string(64,64,/^[a-f0-9]{64}$/),sourceId:uuid,sourceRevision:revision,originalReview:v.nullable(v.object({workspaceId:uuid,membershipId:uuid,reviewedAt:dateIso}))});
 export type IdentityEvidence=ReturnType<typeof IdentityEvidenceSchema.parse>;

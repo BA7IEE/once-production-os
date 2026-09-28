@@ -1904,6 +1904,11 @@ model LocaleText {
   text String @db.Text
   state String @db.Text
   sourceDigest String @db.Text
+  originalReviewWorkspaceId String? @db.Uuid
+  originalReviewMembershipId String? @db.Uuid
+  originalReviewedAt DateTime? @db.Timestamptz(3)
+  originalReviewTextDigest String?
+  importedBasis Json?
   reviewedBy String? @db.Uuid
   reviewedAt DateTime? @db.Timestamptz(3)
   workspace Workspace @relation("LocaleText_workspace_locale", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "localeTexts_workspace_fkey")

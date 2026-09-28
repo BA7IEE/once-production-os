@@ -521,7 +521,7 @@ try {
  const typedDownload=owner.waitForEvent('download');await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();
  const typedFile=await typedDownload,typedPayload=JSON.parse(readFileSync(await typedFile.path(),'utf8'));
  assert.equal(typedPayload.schemaVersion,'once-export-v2-talent');
- assert.equal(typedPayload.manifest.talent.schemaVersion,'once-talent-transfer-v11');
+ assert.equal(typedPayload.manifest.talent.schemaVersion,'once-talent-transfer-v14');
  const exportedHistory=typedPayload.manifest.talent.mergeHistory;assert.equal(exportedHistory.people.length,1);assert.equal(exportedHistory.people[0].id,tdDuplicate);assert.equal(exportedHistory.people[0].status,'ARCHIVED');assert.equal(exportedHistory.aliases[0].oldPersonId,tdDuplicate);assert.equal(exportedHistory.aliases[0].canonicalPersonId,tdCanonical);
  const mergeOriginal=await prisma.personMergeDecision.findUniqueOrThrow({where:{id:exportedHistory.decisions[0].id}});assert.equal(exportedHistory.decisions[0].origin.membershipId,mergeOriginal.actorId);assert.equal(exportedHistory.decisions[0].origin.workspaceId,mergeOriginal.workspaceId);assert.deepEqual(exportedHistory.decisions[0].decisionManifest,mergeOriginal.decisionManifest);assert.equal(exportedHistory.talentProfiles[0].personId,tdDuplicate);assert.ok(typedPayload.manifest.talent.tables.talentProfiles.some(p=>p.id===exportedHistory.talentProfiles[0].supersededById));
  for(const original of identityEvidenceBefore){const e=typedPayload.manifest.talent.identityEvidence.find(e=>e.id===original.id);assert.ok(e);assert.equal(e.personId,original.personId);assert.equal(e.valueDigest,original.valueDigest);assert.equal(e.originalReview.membershipId,original.reviewerId);assert.equal(e.originalReview.reviewedAt,original.reviewedAt.toISOString());}
@@ -566,7 +566,7 @@ try {
 
  await verifyTalentWorkbench({owner,prisma,cmd,writeUI,source,assetId:tdUpload.resourceId,prepare,binary,queue,until,mediaBytes:tdBytes,login,password,json,mediaRoot:env.MEDIA_ROOT});
  const {verifyMergeHistoryErasure}=await import('./merge-history-erasure.mjs');await verifyMergeHistoryErasure({owner,prisma,cmd,writeUI,until,sourceId:tdSource,source});
- const {verifyLocaleBrowser}=await import('./locale-texts.mjs');await verifyLocaleBrowser({owner,prisma,cmd,writeUI,source,json});
+ const {verifyLocaleBrowser}=await import('./locale-texts.mjs');await verifyLocaleBrowser({owner,prisma,cmd,writeUI,source,json,until});
  assert.deepEqual(errors,[]);
 } catch(error) {
  console.error('Browser page errors:',JSON.stringify(errors));

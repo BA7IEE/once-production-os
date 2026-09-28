@@ -10,7 +10,6 @@ import {PERSON_MERGE_FIELDS} from './merge-model.ts';
 import type {TalentTransfer} from './talent-transfer.ts';
 export const MERGE_HISTORY_CODE='person.td2.mergeHistory' as const;
 export const MERGE_ERASURE_VERSION='once-talent-transfer-v14' as const;
-export const MERGE_HISTORY_VERSION='once-talent-transfer-v11' as const;
 const stamp={id:uuid,revision,createdAt:dateIso,updatedAt:dateIso};
 const hash=v.string(64,64,/^[a-f0-9]{64}$/),count=v.number(0);
 const originalReview=v.nullable(v.object({workspaceId:uuid,membershipId:uuid,reviewedAt:dateIso}));
@@ -34,7 +33,7 @@ export const MergeHistorySchema=v.object({people:v.array(historyPerson,100),alia
 const erasedHistoryPerson=v.object({...stamp,sourceId:uuid,status:v.enum(['ERASED']),protectionEpoch:revision});
 const anyHistoryPerson:import('./validation.ts').Schema<ReturnType<typeof historyPerson.parse>|ReturnType<typeof erasedHistoryPerson.parse>>={json:{oneOf:[historyPerson.json,erasedHistoryPerson.json]},parse(value,path){return value&&typeof value==='object'&&(value as {status?:unknown}).status==='ERASED'?erasedHistoryPerson.parse(value,path):historyPerson.parse(value,path);}};
 const historyErasure=v.object({...stamp,mergeDecisionId:uuid,personId:uuid,sourceId:uuid,recordKind:v.enum(['PERSON','TALENT_PROFILE','CASTING_PROFILE']),recordStatusBefore:v.nullable(v.enum(['ARCHIVED','ERASED'])),recordId:uuid,recordRevision:revision,recordCreatedAt:dateIso,recordUpdatedAt:dateIso,supersededById:v.nullable(uuid),retiredMeasurementSetId:v.nullable(uuid),erasedAt:dateIso,origin:v.object({workspaceId:uuid,requestId:uuid,membershipId:uuid})});
-export const ErasedMergeHistorySchema=v.object({people:v.array(anyHistoryPerson,100),aliases:v.array(alias,100),decisions:v.array(v.object({...decisionFields,reasonErasedAt:v.optional(v.nullable(dateIso))}),100),talentProfiles:v.array(talent,100),castingProfiles:v.array(casting,100),evidence:v.array(evidence,500),erasures:v.array(historyErasure,300,1)});
+export const ErasedMergeHistorySchema=v.object({people:v.array(anyHistoryPerson,100),aliases:v.array(alias,100),decisions:v.array(v.object({...decisionFields,reasonErasedAt:v.optional(v.nullable(dateIso))}),100),talentProfiles:v.array(talent,100),castingProfiles:v.array(casting,100),evidence:v.array(evidence,500),erasures:v.array(historyErasure,300)});
 type LegacyMergeHistory=ReturnType<typeof MergeHistorySchema.parse>;
 export type MergeHistory=Omit<LegacyMergeHistory,'people'|'decisions'>&{people:Array<ReturnType<typeof anyHistoryPerson.parse>>;decisions:Array<LegacyMergeHistory['decisions'][number]&{reasonErasedAt?:string|null}>;erasures?:Array<ReturnType<typeof historyErasure.parse>>};
 export async function collectMergeHistory(tx:Tx,actor:Actor,clock:Clock,peopleIds:string[],bundle:TalentTransfer,withEvidence:boolean):Promise<MergeHistory> {

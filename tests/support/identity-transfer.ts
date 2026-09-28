@@ -17,7 +17,7 @@ export async function identityTransfer(f:{app:Application;store:Store;clock:Fake
  const input={format:'JSON',selectedIds:{people:[personId],works:[],projects:[]},fields,usePermissionRefs:refs};
  const jobId=ok(await f.owner.cmd('POST','/exports',input),202).resourceId as string,claim=await f.app.exports.claim();assert.ok(claim);await f.app.exports.process(claim);
  const download=ok(await f.owner.raw('POST',`/exports/${jobId}/download`,{}),200);
- assert.equal(download.payload.manifest.talent.schemaVersion,'once-talent-transfer-v10');
+ assert.equal(download.payload.manifest.talent.schemaVersion,'once-talent-transfer-v14');
  assert.equal(download.payload.manifest.talent.identityEvidence.length,3);
  assert.equal(download.payload.manifest.talent.selectedFields.length,0);
  assert.equal(download.payload.manifest.sources.some((s:{id:string})=>s.id===excluded),false);

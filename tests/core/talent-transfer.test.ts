@@ -74,10 +74,10 @@ test('TD2 capability rebuild rejects omitted, unrelated, duplicate, invalid-role
     }
 });
 
-test('TD2 original eight-group v1 exports keep their shape and rebuild without capability definitions',async()=>{
+test('TD2 selected eight groups use current format without exporting unselected capabilities',async()=>{
     const source=await fixture(),target=await fixture(),t=await controlledTransfer(source.app,source.store,source.clock,source.owner,false);
-    assert.equal(t.bundle.schemaVersion,'once-talent-transfer-v1');
-    assert.equal('personCapabilities' in t.bundle.tables,false);assert.equal('capabilityDefinitions' in t.bundle,false);
+    assert.equal(t.bundle.schemaVersion,'once-talent-transfer-v14');
+    assert.deepEqual(t.bundle.tables.personCapabilities,[]);assert.deepEqual(t.bundle.capabilityDefinitions,[]);
     await source.store.transaction(async tx=>{const row=(await tx.find('capabilityDefinitions'))[0]!;await tx.replace('capabilityDefinitions',{...row,labelZh:'旧文件不引用这个定义',revision:row.revision+1});});
     const downloaded=await source.owner.raw('POST',`/exports/${t.jobId}/download`,{});assert.equal(downloaded.status,200);assert.equal(result(downloaded).sha256,t.download.sha256);
     const {JsonRebuild}=await import('../../packages/core/src/rebuild.ts');
@@ -102,4 +102,16 @@ test('TD2 shared inactive capability definitions and nullable role or level surv
     await target.store.transaction(tx=>rebuild.apply(tx,actor,payload,{requestId:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',ip:'test'}));
     assert.equal(target.store.rows('personCapabilities').length,2);assert.equal(target.store.rows('capabilityDefinitions')[0]!.status,'INACTIVE');
     const restored=target.store.rows('personCapabilities').find(r=>r.id===result(added).resourceId)!;assert.equal(restored.personRoleId,null);assert.equal(restored.levelCode,null);
+});
+
+
+test('TD2 retired development formats v1-v13 are rejected before any rebuild write',async()=>{
+    const source=await fixture(),target=await fixture(),t=await controlledTransfer(source.app,source.store,source.clock,source.owner);
+    const {JsonRebuild}=await import('../../packages/core/src/rebuild.ts');
+    const rebuild=new JsonRebuild(target.clock),actor=await target.store.transaction(tx=>rebuild.actorFromTarget(tx,'owner'));
+    for(let version=1;version<14;version++){
+        const payload=structuredClone(t.download.payload);payload.manifest.talent.schemaVersion=`once-talent-transfer-v${version}`;
+        await assert.rejects(target.store.transaction(tx=>rebuild.apply(tx,actor,payload,{requestId:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',ip:'test'})),(error:any)=>error.code==='TD2_TRANSFER_VERSION_RETIRED');
+        assert.equal(target.store.rows('people').length,0);assert.equal(target.store.rows('sources').length,0);
+    }
 });

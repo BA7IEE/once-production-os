@@ -4,8 +4,6 @@ import {TD2_FACTS,type FactTable} from './talent-v2-schema.ts';
 import {v,uuid,revision} from './validation.ts';
 import {invariant} from './errors.ts';
 import {digest} from './json.ts';
-export const IDENTITY_ORIGIN_VERSION='once-talent-transfer-v13' as const;
-export const RETAINED_ORIGIN_VERSION='once-talent-transfer-v12' as const;
 export const RetainedOriginSchema=v.object({id:uuid,revision,protectionEpoch:revision,status:v.enum(['ERASED'])});
 export interface RetainedOrigin {id:string;revision:number;protectionEpoch:number;status:'ERASED'}
 type CurrentSource={id:string;revision:number;data:{status:string;validFrom:string;validUntil:string}};
@@ -16,7 +14,7 @@ export function validateRetainedOrigins(bundle:TalentTransfer,sources:CurrentSou
  const used=new Set<string>(),now=clock.now().getTime();
  const current=new Map(sources.filter(s=>s.data.status==='CONFIRMED'&&Date.parse(s.data.validFrom)<=now&&Date.parse(s.data.validUntil)>now).map(s=>[s.id,s]));
  for(const person of people)if(ids.has(person.sourceId)){
-  invariant((bundle.schemaVersion===IDENTITY_ORIGIN_VERSION||bundle.schemaVersion==='once-talent-transfer-v14'),'TD2_RETAINED_IDENTITY_VERSION','保留身份的最初来源需要 v13 迁移格式',422);used.add(person.sourceId);
+  used.add(person.sourceId);
   for(const field of ['displayName','aliases','intro'])invariant(bundle.identityFields?.includes('person.'+field)&&Object.hasOwn(person.data,field)&&(bundle.identityEvidence??[]).some(e=>e.personId===person.id&&e.fieldPath===field&&e.valueDigest===digest(person.data[field])&&current.get(e.sourceId)?.revision===e.sourceRevision),'TD2_RETAINED_IDENTITY_BASIS','保留身份必须包含全部身份字段及当前同值的独立依据',422);
  }
  for(const [table,rows] of Object.entries(bundle.tables))for(const row of rows)if(ids.has(row.sourceId)) {

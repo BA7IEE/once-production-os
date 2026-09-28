@@ -16,6 +16,6 @@ export async function adultTransfer(f:{app:Application;store:Store;clock:FakeClo
     }
     const input={...t.input,fields:[...t.input.fields,'person.td2.adultEligibilities'],usePermissionRefs:refs};
     const jobId=ok(await f.owner.cmd('POST','/exports',input),202).resourceId as string,claim=await f.app.exports.claim();assert.ok(claim);await f.app.exports.process(claim);
-    const download=ok(await f.owner.raw('POST',`/exports/${jobId}/download`,{}),200);assert.equal(download.payload.manifest.talent.schemaVersion,'once-talent-transfer-v9');
+    const download=ok(await f.owner.raw('POST',`/exports/${jobId}/download`,{}),200);assert.equal(download.payload.manifest.talent.schemaVersion,'once-talent-transfer-v14');
     return {...t,adultId:adult.id,input,jobId,download};
 }

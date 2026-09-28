@@ -1,3 +1,4 @@
+import {LOCALE_TRANSFER_CODES,LOCALE_EXPORT_VERSION} from './locale-transfer.ts';
 import {MERGE_HISTORY_CODE} from './merge-history-transfer.ts';
 import {IDENTITY_EVIDENCE_CODE} from './identity-transfer.ts';
 import { MEDIA_TRANSFER_CODE } from './media-transfer.ts';
@@ -5,6 +6,7 @@ import { TRANSFER_CODES, CREDENTIAL_IDENTIFIER_CODE, EVIDENCE_TRANSFER_CODE, TAL
 import type { Base } from './model.ts';
 
 export const EXPORT_FIELD_CODES = [
+    ...LOCALE_TRANSFER_CODES,
     'person.displayName', 'person.aliases', 'person.roles', 'person.cityCode', 'person.languageCodes', 'person.skillCodes', 'person.heightCm', 'person.intro', 'person.status',
     'work.title', 'work.description', 'work.industryCode', 'work.workTypeCodes', 'work.origin', 'work.originNote', 'work.status', 'work.relations',
     'project.title', 'project.brief', 'project.locationNote', 'project.dateNote', 'project.reviewNote', 'project.status', 'project.relations',
@@ -36,7 +38,7 @@ export interface UsePermission extends Base {
 export interface ExportJob extends Base {
     actorId: string;
     format: 'JSON';
-    schemaVersion: 'once-export-v1' | typeof TALENT_EXPORT_VERSION;
+    schemaVersion: 'once-export-v1' | typeof TALENT_EXPORT_VERSION | typeof LOCALE_EXPORT_VERSION;
     state: 'QUEUED' | 'READY' | 'STALE' | 'FAILED' | 'ERASED';
     recordManifest: unknown;
     fields: ExportFieldCode[];

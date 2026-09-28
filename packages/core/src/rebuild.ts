@@ -1,3 +1,5 @@
+import {LOCALE_EXPORT_VERSION} from './locale-transfer.ts';
+import {validateLocaleRebuild,applyLocaleRebuild} from './locale-transfer-rebuild.ts';
 import {validateRetainedOrigins} from './retained-origin-transfer.ts';
 import {validateMergeHistory,applyHistoryPeople,applyMergeHistory} from './merge-history-transfer.ts';
 import {validateIdentityEvidence,applyIdentityEvidence} from './identity-transfer.ts';
@@ -75,8 +77,8 @@ export class JsonRebuild {
     private async plan(tx: Tx, actor: Actor, input: unknown) {
         const payload = RebuildSchemas.payload.parse(input);
         const target = await this.target(tx, actor);
-        const typed = payload.schemaVersion === TALENT_EXPORT_VERSION;
-        invariant(payload.schemaVersion === payload.manifest.schemaVersion && typed === !!payload.manifest.talent, 'REBUILD_SCHEMA_MISMATCH', '导出版本与专业资料结构不一致', 422);
+        const typed = !!payload.manifest.talent;
+        invariant(payload.schemaVersion === payload.manifest.schemaVersion && (payload.schemaVersion===LOCALE_EXPORT_VERSION?!!payload.manifest.locales:!payload.manifest.locales&&(payload.schemaVersion===TALENT_EXPORT_VERSION) === typed), 'REBUILD_SCHEMA_MISMATCH', '导出版本与专业资料结构不一致', 422);
         if (payload.manifest.talent) validateRetainedOrigins(payload.manifest.talent,payload.manifest.sources,this.clock,payload.manifest.people);
         if (payload.manifest.talent) await validateTalentRebuild(tx, actor, this.clock, payload.manifest.talent, payload.manifest.people.map(p=>p.id), payload.manifest.sources.map(s=>s.id));
         if(payload.manifest.talent&&transferRows(payload.manifest.talent,'personCredentials').some(r=>r.data.identifierCiphertext)) {
@@ -91,6 +93,7 @@ export class JsonRebuild {
             'REBUILD_EXPORT_TIME_INVALID', '导出时间不能晚于目标环境当前时间', 422);
 
         const { sources, people, works, projects, media, relations } = payload.manifest;
+        if(payload.manifest.locales)validateLocaleRebuild(payload.manifest.locales,{people,works,projects,sources},this.clock);
         invariant(people.length + works.length + projects.length > 0, 'REBUILD_EMPTY_EXPORT', '导出中没有可重建的业务根对象', 422);
         invariant(sources.length+(payload.manifest.talent?.retainedOrigins?.length??0)<=RL.sources,'REBUILD_SOURCE_LIMIT','当前及历史来源总数超过单次重建上限',422);
         uniqueBy(sources, x => x.id, 'REBUILD_DUPLICATE_ID', '来源清单包含重复 ID');
@@ -110,7 +113,7 @@ export class JsonRebuild {
                 'REBUILD_SOURCE_NOT_CURRENT', '重建只接受当前仍有效的 INTERNAL_USE 来源快照', 409);
         }
         for (const row of [...people, ...works, ...projects])
-            invariant(sourceIds.has(row.sourceId)||(people.includes(row as typeof people[number])&&(payload.manifest.talent?.schemaVersion==='once-talent-transfer-v13'||payload.manifest.talent?.schemaVersion==='once-talent-transfer-v14')&&payload.manifest.talent.retainedOrigins?.some(o=>o.id===row.sourceId)), 'REBUILD_SOURCE_MISSING', '业务对象引用的来源没有包含在重建清单中', 422);
+            invariant(sourceIds.has(row.sourceId)||(people.includes(row as typeof people[number])&&payload.manifest.talent?.schemaVersion==='once-talent-transfer-v14'&&payload.manifest.talent.retainedOrigins?.some(o=>o.id===row.sourceId)), 'REBUILD_SOURCE_MISSING', '业务对象引用的来源没有包含在重建清单中', 422);
         const assetIdentity = new Map<string,string>();
         for (const row of media) {
             invariant(workIds.has(row.workId) && sourceIds.has(row.sourceId), 'REBUILD_MEDIA_REFERENCE_INVALID',
@@ -125,13 +128,13 @@ export class JsonRebuild {
 
         for(const e of payload.manifest.talent?.evidence??[]) invariant(e.sourceRevision<=(sources.find(s=>s.id===e.sourceId)?.revision??0),'TD2_TRANSFER_EVIDENCE_SOURCE_REVISION','字段证据引用了不存在的来源版本',422);
         const referencedSources = new Set([
-            ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent?.assets??[]).map(a=>a.sourceId), ...(payload.manifest.talent?.evidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.identityEvidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.mergeHistory?[...payload.manifest.talent.mergeHistory.people,...payload.manifest.talent.mergeHistory.talentProfiles,...payload.manifest.talent.mergeHistory.castingProfiles,...payload.manifest.talent.mergeHistory.evidence,...payload.manifest.talent.mergeHistory.erasures??[]].map(r=>r.sourceId):[]), ...(payload.manifest.talent?.organizations??[]).map(o=>o.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>transferRows(payload.manifest.talent!,t).map(r=>r.sourceId)) : [])
+            ...(payload.manifest.locales?.texts.flatMap(t=>[...t.dependencies,...t.importedBasis?.dependencies??[]].map(d=>d.sourceId))??[]), ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent?.assets??[]).map(a=>a.sourceId), ...(payload.manifest.talent?.evidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.identityEvidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.mergeHistory?[...payload.manifest.talent.mergeHistory.people,...payload.manifest.talent.mergeHistory.talentProfiles,...payload.manifest.talent.mergeHistory.castingProfiles,...payload.manifest.talent.mergeHistory.evidence,...payload.manifest.talent.mergeHistory.erasures??[]].map(r=>r.sourceId):[]), ...(payload.manifest.talent?.organizations??[]).map(o=>o.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>transferRows(payload.manifest.talent!,t).map(r=>r.sourceId)) : [])
         ]);
         invariant(sources.every(x => referencedSources.has(x.id)), 'REBUILD_UNUSED_SOURCE',
             '来源清单包含没有被本次业务图引用的记录', 422);
 
         for (const row of people) {
-            invariant(typed || (row.data.roles?.length ?? 0)>0, 'REBUILD_ROLE_REQUIRED', '旧版人物重建必须明确提供角色', 422);
+            invariant(typed || payload.schemaVersion===LOCALE_EXPORT_VERSION || (row.data.roles?.length ?? 0)>0, 'REBUILD_ROLE_REQUIRED', '旧版人物重建必须明确提供角色', 422);
             if (typed) invariant(!(row.data.roles?.length || row.data.cityCode || row.data.languageCodes?.length || row.data.skillCodes?.length || row.data.heightCm), 'TD2_TYPED_EXPORT_REQUIRED', '专业导出不能混用旧版扁平专业字段', 422);
             invariant(unique(row.data.roles ?? []).length === (row.data.roles ?? []).length
                 && unique(row.data.languageCodes ?? []).length === (row.data.languageCodes ?? []).length
@@ -222,6 +225,7 @@ export class JsonRebuild {
             },
             ...(payload.manifest.talent ? {encryptedCredentialCount:transferRows(payload.manifest.talent,'personCredentials').filter(r=>r.data.identifierCiphertext).length, fieldEvidence:(payload.manifest.talent.evidence?.length??0)+(payload.manifest.talent.identityEvidence?.length??0), organizations:payload.manifest.talent.organizations?.length??0, capabilityDefinitions: payload.manifest.talent.capabilityDefinitions?.length??0, professionalRecords: TRANSFER_TABLES.reduce((n,t)=>n+transferRows(payload.manifest.talent!,t).length,0)} : {}),
             ...(payload.manifest.talent?.mergeHistory?{mergeHistory:{people:payload.manifest.talent.mergeHistory.people.length,aliases:payload.manifest.talent.mergeHistory.aliases.length,decisions:payload.manifest.talent.mergeHistory.decisions.length,profiles:payload.manifest.talent.mergeHistory.talentProfiles.length+payload.manifest.talent.mergeHistory.castingProfiles.length,evidence:payload.manifest.talent.mergeHistory.evidence.length,...(payload.manifest.talent.mergeHistory.erasures?{erasures:payload.manifest.talent.mergeHistory.erasures.length}:{})}}:{}),
+            ...(payload.manifest.locales?{localeTexts:payload.manifest.locales.texts.length,localeDependencies:payload.manifest.locales.texts.reduce((n,t)=>n+t.dependencies.length,0)}:{}),
             mediaRestored: payload.manifest.talent?.assets?.length??0
         };
         return { payload, target, summary };
@@ -327,12 +331,13 @@ export class JsonRebuild {
         if (payload.manifest.talent?.mergeHistory) await applyHistoryPeople(tx,actor,target.scope.id,payload.manifest.talent.mergeHistory);
         if (payload.manifest.talent) await applyTalentRebuild(tx, actor, payload.manifest.talent, target.scope.id,this.credentialKeys);
         if (payload.manifest.talent) await applyTransferEvidence(tx,actor,payload.manifest.talent);
+        if(payload.manifest.locales)await applyLocaleRebuild(tx,actor,this.clock,payload.manifest.locales);
         if (payload.manifest.talent?.identityEvidence) await applyIdentityEvidence(tx,actor,payload.manifest.talent.identityEvidence);
 
         if (payload.manifest.talent?.mergeHistory) await applyMergeHistory(tx,actor,payload.manifest.talent.mergeHistory);
 
         await audit(tx, actor, actor.workspaceId, 'rebuild.apply', 'rebuild-export', payload.exportId,
-            ['sources', 'people', 'works', 'projects', 'relations', ...(payload.manifest.talent ? ['talent.typed'] : []), ...(payload.manifest.media.length ? ['media.identity-only'] : [])],
+            ['sources', 'people', 'works', 'projects', 'relations', ...(payload.manifest.locales?['locale.texts']:[]), ...(payload.manifest.talent ? ['talent.typed'] : []), ...(payload.manifest.media.length ? ['media.identity-only'] : [])],
             meta, this.clock);
         return summary;
     }

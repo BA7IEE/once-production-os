@@ -1,3 +1,4 @@
+import {LOCALE_EXPORT_VERSION,LocaleTransferSchema} from './locale-transfer.ts';
 import { TALENT_EXPORT_VERSION, TransferSchema } from './talent-transfer.ts';
 import { v, uuid, revision, code, dateIso } from './validation.ts';
 import { REBUILD_LIMITS as L, REBUILD_SCHEMA_VERSION } from './rebuild-model.ts';
@@ -71,7 +72,7 @@ const relations = v.object({
     }), L.relations)
 });
 const manifest = v.object({
-    schemaVersion: v.enum([REBUILD_SCHEMA_VERSION, TALENT_EXPORT_VERSION]),
+    schemaVersion: v.enum([REBUILD_SCHEMA_VERSION, TALENT_EXPORT_VERSION, LOCALE_EXPORT_VERSION]),
     frozenAt: dateIso,
     people: v.array(person, L.people),
     works: v.array(work, L.works),
@@ -79,12 +80,13 @@ const manifest = v.object({
     sources: v.array(source, L.sources, 1),
     media: v.array(media, L.media),
     relations,
+    locales: v.optional(LocaleTransferSchema),
     talent: v.optional(TransferSchema)
 });
 
 export const RebuildSchemas = {
     payload: v.object({
-        schemaVersion: v.enum([REBUILD_SCHEMA_VERSION, TALENT_EXPORT_VERSION]),
+        schemaVersion: v.enum([REBUILD_SCHEMA_VERSION, TALENT_EXPORT_VERSION, LOCALE_EXPORT_VERSION]),
         exportId: uuid,
         frozenAt: dateIso,
         manifest

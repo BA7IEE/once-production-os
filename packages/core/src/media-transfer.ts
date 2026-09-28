@@ -1,7 +1,6 @@
 import { v, uuid, revision, dateIso, type Parsed } from './validation.ts';
 import { MEDIA_LIMITS as L, type MediaAsset } from './media-model.ts';
 export const MEDIA_TRANSFER_CODE = 'media.originals' as const;
-export const MEDIA_TRANSFER_VERSION = 'once-talent-transfer-v7' as const;
 export const TransferAssetSchema = v.object({
     id:uuid,sourceId:uuid,personId:v.nullable(uuid),revision,createdAt:dateIso,updatedAt:dateIso,
     fileName:v.string(255,1),mime:v.enum(['image/jpeg','image/png','image/webp']),

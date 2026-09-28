@@ -16,7 +16,7 @@ export async function exportRetainedOrigin(f:FactErasureContext) {
  const missing=await f.owner.cmd('POST','/exports',{...input,usePermissionRefs:[personPermission,primaryPermission]});assert.equal(missing.status,422);
  const jobId=ok(await f.owner.cmd('POST','/exports',input),202).resourceId as string,claim=await f.app.exports.claim();assert.ok(claim);assert.equal(claim.id,jobId);await f.app.exports.process(claim);
  const download=ok(await f.owner.raw('POST',`/exports/${jobId}/download`,{}),200),bundle=download.payload.manifest.talent;
- assert.equal(bundle.schemaVersion,'once-talent-transfer-v12');assert.equal(download.sha256,digest(download.payload));
+ assert.equal(bundle.schemaVersion,'once-talent-transfer-v14');assert.equal(download.sha256,digest(download.payload));
  const origin=(await f.store.transaction(tx=>tx.get('sources',s.sourceId)))!;
  assert.deepEqual(bundle.retainedOrigins,[{id:origin.id,revision:origin.revision,protectionEpoch:origin.protectionEpoch,status:'ERASED'}]);assert.equal(download.payload.manifest.sources.some((r:any)=>r.id===origin.id),false);
  return {s,input,jobId,download,bundle,basisPermission};
@@ -30,7 +30,7 @@ export async function roundTripRetainedOrigin(source:FactErasureContext,target:F
  const origin=(await target.store.transaction(tx=>tx.get('sources',t.s.sourceId)))!;assert.equal(origin.status,'ERASED');assert.equal(origin.reviewedBy,null);assert.equal(origin.providerClaim,'');assert.equal(origin.textPayload,'');
  const row=(await target.store.transaction(tx=>tx.get('personLanguages',t.s.languageId)))!;assert.equal(row.sourceId,origin.id);assert.equal(row.speakingLevelCode,'FLUENT');
  const detail=ok(await target.owner.raw('GET',`/td2/people/${t.s.g.personId}`),200);assert.equal(detail.facts.personLanguages.find((l:any)=>l.id===row.id).usable,true);
- const again=await target.store.transaction(tx=>collectTalentTransfer(tx,actor,target.clock,[t.s.g.personId],['person.td2.personLanguages'],true));assert.equal(again.schemaVersion,'once-talent-transfer-v12');assert.deepEqual(again.tables.personLanguages,t.bundle.tables.personLanguages);assert.deepEqual(again.evidence,t.bundle.evidence);
+ const again=await target.store.transaction(tx=>collectTalentTransfer(tx,actor,target.clock,[t.s.g.personId],['person.td2.personLanguages'],true));assert.equal(again.schemaVersion,'once-talent-transfer-v14');assert.deepEqual(again.tables.personLanguages,t.bundle.tables.personLanguages);assert.deepEqual(again.evidence,t.bundle.evidence);
  assert.equal((await target.owner.raw('GET',`/sources/${origin.id}`)).status,404);
  assert.equal((await target.owner.cmd('POST',`/sources/${origin.id}/review`,{expectedRevision:origin.revision,basisDescription:'不能重新激活已删除来源',validUntil:'2026-12-31T00:00:00.000Z'})).status,404);
  assert.equal((await target.owner.cmd('POST',`/sources/${origin.id}/suspend`,{expectedRevision:origin.revision,reason:'不能把已删来源改回暂停再重新核验'})).status,404);
