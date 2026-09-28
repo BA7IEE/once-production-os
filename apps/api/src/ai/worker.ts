@@ -1,4 +1,4 @@
-import {currentAiConfig,CONNECTION_TEST_INPUT} from '../../../../packages/core/src/ai-connection.ts';
+import {currentAiConfig,connectionRow,CONNECTION_TEST_INPUT} from '../../../../packages/core/src/ai-connection.ts';
 import {digest} from '../../../../packages/core/src/json.ts';
 import {permissionsFor} from '../../../../packages/core/src/policy.ts';
 import {dispatchAi} from '../../../../packages/core/src/ai-dispatch.ts';
@@ -37,7 +37,7 @@ export class AiWorker {
     invariant(isTest||task&&task.proposalState==='NONE','AI_TASK_UNAVAILABLE','任务已不再适合执行',409);
     const adapter=typeof this.adapter==='function'?await this.adapter(run.workspaceId):this.adapter;
     if(!adapter)continue;
-    const c=await this.core.store.transaction(tx=>currentAiConfig(tx,run.workspaceId,this.core.config));
+    const {c,timeoutMs}=await this.core.store.transaction(async tx=>({c:await currentAiConfig(tx,run.workspaceId,this.core.config),timeoutMs:(await connectionRow(tx,run.workspaceId))?.settings.timeoutMs??60000}));
     invariant(c?.enabled&&adapter.providerIdentityHash===c.providerIdentityHash,'AI_ADAPTER_MISMATCH','模型连接已变化',409);
     if(isTest){
      await dispatchAi(this.core.store,this.core.clock,c,run.workspaceId,run.id,meta,adapter,{
@@ -48,7 +48,7 @@ export class AiWorker {
        invariant(digest(await currentAiConfig(tx,run.workspaceId,this.core.config))===digest(c),'AI_CONFIG_CHANGED','连接配置已变化',409);
        return CONNECTION_TEST_INPUT;
       },proposal:async()=>{},
-     },60000,signal);
+     },timeoutMs,signal);
     }else await this.core.ai.dispatch(this.core.store,task!.id,run.workspaceId,adapter,meta,signal);
     return true;
    }catch(e){
