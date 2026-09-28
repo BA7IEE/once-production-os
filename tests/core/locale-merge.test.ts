@@ -23,6 +23,7 @@ test('merged originals survive controlled export and rebuild; unrelated history 
  const {localeTransfer}=await import('../support/locale-transfer.ts'),{JsonRebuild}=await import('../../packages/core/src/rebuild.ts');
  const source=await fixture(),t=await localeTransfer(source,true),target=await fixture(),rebuild=new JsonRebuild(target.clock),actor=await target.store.transaction(tx=>rebuild.actorFromTarget(tx,'owner'));
  target.clock.value=source.clock.value;
+ assert.equal((await target.store.transaction(tx=>rebuild.preview(tx,actor,t.download.payload))).localeDependencies,7);
  const original=t.download.payload.manifest.locales.texts.find((r:any)=>r.id===t.localeIds[0]);assert.equal(original.mergeHistory.length,2);assert.ok(Date.parse(original.originalReview.reviewedAt)<Date.parse(original.createdAt));
  const bad=structuredClone(t.download.payload);bad.manifest.sources=bad.manifest.sources.filter((r:any)=>r.id!==t.basisId);
  await assert.rejects(target.store.transaction(tx=>rebuild.apply(tx,actor,bad,{requestId:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',ip:'test'})));assert.equal(target.store.rows('people').length,0);
