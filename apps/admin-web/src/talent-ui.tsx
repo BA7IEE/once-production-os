@@ -1,3 +1,4 @@
+import {LocaleWorkspace} from './locale-ui.tsx';
 import {TalentHeightReviews} from './talent-migration.tsx';
 import {CandidateListChoice} from './shortlist-ui.tsx';
 import {TalentRegistryCreate} from './talent-registry.tsx';
@@ -24,6 +25,7 @@ function textValue(key:string,value:unknown,detail:TalentDetail,catalog:CatalogI
  return TALENT_LABELS[String(value)]??String(value);
 }
 export function TalentWorkbench({personId,me,catalog,onClose,onChange,backLabel='返回人物资料'}:{personId:string;me:Me;catalog:CatalogItem[];onClose:()=>void;onChange:()=>void;backLabel?:string}) {
+ const [locales,setLocales]=useState(false);
  const [heightReviews,setHeightReviews]=useState(false);
  const [history,setHistory]=useState<{kind:TalentFactKind|'person';ownerId:string}|null>(null);
  const [candidate,setCandidate]=useState(false);
@@ -35,6 +37,7 @@ export function TalentWorkbench({personId,me,catalog,onClose,onChange,backLabel=
  const load=useLoad(()=>Promise.all([read<TalentDetail>('td2.person.get',{id:personId}),read<TalentSchema>('td2.schema')]),personId+':'+tick);
  const saved=()=>{setHeightReviews(false);setCandidate(false);setIdentity(false);setRegistry(null);setEdit(null);setReview(null);setEnroll(false);setCollection(null);setFieldEvidence(null);setProposals(false);setTick(t=>t+1);onChange();};
  const detail=load.data?.[0],schema=load.data?.[1];
+ if(locales&&detail)return <LocaleWorkspace kind="PERSON" id={detail.id} canWrite={detail.canEdit&&detail.status!=='ARCHIVED'} onClose={()=>setLocales(false)}/>;
  if(heightReviews)return <TalentHeightReviews personId={personId} onClose={()=>setHeightReviews(false)} onSaved={saved}/>;
  if(history)return <TalentEvidenceHistory {...history} onClose={()=>setHistory(null)}/>;
  if(detail&&candidate)return <CandidateListChoice person={detail} catalog={catalog} onClose={()=>setCandidate(false)} onDone={saved}/>;
@@ -51,7 +54,7 @@ export function TalentWorkbench({personId,me,catalog,onClose,onChange,backLabel=
  <div className="talent-overview"><div><p className="eyebrow">人才资料</p><h3>{detail.displayName}</h3><p>{detail.intro||'尚未填写简介'}</p></div><div><strong>{detail.isTalent?'已建立专业档案':'普通人物'}</strong><p>成年资格：{TALENT_LABELS[detail.adultState]??'未知'}</p></div></div>
  {!detail.isTalent&&<div className="notice"><p>这份人物资料尚未建立专业档案。建立时会保留已有职业、语言和地点；不会猜测熟练度或量尺含义。</p>{canWrite&&<button className="primary" onClick={()=>setEnroll(true)}>建立专业档案</button>}</div>}
  {!canWrite&&<p className="notice">当前只可浏览专业资料。</p>}
- <div className="detail-actions">{canReview&&detail.originAvailable&&<button onClick={()=>setHeightReviews(true)}>查看旧身高复核</button>}{canReadEvidence&&<button onClick={()=>setHistory({kind:'person',ownerId:detail.id})}>查看身份依据</button>}{canWrite&&detail.isTalent&&<button onClick={()=>setCandidate(true)}>加入候选清单</button>}{canWrite&&detail.originAvailable&&<button onClick={()=>setIdentity(true)}>编辑人物信息</button>}{canReview&&<button onClick={()=>setProposals(true)}>查看字段建议</button>}{me.permissions.includes('catalog.manage')&&<button onClick={()=>setRegistry('capability')}>登记专业能力</button>}{canWrite&&<button onClick={()=>setRegistry('organization')}>登记机构</button>}</div>
+ <div className="detail-actions"><button onClick={()=>setLocales(true)}>内部中英文文本</button>{canReview&&detail.originAvailable&&<button onClick={()=>setHeightReviews(true)}>查看旧身高复核</button>}{canReadEvidence&&<button onClick={()=>setHistory({kind:'person',ownerId:detail.id})}>查看身份依据</button>}{canWrite&&detail.isTalent&&<button onClick={()=>setCandidate(true)}>加入候选清单</button>}{canWrite&&detail.originAvailable&&<button onClick={()=>setIdentity(true)}>编辑人物信息</button>}{canReview&&<button onClick={()=>setProposals(true)}>查看字段建议</button>}{me.permissions.includes('catalog.manage')&&<button onClick={()=>setRegistry('capability')}>登记专业能力</button>}{canWrite&&<button onClick={()=>setRegistry('organization')}>登记机构</button>}</div>
  <nav className="talent-tabs" aria-label="专业资料分类">{groups.map(([key,label])=><button key={key} aria-pressed={group===key} onClick={()=>setGroup(key)}>{label}</button>)}</nav>
  {(Object.keys(TALENT_SECTIONS) as TalentFactKind[]).filter(kind=>TALENT_SECTIONS[kind].group===group).map(kind=>{const section=TALENT_SECTIONS[kind],rows=detail.facts[kind];const singleton=['talentProfiles','castingProfiles'].includes(kind);return <section key={kind} className="panel talent-section" aria-label={section.title}><div className="panel-heading"><div><h3>{section.title}</h3>{section.hint&&<p>{section.hint}</p>}</div>{canWrite&&(detail.isTalent||kind==='personLanguages')&&!(singleton&&rows.length)&&<button onClick={()=>setEdit({kind})}>新增{section.title}</button>}</div>
  {!rows.length?<p className="muted">尚无当前可见的{section.title}记录。</p>:rows.map(row=><article key={row.id} className="talent-fact"><div className="talent-fact-heading"><strong>{TALENT_LABELS[String(row.status??row.state)]??'已记录'}</strong><span className={row.usable?'muted':'notice-inline'}>{row.usable?'当前可使用':'当前不可用于业务筛选'}</span></div><dl className="detail-grid">{section.fields.map(f=><div key={f.key}><dt>{f.label}</dt><dd>{row.unavailableFields.includes(f.key)?'当前不可读':textValue(f.key,row[f.key],detail,catalog,schema)}</dd></div>)}</dl>

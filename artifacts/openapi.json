@@ -6,6 +6,309 @@
     "description": "Paths and strict request schemas are generated from runtime routes. Response shapes are currently TypeScript DTOs; this is not a complete response-schema validator."
   },
   "paths": {
+    "/api/v1/locale-texts": {
+      "get": {
+        "operationId": "locale.list",
+        "parameters": [],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.read",
+        "x-mode": "READ"
+      },
+      "post": {
+        "operationId": "locale.create",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "subjectKind": {
+                    "type": "string",
+                    "enum": [
+                      "PERSON",
+                      "WORK",
+                      "PROJECT"
+                    ]
+                  },
+                  "subjectId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "locale": {
+                    "type": "string",
+                    "enum": [
+                      "zh",
+                      "en"
+                    ]
+                  },
+                  "text": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 10000
+                  },
+                  "sourceRefs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                        },
+                        "expectedRevision": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "expectedRevision"
+                      ]
+                    },
+                    "minItems": 1,
+                    "maxItems": 20
+                  },
+                  "expectedSubjectRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "confirmCurrentBasis": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "subjectKind",
+                  "subjectId",
+                  "locale",
+                  "text",
+                  "sourceRefs",
+                  "expectedSubjectRevision",
+                  "confirmCurrentBasis"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.write",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/locale-texts/{id}": {
+      "get": {
+        "operationId": "locale.get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.read",
+        "x-mode": "READ"
+      },
+      "patch": {
+        "operationId": "locale.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "text": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 10000
+                  },
+                  "sourceRefs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                        },
+                        "expectedRevision": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "expectedRevision"
+                      ]
+                    },
+                    "minItems": 1,
+                    "maxItems": 20
+                  },
+                  "expectedSubjectRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "confirmCurrentBasis": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "text",
+                  "sourceRefs",
+                  "expectedSubjectRevision",
+                  "confirmCurrentBasis"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.write",
+        "x-mode": "COMMAND"
+      }
+    },
     "/api/v1/td2/people/{id}/height-reviews": {
       "get": {
         "operationId": "td2.heightReview.list",

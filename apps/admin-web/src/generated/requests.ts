@@ -1,5 +1,9 @@
 // Generated from packages/core/src/routes.ts and validation.ts. Do not edit.
 export interface Inputs {
+  "locale.list": undefined;
+  "locale.get": undefined;
+  "locale.create": { "subjectKind": "PERSON" | "WORK" | "PROJECT"; "subjectId": string; "locale": "zh" | "en"; "text": string; "sourceRefs": Array<{ "id": string; "expectedRevision": number }>; "expectedSubjectRevision": number; "confirmCurrentBasis": boolean };
+  "locale.update": { "expectedRevision": number; "text": string; "sourceRefs": Array<{ "id": string; "expectedRevision": number }>; "expectedSubjectRevision": number; "confirmCurrentBasis": boolean };
   "td2.heightReview.list": undefined;
   "td2.heightReview.dismiss": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "sourceRevision": number; "resolution": "DO_NOT_USE_LEGACY_HEIGHT"; "acknowledge": boolean };
   "td2.credential.secret.clear": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "sourceRevision": number; "acknowledge": boolean };
@@ -172,6 +176,26 @@ export interface Inputs {
   "shortlist.reorder": { "expectedRevision": number; "entryIds": Array<string> };
 }
 export const ENDPOINTS = {
+  "locale.list": {
+    "method": "GET",
+    "path": "/locale-texts",
+    "mode": "READ"
+  },
+  "locale.get": {
+    "method": "GET",
+    "path": "/locale-texts/{id}",
+    "mode": "READ"
+  },
+  "locale.create": {
+    "method": "POST",
+    "path": "/locale-texts",
+    "mode": "COMMAND"
+  },
+  "locale.update": {
+    "method": "PATCH",
+    "path": "/locale-texts/{id}",
+    "mode": "COMMAND"
+  },
   "td2.heightReview.list": {
     "method": "GET",
     "path": "/td2/people/{id}/height-reviews",

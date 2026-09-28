@@ -1,3 +1,4 @@
+import {LocaleTexts} from './locale.ts';
 import { readTalentMergeHistory } from './talent-merge-history.ts';
 import { TalentV2 } from './talent-v2.ts';
 import { MachineIdentity } from './talent-v2-machine.ts';
@@ -73,6 +74,7 @@ export class Application {
     handoffs: Handoffs;
     media: Media;
     portfolio: Portfolio;
+    localeTexts: LocaleTexts;
     projects: Projects;
     shortlists: Shortlists;
     search: TalentSearch;
@@ -99,6 +101,7 @@ export class Application {
         this.talentV2 = new TalentV2(clock, config);
         this.machine = new MachineIdentity(clock, config);
         this.portfolio = new Portfolio(clock, this.talent);
+        this.localeTexts = new LocaleTexts(clock);
         this.projects = new Projects(clock, this.talent);
         this.shortlists = new Shortlists(clock);
         this.search = new TalentSearch(clock);
@@ -350,6 +353,10 @@ export class Application {
                     case 'shortlist.itemUpdate': return command('shortlist', () => this.shortlists.updateItem(tx, actor, id, data));
                     case 'shortlist.itemRemove': return command('shortlist', () => this.shortlists.removeItem(tx, actor, id, data));
                     case 'shortlist.reorder': return command('shortlist', () => this.shortlists.reorder(tx, actor, id, data));
+                    case 'locale.list': return this.localeTexts.list(tx,actor,query);
+                    case 'locale.get': return this.localeTexts.get(tx,actor,id);
+                    case 'locale.create': return command('localeText',()=>this.localeTexts.create(tx,actor,data));
+                    case 'locale.update': return command('localeText',()=>this.localeTexts.update(tx,actor,id,data));
                     case 'work.list': return this.portfolio.list(tx, actor, query);
                     case 'work.create': return command('work', () => this.portfolio.create(tx, actor, data));
                     case 'work.get': return this.portfolio.get(tx, actor, id);
@@ -443,7 +450,7 @@ export class Application {
             if (['import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation))
                 response.status = 202;
             else if (route.operation.startsWith('td2.') && route.operation.endsWith('.create')) response.status = 201;
-            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
+            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['locale.create', 'deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
                 response.status = 201;
             return response;
         }
@@ -475,6 +482,7 @@ export class Application {
         const result = [];
         for (const row of await tx.find('audits', { workspaceId: actor.workspaceId })) {
             try {
+                if(row.resourceKind==='localeText')await this.localeTexts.access(tx,actor,row.resourceId);
                 if((TD2_RESOURCE_KINDS as readonly string[]).includes(row.resourceKind)) await authorizeTd2Resource(tx,actor,row.resourceKind,row.resourceId,this.clock);
                 if (row.resourceKind === 'upload')
                     await uploadFor(tx, actor, row.resourceId);

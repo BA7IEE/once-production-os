@@ -60,6 +60,10 @@ if(mainStatus!==0){process.exitCode=mainStatus;}else{
    status=runNode('tests/postgres/talent-domain-gates.test.ts',{...process.env,DATABASE_URL_TD2_TEST:domain,ALLOW_TD2_DB_TESTS:'yes'},240000);
   }
   if(status===0){
+   const locale=await fresh('once_test_td2_locale_','Internal locale text contracts');
+   status=runNode('tests/postgres/locale-texts.test.ts',{...process.env,DATABASE_URL_TD2_TEST:locale,ALLOW_TD2_DB_TESTS:'yes'},240000);
+  }
+  if(status===0){
    const scale=await fresh('once_test_td2_scale_','Typed search scale');
    status=runNode('tests/postgres/talent-search-scale.test.ts',{...process.env,DATABASE_URL_TD2_TEST:scale,ALLOW_TD2_DB_TESTS:'yes'},240000);
   }

@@ -1,3 +1,4 @@
+import {LocaleTexts} from './locale.ts';
 import {exportPermissionSource} from './exports.ts';
 import { authorizeTd2Resource } from './talent-v2-access.ts';
 import { td2PersonFor } from './talent-v2-graph.ts';
@@ -16,6 +17,7 @@ import { personFor, sourceFor, sourceCurrent, requireScope, requirePermission } 
 export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandReceipt, clock: Clock, config?: Config): Promise<void> {
     const id = receipt.resourceId;
     switch (receipt.resourceKind) {
+        case 'localeText': await new LocaleTexts(clock).access(tx,actor,id);return;
         case 'talentMigrationReview': case 'talentFact': case 'fieldProposal': case 'servicePrincipal': case 'organization': case 'capabilityDefinition':
             return authorizeTd2Resource(tx,actor,receipt.resourceKind,id,clock);
         case 'merge': {

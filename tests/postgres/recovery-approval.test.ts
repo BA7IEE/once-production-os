@@ -183,6 +183,12 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         const retainedCandidate=await sourceClient.shortlistItem.findUniqueOrThrow({where:{id:sourceRetention.s.candidateId}});
         const retainedRoleReview=await sourceClient.talentMigrationReview.findFirstOrThrow({where:{shortlistItemId:retainedCandidate.id,reason:'SHORTLIST_ROLE_REQUIRED',state:'PENDING'}});
 
+        const localeParent=await sourceClient.person.findUniqueOrThrow({where:{id:personId}});
+        const localeResponse=await owner.cmd('POST','/locale-texts',{subjectKind:'PERSON',subjectId:personId,locale:'en',text:'Synthetic restored internal text.',expectedSubjectRevision:localeParent.revision,sourceRefs:[{id:sourceId,expectedRevision:(await sourceClient.sourceRecord.findUniqueOrThrow({where:{id:sourceId}})).revision}],confirmCurrentBasis:true});
+        assert.equal(localeResponse.status,201,JSON.stringify(localeResponse.body));
+        const localeId=result(localeResponse).resourceId as string;
+        const localeBefore=await sourceClient.localeText.findUniqueOrThrow({where:{id:localeId}}),localeDepsBefore=await sourceClient.localeDependency.findMany({where:{localeTextId:localeId},orderBy:{id:'asc'}});
+
         const backup=run('pnpm',['--silent','recovery:backup','--','--output-dir',backupDir],{
             ...process.env,DATABASE_URL_BACKUP:sourceUrl,SAFETY_JOURNAL_FILE:journal,
             CONTACT_KEY_FILE:contactFile,RECOVERY_EPOCH_FILE:oldEpochFile,
@@ -300,6 +306,9 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         console.log('PASS actual backup/restore preserves append-only merge-history erasures and redacted reason without resurrecting deleted old profiles');
         console.log('PASS actual backup/restore preserves distinct erased identity origin and independent permission basis while revoking old permission');
         console.log('PASS actual backup/restore preserves erased historical source, retained language and exact independent evidence plus pending candidate role review');
+        assert.deepEqual(await restoreClient.localeText.findUniqueOrThrow({where:{id:localeId}}),localeBefore);
+        assert.deepEqual(await restoreClient.localeDependency.findMany({where:{localeTextId:localeId},orderBy:{id:'asc'}}),localeDepsBefore);
+        assert.equal(report.locale.textCount,1);assert.equal(report.locale.dependencyCount,2);assert.equal(report.locale.relationFailures,0);
         assert.equal(report.talent.credentialCount, 1);
         assert.equal(report.talent.credentialDecryptFailures, 0);
         assert.equal(report.talent.tableCounts.personRoles, 2);
@@ -370,6 +379,7 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         },clock);
         const restoredOwner=new Client(restoredApp);
         assert.equal((await restoredOwner.login()).status,200);
+        assert.equal((await restoredOwner.raw('GET','/locale-texts/'+localeId)).status,404);
         const hidden=await restoredOwner.raw('GET','/people/'+personId);
         assert.equal(hidden.status,404,'suspended source remains restricted after recovery approval');
 

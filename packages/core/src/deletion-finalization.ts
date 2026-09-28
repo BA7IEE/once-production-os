@@ -1,3 +1,4 @@
+import {assertLocaleFinalizationClean} from './locale-maintenance.ts';
 import { deletionWorkerActor } from './deletion-worker-policy.ts';
 import { assertTalentFinalizationClean } from './talent-v2-erasure.ts';
 import { randomUUID } from 'node:crypto';
@@ -129,6 +130,7 @@ export class DeletionFinalization {
     private async tombstone(tx: Tx, kind: DeletionRequest['targetKind'], id: string): Promise<Record<string, unknown>> {
         const rootTable = { SOURCE: 'sources', PERSON: 'people', WORK: 'works', PROJECT: 'projects', ASSET: 'assets' } as const;
         const root = await tx.get(rootTable[kind], id);
+        if (root) await assertLocaleFinalizationClean(tx,root.workspaceId,kind,id);
         if (root) await assertTalentFinalizationClean(tx, root.workspaceId, kind, id, this.clock);
         if (kind === 'SOURCE') {
             const row = await tx.get('sources', id); if (!row) missing();

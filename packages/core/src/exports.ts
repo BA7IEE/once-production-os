@@ -188,6 +188,7 @@ export class Exports {
         for (const id of workIds) { const row = await workFor(tx, actor, id, this.clock); works.push(row); sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock)); }
         for (const id of projectIds) { const row = await projectFor(tx, actor, id, this.clock); projects.push(row); sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock)); }
 
+        invariant(!(await tx.find('localeTexts',{workspaceId:actor.workspaceId})).some(row=>row.state!=='ERASED'&&(peopleIds.includes(row.personId??'')||workIds.includes(row.workId??'')||projectIds.includes(row.projectId??''))), 'LOCALE_TRANSFER_NOT_READY','所选档案含内部语言文本，完整语言迁移尚待接通，当前导出已阻断以免遗漏',409);
         const withEvidence=d.fields.includes(EVIDENCE_TRANSFER_CODE),withIdentifiers=d.fields.includes(CREDENTIAL_IDENTIFIER_CODE);
         invariant(!withIdentifiers||transferFields.includes('person.td2.personCredentials'),'TD2_TRANSFER_CREDENTIAL_REQUIRED','编号迁移必须同时选择资质记录',422);
         invariant(!withEvidence||transferFields.length>0,'TD2_TRANSFER_EVIDENCE_OWNER','字段证据必须同时选择专业资料',422);

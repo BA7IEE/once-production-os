@@ -1,3 +1,4 @@
+import {inspectLocaleIntegrity} from './locale-integrity.ts';
 import { inspectTalentIntegrity, quarantineTalentActors } from './talent-v2-integrity.ts';
 import type { Actor, Clock, Config, Source } from './model.ts';
 import type { Tx } from './store.ts';
@@ -195,6 +196,7 @@ export class RecoveryOps {
             'restore-check 必须加载恢复后的 CONTACT_KEY_FILE', 503);
         const external = this.external(externalInput);
         const state = await this.safetyState(tx, actor);
+        const locale = await inspectLocaleIntegrity(tx, actor.workspaceId);
         const talent = await inspectTalentIntegrity(tx, actor.workspaceId, this.config.contactKey);
         const currentAssets = state.assets.filter(x => x.state !== 'ERASED');
         const expectedAssetIds = currentAssets.map(x => x.id).sort();
@@ -245,15 +247,16 @@ export class RecoveryOps {
             workspaceId: actor.workspaceId,
             targetEpochDigest: run.targetEpochDigest,
             checkedAt: this.clock.now().toISOString(),
-            databaseStateDigest: digest({ legacy: state.databaseStateDigest, talent: talent.graphDigest }),
+            databaseStateDigest: digest({ legacy: state.databaseStateDigest, talent: talent.graphDigest, locale: locale.graphDigest }),
             talent,
             migrationDigest: external.migrationDigest,
             migrationMatch: external.migrationMatch,
             contactKeyDigest: hashSecret(this.config.contactKey.toString('hex')),
+            locale,
             contactCount: state.contacts.length,
             contactDecryptFailures,
             media: external.media,
-            blockers: unique([...blockers, ...talent.blockers]).sort()
+            blockers: unique([...blockers, ...talent.blockers, ...locale.blockers]).sort()
         };
         return { run, report };
     }

@@ -24,6 +24,7 @@ export interface RecoveryCheckReport {
     migrationMatch: boolean;
     contactKeyDigest: string;
     talent?: TalentIntegrityReport;
+    locale?: {textCount:number;dependencyCount:number;relationFailures:number;graphDigest:string;blockers:string[]};
     contactCount: number;
     contactDecryptFailures: number;
     media: RecoveryMediaCheck;

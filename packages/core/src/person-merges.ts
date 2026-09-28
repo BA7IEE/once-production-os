@@ -90,6 +90,7 @@ export class PersonMerges {
         const canonicalSource = await sourceFor(tx, actor, canonical.sourceId, this.clock);
         const duplicateSource = await sourceFor(tx, actor, duplicate.sourceId, this.clock);
         const blockers = new Map<string,number>();
+        for(const locale of await tx.find('localeTexts',{workspaceId:actor.workspaceId}))if(locale.state!=='ERASED'&&(locale.personId===canonical.id||locale.personId===duplicate.id))blocker(blockers,'LOCALE_MERGE_REVIEW_REQUIRED');
         const talent = await scanTalentMerge(tx, actor, this.clock, canonical.id, duplicate.id);
         for (const code of talent.blockers) blocker(blockers, code);
 

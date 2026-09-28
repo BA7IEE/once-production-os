@@ -1,3 +1,4 @@
+import {LocaleSchemas as LS} from './locale-validation.ts';
 import { TD2_ROUTES } from './talent-v2-routes.ts';
 import { MergeSchemas as MS } from './merge-validation.ts';
 import { DeletionSchemas as DS } from './deletion-validation.ts';
@@ -16,6 +17,10 @@ export interface RouteDefinition {
     schema?: Schema<unknown>;
 }
 export const ROUTES: RouteDefinition[] = [
+    {method:'GET',path:'/locale-texts',operation:'locale.list',mode:'READ',permission:'records.read'},
+    {method:'GET',path:'/locale-texts/{id}',operation:'locale.get',mode:'READ',permission:'records.read'},
+    {method:'POST',path:'/locale-texts',operation:'locale.create',mode:'COMMAND',permission:'records.write',schema:LS.create},
+    {method:'PATCH',path:'/locale-texts/{id}',operation:'locale.update',mode:'COMMAND',permission:'records.write',schema:LS.update},
     ...TD2_ROUTES,
     { method: 'GET', path: '/works', operation: 'work.list', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/works', operation: 'work.create', mode: 'COMMAND', permission: 'records.write', schema: PS.workCreate },

@@ -9,6 +9,8 @@ datasource db {
 }
 
 model Workspace {
+  LocaleDependency_workspace_locale LocaleDependency[] @relation("LocaleDependency_workspace_locale")
+  LocaleText_workspace_locale LocaleText[] @relation("LocaleText_workspace_locale")
   historyErasures MergeHistoryErasure[] @relation("HistoryErasure_workspace")
   TalentProfile_workspaceId_td2 TalentProfile[] @relation("TalentProfile_workspaceId_td2")
   PersonRole_workspaceId_td2 PersonRole[] @relation("PersonRole_workspaceId_td2")
@@ -96,6 +98,7 @@ model User {
 }
 
 model Membership {
+  LocaleText_reviewer_locale LocaleText[] @relation("LocaleText_reviewer_locale")
   historyErasures MergeHistoryErasure[] @relation("HistoryErasure_actor")
   AdultEligibility_verifiedByMembershipId_td2 AdultEligibility[] @relation("AdultEligibility_verifiedByMembershipId_td2")
   ServicePrincipal_defaultMaintainerMembershipId_td2 ServicePrincipal[] @relation("ServicePrincipal_defaultMaintainerMembershipId_td2")
@@ -187,6 +190,8 @@ model Activation {
 }
 
 model AccessScope {
+  LocaleDependency_resourceScope_locale LocaleDependency[] @relation("LocaleDependency_resourceScope_locale")
+  LocaleDependency_sourceScope_locale LocaleDependency[] @relation("LocaleDependency_sourceScope_locale")
   TalentOrganization_scopeId_td2 TalentOrganization[] @relation("TalentOrganization_scopeId_td2")
   ServicePrincipal_scopeId_td2 ServicePrincipal[] @relation("ServicePrincipal_scopeId_td2")
   Shortlist_scopeIdRef Shortlist[] @relation("Shortlist_scopeIdRef")
@@ -233,6 +238,8 @@ model ScopeMember {
 }
 
 model SourceRecord {
+  LocaleDependency_source_locale LocaleDependency[] @relation("LocaleDependency_source_locale")
+  LocaleDependency_sourceSubject_locale LocaleDependency[] @relation("LocaleDependency_sourceSubject_locale")
   historyErasures MergeHistoryErasure[] @relation("HistoryErasure_source")
   TalentProfile_sourceId_td2 TalentProfile[] @relation("TalentProfile_sourceId_td2")
   PersonRole_sourceId_td2 PersonRole[] @relation("PersonRole_sourceId_td2")
@@ -302,6 +309,8 @@ model SourceRecord {
 }
 
 model Person {
+  LocaleDependency_person_locale LocaleDependency[] @relation("LocaleDependency_person_locale")
+  LocaleText_person_locale LocaleText[] @relation("LocaleText_person_locale")
   historyErasures MergeHistoryErasure[] @relation("HistoryErasure_person")
   TalentProfile_personId_td2 TalentProfile[] @relation("TalentProfile_personId_td2")
   PersonRole_personId_td2 PersonRole[] @relation("PersonRole_personId_td2")
@@ -712,6 +721,8 @@ model MediaAsset {
 
 
 model Work {
+  LocaleDependency_work_locale LocaleDependency[] @relation("LocaleDependency_work_locale")
+  LocaleText_work_locale LocaleText[] @relation("LocaleText_work_locale")
   DeletionRequest_targetWorkRef DeletionRequest[] @relation("DeletionRequest_targetWorkRef")
   UsePermission_subjectWorkRef UsePermission[] @relation("UsePermission_subjectWorkRef")
   ExportDependency_workRef ExportDependency[] @relation("ExportDependency_workRef")
@@ -793,6 +804,8 @@ model WorkCredit {
 }
 
 model Project {
+  LocaleDependency_project_locale LocaleDependency[] @relation("LocaleDependency_project_locale")
+  LocaleText_project_locale LocaleText[] @relation("LocaleText_project_locale")
   DeletionRequest_targetProjectRef DeletionRequest[] @relation("DeletionRequest_targetProjectRef")
   UsePermission_subjectProjectRef UsePermission[] @relation("UsePermission_subjectProjectRef")
   ExportDependency_projectRef ExportDependency[] @relation("ExportDependency_projectRef")
@@ -1875,4 +1888,72 @@ model MergeHistoryErasure {
  @@unique([workspaceId,recordKind,recordId])
  @@index([workspaceId,mergeDecisionId],map:"mergeHistoryErasures_merge_idx")
  @@map("mergeHistoryErasures")
+}
+
+model LocaleText {
+  LocaleDependency_localeText_locale LocaleDependency[] @relation("LocaleDependency_localeText_locale")
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String? @db.Uuid
+  workId String? @db.Uuid
+  projectId String? @db.Uuid
+  locale String @db.Text
+  text String @db.Text
+  state String @db.Text
+  sourceDigest String @db.Text
+  reviewedBy String? @db.Uuid
+  reviewedAt DateTime? @db.Timestamptz(3)
+  workspace Workspace @relation("LocaleText_workspace_locale", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "localeTexts_workspace_fkey")
+  person Person? @relation("LocaleText_person_locale", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "localeTexts_person_fkey")
+  work Work? @relation("LocaleText_work_locale", fields: [workspaceId, workId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "localeTexts_work_fkey")
+  project Project? @relation("LocaleText_project_locale", fields: [workspaceId, projectId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "localeTexts_project_fkey")
+  reviewer Membership? @relation("LocaleText_reviewer_locale", fields: [workspaceId, reviewedBy], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "localeTexts_reviewer_fkey")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, personId])
+  @@index([workspaceId, workId])
+  @@index([workspaceId, projectId])
+  @@map("localeTexts")
+}
+
+model LocaleDependency {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  localeTextId String @db.Uuid
+  kind String @db.Text
+  personId String? @db.Uuid
+  workId String? @db.Uuid
+  projectId String? @db.Uuid
+  sourceSubjectId String? @db.Uuid
+  sourceId String @db.Uuid
+  sourceRevision Int
+  sourceProtectionEpoch Int
+  sourceScopeId String @db.Uuid
+  sourceScopeRevision Int
+  resourceRevision Int
+  resourceProtectionEpoch Int?
+  resourceScopeId String @db.Uuid
+  resourceScopeRevision Int
+  workspace Workspace @relation("LocaleDependency_workspace_locale", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "localeDependencies_workspace_fkey")
+  localeText LocaleText @relation("LocaleDependency_localeText_locale", fields: [workspaceId, localeTextId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "localeDependencies_localeText_fkey")
+  person Person? @relation("LocaleDependency_person_locale", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "localeDependencies_person_fkey")
+  work Work? @relation("LocaleDependency_work_locale", fields: [workspaceId, workId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "localeDependencies_work_fkey")
+  project Project? @relation("LocaleDependency_project_locale", fields: [workspaceId, projectId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "localeDependencies_project_fkey")
+  sourceSubject SourceRecord? @relation("LocaleDependency_sourceSubject_locale", fields: [workspaceId, sourceSubjectId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "localeDependencies_sourceSubject_fkey")
+  source SourceRecord @relation("LocaleDependency_source_locale", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "localeDependencies_source_fkey")
+  sourceScope AccessScope @relation("LocaleDependency_sourceScope_locale", fields: [workspaceId, sourceScopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "localeDependencies_sourceScope_fkey")
+  resourceScope AccessScope @relation("LocaleDependency_resourceScope_locale", fields: [workspaceId, resourceScopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "localeDependencies_resourceScope_fkey")
+  @@unique([workspaceId, id])
+  @@index([workspaceId, personId])
+  @@index([workspaceId, workId])
+  @@index([workspaceId, projectId])
+  @@index([workspaceId, localeTextId])
+  @@index([workspaceId, sourceId])
+  @@index([workspaceId, sourceSubjectId])
+  @@map("localeDependencies")
 }

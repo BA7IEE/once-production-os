@@ -16,6 +16,7 @@ const fieldLabel: Record<string, string> = {
     languageCodes: '语言', skillCodes: '技能', heightCm: '身高', intro: '简介'
 };
 const blockerLabel: Record<string, string> = {
+    LOCALE_MERGE_REVIEW_REQUIRED: '档案含内部语言文本，需先接通语言合并处理，当前不能执行合并',
     TD2_MERGE_HIDDEN_DEPENDENCY: '存在当前不可读或不可用的专业资料依赖',
     TD2_MERGE_REVIEW_REQUIRED: '决定成人资格需要来源核验权限',
     TD2_MERGE_SENSITIVE_REQUIRED: '迁移资格编号需要维护敏感字段权限',
