@@ -468,7 +468,7 @@ export class Deletions {
         if(item.resourceKind==='talentGraph')await validatePersonErasurePlan(tx,actor,row,await tx.find('deletionItems',{workspaceId:actor.workspaceId,requestId:row.id}));
         let retentionSourceId: string | null = null, retentionSourceRevision: number | null = null, retentionSourceProtectionEpoch: number | null = null;
         if (d.decision === 'RETAIN_WITH_BASIS') {
-            invariant(!['aiTask','aiGrant','localeText','talentGraph','talentAssetGraph','talentSourceEvidenceGraph','talentSourceAssetGraph',SOURCE_FACT_GROUP,SOURCE_IDENTITY_EVIDENCE].includes(item.resourceKind), 'TD2_ERASURE_RETENTION_UNSUPPORTED',
+            invariant(!['brand','organization','brandOrganization','projectParty','aiTask','aiGrant','localeText','talentGraph','talentAssetGraph','talentSourceEvidenceGraph','talentSourceAssetGraph',SOURCE_FACT_GROUP,SOURCE_IDENTITY_EVIDENCE].includes(item.resourceKind), 'TD2_ERASURE_RETENTION_UNSUPPORTED',
                 '本项必须清理指定对象的资料或引用；独立来源证据不能改记来源，需要保留时请停止本次删除', 422);
             requirePermission(actor, 'sources.review');
             invariant(!!d.retentionSourceId && d.retentionSourceId !== row.targetSourceId, 'RETENTION_BASIS_REQUIRED', '保留必须选择另一份独立且当前有效的来源依据', 422);

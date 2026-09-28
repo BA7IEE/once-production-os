@@ -278,12 +278,15 @@ try {
  console.log('PASS DEV-07C browser: DRAFT -> BLOCKED_FOR_USE hides project while preserving underlying row and no cleanup action exists');
 
  // DEV-07D: resolve REVIEW_REQUIRED slots and freeze a cleanup plan without executing it.
- await blockDetail.getByRole('button',{name:'做决定',exact:true}).first().click();
- f=await dialogReady(owner,'记录保留决定');
- await f.getByLabel('本项决定',{exact:true}).selectOption('APPLY_PROPOSED');
- await f.getByLabel('决定说明',{exact:true}).fill('合成测试：已核对项目参与备注，按系统建议处理，不保留该关系');
- await writeUI(owner,'POST','/deletion-requests/'+blockRequestId+'/decisions',()=>f.getByRole('button',{name:'保存决定',exact:true}).click());
- await blockDetail.getByText('按建议处置',{exact:true}).first().waitFor();
+ const pendingItems=(await json(owner,'/deletion-requests/'+blockRequestId+'/items?pageSize=100')).items.filter(item=>item.decision==='PENDING');
+ assert.deepEqual(pendingItems.map(item=>item.dependencyKind).sort(),['PROJECT_PARTICIPANT','PROJECT_PARTY']);
+ for(const _ of pendingItems){
+  await blockDetail.getByRole('button',{name:'做决定',exact:true}).first().click();f=await dialogReady(owner,'记录保留决定');
+  await f.getByLabel('本项决定',{exact:true}).selectOption('APPLY_PROPOSED');
+  await f.getByLabel('决定说明',{exact:true}).fill('合成测试：已核对项目参与备注及客户品牌关联，按建议解除关系，保留独立主体');
+  await writeUI(owner,'POST','/deletion-requests/'+blockRequestId+'/decisions',()=>f.getByRole('button',{name:'保存决定',exact:true}).click());
+  await f.waitFor({state:'hidden'});
+ }
  assert.equal((await json(owner,'/deletion-requests/'+blockRequestId)).pendingDecisionCount,0);
  owner.once('dialog',dialog=>void dialog.accept());
  await writeUI(owner,'POST','/deletion-requests/'+blockRequestId+'/plan/freeze',()=>blockDetail.getByRole('button',{name:'冻结清理计划',exact:true}).click());
@@ -306,6 +309,7 @@ try {
  assert.equal(finalizedProjectRequest.finalizationDigest?.length,64);
  assert.ok(finalizedProjectRequest.finalizedAt);
  assert.equal(finalizedProjectRequest.cleanupErrorCode,null);
+ assert.equal(await prisma.projectParty.count({where:{projectId}}),0);assert.equal(await prisma.brand.count({where:{id:brandCreated.resourceId}}),1);
  assert.equal(await prisma.projectParticipant.count({where:{projectId}}),0);
  assert.equal(await prisma.projectWork.count({where:{projectId}}),0);
  const cleaningItems=await prisma.deletionItem.findMany({where:{requestId:blockRequestId}});

@@ -75,7 +75,7 @@ try {
  await editor.getByLabel('来源标题 *').fill('M1合成图片来源');await editor.getByLabel('提供者 / 提供方式 *').fill('合成人物测试资料');await editor.getByLabel('依据说明 *').fill('仅合成数据用于隔离验收，不代表真实授权');
  const createdResponse=editor.waitForResponse(r=>r.url().endsWith('/people')&&r.request().method()==='POST');await editor.getByRole('button',{name:'建立档案',exact:true}).click();const created=await createdResponse;assert.equal(created.status(),201);
  const pid=(await created.json()).resourceId,person=await prisma.person.findUniqueOrThrow({where:{id:pid}});
- await editor.getByRole('heading',{name:'关联私有图片'}).waitFor();
+ await editor.getByRole('heading',{name:'关联私有素材'}).waitFor();
  const image=await sharp({create:{width:80,height:40,channels:3,background:'#336699'}}).png().withMetadata({orientation:6}).toBuffer();
  const sends=[];const path='**/api/v1/uploads/*/complete';
  editor.on('request',r=>{if(r.url().endsWith('/complete'))sends.push({key:r.headers()['idempotency-key'],body:r.postData()});});

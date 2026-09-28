@@ -68,6 +68,7 @@ export async function erasePartySource(f:F,target:"brand"|"organization"="brand"
  const id=(await ok(owner.cmd('POST','/deletion-requests',{targetKind:'SOURCE',targetId,expectedRevision:1,previewDigest:preview.previewDigest,reason:'合成清理品牌来源且保留独立客户'}),201)).resourceId as string;
  await ok(owner.cmd('POST',`/deletion-requests/${id}/block`,{expectedRevision:1,previewDigest:preview.previewDigest,acknowledgeBlock:true}));
  const req=async()=>(await store.transaction(tx=>tx.get('deletionRequests',id)))!;
+ const partyItem=(await store.transaction(tx=>tx.find('deletionItems',{requestId:id}))).find(i=>i.resourceKind===target)!;assert.ok(partyItem);assert.equal((await owner.cmd('POST',`/deletion-requests/${id}/decisions`,{expectedRevision:(await req()).revision,entryId:partyItem.id,decision:'RETAIN_WITH_BASIS',retentionSourceId:g.sourceId,decisionReason:'合成不得将原事实改记为其他来源'})).status,422);
  for(const item of await store.transaction(tx=>tx.find('deletionItems',{requestId:id})))if(item.decision==='PENDING')await ok(owner.cmd('POST',`/deletion-requests/${id}/decisions`,{expectedRevision:(await req()).revision,entryId:item.id,decision:'APPLY_PROPOSED',decisionReason:'合成明确确认逐项清理'}));
  await ok(owner.cmd('POST',`/deletion-requests/${id}/plan/freeze`,{expectedRevision:(await req()).revision,acknowledgePlan:true}));
  await ok(owner.cmd('POST',`/deletion-requests/${id}/cleaning/start`,{expectedRevision:(await req()).revision,planDigest:(await req()).planDigest,acknowledgeIrreversible:true}));

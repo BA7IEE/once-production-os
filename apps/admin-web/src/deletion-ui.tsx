@@ -36,7 +36,9 @@ const detailLabel: Record<string, string> = {
     EXPORT_PAYLOAD_DEPENDS_ON_TARGET: '旧导出 payload 依赖目标',
     EXPORT_PAYLOAD_DEPENDS_ON_SOURCE: '旧导出 payload 依赖来源'
 };
-function detailText(code: string) {
+const partyLabels:Record<string,string>={brand:'品牌资料',organization:'机构资料',brandOrganization:'品牌所属机构关联',projectParty:'项目客户与品牌关联',SOURCE_BRAND:'来源拥有的品牌',SOURCE_ORGANIZATION:'来源拥有的机构',BRAND_ORGANIZATION:'品牌所属机构关联',PROJECT_PARTY:'项目客户与品牌关联'};
+function detailText(code: string,kind?:string) {
+    if(kind&&partyLabels[kind])return ['brand','organization','SOURCE_BRAND','SOURCE_ORGANIZATION'].includes(kind)?'按本来源清理该主体资料；独立来源的其他主体不会被一并删除。':'仅解除本次目标涉及的关联，保留独立来源的机构、品牌和项目。';
     if(code.startsWith('TD2_SOURCE_IDENTITY_')){const mask=Number(code.split(':')[0]!.replace('TD2_SOURCE_IDENTITY_','')),fields=['姓名','别名','简介','旧职业','旧语言','旧技能','旧城市','旧身高'].filter((_,i)=>(mask&(1<<i))!==0);return `撤回本来源对另一个人物身份字段的依据（${fields.join('、')}）。人物内容、最初来源及其他现成核验保持不变；若独立依据失效，清理不能完成。`;}
     if(code.startsWith('TD2_SOURCE_PERSON:'))return '逐项决定删除或保留人物身份。保留须已有姓名、别名、简介的完整独立依据；最初来源编号不改变，专业资料需分别决定。';
     const facts = /^TD2_SOURCE_FACT_GRAPH_(?:[a-f0-9]{64}|[A-Za-z0-9_-]{43}):F(\d+):C(\d+):I(\d+)(?::M(\d+):Q(\d+):A(\d+):L(\d+)(?::H(\d+))?)?$/.exec(code);
@@ -95,12 +97,12 @@ function DecisionModal({ request, item, sources, canRetain, onClose, onDone }: {
             onDone();
         }); }}>
             <div className="modal-body"><ErrorBox error={action.error}/>
-                <div className="notice"><strong>{evidenceLabel[item.evidenceState] ?? item.evidenceState}</strong><p>{item.recordSummary}</p><p>{detailText(item.detailCode)}</p></div>
-                <dl className="detail-grid"><div><dt>依赖类型</dt><dd><code>{item.dependencyKind}</code></dd></div><div><dt>系统建议</dt><dd>{actionLabel[item.proposedAction] ?? item.proposedAction}</dd></div></dl>
+                <div className="notice"><strong>{evidenceLabel[item.evidenceState] ?? item.evidenceState}</strong><p>{item.recordSummary}</p><p>{detailText(item.detailCode,item.dependencyKind)}</p></div>
+                <dl className="detail-grid"><div><dt>依赖类型</dt><dd><code>{partyLabels[item.dependencyKind]??item.dependencyKind}</code></dd></div><div><dt>系统建议</dt><dd>{actionLabel[item.proposedAction] ?? item.proposedAction}</dd></div></dl>
                 <Field label="本项决定">
                     <select value={decision} onChange={e => { setDecision(e.target.value as 'APPLY_PROPOSED' | 'RETAIN_WITH_BASIS'); setRetentionSourceId(''); }}>
                         <option value="APPLY_PROPOSED">{item.dependencyKind==='SOURCE_OTHER_IDENTITY_EVIDENCE'?'确认撤回该来源的身份依据':item.dependencyKind==='SOURCE_TALENT_FACT'?'删除这项专业资料':item.dependencyKind==='SOURCE_TALENT_FACT_GROUP'?'确认按逐项决定执行':'按系统建议处置'}</option>
-                        {canRetain && !['DERIVED_LOCALE_TEXT','PERSON_TALENT_GRAPH','ASSET_TALENT_REFERENCES','SOURCE_TALENT_EVIDENCE','SOURCE_OTHER_IDENTITY_EVIDENCE','SOURCE_TALENT_FACT_GROUP','SOURCE_ASSET_TALENT_REFERENCES'].includes(item.dependencyKind) && <option value="RETAIN_WITH_BASIS">有独立依据，保留</option>}
+                        {canRetain && !['SOURCE_BRAND','SOURCE_ORGANIZATION','BRAND_ORGANIZATION','PROJECT_PARTY','DERIVED_LOCALE_TEXT','PERSON_TALENT_GRAPH','ASSET_TALENT_REFERENCES','SOURCE_TALENT_EVIDENCE','SOURCE_OTHER_IDENTITY_EVIDENCE','SOURCE_TALENT_FACT_GROUP','SOURCE_ASSET_TALENT_REFERENCES'].includes(item.dependencyKind) && <option value="RETAIN_WITH_BASIS">有独立依据，保留</option>}
                     </select>
                 </Field>
                 {decision === 'RETAIN_WITH_BASIS' && <Field label="独立保留依据" hint="必须是另一份当前有效的正式 INTERNAL_USE 来源；目标原来源不能自证保留。">
@@ -194,11 +196,11 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
                 <div className="panel-heading"><div><h3>保留决定</h3><p>这里不显示被冻结依赖的底层对象 ID。PROVEN 项自动采用系统建议；只有 REVIEW_REQUIRED 项需要人工判断。</p></div></div>
                 {items.busy && !items.data ? <p>正在读取安全决策槽…</p> : items.data && <>
                     <div className="table-wrap"><table><thead><tr><th>依赖类型</th><th>系统建议</th><th>证据</th><th>当前决定</th><th>说明</th><th/></tr></thead><tbody>{items.data.items.map(item => <tr key={item.id}>
-                        <td><code>{item.dependencyKind}</code>{item.recordSummary&&<p>{item.recordSummary}</p>}</td>
+                        <td><code>{partyLabels[item.dependencyKind]??item.dependencyKind}</code>{item.recordSummary&&<p>{item.recordSummary}</p>}</td>
                         <td>{actionLabel[item.proposedAction] ?? item.proposedAction}</td>
                         <td>{evidenceLabel[item.evidenceState] ?? item.evidenceState}</td>
                         <td>{item.decision === 'PENDING' ? '待决定' : item.decision === 'RETAIN_WITH_BASIS' ? '有独立依据保留' : '按建议处置'}</td>
-                        <td>{item.decisionReason || (item.retentionBasisPresent ? '已记录独立保留依据' : detailText(item.detailCode))}</td>
+                        <td>{item.decisionReason || (item.retentionBasisPresent ? '已记录独立保留依据' : detailText(item.detailCode,item.dependencyKind))}</td>
                         <td>{item.decision === 'PENDING' && !load.data?.planFrozen && <button disabled={refreshing} onClick={() => { if (!refreshing) setEditing(item); }}>做决定</button>}</td>
                     </tr>)}</tbody></table></div>
                     <Pager page={itemPage} pageSize={20} total={items.data.total} setPage={setItemPage}/>
@@ -295,9 +297,9 @@ export function DeletionImpactPanel({ me, initialPerson }: { me: Me; initialPers
                 </div>
                 {!!preview.unresolved.length && <div className="error"><strong>影响图不完整</strong>{preview.unresolved.map(x => <p key={x.code}>{unresolvedLabel[x.code] ?? x.code}：{x.count} 项</p>)}</div>}
                 <h3>影响摘要</h3>
-                <div className="table-wrap"><table><thead><tr><th>依赖类型</th><th>建议动作</th><th>证据状态</th><th>数量</th></tr></thead><tbody>{preview.summary.map((x, i) => <tr key={i}><td><code>{x.dependencyKind}</code></td><td>{actionLabel[x.proposedAction] ?? x.proposedAction}</td><td>{evidenceLabel[x.evidenceState] ?? x.evidenceState}</td><td>{x.count}</td></tr>)}</tbody></table></div>
+                <div className="table-wrap"><table><thead><tr><th>依赖类型</th><th>建议动作</th><th>证据状态</th><th>数量</th></tr></thead><tbody>{preview.summary.map((x, i) => <tr key={i}><td><code>{partyLabels[x.dependencyKind]??x.dependencyKind}</code></td><td>{actionLabel[x.proposedAction] ?? x.proposedAction}</td><td>{evidenceLabel[x.evidenceState] ?? x.evidenceState}</td><td>{x.count}</td></tr>)}</tbody></table></div>
                 <h3>当前可见具体影响</h3>
-                <div className="table-wrap deletion-impact-table"><table><thead><tr><th>对象</th><th>依赖</th><th>建议动作</th><th>判断</th><th>原因</th></tr></thead><tbody>{preview.items.map(x => <tr key={[x.resourceKind,x.resourceId,x.dependencyKind,x.proposedAction].join(':')}><td><strong>{x.resourceKind}</strong><small>{x.resourceId}</small></td><td><code>{x.dependencyKind}</code></td><td>{actionLabel[x.proposedAction] ?? x.proposedAction}</td><td>{evidenceLabel[x.evidenceState] ?? x.evidenceState}</td><td>{detailText(x.detailCode)}</td></tr>)}</tbody></table></div>
+                <div className="table-wrap deletion-impact-table"><table><thead><tr><th>对象</th><th>依赖</th><th>建议动作</th><th>判断</th><th>原因</th></tr></thead><tbody>{preview.items.map(x => <tr key={[x.resourceKind,x.resourceId,x.dependencyKind,x.proposedAction].join(':')}><td><strong>{partyLabels[x.resourceKind]??x.resourceKind}</strong><small>{x.resourceId}</small></td><td><code>{partyLabels[x.dependencyKind]??x.dependencyKind}</code></td><td>{actionLabel[x.proposedAction] ?? x.proposedAction}</td><td>{evidenceLabel[x.evidenceState] ?? x.evidenceState}</td><td>{detailText(x.detailCode,x.resourceKind)}</td></tr>)}</tbody></table></div>
                 <div className="deletion-freeze-box">
                     <h3>2. 冻结为 DRAFT 删除申请</h3>
                     <Field label="申请原因" hint="这里只说明为什么需要进入后续删除评估；本操作不会阻断或清理目标。"><textarea rows={4} required minLength={4} maxLength={2000} disabled={!preview.complete} value={reason} onChange={e => setReason(e.target.value)}/></Field>

@@ -49,15 +49,20 @@ test('TD2-T17 populated frozen pre-TD2 baseline upgrades without rewriting busin
   await insert('shortlists',{...base(shortlistId),scopeId,maintainerId:membershipId,title:'合成旧候选名单',brief:''});
   for(const [id,personId,position]of [[singleItem,single,0],[multiItem,multiple,1]] as const)await insert('shortlistItems',{...base(id),shortlistId,personId,workId:null,position,note:'合成旧候选上下文',addedPersonRevision:1,addedPersonSourceRevision:1,addedWorkRevision:null,addedWorkSourceRevision:null});
   const before=new Map<string,any[]>();for(const table of allowed)before.set(table,await db.$queryRawUnsafe(`SELECT to_jsonb(t) AS row FROM "${table}" t ORDER BY id`));
-  // Upgrade the same populated database through migration 50 and preserve an
-  // actually unresolved AI reservation while applying the expanded private media type constraints.
-  const prior=names.filter(n=>n<'202609290002_media_documents_video');
+  // Upgrade the same populated database through migration 52 and preserve an
+  // actually unresolved AI reservation while applying the project party export permission constraints.
+  const prior=names.filter(n=>n<'202609290004_project_party_export_fields');
   for(const name of prior.filter(n=>!old.includes(n))){mkdirSync(join(temp,'migrations',name));copyFileSync(join(migrations,name,'migration.sql'),join(temp,'migrations',name,'migration.sql'));}
   deploy(join(temp,'schema.prisma'));
   const aiStore=new PrismaStore(db),aiClock=new FakeClock(),ledger=new AiLedger(aiClock),aiConfig={enabled:true,providerIdentityHash:digest('synthetic upgrade provider'),configRevision:1,recoveryEpoch:'synthetic-upgrade-epoch',currency:'USD',perTaskLimitUnits:50,dailyLimitUnits:1000,maxAttempts:3},meta={requestId:randomUUID(),ip:'test'};
   await aiStore.transaction(async tx=>{const r=await ledger.reserve(tx,workspaceId,membershipId,randomUUID(),digest('synthetic upgrade input'),50,aiConfig,meta);const a=await ledger.begin(tx,workspaceId,r.id,aiConfig,meta);await ledger.unknown(tx,workspaceId,a.id,meta);});
   const aiBefore=JSON.stringify({budgets:await db.aiBudget.findMany(),runs:await db.aiRun.findMany(),attempts:await db.aiAttempt.findMany()});
+  const brandId=randomUUID(),linkId=randomUUID(),projectId=(await db.project.findFirstOrThrow()).id;
+  await db.brand.create({data:{...base(brandId),sourceId,scopeId,name:'升级保留品牌',organizationId:null,status:'ACTIVE'}});
+  await db.projectParty.create({data:{...base(linkId),projectId,clientOrganizationId:null,brandId}});
+  const partiesBefore=JSON.stringify({brands:await db.brand.findMany(),links:await db.projectParty.findMany()});
   deploy(resolve('prisma/schema.prisma'));
+  assert.equal(JSON.stringify({brands:await db.brand.findMany(),links:await db.projectParty.findMany()}),partiesBefore);
   assert.equal(JSON.stringify({budgets:await db.aiBudget.findMany(),runs:await db.aiRun.findMany(),attempts:await db.aiAttempt.findMany()}),aiBefore);
   assert.equal(await db.aiConnection.count(),0);assert.equal(await db.aiResponseMetadata.count(),0);assert.equal(await db.aiApproval.count(),0);assert.equal(await db.aiReconciliation.count(),0);assert.equal(await db.aiBudgetRelease.count(),0);
 
