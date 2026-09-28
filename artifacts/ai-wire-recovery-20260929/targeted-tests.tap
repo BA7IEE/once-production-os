@@ -2,301 +2,301 @@ TAP version 13
 # Subtest: AI extraction produces a reviewable proposal and applies selected fields exactly once
 ok 1 - AI extraction produces a reviewable proposal and applies selected fields exactly once
   ---
-  duration_ms: 144.679041
+  duration_ms: 160.467417
   type: 'test'
   ...
 # Subtest: AI strict source permission and minimum input checks precede reservation
 ok 2 - AI strict source permission and minimum input checks precede reservation
   ---
-  duration_ms: 127.334083
+  duration_ms: 126.288042
   type: 'test'
   ...
 # Subtest: AI source changes prevent dispatch and stale proposals cannot write facts
 ok 3 - AI source changes prevent dispatch and stale proposals cannot write facts
   ---
-  duration_ms: 128.111792
+  duration_ms: 127.13775
   type: 'test'
   ...
 # Subtest: AI parse search confirms a restricted filter object and never writes facts
 ok 4 - AI parse search confirms a restricted filter object and never writes facts
   ---
-  duration_ms: 128.146917
+  duration_ms: 128.039292
   type: 'test'
   ...
 # Subtest: AI locale creates an unreviewed draft and work tags stay within the approved dictionary
 ok 5 - AI locale creates an unreviewed draft and work tags stay within the approved dictionary
   ---
-  duration_ms: 140.993667
+  duration_ms: 143.634083
   type: 'test'
   ...
 # Subtest: AI selected fields and proposal state roll back together on audit failure
 ok 6 - AI selected fields and proposal state roll back together on audit failure
   ---
-  duration_ms: 128.099125
+  duration_ms: 126.771083
   type: 'test'
   ...
 # Subtest: AI malformed output and invented quotations never become proposals or verified facts
 ok 7 - AI malformed output and invented quotations never become proposals or verified facts
   ---
-  duration_ms: 259.117208
+  duration_ms: 247.141333
   type: 'test'
   ...
 # Subtest: AI source-linked proposals and grant evidence erase together without releasing unknown fees
 ok 8 - AI source-linked proposals and grant evidence erase together without releasing unknown fees
   ---
-  duration_ms: 133.010542
+  duration_ms: 130.249083
   type: 'test'
   ...
 # Subtest: AI explicit permission and current source scope govern content, counts and replay
 ok 9 - AI explicit permission and current source scope govern content, counts and replay
   ---
-  duration_ms: 122.9395
+  duration_ms: 122.408875
   type: 'test'
   ...
 # Subtest: AI recovery revokes grants, rejects pending proposals and retains unresolved charges
 ok 10 - AI recovery revokes grants, rejects pending proposals and retains unresolved charges
   ---
-  duration_ms: 123.742792
+  duration_ms: 120.806792
   type: 'test'
   ...
 # Subtest: AI person deletion uses the normal impact, decision, freeze and cleanup workflow
 ok 11 - AI person deletion uses the normal impact, decision, freeze and cleanup workflow
   ---
-  duration_ms: 163.011083
+  duration_ms: 130.760708
   type: 'test'
   ...
 # Subtest: AI may report no supported fields without guessing or treating confirmed usage as unknown
 ok 12 - AI may report no supported fields without guessing or treating confirmed usage as unknown
   ---
-  duration_ms: 123.039
+  duration_ms: 121.729917
   type: 'test'
   ...
 # Subtest: model connection flows through encrypted storage, one-send SDK worker and human proposal despite unknown cost
 ok 13 - model connection flows through encrypted storage, one-send SDK worker and human proposal despite unknown cost
   ---
-  duration_ms: 181.36675
+  duration_ms: 172.168208
   type: 'test'
   ...
 # Subtest: connection writes require current admin, strict fields and atomic audit; unknown response uses the original key
 ok 14 - connection writes require current admin, strict fields and atomic audit; unknown response uses the original key
   ---
-  duration_ms: 246.200375
+  duration_ms: 246.062333
   type: 'test'
   ...
 # Subtest: recovery disables saved connection approvals and cancels queued work without deleting encrypted configuration
 ok 15 - recovery disables saved connection approvals and cancels queued work without deleting encrypted configuration
   ---
-  duration_ms: 134.815083
+  duration_ms: 133.790083
   type: 'test'
   ...
 # Subtest: business and connection test dispatch both honor the saved 120 second deadline
 ok 16 - business and connection test dispatch both honor the saved 120 second deadline
   ---
-  duration_ms: 130.4165
+  duration_ms: 130.126334
   type: 'test'
   ...
 # Subtest: AI reservations serialize and uncertain/cancelled attempts retain funds until reconciliation
 ok 17 - AI reservations serialize and uncertain/cancelled attempts retain funds until reconciliation
   ---
-  duration_ms: 177.74425
+  duration_ms: 145.588666
   type: 'test'
   ...
 # Subtest: AI accounting and dispatch authorization roll back when audit fails
 ok 18 - AI accounting and dispatch authorization roll back when audit fails
   ---
-  duration_ms: 123.762917
+  duration_ms: 124.112458
   type: 'test'
   ...
 # Subtest: AI sends fail closed on changed provider, recovery epoch, disabled actor or midnight reservation
 ok 19 - AI sends fail closed on changed provider, recovery epoch, disabled actor or midnight reservation
   ---
-  duration_ms: 123.374833
+  duration_ms: 122.559667
   type: 'test'
   ...
 # Subtest: AI known not executed has a bounded attempt count; cancellation releases only unsent funds
 ok 20 - AI known not executed has a bounded attempt count; cancellation releases only unsent funds
   ---
-  duration_ms: 125.001709
+  duration_ms: 124.326583
   type: 'test'
   ...
 # Subtest: AI request identity rejects reuse with different payload and invalid money/configuration
 ok 21 - AI request identity rejects reuse with different payload and invalid money/configuration
   ---
-  duration_ms: 123.688292
+  duration_ms: 123.951167
   type: 'test'
   ...
 # Subtest: AI uncertain funds survive date rollover and an overrun freezes subsequent days too
 ok 22 - AI uncertain funds survive date rollover and an overrun freezes subsequent days too
   ---
-  duration_ms: 121.808042
+  duration_ms: 124.29925
   type: 'test'
   ...
 # Subtest: AI in-flight settlement remains possible after actor disable and restoration, but never sends again
 ok 23 - AI in-flight settlement remains possible after actor disable and restoration, but never sends again
   ---
-  duration_ms: 122.960708
+  duration_ms: 121.068958
   type: 'test'
   ...
 # Subtest: AI dispatcher commits its unique attempt before network and never repeats an uncertain request
 ok 24 - AI dispatcher commits its unique attempt before network and never repeats an uncertain request
   ---
-  duration_ms: 125.293167
+  duration_ms: 122.080167
   type: 'test'
   ...
 # Subtest: AI dispatcher times out with reserved cost; late provider completion cannot create a proposal
 ok 25 - AI dispatcher times out with reserved cost; late provider completion cannot create a proposal
   ---
-  duration_ms: 136.79125
+  duration_ms: 133.184375
   type: 'test'
   ...
 # Subtest: AI dispatcher checks input again before send and cancellation during HTTP suppresses proposals
 ok 26 - AI dispatcher checks input again before send and cancellation during HTTP suppresses proposals
   ---
-  duration_ms: 122.40275
+  duration_ms: 120.406708
   type: 'test'
   ...
 # Subtest: AI proposal and settlement share a transaction; failed proposal does not create settled success
 ok 27 - AI proposal and settlement share a transaction; failed proposal does not create settled success
   ---
-  duration_ms: 120.747834
+  duration_ms: 119.030375
   type: 'test'
   ...
 # Subtest: AI recovery inspection includes unresolved attempts and detects accounting or request-identity damage
 ok 28 - AI recovery inspection includes unresolved attempts and detects accounting or request-identity damage
   ---
-  duration_ms: 122.344
+  duration_ms: 119.41875
   type: 'test'
   ...
 # Subtest: SDK openai-chat uses the configured endpoint/model/key and returns normalized usage
 ok 29 - SDK openai-chat uses the configured endpoint/model/key and returns normalized usage
   ---
-  duration_ms: 26.55075
+  duration_ms: 21.89975
   type: 'test'
   ...
 # Subtest: SDK openai-responses uses the configured endpoint/model/key and returns normalized usage
 ok 30 - SDK openai-responses uses the configured endpoint/model/key and returns normalized usage
   ---
-  duration_ms: 6.576333
+  duration_ms: 7.8855
   type: 'test'
   ...
 # Subtest: SDK anthropic-messages uses the configured endpoint/model/key and returns normalized usage
 ok 31 - SDK anthropic-messages uses the configured endpoint/model/key and returns normalized usage
   ---
-  duration_ms: 4.810541
+  duration_ms: 5.250625
   type: 'test'
   ...
 # Subtest: missing usage remains unknown; malformed suggestions retain returned usage
 ok 32 - missing usage remains unknown; malformed suggestions retain returned usage
   ---
-  duration_ms: 6.748291
+  duration_ms: 7.053292
   type: 'test'
   ...
 # Subtest: HTTP throttling and provider errors never retry or expose raw error bodies
 ok 33 - HTTP throttling and provider errors never retry or expose raw error bodies
   ---
-  duration_ms: 7.139125
+  duration_ms: 6.695084
   type: 'test'
   ...
 # Subtest: expired and cancelled requests are rejected before HTTP; in-flight abort propagates
 ok 34 - expired and cancelled requests are rejected before HTTP; in-flight abort propagates
   ---
-  duration_ms: 0.969291
+  duration_ms: 0.898666
   type: 'test'
   ...
 # Subtest: untrusted configuration and oversized provider responses are rejected
 ok 35 - untrusted configuration and oversized provider responses are rejected
   ---
-  duration_ms: 1.889
+  duration_ms: 1.216875
   type: 'test'
   ...
 # Subtest: actual HTTP timeout leaves outcome unknown and never retries
 ok 36 - actual HTTP timeout leaves outcome unknown and never retries
   ---
-  duration_ms: 1016.919708
+  duration_ms: 1008.377042
   type: 'test'
   ...
 # Subtest: actual HTTP partial-body leaves outcome unknown and never retries
 ok 37 - actual HTTP partial-body leaves outcome unknown and never retries
   ---
-  duration_ms: 1004.279583
+  duration_ms: 1005.354166
   type: 'test'
   ...
 # Subtest: actual HTTP reset leaves outcome unknown and never retries
 ok 38 - actual HTTP reset leaves outcome unknown and never retries
   ---
-  duration_ms: 4.180958
+  duration_ms: 10.555
   type: 'test'
   ...
 # Subtest: actual HTTP redirect leaves outcome unknown and never retries
 ok 39 - actual HTTP redirect leaves outcome unknown and never retries
   ---
-  duration_ms: 2.592584
+  duration_ms: 5.133459
   type: 'test'
   ...
 # Subtest: actual HTTP 429 leaves outcome unknown and never retries
 ok 40 - actual HTTP 429 leaves outcome unknown and never retries
   ---
-  duration_ms: 5.050875
+  duration_ms: 7.610292
   type: 'test'
   ...
 # Subtest: actual HTTP 500 leaves outcome unknown and never retries
 ok 41 - actual HTTP 500 leaves outcome unknown and never retries
   ---
-  duration_ms: 22.053417
+  duration_ms: 5.542917
   type: 'test'
   ...
 # Subtest: AI approval binds the exact candidate and active human approver; disable is atomic and replayable
 ok 42 - AI approval binds the exact candidate and active human approver; disable is atomic and replayable
   ---
-  duration_ms: 290.170083
+  duration_ms: 271.138416
   type: 'test'
   ...
 # Subtest: AI worker serializes send authority across concurrent workers and ignores cancelled sources
 ok 43 - AI worker serializes send authority across concurrent workers and ignores cancelled sources
   ---
-  duration_ms: 133.311417
+  duration_ms: 132.983709
   type: 'test'
   ...
 # Subtest: AI worker restart isolates abandoned attempts even without an adapter and preserves reserved cost
 ok 44 - AI worker restart isolates abandoned attempts even without an adapter and preserves reserved cost
   ---
-  duration_ms: 125.633792
+  duration_ms: 125.207167
   type: 'test'
   ...
 # Subtest: AI shutdown during provider work aborts and never creates a proposal or resend
 ok 45 - AI shutdown during provider work aborts and never creates a proposal or resend
   ---
-  duration_ms: 127.220459
+  duration_ms: 127.405875
   type: 'test'
   ...
 # Subtest: AI reconciliation verifies original request evidence, rolls back with audit and never resends
 ok 46 - AI reconciliation verifies original request evidence, rolls back with audit and never resends
   ---
-  duration_ms: 129.59825
+  duration_ms: 129.220584
   type: 'test'
   ...
 # Subtest: AI confirmed nonexecution releases funds but requires a new human task; unresolved cost blocks unfreeze
 ok 47 - AI confirmed nonexecution releases funds but requires a new human task; unresolved cost blocks unfreeze
   ---
-  duration_ms: 132.248916
+  duration_ms: 129.68775
   type: 'test'
   ...
 # Subtest: AI approval is invalidated by approver qualification and recovery isolation
 ok 48 - AI approval is invalidated by approver qualification and recovery isolation
   ---
-  duration_ms: 130.73125
+  duration_ms: 124.103209
   type: 'test'
   ...
 # Subtest: AI global egress and maintenance switches block queued sends without blocking reconciliation
 ok 49 - AI global egress and maintenance switches block queued sends without blocking reconciliation
   ---
-  duration_ms: 129.907417
+  duration_ms: 127.248417
   type: 'test'
   ...
 # Subtest: AI approval rejects invalid limits and still permits stopping while global egress is off
 ok 50 - AI approval rejects invalid limits and still permits stopping while global egress is off
   ---
-  duration_ms: 123.132792
+  duration_ms: 122.282125
   type: 'test'
   ...
 1..50
@@ -307,4 +307,4 @@ ok 50 - AI approval rejects invalid limits and still permits stopping while glob
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 2372.733583
+# duration_ms 2376.877875

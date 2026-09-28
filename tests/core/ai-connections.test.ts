@@ -39,12 +39,12 @@ test('business and connection test dispatch both honor the saved 120 second dead
  const f=await fixture();assert.equal((await f.owner.cmd('POST','/ai-connection',{...connectionInput,connection:{...connectionInput.connection,timeoutMs:120000}})).status,200);
  const {currentAiConfig}=await import('../../packages/core/src/ai-connection.ts');
  const workspaceId=(await f.store.transaction(tx=>tx.find('workspaces')))[0]!.id;
- const c=await f.store.transaction(tx=>currentAiConfig(tx,workspaceId,f.app.config));let calls=0;
+ const c=await f.store.transaction(tx=>currentAiConfig(tx,workspaceId,f.app.config));const deadlines:number[]=[];
  const worker=new AiWorker(f.app,{providerIdentityHash:c!.providerIdentityHash,send:async(_input,context)=>{
-  calls++;assert.equal(Date.parse(context.deadlineAt)-f.clock.now().getTime(),120000);
+  deadlines.push(Date.parse(context.deadlineAt)-f.clock.now().getTime());
   return {output:{changes:[],unknowns:[]},evidenceDigest:'synthetic-timeout-proof'};
  }});
  assert.equal((await f.owner.cmd('POST','/ai-connection/test',{expectedRevision:1,confirmTest:true})).status,200);
  await worker.cycle(new AbortController().signal);
- const t=await aiBusinessFixture(f);await t.create();await worker.cycle(new AbortController().signal);assert.equal(calls,2);
+ const t=await aiBusinessFixture(f);await t.create();await worker.cycle(new AbortController().signal);assert.deepEqual(deadlines,[120000,120000]);
 });
