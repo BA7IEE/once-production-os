@@ -64,7 +64,8 @@ export class LocaleTexts{
  }
  async create(tx:Tx,actor:Actor,input:unknown){
   human(actor);requirePermission(actor,'records.write');const d=S.create.parse(input),key=d.subjectKind==='PERSON'?'personId':d.subjectKind==='WORK'?'workId':'projectId';
-  const row:LocaleText={...base(actor.workspaceId,this.clock),personId:null,workId:null,projectId:null,[key]:d.subjectId,locale:d.locale,text:d.text,state:d.confirmCurrentBasis?'REVIEWED':'DRAFT',sourceDigest:'',originalReviewWorkspaceId:null,originalReviewMembershipId:null,originalReviewedAt:null,originalReviewTextDigest:null,importedBasis:null,mergeHistory:null,reviewedBy:d.confirmCurrentBasis?actor.membershipId:null,reviewedAt:d.confirmCurrentBasis?this.clock.now().toISOString():null};
+  const stamp=base(actor.workspaceId,this.clock);
+  const row:LocaleText={...stamp,personId:null,workId:null,projectId:null,[key]:d.subjectId,locale:d.locale,text:d.text,state:d.confirmCurrentBasis?'REVIEWED':'DRAFT',sourceDigest:'',originalReviewWorkspaceId:null,originalReviewMembershipId:null,originalReviewedAt:null,originalReviewTextDigest:null,importedBasis:null,mergeHistory:null,reviewedBy:d.confirmCurrentBasis?actor.membershipId:null,reviewedAt:d.confirmCurrentBasis?stamp.updatedAt:null};
   const deps=await this.dependencies(tx,actor,d.subjectKind,d.subjectId,d.expectedSubjectRevision,d.sourceRefs,row.id);
   invariant(!(await tx.find('localeTexts',{workspaceId:actor.workspaceId,[key]:d.subjectId,locale:d.locale})).some(r=>r.state!=='ERASED'),'LOCALE_EXISTS','该语言已有内部文本，请编辑已有版本',409);
   row.sourceDigest=localeBasisDigest(deps);await tx.insert('localeTexts',row);for(const dep of deps)await tx.insert('localeDependencies',dep);return row;
@@ -75,7 +76,7 @@ export class LocaleTexts{
   // cannot be removed by replacing the text and submitting different sources.
   const {row,subject}=await this.access(tx,actor,id);cas(row,d.expectedRevision);
   invariant(localeHistoryDependencies(row).every(dep=>d.sourceRefs.some(s=>s.id===dep.sourceId)),'LOCALE_HISTORY_SOURCE_REQUIRED','合并历史仍引用的来源不能移除',422);
-  const deps=await this.dependencies(tx,actor,subject.kind,subject.id,d.expectedSubjectRevision,d.sourceRefs,id),next={...touch(row,this.clock),text:d.text,state:d.confirmCurrentBasis?'REVIEWED' as const:'DRAFT' as const,sourceDigest:localeBasisDigest(deps),reviewedBy:d.confirmCurrentBasis?actor.membershipId:null,reviewedAt:d.confirmCurrentBasis?this.clock.now().toISOString():null};
+  const deps=await this.dependencies(tx,actor,subject.kind,subject.id,d.expectedSubjectRevision,d.sourceRefs,id),stamp=touch(row,this.clock),next={...stamp,text:d.text,state:d.confirmCurrentBasis?'REVIEWED' as const:'DRAFT' as const,sourceDigest:localeBasisDigest(deps),reviewedBy:d.confirmCurrentBasis?actor.membershipId:null,reviewedAt:d.confirmCurrentBasis?stamp.updatedAt:null};
   for(const dep of await tx.find('localeDependencies',{workspaceId:actor.workspaceId,localeTextId:id}))await tx.remove('localeDependencies',dep.id);for(const dep of deps)await tx.insert('localeDependencies',dep);await tx.replace('localeTexts',next);return next;
  }
  async replaceAfterMerge(tx:Tx,actor:Actor,row:LocaleText,input:unknown){

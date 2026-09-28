@@ -59,3 +59,12 @@ test('language choices are explicit even for one-sided text and cannot select an
  const listed=result(await f.owner.raw('GET','/locale-texts?subjectKind=PERSON&subjectId='+t.people[0]));assert.equal(listed.total,2);
  const chinese=listed.items.find((r:any)=>r.locale==='zh');assert.equal(chinese.text,'只在重复档案中的中文');assert.equal(chinese.history.length,1);assert.notEqual(chinese.id,zh);assert.equal(chinese.state,'DRAFT');
 });
+
+test('review timestamps use one event instant even when the clock advances between calls',async()=>{
+ const f=await fixture();f.clock.now=()=>new Date(++f.clock.value);
+ const t=await localeMergeFixture(f);
+ for(const row of f.store.rows('localeTexts'))assert.equal(row.reviewedAt,row.updatedAt);
+ const old=f.store.rows('localeTexts')[0]!;
+ const changed=await f.owner.cmd('PATCH','/locale-texts/'+old.id,{expectedRevision:old.revision,expectedSubjectRevision:1,text:'Single review instant',sourceRefs:[{id:t.sources[0],expectedRevision:1}],confirmCurrentBasis:true});assert.equal(changed.status,200);
+ const updated=f.store.rows('localeTexts').find(r=>r.id===old.id)!;assert.equal(updated.reviewedAt,updated.updatedAt);
+});
