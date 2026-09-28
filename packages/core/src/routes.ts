@@ -1,3 +1,4 @@
+import {AiSchemas as AS} from './ai-validation.ts';
 import {LocaleSchemas as LS} from './locale-validation.ts';
 import { TD2_ROUTES } from './talent-v2-routes.ts';
 import { MergeSchemas as MS } from './merge-validation.ts';
@@ -17,6 +18,19 @@ export interface RouteDefinition {
     schema?: Schema<unknown>;
 }
 export const ROUTES: RouteDefinition[] = [
+    {method:'GET',path:'/ai-settings',operation:'ai.settings',mode:'READ',permission:'records.read'},
+    {method:'GET',path:'/ai-grants',operation:'ai.grants',mode:'READ',permission:'sources.read'},
+    {method:'POST',path:'/ai-grants',operation:'ai.grant',mode:'COMMAND',permission:'sources.review',schema:AS.grant},
+    {method:'POST',path:'/ai-grants/{id}/revoke',operation:'ai.grant.revoke',mode:'COMMAND',permission:'sources.review',schema:AS.revision},
+    {method:'POST',path:'/ai-jobs/preview',operation:'ai.preview',mode:'READ',permission:'ai.use',schema:AS.create},
+    {method:'GET',path:'/ai-jobs',operation:'ai.list',mode:'READ',permission:'ai.use'},
+    {method:'POST',path:'/ai-jobs',operation:'ai.create',mode:'COMMAND',permission:'ai.use',schema:AS.create},
+    {method:'GET',path:'/ai-jobs/{id}',operation:'ai.get',mode:'READ',permission:'ai.use'},
+    {method:'GET',path:'/proposals/{id}',operation:'ai.proposal',mode:'READ',permission:'ai.use'},
+    {method:'POST',path:'/ai-jobs/{id}/cancel',operation:'ai.cancel',mode:'COMMAND',permission:'ai.use',schema:AS.revision},
+    {method:'POST',path:'/proposals/{id}/apply',operation:'ai.apply',mode:'COMMAND',permission:'ai.use',schema:AS.apply},
+    {method:'POST',path:'/proposals/{id}/reject',operation:'ai.reject',mode:'COMMAND',permission:'ai.use',schema:AS.revision},
+    {method:'GET',path:'/ai-jobs/{id}/results',operation:'ai.results',mode:'READ',permission:'ai.use'},
     {method:'GET',path:'/locale-texts',operation:'locale.list',mode:'READ',permission:'records.read'},
     {method:'GET',path:'/locale-texts/{id}',operation:'locale.get',mode:'READ',permission:'records.read'},
     {method:'POST',path:'/locale-texts',operation:'locale.create',mode:'COMMAND',permission:'records.write',schema:LS.create},

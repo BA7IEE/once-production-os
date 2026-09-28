@@ -1,3 +1,4 @@
+import {verifyAiBusiness} from '../support/ai-business.ts';
 /** Explicit TD2 domain acceptance on real PostgreSQL, including direct constraint probes.
  * Each scenario uses formal commands; no database reset, migration edits or memory adapter. */
 import {test} from 'node:test';
@@ -121,5 +122,11 @@ test('TD2-T01 through T15 and T18: actual PostgreSQL domain contracts and privat
   await t.test('Legacy structured search has current typed reviews, same-work/occupation matching and complete facets',async()=>{await verifyStructuredCompatibility(owner);});
   await t.test('Manual height dismissal and credential identifier clearing preserve history and roll back with audit failure',async()=>{await verifyManualMaintenance(f,503,{credentialId:g.credentialId,personId:g.personId});await proof.provider.verifyAsset((await store.transaction(tx=>tx.get('assets',proof.assetId)))!);});
   await t.test('Revoked credential history survives source cleanup only after explicit secret clearance',async()=>{await verifyClearedCredentialRetention(f,proof.assetId);await proof.provider.verifyAsset((await store.transaction(tx=>tx.get('assets',proof.assetId)))!);});
+  await t.test('AI PostgreSQL proposal adoption and immutable task inputs',async()=>{
+   const ai=await verifyAiBusiness(f),task=await client.aiTask.findFirstOrThrow({where:{actorId:ai.member.id}});
+   await assert.rejects(client.aiTask.update({where:{id:task.id},data:{proposalState:'PENDING'}}));
+   await assert.rejects(client.aiTask.update({where:{id:task.id},data:{inputSpec:{}}}));
+   const dep=await client.aiDependency.findFirstOrThrow({where:{taskId:task.id,grantId:{not:null}}});await assert.rejects(client.aiDependency.delete({where:{id:dep.id}}));
+  });
  }finally{await store.close();rmSync(tmp,{recursive:true,force:true});}
 });

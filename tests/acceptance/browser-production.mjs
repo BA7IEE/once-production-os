@@ -567,6 +567,7 @@ try {
  await verifyTalentWorkbench({owner,prisma,cmd,writeUI,source,assetId:tdUpload.resourceId,prepare,binary,queue,until,mediaBytes:tdBytes,login,password,json,mediaRoot:env.MEDIA_ROOT});
  const {verifyMergeHistoryErasure}=await import('./merge-history-erasure.mjs');await verifyMergeHistoryErasure({owner,prisma,cmd,writeUI,until,sourceId:tdSource,source});
  const {verifyLocaleBrowser}=await import('./locale-texts.mjs');await verifyLocaleBrowser({owner,prisma,cmd,writeUI,source,json,until});
+ const {verifyAiBrowser}=await import('./ai-business.mjs');await verifyAiBrowser({prisma,browser,env,password});
  assert.deepEqual(errors,[]);
 } catch(error) {
  console.error('Browser page errors:',JSON.stringify(errors));

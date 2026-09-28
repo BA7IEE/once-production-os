@@ -10,6 +10,9 @@ export async function inspectAiLedger(tx:Tx,workspaceId:string){
   if((r.settledUnits===null)!==['QUEUED','RUNNING','UNKNOWN'].includes(r.state))relationFailures++;
  }
  for(const a of attempts)if(!runs.some(r=>r.id===a.runId&&r.requestDigest===a.requestDigest)||(a.settlementDigest===null)!==['MAY_HAVE_EXECUTED','UNKNOWN'].includes(a.state))relationFailures++;
+ const tasks=await tx.find('aiTasks',{workspaceId}),grants=await tx.find('aiGrants',{workspaceId}),deps=await tx.find('aiDependencies',{workspaceId});
+ for(const task of tasks){if(!runs.some(r=>r.id===task.runId&&r.actorId===task.actorId))relationFailures++;if(task.proposalState==='ERASED'&&[task.inputSpec,task.oldValues,task.output].some(v=>JSON.stringify(v)!=='{}'))relationFailures++;}
+ for(const dep of deps)if(!tasks.some(t=>t.id===dep.taskId)||(await tx.get('sources',dep.sourceId))?.workspaceId!==workspaceId||(dep.grantId&&!grants.some(g=>g.id===dep.grantId&&g.sourceId===dep.sourceId)))relationFailures++;
  const sorted=<T extends {id:string}>(rows:T[])=>[...rows].sort((a,b)=>a.id.localeCompare(b.id));
- return {runCount:runs.length,attemptCount:attempts.length,unresolvedCount:attempts.filter(a=>['UNKNOWN','MAY_HAVE_EXECUTED'].includes(a.state)).length,relationFailures,graphDigest:digest({budgets:sorted(budgets),runs:sorted(runs),attempts:sorted(attempts)}),blockers:relationFailures?['AI_LEDGER_INVALID']:[]};
+ return {runCount:runs.length,attemptCount:attempts.length,unresolvedCount:attempts.filter(a=>['UNKNOWN','MAY_HAVE_EXECUTED'].includes(a.state)).length,relationFailures,graphDigest:digest({budgets:sorted(budgets),runs:sorted(runs),attempts:sorted(attempts),tasks:sorted(tasks),grants:sorted(grants),dependencies:sorted(deps)}),blockers:relationFailures?['AI_LEDGER_INVALID']:[]};
 }

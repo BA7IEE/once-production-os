@@ -1,5 +1,18 @@
 // Generated from packages/core/src/routes.ts and validation.ts. Do not edit.
 export interface Inputs {
+  "ai.settings": undefined;
+  "ai.grants": undefined;
+  "ai.grant": { "sourceId": string; "expectedRevision": number; "validUntil": string; "evidenceNote": string; "confirmTextOnly": boolean };
+  "ai.grant.revoke": { "expectedRevision": number };
+  "ai.preview": { "taskType": "extract_profile" | "suggest_tags" | "draft_locale" | "parse_search"; "subjectKind": "PERSON" | "WORK" | "PROJECT" | "NONE"; "subjectId": string | null; "expectedRevision": number | null; "locale": "zh" | "en" | null; "sources": Array<{ "sourceId": string; "expectedRevision": number; "grantId": string; "start": number; "end": number }>; "queryText": string; "confirmMinimizedInput": boolean };
+  "ai.list": undefined;
+  "ai.create": { "taskType": "extract_profile" | "suggest_tags" | "draft_locale" | "parse_search"; "subjectKind": "PERSON" | "WORK" | "PROJECT" | "NONE"; "subjectId": string | null; "expectedRevision": number | null; "locale": "zh" | "en" | null; "sources": Array<{ "sourceId": string; "expectedRevision": number; "grantId": string; "start": number; "end": number }>; "queryText": string; "confirmMinimizedInput": boolean };
+  "ai.get": undefined;
+  "ai.proposal": undefined;
+  "ai.cancel": { "expectedRevision": number };
+  "ai.apply": { "expectedRevision": number; "selectedFields": Array<"displayName" | "intro" | "aliases" | "industryCode" | "workTypeCodes" | "text" | "filters"> };
+  "ai.reject": { "expectedRevision": number };
+  "ai.results": undefined;
   "locale.list": undefined;
   "locale.get": undefined;
   "locale.create": { "subjectKind": "PERSON" | "WORK" | "PROJECT"; "subjectId": string; "locale": "zh" | "en"; "text": string; "sourceRefs": Array<{ "id": string; "expectedRevision": number }>; "expectedSubjectRevision": number; "confirmCurrentBasis": boolean };
@@ -109,9 +122,9 @@ export interface Inputs {
   "catalog.create": { "namespace": "role" | "city" | "language" | "skill" | "industry" | "workType"; "code": string; "labelZh": string; "labelEn": string };
   "catalog.update": { "expectedRevision": number; "labelZh"?: string; "labelEn"?: string; "status"?: "ACTIVE" | "INACTIVE" };
   "member.list": undefined;
-  "member.create": { "loginName": string; "displayName": string; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write" | "data.export" | "data.delete" | "data.merge"> };
+  "member.create": { "loginName": string; "displayName": string; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write" | "data.export" | "data.delete" | "data.merge" | "ai.use"> };
   "member.disable": { "expectedRevision": number };
-  "member.permissions": { "expectedRevision": number; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write" | "data.export" | "data.delete" | "data.merge"> };
+  "member.permissions": { "expectedRevision": number; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write" | "data.export" | "data.delete" | "data.merge" | "ai.use"> };
   "member.resetAccess": { "expectedRevision": number };
   "scope.list": undefined;
   "scope.create": { "name": string; "membershipIds": Array<string> };
@@ -176,6 +189,71 @@ export interface Inputs {
   "shortlist.reorder": { "expectedRevision": number; "entryIds": Array<string> };
 }
 export const ENDPOINTS = {
+  "ai.settings": {
+    "method": "GET",
+    "path": "/ai-settings",
+    "mode": "READ"
+  },
+  "ai.grants": {
+    "method": "GET",
+    "path": "/ai-grants",
+    "mode": "READ"
+  },
+  "ai.grant": {
+    "method": "POST",
+    "path": "/ai-grants",
+    "mode": "COMMAND"
+  },
+  "ai.grant.revoke": {
+    "method": "POST",
+    "path": "/ai-grants/{id}/revoke",
+    "mode": "COMMAND"
+  },
+  "ai.preview": {
+    "method": "POST",
+    "path": "/ai-jobs/preview",
+    "mode": "READ"
+  },
+  "ai.list": {
+    "method": "GET",
+    "path": "/ai-jobs",
+    "mode": "READ"
+  },
+  "ai.create": {
+    "method": "POST",
+    "path": "/ai-jobs",
+    "mode": "COMMAND"
+  },
+  "ai.get": {
+    "method": "GET",
+    "path": "/ai-jobs/{id}",
+    "mode": "READ"
+  },
+  "ai.proposal": {
+    "method": "GET",
+    "path": "/proposals/{id}",
+    "mode": "READ"
+  },
+  "ai.cancel": {
+    "method": "POST",
+    "path": "/ai-jobs/{id}/cancel",
+    "mode": "COMMAND"
+  },
+  "ai.apply": {
+    "method": "POST",
+    "path": "/proposals/{id}/apply",
+    "mode": "COMMAND"
+  },
+  "ai.reject": {
+    "method": "POST",
+    "path": "/proposals/{id}/reject",
+    "mode": "COMMAND"
+  },
+  "ai.results": {
+    "method": "GET",
+    "path": "/ai-jobs/{id}/results",
+    "mode": "READ"
+  },
   "locale.list": {
     "method": "GET",
     "path": "/locale-texts",

@@ -1,3 +1,4 @@
+import {AiBusiness} from './ai-business.ts';
 import {LocaleTexts} from './locale.ts';
 import { readTalentMergeHistory } from './talent-merge-history.ts';
 import { TalentV2 } from './talent-v2.ts';
@@ -74,6 +75,7 @@ export class Application {
     handoffs: Handoffs;
     media: Media;
     portfolio: Portfolio;
+    ai: AiBusiness;
     localeTexts: LocaleTexts;
     projects: Projects;
     shortlists: Shortlists;
@@ -101,6 +103,7 @@ export class Application {
         this.talentV2 = new TalentV2(clock, config);
         this.machine = new MachineIdentity(clock, config);
         this.portfolio = new Portfolio(clock, this.talent);
+        this.ai = new AiBusiness(clock,config);
         this.localeTexts = new LocaleTexts(clock);
         this.projects = new Projects(clock, this.talent);
         this.shortlists = new Shortlists(clock);
@@ -286,13 +289,27 @@ export class Application {
                 const command = (kind: CommandReceipt['resourceKind'], execute: () => Promise<{
                     id: string;
                     revision: number;
-                }>, target = id || null) => this.commands.execute(tx, actor, route.operation, request.headers['idempotency-key'] ?? '', target, data, kind, meta, execute, receipt => authorizeReceipt(tx, actor, receipt, this.clock, this.config), ['import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation) ? 'ACCEPTED' : 'SUCCEEDED');
+                }>, target = id || null) => this.commands.execute(tx, actor, route.operation, request.headers['idempotency-key'] ?? '', target, data, kind, meta, execute, receipt => authorizeReceipt(tx, actor, receipt, this.clock, this.config), ['ai.create', 'import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation) ? 'ACCEPTED' : 'SUCCEEDED');
                 if(route.operation.startsWith('td2.fact.')){
                     const [, ,table,action]=route.operation.split('.');
                     invariant(TD2_TABLES.includes(table as FactTable),'NOT_FOUND','资料类型不存在',404);
                     return command('talentFact',()=>action==='create'?this.talentV2.createFact(tx,actor,table as FactTable,id,data):this.talentV2.patchFact(tx,actor,table as FactTable,id,data));
                 }
                 switch (route.operation) {
+                    case 'ai.settings': return this.ai.settings();
+                    case 'ai.grants': return this.ai.grants(tx,actor,query);
+                    case 'ai.grant': return command('aiGrant',()=>this.ai.grant(tx,actor,data));
+                    case 'ai.grant.revoke': return command('aiGrant',()=>this.ai.revoke(tx,actor,id,data));
+                    case 'ai.preview': return this.ai.preview(tx,actor,data);
+                    case 'ai.list': return this.ai.list(tx,actor,query);
+                    case 'ai.create': return command('aiTask',()=>this.ai.create(tx,actor,data,request.headers['idempotency-key']??'',meta));
+                    case 'ai.proposal':
+                    case 'ai.get': return this.ai.get(tx,actor,id);
+                    case 'ai.cancel': return command('aiTask',()=>this.ai.cancel(tx,actor,id,data,meta));
+                    case 'ai.apply': return command('aiTask',()=>this.ai.apply(tx,actor,id,data));
+                    case 'ai.reject': return command('aiTask',()=>this.ai.reject(tx,actor,id,data));
+                    case 'ai.results': return this.ai.results(tx,actor,id);
+
                     case 'td2.shortlist.role': return command('shortlist',()=>this.shortlists.bindRole(tx,actor,id,data));
                     case 'td2.heightReview.list': return this.talentV2.heightReviews(tx,actor,id,query);
                     case 'td2.heightReview.dismiss': return command('talentMigrationReview',()=>this.talentV2.dismissHeightReview(tx,actor,id,data));
@@ -447,10 +464,10 @@ export class Application {
             }
             await this.markCommitted(safetyIntent,
                 this.resultResourceId(response.body, params.id ?? safetyIntent?.resourceId ?? meta.requestId));
-            if (['import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation))
+            if (['ai.create', 'import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation))
                 response.status = 202;
             else if (route.operation.startsWith('td2.') && route.operation.endsWith('.create')) response.status = 201;
-            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['locale.create', 'deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
+            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['ai.grant', 'locale.create', 'deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
                 response.status = 201;
             return response;
         }
@@ -482,6 +499,9 @@ export class Application {
         const result = [];
         for (const row of await tx.find('audits', { workspaceId: actor.workspaceId })) {
             try {
+                if(row.resourceKind==='aiTask')await this.ai.access(tx,actor,row.resourceId);
+                if(row.resourceKind==='aiGrant')await this.ai.grantAccess(tx,actor,row.resourceId);
+                if(row.resourceKind==='aiRun'){const task=(await tx.find('aiTasks',{workspaceId:actor.workspaceId,runId:row.resourceId}))[0];if(!task)continue;await this.ai.access(tx,actor,task.id);}
                 if(row.resourceKind==='localeText')await this.localeTexts.access(tx,actor,row.resourceId);
                 if((TD2_RESOURCE_KINDS as readonly string[]).includes(row.resourceKind)) await authorizeTd2Resource(tx,actor,row.resourceKind,row.resourceId,this.clock);
                 if (row.resourceKind === 'upload')

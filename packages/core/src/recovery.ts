@@ -1,3 +1,4 @@
+import {isolateAi} from './ai-maintenance.ts';
 import {inspectAiLedger} from './ai-ledger-integrity.ts';
 import {inspectLocaleIntegrity} from './locale-integrity.ts';
 import { inspectTalentIntegrity, quarantineTalentActors } from './talent-v2-integrity.ts';
@@ -222,6 +223,8 @@ export class RecoveryOps {
         block(state.users.some(x => x.id !== actor.userId && x.status !== 'DISABLED'), 'OLD_USER_ACTIVE');
         block(state.memberships.some(x => x.id !== actor.membershipId && x.status !== 'DISABLED'), 'OLD_MEMBERSHIP_ACTIVE');
         block(state.handoffs.some(x => x.state === 'PENDING' || x.state === 'ACCEPTED'), 'HANDOFF_ACTIVE');
+        block((await tx.find('aiGrants',{workspaceId:actor.workspaceId})).some(g=>g.status==='ACTIVE'),'AI_PERMISSION_ACTIVE');
+        block((await tx.find('aiRuns',{workspaceId:actor.workspaceId})).some(r=>r.state==='QUEUED'||r.state==='RUNNING'),'AI_RUN_RUNNABLE');
         block(state.usePermissions.some(x => x.status === 'ACTIVE'), 'USE_PERMISSION_ACTIVE');
         block(state.exports.some(x => x.state === 'READY' || x.state === 'QUEUED'), 'EXPORT_ACTIVE');
         block(state.jobs.some(x => x.state === 'QUEUED' || x.state === 'RUNNING'), 'JOB_RUNNABLE');
@@ -444,6 +447,7 @@ export class RecoveryOps {
                 await tx.replace('handoffs', { ...touch(row, this.clock), state: 'REVOKED',
                     closedAt: now, closedById: actor.membershipId });
 
+        await isolateAi(tx,actor.workspaceId,this.clock,meta);
         for (const row of await tx.find('usePermissions', { workspaceId: actor.workspaceId }))
             if (row.status === 'ACTIVE')
                 await tx.replace('usePermissions', { ...touch(row, this.clock), status: 'REVOKED' });

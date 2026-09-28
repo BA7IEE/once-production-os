@@ -1,3 +1,4 @@
+import {affectedAi,aiErasureSnapshot,validateAiErasure} from './ai-maintenance.ts';
 import {affectedLocales,localeErasureSnapshot,validateLocaleErasurePlan} from './locale-maintenance.ts';
 import {SOURCE_IDENTITY_EVIDENCE} from './talent-source-identity-evidence.ts';
 import {IDENTITY_RETENTION,IDENTITY_DEPENDENCY,identityItemCode,validateIdentityRetention} from './talent-identity-retention.ts';
@@ -226,6 +227,10 @@ export class Deletions {
         }
 
         const targetSets: Array<[DeletionTargetKind, Set<string>]> = [['SOURCE', sources], ['PERSON', people], ['WORK', works], ['PROJECT', projects], ['ASSET', assets]];
+        for(const ai of await affectedAi(tx,actor.workspaceId,targetSets)){
+            try{const snapshot=await aiErasureSnapshot(tx,actor,ai.resourceKind,ai.resourceId);add({...ai,dependencyKind:'DERIVED_AI_CONTENT',proposedAction:'ERASE_DERIVATIVE',evidenceState:'REVIEW_REQUIRED',detailCode:snapshot.detailCode});}
+            catch(e){if(e instanceof AppError&&e.status===404)miss('HIDDEN_AI_DEPENDENCY');else throw e;}
+        }
         for(const localeId of await affectedLocales(tx,actor.workspaceId,targetSets)){
             try{const text=await localeErasureSnapshot(tx,actor,localeId);add({resourceKind:'localeText',resourceId:localeId,dependencyKind:'DERIVED_LOCALE_TEXT',proposedAction:'ERASE_DERIVATIVE',evidenceState:'REVIEW_REQUIRED',detailCode:text.detailCode});}
             catch(e){if(e instanceof AppError&&e.status===404)miss('HIDDEN_LOCALE_DEPENDENCY');else throw e;}
@@ -442,7 +447,7 @@ export class Deletions {
         if(item.resourceKind==='talentGraph')await validatePersonErasurePlan(tx,actor,row,await tx.find('deletionItems',{workspaceId:actor.workspaceId,requestId:row.id}));
         let retentionSourceId: string | null = null, retentionSourceRevision: number | null = null, retentionSourceProtectionEpoch: number | null = null;
         if (d.decision === 'RETAIN_WITH_BASIS') {
-            invariant(!['localeText','talentGraph','talentAssetGraph','talentSourceEvidenceGraph','talentSourceAssetGraph',SOURCE_FACT_GROUP,SOURCE_IDENTITY_EVIDENCE].includes(item.resourceKind), 'TD2_ERASURE_RETENTION_UNSUPPORTED',
+            invariant(!['aiTask','aiGrant','localeText','talentGraph','talentAssetGraph','talentSourceEvidenceGraph','talentSourceAssetGraph',SOURCE_FACT_GROUP,SOURCE_IDENTITY_EVIDENCE].includes(item.resourceKind), 'TD2_ERASURE_RETENTION_UNSUPPORTED',
                 '本项必须清理指定对象的资料或引用；独立来源证据不能改记来源，需要保留时请停止本次删除', 422);
             requirePermission(actor, 'sources.review');
             invariant(!!d.retentionSourceId && d.retentionSourceId !== row.targetSourceId, 'RETENTION_BASIS_REQUIRED', '保留必须选择另一份独立且当前有效的来源依据', 422);
@@ -487,6 +492,7 @@ export class Deletions {
                 'RETENTION_BASIS_CHANGED', '保留依据已经变化，请重新作出保留决定', 409);
         }
         await validateLocaleErasurePlan(tx,actor,items);
+        await validateAiErasure(tx,actor,items);
         await validatePersonErasurePlan(tx,actor,row,items);
         await validateSourceFactPlan(tx, actor, row, items, this.clock);
         const planDigest = digest(frozenDeletionPlan(row, items));

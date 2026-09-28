@@ -9,6 +9,9 @@ datasource db {
 }
 
 model Workspace {
+  AiGrant_workspace AiGrant[] @relation("AiGrant_workspace")
+  AiTask_workspace AiTask[] @relation("AiTask_workspace")
+  AiDependency_workspace AiDependency[] @relation("AiDependency_workspace")
   aiBudgets AiBudget[]
   aiRuns AiRun[]
   aiAttempts AiAttempt[]
@@ -101,6 +104,8 @@ model User {
 }
 
 model Membership {
+  AiGrant_reviewerId AiGrant[] @relation("AiGrant_reviewerId")
+  AiTask_actorId AiTask[] @relation("AiTask_actorId")
   aiRuns AiRun[]
   LocaleText_reviewer_locale LocaleText[] @relation("LocaleText_reviewer_locale")
   historyErasures MergeHistoryErasure[] @relation("HistoryErasure_actor")
@@ -194,6 +199,9 @@ model Activation {
 }
 
 model AccessScope {
+  AiGrant_scopeId AiGrant[] @relation("AiGrant_scopeId")
+  AiTask_targetScopeId AiTask[] @relation("AiTask_targetScopeId")
+  AiDependency_scopeId AiDependency[] @relation("AiDependency_scopeId")
   LocaleDependency_resourceScope_locale LocaleDependency[] @relation("LocaleDependency_resourceScope_locale")
   LocaleDependency_sourceScope_locale LocaleDependency[] @relation("LocaleDependency_sourceScope_locale")
   TalentOrganization_scopeId_td2 TalentOrganization[] @relation("TalentOrganization_scopeId_td2")
@@ -242,6 +250,8 @@ model ScopeMember {
 }
 
 model SourceRecord {
+  AiGrant_sourceId AiGrant[] @relation("AiGrant_sourceId")
+  AiDependency_sourceId AiDependency[] @relation("AiDependency_sourceId")
   LocaleDependency_source_locale LocaleDependency[] @relation("LocaleDependency_source_locale")
   LocaleDependency_sourceSubject_locale LocaleDependency[] @relation("LocaleDependency_sourceSubject_locale")
   historyErasures MergeHistoryErasure[] @relation("HistoryErasure_source")
@@ -313,6 +323,7 @@ model SourceRecord {
 }
 
 model Person {
+  AiTask_personId AiTask[] @relation("AiTask_personId")
   LocaleDependency_person_locale LocaleDependency[] @relation("LocaleDependency_person_locale")
   LocaleText_person_locale LocaleText[] @relation("LocaleText_person_locale")
   historyErasures MergeHistoryErasure[] @relation("HistoryErasure_person")
@@ -725,6 +736,7 @@ model MediaAsset {
 
 
 model Work {
+  AiTask_workId AiTask[] @relation("AiTask_workId")
   LocaleDependency_work_locale LocaleDependency[] @relation("LocaleDependency_work_locale")
   LocaleText_work_locale LocaleText[] @relation("LocaleText_work_locale")
   DeletionRequest_targetWorkRef DeletionRequest[] @relation("DeletionRequest_targetWorkRef")
@@ -808,6 +820,7 @@ model WorkCredit {
 }
 
 model Project {
+  AiTask_projectId AiTask[] @relation("AiTask_projectId")
   LocaleDependency_project_locale LocaleDependency[] @relation("LocaleDependency_project_locale")
   LocaleText_project_locale LocaleText[] @relation("LocaleText_project_locale")
   DeletionRequest_targetProjectRef DeletionRequest[] @relation("DeletionRequest_targetProjectRef")
@@ -1895,6 +1908,7 @@ model MergeHistoryErasure {
 }
 
 model LocaleText {
+  AiTask_localeTextId AiTask[] @relation("AiTask_localeTextId")
   LocaleDependency_localeText_locale LocaleDependency[] @relation("LocaleDependency_localeText_locale")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
@@ -1987,6 +2001,7 @@ model AiBudget {
 }
 
 model AiRun {
+  AiTask_runId AiTask[] @relation("AiTask_runId")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -2031,4 +2046,91 @@ model AiAttempt {
   @@unique([workspaceId,runId,attemptNo])
   @@unique([providerIdempotencyKey])
   @@map("aiAttempts")
+}
+
+model AiGrant {
+  AiDependency_grantId AiDependency[] @relation("AiDependency_grantId")
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  sourceId String @db.Uuid
+  sourceRevision Int
+  sourceProtectionEpoch Int
+  scopeId String @db.Uuid
+  scopeRevision Int
+  providerIdentityHash String @db.Text
+  configRevision Int
+  reviewerId String @db.Uuid
+  validUntil DateTime @db.Timestamptz(3)
+  status String @db.Text
+  evidenceNote String @db.Text
+  workspace Workspace @relation("AiGrant_workspace", fields:[workspaceId], references:[id], onDelete:Restrict)
+  @@unique([workspaceId,id])
+  sourceIdRef SourceRecord @relation("AiGrant_sourceId", fields:[workspaceId,sourceId], references:[workspaceId,id], onDelete:Restrict)
+  scopeIdRef AccessScope @relation("AiGrant_scopeId", fields:[workspaceId,scopeId], references:[workspaceId,id], onDelete:Restrict)
+  reviewerIdRef Membership @relation("AiGrant_reviewerId", fields:[workspaceId,reviewerId], references:[workspaceId,id], onDelete:Restrict)
+  @@map("aiGrants")
+}
+
+model AiTask {
+  AiDependency_taskId AiDependency[] @relation("AiDependency_taskId")
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  runId String @db.Uuid
+  actorId String @db.Uuid
+  taskType String @db.Text
+  personId String? @db.Uuid
+  workId String? @db.Uuid
+  projectId String? @db.Uuid
+  targetRevision Int?
+  targetProtectionEpoch Int?
+  targetScopeId String? @db.Uuid
+  targetScopeRevision Int?
+  localeTextId String? @db.Uuid
+  localeRevision Int?
+  inputSpec Json
+  oldValues Json
+  output Json
+  proposalState String @db.Text
+  selectedFields String[]
+  discardedFields String[]
+  workspace Workspace @relation("AiTask_workspace", fields:[workspaceId], references:[id], onDelete:Restrict)
+  @@unique([workspaceId,id])
+  runIdRef AiRun @relation("AiTask_runId", fields:[workspaceId,runId], references:[workspaceId,id], onDelete:Restrict)
+  actorIdRef Membership @relation("AiTask_actorId", fields:[workspaceId,actorId], references:[workspaceId,id], onDelete:Restrict)
+  personIdRef Person? @relation("AiTask_personId", fields:[workspaceId,personId], references:[workspaceId,id], onDelete:Restrict)
+  workIdRef Work? @relation("AiTask_workId", fields:[workspaceId,workId], references:[workspaceId,id], onDelete:Restrict)
+  projectIdRef Project? @relation("AiTask_projectId", fields:[workspaceId,projectId], references:[workspaceId,id], onDelete:Restrict)
+  targetScopeIdRef AccessScope? @relation("AiTask_targetScopeId", fields:[workspaceId,targetScopeId], references:[workspaceId,id], onDelete:Restrict)
+  localeTextIdRef LocaleText? @relation("AiTask_localeTextId", fields:[workspaceId,localeTextId], references:[workspaceId,id], onDelete:Restrict)
+  @@unique([workspaceId,runId])
+  @@map("aiTasks")
+}
+
+model AiDependency {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  taskId String @db.Uuid
+  sourceId String @db.Uuid
+  grantId String? @db.Uuid
+  grantRevision Int?
+  sourceRevision Int
+  protectionEpoch Int
+  scopeId String @db.Uuid
+  scopeRevision Int
+  workspace Workspace @relation("AiDependency_workspace", fields:[workspaceId], references:[id], onDelete:Restrict)
+  @@unique([workspaceId,id])
+  taskIdRef AiTask @relation("AiDependency_taskId", fields:[workspaceId,taskId], references:[workspaceId,id], onDelete:Restrict)
+  sourceIdRef SourceRecord @relation("AiDependency_sourceId", fields:[workspaceId,sourceId], references:[workspaceId,id], onDelete:Restrict)
+  grantIdRef AiGrant? @relation("AiDependency_grantId", fields:[workspaceId,grantId], references:[workspaceId,id], onDelete:Restrict)
+  scopeIdRef AccessScope @relation("AiDependency_scopeId", fields:[workspaceId,scopeId], references:[workspaceId,id], onDelete:Restrict)
+  @@map("aiDependencies")
 }

@@ -1,3 +1,5 @@
+import type {AiGrant,AiTask,AiDependency} from './ai-business-model.ts';
+import type {AiLedgerConfig} from './ai-ledger-model.ts';
 import type {AiBudget,AiRun,AiAttempt} from './ai-ledger-model.ts';
 import type {LocaleText,LocaleDependency} from './locale-model.ts';
 import type {MergeHistoryErasure} from './merge-history-erasure-model.ts';
@@ -10,7 +12,7 @@ import type { DeletionRequest, DeletionItem } from './deletion-model.ts';
 import type { PersonMergeDecision, PersonAlias } from './merge-model.ts';
 import type { RecoveryRun } from './recovery-model.ts';
 export type Role = 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'VIEWER';
-export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write', 'data.export', 'data.delete', 'data.merge'] as const;
+export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write', 'data.export', 'data.delete', 'data.merge', 'ai.use'] as const;
 export type ExtraPermission = typeof EXTRA_PERMISSIONS[number];
 export type Permission = 'records.read' | 'records.write' | 'sources.read' | 'sources.write' | 'sources.review' | 'catalog.manage' | 'members.manage' | 'audit.read' | 'assets.read' | 'assets.upload' | 'talent.propose' | 'talent.fact.write' | ExtraPermission;
 export interface Base {
@@ -139,7 +141,7 @@ export interface CommandReceipt extends Base {
     operation: string;
     commandKey: string;
     requestDigest: string;
-    resourceKind: 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
+    resourceKind: 'aiTask' | 'aiGrant' | 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
     resourceId: string;
     result: ReceiptResult;
 }
@@ -217,6 +219,9 @@ export interface RecordHandoff extends Base {
     closedById: string | null;
 }
 export interface TableMap extends TalentV2Tables {
+    aiGrants: AiGrant;
+    aiTasks: AiTask;
+    aiDependencies: AiDependency;
     aiBudgets: AiBudget;
     aiRuns: AiRun;
     aiAttempts: AiAttempt;
@@ -284,6 +289,7 @@ export interface Clock {
     now(): Date;
 }
 export interface Config {
+    ai?: AiLedgerConfig;
     mediaEnabled?: boolean;
     origin: string;
     secureCookies: boolean;
