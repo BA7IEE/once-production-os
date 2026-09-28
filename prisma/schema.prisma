@@ -9,6 +9,9 @@ datasource db {
 }
 
 model Workspace {
+ aiReconciliations AiReconciliation[]
+  aiBudgetReleases AiBudgetRelease[]
+  aiApprovals AiApproval[]
   AiGrant_workspace AiGrant[] @relation("AiGrant_workspace")
   AiTask_workspace AiTask[] @relation("AiTask_workspace")
   AiDependency_workspace AiDependency[] @relation("AiDependency_workspace")
@@ -104,6 +107,9 @@ model User {
 }
 
 model Membership {
+ aiReconciliations AiReconciliation[]
+  aiBudgetReleases AiBudgetRelease[]
+  aiApprovals AiApproval[]
   AiGrant_reviewerId AiGrant[] @relation("AiGrant_reviewerId")
   AiTask_actorId AiTask[] @relation("AiTask_actorId")
   aiRuns AiRun[]
@@ -250,6 +256,7 @@ model ScopeMember {
 }
 
 model SourceRecord {
+ aiReconciliations AiReconciliation[]
   AiGrant_sourceId AiGrant[] @relation("AiGrant_sourceId")
   AiDependency_sourceId AiDependency[] @relation("AiDependency_sourceId")
   LocaleDependency_source_locale LocaleDependency[] @relation("LocaleDependency_source_locale")
@@ -1983,6 +1990,7 @@ model LocaleDependency {
 }
 
 model AiBudget {
+ releases AiBudgetRelease[]
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -2029,6 +2037,7 @@ model AiRun {
 }
 
 model AiAttempt {
+ reconciliations AiReconciliation[]
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -2133,4 +2142,64 @@ model AiDependency {
   grantIdRef AiGrant? @relation("AiDependency_grantId", fields:[workspaceId,grantId], references:[workspaceId,id], onDelete:Restrict)
   scopeIdRef AccessScope @relation("AiDependency_scopeId", fields:[workspaceId,scopeId], references:[workspaceId,id], onDelete:Restrict)
   @@map("aiDependencies")
+}
+
+model AiApproval {
+ releases AiBudgetRelease[]
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ revision Int
+ configDigest String @db.Text
+ configRevision Int
+ reviewerId String @db.Uuid
+ enabled Boolean
+ recoveryEpoch String @db.Text
+ workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Restrict)
+ reviewer Membership @relation(fields:[workspaceId,reviewerId],references:[workspaceId,id],onDelete:Restrict)
+ @@unique([workspaceId,id])
+ @@unique([workspaceId,configDigest])
+ @@map("aiApprovals")
+}
+
+model AiBudgetRelease {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ revision Int
+ budgetId String @db.Uuid
+ budgetRevision Int
+ approvalId String @db.Uuid
+ reviewerId String @db.Uuid
+ workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Restrict)
+ budget AiBudget @relation(fields:[workspaceId,budgetId],references:[workspaceId,id],onDelete:Restrict)
+ approval AiApproval @relation(fields:[workspaceId,approvalId],references:[workspaceId,id],onDelete:Restrict)
+ reviewer Membership @relation(fields:[workspaceId,reviewerId],references:[workspaceId,id],onDelete:Restrict)
+ @@unique([workspaceId,id])
+ @@unique([workspaceId,budgetId,budgetRevision])
+ @@map("aiBudgetReleases")
+}
+
+model AiReconciliation {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ revision Int
+ attemptId String @db.Uuid
+ reviewerId String @db.Uuid
+ evidenceSourceId String @db.Uuid
+ sourceRevision Int
+ protectionEpoch Int
+ outcome String @db.Text
+ amountUnits Int
+ workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Restrict)
+ attempt AiAttempt @relation(fields:[workspaceId,attemptId],references:[workspaceId,id],onDelete:Restrict)
+ reviewer Membership @relation(fields:[workspaceId,reviewerId],references:[workspaceId,id],onDelete:Restrict)
+ evidence SourceRecord @relation(fields:[workspaceId,evidenceSourceId],references:[workspaceId,id],onDelete:Restrict)
+ @@unique([workspaceId,id])
+ @@unique([workspaceId,attemptId])
+ @@map("aiReconciliations")
 }

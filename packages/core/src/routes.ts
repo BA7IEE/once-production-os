@@ -18,6 +18,10 @@ export interface RouteDefinition {
     schema?: Schema<unknown>;
 }
 export const ROUTES: RouteDefinition[] = [
+    {method:'GET',path:'/ai-operations',operation:'ai.operations',mode:'READ',permission:'members.manage'},
+    {method:'POST',path:'/ai-operations/approval',operation:'ai.approval',mode:'COMMAND',permission:'members.manage',schema:AS.approval},
+    {method:'POST',path:'/ai-attempts/{id}/reconcile',operation:'ai.reconcile',mode:'COMMAND',permission:'members.manage',schema:AS.reconcile},
+    {method:'POST',path:'/ai-budgets/{id}/unfreeze',operation:'ai.unfreeze',mode:'COMMAND',permission:'members.manage',schema:AS.unfreeze},
     {method:'GET',path:'/ai-settings',operation:'ai.settings',mode:'READ',permission:'records.read'},
     {method:'GET',path:'/ai-grants',operation:'ai.grants',mode:'READ',permission:'sources.read'},
     {method:'POST',path:'/ai-grants',operation:'ai.grant',mode:'COMMAND',permission:'sources.review',schema:AS.grant},

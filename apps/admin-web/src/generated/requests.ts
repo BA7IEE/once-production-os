@@ -1,5 +1,9 @@
 // Generated from packages/core/src/routes.ts and validation.ts. Do not edit.
 export interface Inputs {
+  "ai.operations": undefined;
+  "ai.approval": { "configDigest": string; "expectedRevision": number; "enabled": boolean; "confirmConfiguration": boolean };
+  "ai.reconcile": { "expectedRevision": number; "outcome": "SUCCEEDED" | "NOT_EXECUTED"; "amountUnits": number; "evidenceSourceId": string; "evidenceSourceRevision": number; "providerIdempotencyKey": string; "providerIdentityHash": string; "confirmProviderResult": boolean };
+  "ai.unfreeze": { "expectedRevision": number; "confirmOverrun": boolean };
   "ai.settings": undefined;
   "ai.grants": undefined;
   "ai.grant": { "sourceId": string; "expectedRevision": number; "validUntil": string; "evidenceNote": string; "confirmTextOnly": boolean };
@@ -189,6 +193,26 @@ export interface Inputs {
   "shortlist.reorder": { "expectedRevision": number; "entryIds": Array<string> };
 }
 export const ENDPOINTS = {
+  "ai.operations": {
+    "method": "GET",
+    "path": "/ai-operations",
+    "mode": "READ"
+  },
+  "ai.approval": {
+    "method": "POST",
+    "path": "/ai-operations/approval",
+    "mode": "COMMAND"
+  },
+  "ai.reconcile": {
+    "method": "POST",
+    "path": "/ai-attempts/{id}/reconcile",
+    "mode": "COMMAND"
+  },
+  "ai.unfreeze": {
+    "method": "POST",
+    "path": "/ai-budgets/{id}/unfreeze",
+    "mode": "COMMAND"
+  },
   "ai.settings": {
     "method": "GET",
     "path": "/ai-settings",

@@ -74,6 +74,7 @@ export async function eraseAi(tx: Tx, actor: Actor, item: DeletionItem, clock: C
         await tx.remove('aiDependencies', d.id);
 }
 export async function isolateAi(tx: Tx, workspaceId: string, clock: Clock, meta: RequestMeta) {
+    for(const row of await tx.find('aiApprovals',{workspaceId,enabled:true}))await tx.replace('aiApprovals',{...touch(row,clock),enabled:false});
     const ledger = new AiLedger(clock);
     for (const row of await tx.find('aiGrants', { workspaceId }))
         if (row.status === 'ACTIVE')

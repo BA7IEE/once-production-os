@@ -12,7 +12,7 @@ export interface AiDispatchResponse {
 /** A concrete approved adapter must bound price/input/output and implement abort.
  * There is deliberately no default adapter or production fake implementation. */
 export interface AiDispatchAdapter {
- send(input:unknown,context:{signal:AbortSignal;idempotencyKey:string}):Promise<AiDispatchResponse>;
+ send(input:unknown,context:{signal:AbortSignal;idempotencyKey:string;deadlineAt:string}):Promise<AiDispatchResponse>;
 }
 export interface AiDispatchPolicy {
  /** Reconstruct ONLY approved inputs, checking requester permissions, exact source
@@ -24,20 +24,24 @@ export interface AiDispatchPolicy {
 }
 /** No production entrypoint instantiates this until its task policy and approved
  * provider adapter are implemented. All network work follows a committed attempt. */
-export async function dispatchAi(store:Store,clock:Clock,config:AiLedgerConfig,workspaceId:string,runId:string,meta:RequestMeta,adapter:AiDispatchAdapter,policy:AiDispatchPolicy,timeoutMs:number){
+export async function dispatchAi(store:Store,clock:Clock,config:AiLedgerConfig,workspaceId:string,runId:string,meta:RequestMeta,adapter:AiDispatchAdapter,policy:AiDispatchPolicy,timeoutMs:number,signal?:AbortSignal){
  invariant(Number.isInteger(timeoutMs)&&timeoutMs>=1&&timeoutMs<=120000,'AI_TIMEOUT_INVALID','AI 请求时限无效',400);
  const ledger=new AiLedger(clock);
  const prepared=await store.transaction(async tx=>{
   const run=await workspaceRow(tx,'aiRuns',runId,workspaceId);if(!run)missing();
+  invariant(!signal?.aborted,'AI_WORKER_STOPPED','后台已停止领取任务',409);
   const input=await policy.authorize(tx,run);
   invariant(digest(input)===run.inputDigest,'AI_INPUT_CHANGED','获准输入已变化，请重新确认',409);
+  invariant(!signal?.aborted,'AI_WORKER_STOPPED','后台已停止领取任务',409);
   const attempt=await ledger.begin(tx,workspaceId,runId,config,meta);
   return {input,attempt};
  });
- const controller=new AbortController();let timer:ReturnType<typeof setTimeout>|undefined;
+ const controller=new AbortController();let abort:()=>void=()=>{};let timer:ReturnType<typeof setTimeout>|undefined;
  try{
-  const timeout=new Promise<never>((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(new Error('AI outcome unknown'));},timeoutMs);});
-  const response=await Promise.race([adapter.send(prepared.input,{signal:controller.signal,idempotencyKey:prepared.attempt.providerIdempotencyKey}),timeout]);
+  const timeout=new Promise<never>((_,reject)=>{abort=()=>{controller.abort();reject(new Error('AI outcome unknown'));};timer=setTimeout(abort,timeoutMs);signal?.addEventListener('abort',abort,{once:true});});
+  if(signal?.aborted){abort();await timeout;}
+  invariant(clock.now().getTime()-Date.parse(prepared.attempt.createdAt)<timeoutMs,'AI_SEND_WINDOW_EXPIRED','请求发送窗口已经过期',409);
+  const response=await Promise.race([adapter.send(prepared.input,{signal:controller.signal,idempotencyKey:prepared.attempt.providerIdempotencyKey,deadlineAt:new Date(Date.parse(prepared.attempt.createdAt)+timeoutMs).toISOString()}),timeout]);
   await store.transaction(async tx=>{
    const run=await workspaceRow(tx,'aiRuns',runId,workspaceId);if(!run)missing();
    // Even cancellation must account for a confirmed charge. A cancelled task never
@@ -56,5 +60,5 @@ export async function dispatchAi(store:Store,clock:Clock,config:AiLedgerConfig,w
   // unknown-state write leaves MAY_HAVE_EXECUTED, which also forbids another send.
   await store.transaction(tx=>ledger.unknown(tx,workspaceId,prepared.attempt.id,meta));
   return {state:'UNKNOWN' as const,attemptId:prepared.attempt.id};
- }finally{if(timer)clearTimeout(timer);}
+ }finally{if(timer)clearTimeout(timer);signal?.removeEventListener('abort',abort);}
 }

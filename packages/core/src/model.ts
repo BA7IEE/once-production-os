@@ -1,3 +1,4 @@
+import type {AiApproval,AiBudgetRelease,AiReconciliation} from './ai-operations.ts';
 import type {AiGrant,AiTask,AiDependency} from './ai-business-model.ts';
 import type {AiLedgerConfig} from './ai-ledger-model.ts';
 import type {AiBudget,AiRun,AiAttempt} from './ai-ledger-model.ts';
@@ -141,7 +142,7 @@ export interface CommandReceipt extends Base {
     operation: string;
     commandKey: string;
     requestDigest: string;
-    resourceKind: 'aiTask' | 'aiGrant' | 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
+    resourceKind: 'aiApproval' | 'aiAttempt' | 'aiBudget' | 'aiTask' | 'aiGrant' | 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
     resourceId: string;
     result: ReceiptResult;
 }
@@ -220,6 +221,9 @@ export interface RecordHandoff extends Base {
 }
 export interface TableMap extends TalentV2Tables {
     aiGrants: AiGrant;
+    aiReconciliations: AiReconciliation;
+    aiBudgetReleases: AiBudgetRelease;
+    aiApprovals: AiApproval;
     aiTasks: AiTask;
     aiDependencies: AiDependency;
     aiBudgets: AiBudget;

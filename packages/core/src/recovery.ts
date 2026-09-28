@@ -223,6 +223,7 @@ export class RecoveryOps {
         block(state.users.some(x => x.id !== actor.userId && x.status !== 'DISABLED'), 'OLD_USER_ACTIVE');
         block(state.memberships.some(x => x.id !== actor.membershipId && x.status !== 'DISABLED'), 'OLD_MEMBERSHIP_ACTIVE');
         block(state.handoffs.some(x => x.state === 'PENDING' || x.state === 'ACCEPTED'), 'HANDOFF_ACTIVE');
+        block((await tx.find('aiApprovals',{workspaceId:actor.workspaceId})).some(a=>a.enabled),'AI_CONFIGURATION_ACTIVE');
         block((await tx.find('aiGrants',{workspaceId:actor.workspaceId})).some(g=>g.status==='ACTIVE'),'AI_PERMISSION_ACTIVE');
         block((await tx.find('aiRuns',{workspaceId:actor.workspaceId})).some(r=>r.state==='QUEUED'||r.state==='RUNNING'),'AI_RUN_RUNNABLE');
         block(state.usePermissions.some(x => x.status === 'ACTIVE'), 'USE_PERMISSION_ACTIVE');

@@ -1,3 +1,4 @@
+import {verifyAiOperations} from '../support/ai-operations.ts';
 import {verifyAiBusiness} from '../support/ai-business.ts';
 /** Explicit TD2 domain acceptance on real PostgreSQL, including direct constraint probes.
  * Each scenario uses formal commands; no database reset, migration edits or memory adapter. */
@@ -126,6 +127,11 @@ test('TD2-T01 through T15 and T18: actual PostgreSQL domain contracts and privat
    const ai=await verifyAiBusiness(f),task=await client.aiTask.findFirstOrThrow({where:{actorId:ai.member.id}});
    await assert.rejects(client.aiTask.update({where:{id:task.id},data:{proposalState:'PENDING'}}));
    await assert.rejects(client.aiTask.update({where:{id:task.id},data:{inputSpec:{}}}));
+   const operations=await verifyAiOperations(f);
+   await assert.rejects(client.aiApproval.update({where:{id:operations.approvalId},data:{configDigest:'f'.repeat(64)}}));
+   const release=await client.aiBudgetRelease.findFirstOrThrow({where:{budgetId:operations.budgetId}});await assert.rejects(client.aiBudgetRelease.delete({where:{id:release.id}}));
+   await client.aiBudget.update({where:{id:operations.budgetId},data:{frozen:true,revision:{increment:1}}});
+   await assert.rejects(client.aiBudget.update({where:{id:operations.budgetId},data:{frozen:false,revision:{increment:1}}}));
    const dep=await client.aiDependency.findFirstOrThrow({where:{taskId:task.id,grantId:{not:null}}});await assert.rejects(client.aiDependency.delete({where:{id:dep.id}}));
   });
  }finally{await store.close();rmSync(tmp,{recursive:true,force:true});}

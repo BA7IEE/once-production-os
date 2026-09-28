@@ -1,3 +1,4 @@
+import {AiWorker} from './ai/worker.ts';
 import { SafetyJournalWriter } from './recovery/safety-journal.ts';
 import { LocalMediaProvider } from './media/local-provider.ts';
 import { DeletionFinalizer } from './deletion/finalizer.ts';
@@ -22,6 +23,9 @@ async function run() {
     const mediaProvider = config.mediaEnabled ? await LocalMediaProvider.create(process.env.MEDIA_ROOT!) : null;
     const media = mediaProvider ? new MediaWorker(core, mediaProvider) : null;
     const deletionFinalizer = new DeletionFinalizer(core, mediaProvider, safetyJournal);
+    // Real adapter installation remains blocked until a supplier is verified.
+    // Abandoned attempts are still isolated while external calling is disabled.
+    const ai = new AiWorker(core, null);
     let nextJournalSync = 0;
     console.log('ONCE internal worker starting');
     try {
@@ -51,6 +55,7 @@ async function run() {
                         throw error;
                     }
                 }
+                const didAi = await ai.cycle(stopController.signal);
                 const didFinalize = await deletionFinalizer.cycle(stopController.signal);
                 const didMedia = media ? await media.cycle(stopController.signal) : false;
                 if (safetyJournal && Date.now() >= nextJournalSync) {
@@ -65,7 +70,7 @@ async function run() {
                     }
                     nextJournalSync = Date.now() + 5000;
                 }
-                if (!claim && !exportClaim && !deletionClaim && !didFinalize && !didMedia)
+                if (!claim && !exportClaim && !deletionClaim && !didFinalize && !didMedia && !didAi)
                     await sleep(1000);
             }
             catch {

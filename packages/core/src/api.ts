@@ -1,3 +1,4 @@
+import {AiOperations,aiOperator} from './ai-operations.ts';
 import {AiBusiness} from './ai-business.ts';
 import {LocaleTexts} from './locale.ts';
 import { readTalentMergeHistory } from './talent-merge-history.ts';
@@ -296,7 +297,11 @@ export class Application {
                     return command('talentFact',()=>action==='create'?this.talentV2.createFact(tx,actor,table as FactTable,id,data):this.talentV2.patchFact(tx,actor,table as FactTable,id,data));
                 }
                 switch (route.operation) {
-                    case 'ai.settings': return this.ai.settings();
+                    case 'ai.settings': return this.ai.settings(tx,actor.workspaceId);
+                    case 'ai.operations': return new AiOperations(this.clock,this.config).status(tx,actor);
+                    case 'ai.approval': return command('aiApproval',()=>new AiOperations(this.clock,this.config).approval(tx,actor,data));
+                    case 'ai.reconcile': return command('aiAttempt',()=>new AiOperations(this.clock,this.config).reconcile(tx,actor,id,data,meta));
+                    case 'ai.unfreeze': return command('aiBudget',()=>new AiOperations(this.clock,this.config).unfreeze(tx,actor,id,data));
                     case 'ai.grants': return this.ai.grants(tx,actor,query);
                     case 'ai.grant': return command('aiGrant',()=>this.ai.grant(tx,actor,data));
                     case 'ai.grant.revoke': return command('aiGrant',()=>this.ai.revoke(tx,actor,id,data));
@@ -499,6 +504,7 @@ export class Application {
         const result = [];
         for (const row of await tx.find('audits', { workspaceId: actor.workspaceId })) {
             try {
+                if(['aiApproval','aiAttempt','aiBudget'].includes(row.resourceKind))aiOperator(actor);
                 if(row.resourceKind==='aiTask')await this.ai.access(tx,actor,row.resourceId);
                 if(row.resourceKind==='aiGrant')await this.ai.grantAccess(tx,actor,row.resourceId);
                 if(row.resourceKind==='aiRun'){const task=(await tx.find('aiTasks',{workspaceId:actor.workspaceId,runId:row.resourceId}))[0];if(!task)continue;await this.ai.access(tx,actor,task.id);}

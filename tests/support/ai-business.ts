@@ -13,6 +13,8 @@ export async function aiBusinessFixture(f: {
     const { workspace, member } = await f.store.transaction(async (tx) => ({ workspace: (await tx.find('workspaces'))[0]!, member: (await tx.find('memberships'))[0]! }));
     f.app.config.ai = { enabled: true, providerIdentityHash: digest('synthetic approved adapter only'), configRevision: 1, recoveryEpoch: workspace.recoveryEpoch, currency: 'USD', perTaskLimitUnits: 50, dailyLimitUnits: 1000, maxAttempts: 3 };
     await f.store.transaction(tx => tx.replace('memberships', { ...member, extraPermissions: [...member.extraPermissions, 'ai.use'] }));
+    const ops=result(await f.owner.raw('GET','/ai-operations'));
+    const approved=await f.owner.cmd('POST','/ai-operations/approval',{configDigest:ops.candidate.digest,expectedRevision:ops.approval?.revision??0,enabled:true,confirmConfiguration:true});assert.equal(approved.status,200,JSON.stringify(approved.body));
     const text = 'Synthetic artist. Works in Shanghai. Fashion portrait portfolio.';
     const source = result(await f.owner.cmd('POST', '/sources', { ...sourceInput(), type: 'TEXT', textPayload: text })).resourceId as string;
     const gr = await f.owner.cmd('POST', '/ai-grants', { sourceId: source, expectedRevision: 1, validUntil: '2026-11-30T00:00:00.000Z', evidenceNote: 'Synthetic approval only, no external data', confirmTextOnly: true });

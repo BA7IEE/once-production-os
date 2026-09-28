@@ -1,3 +1,4 @@
+import {aiOperator} from './ai-operations.ts';
 import {AiBusiness} from './ai-business.ts';
 import {LocaleTexts} from './locale.ts';
 import {exportPermissionSource} from './exports.ts';
@@ -18,6 +19,10 @@ import { personFor, sourceFor, sourceCurrent, requireScope, requirePermission } 
 export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandReceipt, clock: Clock, config?: Config): Promise<void> {
     const id = receipt.resourceId;
     switch (receipt.resourceKind) {
+        case 'aiApproval': case 'aiAttempt': case 'aiBudget': {
+            aiOperator(actor);const table=receipt.resourceKind==='aiApproval'?'aiApprovals':receipt.resourceKind==='aiAttempt'?'aiAttempts':'aiBudgets';
+            if(!await workspaceRow(tx,table,id,actor.workspaceId))missing();return;
+        }
         case 'aiTask': if(!config)missing();await new AiBusiness(clock,config).access(tx,actor,id);return;
         case 'aiGrant': if(!config)missing();await new AiBusiness(clock,config).grantAccess(tx,actor,id);return;
         case 'localeText': await new LocaleTexts(clock).access(tx,actor,id);return;
