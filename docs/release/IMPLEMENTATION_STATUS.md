@@ -13,3 +13,5 @@
 上线前两项运行故障已修复，定向回归通过；边界见[修复说明](PRELAUNCH_REVIEW_FIXES.md)，当前提交CI结果见PR。
 
 外部staging审查R1/R2已修复，独立ops执行镜像和staging安全约束已补齐，参见[staging执行说明](STAGING_EXECUTION.md)。新提交验证见PR。
+
+未决标记持久化限制为专用模块的固定单比特；静态规则继续拒绝业务正文及其他浏览器持久化访问。

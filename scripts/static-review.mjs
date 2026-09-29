@@ -1,3 +1,4 @@
+import {forbiddenBrowserGlobals} from './browser-storage-policy.mjs';
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import { createRequire } from 'node:module';
 const ts=createRequire(import.meta.url)('typescript');
 const root=process.cwd();const checks=[];function record(name,passed,detail){checks.push({name,passed,detail});}
@@ -8,7 +9,7 @@ record('typescript-syntax-transpile',diagnostics.length===0,{files:sources.lengt
 const prod=sources.map(f=>[f,fs.readFileSync(f,'utf8')]);
 record('test-double-not-in-production',prod.every(([,s])=>!s.includes('MemoryStore')&&!s.includes('/tests/support')),null);
 const web=prod.filter(([f])=>f.includes('admin-web'));
-const forbidden=[];for(const[file,text]of web){const tree=ts.createSourceFile(file,text,ts.ScriptTarget.Latest,true,file.endsWith('.tsx')?ts.ScriptKind.TSX:ts.ScriptKind.TS);const visit=node=>{if(ts.isIdentifier(node)&&['localStorage','sessionStorage','dangerouslySetInnerHTML','eval'].includes(node.text))forbidden.push({file,name:node.text});ts.forEachChild(node,visit);};visit(tree);}
+const forbidden=web.flatMap(([file,text])=>forbiddenBrowserGlobals(file,text));
 record('no-business-localStorage-or-unsafe-html',forbidden.length===0,{forbidden,note:'AST identifier check; not a complete XSS or data-loss audit.'});
 const artifacts=JSON.parse(fs.readFileSync('artifacts/openapi.json','utf8'));const routes=Object.values(artifacts.paths).flatMap(p=>Object.values(p));
 record('unique-route-operation-identities',new Set(routes.map(r=>r.operationId)).size===routes.length,{routes:routes.length});

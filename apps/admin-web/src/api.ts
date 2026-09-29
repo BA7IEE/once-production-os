@@ -1,3 +1,4 @@
+import {readPendingMarker,writePendingMarker} from './pending-marker.ts';
 import { ENDPOINTS, type Inputs } from './generated/requests.ts';
 import type { Me } from './dto.ts';
 export class ApiError extends Error {
@@ -9,16 +10,14 @@ export class ApiError extends Error {
 }
 let csrf = '';
 let identity: string | null = null;
-const marker = 'once-pending-command';
-let lostPending = false;
-try { lostPending = sessionStorage.getItem(marker) === '1'; } catch { /* unavailable storage: unload warning remains */ }
+let lostPending = readPendingMarker();
 const unresolved = new Map<string, {
     key: string; body: string; owner: string; uncertain: boolean;
     operation: keyof Inputs; params: Record<string,string>; query: Record<string,string>;
 }>();
 let blockedSecret = false;
 function notifyPending() {
-    try { if (unresolved.size || lostPending) sessionStorage.setItem(marker,'1'); else sessionStorage.removeItem(marker); } catch {}
+    writePendingMarker(unresolved.size > 0 || lostPending);
     window.dispatchEvent(new Event('once-pending-changed'));
 }
 export function suspendTransport() { csrf = ''; identity = null; }
