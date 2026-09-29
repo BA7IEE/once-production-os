@@ -1,0 +1,35 @@
+TAP version 13
+# PASS combined source/other-identity withdrawal: explicit field item, unchanged other identity and independent evidence, whole-group audit rollback/retry, final basis expiry refuses completion
+# Subtest: TD2 source fact deletion withdraws other identity evidence atomically and rechecks the frozen surviving proof at completion
+ok 1 - TD2 source fact deletion withdraws other identity evidence atomically and rechecks the frozen surviving proof at completion
+  ---
+  duration_ms: 268.567333
+  type: 'test'
+  ...
+# Subtest: TD2 combined source identity withdrawal rejects the last basis before making a deletion plan
+ok 2 - TD2 combined source identity withdrawal rejects the last basis before making a deletion plan
+  ---
+  duration_ms: 167.946917
+  type: 'test'
+  ...
+# Subtest: TD2 combined source identity withdrawal hides an out-of-scope independent basis from administrators
+ok 3 - TD2 combined source identity withdrawal hides an out-of-scope independent basis from administrators
+  ---
+  duration_ms: 293.482917
+  type: 'test'
+  ...
+# Subtest: TD2 combined source identity withdrawal binds independent source changes before freeze
+ok 4 - TD2 combined source identity withdrawal binds independent source changes before freeze
+  ---
+  duration_ms: 192.920125
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1071.995417

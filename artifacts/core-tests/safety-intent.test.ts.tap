@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: DEV-09D safety-critical API fails closed before DB mutation when intent fsync fails
+ok 1 - DEV-09D safety-critical API fails closed before DB mutation when intent fsync fails
+  ---
+  duration_ms: 138.14825
+  type: 'test'
+  ...
+# Subtest: DEV-09D every authenticated COMMAND/SECRET mutation is write-ahead protected by default
+ok 2 - DEV-09D every authenticated COMMAND/SECRET mutation is write-ahead protected by default
+  ---
+  duration_ms: 131.798958
+  type: 'test'
+  ...
+# Subtest: DEV-09D idempotent command retries derive the same write-ahead intent id
+ok 3 - DEV-09D idempotent command retries derive the same write-ahead intent id
+  ---
+  duration_ms: 126.751167
+  type: 'test'
+  ...
+# Subtest: DEV-09D two journal writers serialize concurrent write-ahead intents into one valid chain
+ok 4 - DEV-09D two journal writers serialize concurrent write-ahead intents into one valid chain
+  ---
+  duration_ms: 37.197375
+  type: 'test'
+  ...
+# Subtest: DEV-09E a transaction acknowledgement failure must not claim the write was aborted
+ok 5 - DEV-09E a transaction acknowledgement failure must not claim the write was aborted
+  ---
+  duration_ms: 128.195125
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 714.641958

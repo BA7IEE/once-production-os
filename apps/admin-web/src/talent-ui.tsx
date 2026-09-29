@@ -1,3 +1,4 @@
+import {useSearchParams} from 'react-router';
 import {LocaleWorkspace} from './locale-ui.tsx';
 import {TalentHeightReviews} from './talent-migration.tsx';
 import {CandidateListChoice} from './shortlist-ui.tsx';
@@ -31,7 +32,10 @@ export function TalentWorkbench({personId,me,catalog,onClose,onChange,backLabel=
  const [candidate,setCandidate]=useState(false);
  const [identity,setIdentity]=useState(false);
  const [registry,setRegistry]=useState<'capability'|'organization'|null>(null);
- const [tick,setTick]=useState(0),[group,setGroup]=useState<(typeof groups)[number][0]>('common');
+ const [tick,setTick]=useState(0);
+ const [url,setUrl]=useSearchParams();
+ const group=groups.find(([key])=>key===url.get('section'))?.[0]??'common';
+ const setGroup=(section:string)=>{const next=new URLSearchParams(url);next.set('section',section);setUrl(next,{replace:true});};
  const [edit,setEdit]=useState<{kind:TalentFactKind;row?:TalentFact}|null>(null),[review,setReview]=useState<{kind:TalentFactKind;row:TalentFact;action:string}|null>(null),[enroll,setEnroll]=useState(false);
  const [collection,setCollection]=useState<TalentFact|null>(null),[fieldEvidence,setFieldEvidence]=useState<{kind:TalentFactKind;row:TalentFact;mode:'evidence'|'proposal'}|null>(null),[proposals,setProposals]=useState(false);
  const load=useLoad(()=>Promise.all([read<TalentDetail>('td2.person.get',{id:personId}),read<TalentSchema>('td2.schema')]),personId+':'+tick);
@@ -50,7 +54,7 @@ export function TalentWorkbench({personId,me,catalog,onClose,onChange,backLabel=
  if(detail&&review)return <TalentReview {...review} detail={detail} onClose={()=>setReview(null)} onSaved={saved}/>;
  if(detail&&enroll)return <TalentEnroll detail={detail} onClose={()=>setEnroll(false)} onSaved={saved}/>;
  const canWrite=!!detail?.canEdit&&detail.status!=='ARCHIVED',canReview=me.permissions.includes('sources.review'),canReadEvidence=canReview&&me.permissions.includes('sources.read');
- return <Modal title={detail?detail.displayName+' · 专业工作台':'专业工作台'} wide onClose={onClose}><div className="modal-body talent-workbench"><ErrorBox error={load.error}/>{load.busy?<p>正在读取当前可见的专业资料…</p>:detail&&schema&&<>
+ return <Modal title={detail?detail.displayName+' · 专业资料':'专业资料'} wide onClose={onClose}><div className="modal-body talent-workbench"><ErrorBox error={load.error}/>{load.busy?<p>正在读取当前可见的专业资料…</p>:detail&&schema&&<>
  <div className="talent-overview"><div><p className="eyebrow">人才资料</p><h3>{detail.displayName}</h3><p>{detail.intro||'尚未填写简介'}</p></div><div><strong>{detail.isTalent?'已建立专业档案':'普通人物'}</strong><p>成年资格：{TALENT_LABELS[detail.adultState]??'未知'}</p></div></div>
  {!detail.isTalent&&<div className="notice"><p>这份人物资料尚未建立专业档案。建立时会保留已有职业、语言和地点；不会猜测熟练度或量尺含义。</p>{canWrite&&<button className="primary" onClick={()=>setEnroll(true)}>建立专业档案</button>}</div>}
  {!canWrite&&<p className="notice">当前只可浏览专业资料。</p>}

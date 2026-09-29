@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: actual HTTP timeout leaves outcome unknown and never retries
+ok 1 - actual HTTP timeout leaves outcome unknown and never retries
+  ---
+  duration_ms: 1010.175125
+  type: 'test'
+  ...
+# Subtest: actual HTTP partial-body leaves outcome unknown and never retries
+ok 2 - actual HTTP partial-body leaves outcome unknown and never retries
+  ---
+  duration_ms: 1004.562708
+  type: 'test'
+  ...
+# Subtest: actual HTTP reset leaves outcome unknown and never retries
+ok 3 - actual HTTP reset leaves outcome unknown and never retries
+  ---
+  duration_ms: 4.694958
+  type: 'test'
+  ...
+# Subtest: actual HTTP redirect leaves outcome unknown and never retries
+ok 4 - actual HTTP redirect leaves outcome unknown and never retries
+  ---
+  duration_ms: 3.2265
+  type: 'test'
+  ...
+# Subtest: actual HTTP 429 leaves outcome unknown and never retries
+ok 5 - actual HTTP 429 leaves outcome unknown and never retries
+  ---
+  duration_ms: 6.271791
+  type: 'test'
+  ...
+# Subtest: actual HTTP 500 leaves outcome unknown and never retries
+ok 6 - actual HTTP 500 leaves outcome unknown and never retries
+  ---
+  duration_ms: 9.577458
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2270.759583

@@ -1,3 +1,4 @@
+import {useOptionPages,OptionPages} from './app/option-pages.tsx';
 import { useEffect, useMemo, useState } from 'react';
 import { call, read } from './api.ts';
 import type { Me, Page, Person, Receipt, Source } from './dto.ts';
@@ -242,12 +243,12 @@ export function DeletionImpactPanel({ me, initialPerson }: { me: Me; initialPers
     const [selectedRequest, setSelectedRequest] = useState<string | null>(null), [page, setPage] = useState(1);
     const inspect = useAction(), create = useAction();
 
-    const people = useLoad(() => read<Page<Person>>('person.list', {}, { pageSize: '100' }), 'delete-people:' + refresh);
-    const works = useLoad(() => read<Page<WorkSummary>>('work.list', {}, { pageSize: '100' }), 'delete-works:' + refresh);
-    const projects = useLoad(() => read<Page<ProjectSummary>>('project.list', {}, { pageSize: '100' }), 'delete-projects:' + refresh);
-    const sources = useLoad(() => me.permissions.includes('sources.read') ? read<Page<Source>>('source.list', {}, { pageSize: '100' })
+    const people = useOptionPages<Person>(optionPage => read<Page<Person>>('person.list', {}, { page:String(optionPage),pageSize: '100' }), 'delete-people:' + refresh);
+    const works = useOptionPages<WorkSummary>(optionPage => read<Page<WorkSummary>>('work.list', {}, { page:String(optionPage),pageSize: '100' }), 'delete-works:' + refresh);
+    const projects = useOptionPages<ProjectSummary>(optionPage => read<Page<ProjectSummary>>('project.list', {}, { page:String(optionPage),pageSize: '100' }), 'delete-projects:' + refresh);
+    const sources = useOptionPages<Source>(optionPage => me.permissions.includes('sources.read') ? read<Page<Source>>('source.list', {}, { page:String(optionPage),pageSize: '100' })
         : Promise.resolve({ items: [], total: 0, page: 1, pageSize: 100 } as Page<Source>), 'delete-sources:' + refresh);
-    const assets = useLoad(() => me.permissions.includes('assets.read') ? read<Page<AssetDto>>('asset.list', {}, { pageSize: '100' })
+    const assets = useOptionPages<AssetDto>(optionPage => me.permissions.includes('assets.read') ? read<Page<AssetDto>>('asset.list', {}, { page:String(optionPage),pageSize: '100' })
         : Promise.resolve({ items: [], total: 0, page: 1, pageSize: 100 } as Page<AssetDto>), 'delete-assets:' + refresh);
     const requests = useLoad(() => read<Page<DeletionRequestSummary>>('deletion.list', {}, { page: String(page), pageSize: '20' }), 'delete-requests:' + page + ':' + refresh);
 
@@ -279,7 +280,7 @@ export function DeletionImpactPanel({ me, initialPerson }: { me: Me; initialPers
     }
 
     return <><PageTitle overline="CONTROLLED DELETION / PLAN BEFORE CLEANUP" title="删除影响与清理" description="先证明影响并阻断使用，再完成保留决定、冻结计划；只有显式确认后才执行不可逆依赖清理。根对象终结、媒体物理清理和来源历史专用清理仍分阶段处理。" action={<button onClick={() => setRefresh(x => x + 1)}>刷新</button>}/>
-        <ErrorBox error={people.error ?? works.error ?? projects.error ?? sources.error ?? assets.error ?? requests.error ?? inspect.error ?? create.error}/>
+        <ErrorBox error={people.error ?? works.error ?? projects.error ?? sources.error ?? assets.error ?? requests.error ?? inspect.error ?? create.error}/><OptionPages entries={[{label:'人才',state:people},{label:'作品',state:works},{label:'项目',state:projects},{label:'来源',state:sources},{label:'素材',state:assets}]}/>
         <div className="notice"><strong>不可逆动作必须来自冻结计划</strong><p>阻断前重新验证影响图；清理前再次验证 planDigest 与保留依据。CLEANING 只处理已注册依赖动作，不会把待专用处理项假报完成。</p></div>
 
         <section className="panel padded deletion-preview">

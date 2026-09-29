@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: locale merge preserves both originals, forces re-review, rolls back audit failures and replays exact requests
+ok 1 - locale merge preserves both originals, forces re-review, rolls back audit failures and replays exact requests
+  ---
+  duration_ms: 171.555875
+  type: 'test'
+  ...
+# Subtest: locale merge rejects changed auxiliary sources and hides restricted text from preview
+ok 2 - locale merge rejects changed auxiliary sources and hides restricted text from preview
+  ---
+  duration_ms: 134.740458
+  type: 'test'
+  ...
+# Subtest: merged originals survive controlled export and rebuild; unrelated history sources are rejected
+ok 3 - merged originals survive controlled export and rebuild; unrelated history sources are rejected
+  ---
+  duration_ms: 283.582417
+  type: 'test'
+  ...
+# Subtest: a later merge retains prior originals without nesting, and old identity deletion includes dependent text
+ok 4 - a later merge retains prior originals without nesting, and old identity deletion includes dependent text
+  ---
+  duration_ms: 147.330625
+  type: 'test'
+  ...
+# Subtest: language choices are explicit even for one-sided text and cannot select another language
+ok 5 - language choices are explicit even for one-sided text and cannot select another language
+  ---
+  duration_ms: 134.417792
+  type: 'test'
+  ...
+# Subtest: review timestamps use one event instant even when the clock advances between calls
+ok 6 - review timestamps use one event instant even when the clock advances between calls
+  ---
+  duration_ms: 125.574292
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1166.128209

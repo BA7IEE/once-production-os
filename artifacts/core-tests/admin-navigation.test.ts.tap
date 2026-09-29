@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: UI navigation uses granular permissions; deep links map to the same permission entry
+ok 1 - UI navigation uses granular permissions; deep links map to the same permission entry
+  ---
+  duration_ms: 0.575916
+  type: 'test'
+  ...
+# Subtest: UI session text lives only in identity keyed ephemeral memory and is cleared on sign out
+ok 2 - UI session text lives only in identity keyed ephemeral memory and is cleared on sign out
+  ---
+  duration_ms: 0.075042
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 68.49175

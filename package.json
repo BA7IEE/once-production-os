@@ -44,16 +44,19 @@
     "@ai-sdk/anthropic": "4.0.65",
     "@ai-sdk/openai": "4.0.78",
     "@ai-sdk/openai-compatible": "3.0.57",
+    "@ant-design/icons": "6.3.4",
     "@nestjs/common": "11.2.5",
     "@nestjs/core": "11.2.5",
     "@nestjs/platform-express": "11.2.5",
     "@prisma/client": "6.19.3",
     "ai": "7.0.118",
+    "antd": "6.6.5",
     "cos-nodejs-sdk-v5": "3.0.0",
     "express": "5.1.0",
     "fs-ext": "2.1.1",
     "react": "19.1.1",
     "react-dom": "19.1.1",
+    "react-router": "7.18.4",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2",
     "sharp": "0.35.4"
@@ -82,6 +85,9 @@
     "overrides": {
       "@nestjs/platform-express>multer": "2.3.0",
       "@prisma/config>deepmerge-ts": "8.0.1"
+    },
+    "patchedDependencies": {
+      "@rc-component/util@1.13.0": "patches/@rc-component__util@1.13.0.patch"
     }
   }
 }

@@ -2,33 +2,45 @@ TAP version 13
 # Subtest: local initializer creates private random files, never emits their values
 ok 1 - local initializer creates private random files, never emits their values
   ---
-  duration_ms: 80.611125
+  duration_ms: 75.910792
   type: 'test'
   ...
 # Subtest: local initializer refuses an existing environment without overwriting keys
 ok 2 - local initializer refuses an existing environment without overwriting keys
   ---
-  duration_ms: 74.71425
+  duration_ms: 72.686458
   type: 'test'
   ...
 # Subtest: config loader accepts valid file references and rejects malformed secrets and modes
 ok 3 - config loader accepts valid file references and rejects malformed secrets and modes
   ---
-  duration_ms: 42.920958
+  duration_ms: 38.091458
+  type: 'test'
+  ...
+# Subtest: staging/production INTERNAL config requires an absolute safety journal path
+ok 4 - staging/production INTERNAL config requires an absolute safety journal path
+  ---
+  duration_ms: 39.2315
   type: 'test'
   ...
 # Subtest: production core refuses insecure origin and cookies before any database access
-ok 4 - production core refuses insecure origin and cookies before any database access
+ok 5 - production core refuses insecure origin and cookies before any database access
   ---
-  duration_ms: 0.754417
+  duration_ms: 0.708041
   type: 'test'
   ...
-1..4
-# tests 4
+# Subtest: staging requires HTTPS and Secure cookies just like production
+ok 6 - staging requires HTTPS and Secure cookies just like production
+  ---
+  duration_ms: 0.21025
+  type: 'test'
+  ...
+1..6
+# tests 6
 # suites 0
-# pass 4
+# pass 6
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 307.935166
+# duration_ms 394.513583

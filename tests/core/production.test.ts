@@ -86,3 +86,13 @@ test('WP1 viewer cannot mutate visible root, and current permissions apply befor
 test('WP1 stable pagination, explicit filters, hidden projects excluded from production count', async () => { const f = await fixture(), ed = await member(f, 'editor'), pid = await createPerson(f.owner), p = await root(f, 'projects', ed.client); await mutate(ed.client, '/projects/' + p, '/participants', { personId: pid, roleCode: 'model', state: 'ACTUAL', note: '合成已实际参加' }); assert.equal((await detail(f.owner, '/people/' + pid + '/production')).actualProjectCount, 0); assert.equal((await detail(ed.client, '/people/' + pid + '/production')).actualProjectCount, 1); for (const path of ['/works?bad=1', '/works?status=WRONG', '/projects?pageSize=101', '/people/' + pid + '/production?hidden=1'])
     assert.equal((await f.owner.raw('GET', path)).status, 400); });
 test('WP1 storage failures must not masquerade as redacted dependencies', async () => { await assert.rejects(visibleOrNull(async () => { throw new AppError(503, 'STORE_BUSY', 'synthetic'); }), /synthetic/); assert.equal(await visibleOrNull(async () => { throw new AppError(404, 'NOT_FOUND', 'hidden'); }), null); });
+
+test('UI work list cover is a current authorized image projection, never an unreadable association',async()=>{
+ const f=await fixture(),id=await root(f),a=await image(f),path='/works/'+id;
+ await mutate(f.owner,path,'/assets',{assetId:a.id});
+ const entry=f.store.rows('workAssets').find(e=>e.workId===id)!;
+ await mutate(f.owner,path,'/assets/reorder',{entryIds:[entry.id],coverEntryId:entry.id});
+ assert.equal((await detail(f.owner,'/works')).items[0].coverAssetId,a.id);
+ await suspend(f,a.sourceId);
+ const list=await detail(f.owner,'/works');assert.equal(list.total,1);assert.equal(list.items[0].coverAssetId,null);
+});

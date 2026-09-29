@@ -1,0 +1,25 @@
+import {useState} from 'react';
+import {call,read} from '../../api.ts';
+import type {Receipt,Source,Me,Scope} from '../../dto.ts';
+import {Field,ErrorBox,useAction,useLoad,Modal} from '../../ui.tsx';
+import {TalentSourceChoice,outcomeUnknown} from '../../talent-edit.tsx';
+import {TALENT_VERSION} from '../../talent-dto.ts';
+import {PageSurface} from '../../app/surface.tsx';
+export function TalentCreatePage({onClose,onSaved}:{onClose:()=>void;onSaved:(id:string)=>void}){
+ const [name,setName]=useState(''),[aliases,setAliases]=useState(''),[intro,setIntro]=useState(''),[contact,setContact]=useState(false);
+ const [source,setSource]=useState<Source|null>(null),[existing,setExisting]=useState(false),[sourceReceipt,setSourceReceipt]=useState<Receipt|null>(null);
+ const [title,setTitle]=useState(''),[provider,setProvider]=useState(''),[basis,setBasis]=useState(''),[mode,setMode]=useState<'TEMP_ORGANIZE'|'INTERNAL_USE'>('TEMP_ORGANIZE'),[until,setUntil]=useState(''),[scope,setScope]=useState('');
+ const data=useLoad(()=>Promise.all([read<Me>('identity.me'),read<{items:Scope[]}>('scope.list')]),'create-options');
+ const action=useAction(),freeze=action.busy||outcomeUnknown(action.error),sourceSaved=!!sourceReceipt;
+ return <PageSurface><Modal title="新增人才" onClose={onClose} wide><form onSubmit={e=>{e.preventDefault();void action.run(async()=>{
+  let chosen=source;
+  if(!chosen){
+   // A successful source receipt survives a failed following read/command. Never create it twice.
+   const receipt=sourceReceipt??await call<'source.create',Receipt>('source.create',{title,type:'MANUAL',providerClaim:provider,basisMode:mode,basisDescription:basis,...(scope?{scopeId:scope}:{}),...(mode==='INTERNAL_USE'?{validUntil:new Date(until).toISOString()}:{})});
+   setSourceReceipt(receipt);
+   chosen=await read<Source>('source.get',{id:receipt.resourceId});setSource(chosen);
+  }
+  const receipt=await call<'td2.person.create',Receipt>('td2.person.create',{schemaVersion:TALENT_VERSION,originSourceId:chosen.id,sourceRevision:chosen.revision,displayName:name,aliases:aliases.split('\n').map(x=>x.trim()).filter(Boolean),intro,createTalent:!contact});
+  onSaved(receipt.resourceId);
+ });}}><div className="modal-body"><div className="talent-create-progress"><strong>1 基本资料与来源</strong><span>2 职业与专业资料</span><span>3 照片与附件</span></div><p>先建立一份档案，保存后继续添加职业。一个人有多个职业时，在同一份档案里补充。</p><ErrorBox error={action.error??data.error}/>{sourceSaved&&<p className="success">来源已保存。后续操作将继续使用这份来源，不会重复创建。</p>}<fieldset disabled={freeze}><div className="form-grid"><Field label="姓名或艺名 *"><input required maxLength={120} value={name} onChange={e=>setName(e.target.value)}/></Field><Field label="其他姓名（每行一个）"><textarea maxLength={2400} value={aliases} onChange={e=>setAliases(e.target.value)}/></Field><Field label="人物简介" wide hint="联系方式在建档后单独维护。"><textarea maxLength={5000} value={intro} onChange={e=>setIntro(e.target.value)}/></Field></div><details><summary>只登记普通联系人</summary><label><input type="checkbox" checked={contact} onChange={e=>setContact(e.target.checked)}/>暂不建立专业档案</label></details></fieldset><h3>资料来源与使用范围</h3>{!sourceSaved&&<div className="detail-actions"><button type="button" disabled={freeze} aria-pressed={!existing} onClick={()=>{setExisting(false);setSource(null);}}>记录新来源</button><button type="button" disabled={freeze} aria-pressed={existing} onClick={()=>setExisting(true)}>选择已有来源</button></div>}{existing?<TalentSourceChoice value={source} onChange={setSource} disabled={freeze}/>:<fieldset disabled={freeze||sourceSaved}><div className="form-grid"><Field label="来源标题 *"><input required maxLength={120} value={title} onChange={e=>setTitle(e.target.value)}/></Field><Field label="谁提供、怎样收到 *"><input required maxLength={200} value={provider} onChange={e=>setProvider(e.target.value)}/></Field><Field label="允许怎样使用 *"><select value={mode} onChange={e=>{setMode(e.target.value as typeof mode);setScope('');}}><option value="TEMP_ORGANIZE">临时整理（最长 7 天）</option>{data.data?.[0].permissions.includes('sources.review')&&<option value="INTERNAL_USE">已人工核验，允许内部使用</option>}</select></Field><Field label="谁能查看"><select value={scope} onChange={e=>setScope(e.target.value)}><option value="">{mode==='TEMP_ORGANIZE'?'仅本人':'内部成员'}</option>{data.data?.[1].items.filter(s=>mode!=='TEMP_ORGANIZE'||s.mode==='RESTRICTED').map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></Field><Field label="使用依据 *" wide><textarea required minLength={4} maxLength={2000} value={basis} onChange={e=>setBasis(e.target.value)}/></Field>{mode==='INTERNAL_USE'&&<Field label="使用截止时间 *"><input type="datetime-local" required value={until} onChange={e=>setUntil(e.target.value)}/></Field>}</div></fieldset>}{outcomeUnknown(action.error)&&<p className="notice">上次保存结果尚未确认。资料已锁定，请核对原提交后继续。</p>}</div><footer className="modal-footer"><button type="button" disabled={freeze} onClick={onClose}>取消</button><button type="submit" className="primary" disabled={action.busy||data.busy||(existing&&!source)}>{outcomeUnknown(action.error)?'核对原提交':sourceSaved?'继续建立档案':'保存并继续'}</button></footer></form></Modal></PageSurface>;
+}

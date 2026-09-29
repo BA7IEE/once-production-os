@@ -10,7 +10,8 @@ import { Application } from '../../../packages/core/src/api.ts';
 import { PrismaStore } from './prisma-store.ts';
 import { loadConfig } from './config.ts';
 import { join } from 'node:path';
-import { existsSync } from 'node:fs';
+import { existsSync,readFileSync } from 'node:fs';
+import { randomBytes } from 'node:crypto';
 let store: PrismaStore;
 let core: Application;
 @Controller('api/v1')
@@ -63,7 +64,8 @@ async function main() {
     app.use((req: Request, res: Response, next: NextFunction) => {
         res.setHeader('X-Content-Type-Options', 'nosniff');
         res.setHeader('Referrer-Policy', 'no-referrer');
-        res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
+        res.locals.styleNonce=randomBytes(18).toString('base64');
+        res.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self'; style-src 'self' 'nonce-${res.locals.styleNonce}'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'`);
         if (config.secureCookies)
             res.setHeader('Strict-Transport-Security', 'max-age=31536000');
         next();
@@ -93,7 +95,7 @@ async function main() {
     const assets = join(process.cwd(), 'dist/web');
     if (existsSync(assets)) {
         server.use(express.static(assets, { index: false, maxAge: 0, fallthrough: true, setHeaders: (res) => res.setHeader('Cache-Control', 'no-cache') }));
-        server.get(['/', '/activate'], (_req, res) => res.set('Cache-Control', 'no-store').sendFile('index.html', { root: assets }));
+        server.get(['/', '/activate', '/workspace', '/account', '/talents', '/talents/:id', '/works', '/works/:id', '/projects', '/projects/:id', '/shortlists', '/shortlists/:id', '/assets', '/tools/:tool', '/settings/:setting', '/settings/maintenance/:action'], (_req, res) => res.set('Cache-Control', 'no-store').type('html').send(readFileSync(join(assets,'index.html'),'utf8').replace('ONCE_STYLE_NONCE',res.locals.styleNonce)));
     }
     app.enableShutdownHooks();
     const port = Number(process.env.PORT ?? 4318);

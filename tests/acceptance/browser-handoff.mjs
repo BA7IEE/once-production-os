@@ -1,3 +1,5 @@
+import {realpathSync} from 'node:fs';
+import {navigateUI,addModelOccupation} from './product-navigation.mjs';
 /** H1 real Nest/Prisma/Chromium acceptance. Only an empty disposable loopback test DB.
  * Never reads a .env target, resets a DB, or sends requests to a production host. */
 import assert from 'node:assert/strict';
@@ -17,7 +19,7 @@ assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname));
 assert.match(url.pathname, /^\/once_test_[a-z0-9_]+$/);
 assert.ok(url.username && url.password && !url.search && !url.hash);
 const prisma = new PrismaClient({ datasources: { db: { url: raw } }, log: [] });
-const tmp = mkdtempSync(join(tmpdir(), 'once-handoff-'));
+const tmp = realpathSync(mkdtempSync(join(tmpdir(), 'once-handoff-')));
 const password = 'Synthetic-' + randomBytes(20).toString('base64url') + '!';
 const put = (name, text) => { const path = join(tmp, name); writeFileSync(path, text, { mode: 0o600 }); return path; };
 const env = { ...process.env, DATABASE_URL: raw, APP_ENV: 'test', ACCESS_MODE: 'INTERNAL', COOKIE_SECURE: 'false', HOST: '127.0.0.1',
@@ -39,7 +41,7 @@ async function login(page, loginName) {
     await page.locator('input[autocomplete=username]').fill(loginName);
     await page.locator('input[autocomplete=current-password]').fill(password);
     await page.getByRole('button', { name: '登录', exact: true }).click();
-    await page.getByRole('button', { name: /概览/ }).waitFor();
+    await page.getByRole('button', { name: /工作台/ }).waitFor();
 }
 async function cmd(page, method, path, data, expected = 200) {
     const me = await page.context().request.get(base + '/api/v1/me'); assert.equal(me.status(), 200);
@@ -75,17 +77,18 @@ try {
     }
     const recipient = await prisma.user.findUniqueOrThrow({ where: { loginName: 'h1_receiver' } });
     const recipientMember = await prisma.membership.findFirstOrThrow({ where: { userId: recipient.id } });
-    await sender.getByRole('button', { name: /人才档案/ }).click();
+    await navigateUI(sender,'人才库');
     await sender.getByRole('button', { name: /新增人才/ }).click();
-    await sender.getByLabel('姓名 / 艺名 *').fill('H1浏览器私有人才');
-    await sender.locator('label.check-chip').filter({ hasText: '模特' }).getByRole('checkbox').check();
+    await sender.getByLabel('姓名或艺名 *').fill('H1浏览器私有人才');
+
     await sender.getByLabel('来源标题 *').fill('H1私有来源');
-    await sender.getByLabel('提供者 / 提供方式 *').fill('合成角色主动提供');
-    await sender.getByLabel('依据说明 *').fill('仅用于隔离验收，不代表任何真实授权');
+    await sender.getByLabel('谁提供、怎样收到 *').fill('合成角色主动提供');
+    await sender.getByLabel('使用依据 *').fill('仅用于隔离验收，不代表任何真实授权');
     const createdResponse = sender.waitForResponse(r => r.url().endsWith('/people') && r.request().method() === 'POST');
-    await sender.getByRole('button', { name: '建立档案', exact: true }).click();
+    await sender.getByRole('button', { name: '保存并继续', exact: true }).click();
     const created = await createdResponse; assert.equal(created.status(), 201);
     const personId = (await created.json()).resourceId;
+    await addModelOccupation(sender);await sender.getByRole('button',{name:'基本资料与来源',exact:true}).click();
     const person = await prisma.person.findUniqueOrThrow({ where: { id: personId } });
     const sourceBefore = await prisma.sourceRecord.findUniqueOrThrow({ where: { id: person.sourceId } });
     const scopesBefore = await prisma.scopeMember.findMany({ orderBy: { id: 'asc' } });
@@ -97,7 +100,7 @@ try {
     await sender.getByRole('button', { name: '发送交接邀请' }).click();
     const invited = await invitedResponse; assert.equal(invited.status(), 201); const handoffId = (await invited.json()).resourceId;
     assert.equal(await getStatus(receiver, '/people/' + personId), 404);
-    await receiver.getByRole('button', { name: /资料交接/ }).click();
+    await navigateUI(receiver,'资料交接');
     await hrow(receiver, handoffId).getByText('待接收', { exact: true }).waitFor();
     assert.equal(await hrow(receiver, handoffId).getByText(person.displayName, { exact: true }).count(), 0);
     console.log('PASS H1 browser: private record offered; pending invitation exposes no profile');
@@ -138,7 +141,7 @@ try {
     assert.equal(changed.intro, 'H1接收人已整理基本简介'); assert.equal(changed.maintainerId, person.maintainerId);
     assert.equal(changed.sourceId, person.sourceId); assert.equal(changed.scopeId, person.scopeId);
     await sender.getByRole('button', { name: '关闭', exact: true }).last().click();
-    await sender.getByRole('button', { name: /资料交接/ }).click();
+    await navigateUI(sender,'资料交接');
     await sender.getByRole('button', { name: '发出的交接', exact: true }).click();
     await hrow(sender, handoffId).getByRole('button', { name: '撤销交接' }).click();
     await hrow(sender, handoffId).getByText('已撤销', { exact: true }).waitFor();

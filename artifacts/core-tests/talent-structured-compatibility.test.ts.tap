@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: legacy structured search shares current occupations, same-work matching, current reviews and complete facets
+ok 1 - legacy structured search shares current occupations, same-work matching, current reviews and complete facets
+  ---
+  duration_ms: 238.633583
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 432.083416

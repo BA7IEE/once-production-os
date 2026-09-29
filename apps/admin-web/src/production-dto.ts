@@ -5,6 +5,7 @@ export type Selection = {
     id: string;
 };
 export interface WorkSummary {
+    coverAssetId?:string|null;
     id: string;
     title: string;
     industryCode: string | null;

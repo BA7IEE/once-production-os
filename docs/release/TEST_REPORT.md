@@ -1,5 +1,26 @@
 ## 未决标记的静态边界
 
+## 2026-09-29 后台产品化改造
+
+本批基线 `6aeaab5`，隔离工作目录和新 PostgreSQL 16 测试库，Chrome 154.0.8037.58。冻结安装、198 条请求契约、完整类型检查、transport、静态检查和构建通过；核心 567/567（CORE_MEMORY_TESTED，不等于 PG）。新增封面相关领域测试包含在其中。五条浏览器链与完整 PostgreSQL 验证以本批最终记录为准；未完成的检查不会标记 PASS。 详见 [本批实现与边界](ADMIN_PRODUCTIZATION.md)。
+
+
+本批最终本地结果：
+
+| 检查 | 结果 | 边界 |
+|---|---|---|
+| 冻结依赖、198 请求契约、完整类型、transport、静态、构建 | PASS | 构建仍有包体积告警，未调大阈值 |
+| 核心测试 | CORE_MEMORY_TESTED，567/567 | 不替代 PostgreSQL |
+| 完整 PostgreSQL 脚本 | DB_TESTED，113/113，无跳过 | 新空库 54 次迁移、有数据旧基线升级、真实备份恢复及关系迁移；隔离 PostgreSQL 16 |
+| 导入继续、交接、媒体、作品项目长链、新产品化 | PASS，5 条完整浏览器链 | 真实 Nest/PrismaStore/PG 与私有本地媒体；AI 为测试适配器 |
+| 字段可访问性 | PASS，6/6 | 原控件标签及原生关联 |
+| 人工 A/B、U01–U12、全量大样本选择器、staging、真实服务 | NOT_RUN | 不记为 PROVIDER_VERIFIED 或 UI-06 完成 |
+
+截图与分项：[本批证据](../../artifacts/admin-product-browser/verification.json)、[浏览器结果](../../artifacts/admin-product-browser/browser-results.txt)、[数据库结果](../../artifacts/admin-product-browser/postgres-results.txt)。源指纹在 `artifacts/verification.json`，历史记录单独保留。云端 CI 在本地证据落盘时尚未运行，须核对 PR 当前提交。
+
+中间失败不计通过：曾发现 CSP nonce 遗漏、页面返回旧版本号、检索切换误报未保存和旧测试定位不匹配，修正后重跑。macOS 临时目录须使用真实路径；本机默认 PG14 及另一套 PG17 与 PG16 恢复不匹配，最终通过使用隔离容器真实 PG16 客户端完成。一次构建与浏览器读取重叠导致页面资源短暂不可用，待构建完成后从新空库重跑；未增加超时、跳过断言或修改冻结迁移。
+
+
 c08a25a的四条浏览器验收通过，核心562/562通过；原静态规则禁止所有sessionStorage，因固定未决标记而拦截，数据库验收尚未执行。现把标记集中到pending-marker.ts，AST仅允许该文件以字面量键once-pending-command读取/删除或写入字面量1；变量值、正文、其他键、别名和其他文件访问仍拒绝。新增反例测试，21项前端/静态边界专项及11项静态检查通过；最终云端结果见PR，失败运行不计全绿。
 
 ## 2026-09-29 外部 staging review 核实修复
