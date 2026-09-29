@@ -51,6 +51,7 @@
     "ai": "7.0.118",
     "cos-nodejs-sdk-v5": "3.0.0",
     "express": "5.1.0",
+    "fs-ext": "2.1.1",
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "reflect-metadata": "0.2.2",
@@ -59,6 +60,7 @@
   },
   "devDependencies": {
     "@types/express": "5.0.3",
+    "@types/fs-ext": "2.0.3",
     "@types/node": "22.15.30",
     "@types/react": "19.1.10",
     "@types/react-dom": "19.1.9",
@@ -74,7 +76,8 @@
       "@prisma/engines",
       "prisma",
       "esbuild",
-      "sharp"
+      "sharp",
+      "fs-ext"
     ],
     "overrides": {
       "@nestjs/platform-express>multer": "2.3.0",

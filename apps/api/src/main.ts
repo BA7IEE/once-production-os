@@ -81,6 +81,7 @@ async function main() {
     server.get('/health/live', (_req, res) => res.set('Cache-Control', 'no-store').json({ status: 'alive' }));
     server.get('/health/ready', async (_req, res) => {
         try {
+            await safetyJournal?.checkReady();
             const workspace = await store.transaction(async (tx) => (await tx.find('workspaces'))[0]);
             const ready = !!workspace && config.accessMode === 'INTERNAL' && workspace.recoveryEpoch === config.recoveryEpoch;
             res.status(ready ? 200 : 503).set('Cache-Control', 'no-store').json({ status: ready ? 'ready' : 'isolated' });

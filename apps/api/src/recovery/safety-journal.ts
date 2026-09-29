@@ -1,4 +1,6 @@
-import { mkdir, open, readFile, rmdir, stat } from 'node:fs/promises';
+import { open, readFile, stat } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { flockSync } from 'fs-ext';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { dirname, isAbsolute, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -138,22 +140,26 @@ export async function withSafetyJournalLock<T>(path: string, work: () => Promise
         invariant(isAbsolute(path) && resolve(path) === path, 'SAFETY_JOURNAL_PATH_INVALID', '安全日志必须使用规范绝对路径', 503);
         const parent = await stat(dirname(path));
         invariant(parent.isDirectory() && (parent.mode & 0o077) === 0, 'SAFETY_JOURNAL_PATH_INVALID', '安全日志父目录必须是私有目录', 503);
-        const lock = path + '.lock';
-        let acquired = false;
-        for (let attempt = 0; attempt < 80; attempt++) {
-            try {
-                await mkdir(lock, { mode: 0o700 });
-                acquired = true;
-                break;
-            } catch (error) {
-                if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
-                await sleep(25);
+        // Keep this inode for the lifetime of the installation. Never unlink a lock
+        // file: waiters could otherwise lock different inodes. The kernel releases
+        // flock on close or process death, without expiry-based lock stealing.
+        const lock = await open(path + '.lock', constants.O_CREAT | constants.O_RDWR | constants.O_NOFOLLOW, 0o600);
+        try {
+            const info = await lock.stat();
+            invariant(info.isFile() && info.nlink === 1 && (info.mode & 0o077) === 0,
+                'SAFETY_JOURNAL_PATH_INVALID', '安全日志锁必须是私有普通文件', 503);
+            let acquired = false;
+            for (let attempt = 0; attempt < 80; attempt++) {
+                try { flockSync(lock.fd, 'exnb'); acquired = true; break; }
+                catch (error) {
+                    if (!['EAGAIN', 'EWOULDBLOCK'].includes((error as NodeJS.ErrnoException).code ?? '')) throw error;
+                    await sleep(25);
+                }
             }
-        }
-        invariant(acquired, 'SAFETY_JOURNAL_LOCKED',
-            '安全日志写锁被其他进程占用；为避免漏记安全事件，本次写入已中止', 503);
-        try { return await work(); }
-        finally { await rmdir(lock).catch(() => {}); }
+            invariant(acquired, 'SAFETY_JOURNAL_LOCKED',
+                '安全日志写锁被其他进程占用；为避免漏记安全事件，本次写入已中止', 503);
+            return await work();
+        } finally { await lock.close(); }
     }
 
 export class SafetyJournalWriter {
@@ -161,18 +167,22 @@ export class SafetyJournalWriter {
     state: SafetyJournalState;
     private constructor(path: string, state: SafetyJournalState) { this.path = path; this.state = state; }
     static async open(path: string) {
-        let state: SafetyJournalState;
-        try { state = await readSafetyJournal(path); }
-        catch (error) {
-            if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
-            try { state = await createSafetyJournal(path); }
-            catch (createError) {
-                if ((createError as NodeJS.ErrnoException).code !== 'EEXIST') throw createError;
-                // API and Worker may both be the first opener. Never overwrite; validate the winner.
-                state = await readSafetyJournal(path);
+        return withSafetyJournalLock(path, async () => {
+            let state: SafetyJournalState;
+            try { state = await readSafetyJournal(path); }
+            catch (error) {
+                if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+                state = await createSafetyJournal(path);
             }
-        }
-        return new SafetyJournalWriter(path, state);
+            return new SafetyJournalWriter(path, state);
+        });
+    }
+    async checkReady(): Promise<void> {
+        await withSafetyJournalLock(this.path, async () => {
+            await readSafetyJournal(this.path);
+            const handle = await open(this.path, 'a');
+            try { await handle.sync(); } finally { await handle.close(); }
+        });
     }
     snapshot(): SafetyJournalSnapshot { return structuredClone(this.state.snapshot); }
 

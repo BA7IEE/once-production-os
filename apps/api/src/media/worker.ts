@@ -61,16 +61,27 @@ async function decode(path: string, preview: string, mime: string, signal: Abort
     });
 }
 export class MediaWorker {
+    private readonly cleanupRetryAt = new Map<string, number>();
     readonly core: Application;
     readonly provider: LocalMediaProvider;
     constructor(core: Application, provider: LocalMediaProvider) { this.core = core; this.provider = provider; }
     async cycle(signal: AbortSignal): Promise<boolean> {
-        for (const u of await this.core.media.expire()) {
-            if (signal.aborted)
-                return false;
-            await this.core.media.purgeAllowed(u.id);
-            await this.provider.purge(u.id);
-            await this.core.media.markPurged(u.id);
+        const expired = await this.core.media.expire();
+        const pendingIds = new Set(expired.map(u => u.id));
+        for (const id of this.cleanupRetryAt.keys()) if (!pendingIds.has(id)) this.cleanupRetryAt.delete(id);
+        const now = this.core.clock.now().getTime();
+        // Bound housekeeping work, and isolate unresolved objects from new uploads.
+        for (const u of expired.filter(u => (this.cleanupRetryAt.get(u.id) ?? 0) <= now).slice(0, 4)) {
+            if (signal.aborted) return false;
+            try {
+                await this.core.media.purgeAllowed(u.id);
+                await this.provider.purge(u.id);
+                await this.core.media.markPurged(u.id);
+                this.cleanupRetryAt.delete(u.id);
+            } catch {
+                this.cleanupRetryAt.set(u.id, now + 60000);
+                console.error('Media cleanup deferred; object remains unconfirmed and other tasks may continue.');
+            }
         }
         if (signal.aborted)
             return false;

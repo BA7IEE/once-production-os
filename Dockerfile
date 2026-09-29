@@ -2,7 +2,7 @@
 # The Node major tag is for development; production digest/security review remains a release gate.
 FROM node:22-bookworm-slim AS build
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates openssl ffmpeg && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates openssl ffmpeg python3 make g++ && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
 COPY package.json pnpm-lock.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile
