@@ -110,3 +110,9 @@ test('production core refuses insecure origin and cookies before any database ac
     assert.throws(() => new Application(f.store, { ...f.app.config, environment: 'production', origin: 'http://os.example.invalid', secureCookies: false }));
     assert.equal(f.store.rows('workspaces').length, 0);
 });
+
+test('staging requires HTTPS and Secure cookies just like production',()=>{
+ const {app,store,clock}=newSystem();
+ for(const change of [{origin:'http://os.test.invalid'},{secureCookies:false}])assert.throws(()=>new Application(store,{...app.config,environment:'staging',...change},clock),/HTTPS/);
+ assert.doesNotThrow(()=>new Application(store,{...app.config,environment:'staging'},clock));
+});

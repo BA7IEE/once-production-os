@@ -117,7 +117,20 @@ try {
  await owner.route(pattern,async route=>{const response=await route.fetch();assert.equal(response.status(),200);await route.abort('failed');});
  await f.getByRole('button',{name:'保存关系',exact:true}).click();await f.getByRole('alert').waitFor();assert.equal(await f.getByLabel('贡献角色',{exact:true}).isDisabled(),true);
  assert.equal(await prisma.workCredit.count({where:{workId:wid}}),1);await owner.unroute(pattern);
- const reconciled=await writeUI(owner,'POST',wpath+'/credits',()=>f.getByRole('button',{name:'核对上次提交',exact:true}).click());assert.equal(reconciled.replayed,true);assert.equal(requests.length,2);assert.deepEqual(requests[0],requests[1]);assert.equal(await prisma.commandReceipt.count({where:{commandKey:requests[0].key,operation:'work.creditAdd'}}),1);
+ // Rejections of a retry and malformed 2xx do not resolve the original commit.
+ for(const status of [403,429,200]){
+  await owner.route(pattern,route=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(status===200?{}:{error:{code:'SYNTHETIC_RETRY_DENIED',message:'合成重试拒绝'}})}));
+  await writeUI(owner,'POST',wpath+'/credits',()=>f.getByRole('button',{name:'核对上次提交',exact:true}).click(),status);
+  await f.getByRole('alert').waitFor();assert.equal(await f.getByLabel('贡献角色',{exact:true}).isDisabled(),true);
+  await owner.unroute(pattern);
+ }
+ await owner.route(pattern,route=>route.fulfill({status:401,contentType:'application/json',body:JSON.stringify({error:{code:'SESSION_INVALID',message:'合成会话失效'}})}));
+ await writeUI(owner,'POST',wpath+'/credits',()=>f.getByRole('button',{name:'核对上次提交',exact:true}).click(),401);
+ await owner.unroute(pattern);
+ await owner.locator('input[autocomplete=username]').fill('owner');await owner.locator('input[autocomplete=current-password]').fill(password);
+ await owner.getByRole('button',{name:'登录',exact:true}).click();await owner.getByRole('button',{name:/概览/}).waitFor();
+ const reconciled=await writeUI(owner,'POST',wpath+'/credits',()=>owner.getByRole('button',{name:'原样核对上次提交',exact:true}).click());assert.equal(reconciled.replayed,true);assert.equal(requests.length,6);for(const request of requests)assert.deepEqual(requests[0],request);assert.equal(await prisma.commandReceipt.count({where:{commandKey:requests[0].key,operation:'work.creditAdd'}}),1);
+ await owner.getByRole('button',{name:/作品库/}).click();await owner.getByRole('button').filter({has:owner.getByRole('heading',{name:'WP1外部家具作品',exact:true})}).click();
  await owner.getByRole('heading',{name:'作品图片',exact:true}).waitFor();d=await dialogReady(owner,'WP1外部家具作品');
  await d.getByRole('button',{name:'添加署名',exact:true}).click();f=await dialogReady(owner,'添加作品署名');await f.getByRole('button',{name:'WP1摄影剪辑人员',exact:true}).click();await f.getByLabel('贡献角色',{exact:true}).selectOption('editor');await f.getByLabel('贡献说明').fill('合成后期剪辑贡献');await writeUI(owner,'POST',wpath+'/credits',()=>f.getByRole('button',{name:'保存关系',exact:true}).click());await owner.getByRole('heading',{name:'作品图片',exact:true}).waitFor();
  assert.equal(await prisma.workCredit.count({where:{workId:wid,personId:pid}}),2);assert.equal((await json(owner,'/people/'+pid+'/production')).actualProjectCount,0);

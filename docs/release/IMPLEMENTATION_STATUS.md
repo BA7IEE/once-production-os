@@ -11,3 +11,5 @@
 本批证据、数据库升级与CI状态见 [媒体交付说明](MEDIA_COMPLETION.md) 及PR #26；历史逐批证据保留在 [历史实现记录](IMPLEMENTATION_HISTORY.md)，不再把旧的“AI未启动”等状态当作当前待办。
 
 上线前两项运行故障已修复，定向回归通过；边界见[修复说明](PRELAUNCH_REVIEW_FIXES.md)，当前提交CI结果见PR。
+
+外部staging审查R1/R2已修复，独立ops执行镜像和staging安全约束已补齐，参见[staging执行说明](STAGING_EXECUTION.md)。新提交验证见PR。

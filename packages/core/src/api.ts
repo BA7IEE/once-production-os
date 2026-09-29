@@ -95,7 +95,7 @@ export class Application {
         invariant(config.contactKey.length === 32 && config.csrfKey.length === 32, 'CONFIG_INVALID', '密钥必须为 32 字节', 503);
         const origin = new URL(config.origin);
         invariant(origin.origin === config.origin && !origin.username && !origin.password && ['http:', 'https:'].includes(origin.protocol), 'CONFIG_INVALID', '必须配置精确 Origin', 503);
-        invariant(config.environment !== 'production' || (origin.protocol === 'https:' && config.secureCookies), 'CONFIG_INVALID', '生产环境要求 HTTPS 与安全 Cookie', 503);
+        invariant(!['production','staging'].includes(config.environment) || (origin.protocol === 'https:' && config.secureCookies), 'CONFIG_INVALID', '测试和生产环境要求 HTTPS 与安全 Cookie', 503);
         invariant(/^[a-zA-Z0-9_-]{16,128}$/.test(config.recoveryEpoch), 'CONFIG_INVALID', '恢复批次编号未配置', 503);
         this.store = store;
         this.clock = clock;
@@ -217,7 +217,12 @@ export class Application {
                 invariant(request.headers.origin === this.config.origin, 'ORIGIN_DENIED', '请求来源不被允许', 403);
             const jar = cookies(request.headers.cookie ?? '');
             const token = jar[sessionName] ?? '';
-            const authenticate = (tx:Tx) => machineRequest ? this.machine.authenticate(tx,bearerHeader!.slice(7)) : this.identity.authenticate(tx,token);
+            const authenticate = async (tx:Tx) => {
+                const actor=await (machineRequest ? this.machine.authenticate(tx,bearerHeader!.slice(7)) : this.identity.authenticate(tx,token));
+                const expected=request.headers['x-once-membership'];
+                invariant(!expected || (!machineRequest && expected===actor.membershipId), 'IDENTITY_CHANGED', '当前账号已变化，请使用原账号核对提交', 409);
+                return actor;
+            };
             const query: Record<string, string> = {};
             for (const [key, value] of url.searchParams) {
                 invariant(!Object.hasOwn(query, key), 'QUERY_INVALID', '筛选字段不能重复', 400);
