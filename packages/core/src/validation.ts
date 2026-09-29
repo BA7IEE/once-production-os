@@ -95,11 +95,14 @@ export const PersonPatch = v.object({ expectedRevision: revision,
 export const RevisionOnly = v.object({ expectedRevision: revision });
 export const PersonImportRow = v.object({ displayName: v.string(120, 1), roles: v.array(code, 10, 1), cityCode: v.optional(v.nullable(code)) });
 export const Schemas = {
+    handoffCreate: v.object({ expectedRevision: revision, expectedSourceRevision: revision,
+        recipientId: uuid, purpose: v.enum(['EDIT', 'REVIEW']), expiresAt: dateIso,
+        acknowledgeLimitedAccess: v.boolean() }),
     empty: v.object({}), login: v.object({ loginName: v.string(80, 1), password: v.string(256, 1) }),
     activate: v.object({ token: v.string(100, 32), password: v.string(256, 12) }),
     password: v.object({ oldPassword: v.string(256, 1), newPassword: v.string(256, 12) }),
-    memberCreate: v.object({ loginName: v.string(80, 3, /^[a-z0-9][a-z0-9._-]*$/), displayName: v.string(100, 1), role: v.enum(['ADMIN', 'EDITOR', 'REVIEWER', 'VIEWER']), extraPermissions: v.array(v.enum(['sensitive.read', 'sensitive.write']), 2) }),
-    memberPermissions: v.object({ expectedRevision: revision, role: v.enum(['ADMIN', 'EDITOR', 'REVIEWER', 'VIEWER']), extraPermissions: v.array(v.enum(['sensitive.read', 'sensitive.write']), 2) }),
+    memberCreate: v.object({ loginName: v.string(80, 3, /^[a-z0-9][a-z0-9._-]*$/), displayName: v.string(100, 1), role: v.enum(['ADMIN', 'EDITOR', 'REVIEWER', 'VIEWER']), extraPermissions: v.array(v.enum(['sensitive.read', 'sensitive.write', 'data.export', 'data.delete', 'data.merge', 'ai.use']), 6) }),
+    memberPermissions: v.object({ expectedRevision: revision, role: v.enum(['ADMIN', 'EDITOR', 'REVIEWER', 'VIEWER']), extraPermissions: v.array(v.enum(['sensitive.read', 'sensitive.write', 'data.export', 'data.delete', 'data.merge', 'ai.use']), 6) }),
     revision: RevisionOnly,
     scopeCreate: v.object({ name: v.string(120, 1), membershipIds: v.array(uuid, 50, 1) }),
     recordScope: v.object({ expectedRevision: revision, scopeId: uuid }),
@@ -110,7 +113,7 @@ export const Schemas = {
     personCreate: PersonInput, personPatch: PersonPatch,
     contacts: v.object({ expectedRevision: revision, contacts: v.array(v.object({ kind: v.enum(['PHONE', 'WECHAT', 'EMAIL', 'OTHER']), value: v.string(200, 1), sourceId: uuid }), 10) }),
     evidence: v.object({ personId: uuid, expectedRevision: revision, fieldPath: v.enum(['displayName', 'aliases', 'roles', 'cityCode', 'languageCodes', 'skillCodes', 'heightCm', 'intro']), sourceId: uuid, sourceRevision: revision }),
-    dictionaryCreate: v.object({ namespace: v.enum(['role', 'city', 'language', 'skill']), code, labelZh: v.string(120, 1), labelEn: v.string(120) }),
+    dictionaryCreate: v.object({ namespace: v.enum(['role', 'city', 'language', 'skill', 'industry', 'workType']), code, labelZh: v.string(120, 1), labelEn: v.string(120) }),
     dictionaryPatch: v.object({ expectedRevision: revision, labelZh: v.optional(v.string(120, 1)), labelEn: v.optional(v.string(120)), status: v.optional(v.enum(['ACTIVE', 'INACTIVE'])) }),
     importPreview: v.object({ sourceId: uuid, rows: v.array(v.unknown(), 100, 1) }),
     importCommit: v.object({ expectedRevision: revision, selectedRows: v.array(v.number(0, 99), 100, 1) })

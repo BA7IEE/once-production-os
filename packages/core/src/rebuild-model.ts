@@ -1,0 +1,54 @@
+import {LOCALE_EXPORT_VERSION} from './locale-transfer.ts';
+import { TALENT_EXPORT_VERSION } from './talent-transfer.ts';
+import { TALENT_V2_TABLES } from './talent-v2-model.ts';
+import type { Table } from './model.ts';
+
+export const REBUILD_SCHEMA_VERSION = 'once-export-v1' as const;
+
+export const REBUILD_EMPTY_TABLES: Table[] = ['brands','projectParties','localeTexts','localeDependencies',
+    ...TALENT_V2_TABLES,
+    'personMerges', 'personAliases', 'deletionRequests', 'deletionItems',
+    'usePermissions', 'exports', 'exportDependencies',
+    'shortlists', 'shortlistItems', 'shortlistItemAssets',
+    'works', 'workAssets', 'workCredits',
+    'projects', 'projectParticipants', 'projectWorks',
+    'uploads', 'assets',
+    'sources', 'sourceHistory', 'people', 'contacts', 'evidence',
+    'imports', 'jobs', 'handoffs'
+];
+
+export const REBUILD_LIMITS = Object.freeze({
+    sources: 200,
+    people: 100,
+    works: 30,
+    projects: 30,
+    media: 1000,
+    relations: 3000
+});
+
+export interface RebuildSummary {
+    schemaVersion: typeof REBUILD_SCHEMA_VERSION | typeof TALENT_EXPORT_VERSION | typeof LOCALE_EXPORT_VERSION;
+    exportId: string;
+    inputDigest: string;
+    workspaceId: string;
+    scopeId: string;
+    counts: {
+        sources: number;
+        people: number;
+        works: number;
+        projects: number;
+        workCredits: number;
+        projectParticipants: number;
+        projectWorks: number;
+        mediaIdentities: number;
+    };
+    localeTexts?: number;
+    localeDependencies?: number;
+    encryptedCredentialCount?: number;
+    fieldEvidence?: number;
+    professionalRecords?: number;
+    capabilityDefinitions?: number;
+    organizations?: number;
+    mergeHistory?: {people:number;aliases:number;decisions:number;profiles:number;evidence:number};
+    mediaRestored: number;
+}

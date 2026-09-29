@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: internal locale texts retain current typed dependencies and roll back audit failures for people, works and projects
+ok 1 - internal locale texts retain current typed dependencies and roll back audit failures for people, works and projects
+  ---
+  duration_ms: 161.717458
+  type: 'test'
+  ...
+# Subtest: source erasure clears locale text and dependencies atomically while preserving its person
+ok 2 - source erasure clears locale text and dependencies atomically while preserving its person
+  ---
+  duration_ms: 130.222458
+  type: 'test'
+  ...
+# Subtest: locale protection changes restrict content until explicit re-review; current scope and replay permissions apply
+ok 3 - locale protection changes restrict content until explicit re-review; current scope and replay permissions apply
+  ---
+  duration_ms: 222.604083
+  type: 'test'
+  ...
+# Subtest: locale recovery inspection rejects missing roots, altered source digest and cross-workspace dependencies
+ok 4 - locale recovery inspection rejects missing roots, altered source digest and cross-workspace dependencies
+  ---
+  duration_ms: 114.992875
+  type: 'test'
+  ...
+# Subtest: PERSON erasure clears its locale derivatives and rolls back failed cleanup audits
+ok 5 - PERSON erasure clears its locale derivatives and rolls back failed cleanup audits
+  ---
+  duration_ms: 118.158125
+  type: 'test'
+  ...
+# Subtest: WORK erasure clears its locale derivatives and rolls back failed cleanup audits
+ok 6 - WORK erasure clears its locale derivatives and rolls back failed cleanup audits
+  ---
+  duration_ms: 116.468125
+  type: 'test'
+  ...
+# Subtest: PROJECT erasure clears its locale derivatives and rolls back failed cleanup audits
+ok 7 - PROJECT erasure clears its locale derivatives and rolls back failed cleanup audits
+  ---
+  duration_ms: 118.085792
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1134.048834

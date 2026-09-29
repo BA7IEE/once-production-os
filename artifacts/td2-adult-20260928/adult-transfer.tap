@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: adult transfer retains original reviewer without creating an account; re-export and local re-verification preserve attribution boundaries
+ok 1 - adult transfer retains original reviewer without creating an account; re-export and local re-verification preserve attribution boundaries
+  ---
+  duration_ms: 503.0215
+  type: 'test'
+  ...
+# Subtest: expired and inactive adult verifications retain history but cannot satisfy the adult filter; quarantining proof removes eligibility
+ok 2 - expired and inactive adult verifications retain history but cannot satisfy the adult filter; quarantining proof removes eligibility
+  ---
+  duration_ms: 743.544708
+  type: 'test'
+  ...
+# Subtest: adult origin, verification time, active uniqueness and proof omission cannot be forged in a rebuild
+ok 3 - adult origin, verification time, active uniqueness and proof omission cannot be forged in a rebuild
+  ---
+  duration_ms: 430.324375
+  type: 'test'
+  ...
+# Subtest: adult export requires reviewer access and its own source grant; changing origin attribution stales old exports
+ok 4 - adult export requires reviewer access and its own source grant; changing origin attribution stales old exports
+  ---
+  duration_ms: 312.878292
+  type: 'test'
+  ...
+# Subtest: adult verification uses one event timestamp even when the clock advances between persistence calls
+ok 5 - adult verification uses one event timestamp even when the clock advances between persistence calls
+  ---
+  duration_ms: 297.63825
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2456.973917

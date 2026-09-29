@@ -1,0 +1,502 @@
+TAP version 13
+# Subtest: AI extraction produces a reviewable proposal and applies selected fields exactly once
+ok 1 - AI extraction produces a reviewable proposal and applies selected fields exactly once
+  ---
+  duration_ms: 197.997834
+  type: 'test'
+  ...
+# Subtest: AI strict source permission and minimum input checks precede reservation
+ok 2 - AI strict source permission and minimum input checks precede reservation
+  ---
+  duration_ms: 141.677875
+  type: 'test'
+  ...
+# Subtest: AI source changes prevent dispatch and stale proposals cannot write facts
+ok 3 - AI source changes prevent dispatch and stale proposals cannot write facts
+  ---
+  duration_ms: 132.739791
+  type: 'test'
+  ...
+# Subtest: AI parse search confirms a restricted filter object and never writes facts
+ok 4 - AI parse search confirms a restricted filter object and never writes facts
+  ---
+  duration_ms: 134.824417
+  type: 'test'
+  ...
+# Subtest: AI locale creates an unreviewed draft and work tags stay within the approved dictionary
+ok 5 - AI locale creates an unreviewed draft and work tags stay within the approved dictionary
+  ---
+  duration_ms: 149.713417
+  type: 'test'
+  ...
+# Subtest: AI selected fields and proposal state roll back together on audit failure
+ok 6 - AI selected fields and proposal state roll back together on audit failure
+  ---
+  duration_ms: 132.103167
+  type: 'test'
+  ...
+# Subtest: AI malformed output and invented quotations never become proposals or verified facts
+ok 7 - AI malformed output and invented quotations never become proposals or verified facts
+  ---
+  duration_ms: 335.770375
+  type: 'test'
+  ...
+# Subtest: AI source-linked proposals and grant evidence erase together without releasing unknown fees
+ok 8 - AI source-linked proposals and grant evidence erase together without releasing unknown fees
+  ---
+  duration_ms: 137.385917
+  type: 'test'
+  ...
+# Subtest: AI explicit permission and current source scope govern content, counts and replay
+ok 9 - AI explicit permission and current source scope govern content, counts and replay
+  ---
+  duration_ms: 127.116625
+  type: 'test'
+  ...
+# Subtest: AI recovery revokes grants, rejects pending proposals and retains unresolved charges
+ok 10 - AI recovery revokes grants, rejects pending proposals and retains unresolved charges
+  ---
+  duration_ms: 124.774709
+  type: 'test'
+  ...
+# Subtest: AI person deletion uses the normal impact, decision, freeze and cleanup workflow
+ok 11 - AI person deletion uses the normal impact, decision, freeze and cleanup workflow
+  ---
+  duration_ms: 131.448917
+  type: 'test'
+  ...
+# Subtest: AI may report no supported fields without guessing or treating confirmed usage as unknown
+ok 12 - AI may report no supported fields without guessing or treating confirmed usage as unknown
+  ---
+  duration_ms: 161.632917
+  type: 'test'
+  ...
+# Subtest: model connection flows through encrypted storage, one-send SDK worker and human proposal despite unknown cost
+ok 13 - model connection flows through encrypted storage, one-send SDK worker and human proposal despite unknown cost
+  ---
+  duration_ms: 187.373291
+  type: 'test'
+  ...
+# Subtest: connection writes require current admin, strict fields and atomic audit; unknown response uses the original key
+ok 14 - connection writes require current admin, strict fields and atomic audit; unknown response uses the original key
+  ---
+  duration_ms: 254.978792
+  type: 'test'
+  ...
+# Subtest: recovery disables saved connection approvals and cancels queued work without deleting encrypted configuration
+ok 15 - recovery disables saved connection approvals and cancels queued work without deleting encrypted configuration
+  ---
+  duration_ms: 139.546666
+  type: 'test'
+  ...
+# Subtest: business and connection test dispatch both honor the saved 120 second deadline
+ok 16 - business and connection test dispatch both honor the saved 120 second deadline
+  ---
+  duration_ms: 135.548125
+  type: 'test'
+  ...
+# Subtest: AI reservations serialize and uncertain/cancelled attempts retain funds until reconciliation
+ok 17 - AI reservations serialize and uncertain/cancelled attempts retain funds until reconciliation
+  ---
+  duration_ms: 150.19125
+  type: 'test'
+  ...
+# Subtest: AI accounting and dispatch authorization roll back when audit fails
+ok 18 - AI accounting and dispatch authorization roll back when audit fails
+  ---
+  duration_ms: 133.905208
+  type: 'test'
+  ...
+# Subtest: AI sends fail closed on changed provider, recovery epoch, disabled actor or midnight reservation
+ok 19 - AI sends fail closed on changed provider, recovery epoch, disabled actor or midnight reservation
+  ---
+  duration_ms: 127.885541
+  type: 'test'
+  ...
+# Subtest: AI known not executed has a bounded attempt count; cancellation releases only unsent funds
+ok 20 - AI known not executed has a bounded attempt count; cancellation releases only unsent funds
+  ---
+  duration_ms: 125.266209
+  type: 'test'
+  ...
+# Subtest: AI request identity rejects reuse with different payload and invalid money/configuration
+ok 21 - AI request identity rejects reuse with different payload and invalid money/configuration
+  ---
+  duration_ms: 131.92525
+  type: 'test'
+  ...
+# Subtest: AI uncertain funds survive date rollover and an overrun freezes subsequent days too
+ok 22 - AI uncertain funds survive date rollover and an overrun freezes subsequent days too
+  ---
+  duration_ms: 125.015125
+  type: 'test'
+  ...
+# Subtest: AI in-flight settlement remains possible after actor disable and restoration, but never sends again
+ok 23 - AI in-flight settlement remains possible after actor disable and restoration, but never sends again
+  ---
+  duration_ms: 168.340792
+  type: 'test'
+  ...
+# Subtest: AI dispatcher commits its unique attempt before network and never repeats an uncertain request
+ok 24 - AI dispatcher commits its unique attempt before network and never repeats an uncertain request
+  ---
+  duration_ms: 157.331
+  type: 'test'
+  ...
+# Subtest: AI dispatcher times out with reserved cost; late provider completion cannot create a proposal
+ok 25 - AI dispatcher times out with reserved cost; late provider completion cannot create a proposal
+  ---
+  duration_ms: 140.262833
+  type: 'test'
+  ...
+# Subtest: AI dispatcher checks input again before send and cancellation during HTTP suppresses proposals
+ok 26 - AI dispatcher checks input again before send and cancellation during HTTP suppresses proposals
+  ---
+  duration_ms: 126.194166
+  type: 'test'
+  ...
+# Subtest: AI proposal and settlement share a transaction; failed proposal does not create settled success
+ok 27 - AI proposal and settlement share a transaction; failed proposal does not create settled success
+  ---
+  duration_ms: 122.469042
+  type: 'test'
+  ...
+# Subtest: AI recovery inspection includes unresolved attempts and detects accounting or request-identity damage
+ok 28 - AI recovery inspection includes unresolved attempts and detects accounting or request-identity damage
+  ---
+  duration_ms: 122.406291
+  type: 'test'
+  ...
+# Subtest: SDK openai-chat uses the configured endpoint/model/key and returns normalized usage
+ok 29 - SDK openai-chat uses the configured endpoint/model/key and returns normalized usage
+  ---
+  duration_ms: 25.906167
+  type: 'test'
+  ...
+# Subtest: SDK openai-responses uses the configured endpoint/model/key and returns normalized usage
+ok 30 - SDK openai-responses uses the configured endpoint/model/key and returns normalized usage
+  ---
+  duration_ms: 30.916166
+  type: 'test'
+  ...
+# Subtest: SDK anthropic-messages uses the configured endpoint/model/key and returns normalized usage
+ok 31 - SDK anthropic-messages uses the configured endpoint/model/key and returns normalized usage
+  ---
+  duration_ms: 7.358708
+  type: 'test'
+  ...
+# Subtest: missing usage remains unknown; malformed suggestions retain returned usage
+ok 32 - missing usage remains unknown; malformed suggestions retain returned usage
+  ---
+  duration_ms: 34.820458
+  type: 'test'
+  ...
+# Subtest: HTTP throttling and provider errors never retry or expose raw error bodies
+ok 33 - HTTP throttling and provider errors never retry or expose raw error bodies
+  ---
+  duration_ms: 5.935875
+  type: 'test'
+  ...
+# Subtest: expired and cancelled requests are rejected before HTTP; in-flight abort propagates
+ok 34 - expired and cancelled requests are rejected before HTTP; in-flight abort propagates
+  ---
+  duration_ms: 1.402291
+  type: 'test'
+  ...
+# Subtest: untrusted configuration and oversized provider responses are rejected
+ok 35 - untrusted configuration and oversized provider responses are rejected
+  ---
+  duration_ms: 1.774417
+  type: 'test'
+  ...
+# Subtest: actual HTTP timeout leaves outcome unknown and never retries
+ok 36 - actual HTTP timeout leaves outcome unknown and never retries
+  ---
+  duration_ms: 1009.732917
+  type: 'test'
+  ...
+# Subtest: actual HTTP partial-body leaves outcome unknown and never retries
+ok 37 - actual HTTP partial-body leaves outcome unknown and never retries
+  ---
+  duration_ms: 1003.862917
+  type: 'test'
+  ...
+# Subtest: actual HTTP reset leaves outcome unknown and never retries
+ok 38 - actual HTTP reset leaves outcome unknown and never retries
+  ---
+  duration_ms: 4.725917
+  type: 'test'
+  ...
+# Subtest: actual HTTP redirect leaves outcome unknown and never retries
+ok 39 - actual HTTP redirect leaves outcome unknown and never retries
+  ---
+  duration_ms: 2.856
+  type: 'test'
+  ...
+# Subtest: actual HTTP 429 leaves outcome unknown and never retries
+ok 40 - actual HTTP 429 leaves outcome unknown and never retries
+  ---
+  duration_ms: 5.686542
+  type: 'test'
+  ...
+# Subtest: actual HTTP 500 leaves outcome unknown and never retries
+ok 41 - actual HTTP 500 leaves outcome unknown and never retries
+  ---
+  duration_ms: 3.847125
+  type: 'test'
+  ...
+# Subtest: AI approval binds the exact candidate and active human approver; disable is atomic and replayable
+ok 42 - AI approval binds the exact candidate and active human approver; disable is atomic and replayable
+  ---
+  duration_ms: 290.366167
+  type: 'test'
+  ...
+# Subtest: AI worker serializes send authority across concurrent workers and ignores cancelled sources
+ok 43 - AI worker serializes send authority across concurrent workers and ignores cancelled sources
+  ---
+  duration_ms: 139.725917
+  type: 'test'
+  ...
+# Subtest: AI worker restart isolates abandoned attempts even without an adapter and preserves reserved cost
+ok 44 - AI worker restart isolates abandoned attempts even without an adapter and preserves reserved cost
+  ---
+  duration_ms: 126.956292
+  type: 'test'
+  ...
+# Subtest: AI shutdown during provider work aborts and never creates a proposal or resend
+ok 45 - AI shutdown during provider work aborts and never creates a proposal or resend
+  ---
+  duration_ms: 128.361958
+  type: 'test'
+  ...
+# Subtest: AI reconciliation verifies original request evidence, rolls back with audit and never resends
+ok 46 - AI reconciliation verifies original request evidence, rolls back with audit and never resends
+  ---
+  duration_ms: 133.417917
+  type: 'test'
+  ...
+# Subtest: AI confirmed nonexecution releases funds but requires a new human task; unresolved cost blocks unfreeze
+ok 47 - AI confirmed nonexecution releases funds but requires a new human task; unresolved cost blocks unfreeze
+  ---
+  duration_ms: 158.14
+  type: 'test'
+  ...
+# Subtest: AI approval is invalidated by approver qualification and recovery isolation
+ok 48 - AI approval is invalidated by approver qualification and recovery isolation
+  ---
+  duration_ms: 179.683708
+  type: 'test'
+  ...
+# Subtest: AI global egress and maintenance switches block queued sends without blocking reconciliation
+ok 49 - AI global egress and maintenance switches block queued sends without blocking reconciliation
+  ---
+  duration_ms: 133.121459
+  type: 'test'
+  ...
+# Subtest: AI approval rejects invalid limits and still permits stopping while global egress is off
+ok 50 - AI approval rejects invalid limits and still permits stopping while global egress is off
+  ---
+  duration_ms: 129.234291
+  type: 'test'
+  ...
+# Subtest: COS stores private objects, verifies retries and round-trips original and preview
+ok 51 - COS stores private objects, verifies retries and round-trips original and preview
+  ---
+  duration_ms: 31.704375
+  type: 'test'
+  ...
+# Subtest: COS refuses public or versioned buckets and detects changed or oversized objects
+ok 52 - COS refuses public or versioned buckets and detects changed or oversized objects
+  ---
+  duration_ms: 11.466958
+  type: 'test'
+  ...
+# Subtest: COS failed purge stays incomplete and never leaks SDK errors
+ok 53 - COS failed purge stays incomplete and never leaks SDK errors
+  ---
+  duration_ms: 7.262791
+  type: 'test'
+  ...
+# Subtest: COS purge blocks on an uncertain publication and prevents later publishing
+ok 54 - COS purge blocks on an uncertain publication and prevents later publishing
+  ---
+  duration_ms: 6.6935
+  type: 'test'
+  ...
+# Subtest: proof transfer requires original asset and source permits, refuses unrelated assets, and stales on quarantine
+ok 55 - proof transfer requires original asset and source permits, refuses unrelated assets, and stales on quarantine
+  ---
+  duration_ms: 333.594291
+  type: 'test'
+  ...
+# Subtest: proof bytes rebuild verifies all files, preserves verified credential, and audit rollback leaves files reusable
+ok 56 - proof bytes rebuild verifies all files, preserves verified credential, and audit rollback leaves files reusable
+  ---
+  duration_ms: 498.654042
+  type: 'test'
+  ...
+# Subtest: missing, corrupt and linked proof files refuse preparation without creating a target
+ok 57 - missing, corrupt and linked proof files refuse preparation without creating a target
+  ---
+  duration_ms: 262.530791
+  type: 'test'
+  ...
+# Subtest: HTTP original download audits, rejects revoked permission and rechecks permission after file IO
+ok 58 - HTTP original download audits, rejects revoked permission and rechecks permission after file IO
+  ---
+  duration_ms: 299.154125
+  type: 'test'
+  ...
+# Subtest: M1 disabled provider rejects creation; no hidden memory storage
+ok 59 - M1 disabled provider rejects creation; no hidden memory storage
+  ---
+  duration_ms: 164.001666
+  type: 'test'
+  ...
+# Subtest: M1 upload create same-key replay consumes one reservation and minimal receipts
+ok 60 - M1 upload create same-key replay consumes one reservation and minimal receipts
+  ---
+  duration_ms: 138.003583
+  type: 'test'
+  ...
+# Subtest: M1 strict MIME, filename, size and unknown field input fail without writes
+ok 61 - M1 strict MIME, filename, size and unknown field input fail without writes
+  ---
+  duration_ms: 127.053
+  type: 'test'
+  ...
+# Subtest: M1 actor active reservation cap includes expired rows until worker expiry
+ok 62 - M1 actor active reservation cap includes expired rows until worker expiry
+  ---
+  duration_ms: 132.545334
+  type: 'test'
+  ...
+# Subtest: M1 source CAS and person/source mismatch denied
+ok 63 - M1 source CAS and person/source mismatch denied
+  ---
+  duration_ms: 135.71775
+  type: 'test'
+  ...
+# Subtest: M1 private upload metadata and bytes require owning/native scope; administrator is not bypass
+ok 64 - M1 private upload metadata and bytes require owning/native scope; administrator is not bypass
+  ---
+  duration_ms: 331.693125
+  type: 'test'
+  ...
+# Subtest: M1 receive is one-shot and cannot overwrite UPLOADED bytes
+ok 65 - M1 receive is one-shot and cannot overwrite UPLOADED bytes
+  ---
+  duration_ms: 125.993125
+  type: 'test'
+  ...
+# Subtest: M1 length mismatch does not claim reservation
+ok 66 - M1 length mismatch does not claim reservation
+  ---
+  duration_ms: 127.552083
+  type: 'test'
+  ...
+# Subtest: M1 digest mismatch never marks file uploaded
+ok 67 - M1 digest mismatch never marks file uploaded
+  ---
+  duration_ms: 128.77375
+  type: 'test'
+  ...
+# Subtest: M1 complete same-key unknown response replays original 202 without a second job
+ok 68 - M1 complete same-key unknown response replays original 202 without a second job
+  ---
+  duration_ms: 122.941625
+  type: 'test'
+  ...
+# Subtest: M1 late receive cannot revive cancellation
+ok 69 - M1 late receive cannot revive cancellation
+  ---
+  duration_ms: 122.864125
+  type: 'test'
+  ...
+# Subtest: M1 worker lease replacement denies stale result and gives unique final identity
+ok 70 - M1 worker lease replacement denies stale result and gives unique final identity
+  ---
+  duration_ms: 146.695792
+  type: 'test'
+  ...
+# Subtest: M1 two workers cannot concurrently claim one upload
+ok 71 - M1 two workers cannot concurrently claim one upload
+  ---
+  duration_ms: 148.575875
+  type: 'test'
+  ...
+# Subtest: M1 worker cannot publish after source edits
+ok 72 - M1 worker cannot publish after source edits
+  ---
+  duration_ms: 136.95425
+  type: 'test'
+  ...
+# Subtest: M1 cancel during decode denies publication without removing others
+ok 73 - M1 cancel during decode denies publication without removing others
+  ---
+  duration_ms: 148.821166
+  type: 'test'
+  ...
+# Subtest: M1 preview DTO never exposes storage path, token, original URL or digest
+ok 74 - M1 preview DTO never exposes storage path, token, original URL or digest
+  ---
+  duration_ms: 145.92825
+  type: 'test'
+  ...
+# Subtest: M1 quarantine denies next preview but preserves explicit asset state
+ok 75 - M1 quarantine denies next preview but preserves explicit asset state
+  ---
+  duration_ms: 130.38275
+  type: 'test'
+  ...
+# Subtest: M1 source suspension hides ready assets immediately
+ok 76 - M1 source suspension hides ready assets immediately
+  ---
+  duration_ms: 135.572833
+  type: 'test'
+  ...
+# Subtest: M1 renewed OPEN session remains one reservation and caps renewal count
+ok 77 - M1 renewed OPEN session remains one reservation and caps renewal count
+  ---
+  duration_ms: 130.504792
+  type: 'test'
+  ...
+# Subtest: M1 maintenance or recovery mismatch prevents cleanup and processing
+ok 78 - M1 maintenance or recovery mismatch prevents cleanup and processing
+  ---
+  duration_ms: 154.496
+  type: 'test'
+  ...
+# Subtest: M1 only aged failed/cancelled sessions can be purged; READY never eligible
+ok 79 - M1 only aged failed/cancelled sessions can be purged; READY never eligible
+  ---
+  duration_ms: 134.421041
+  type: 'test'
+  ...
+# Subtest: M1 failed receive remains bounded and cannot be automatically sent again
+ok 80 - M1 failed receive remains bounded and cannot be automatically sent again
+  ---
+  duration_ms: 119.474583
+  type: 'test'
+  ...
+# Subtest: M1 accepted basic profile handoff does not grant its media or sources
+ok 81 - M1 accepted basic profile handoff does not grant its media or sources
+  ---
+  duration_ms: 359.748292
+  type: 'test'
+  ...
+# Subtest: PDF and selected MP4 have independent byte limits without widening image limits
+ok 82 - PDF and selected MP4 have independent byte limits without widening image limits
+  ---
+  duration_ms: 237.727875
+  type: 'test'
+  ...
+1..82
+# tests 82
+# suites 0
+# pass 82
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4105.71875

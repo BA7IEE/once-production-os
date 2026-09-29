@@ -87,6 +87,8 @@ pnpm verify:postgres
 
 ## 6. 必跑浏览器清单
 
+A1 的自动化只覆盖导入续跑及指定异常。复现时先执行 `pnpm verify:online` 和构建，在隔离 PostgreSQL 中另建全新空 `once_test_*` 库与独立角色；显式设置 `DATABASE_URL_TEST` 和 `ALLOW_BROWSER_TESTS=yes` 后运行 `pnpm verify:browser`。本地使用已安装 Chrome 时可设置 `CHROME_EXECUTABLE`；CI 用 `pnpm exec playwright install --with-deps chromium` 安装受锁文件约束的浏览器版本。测试入口拒绝非回环地址、非测试库名和非空公共 schema，不删除测试库。
+
 来源依据截止时点按当前浏览器/设备时区填写，保存为 UTC；这不是“所选日期结束时”。测试时核对界面显示的具体时刻。
 
 用独立浏览器会话验证：管理员登录→创建编辑和审核员→各自激活→建立包含编辑/审核员的限定范围→编辑在该范围创建临时来源+人才→审核员核验→查看联系方式附加权限→预览合成 JSON→提交任务→Worker 执行→停用/到期拒绝下一次访问。
@@ -97,7 +99,46 @@ pnpm verify:postgres
 
 [examples/people-import.synthetic.json](../../examples/people-import.synthetic.json) 仅包含虚构资料。导入页面先选择一条可访问来源，粘贴数组；每批最多 100 行，不解析 CSV/Excel，也不自动合并同名人物。
 
-## 7. 部署与恢复限制
+## 7. T29 隔离 JSON 重建 CLI
+
+T29 只用于有权限的 `once-export-v1` 迁移重建，**不是数据库备份恢复**。先准备一个独立、已 migrate、已 bootstrap 的 loopback PostgreSQL 数据库，名称必须为 `once_rebuild_*`。目标只能有唯一 ADMIN 和 WORKSPACE scope，业务表必须为空。
+
+先从源系统的 READY Export 记录中人工取得 `payloadDigest`，并把下载得到的 JSON 文件保存在本机受限目录。不要从聊天、邮件或手工复制内容猜 digest。
+
+只读 CHECK：
+
+```bash
+export DATABASE_URL_REBUILD='postgresql://<user>:<password>@127.0.0.1:5432/once_rebuild_example'
+pnpm --silent rebuild:json -- --input ./export.json --actor-login owner
+```
+
+CHECK 会连接目标环境验证隔离状态、Schema、来源闭包、字典代码、关系与业务上限，但不写 Source/Person/Work/Project。
+
+真正 APPLY：
+
+```bash
+export ALLOW_REBUILD=yes
+pnpm --silent rebuild:json -- \
+  --input ./export.json \
+  --actor-login owner \
+  --expected-sha256 '<READY Export.payloadDigest>' \
+  --apply
+```
+
+安全门：
+
+- 脚本只读取 `DATABASE_URL_REBUILD`，普通 `DATABASE_URL` 不作为 fallback；
+- 只接受 loopback `once_rebuild_*`；
+- APPLY 必须 `ALLOW_REBUILD=yes`；
+- APPLY 必须 `--expected-sha256`；
+- digest mismatch 在数据库访问前拒绝；
+- 不 drop / truncate / reset / auto-migrate；
+- 第二次 APPLY 到已写入目标会拒绝；
+- ACTIVE Work、ACTUAL participant、媒体二进制等当前 export 信息不足的状态不会伪造恢复。
+
+CI 的真实 T29 验收会自己创建 fresh `once_rebuild_*` sibling DB，结束后故意保留到 CI service 销毁，不执行 drop。
+
+## 8. 部署与恢复限制
 
 Dockerfile 是候选构建文件，缺少真实锁文件时会有意失败。镜像 Node/PostgreSQL major 标签尚未固化 digest，镜像未构建。当前不提供“一键生产 Compose”。
 

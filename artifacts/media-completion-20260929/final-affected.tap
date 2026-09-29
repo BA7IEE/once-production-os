@@ -1,0 +1,490 @@
+TAP version 13
+# Subtest: COS stores private objects, verifies retries and round-trips original and preview
+ok 1 - COS stores private objects, verifies retries and round-trips original and preview
+  ---
+  duration_ms: 22.425833
+  type: 'test'
+  ...
+# Subtest: COS refuses public or versioned buckets and detects changed or oversized objects
+ok 2 - COS refuses public or versioned buckets and detects changed or oversized objects
+  ---
+  duration_ms: 7.3245
+  type: 'test'
+  ...
+# Subtest: COS failed purge stays incomplete and never leaks SDK errors
+ok 3 - COS failed purge stays incomplete and never leaks SDK errors
+  ---
+  duration_ms: 5.660333
+  type: 'test'
+  ...
+# Subtest: COS purge blocks on an uncertain publication and prevents later publishing
+ok 4 - COS purge blocks on an uncertain publication and prevents later publishing
+  ---
+  duration_ms: 5.662208
+  type: 'test'
+  ...
+# Subtest: DEV-07B preview is zero-write and DRAFT request does not block the target
+ok 5 - DEV-07B preview is zero-write and DRAFT request does not block the target
+  ---
+  duration_ms: 142.5255
+  type: 'test'
+  ...
+# Subtest: DEV-07B stale preview is rejected when a new dependency appears
+ok 6 - DEV-07B stale preview is rejected when a new dependency appears
+  ---
+  duration_ms: 137.147708
+  type: 'test'
+  ...
+# Subtest: DEV-07B hidden dependency is counted but not enumerated, and request creation is refused
+ok 7 - DEV-07B hidden dependency is counted but not enumerated, and request creation is refused
+  ---
+  duration_ms: 257.415667
+  type: 'test'
+  ...
+# Subtest: DEV-07B visible source does not enumerate child records whose own scope is hidden
+ok 8 - DEV-07B visible source does not enumerate child records whose own scope is hidden
+  ---
+  duration_ms: 252.053
+  type: 'test'
+  ...
+# Subtest: DEV-07B source preview reaches owned records, relations, permissions and frozen exports
+ok 9 - DEV-07B source preview reaches owned records, relations, permissions and frozen exports
+  ---
+  duration_ms: 127.4735
+  type: 'test'
+  ...
+# Subtest: DEV-07B persisted request returns only summary, not frozen dependency ids
+ok 10 - DEV-07B persisted request returns only summary, not frozen dependency ids
+  ---
+  duration_ms: 125.299041
+  type: 'test'
+  ...
+# Subtest: DEV-07B non-delete member cannot preview or enumerate draft deletion requests
+ok 11 - DEV-07B non-delete member cannot preview or enumerate draft deletion requests
+  ---
+  duration_ms: 242.703916
+  type: 'test'
+  ...
+# Subtest: DEV-07C blocking a person removes normal reads/search/handoff but preserves underlying data
+ok 12 - DEV-07C blocking a person removes normal reads/search/handoff but preserves underlying data
+  ---
+  duration_ms: 243.689292
+  type: 'test'
+  ...
+# Subtest: DEV-07C blocking a source cascades to normal source/person/work reads and appends protected history
+ok 13 - DEV-07C blocking a source cascades to normal source/person/work reads and appends protected history
+  ---
+  duration_ms: 126.604292
+  type: 'test'
+  ...
+# Subtest: DEV-07C block is refused when the frozen preview changed after DRAFT creation
+ok 14 - DEV-07C block is refused when the frozen preview changed after DRAFT creation
+  ---
+  duration_ms: 123.549375
+  type: 'test'
+  ...
+# Subtest: DEV-07C blocked person invalidates old export and shortlist item while preserving their records
+ok 15 - DEV-07C blocked person invalidates old export and shortlist item while preserving their records
+  ---
+  duration_ms: 124.617875
+  type: 'test'
+  ...
+# Subtest: DEV-07C already blocked target cannot create another deletion request
+ok 16 - DEV-07C already blocked target cannot create another deletion request
+  ---
+  duration_ms: 123.101542
+  type: 'test'
+  ...
+# Subtest: DEV-07D pending review decisions block plan freeze; safe review slots expose no underlying resource ids
+ok 17 - DEV-07D pending review decisions block plan freeze; safe review slots expose no underlying resource ids
+  ---
+  duration_ms: 120.349875
+  type: 'test'
+  ...
+# Subtest: DEV-07D manual proposed-action decision completes and freezes a non-executing cleanup plan
+ok 18 - DEV-07D manual proposed-action decision completes and freezes a non-executing cleanup plan
+  ---
+  duration_ms: 123.407
+  type: 'test'
+  ...
+# Subtest: DEV-07D retain-with-basis requires independent current source and freezes its revision/epoch
+ok 19 - DEV-07D retain-with-basis requires independent current source and freezes its revision/epoch
+  ---
+  duration_ms: 125.523417
+  type: 'test'
+  ...
+# Subtest: DEV-07D delete-only member may apply proposed action but cannot authorize retain-with-basis
+ok 20 - DEV-07D delete-only member may apply proposed action but cannot authorize retain-with-basis
+  ---
+  duration_ms: 245.222042
+  type: 'test'
+  ...
+# Subtest: DEV-07D source reviewer may approve retention and delete-only operator may freeze the completed plan
+ok 21 - DEV-07D source reviewer may approve retention and delete-only operator may freeze the completed plan
+  ---
+  duration_ms: 241.215375
+  type: 'test'
+  ...
+# Subtest: DEV-07E cleanup gate is independent and disabled mode cannot enter CLEANING
+ok 22 - DEV-07E cleanup gate is independent and disabled mode cannot enter CLEANING
+  ---
+  duration_ms: 119.358833
+  type: 'test'
+  ...
+# Subtest: DEV-07E worker irreversibly cleans registered DB dependencies but preserves blocked root
+ok 23 - DEV-07E worker irreversibly cleans registered DB dependencies but preserves blocked root
+  ---
+  duration_ms: 130.871833
+  type: 'test'
+  ...
+# Subtest: DEV-07E source cleanup stops at explicit external/specialized work instead of claiming completion
+ok 24 - DEV-07E source cleanup stops at explicit external/specialized work instead of claiming completion
+  ---
+  duration_ms: 119.501125
+  type: 'test'
+  ...
+# Subtest: DEV-07E cleanup start rechecks retained-basis revision after plan freeze
+ok 25 - DEV-07E cleanup start rechecks retained-basis revision after plan freeze
+  ---
+  duration_ms: 122.49925
+  type: 'test'
+  ...
+# Subtest: DEV-07F finalizes a source to an erased root and redacted history only after specialized cleanup proves completion
+ok 26 - DEV-07F finalizes a source to an erased root and redacted history only after specialized cleanup proves completion
+  ---
+  duration_ms: 123.638709
+  type: 'test'
+  ...
+# Subtest: DEV-07F retained source-owned person requires complete field evidence and preserves original origin
+ok 27 - DEV-07F retained source-owned person requires complete field evidence and preserves original origin
+  ---
+  duration_ms: 132.237833
+  type: 'test'
+  ...
+# Subtest: DEV-07A export needs explicit action permission and deployment egress gate
+ok 28 - DEV-07A export needs explicit action permission and deployment egress gate
+  ---
+  duration_ms: 264.801541
+  type: 'test'
+  ...
+# Subtest: DEV-07A export-only member can read minimal permission summaries without gaining source-read access
+ok 29 - DEV-07A export-only member can read minimal permission summaries without gaining source-read access
+  ---
+  duration_ms: 252.930667
+  type: 'test'
+  ...
+# Subtest: DEV-07A TEMP_ORGANIZE never becomes INTERNAL_EXPORT permission
+ok 30 - DEV-07A TEMP_ORGANIZE never becomes INTERNAL_EXPORT permission
+  ---
+  duration_ms: 123.960583
+  type: 'test'
+  ...
+# Subtest: DEV-07A frozen JSON excludes unselected/sensitive fields and survives ordinary content edits
+ok 31 - DEV-07A frozen JSON excludes unselected/sensitive fields and survives ordinary content edits
+  ---
+  duration_ms: 132.704542
+  type: 'test'
+  ...
+# Subtest: DEV-07A source suspension invalidates the entire old export download
+ok 32 - DEV-07A source suspension invalidates the entire old export download
+  ---
+  duration_ms: 126.608334
+  type: 'test'
+  ...
+# Subtest: DEV-07A permission revocation invalidates old export and same-key create replay cannot bypass it
+ok 33 - DEV-07A permission revocation invalidates old export and same-key create replay cannot bypass it
+  ---
+  duration_ms: 124.626583
+  type: 'test'
+  ...
+# Subtest: DEV-07A relations export only when both selected endpoints are explicitly included
+ok 34 - DEV-07A relations export only when both selected endpoints are explicitly included
+  ---
+  duration_ms: 129.340916
+  type: 'test'
+  ...
+# Subtest: M1 disabled provider rejects creation; no hidden memory storage
+ok 35 - M1 disabled provider rejects creation; no hidden memory storage
+  ---
+  duration_ms: 133.542042
+  type: 'test'
+  ...
+# Subtest: M1 upload create same-key replay consumes one reservation and minimal receipts
+ok 36 - M1 upload create same-key replay consumes one reservation and minimal receipts
+  ---
+  duration_ms: 127.774333
+  type: 'test'
+  ...
+# Subtest: M1 strict MIME, filename, size and unknown field input fail without writes
+ok 37 - M1 strict MIME, filename, size and unknown field input fail without writes
+  ---
+  duration_ms: 128.944917
+  type: 'test'
+  ...
+# Subtest: M1 actor active reservation cap includes expired rows until worker expiry
+ok 38 - M1 actor active reservation cap includes expired rows until worker expiry
+  ---
+  duration_ms: 129.62125
+  type: 'test'
+  ...
+# Subtest: M1 source CAS and person/source mismatch denied
+ok 39 - M1 source CAS and person/source mismatch denied
+  ---
+  duration_ms: 126.331875
+  type: 'test'
+  ...
+# Subtest: M1 private upload metadata and bytes require owning/native scope; administrator is not bypass
+ok 40 - M1 private upload metadata and bytes require owning/native scope; administrator is not bypass
+  ---
+  duration_ms: 252.928375
+  type: 'test'
+  ...
+# Subtest: M1 receive is one-shot and cannot overwrite UPLOADED bytes
+ok 41 - M1 receive is one-shot and cannot overwrite UPLOADED bytes
+  ---
+  duration_ms: 123.575291
+  type: 'test'
+  ...
+# Subtest: M1 length mismatch does not claim reservation
+ok 42 - M1 length mismatch does not claim reservation
+  ---
+  duration_ms: 124.155708
+  type: 'test'
+  ...
+# Subtest: M1 digest mismatch never marks file uploaded
+ok 43 - M1 digest mismatch never marks file uploaded
+  ---
+  duration_ms: 121.629291
+  type: 'test'
+  ...
+# Subtest: M1 complete same-key unknown response replays original 202 without a second job
+ok 44 - M1 complete same-key unknown response replays original 202 without a second job
+  ---
+  duration_ms: 120.756625
+  type: 'test'
+  ...
+# Subtest: M1 late receive cannot revive cancellation
+ok 45 - M1 late receive cannot revive cancellation
+  ---
+  duration_ms: 119.969333
+  type: 'test'
+  ...
+# Subtest: M1 worker lease replacement denies stale result and gives unique final identity
+ok 46 - M1 worker lease replacement denies stale result and gives unique final identity
+  ---
+  duration_ms: 121.72675
+  type: 'test'
+  ...
+# Subtest: M1 two workers cannot concurrently claim one upload
+ok 47 - M1 two workers cannot concurrently claim one upload
+  ---
+  duration_ms: 119.765042
+  type: 'test'
+  ...
+# Subtest: M1 worker cannot publish after source edits
+ok 48 - M1 worker cannot publish after source edits
+  ---
+  duration_ms: 121.442875
+  type: 'test'
+  ...
+# Subtest: M1 cancel during decode denies publication without removing others
+ok 49 - M1 cancel during decode denies publication without removing others
+  ---
+  duration_ms: 120.87
+  type: 'test'
+  ...
+# Subtest: M1 preview DTO never exposes storage path, token, original URL or digest
+ok 50 - M1 preview DTO never exposes storage path, token, original URL or digest
+  ---
+  duration_ms: 120.019458
+  type: 'test'
+  ...
+# Subtest: M1 quarantine denies next preview but preserves explicit asset state
+ok 51 - M1 quarantine denies next preview but preserves explicit asset state
+  ---
+  duration_ms: 121.280375
+  type: 'test'
+  ...
+# Subtest: M1 source suspension hides ready assets immediately
+ok 52 - M1 source suspension hides ready assets immediately
+  ---
+  duration_ms: 121.176291
+  type: 'test'
+  ...
+# Subtest: M1 renewed OPEN session remains one reservation and caps renewal count
+ok 53 - M1 renewed OPEN session remains one reservation and caps renewal count
+  ---
+  duration_ms: 121.983417
+  type: 'test'
+  ...
+# Subtest: M1 maintenance or recovery mismatch prevents cleanup and processing
+ok 54 - M1 maintenance or recovery mismatch prevents cleanup and processing
+  ---
+  duration_ms: 121.264875
+  type: 'test'
+  ...
+# Subtest: M1 only aged failed/cancelled sessions can be purged; READY never eligible
+ok 55 - M1 only aged failed/cancelled sessions can be purged; READY never eligible
+  ---
+  duration_ms: 129.232208
+  type: 'test'
+  ...
+# Subtest: M1 failed receive remains bounded and cannot be automatically sent again
+ok 56 - M1 failed receive remains bounded and cannot be automatically sent again
+  ---
+  duration_ms: 119.564666
+  type: 'test'
+  ...
+# Subtest: M1 accepted basic profile handoff does not grant its media or sources
+ok 57 - M1 accepted basic profile handoff does not grant its media or sources
+  ---
+  duration_ms: 357.760584
+  type: 'test'
+  ...
+# Subtest: PDF and selected MP4 have independent byte limits without widening image limits
+ok 58 - PDF and selected MP4 have independent byte limits without widening image limits
+  ---
+  duration_ms: 236.535708
+  type: 'test'
+  ...
+# Subtest: project parties current-source redaction, CAS, replay and audit rollback
+ok 59 - project parties current-source redaction, CAS, replay and audit rollback
+  ---
+  duration_ms: 149.810667
+  type: 'test'
+  ...
+# Subtest: project parties explicit multi-source export, stale protection and complete isolated rebuild
+ok 60 - project parties explicit multi-source export, stale protection and complete isolated rebuild
+  ---
+  duration_ms: 274.215041
+  type: 'test'
+  ...
+# Subtest: source erasure removes its brand and preserves independently sourced project client
+ok 61 - source erasure removes its brand and preserves independently sourced project client
+  ---
+  duration_ms: 138.910584
+  type: 'test'
+  ...
+# Subtest: brand write rejects viewer, hidden sources and unknown fields
+ok 62 - brand write rejects viewer, hidden sources and unknown fields
+  ---
+  duration_ms: 251.901334
+  type: 'test'
+  ...
+# Subtest: organization source cleanup detaches both references but retains an independently sourced brand
+ok 63 - organization source cleanup detaches both references but retains an independently sourced brand
+  ---
+  duration_ms: 138.422125
+  type: 'test'
+  ...
+# Subtest: private brands are absent from administrator list, replay and audit
+ok 64 - private brands are absent from administrator list, replay and audit
+  ---
+  duration_ms: 244.797875
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 preview is zero-write and accepts a closed 10 people / 3 works / 1 project graph
+ok 65 - DEV-07H T29 preview is zero-write and accepts a closed 10 people / 3 works / 1 project graph
+  ---
+  duration_ms: 140.23125
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 apply preserves exported business ids and relations while rebinding target ownership/scope
+ok 66 - DEV-07H T29 apply preserves exported business ids and relations while rebinding target ownership/scope
+  ---
+  duration_ms: 127.445375
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 rejects non-rebuildable missing or unknown fields before any write
+ok 67 - DEV-07H T29 rejects non-rebuildable missing or unknown fields before any write
+  ---
+  duration_ms: 246.534292
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 rejects missing source closure, unknown target catalog codes, ACTUAL-without-note and ACTIVE work without bytes
+ok 68 - DEV-07H T29 rejects missing source closure, unknown target catalog codes, ACTUAL-without-note and ACTIVE work without bytes
+  ---
+  duration_ms: 494.943417
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 refuses to merge into an already-used target
+ok 69 - DEV-07H T29 refuses to merge into an already-used target
+  ---
+  duration_ms: 124.627541
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 cannot bypass normal per-work or per-project relationship limits
+ok 70 - DEV-07H T29 cannot bypass normal per-work or per-project relationship limits
+  ---
+  duration_ms: 240.446542
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 rejects states normal record APIs would not create
+ok 71 - DEV-07H T29 rejects states normal record APIs would not create
+  ---
+  duration_ms: 597.380292
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 media identity permits cross-work reuse but rejects duplicate links and order gaps
+ok 72 - DEV-07H T29 media identity permits cross-work reuse but rejects duplicate links and order gaps
+  ---
+  duration_ms: 479.250541
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 allows target-local catalog preparation through normal commands
+ok 73 - DEV-07H T29 allows target-local catalog preparation through normal commands
+  ---
+  duration_ms: 121.295875
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 audit failure rolls the complete rebuild transaction back
+ok 74 - DEV-07H T29 audit failure rolls the complete rebuild transaction back
+  ---
+  duration_ms: 119.481291
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 cannot be replayed into the same target after a successful rebuild
+ok 75 - DEV-07H T29 cannot be replayed into the same target after a successful rebuild
+  ---
+  duration_ms: 119.622167
+  type: 'test'
+  ...
+# Subtest: TD2-T16 Person graph erasure previews, rolls back on audit failure, retries and preserves independent identities
+ok 76 - TD2-T16 Person graph erasure previews, rolls back on audit failure, retries and preserves independent identities
+  ---
+  duration_ms: 213.255125
+  type: 'test'
+  ...
+# Subtest: TD2-T17 recovery revokes machine credentials, invalidates proposals, checks credential encryption and detects graph drift
+ok 77 - TD2-T17 recovery revokes machine credentials, invalidates proposals, checks credential encryption and detects graph drift
+  ---
+  duration_ms: 159.677625
+  type: 'test'
+  ...
+# Subtest: TD2-T17 integrity inspector detects missing or cross-person typed references without leaking identifiers
+ok 78 - TD2-T17 integrity inspector detects missing or cross-person typed references without leaking identifiers
+  ---
+  duration_ms: 147.215209
+  type: 'test'
+  ...
+# Subtest: TD2-T16 source-owned identities require explicit full erasure while singleton merge requires history resolution
+ok 79 - TD2-T16 source-owned identities require explicit full erasure while singleton merge requires history resolution
+  ---
+  duration_ms: 150.643208
+  type: 'test'
+  ...
+# Subtest: TD2-T16 legacy export cannot serialize stale flat professional fields for an upgraded person
+ok 80 - TD2-T16 legacy export cannot serialize stale flat professional fields for an upgraded person
+  ---
+  duration_ms: 142.545292
+  type: 'test'
+  ...
+1..80
+# tests 80
+# suites 0
+# pass 80
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3882.480041

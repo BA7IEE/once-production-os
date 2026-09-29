@@ -1,0 +1,267 @@
+import { open, readFile, stat } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { flockSync } from 'fs-ext';
+import { setTimeout as sleep } from 'node:timers/promises';
+import { dirname, isAbsolute, resolve } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import type { AuditEvent } from '../../../../packages/core/src/model.ts';
+import type { SafetyIntent } from '../../../../packages/core/src/safety-intent.ts';
+import { digest } from '../../../../packages/core/src/json.ts';
+import { invariant } from '../../../../packages/core/src/errors.ts';
+
+export const SAFETY_JOURNAL_VERSION = 'once-safety-journal-v1';
+export const SAFETY_JOURNAL_ENTRY_VERSION = 'once-safety-journal-entry-v2';
+const LEGACY_ENTRY_VERSION = 'once-safety-journal-entry-v1';
+const ZERO = '0'.repeat(64);
+const NOISY_READ_ACTIONS = new Set([
+    'auth.login', 'auth.login-denied', 'auth.logout',
+    'contact.read', 'asset.preview', 'export.download'
+]);
+
+export interface SafetyJournalHeader {
+    schemaVersion: typeof SAFETY_JOURNAL_VERSION;
+    journalId: string;
+    createdAt: string;
+}
+export interface SafetyJournalEntry {
+    schemaVersion: typeof SAFETY_JOURNAL_ENTRY_VERSION | typeof LEGACY_ENTRY_VERSION;
+    /** Absent on immutable legacy v1 entries; never infer it from operation/resource. */
+    requestId?: string;
+    abortProof?: 'NOT_STARTED';
+    seq: number;
+    auditId: string;
+    workspaceId: string;
+    createdAt: string;
+    action: string;
+    resourceKind: string;
+    resourceId: string;
+    changedFields: string[];
+    prevHash: string;
+    hash: string;
+}
+export interface SafetyJournalSnapshot {
+    schemaVersion: typeof SAFETY_JOURNAL_VERSION;
+    journalId: string;
+    sequence: number;
+    headHash: string;
+    entries: number;
+}
+export interface SafetyJournalState {
+    header: SafetyJournalHeader;
+    entries: SafetyJournalEntry[];
+    snapshot: SafetyJournalSnapshot;
+}
+
+function keys(value: Record<string, unknown>, expected: string[], message: string) {
+    invariant(Object.keys(value).sort().join(',') === [...expected].sort().join(','), 'SAFETY_JOURNAL_INVALID', message, 503);
+}
+function header(value: unknown): SafetyJournalHeader {
+    invariant(!!value && typeof value === 'object' && !Array.isArray(value), 'SAFETY_JOURNAL_INVALID', '安全日志头格式无效', 503);
+    const row = value as Record<string, unknown>;
+    keys(row, ['schemaVersion','journalId','createdAt'], '安全日志头包含未知字段');
+    invariant(row.schemaVersion === SAFETY_JOURNAL_VERSION
+        && typeof row.journalId === 'string'
+        && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(row.journalId)
+        && typeof row.createdAt === 'string' && Number.isFinite(Date.parse(row.createdAt)),
+        'SAFETY_JOURNAL_INVALID', '安全日志头内容无效', 503);
+    return row as unknown as SafetyJournalHeader;
+}
+function entry(value: unknown, expectedSeq: number, expectedPrev: string): SafetyJournalEntry {
+    invariant(!!value && typeof value === 'object' && !Array.isArray(value), 'SAFETY_JOURNAL_INVALID', '安全日志记录格式无效', 503);
+    const row = value as Record<string, unknown>;
+    const v2 = row.schemaVersion === SAFETY_JOURNAL_ENTRY_VERSION;
+    keys(row, ['schemaVersion','seq','auditId','workspaceId','createdAt','action','resourceKind','resourceId','changedFields','prevHash','hash',
+        ...(v2 ? ['requestId'] : []), ...(v2 && row.resourceKind === 'intent-abort' ? ['abortProof'] : [])],
+        '安全日志记录包含未知字段');
+    invariant((v2 || row.schemaVersion === LEGACY_ENTRY_VERSION)
+        && (!v2 || (typeof row.requestId === 'string' && row.requestId.length > 0 && row.requestId.length <= 200))
+        && (!v2 || row.resourceKind !== 'intent-abort' || row.abortProof === 'NOT_STARTED')
+        && row.seq === expectedSeq
+        && typeof row.auditId === 'string'
+        && typeof row.workspaceId === 'string'
+        && typeof row.createdAt === 'string' && Number.isFinite(Date.parse(row.createdAt))
+        && typeof row.action === 'string' && row.action.length > 0 && row.action.length <= 120
+        && typeof row.resourceKind === 'string' && row.resourceKind.length > 0 && row.resourceKind.length <= 80
+        && typeof row.resourceId === 'string' && row.resourceId.length > 0 && row.resourceId.length <= 180
+        && Array.isArray(row.changedFields) && row.changedFields.every(x => typeof x === 'string' && x.length <= 120)
+        && row.prevHash === expectedPrev
+        && typeof row.hash === 'string' && /^[a-f0-9]{64}$/.test(row.hash),
+        'SAFETY_JOURNAL_INVALID', '安全日志记录内容或链位置无效', 503);
+    const withoutHash = { ...row }; delete withoutHash.hash;
+    invariant(digest(withoutHash) === row.hash, 'SAFETY_JOURNAL_INVALID', '安全日志 hash chain 校验失败', 503);
+    return row as unknown as SafetyJournalEntry;
+}
+function parseLine(line: string): unknown {
+    invariant(line.length > 0 && line.length <= 65536, 'SAFETY_JOURNAL_INVALID', '安全日志行长度无效', 503);
+    try { return JSON.parse(line); }
+    catch { invariant(false, 'SAFETY_JOURNAL_INVALID', '安全日志不是合法 JSON Lines', 503); }
+}
+export function safetyCriticalAudit(row: AuditEvent): boolean {
+    return !NOISY_READ_ACTIONS.has(row.action);
+}
+export async function readSafetyJournal(path: string): Promise<SafetyJournalState> {
+    invariant(isAbsolute(path) && resolve(path) === path, 'SAFETY_JOURNAL_PATH_INVALID', '安全日志必须使用规范绝对路径', 503);
+    const info = await stat(path);
+    invariant(info.isFile() && (info.mode & 0o077) === 0, 'SAFETY_JOURNAL_PATH_INVALID', '安全日志必须是仅当前账号可访问的普通文件', 503);
+    const text = await readFile(path, 'utf8');
+    invariant(text.endsWith('\n'), 'SAFETY_JOURNAL_INVALID', '安全日志末行不完整', 503);
+    const lines = text.slice(0, -1).split('\n');
+    invariant(lines.length >= 1, 'SAFETY_JOURNAL_INVALID', '安全日志为空', 503);
+    const h = header(parseLine(lines[0]!));
+    let prev = digest(h);
+    const entries: SafetyJournalEntry[] = [], ids = new Set<string>();
+    for (let i = 1; i < lines.length; i++) {
+        const row = entry(parseLine(lines[i]!), i, prev);
+        invariant(!ids.has(row.auditId), 'SAFETY_JOURNAL_INVALID', '安全日志包含重复 Audit ID', 503);
+        ids.add(row.auditId); entries.push(row); prev = row.hash;
+    }
+    return { header: h, entries, snapshot: {
+        schemaVersion: SAFETY_JOURNAL_VERSION, journalId: h.journalId,
+        sequence: entries.length, headHash: prev, entries: entries.length
+    }};
+}
+export function safetyJournalHashAt(state: SafetyJournalState, sequence: number): string {
+    invariant(Number.isSafeInteger(sequence) && sequence >= 0 && sequence <= state.entries.length,
+        'SAFETY_JOURNAL_ANCHOR_INVALID', '安全日志备份锚点序号无效', 503);
+    return sequence === 0 ? digest(state.header) : state.entries[sequence - 1]!.hash;
+}
+
+export async function createSafetyJournal(path: string, now = new Date()): Promise<SafetyJournalState> {
+    invariant(isAbsolute(path) && resolve(path) === path, 'SAFETY_JOURNAL_PATH_INVALID', '安全日志必须使用规范绝对路径', 503);
+    const parent = dirname(path), p = await stat(parent);
+    invariant(p.isDirectory() && (p.mode & 0o077) === 0, 'SAFETY_JOURNAL_PATH_INVALID', '安全日志父目录必须是私有目录', 503);
+    const h: SafetyJournalHeader = { schemaVersion: SAFETY_JOURNAL_VERSION, journalId: randomUUID(), createdAt: now.toISOString() };
+    const handle = await open(path, 'wx', 0o600);
+    try { await handle.writeFile(JSON.stringify(h) + '\n'); await handle.sync(); }
+    finally { await handle.close(); }
+    return readSafetyJournal(path);
+}
+export async function withSafetyJournalLock<T>(path: string, work: () => Promise<T>): Promise<T> {
+        invariant(isAbsolute(path) && resolve(path) === path, 'SAFETY_JOURNAL_PATH_INVALID', '安全日志必须使用规范绝对路径', 503);
+        const parent = await stat(dirname(path));
+        invariant(parent.isDirectory() && (parent.mode & 0o077) === 0, 'SAFETY_JOURNAL_PATH_INVALID', '安全日志父目录必须是私有目录', 503);
+        // Keep this inode for the lifetime of the installation. Never unlink a lock
+        // file: waiters could otherwise lock different inodes. The kernel releases
+        // flock on close or process death, without expiry-based lock stealing.
+        const lock = await open(path + '.lock', constants.O_CREAT | constants.O_RDWR | constants.O_NOFOLLOW, 0o600);
+        try {
+            const info = await lock.stat();
+            invariant(info.isFile() && info.nlink === 1 && (info.mode & 0o077) === 0,
+                'SAFETY_JOURNAL_PATH_INVALID', '安全日志锁必须是私有普通文件', 503);
+            let acquired = false;
+            for (let attempt = 0; attempt < 80; attempt++) {
+                try { flockSync(lock.fd, 'exnb'); acquired = true; break; }
+                catch (error) {
+                    if (!['EAGAIN', 'EWOULDBLOCK'].includes((error as NodeJS.ErrnoException).code ?? '')) throw error;
+                    await sleep(25);
+                }
+            }
+            invariant(acquired, 'SAFETY_JOURNAL_LOCKED',
+                '安全日志写锁被其他进程占用；为避免漏记安全事件，本次写入已中止', 503);
+            return await work();
+        } finally { await lock.close(); }
+    }
+
+export class SafetyJournalWriter {
+    path: string;
+    state: SafetyJournalState;
+    private constructor(path: string, state: SafetyJournalState) { this.path = path; this.state = state; }
+    static async open(path: string) {
+        return withSafetyJournalLock(path, async () => {
+            let state: SafetyJournalState;
+            try { state = await readSafetyJournal(path); }
+            catch (error) {
+                if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+                state = await createSafetyJournal(path);
+            }
+            return new SafetyJournalWriter(path, state);
+        });
+    }
+    async checkReady(): Promise<void> {
+        await withSafetyJournalLock(this.path, async () => {
+            await readSafetyJournal(this.path);
+            const handle = await open(this.path, 'a');
+            try { await handle.sync(); } finally { await handle.close(); }
+        });
+    }
+    snapshot(): SafetyJournalSnapshot { return structuredClone(this.state.snapshot); }
+
+    private async appendRows(rows: Array<{
+        auditId: string; workspaceId: string; createdAt: string; action: string;
+        resourceKind: string; resourceId: string; changedFields: string[]; requestId: string; abortProof?: 'NOT_STARTED';
+    }>): Promise<number> {
+        return withSafetyJournalLock(this.path, async () => {
+            this.state = await readSafetyJournal(this.path);
+            const known = new Set(this.state.entries.map(x => x.auditId));
+            const pending = rows.filter(x => !known.has(x.auditId))
+                .sort((a,b) => a.createdAt.localeCompare(b.createdAt) || a.auditId.localeCompare(b.auditId));
+            if (!pending.length) return 0;
+            let prev = this.state.snapshot.headHash, seq = this.state.snapshot.sequence;
+            const additions: SafetyJournalEntry[] = [];
+            for (const input of pending) {
+                const body: Omit<SafetyJournalEntry, 'hash'> = {
+                    schemaVersion: SAFETY_JOURNAL_ENTRY_VERSION,
+                    requestId: input.requestId,
+                    ...(input.abortProof ? { abortProof: input.abortProof } : {}),
+                    seq: ++seq, auditId: input.auditId, workspaceId: input.workspaceId,
+                    createdAt: input.createdAt, action: input.action,
+                    resourceKind: input.resourceKind, resourceId: input.resourceId,
+                    changedFields: [...input.changedFields].sort(), prevHash: prev
+                };
+                const row: SafetyJournalEntry = { ...body, hash: digest(body) };
+                additions.push(row); prev = row.hash;
+            }
+            const handle = await open(this.path, 'a', 0o600);
+            try {
+                await handle.writeFile(additions.map(x => JSON.stringify(x)).join('\n') + '\n');
+                await handle.sync();
+            }
+            finally { await handle.close(); }
+            this.state = await readSafetyJournal(this.path);
+            return additions.length;
+        });
+    }
+    async append(audits: AuditEvent[]): Promise<number> {
+        return this.appendRows(audits.filter(safetyCriticalAudit).map(audit => ({
+            auditId: audit.id, workspaceId: audit.workspaceId, createdAt: audit.createdAt,
+            action: audit.action, resourceKind: audit.resourceKind, resourceId: audit.resourceId,
+            changedFields: audit.changedFields, requestId: audit.requestId
+        })));
+    }
+    private intentSuffix(intent: SafetyIntent): string {
+        invariant(intent.intentId.startsWith('intent:') && intent.intentId.length > 15 && intent.intentId.length <= 200
+            && intent.operation.length > 0 && intent.operation.length <= 100
+            && intent.resourceId.length > 0 && intent.resourceId.length <= 180
+            && typeof intent.requestId === 'string' && intent.requestId.length > 0 && intent.requestId.length <= 200,
+            'SAFETY_INTENT_INVALID', '安全意图元数据无效', 503);
+        return intent.intentId.slice('intent:'.length);
+    }
+    async writeAhead(intent: SafetyIntent): Promise<void> {
+        this.intentSuffix(intent);
+        await this.appendRows([{
+            auditId: intent.intentId, workspaceId: intent.workspaceId, createdAt: new Date().toISOString(),
+            action: 'intent.' + intent.operation, resourceKind: 'intent',
+            resourceId: intent.resourceId, changedFields: [], requestId: intent.requestId
+        }]);
+    }
+    async committed(intent: SafetyIntent, resourceId: string): Promise<void> {
+        const suffix = this.intentSuffix(intent);
+        invariant(resourceId.length > 0 && resourceId.length <= 180,
+            'SAFETY_INTENT_INVALID', '安全提交资源标识无效', 503);
+        await this.appendRows([{
+            auditId: 'commit:' + suffix, workspaceId: intent.workspaceId, createdAt: new Date().toISOString(),
+            action: 'commit.' + intent.operation, resourceKind: 'intent-commit',
+            resourceId, changedFields: [], requestId: intent.requestId
+        }]);
+    }
+    async aborted(intent: SafetyIntent, proof: 'NOT_STARTED'): Promise<void> {
+        invariant(proof === 'NOT_STARTED', 'SAFETY_ABORT_UNPROVEN',
+            '只有尚未开始事务或外部副作用时才能记录未提交证明', 503);
+        const suffix = this.intentSuffix(intent);
+        await this.appendRows([{
+            auditId: 'abort:' + suffix, workspaceId: intent.workspaceId, createdAt: new Date().toISOString(),
+            action: 'abort.' + intent.operation, resourceKind: 'intent-abort',
+            resourceId: intent.resourceId, changedFields: [], requestId: intent.requestId, abortProof: proof
+        }]);
+    }
+}

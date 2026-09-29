@@ -1,3 +1,4 @@
+import { runProductionContracts } from "./production-contracts.ts";
 /** Real PostgreSQL tests. NOT executed in the offline development environment.
  * This suite deliberately leaves its synthetic records in a disposable database.
  * It never deletes, truncates, drops or restores a database.
@@ -38,7 +39,7 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
         const clock = new FakeClock();
         const config: Config = { origin: 'https://postgres.test.invalid', secureCookies: true,
             contactKey: randomBytes(32), csrfKey: randomBytes(32), recoveryEpoch: randomBytes(24).toString('hex'),
-            accessMode: 'INTERNAL', environment: 'test' };
+            accessMode: 'INTERNAL', dataEgressMode: 'INTERNAL_APPROVED', dataCleanupMode: 'INTERNAL_APPROVED', dataMergeMode: 'INTERNAL_APPROVED', environment: 'test', mediaEnabled: true };
         const appA = new Application(storeA, config, clock);
         const appB = new Application(storeB, config, clock);
         const identity = await appA.identity.bootstrap('owner', '仅限合成测试管理员', SYNTHETIC_PASSWORD);
@@ -46,6 +47,18 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
         const ownerB = new Client(appB, '192.0.2.77');
         assert.equal((await ownerA.login()).status, 200);
         assert.equal((await ownerB.login()).status, 200);
+        // Login intentionally requires exactly one installed workspace. Establish real test
+        // identities before later FK-negative fixtures add foreign workspaces; do not weaken
+        // the production installation gate or ignore failed activation/login responses.
+        const senderCreated = await ownerA.raw('POST', '/memberships', { loginName: 'pg_handoff_sender', displayName: 'PG交接发起人', role: 'EDITOR', extraPermissions: [] });
+        const recipientCreated = await ownerA.raw('POST', '/memberships', { loginName: 'pg_handoff_receiver', displayName: 'PG交接接收人', role: 'ADMIN', extraPermissions: ['sensitive.read', 'sensitive.write'] });
+        assert.equal(senderCreated.status, 201);
+        assert.equal(recipientCreated.status, 201);
+        const sender = new Client(appA, '192.0.2.80'), receiver = new Client(appB, '192.0.2.81');
+        assert.equal((await sender.activate(result(senderCreated).activationToken)).status, 200);
+        assert.equal((await sender.login('pg_handoff_sender')).status, 200);
+        assert.equal((await receiver.activate(result(recipientCreated).activationToken)).status, 200);
+        assert.equal((await receiver.login('pg_handoff_receiver')).status, 200);
         let personId = '';
         await t.test('two independent clients serialize the same command into one source/person/receipt', async () => {
             const key = randomUUID();
@@ -116,13 +129,19 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
                 const faults = new FaultStore(storeA);
                 let fired = false;
                 faults.afterInsert = (table) => {
-                    if (table === stage && !fired) { fired = true; throw new Error('synthetic after-insert failure'); }
+                    if (table === stage && !fired) {
+                        fired = true;
+                        throw new Error('synthetic after-insert failure');
+                    }
                 };
                 const failApp = new Application(faults, config, clock);
-                const c = new Client(failApp); c.jar = { ...ownerA.jar }; c.csrf = ownerA.csrf;
+                const c = new Client(failApp);
+                c.jar = { ...ownerA.jar };
+                c.csrf = ownerA.csrf;
                 const counts = async () => ({ people: await a.person.count(), sources: await a.sourceRecord.count(),
                     history: await a.sourceHistory.count(), audits: await a.auditEvent.count(), receipts: await a.commandReceipt.count() });
-                const before = await counts(); const key = randomUUID();
+                const before = await counts();
+                const key = randomUUID();
                 const body = { displayName: 'PG rollback ' + stage, roles: ['model'], inlineSource: sourceInput() };
                 assert.equal((await c.cmd('POST', '/people', body, key)).status, 503);
                 assert.ok(fired, 'the targeted SQL write must actually have run');
@@ -132,7 +151,8 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
                 assert.equal(success.status, 201);
                 assert.deepEqual(await counts(), Object.fromEntries(Object.entries(before).map(([k, v]) => [k, v + 1])));
                 const replay = await ownerB.cmd('POST', '/people', body, key);
-                assert.equal(replay.status, 201); assert.equal(result(replay).resourceId, result(success).resourceId);
+                assert.equal(replay.status, 201);
+                assert.equal(result(replay).resourceId, result(success).resourceId);
                 assert.deepEqual(await counts(), Object.fromEntries(Object.entries(before).map(([k, v]) => [k, v + 1])));
             });
         }
@@ -144,7 +164,7 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
             await assert.rejects(a.sourceHistory.delete({ where: { id: h.id } }), /sourceHistory is append-only/);
             const foreign = await a.accessScope.findFirstOrThrow({ where: { workspaceId: { not: identity.workspaceId } } });
             await assert.rejects(a.sourceHistory.create({ data: { ...input, id: randomUUID(), scopeId: foreign.id,
-                sourceRevision: 123456, snapshot: { ...(h.snapshot as Prisma.JsonObject), scopeId: foreign.id, revision: 123456 } } }));
+                    sourceRevision: 123456, snapshot: { ...(h.snapshot as Prisma.JsonObject), scopeId: foreign.id, revision: 123456 } } }));
             assert.equal(await a.sourceHistory.count({ where: { workspaceId: identity.workspaceId, sourceId: h.sourceId, sourceRevision: 123456 } }), 0);
         });
         await t.test('PG partial import resume retains checkpoints, idempotency and two-worker ownership', async () => {
@@ -155,17 +175,26 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
             const queued = await ownerA.cmd('POST', '/imports/' + result(preview).resourceId + '/commit', { expectedRevision: 1, selectedRows: [0, 1] });
             assert.equal(queued.status, 202);
             const jobId = result(queued).resourceId;
-            const faults = new FaultStore(storeA); let fired = false;
-            faults.afterInsert = (table, row) => { if (table === 'people' && 'displayName' in row && row.displayName === 'PG resume 2' && !fired) {
-                fired = true; throw new AppError(503, 'STORE_BUSY', 'synthetic row rollback');
-            } };
+            const faults = new FaultStore(storeA);
+            let fired = false;
+            faults.afterInsert = (table, row) => {
+                if (table === 'people' && 'displayName' in row && row.displayName === 'PG resume 2' && !fired) {
+                    fired = true;
+                    throw new AppError(503, 'STORE_BUSY', 'synthetic row rollback');
+                }
+            };
             const worker = new Application(faults, config, clock);
             const before = await a.person.count();
-            const old = await worker.imports.claim(); assert.ok(old); await worker.imports.process(old);
-            assert.ok(fired); assert.equal(await a.person.count(), before + 1);
+            const old = await worker.imports.claim();
+            assert.ok(old);
+            await worker.imports.process(old);
+            assert.ok(fired);
+            assert.equal(await a.person.count(), before + 1);
             const state = result(await ownerA.raw('GET', '/jobs/' + jobId));
-            assert.equal(state.canResume, true); assert.equal(state.importedCount, 1);
-            const key = randomUUID(); const input = { expectedRevision: state.revision };
+            assert.equal(state.canResume, true);
+            assert.equal(state.importedCount, 1);
+            const key = randomUUID();
+            const input = { expectedRevision: state.revision };
             const resumed = await Promise.all([ownerA, ownerB].map(c => c.cmd('POST', '/jobs/' + jobId + '/resume', input, key)));
             assert.ok(resumed.every(r => r.status === 202));
             const claims = await Promise.all([appA.imports.claim(), appB.imports.claim()]);
@@ -178,26 +207,274 @@ test('fresh disposable PostgreSQL: constraints, real transactions and independen
             assert.equal((await ownerA.cmd('POST', '/jobs/' + jobId + '/resume', input, key)).status, 202);
             assert.equal(await a.person.count(), before + 2);
         });
-        await t.test('PG query count stays bounded for 100/1000 people and a 100-row preview', async () => {
+        await t.test('PG query count stays bounded for 100/1000 people across preview and structured talent search', async () => {
             const measured = new PrismaClient({ datasources: { db: { url } }, log: [{ emit: 'event', level: 'query' }] });
-            const measuredStore = new PrismaStore(measured); let queries = 0;
+            const measuredStore = new PrismaStore(measured);
+            let queries = 0;
             measured.$on('query', () => { queries++; }); // Never log SQL parameters or full records.
             try {
                 const measuredApp = new Application(measuredStore, config, clock);
-                const c = new Client(measuredApp); c.jar = { ...ownerA.jar }; c.csrf = ownerA.csrf;
+                const c = new Client(measuredApp);
+                c.jar = { ...ownerA.jar };
+                c.csrf = ownerA.csrf;
                 const template = await a.person.findUniqueOrThrow({ where: { id: personId } });
+                const searchCounts: number[] = [];
                 for (const target of [100, 1000]) {
                     const existing = await a.person.count();
-                    if (existing < target) await a.person.createMany({ data: Array.from({ length: target - existing }, (_, i) => ({
-                        ...template, id: randomUUID(), displayName: 'PG scale ' + target + ':' + i })) });
-                    queries = 0; const started = performance.now();
+                    if (existing < target)
+                        await a.person.createMany({ data: Array.from({ length: target - existing }, (_, i) => ({
+                                ...template, id: randomUUID(), displayName: 'PG scale ' + target + ':' + i
+                            })) });
+                    queries = 0;
+                    let started = performance.now();
                     const res = await c.cmd('POST', '/imports/preview', { sourceId: template.sourceId,
                         rows: Array.from({ length: 100 }, (_, i) => ({ displayName: 'PG preview ' + i, roles: ['model'] })) });
-                    assert.equal(res.status, 201); assert.ok(queries <= 50, 'query budget exceeded: ' + queries);
+                    assert.equal(res.status, 201);
+                    assert.ok(queries <= 50, 'preview query budget exceeded: ' + queries);
                     console.log(JSON.stringify({ metric: 'PG-preview', people: target, rows: 100, queries, elapsedMs: performance.now() - started }));
+                    queries = 0;
+                    started = performance.now();
+                    const search = await c.raw('GET', '/talent-search?page=1&pageSize=20');
+                    assert.equal(search.status, 200, JSON.stringify(search.body));
+                    searchCounts.push(queries);
+                    assert.ok(queries <= 25, 'talent search query budget exceeded: ' + queries);
+                    console.log(JSON.stringify({ metric: 'PG-talent-search', people: target, pageSize: 20, queries, elapsedMs: performance.now() - started }));
                 }
-            } finally { await measuredStore.close(); }
+                assert.equal(searchCounts[0], searchCounts[1], 'structured search query count must not grow with 100 -> 1000 people');
+            }
+            finally {
+                await measuredStore.close();
+            }
         });
+        await t.test('H1 PG private basic-profile grant and native evidence separation', async () => {
+            const created = await sender.cmd('POST', '/people', { displayName: 'PG H1私有档案', roles: ['model'], inlineSource: sourceInput(true) });
+            assert.equal(created.status, 201);
+            const person = await a.person.findUniqueOrThrow({ where: { id: result(created).resourceId } });
+            const sourceBefore = await a.sourceRecord.findUniqueOrThrow({ where: { id: person.sourceId } });
+            const scopesBefore = await a.scopeMember.findMany({ orderBy: { id: 'asc' } });
+            const input = { expectedRevision: person.revision, expectedSourceRevision: sourceBefore.revision,
+                recipientId: result(recipientCreated).membershipId, purpose: 'EDIT', acknowledgeLimitedAccess: true,
+                expiresAt: new Date(clock.now().getTime() + 3600000).toISOString() };
+            const key = randomUUID();
+            const invites = await Promise.all([sender, sender].map(c => c.cmd('POST', '/people/' + person.id + '/handoffs', input, key)));
+            assert.ok(invites.every(r => r.status === 201));
+            const hid = result(invites[0]!).resourceId;
+            assert.equal(await a.recordHandoff.count({ where: { personId: person.id } }), 1);
+            assert.equal((await receiver.raw('GET', '/people/' + person.id)).status, 404);
+            const ak = randomUUID();
+            const accepts = await Promise.all([receiver, receiver].map(c => c.cmd('POST', '/handoffs/' + hid + '/accept', { expectedRevision: 1 }, ak)));
+            assert.ok(accepts.every(r => r.status === 200));
+            assert.equal((await receiver.raw('GET', '/people/' + person.id)).status, 200);
+            for (const path of ['/sources/' + person.sourceId, '/sources/' + person.sourceId + '/history', '/people/' + person.id + '/contacts'])
+                assert.equal((await receiver.raw('GET', path)).status, 404);
+            assert.deepEqual(await a.sourceRecord.findUniqueOrThrow({ where: { id: person.sourceId } }), sourceBefore);
+            assert.deepEqual(await a.scopeMember.findMany({ orderBy: { id: 'asc' } }), scopesBefore);
+            const editKey = randomUUID();
+            const edit = { expectedRevision: 1, intro: 'PG受控修改' };
+            assert.equal((await receiver.cmd('PATCH', '/people/' + person.id, edit, editKey)).status, 200);
+            assert.equal((await sender.cmd('POST', '/handoffs/' + hid + '/revoke', { expectedRevision: 2 })).status, 200);
+            assert.equal((await receiver.cmd('PATCH', '/people/' + person.id, edit, editKey)).status, 404);
+            assert.equal((await receiver.raw('GET', '/people/' + person.id)).status, 404);
+            const row = await a.recordHandoff.findUniqueOrThrow({ where: { id: hid } });
+            // DB is a second boundary: malformed state and cross-workspace recipient must fail.
+            await assert.rejects(a.recordHandoff.update({ where: { id: hid }, data: { state: 'DECLINED', acceptedAt: null, closedById: null } }));
+            const alienWorkspace = randomUUID(), alienUser = randomUUID(), alienMember = randomUUID();
+            const now = clock.now();
+            await a.workspace.create({ data: { id: alienWorkspace, name: 'H1隔离空间', createdAt: now, recoveryEpoch: config.recoveryEpoch } });
+            await a.user.create({ data: { id: alienUser, workspaceId: alienWorkspace, loginName: 'alien_' + alienUser, displayName: '仅FK测试', status: 'ACTIVE', passwordHash: null, sessionEpoch: 1, revision: 1, createdAt: now, updatedAt: now } });
+            await a.membership.create({ data: { id: alienMember, workspaceId: alienWorkspace, userId: alienUser, role: 'EDITOR', extraPermissions: [], status: 'ACTIVE', revision: 1, createdAt: now, updatedAt: now } });
+            await assert.rejects(a.recordHandoff.create({ data: { ...row, id: randomUUID(), recipientId: alienMember } }));
+            assert.equal(await a.recordHandoff.count({ where: { personId: person.id } }), 1);
+        });
+        for (const stage of ['handoffs', 'audits', 'receipts'] as const) {
+            await t.test('H1 PG atomic handoff creation rollback after ' + stage, async () => {
+                const receiver = await a.membership.findFirstOrThrow({ where: { role: 'EDITOR', status: 'ACTIVE', id: { not: identity.membershipId } } });
+                const created = await ownerA.cmd('POST', '/people', { displayName: 'H1回滚-' + stage, roles: ['model'], inlineSource: sourceInput(true) });
+                assert.equal(created.status, 201);
+                const person = await a.person.findUniqueOrThrow({ where: { id: result(created).resourceId } });
+                const input = { expectedRevision: 1, expectedSourceRevision: 1, recipientId: receiver.id, purpose: 'EDIT',
+                    expiresAt: new Date(clock.now().getTime() + 3600000).toISOString(), acknowledgeLimitedAccess: true };
+                const count = async () => ({ handoffs: await a.recordHandoff.count(), audits: await a.auditEvent.count(), receipts: await a.commandReceipt.count() });
+                const before = await count();
+                const key = randomUUID();
+                const faults = new FaultStore(storeA);
+                let fired = false;
+                faults.afterInsert = table => {
+                    if (table === stage && !fired) {
+                        fired = true;
+                        throw new Error('H1 after-insert fault');
+                    }
+                };
+                const app = new Application(faults, config, clock), client = new Client(app);
+                client.jar = { ...ownerA.jar };
+                client.csrf = ownerA.csrf;
+                assert.equal((await client.cmd('POST', '/people/' + person.id + '/handoffs', input, key)).status, 503);
+                assert.ok(fired);
+                assert.deepEqual(await count(), before);
+                assert.equal((await ownerA.cmd('POST', '/people/' + person.id + '/handoffs', input, key)).status, 201);
+                assert.deepEqual(await count(), Object.fromEntries(Object.entries(before).map(([k, v]) => [k, v + 1])));
+            });
+        }
+        const imageHash = 'a'.repeat(64), imagePreviewHash = 'b'.repeat(64);
+        async function mediaSetup() {
+            const r = await ownerA.cmd('POST', '/people', { displayName: 'M1 PG合成图片人才', roles: ['model'], inlineSource: sourceInput(true) });
+            assert.equal(r.status, 201);
+            const person = await a.person.findUniqueOrThrow({ where: { id: result(r).resourceId } });
+            const input = { sourceId: person.sourceId, personId: person.id, expectedSourceRevision: 1, fileName: 'synthetic.png', mime: 'image/png', expectedBytes: 12, sha256: imageHash };
+            const key = randomUUID(), out = await Promise.all([ownerA, ownerB].map(c => c.cmd('POST', '/uploads', input, key)));
+            assert.ok(out.every(r => r.status === 201), JSON.stringify(out.map(r => r.body)));
+            const id = result(out[0]!).resourceId as string;
+            assert.equal(result(out[1]!).resourceId, id);
+            const received = await storeA.transaction(async (tx) => appA.media.beginReceive(tx, await appA.identity.authenticate(tx, ownerA.jar.once_session!), id, 12));
+            await storeA.transaction(async (tx) => appA.media.finishReceive(tx, await appA.identity.authenticate(tx, ownerA.jar.once_session!), id, received.receiveToken!, 12, imageHash));
+            const upload = await a.mediaUpload.findUniqueOrThrow({ where: { id } });
+            assert.equal((await ownerA.cmd('POST', '/uploads/' + id + '/complete', { expectedRevision: upload.revision })).status, 202);
+            return id;
+        }
+        await t.test('M1 PG same-key reservation, competing leases and unique asset from current attempt', async () => {
+            const id = await mediaSetup(), claims = await Promise.all([appA.media.claim(), appB.media.claim()]);
+            assert.equal(claims.filter(Boolean).length, 1);
+            const old = claims.find(Boolean)!;
+            clock.advance(31000);
+            const next = (await appB.media.claim())!;
+            assert.equal(next.id, id);
+            assert.notEqual(old.leaseToken, next.leaseToken);
+            const output = { mime: 'image/png' as const, bytes: 12, sha256: imageHash, width: 2, height: 3, previewBytes: 10, previewHash: imagePreviewHash };
+            await assert.rejects(appA.media.finish(old, output));
+            assert.equal(await a.mediaAsset.count({ where: { id } }), 0);
+            await appB.media.finish(next, output);
+            assert.equal(await a.mediaAsset.count({ where: { id } }), 1);
+            assert.equal((await a.mediaUpload.findUniqueOrThrow({ where: { id } })).state, 'READY');
+            await assert.rejects(a.mediaUpload.update({ where: { id }, data: { personEpoch: null } }));
+            await assert.rejects(a.mediaAsset.update({ where: { id }, data: { width: 0 } }));
+            const row = await a.mediaAsset.findUniqueOrThrow({ where: { id } });
+            const alien = await a.sourceRecord.findFirst({ where: { workspaceId: { not: identity.workspaceId } } });
+            // Wrong parent remains rejected even when both IDs are syntactically valid.
+            await assert.rejects(a.mediaAsset.update({ where: { id }, data: { sourceId: randomUUID() } }));
+            assert.equal((await a.mediaAsset.findUniqueOrThrow({ where: { id } })).sourceId, row.sourceId);
+        });
+        for (const stage of ['assets', 'audits'] as const) {
+            await t.test('M1 PG READY publication rollback after ' + stage, async () => {
+                const id = await mediaSetup(), claim = (await appA.media.claim())!;
+                const before = await a.mediaUpload.findUniqueOrThrow({ where: { id } }), auditBefore = await a.auditEvent.count();
+                const faults = new FaultStore(storeA);
+                let fired = false;
+                faults.afterInsert = table => {
+                    if (table === stage && !fired) {
+                        fired = true;
+                        throw new Error('M1 synthetic after write');
+                    }
+                };
+                const app = new Application(faults, config, clock), output = { mime: 'image/png' as const, bytes: 12, sha256: imageHash, width: 2, height: 3, previewBytes: 10, previewHash: imagePreviewHash };
+                await assert.rejects(app.media.finish(claim, output));
+                assert.ok(fired);
+                assert.equal(await a.mediaAsset.count({ where: { id } }), 0);
+                assert.deepEqual(await a.mediaUpload.findUniqueOrThrow({ where: { id } }), before);
+                assert.equal(await a.auditEvent.count(), auditBefore);
+                await appA.media.finish(claim, output);
+                assert.equal(await a.mediaAsset.count({ where: { id } }), 1);
+            });
+        }
+        await t.test('DEV-07G PG merge persists one decision/alias, replay is singular and old id resolves read-only', async () => {
+            const canonicalCreated = await ownerA.cmd('POST', '/people', {
+                displayName: 'PG merge canonical', roles: ['model'], inlineSource: sourceInput()
+            });
+            const duplicateCreated = await ownerA.cmd('POST', '/people', {
+                displayName: 'PG merge duplicate', roles: ['model'], inlineSource: sourceInput()
+            });
+            assert.equal(canonicalCreated.status, 201);
+            assert.equal(duplicateCreated.status, 201);
+            const canonicalId = String(result(canonicalCreated).resourceId);
+            const duplicateId = String(result(duplicateCreated).resourceId);
+            const canonical = result(await ownerA.raw('GET', '/people/' + canonicalId));
+            const duplicate = result(await ownerA.raw('GET', '/people/' + duplicateId));
+            const previewResponse = await ownerA.raw('POST', '/people/merge-preview', {
+                canonicalId, duplicateId,
+                expectedCanonicalRevision: canonical.revision,
+                expectedDuplicateRevision: duplicate.revision
+            });
+            assert.equal(previewResponse.status, 200, JSON.stringify(previewResponse.body));
+            const preview = result(previewResponse);
+            assert.equal(preview.complete, true);
+            const input = {
+                canonicalId, duplicateId,
+                expectedCanonicalRevision: preview.canonical.revision,
+                expectedDuplicateRevision: preview.duplicate.revision,
+                previewDigest: preview.previewDigest,
+                fieldDecisions: preview.fieldConflicts.map((x: any) => ({ field: x.field, choice: 'CANONICAL' })),
+                collisionDecisions: preview.collisions.map((x: any) => ({ collisionId: x.id, choice: 'KEEP_CANONICAL' })),
+                acknowledgeRevocations: true,
+                acknowledgeMediaDetach: true,
+                reason: 'PG synthetic explicit identity merge'
+            };
+            const key = randomUUID();
+            const merged = await ownerA.cmd('POST', '/people/merge', input, key);
+            assert.equal(merged.status, 200, JSON.stringify(merged.body));
+            const decisionId = String(result(merged).resourceId);
+            assert.equal(await a.personMergeDecision.count({ where: { workspaceId: identity.workspaceId, duplicatePersonId: duplicateId } }), 1);
+            assert.equal(await a.personAlias.count({ where: { workspaceId: identity.workspaceId, oldPersonId: duplicateId, canonicalPersonId: canonicalId } }), 1);
+            assert.equal((await a.person.findUniqueOrThrow({ where: { id: duplicateId } })).status, 'ARCHIVED');
+
+            const oldRead = result(await ownerA.raw('GET', '/people/' + duplicateId));
+            assert.equal(oldRead.id, canonicalId);
+            assert.equal(oldRead.resolvedFromId, duplicateId);
+            const oldWrite = await ownerA.cmd('PATCH', '/people/' + duplicateId, {
+                expectedRevision: (await a.person.findUniqueOrThrow({ where: { id: duplicateId } })).revision,
+                intro: 'must not write through old id'
+            });
+            assert.ok([404, 409].includes(oldWrite.status), JSON.stringify(oldWrite.body));
+
+            const replay = await ownerB.cmd('POST', '/people/merge', input, key);
+            assert.equal(replay.status, 200, JSON.stringify(replay.body));
+            assert.equal(result(replay).resourceId, decisionId);
+            assert.equal(result(replay).replayed, true);
+            assert.equal(await a.personMergeDecision.count({ where: { workspaceId: identity.workspaceId, duplicatePersonId: duplicateId } }), 1);
+            assert.equal(await a.personAlias.count({ where: { workspaceId: identity.workspaceId, oldPersonId: duplicateId } }), 1);
+
+            const alias = await a.personAlias.findFirstOrThrow({ where: { workspaceId: identity.workspaceId, oldPersonId: duplicateId } });
+            await assert.rejects(a.personAlias.update({ where: { id: alias.id }, data: {
+                updatedAt: new Date(alias.updatedAt.getTime() + 1000)
+            } }), /person merge history is append-only/);
+            await assert.rejects(a.personAlias.delete({ where: { id: alias.id } }), /person merge history is append-only/);
+            assert.equal((await a.personAlias.findUniqueOrThrow({ where: { id: alias.id } })).canonicalPersonId, canonicalId);
+
+            const decision = await a.personMergeDecision.findUniqueOrThrow({ where: { id: decisionId } });
+            await assert.rejects(a.personMergeDecision.update({ where: { id: decision.id }, data: { resultDigest: '0'.repeat(64) } }), /person merge history is append-only/);
+            await assert.rejects(a.personMergeDecision.delete({ where: { id: decision.id } }), /person merge history is append-only/);
+            await assert.rejects(a.personMergeDecision.create({ data: {
+                ...decision,
+                id: randomUUID(),
+                decisionManifest: decision.decisionManifest as Prisma.InputJsonValue
+            } }));
+            assert.equal(await a.personMergeDecision.count({ where: { workspaceId: identity.workspaceId, duplicatePersonId: duplicateId } }), 1);
+
+            const forgedCreated = await ownerA.cmd('POST', '/people', {
+                displayName: 'PG forged merge identity', roles: ['model'], inlineSource: sourceInput()
+            });
+            assert.equal(forgedCreated.status, 201);
+            const forgedId = String(result(forgedCreated).resourceId);
+            await a.person.update({ where: { id: forgedId }, data: { status: 'ARCHIVED' } });
+            const now = clock.now();
+            await assert.rejects(a.personAlias.create({ data: {
+                id: randomUUID(), workspaceId: identity.workspaceId, createdAt: now, updatedAt: now, revision: 1,
+                oldPersonId: forgedId, canonicalPersonId: canonicalId, mergeDecisionId: decisionId
+            } }));
+            await assert.rejects(a.personMergeDecision.create({ data: {
+                ...decision,
+                id: randomUUID(),
+                duplicatePersonId: forgedId,
+                duplicateSourceId: decision.canonicalSourceId,
+                decisionManifest: decision.decisionManifest as Prisma.InputJsonValue
+            } }));
+            assert.equal(await a.personAlias.count({ where: { workspaceId: identity.workspaceId, oldPersonId: forgedId } }), 0);
+
+            const search = result(await ownerA.raw('GET', '/talent-search?q=' + encodeURIComponent('PG merge duplicate')));
+            const encoded = JSON.stringify(search);
+            assert.equal(encoded.includes(duplicateId), false, 'old alias id must not re-enter SQL talent search');
+            assert.equal(encoded.includes(canonicalId), false, 'a name supported only by the duplicate Source must not be re-attributed to canonical search aliases');
+        });
+
+        await runProductionContracts(t, { a, b, storeA, ownerA, ownerB, appA, config, clock, identity });
     }
     finally {
         await Promise.all([storeA.close(), storeB.close()]);

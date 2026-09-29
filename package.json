@@ -27,27 +27,44 @@
     "review:static": "node scripts/static-review.mjs",
     "verify": "pnpm contract:check && pnpm typecheck && pnpm test:core && pnpm review:static && pnpm build",
     "verify:postgres": "node scripts/verify-postgres.mjs",
+    "verify:browser": "node tests/acceptance/browser-resume.mjs",
     "typecheck:transport": "tsc -p apps/admin-web/tsconfig.transport.json",
     "init:local": "node scripts/init-local.mjs",
     "verify:online": "bash scripts/online-verify.sh",
-    "review:package": "node scripts/check-package.mjs"
+    "review:package": "node scripts/check-package.mjs",
+    "rebuild:json": "node --experimental-strip-types scripts/rebuild-export.ts",
+    "recovery:prepare": "node --experimental-strip-types scripts/recovery-prepare.ts",
+    "recovery:check": "node --experimental-strip-types scripts/recovery-check.ts",
+    "safety-journal": "node --experimental-strip-types scripts/safety-journal.ts",
+    "recovery:backup": "node --experimental-strip-types scripts/recovery-backup.ts",
+    "recovery:approve": "node --experimental-strip-types scripts/recovery-approve.ts",
+    "recovery:restore-media": "node --experimental-strip-types scripts/recovery-restore-media.ts"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "4.0.65",
+    "@ai-sdk/openai": "4.0.78",
+    "@ai-sdk/openai-compatible": "3.0.57",
     "@nestjs/common": "11.2.5",
     "@nestjs/core": "11.2.5",
     "@nestjs/platform-express": "11.2.5",
     "@prisma/client": "6.19.3",
+    "ai": "7.0.118",
+    "cos-nodejs-sdk-v5": "3.0.0",
     "express": "5.1.0",
+    "fs-ext": "2.1.1",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2",
-    "react": "19.1.1",
-    "react-dom": "19.1.1"
+    "sharp": "0.35.4"
   },
   "devDependencies": {
     "@types/express": "5.0.3",
+    "@types/fs-ext": "2.0.3",
     "@types/node": "22.15.30",
     "@types/react": "19.1.10",
     "@types/react-dom": "19.1.9",
+    "playwright": "1.63.0",
     "prisma": "6.19.3",
     "typescript": "5.8.3",
     "vite": "6.4.1"
@@ -58,7 +75,9 @@
       "@prisma/client",
       "@prisma/engines",
       "prisma",
-      "esbuild"
+      "esbuild",
+      "sharp",
+      "fs-ext"
     ],
     "overrides": {
       "@nestjs/platform-express>multer": "2.3.0",

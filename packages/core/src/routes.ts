@@ -1,14 +1,84 @@
+import {PartySchemas} from './project-parties.ts';
+import {ConnectionSaveSchema,ConnectionTestSchema} from './ai-connection.ts';
+import {AiSchemas as AS} from './ai-validation.ts';
+import {LocaleSchemas as LS} from './locale-validation.ts';
+import { TD2_ROUTES } from './talent-v2-routes.ts';
+import { MergeSchemas as MS } from './merge-validation.ts';
+import { DeletionSchemas as DS } from './deletion-validation.ts';
+import { ExportSchemas as ES } from './export-validation.ts';
+import { ShortlistSchemas as SS } from './shortlist-validation.ts';
+import { ProductionSchemas as PS } from './production-validation.ts';
+import { MediaSchemas } from './media-validation.ts';
 import type { Permission } from './model.ts';
 import { Schemas, type Schema } from './validation.ts';
 export interface RouteDefinition {
     method: 'GET' | 'POST' | 'PATCH' | 'PUT';
     path: string;
     operation: string;
-    mode: 'AUTH' | 'READ' | 'COMMAND' | 'SECRET';
+    mode: 'AUTH' | 'READ' | 'COMMAND' | 'SECRET' | 'BINARY';
     permission?: Permission;
     schema?: Schema<unknown>;
 }
 export const ROUTES: RouteDefinition[] = [
+    {method:'POST',path:'/brands',operation:'brand.create',mode:'COMMAND',permission:'records.write',schema:PartySchemas.create},
+    {method:'GET',path:'/brands',operation:'brand.list',mode:'READ',permission:'records.read'},
+    {method:'PATCH',path:'/brands/{id}',operation:'brand.patch',mode:'COMMAND',permission:'records.write',schema:PartySchemas.patch},
+    {method:'POST',path:'/projects/{id}/parties',operation:'project.parties',mode:'COMMAND',permission:'records.write',schema:PartySchemas.bind},
+    {method:'POST',path:'/ai-connection/test',operation:'ai.connection.test',mode:'COMMAND',permission:'members.manage',schema:ConnectionTestSchema},
+    {method:'GET',path:'/ai-connection',operation:'ai.connection',mode:'READ',permission:'members.manage'},
+    {method:'POST',path:'/ai-connection',operation:'ai.connection.save',mode:'COMMAND',permission:'members.manage',schema:ConnectionSaveSchema},
+    {method:'GET',path:'/ai-operations',operation:'ai.operations',mode:'READ',permission:'members.manage'},
+    {method:'POST',path:'/ai-operations/approval',operation:'ai.approval',mode:'COMMAND',permission:'members.manage',schema:AS.approval},
+    {method:'POST',path:'/ai-attempts/{id}/reconcile',operation:'ai.reconcile',mode:'COMMAND',permission:'members.manage',schema:AS.reconcile},
+    {method:'POST',path:'/ai-budgets/{id}/unfreeze',operation:'ai.unfreeze',mode:'COMMAND',permission:'members.manage',schema:AS.unfreeze},
+    {method:'GET',path:'/ai-settings',operation:'ai.settings',mode:'READ',permission:'records.read'},
+    {method:'GET',path:'/ai-grants',operation:'ai.grants',mode:'READ',permission:'sources.read'},
+    {method:'POST',path:'/ai-grants',operation:'ai.grant',mode:'COMMAND',permission:'sources.review',schema:AS.grant},
+    {method:'POST',path:'/ai-grants/{id}/revoke',operation:'ai.grant.revoke',mode:'COMMAND',permission:'sources.review',schema:AS.revision},
+    {method:'POST',path:'/ai-jobs/preview',operation:'ai.preview',mode:'READ',permission:'ai.use',schema:AS.create},
+    {method:'GET',path:'/ai-jobs',operation:'ai.list',mode:'READ',permission:'ai.use'},
+    {method:'POST',path:'/ai-jobs',operation:'ai.create',mode:'COMMAND',permission:'ai.use',schema:AS.create},
+    {method:'GET',path:'/ai-jobs/{id}',operation:'ai.get',mode:'READ',permission:'ai.use'},
+    {method:'GET',path:'/proposals/{id}',operation:'ai.proposal',mode:'READ',permission:'ai.use'},
+    {method:'POST',path:'/ai-jobs/{id}/cancel',operation:'ai.cancel',mode:'COMMAND',permission:'ai.use',schema:AS.revision},
+    {method:'POST',path:'/proposals/{id}/apply',operation:'ai.apply',mode:'COMMAND',permission:'ai.use',schema:AS.apply},
+    {method:'POST',path:'/proposals/{id}/reject',operation:'ai.reject',mode:'COMMAND',permission:'ai.use',schema:AS.revision},
+    {method:'GET',path:'/ai-jobs/{id}/results',operation:'ai.results',mode:'READ',permission:'ai.use'},
+    {method:'GET',path:'/locale-texts',operation:'locale.list',mode:'READ',permission:'records.read'},
+    {method:'GET',path:'/locale-texts/{id}',operation:'locale.get',mode:'READ',permission:'records.read'},
+    {method:'POST',path:'/locale-texts',operation:'locale.create',mode:'COMMAND',permission:'records.write',schema:LS.create},
+    {method:'PATCH',path:'/locale-texts/{id}',operation:'locale.update',mode:'COMMAND',permission:'records.write',schema:LS.update},
+    ...TD2_ROUTES,
+    { method: 'GET', path: '/works', operation: 'work.list', mode: 'READ', permission: 'records.read' },
+    { method: 'POST', path: '/works', operation: 'work.create', mode: 'COMMAND', permission: 'records.write', schema: PS.workCreate },
+    { method: 'GET', path: '/works/{id}', operation: 'work.get', mode: 'READ', permission: 'records.read' },
+    { method: 'PATCH', path: '/works/{id}', operation: 'work.update', mode: 'COMMAND', permission: 'records.write', schema: PS.workPatch },
+    { method: 'POST', path: '/works/{id}/assets', operation: 'work.assetAdd', mode: 'COMMAND', permission: 'records.write', schema: PS.workAsset },
+    { method: 'POST', path: '/works/{id}/assets/remove', operation: 'work.assetRemove', mode: 'COMMAND', permission: 'records.write', schema: PS.remove },
+    { method: 'POST', path: '/works/{id}/assets/reorder', operation: 'work.reorder', mode: 'COMMAND', permission: 'records.write', schema: PS.order },
+    { method: 'POST', path: '/works/{id}/credits', operation: 'work.creditAdd', mode: 'COMMAND', permission: 'records.write', schema: PS.credit },
+    { method: 'POST', path: '/works/{id}/credits/remove', operation: 'work.creditRemove', mode: 'COMMAND', permission: 'records.write', schema: PS.remove },
+    { method: 'GET', path: '/projects', operation: 'project.list', mode: 'READ', permission: 'records.read' },
+    { method: 'POST', path: '/projects', operation: 'project.create', mode: 'COMMAND', permission: 'records.write', schema: PS.projectCreate },
+    { method: 'GET', path: '/projects/{id}', operation: 'project.get', mode: 'READ', permission: 'records.read' },
+    { method: 'PATCH', path: '/projects/{id}', operation: 'project.update', mode: 'COMMAND', permission: 'records.write', schema: PS.projectPatch },
+    { method: 'POST', path: '/projects/{id}/participants', operation: 'project.participantAdd', mode: 'COMMAND', permission: 'records.write', schema: PS.participant },
+    { method: 'POST', path: '/projects/{id}/participants/update', operation: 'project.participantUpdate', mode: 'COMMAND', permission: 'records.write', schema: PS.participantPatch },
+    { method: 'POST', path: '/projects/{id}/participants/remove', operation: 'project.participantRemove', mode: 'COMMAND', permission: 'records.write', schema: PS.remove },
+    { method: 'POST', path: '/projects/{id}/works', operation: 'project.workLink', mode: 'COMMAND', permission: 'records.write', schema: PS.projectWork },
+    { method: 'POST', path: '/projects/{id}/works/remove', operation: 'project.workRemove', mode: 'COMMAND', permission: 'records.write', schema: PS.remove },
+    { method: 'GET', path: '/people/{id}/production', operation: 'person.production', mode: 'READ', permission: 'records.read' },
+    { method: 'POST', path: '/uploads', operation: 'upload.create', mode: 'COMMAND', permission: 'assets.upload', schema: MediaSchemas.create },
+    { method: 'GET', path: '/uploads', operation: 'upload.list', mode: 'READ', permission: 'records.read' },
+    { method: 'GET', path: '/uploads/{id}', operation: 'upload.get', mode: 'READ', permission: 'records.read' },
+    { method: 'PUT', path: '/uploads/{id}/content', operation: 'upload.content', mode: 'BINARY', permission: 'assets.upload' },
+    { method: 'POST', path: '/uploads/{id}/renew', operation: 'upload.renew', mode: 'COMMAND', permission: 'assets.upload', schema: MediaSchemas.revision },
+    { method: 'POST', path: '/uploads/{id}/complete', operation: 'upload.complete', mode: 'COMMAND', permission: 'assets.upload', schema: MediaSchemas.revision },
+    { method: 'POST', path: '/uploads/{id}/cancel', operation: 'upload.cancel', mode: 'COMMAND', permission: 'records.read', schema: MediaSchemas.revision },
+    { method: 'GET', path: '/assets', operation: 'asset.list', mode: 'READ', permission: 'assets.read' },
+    { method: 'GET', path: '/assets/{id}', operation: 'asset.get', mode: 'READ', permission: 'assets.read' },
+    { method: 'GET', path: '/assets/{id}/preview', operation: 'asset.preview', mode: 'BINARY', permission: 'assets.read' },
+    { method: 'POST', path: '/assets/{id}/quarantine', operation: 'asset.quarantine', mode: 'COMMAND', permission: 'sources.review', schema: MediaSchemas.revision },
     { method: 'GET', path: '/auth/csrf', operation: 'auth.csrf', mode: 'AUTH' },
     { method: 'POST', path: '/auth/login', operation: 'auth.login', mode: 'AUTH', schema: Schemas.login },
     { method: 'POST', path: '/auth/activate', operation: 'auth.activate', mode: 'AUTH', schema: Schemas.activate },
@@ -34,6 +104,16 @@ export const ROUTES: RouteDefinition[] = [
     { method: 'PATCH', path: '/sources/{id}', operation: 'source.update', mode: 'COMMAND', permission: 'sources.write', schema: Schemas.sourcePatch },
     { method: 'POST', path: '/sources/{id}/review', operation: 'source.review', mode: 'COMMAND', permission: 'sources.review', schema: Schemas.sourceReview },
     { method: 'POST', path: '/sources/{id}/suspend', operation: 'source.suspend', mode: 'COMMAND', permission: 'sources.review', schema: Schemas.suspend },
+    { method: 'GET', path: '/people/{id}/handoff-recipients', operation: 'handoff.recipients', mode: 'READ', permission: 'records.write' },
+    { method: 'POST', path: '/people/{id}/handoffs', operation: 'handoff.create', mode: 'COMMAND', permission: 'records.write', schema: Schemas.handoffCreate },
+    { method: 'GET', path: '/handoffs', operation: 'handoff.list', mode: 'READ', permission: 'records.read' },
+    { method: 'GET', path: '/handoffs/{id}', operation: 'handoff.get', mode: 'READ', permission: 'records.read' },
+    { method: 'POST', path: '/handoffs/{id}/accept', operation: 'handoff.accept', mode: 'COMMAND', permission: 'records.read', schema: Schemas.revision },
+    { method: 'POST', path: '/handoffs/{id}/decline', operation: 'handoff.decline', mode: 'COMMAND', permission: 'records.read', schema: Schemas.revision },
+    { method: 'POST', path: '/handoffs/{id}/revoke', operation: 'handoff.revoke', mode: 'COMMAND', permission: 'records.read', schema: Schemas.revision },
+    { method: 'GET', path: '/people/{id}/merge-history', operation: 'person.mergeHistory', mode: 'READ', permission: 'data.merge' },
+    { method: 'POST', path: '/people/merge-preview', operation: 'person.mergePreview', mode: 'READ', permission: 'data.merge', schema: MS.preview },
+    { method: 'POST', path: '/people/merge', operation: 'person.merge', mode: 'COMMAND', permission: 'data.merge', schema: MS.execute },
     { method: 'GET', path: '/people', operation: 'person.list', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/people', operation: 'person.create', mode: 'COMMAND', permission: 'records.write', schema: Schemas.personCreate },
     { method: 'GET', path: '/people/{id}', operation: 'person.get', mode: 'READ', permission: 'records.read' },
@@ -47,5 +127,32 @@ export const ROUTES: RouteDefinition[] = [
     { method: 'GET', path: '/jobs', operation: 'job.list', mode: 'READ', permission: 'records.write' },
     { method: 'POST', path: '/jobs/{id}/resume', operation: 'job.resume', mode: 'COMMAND', permission: 'records.write', schema: Schemas.revision },
     { method: 'GET', path: '/jobs/{id}', operation: 'job.get', mode: 'READ', permission: 'records.write' },
-    { method: 'GET', path: '/audit-events', operation: 'audit.list', mode: 'READ', permission: 'audit.read' }
+    { method: 'GET', path: '/audit-events', operation: 'audit.list', mode: 'READ', permission: 'audit.read' },
+    { method: 'POST', path: '/deletion-requests/preview', operation: 'deletion.preview', mode: 'READ', permission: 'data.delete', schema: DS.preview },
+    { method: 'GET', path: '/deletion-requests', operation: 'deletion.list', mode: 'READ', permission: 'data.delete' },
+    { method: 'POST', path: '/deletion-requests', operation: 'deletion.create', mode: 'COMMAND', permission: 'data.delete', schema: DS.create },
+    { method: 'GET', path: '/deletion-requests/{id}', operation: 'deletion.get', mode: 'READ', permission: 'data.delete' },
+    { method: 'POST', path: '/deletion-requests/{id}/block', operation: 'deletion.block', mode: 'COMMAND', permission: 'data.delete', schema: DS.block },
+    { method: 'GET', path: '/deletion-requests/{id}/items', operation: 'deletion.items', mode: 'READ', permission: 'data.delete' },
+    { method: 'POST', path: '/deletion-requests/{id}/decisions', operation: 'deletion.decision', mode: 'COMMAND', permission: 'data.delete', schema: DS.decision },
+    { method: 'POST', path: '/deletion-requests/{id}/plan/freeze', operation: 'deletion.planFreeze', mode: 'COMMAND', permission: 'data.delete', schema: DS.freezePlan },
+    { method: 'POST', path: '/deletion-requests/{id}/cleaning/start', operation: 'deletion.cleanupStart', mode: 'COMMAND', permission: 'data.delete', schema: DS.cleanupStart },
+    { method: 'GET', path: '/use-permissions', operation: 'usePermission.list', mode: 'READ', permission: 'records.read' },
+    { method: 'POST', path: '/use-permissions', operation: 'usePermission.create', mode: 'COMMAND', permission: 'sources.review', schema: ES.permissionCreate },
+    { method: 'POST', path: '/use-permissions/{id}/revoke', operation: 'usePermission.revoke', mode: 'COMMAND', permission: 'sources.review', schema: ES.permissionRevoke },
+    { method: 'GET', path: '/exports', operation: 'export.list', mode: 'READ', permission: 'data.export' },
+    { method: 'POST', path: '/exports', operation: 'export.create', mode: 'COMMAND', permission: 'data.export', schema: ES.create },
+    { method: 'GET', path: '/exports/{id}', operation: 'export.get', mode: 'READ', permission: 'data.export' },
+    { method: 'GET', path: '/exports/{id}/media/{assetId}/original', operation: 'export.mediaOriginal', mode: 'BINARY', permission: 'data.export' },
+    { method: 'GET', path: '/exports/{id}/media/{assetId}/preview', operation: 'export.mediaPreview', mode: 'BINARY', permission: 'data.export' },
+    { method: 'POST', path: '/exports/{id}/download', operation: 'export.download', mode: 'READ', permission: 'data.export', schema: ES.download },
+    { method: 'GET', path: '/talent-search', operation: 'talent.search', mode: 'READ', permission: 'records.read' },
+    { method: 'GET', path: '/shortlists', operation: 'shortlist.list', mode: 'READ', permission: 'records.read' },
+    { method: 'POST', path: '/shortlists', operation: 'shortlist.create', mode: 'COMMAND', permission: 'records.write', schema: SS.create },
+    { method: 'GET', path: '/shortlists/{id}', operation: 'shortlist.get', mode: 'READ', permission: 'records.read' },
+    { method: 'PATCH', path: '/shortlists/{id}', operation: 'shortlist.update', mode: 'COMMAND', permission: 'records.write', schema: SS.patch },
+    { method: 'POST', path: '/shortlists/{id}/items', operation: 'shortlist.itemAdd', mode: 'COMMAND', permission: 'records.write', schema: SS.itemAdd },
+    { method: 'POST', path: '/shortlists/{id}/items/update', operation: 'shortlist.itemUpdate', mode: 'COMMAND', permission: 'records.write', schema: SS.itemPatch },
+    { method: 'POST', path: '/shortlists/{id}/items/remove', operation: 'shortlist.itemRemove', mode: 'COMMAND', permission: 'records.write', schema: SS.remove },
+    { method: 'POST', path: '/shortlists/{id}/items/reorder', operation: 'shortlist.reorder', mode: 'COMMAND', permission: 'records.write', schema: SS.order },
 ];

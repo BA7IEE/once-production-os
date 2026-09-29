@@ -1,7 +1,24 @@
+import type {Brand,ProjectParty} from './project-parties.ts';
+import type {AiResponseMetadata} from './ai-dispatch.ts';
+import type {AiConnection} from './ai-connection.ts';
+import type {AiApproval,AiBudgetRelease,AiReconciliation} from './ai-operations.ts';
+import type {AiGrant,AiTask,AiDependency} from './ai-business-model.ts';
+import type {AiLedgerConfig} from './ai-ledger-model.ts';
+import type {AiBudget,AiRun,AiAttempt} from './ai-ledger-model.ts';
+import type {LocaleText,LocaleDependency} from './locale-model.ts';
+import type {MergeHistoryErasure} from './merge-history-erasure-model.ts';
+import type { TalentV2Tables, TalentOwnerRefs } from './talent-v2-model.ts';
+import type { Work, WorkAsset, WorkCredit, Project, ProjectParticipant, ProjectWork } from './production-model.ts';
+import type { Shortlist, ShortlistItem, ShortlistItemAsset } from './shortlist-model.ts';
+import type { MediaUpload, MediaAsset } from './media-model.ts';
+import type { UsePermission, ExportJob, ExportDependency } from './export-model.ts';
+import type { DeletionRequest, DeletionItem } from './deletion-model.ts';
+import type { PersonMergeDecision, PersonAlias } from './merge-model.ts';
+import type { RecoveryRun } from './recovery-model.ts';
 export type Role = 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'VIEWER';
-export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write'] as const;
+export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write', 'data.export', 'data.delete', 'data.merge', 'ai.use'] as const;
 export type ExtraPermission = typeof EXTRA_PERMISSIONS[number];
-export type Permission = 'records.read' | 'records.write' | 'sources.read' | 'sources.write' | 'sources.review' | 'catalog.manage' | 'members.manage' | 'audit.read' | ExtraPermission;
+export type Permission = 'records.read' | 'records.write' | 'sources.read' | 'sources.write' | 'sources.review' | 'catalog.manage' | 'members.manage' | 'audit.read' | 'assets.read' | 'assets.upload' | 'talent.propose' | 'talent.fact.write' | ExtraPermission;
 export interface Base {
     id: string;
     workspaceId: string;
@@ -62,7 +79,7 @@ export interface Source extends Base {
     basisDescription: string;
     validFrom: string;
     validUntil: string;
-    status: 'RECEIVED' | 'CONFIRMED' | 'SUSPENDED';
+    status: 'RECEIVED' | 'CONFIRMED' | 'SUSPENDED' | 'ERASED';
     protectionEpoch: number;
     reviewedBy: string | null;
     reviewedAt: string | null;
@@ -74,11 +91,11 @@ export interface SourceHistory extends Base {
     sourceRevision: number;
     scopeId: string;
     actorId: string | null;
-    action: 'CREATED' | 'EDITED' | 'REVIEWED' | 'SUSPENDED' | 'SCOPE_CHANGED' | 'BASELINE';
+    action: 'CREATED' | 'EDITED' | 'REVIEWED' | 'SUSPENDED' | 'SCOPE_CHANGED' | 'DELETION_BLOCKED' | 'BASELINE';
     decisionReason: string | null;
     baselineOnly: boolean;
     basisAmbiguous: boolean;
-    snapshot: Source;
+    snapshot: Source | { id: string; workspaceId: string; revision: number; scopeId: string; erased: true };
 }
 export interface Person extends Base {
     scopeId: string;
@@ -92,7 +109,7 @@ export interface Person extends Base {
     skillCodes: string[];
     heightCm: number | null;
     intro: string;
-    status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
+    status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED' | 'ERASED';
     protectionEpoch: number;
 }
 export interface Contact extends Base {
@@ -102,28 +119,33 @@ export interface Contact extends Base {
     ciphertext: string;
     maskedValue: string;
 }
-export interface FieldEvidence extends Base {
-    personId: string;
+export interface FieldEvidence extends Base, Partial<TalentOwnerRefs> {
+    // Historical review attribution is not a membership or approval in the target workspace.
+    originalReviewWorkspaceId?: string | null;
+    originalReviewMembershipId?: string | null;
+    originalReviewedAt?: string | null;
+    personId: string | null;
     fieldPath: string;
     valueDigest: string;
     sourceId: string;
     sourceRevision: number;
-    reviewerId: string;
-    reviewedAt: string;
+    reviewerId: string | null;
+    reviewedAt: string | null;
 }
 export interface DictionaryItem extends Base {
-    namespace: 'role' | 'city' | 'language' | 'skill';
+    namespace: 'role' | 'city' | 'language' | 'skill' | 'industry' | 'workType';
     code: string;
     labelZh: string;
     labelEn: string;
     status: 'ACTIVE' | 'INACTIVE';
 }
 export interface CommandReceipt extends Base {
-    actorId: string;
+    servicePrincipalId?: string | null;
+    actorId: string | null;
     operation: string;
     commandKey: string;
     requestDigest: string;
-    resourceKind: 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job';
+    resourceKind: 'brand' | 'aiConnectionTest' | 'aiConnection' | 'aiApproval' | 'aiAttempt' | 'aiBudget' | 'aiTask' | 'aiGrant' | 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
     resourceId: string;
     result: ReceiptResult;
 }
@@ -135,6 +157,7 @@ export interface ReceiptResult {
     replayed?: boolean;
 }
 export interface AuditEvent extends Base {
+    servicePrincipalId?: string | null;
     actorId: string | null;
     action: string;
     resourceKind: string;
@@ -176,7 +199,64 @@ export interface DurableJob extends Base {
     attempts: number;
     errorCode: string | null;
 }
-export interface TableMap {
+/** A purpose-limited invitation for ONE person's basic profile. No scope membership is granted. */
+export interface RecordHandoff extends Base {
+    personId: string;
+    sourceId: string;
+    senderId: string;
+    recipientId: string;
+    senderRevision: number;
+    recipientRevision: number;
+    personRevision: number;
+    sourceRevision: number;
+    personEpoch: number;
+    sourceEpoch: number;
+    personScopeId: string;
+    sourceScopeId: string;
+    personScopeRevision: number;
+    sourceScopeRevision: number;
+    purpose: 'EDIT' | 'REVIEW';
+    state: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'REVOKED';
+    expiresAt: string;
+    acceptedAt: string | null;
+    closedAt: string | null;
+    closedById: string | null;
+}
+export interface TableMap extends TalentV2Tables {
+    brands:Brand;projectParties:ProjectParty;
+    aiResponseMetadata: AiResponseMetadata;
+    aiConnections: AiConnection;
+    aiGrants: AiGrant;
+    aiReconciliations: AiReconciliation;
+    aiBudgetReleases: AiBudgetRelease;
+    aiApprovals: AiApproval;
+    aiTasks: AiTask;
+    aiDependencies: AiDependency;
+    aiBudgets: AiBudget;
+    aiRuns: AiRun;
+    aiAttempts: AiAttempt;
+    localeTexts: LocaleText;
+    localeDependencies: LocaleDependency;
+    recoveryRuns: RecoveryRun;
+    mergeHistoryErasures: MergeHistoryErasure;
+    personMerges: PersonMergeDecision;
+    personAliases: PersonAlias;
+    deletionRequests: DeletionRequest;
+    deletionItems: DeletionItem;
+    usePermissions: UsePermission;
+    exports: ExportJob;
+    exportDependencies: ExportDependency;
+    shortlists: Shortlist;
+    shortlistItems: ShortlistItem;
+    shortlistItemAssets: ShortlistItemAsset;
+    works: Work;
+    workAssets: WorkAsset;
+    workCredits: WorkCredit;
+    projects: Project;
+    projectParticipants: ProjectParticipant;
+    projectWorks: ProjectWork;
+    uploads: MediaUpload;
+    assets: MediaAsset;
     workspaces: Workspace;
     users: User;
     memberships: Membership;
@@ -195,9 +275,13 @@ export interface TableMap {
     rateBuckets: RateBucket;
     imports: ImportBatch;
     jobs: DurableJob;
+    handoffs: RecordHandoff;
 }
 export type Table = keyof TableMap;
 export interface Actor {
+    actorKind?: 'HUMAN' | 'MACHINE';
+    servicePrincipalId?: string;
+    machineScopeId?: string;
     userId: string;
     membershipId: string;
     workspaceId: string;
@@ -215,6 +299,8 @@ export interface Clock {
     now(): Date;
 }
 export interface Config {
+    ai?: AiLedgerConfig;
+    mediaEnabled?: boolean;
     origin: string;
     secureCookies: boolean;
     contactKey: Buffer;
@@ -222,7 +308,10 @@ export interface Config {
     recoveryEpoch: string;
     accessMode: 'MAINTENANCE' | 'INTERNAL';
     environment: 'local' | 'test' | 'staging' | 'production';
+    dataEgressMode: 'DISABLED' | 'INTERNAL_APPROVED';
+    dataCleanupMode: 'DISABLED' | 'INTERNAL_APPROVED';
+    dataMergeMode: 'DISABLED' | 'INTERNAL_APPROVED';
 }
 export const LIMITS = Object.freeze({ idleMs: 30 * 60000, absoluteMs: 12 * 60 * 60000,
     activationMs: 24 * 60 * 60000, temporaryMs: 7 * 24 * 60 * 60000, pageSize: 20, maxPageSize: 100,
-    importRows: 100, importMs: 24 * 60 * 60000, jobLeaseMs: 30000, jobMaxAttempts: 3 });
+    importRows: 100, importMs: 24 * 60 * 60000, jobLeaseMs: 30000, jobMaxAttempts: 3, handoffMs: 7 * 24 * 60 * 60000, maxOpenHandoffs: 100 });

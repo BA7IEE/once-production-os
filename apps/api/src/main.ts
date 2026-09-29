@@ -1,3 +1,6 @@
+import { registerMediaHttp } from './media/http.ts';
+import { SafetyJournalWriter } from './recovery/safety-journal.ts';
+import {configuredMediaProvider} from './media/cos-provider.ts';
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { All, Controller, Module, Req, Res } from '@nestjs/common';
@@ -15,7 +18,7 @@ class ApiController {
     @All('{*path}')
     async handle(
     @Req()
-    req: Request,
+    req: Request, 
     @Res()
     res: Response): Promise<void> {
         const headers: Record<string, string | undefined> = {};
@@ -46,10 +49,14 @@ class AppModule {
 async function main() {
     const config = loadConfig();
     store = new PrismaStore();
-    core = new Application(store, config);
+    const safetyJournal = process.env.SAFETY_JOURNAL_FILE
+        ? await SafetyJournalWriter.open(process.env.SAFETY_JOURNAL_FILE)
+        : null;
+    core = new Application(store, config, undefined, safetyJournal);
     const app = await NestFactory.create(AppModule, { bodyParser: false, logger: ['error', 'warn'] });
     const server = app.getHttpAdapter().getInstance() as express.Express;
     server.disable('x-powered-by');
+    server.set('etag', false);
     // Only explicitly trust a local reverse proxy which overwrites X-Forwarded-For.
     if (process.env.TRUST_LOOPBACK_PROXY === 'true')
         server.set('trust proxy', 'loopback');
@@ -61,6 +68,8 @@ async function main() {
             res.setHeader('Strict-Transport-Security', 'max-age=31536000');
         next();
     });
+    const mediaProvider = config.mediaEnabled ? await configuredMediaProvider() : null;
+    registerMediaHttp(server, core, mediaProvider);
     app.use('/api/v1', express.raw({ type: 'application/json', limit: '1mb', inflate: false }));
     app.use('/api/v1', (error: unknown, _req: Request, res: Response, _next: NextFunction) => {
         const reported = (error as {
@@ -72,6 +81,7 @@ async function main() {
     server.get('/health/live', (_req, res) => res.set('Cache-Control', 'no-store').json({ status: 'alive' }));
     server.get('/health/ready', async (_req, res) => {
         try {
+            await safetyJournal?.checkReady();
             const workspace = await store.transaction(async (tx) => (await tx.find('workspaces'))[0]);
             const ready = !!workspace && config.accessMode === 'INTERNAL' && workspace.recoveryEpoch === config.recoveryEpoch;
             res.status(ready ? 200 : 503).set('Cache-Control', 'no-store').json({ status: ready ? 'ready' : 'isolated' });
@@ -83,7 +93,7 @@ async function main() {
     const assets = join(process.cwd(), 'dist/web');
     if (existsSync(assets)) {
         server.use(express.static(assets, { index: false, maxAge: 0, fallthrough: true, setHeaders: (res) => res.setHeader('Cache-Control', 'no-cache') }));
-        server.get(['/', '/activate'], (_req, res) => res.set('Cache-Control', 'no-store').sendFile(join(assets, 'index.html')));
+        server.get(['/', '/activate'], (_req, res) => res.set('Cache-Control', 'no-store').sendFile('index.html', { root: assets }));
     }
     app.enableShutdownHooks();
     const port = Number(process.env.PORT ?? 4318);

@@ -1,0 +1,1 @@
+PASS: isolated headless system Chrome, built UI and real Application with test MemoryStore; confirmed input, restricted search, selected proposal fields, aborted response after server commit and same-key replay. Test-only synthetic adapter. PostgreSQL verification remains assigned to the existing CI browser-production runner. No provider request or paid model invocation.

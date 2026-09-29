@@ -1,0 +1,1 @@
+PASS AI browser (test MemoryStore): confirmed input, restricted search, selected proposal fields and unknown response replay; configuration approval, human reconciliation and unfreeze; synthetic adapter only

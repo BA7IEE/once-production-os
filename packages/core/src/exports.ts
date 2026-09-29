@@ -1,0 +1,505 @@
+import {PARTY_FIELD,collectParties,type PartyTransfer} from './project-parties.ts';
+import {LOCALE_EXPORT_VERSION,collectLocaleTransfer,isLocaleCode,localeTransferCode,type LocaleTransfer} from './locale-transfer.ts';
+import {localeSubject} from './locale-model.ts';
+import {validateIdentityRetention} from './talent-identity-retention.ts';
+import {MERGE_HISTORY_CODE,validateMergeHistory} from './merge-history-transfer.ts';
+import {IDENTITY_EVIDENCE_CODE,identityField} from './identity-transfer.ts';
+import { MEDIA_TRANSFER_CODE, transferAsset } from './media-transfer.ts';
+import { CREDENTIAL_IDENTIFIER_CODE, EVIDENCE_TRANSFER_CODE, transferRows, collectTalentTransfer, isTransferCode, TALENT_EXPORT_VERSION, TRANSFER_TABLES, transferCode, type TalentTransfer } from './talent-transfer.ts';
+import { randomUUID } from 'node:crypto';
+import type { Actor, Clock, Config, Person, RequestMeta, Source } from './model.ts';
+import type { Store, Tx } from './store.ts';
+import type { ExportDependency, ExportFieldCode, ExportJob, ExportSubjectKind, UsePermission } from './export-model.ts';
+import { EXPORT_LIMITS as L } from './export-model.ts';
+import { ExportSchemas as S } from './export-validation.ts';
+import { AppError, invariant, missing } from './errors.ts';
+import { audit, base, cas, page, touch, unique, workspaceRow } from './helpers.ts';
+import { digest } from './json.ts';
+import { personFor, permissionsFor, requirePermission, sourceFor, sourceCurrent } from './policy.ts';
+import { workFor, projectFor, readyAsset } from './production-policy.ts';
+
+const FIELD_PREFIX: Record<ExportSubjectKind, string> = {
+    PERSON: 'person.', WORK: 'work.', PROJECT: 'project.', SOURCE: 'source.', ASSET: 'media.'
+};
+function fieldsFor(kind: ExportSubjectKind, fields: ExportFieldCode[]) {
+    return fields.filter(field => field.startsWith(FIELD_PREFIX[kind]));
+}
+function typedSubject(kind: ExportSubjectKind, id: string) {
+    return {
+        subjectPersonId: kind === 'PERSON' ? id : null,
+        subjectWorkId: kind === 'WORK' ? id : null,
+        subjectProjectId: kind === 'PROJECT' ? id : null,
+        subjectAssetId: kind === 'ASSET' ? id : null,
+        subjectSourceId: kind === 'SOURCE' ? id : null
+    };
+}
+function typedDependency(kind: ExportSubjectKind, id: string) {
+    return {
+        personId: kind === 'PERSON' ? id : null,
+        workId: kind === 'WORK' ? id : null,
+        projectId: kind === 'PROJECT' ? id : null,
+        assetId: kind === 'ASSET' ? id : null,
+        sourceSubjectId: kind === 'SOURCE' ? id : null
+    };
+}
+function minIso(...values: string[]) { return new Date(Math.min(...values.map(Date.parse))).toISOString(); }
+function safeError(error: unknown) {
+    if (error instanceof AppError && error.status < 500)
+        throw new AppError(409, 'EXPORT_STALE', '导出依赖已失效，请重新生成');
+    throw error;
+}
+function dataFields<T extends Record<string, unknown>>(prefix: string, fields: ExportFieldCode[], row: T) {
+    return Object.fromEntries(fields.map(field => [field.slice(prefix.length), row[field.slice(prefix.length)] ]));
+}
+
+export async function exportPermissionSource(tx:Tx,actor:Actor,row:Pick<UsePermission,'subjectKind'|'subjectId'|'sourceId'|'retentionBasisSourceId'>,clock:Clock) {
+        if(!row.retentionBasisSourceId)return sourceFor(tx,actor,row.sourceId,clock);
+        invariant(row.subjectKind==='PERSON','EXPORT_RETENTION_SUBJECT','独立身份依据仅适用于人物许可',422);
+        const person=await personFor(tx,actor,row.subjectId,clock),origin=await sourceFor(tx,actor,row.sourceId,clock,false,true);
+        invariant(person.sourceId===origin.id&&origin.status==='ERASED','EXPORT_RETENTION_ORIGIN','独立保留许可必须绑定人物已删除的最初来源',422);
+        await validateIdentityRetention(tx,actor,person,row.retentionBasisSourceId,clock,undefined,false);
+        return sourceFor(tx,actor,row.retentionBasisSourceId,clock);
+    }
+
+export class Exports {
+    store: Store;
+    clock: Clock;
+    config: Config;
+    constructor(store: Store, clock: Clock, config: Config) { this.store = store; this.clock = clock; this.config = config; }
+
+    private egress() {
+        invariant(this.config.dataEgressMode === 'INTERNAL_APPROVED', 'EGRESS_DISABLED', '当前环境未批准内部导出', 503);
+    }
+    private async subject(tx: Tx, actor: Actor, kind: ExportSubjectKind, id: string) {
+        if (kind === 'SOURCE') {
+            const row = await sourceFor(tx, actor, id, this.clock);
+            return { source: row, revision: row.revision, protectionEpoch: row.protectionEpoch };
+        }
+        if (kind === 'PERSON') {
+            const row = await personFor(tx, actor, id, this.clock);
+            return { source: await sourceFor(tx, actor, row.sourceId, this.clock), revision: row.revision, protectionEpoch: row.protectionEpoch };
+        }
+        if (kind === 'WORK') {
+            const row = await workFor(tx, actor, id, this.clock);
+            return { source: await sourceFor(tx, actor, row.sourceId, this.clock), revision: row.revision, protectionEpoch: null };
+        }
+        if (kind === 'PROJECT') {
+            const row = await projectFor(tx, actor, id, this.clock);
+            return { source: await sourceFor(tx, actor, row.sourceId, this.clock), revision: row.revision, protectionEpoch: null };
+        }
+        const row = await readyAsset(tx, actor, id, this.clock);
+        return { source: await sourceFor(tx, actor, row.sourceId, this.clock), revision: row.revision, protectionEpoch: null };
+    }
+
+    async createPermission(tx: Tx, actor: Actor, input: unknown): Promise<UsePermission> {
+        requirePermission(actor, 'sources.review');
+        const d = S.permissionCreate.parse(input);
+        invariant(unique(d.fields).length === d.fields.length, 'DUPLICATE_FIELD', '导出字段不能重复', 400);
+        const allowed = d.fields.filter(f => fieldsFor(d.subjectKind, [f]).length || (d.subjectKind === 'SOURCE' && (f===PARTY_FIELD||isLocaleCode(f)||f===MERGE_HISTORY_CODE||identityField(f)||f===IDENTITY_EVIDENCE_CODE||isTransferCode(f)||f===EVIDENCE_TRANSFER_CODE||f===CREDENTIAL_IDENTIFIER_CODE||f===MEDIA_TRANSFER_CODE)));
+        invariant(allowed.length === d.fields.length, 'EXPORT_FIELD_SUBJECT_MISMATCH', '导出许可字段与对象类型不匹配', 422);
+        const subject = d.retentionBasisSourceId?{source:await exportPermissionSource(tx,actor,d,this.clock)}:await this.subject(tx, actor, d.subjectKind, d.subjectId);
+        invariant(!!d.retentionBasisSourceId || subject.source.id === d.sourceId, 'EXPORT_SOURCE_MISMATCH', '导出许可的来源与对象不一致', 422);
+        invariant(subject.source.basisMode === 'INTERNAL_USE', 'EXPORT_USE_NOT_ALLOWED', '临时整理依据不能用于内部导出', 422);
+        const now = this.clock.now().toISOString();
+        invariant(Date.parse(d.validUntil) > Date.parse(now) && Date.parse(d.validUntil) <= Date.parse(subject.source.validUntil),
+            'EXPORT_PERMISSION_EXPIRY_INVALID', '导出许可期限必须在当前来源依据期限内', 422);
+        const row: UsePermission = { ...base(actor.workspaceId, this.clock), sourceId: d.sourceId, ...(d.retentionBasisSourceId?{retentionBasisSourceId:d.retentionBasisSourceId}:{}), subjectKind: d.subjectKind, subjectId: d.subjectId,
+            purpose: 'INTERNAL_EXPORT', fields: [...d.fields].sort(), validFrom: now, validUntil: d.validUntil, status: 'ACTIVE',
+            evidenceNote: d.evidenceNote, reviewerId: actor.membershipId, ...typedSubject(d.subjectKind, d.subjectId) };
+        await tx.insert('usePermissions', row);
+        return row;
+    }
+
+    async revokePermission(tx: Tx, actor: Actor, id: string, input: unknown): Promise<UsePermission> {
+        requirePermission(actor, 'sources.review');
+        const d = S.permissionRevoke.parse(input);
+        const row = await workspaceRow(tx, 'usePermissions', id, actor.workspaceId);
+        if (!row) missing();
+        if(row.retentionBasisSourceId){await sourceFor(tx,actor,row.sourceId,this.clock,false,true);await sourceFor(tx,actor,row.retentionBasisSourceId,this.clock,false);}else await sourceFor(tx, actor, row.sourceId, this.clock, false);
+        cas(row, d.expectedRevision);
+        invariant(row.status === 'ACTIVE', 'PERMISSION_ALREADY_REVOKED', '该导出许可已经撤销', 409);
+        const next: UsePermission = { ...touch(row, this.clock), status: 'REVOKED' };
+        await tx.replace('usePermissions', next);
+        return next;
+    }
+
+    async listPermissions(tx: Tx, actor: Actor, query: Record<string, string>) {
+        invariant(actor.permissions.includes('sources.read') || actor.permissions.includes('data.export'), 'FORBIDDEN', '当前账号没有查看导出许可的权限', 403);
+        page([], query, ['sourceId', 'subjectKind', 'status']);
+        const rows = [];
+        for (const row of await tx.find('usePermissions', { workspaceId: actor.workspaceId })) {
+            if (query.sourceId && row.sourceId !== query.sourceId || query.subjectKind && row.subjectKind !== query.subjectKind || query.status && row.status !== query.status)
+                continue;
+            try { if(row.retentionBasisSourceId){await sourceFor(tx,actor,row.sourceId,this.clock,false,true);await sourceFor(tx,actor,row.retentionBasisSourceId,this.clock,false);}else await sourceFor(tx, actor, row.sourceId, this.clock, false); }
+            catch (error) { if (error instanceof AppError && error.status === 404) continue; throw error; }
+            rows.push({ id: row.id, sourceId: row.sourceId,...(row.retentionBasisSourceId?{retentionBasisSourceId:row.retentionBasisSourceId}:{}), subjectKind: row.subjectKind, subjectId: row.subjectId, fields: row.fields,
+                validFrom: row.validFrom, validUntil: row.validUntil, status: row.status, revision: row.revision,
+                ...(actor.permissions.includes('sources.review') ? { evidenceNote: row.evidenceNote, reviewerId: row.reviewerId } : {}) });
+        }
+        rows.sort((a, b) => b.validUntil.localeCompare(a.validUntil) || a.id.localeCompare(b.id));
+        return page(rows, query, ['sourceId', 'subjectKind', 'status']);
+    }
+
+    private async permissionFor(tx: Tx, actor: Actor, id: string): Promise<UsePermission> {
+        const row = await workspaceRow(tx, 'usePermissions', id, actor.workspaceId);
+        if (!row) missing();
+        const source = await exportPermissionSource(tx, actor, row,this.clock);
+        const now = this.clock.now().getTime();
+        invariant(row.status === 'ACTIVE' && row.purpose === 'INTERNAL_EXPORT' && Date.parse(row.validFrom) <= now && now < Date.parse(row.validUntil),
+            'EXPORT_PERMISSION_INACTIVE', '导出许可当前不可用', 409);
+        invariant(source.basisMode === 'INTERNAL_USE', 'EXPORT_USE_NOT_ALLOWED', '当前来源依据不允许内部导出', 409);
+        return row;
+    }
+
+    private choosePermission(permissions: UsePermission[], used: Set<string>, kind: ExportSubjectKind, id: string, sourceId: string, required: ExportFieldCode[]) {
+        const row = permissions.find(p => p.subjectKind === kind && p.subjectId === id && p.sourceId === sourceId && required.every(field => p.fields.includes(field)));
+        invariant(row, 'EXPORT_PERMISSION_REQUIRED', '所选记录或字段缺少精确的内部导出许可', 422);
+        used.add(row.id);
+        return row;
+    }
+
+    private dependency(workspaceId: string, exportId: string, kind: ExportSubjectKind, id: string, fields: ExportFieldCode[], source: Source,
+        revision: number, protectionEpoch: number | null, permission: UsePermission, exportExpiry: string): ExportDependency {
+        return { ...base(workspaceId, this.clock), exportId, kind, sourceId: source.id, sourceRevision: source.revision,
+            sourceProtectionEpoch: source.protectionEpoch, resourceRevision: revision, resourceProtectionEpoch: protectionEpoch,
+            fields: [...fields].sort(), usePermissionId: permission.id, usePermissionRevision: permission.revision,
+            validUntil: source.status==='ERASED'&&kind==='PERSON'&&permission.retentionBasisSourceId?minIso(exportExpiry,permission.validUntil):minIso(exportExpiry, source.validUntil, permission.validUntil), ...typedDependency(kind, id) };
+    }
+
+    async create(tx: Tx, actor: Actor, input: unknown): Promise<ExportJob> {
+        requirePermission(actor, 'data.export');
+        this.egress();
+        const d = S.create.parse(input);
+        const peopleIds = unique(d.selectedIds.people), workIds = unique(d.selectedIds.works), projectIds = unique(d.selectedIds.projects);
+        invariant(peopleIds.length === d.selectedIds.people.length && workIds.length === d.selectedIds.works.length && projectIds.length === d.selectedIds.projects.length,
+            'DUPLICATE_LINK', '导出记录不能重复', 400);
+        invariant(unique(d.fields).length === d.fields.length && unique(d.usePermissionRefs).length === d.usePermissionRefs.length, 'DUPLICATE_FIELD', '导出字段或许可不能重复', 400);
+        invariant(peopleIds.length + workIds.length + projectIds.length > 0, 'EXPORT_EMPTY', '至少选择一条记录', 400);
+        const personFields = fieldsFor('PERSON', d.fields), workFields = fieldsFor('WORK', d.fields), projectFields = fieldsFor('PROJECT', d.fields);
+        const transferFields = d.fields.filter(isTransferCode);
+        const sourceFields = fieldsFor('SOURCE', d.fields);
+        invariant((peopleIds.length > 0) === (personFields.length > 0), 'EXPORT_FIELDS_REQUIRED', '人才选择与人才字段必须同时存在', 422);
+        invariant((workIds.length > 0) === (workFields.length > 0), 'EXPORT_FIELDS_REQUIRED', '作品选择与作品字段必须同时存在', 422);
+        invariant((projectIds.length > 0) === (projectFields.length > 0), 'EXPORT_FIELDS_REQUIRED', '项目选择与项目字段必须同时存在', 422);
+        invariant(!d.fields.includes('media.identity') || workIds.length > 0, 'EXPORT_MEDIA_REQUIRES_WORK', '媒体身份清单只能随已选作品导出', 422);
+
+        const permissions: UsePermission[] = [];
+        for (const id of d.usePermissionRefs) permissions.push(await this.permissionFor(tx, actor, id));
+        const used = new Set<string>(), sources = new Map<string, Source>(), dependencies: ExportDependency[] = [];
+        const people: Person[] = [], works = [], projects = [];
+        for (const id of peopleIds) { const row = await personFor(tx, actor, id, this.clock); people.push(row);const origin=await sourceFor(tx,actor,row.sourceId,this.clock,false,true);sources.set(row.sourceId,origin.status==='ERASED'?origin:await sourceFor(tx,actor,row.sourceId,this.clock)); }
+        for (const id of workIds) { const row = await workFor(tx, actor, id, this.clock); works.push(row); sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock)); }
+        for (const id of projectIds) { const row = await projectFor(tx, actor, id, this.clock); projects.push(row); sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock)); }
+
+        const localeBundle=await collectLocaleTransfer(tx,actor,this.clock,{people:peopleIds,works:workIds,projects:projectIds},d.fields);
+        const locales=d.fields.some(isLocaleCode)?localeBundle:null;
+        const withEvidence=d.fields.includes(EVIDENCE_TRANSFER_CODE),withIdentifiers=d.fields.includes(CREDENTIAL_IDENTIFIER_CODE);
+        invariant(!withIdentifiers||transferFields.includes('person.td2.personCredentials'),'TD2_TRANSFER_CREDENTIAL_REQUIRED','编号迁移必须同时选择资质记录',422);
+        invariant(!withEvidence||transferFields.length>0,'TD2_TRANSFER_EVIDENCE_OWNER','字段证据必须同时选择专业资料',422);
+        invariant(!d.fields.includes(MEDIA_TRANSFER_CODE)||(transferFields.includes('person.td2.personCredentials')||transferFields.includes('person.td2.mediaCollections')||transferFields.includes('person.td2.adultEligibilities')),'TD2_TRANSFER_MEDIA_OWNER_REQUIRED','原件必须随资质或媒体集合导出',422);
+        const identityFields=d.fields.includes(IDENTITY_EVIDENCE_CODE)?d.fields.filter(identityField):undefined;
+        const talent = transferFields.length||identityFields||d.fields.includes(MERGE_HISTORY_CODE) ? await collectTalentTransfer(tx, actor, this.clock, peopleIds, transferFields, withEvidence, withIdentifiers, d.fields.includes(MEDIA_TRANSFER_CODE),identityFields,d.fields.includes(MERGE_HISTORY_CODE)) : null;
+        invariant(!people.some(p=>sources.get(p.sourceId)?.status==='ERASED')||(talent?.schemaVersion==='once-talent-transfer-v14'),'TD2_RETAINED_IDENTITY_FIELDS','原始来源已删的人物须同时迁移完整身份字段与独立依据',422);
+        const sourceTransferFields = new Map<string, Set<ExportFieldCode>>();
+        const parties=d.fields.includes(PARTY_FIELD)?await collectParties(tx,actor,this.clock,projectIds):undefined;
+        for(const r of [...parties?.brands??[],...parties?.organizations??[]]){sources.set(r.sourceId,await sourceFor(tx,actor,r.sourceId,this.clock));sourceTransferFields.set(r.sourceId,new Set([PARTY_FIELD]));}
+        if (talent) for (const table of TRANSFER_TABLES) for (const row of transferRows(talent,table)) {
+            if(talent.retainedOrigins?.some(o=>o.id===row.sourceId))continue;
+            sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock));
+            const fields = sourceTransferFields.get(row.sourceId) ?? new Set<ExportFieldCode>(); fields.add(transferCode(table)); if(table==='personCredentials'&&row.data.identifierCiphertext) fields.add(CREDENTIAL_IDENTIFIER_CODE); sourceTransferFields.set(row.sourceId, fields);
+        }
+        for(const e of talent?.evidence??[]) {
+            sources.set(e.sourceId,await sourceFor(tx,actor,e.sourceId,this.clock));
+            const fields=sourceTransferFields.get(e.sourceId)??new Set<ExportFieldCode>();
+            fields.add(EVIDENCE_TRANSFER_CODE);fields.add(transferCode(e.ownerKind));sourceTransferFields.set(e.sourceId,fields);
+        }
+        for(const e of talent?.identityEvidence??[]) {
+            sources.set(e.sourceId,await sourceFor(tx,actor,e.sourceId,this.clock));
+            const fields=sourceTransferFields.get(e.sourceId)??new Set<ExportFieldCode>();
+            fields.add(IDENTITY_EVIDENCE_CODE);fields.add(('person.'+e.fieldPath) as ExportFieldCode);sourceTransferFields.set(e.sourceId,fields);
+        }
+        if(talent?.mergeHistory) {
+            const h=talent.mergeHistory;
+            for(const id of new Set([...h.people,...h.talentProfiles,...h.castingProfiles,...h.evidence,...h.erasures??[]].map(r=>r.sourceId).concat(h.decisions.flatMap(d=>[d.canonicalSourceId,d.duplicateSourceId])))){
+                const minimal=talent.retainedOrigins?.some(o=>o.id===id)??false;sources.set(id,await sourceFor(tx,actor,id,this.clock,!minimal,minimal));if(minimal)continue;const fields=sourceTransferFields.get(id)??new Set<ExportFieldCode>();fields.add(MERGE_HISTORY_CODE);if(h.evidence.some(e=>e.sourceId===id))fields.add(EVIDENCE_TRANSFER_CODE);sourceTransferFields.set(id,fields);
+            }
+            validateMergeHistory(this.clock,h,talent,people,[...sources.values()]);
+        }
+        for (const organization of talent?.organizations??[]) {
+            sources.set(organization.sourceId,await sourceFor(tx,actor,organization.sourceId,this.clock));
+            const fields=sourceTransferFields.get(organization.sourceId)??new Set<ExportFieldCode>();
+            if(transferRows(talent!,'personCredentials').some(r=>r.data.issuerOrganizationId===organization.id)) fields.add('person.td2.personCredentials');
+            if(transferRows(talent!,'personExternalRefs').some(r=>r.data.issuerOrganizationId===organization.id)) fields.add('person.td2.personExternalRefs');
+            if(transferRows(talent!,'representations').some(r=>r.data.agencyOrganizationId===organization.id)) fields.add('person.td2.representations');
+            sourceTransferFields.set(organization.sourceId,fields);
+        }
+        for(const text of locales?.texts??[]){
+            const field=localeTransferCode(localeSubject(text).kind);
+            for(const sourceId of new Set([...text.dependencies,...text.importedBasis?.dependencies??[]].map(d=>d.sourceId))){
+                const source=await sourceFor(tx,actor,sourceId,this.clock);sources.set(source.id,source);
+                const fields=sourceTransferFields.get(source.id)??new Set<ExportFieldCode>();fields.add(field);sourceTransferFields.set(source.id,fields);
+            }
+        }
+        const now = this.clock.now().toISOString();
+        const initialExpiry = new Date(this.clock.now().getTime() + L.ttlMs).toISOString();
+        const job: ExportJob = { ...base(actor.workspaceId, this.clock), actorId: actor.membershipId, format: 'JSON', schemaVersion: locales ? LOCALE_EXPORT_VERSION : talent ? TALENT_EXPORT_VERSION : 'once-export-v1',
+            state: 'QUEUED', recordManifest: {}, fields: [...d.fields].sort(), usePermissionRefs: [], payload: null, payloadDigest: null,
+            expiresAt: initialExpiry, errorCode: null, leaseToken: null, leaseUntil: null, attempts: 0 };
+
+        const legacyProfessionalFields = ['person.roles','person.cityCode','person.languageCodes','person.skillCodes','person.heightCm'];
+        invariant(!talent || !personFields.some(f=>legacyProfessionalFields.includes(f)), 'TD2_TYPED_EXPORT_REQUIRED', '专业导出不能混用旧版扁平专业字段', 409);
+        if (personFields.some(f => legacyProfessionalFields.includes(f))) {
+            const ids = new Set(people.map(p => p.id));
+            const upgraded = (await tx.find('talentProfiles', { workspaceId: actor.workspaceId })).some(p => ids.has(p.personId));
+            invariant(!upgraded, 'TD2_TYPED_EXPORT_REQUIRED', '人才2.0专业资料不能按旧版扁平字段导出，请使用专用资料导出流程', 409);
+        }
+
+        const manifestPeople = people.map(row => {
+            const source = sources.get(row.sourceId)!;
+            const permission = this.choosePermission(permissions, used, 'PERSON', row.id, row.sourceId, personFields);
+            dependencies.push(this.dependency(actor.workspaceId, job.id, 'PERSON', row.id, personFields, source, row.revision, row.protectionEpoch, permission, initialExpiry));
+            return { id: row.id, sourceId: row.sourceId, revision: row.revision, data: dataFields('person.', personFields.filter(f => !isLocaleCode(f)&&!isTransferCode(f)&&f!==EVIDENCE_TRANSFER_CODE&&f!==CREDENTIAL_IDENTIFIER_CODE&&f!==IDENTITY_EVIDENCE_CODE&&f!==MERGE_HISTORY_CODE), row as unknown as Record<string, unknown>) };
+        });
+        const manifestWorks = works.map(row => {
+            const source = sources.get(row.sourceId)!;
+            const permission = this.choosePermission(permissions, used, 'WORK', row.id, row.sourceId, workFields);
+            dependencies.push(this.dependency(actor.workspaceId, job.id, 'WORK', row.id, workFields, source, row.revision, null, permission, initialExpiry));
+            return { id: row.id, sourceId: row.sourceId, revision: row.revision, data: dataFields('work.', workFields.filter(x => !isLocaleCode(x)&&x !== 'work.relations'), row as unknown as Record<string, unknown>) };
+        });
+        const manifestProjects = projects.map(row => {
+            const source = sources.get(row.sourceId)!;
+            const permission = this.choosePermission(permissions, used, 'PROJECT', row.id, row.sourceId, projectFields);
+            dependencies.push(this.dependency(actor.workspaceId, job.id, 'PROJECT', row.id, projectFields, source, row.revision, null, permission, initialExpiry));
+            return { id: row.id, sourceId: row.sourceId, revision: row.revision, data: dataFields('project.', projectFields.filter(x => !isLocaleCode(x)&&x !== 'project.relations'&&x!==PARTY_FIELD), row as unknown as Record<string, unknown>) };
+        });
+
+        const selectedPeople = new Set(peopleIds), selectedWorks = new Set(workIds), selectedProjects = new Set(projectIds);
+        const relations: Record<string, unknown[]> = { workCredits: [], projectParticipants: [], projectWorks: [] };
+        if (d.fields.includes('work.relations')) {
+            for (const work of works) for (const rel of await tx.find('workCredits', { workspaceId: actor.workspaceId, workId: work.id }))
+                if (selectedPeople.has(rel.personId)) relations.workCredits!.push({ workId: rel.workId, personId: rel.personId, roleCode: rel.roleCode });
+        }
+        if (d.fields.includes('project.relations')) {
+            for (const project of projects) {
+                for (const rel of await tx.find('projectParticipants', { workspaceId: actor.workspaceId, projectId: project.id }))
+                    if (selectedPeople.has(rel.personId)) relations.projectParticipants!.push({ projectId: rel.projectId, personId: rel.personId, roleCode: rel.roleCode, state: rel.state });
+                for (const rel of await tx.find('projectWorks', { workspaceId: actor.workspaceId, projectId: project.id }))
+                    if (selectedWorks.has(rel.workId)) relations.projectWorks!.push({ projectId: rel.projectId, workId: rel.workId, relation: rel.relation });
+            }
+        }
+
+        const media: unknown[] = [], mediaDependencies = new Set<string>();
+        if (d.fields.includes('media.identity')) {
+            for (const work of works) {
+                const entries = (await tx.find('workAssets', { workspaceId: actor.workspaceId, workId: work.id })).sort((a, b) => a.position - b.position);
+                for (const entry of entries) {
+                    const asset = await readyAsset(tx, actor, entry.assetId, this.clock);
+                    const source = await sourceFor(tx, actor, asset.sourceId, this.clock);
+                    sources.set(source.id, source);
+                    const permission = this.choosePermission(permissions, used, 'ASSET', asset.id, asset.sourceId, ['media.identity']);
+                    if (!mediaDependencies.has(asset.id)) {
+                        dependencies.push(this.dependency(actor.workspaceId, job.id, 'ASSET', asset.id, ['media.identity'], source, asset.revision, null, permission, initialExpiry));
+                        mediaDependencies.add(asset.id);
+                    }
+                    media.push({ id: asset.id, workId: work.id, position: entry.position, isCover: entry.id === work.coverEntryId, sourceId: asset.sourceId,
+                        revision: asset.revision, fileName: asset.fileName, mime: asset.mime, bytes: asset.bytes, sha256: asset.sha256, width: asset.width, height: asset.height });
+                }
+            }
+        }
+
+        for(const asset of talent?.assets??[]) {
+            const source=await sourceFor(tx,actor,asset.sourceId,this.clock);sources.set(source.id,source);
+            const permission=this.choosePermission(permissions,used,'ASSET',asset.id,asset.sourceId,[MEDIA_TRANSFER_CODE]);
+            dependencies.push(this.dependency(actor.workspaceId,job.id,'ASSET',asset.id,[MEDIA_TRANSFER_CODE],source,asset.revision,null,permission,initialExpiry));
+            const fields=sourceTransferFields.get(source.id)??new Set<ExportFieldCode>();fields.add(MEDIA_TRANSFER_CODE);sourceTransferFields.set(source.id,fields);
+        }
+        const manifestSources: unknown[] = [];
+        if (sourceFields.length || sourceTransferFields.size) {
+            for (const source of [...sources.values()].sort((a, b) => a.id.localeCompare(b.id))) {
+                if(source.status==='ERASED')continue;
+                const requiredSourceFields = unique([...sourceFields, ...(sourceTransferFields.get(source.id) ?? [])]);
+                if (!requiredSourceFields.length) continue;
+                const permission = this.choosePermission(permissions, used, 'SOURCE', source.id, source.id, requiredSourceFields);
+                dependencies.push(this.dependency(actor.workspaceId, job.id, 'SOURCE', source.id, requiredSourceFields, source, source.revision, source.protectionEpoch, permission, initialExpiry));
+                if (sourceFields.length) manifestSources.push({ id: source.id, revision: source.revision, protectionEpoch: source.protectionEpoch,
+                    data: dataFields('source.', sourceFields, source as unknown as Record<string, unknown>) });
+            }
+        }
+        invariant(used.size === d.usePermissionRefs.length, 'EXPORT_PERMISSION_UNUSED', '提交了未被本次导出使用的许可，请移除后重试', 422);
+        job.usePermissionRefs = [...used].sort();
+        job.expiresAt = minIso(initialExpiry, ...dependencies.map(dep => dep.validUntil));
+        job.recordManifest = { schemaVersion: job.schemaVersion, frozenAt: now, people: manifestPeople, works: manifestWorks, projects: manifestProjects,
+            sources: manifestSources, media, relations, ...(parties?{parties}:{}), ...(talent ? { talent } : {}), ...(locales?{locales}:{}) };
+        await tx.insert('exports', job);
+        for (const dependency of dependencies) await tx.insert('exportDependencies', dependency);
+        return job;
+    }
+
+    private async exportFor(tx: Tx, actor: Actor, id: string) {
+        requirePermission(actor, 'data.export');
+        const row = await workspaceRow(tx, 'exports', id, actor.workspaceId);
+        if (!row || row.actorId !== actor.membershipId) missing();
+        return row;
+    }
+
+    private async validateDependency(tx: Tx, actor: Actor, dependency: ExportDependency) {
+        try {
+            const permission = await this.permissionFor(tx, actor, dependency.usePermissionId);
+            const source = await sourceFor(tx, actor, dependency.sourceId, this.clock,!(dependency.kind==='PERSON'&&permission.retentionBasisSourceId),!!(dependency.kind==='PERSON'&&permission.retentionBasisSourceId));
+            if(permission.retentionBasisSourceId)invariant(dependency.kind==='PERSON'&&source.status==='ERASED'&&source.revision===dependency.sourceRevision,'EXPORT_SOURCE_CHANGED','原始来源头已变化',409);
+            if (dependency.fields.some(f=>isTransferCode(f)||isLocaleCode(f))) invariant(source.revision === dependency.sourceRevision, 'EXPORT_SOURCE_CHANGED', '专业资料来源版本已变化', 409);
+            invariant(source.protectionEpoch === dependency.sourceProtectionEpoch, 'EXPORT_SOURCE_CHANGED', '来源安全状态已变化', 409);
+            invariant(permission.revision === dependency.usePermissionRevision && dependency.fields.every(field => permission.fields.includes(field)),
+                'EXPORT_PERMISSION_CHANGED', '导出许可已变化', 409);
+            let revision = dependency.resourceRevision;
+            if (dependency.kind === 'PERSON') {
+                const row = await personFor(tx, actor, dependency.personId!, this.clock);
+                invariant(row.protectionEpoch === dependency.resourceProtectionEpoch, 'EXPORT_SUBJECT_CHANGED', '人才安全状态已变化', 409);
+                revision = row.revision;
+            }
+            else if (dependency.kind === 'WORK') revision = (await workFor(tx, actor, dependency.workId!, this.clock)).revision;
+            else if (dependency.kind === 'PROJECT') revision = (await projectFor(tx, actor, dependency.projectId!, this.clock)).revision;
+            else if (dependency.kind === 'ASSET') revision = (await readyAsset(tx, actor, dependency.assetId!, this.clock)).revision;
+            else revision = source.revision;
+            invariant(Date.parse(dependency.validUntil) > this.clock.now().getTime(), 'EXPORT_EXPIRED', '导出依赖已到期', 409);
+            return revision !== dependency.resourceRevision;
+        }
+        catch (error) { return safeError(error); }
+    }
+
+    private async validateDependencies(tx: Tx, actor: Actor, row: ExportJob) {
+        this.egress();
+        invariant(Date.parse(row.expiresAt) > this.clock.now().getTime(), 'EXPORT_EXPIRED', '导出已经过期，请重新生成', 409);
+        let contentChanged = false;
+        const deps = await tx.find('exportDependencies', { workspaceId: row.workspaceId, exportId: row.id });
+        invariant(deps.length > 0, 'EXPORT_DEPENDENCY_MISSING', '导出依赖清单不完整', 409);
+        const professional = new Set(['person.roles','person.cityCode','person.languageCodes','person.skillCodes','person.heightCm']);
+        const upgraded = new Set((await tx.find('talentProfiles', { workspaceId: actor.workspaceId })).map(p => p.personId));
+        invariant(!deps.some(dep => dep.kind === 'PERSON' && dep.personId && upgraded.has(dep.personId)
+            && dep.fields.some(field => professional.has(field))), 'EXPORT_STALE',
+            '人才资料已升级为2.0，旧版专业字段导出不再可下载', 409);
+        if ((row.recordManifest as {talent?:unknown}).talent) {
+            const manifest = row.recordManifest as { people: Array<{id:string}>; talent: TalentTransfer };
+            try {
+                const current = await collectTalentTransfer(tx, actor, this.clock, manifest.people.map(p => p.id), row.fields.filter(isTransferCode),row.fields.includes(EVIDENCE_TRANSFER_CODE),row.fields.includes(CREDENTIAL_IDENTIFIER_CODE),row.fields.includes(MEDIA_TRANSFER_CODE),row.fields.includes(IDENTITY_EVIDENCE_CODE)?row.fields.filter(identityField):undefined,row.fields.includes(MERGE_HISTORY_CODE));
+                invariant(digest(current) === digest(manifest.talent), 'EXPORT_STALE', '专业资料已经变化，请重新生成导出', 409);
+            } catch (error) { safeError(error); }
+        }
+        if(row.schemaVersion===LOCALE_EXPORT_VERSION){
+            const manifest=row.recordManifest as {people:Array<{id:string}>;works:Array<{id:string}>;projects:Array<{id:string}>;locales:LocaleTransfer};
+            try{const current=await collectLocaleTransfer(tx,actor,this.clock,{people:manifest.people.map(r=>r.id),works:manifest.works.map(r=>r.id),projects:manifest.projects.map(r=>r.id)},row.fields);
+                invariant(digest(current)===digest(manifest.locales),'EXPORT_STALE','内部文本或其依据已经变化，请重新生成导出',409);
+            }catch(error){safeError(error);}
+        }
+        const partyManifest=row.recordManifest as {projects:Array<{id:string}>;parties?:PartyTransfer};
+        if(partyManifest.parties){try{const current=await collectParties(tx,actor,this.clock,partyManifest.projects.map(p=>p.id));invariant(digest(current)===digest(partyManifest.parties),'EXPORT_STALE','项目主体资料已变化，请重新导出',409);}catch(error){safeError(error);}}
+        for (const dep of deps) contentChanged = (await this.validateDependency(tx, actor, dep)) || contentChanged;
+        return { contentChanged, dependencyCount: deps.length };
+    }
+
+    async list(tx: Tx, actor: Actor, query: Record<string, string>) {
+        requirePermission(actor, 'data.export');
+        const rows = (await tx.find('exports', { workspaceId: actor.workspaceId, actorId: actor.membershipId }))
+            .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id));
+        return page(rows.map(row => ({ id: row.id, state: row.state, format: row.format, schemaVersion: row.schemaVersion, fields: row.fields,
+            createdAt: row.createdAt, expiresAt: row.expiresAt, revision: row.revision, payloadDigest: row.payloadDigest })), query);
+    }
+
+    async get(tx: Tx, actor: Actor, id: string) {
+        const row = await this.exportFor(tx, actor, id);
+        let effectiveState = row.state, blockedReason: string | null = row.errorCode, contentChanged = false;
+        if (row.state === 'READY') {
+            if (this.config.dataEgressMode !== 'INTERNAL_APPROVED')
+                blockedReason = 'EGRESS_DISABLED';
+            else {
+                try { contentChanged = (await this.validateDependencies(tx, actor, row)).contentChanged; }
+                catch (error) {
+                    if (!(error instanceof AppError) || error.status >= 500) throw error;
+                    effectiveState = 'STALE'; blockedReason = error.code;
+                }
+            }
+        }
+        return { id: row.id, state: row.state, effectiveState, format: row.format, schemaVersion: row.schemaVersion, fields: row.fields,
+            createdAt: row.createdAt, expiresAt: row.expiresAt, revision: row.revision, payloadDigest: row.payloadDigest,
+            contentChanged, downloadable: effectiveState === 'READY' && blockedReason === null, blockedReason };
+    }
+
+    async download(tx: Tx, actor: Actor, id: string, meta: RequestMeta) {
+        const row = await this.exportFor(tx, actor, id);
+        invariant(row.state === 'READY' && row.payload, 'EXPORT_NOT_READY', '导出尚未可下载', 409);
+        await this.validateDependencies(tx, actor, row);
+        await audit(tx, actor, actor.workspaceId, 'export.download', 'export', row.id, [], meta, this.clock);
+        return { fileName: 'once-export-' + row.id + '.json', sha256: row.payloadDigest, payload: row.payload };
+    }
+
+    async mediaDownload(tx:Tx,actor:Actor,id:string,assetId:string,meta?:RequestMeta) {
+        const job=await this.exportFor(tx,actor,id);
+        invariant(job.state==='READY'&&job.payload&&job.fields.includes(MEDIA_TRANSFER_CODE),'EXPORT_NOT_READY','原件导出尚未可下载',409);
+        await this.validateDependencies(tx,actor,job);
+        const frozen=(job.recordManifest as {talent?:TalentTransfer}).talent?.assets?.find(a=>a.id===assetId);
+        invariant(frozen,'NOT_FOUND','没有可导出的证明原件',404);
+        const asset=await readyAsset(tx,actor,assetId,this.clock);
+        invariant(digest(transferAsset(asset))===digest(frozen),'EXPORT_STALE','证明原件已经变化',409);
+        if(meta) await audit(tx,actor,actor.workspaceId,'export.download','export',id,['media.originals'],meta,this.clock);
+        return asset;
+    }
+
+    async actorFor(tx: Tx, row: ExportJob): Promise<Actor> {
+        const member = await workspaceRow(tx, 'memberships', row.actorId, row.workspaceId);
+        const user = member ? await workspaceRow(tx, 'users', member.userId, row.workspaceId) : null;
+        const workspace = await tx.get('workspaces', row.workspaceId);
+        invariant(member?.status === 'ACTIVE' && user?.status === 'ACTIVE', 'ACTOR_DISABLED', '导出申请人已失去资格', 403);
+        invariant(this.config.accessMode === 'INTERNAL' && this.config.dataEgressMode === 'INTERNAL_APPROVED' && workspace?.recoveryEpoch === this.config.recoveryEpoch,
+            'EGRESS_DISABLED', '当前环境未批准导出执行', 503);
+        const actor: Actor = { userId: user.id, membershipId: member.id, workspaceId: row.workspaceId, role: member.role,
+            permissions: permissionsFor(member), displayName: user.displayName, userEpoch: user.sessionEpoch, sessionId: 'worker' };
+        requirePermission(actor, 'data.export');
+        return actor;
+    }
+
+    async claim(): Promise<ExportJob | null> {
+        if (this.config.accessMode !== 'INTERNAL' || this.config.dataEgressMode !== 'INTERNAL_APPROVED') return null;
+        return this.store.transaction(async tx => {
+            const now = this.clock.now().getTime();
+            const rows = (await tx.find('exports')).filter(row => row.state === 'QUEUED' && (!row.leaseUntil || Date.parse(row.leaseUntil) <= now))
+                .sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
+            for (const row of rows) {
+                const workspace = await tx.get('workspaces', row.workspaceId);
+                if (workspace?.recoveryEpoch !== this.config.recoveryEpoch) continue;
+                if (row.attempts >= 3) { await tx.replace('exports', { ...touch(row, this.clock), state: 'FAILED', errorCode: 'ATTEMPTS_EXHAUSTED', leaseToken: null, leaseUntil: null }); continue; }
+                const next: ExportJob = { ...touch(row, this.clock), leaseToken: randomUUID(), leaseUntil: new Date(now + 30000).toISOString(), attempts: row.attempts + 1 };
+                await tx.replace('exports', next); return next;
+            }
+            return null;
+        });
+    }
+
+    private async owned(tx: Tx, claim: ExportJob) {
+        const row = await workspaceRow(tx, 'exports', claim.id, claim.workspaceId);
+        invariant(row && row.state === 'QUEUED' && row.leaseToken === claim.leaseToken && Date.parse(row.leaseUntil ?? '') > this.clock.now().getTime(),
+            'LEASE_LOST', '导出任务租约已失效', 409);
+        return row;
+    }
+
+    async process(claim: ExportJob): Promise<void> {
+        try {
+            await this.store.transaction(async tx => {
+                const row = await this.owned(tx, claim);
+                const actor = await this.actorFor(tx, row);
+                await this.validateDependencies(tx, actor, row);
+                const payload = { schemaVersion: row.schemaVersion, exportId: row.id, frozenAt: row.createdAt, manifest: row.recordManifest };
+                await tx.replace('exports', { ...touch(row, this.clock), state: 'READY', payload, payloadDigest: digest(payload), errorCode: null, leaseToken: null, leaseUntil: null });
+            });
+        }
+        catch (error) {
+            if (error instanceof AppError && error.code === 'LEASE_LOST') return;
+            await this.store.transaction(async tx => {
+                const row = await workspaceRow(tx, 'exports', claim.id, claim.workspaceId);
+                if (!row || row.state !== 'QUEUED' || row.leaseToken !== claim.leaseToken) return;
+                const safety = error instanceof AppError && error.status < 500;
+                await tx.replace('exports', { ...touch(row, this.clock), state: safety ? 'STALE' : row.attempts < 3 ? 'QUEUED' : 'FAILED',
+                    errorCode: error instanceof AppError ? error.code : 'EXPORT_FAILED', leaseToken: null, leaseUntil: null });
+            });
+        }
+    }
+}

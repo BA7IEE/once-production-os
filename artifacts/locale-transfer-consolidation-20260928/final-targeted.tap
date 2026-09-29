@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: internal locale texts retain current typed dependencies and roll back audit failures for people, works and projects
+ok 1 - internal locale texts retain current typed dependencies and roll back audit failures for people, works and projects
+  ---
+  duration_ms: 180.346125
+  type: 'test'
+  ...
+# Subtest: source erasure clears locale text and dependencies atomically while preserving its person
+ok 2 - source erasure clears locale text and dependencies atomically while preserving its person
+  ---
+  duration_ms: 138.399458
+  type: 'test'
+  ...
+# Subtest: locale protection changes restrict content until explicit re-review; current scope and replay permissions apply
+ok 3 - locale protection changes restrict content until explicit re-review; current scope and replay permissions apply
+  ---
+  duration_ms: 253.165542
+  type: 'test'
+  ...
+# Subtest: locale recovery inspection rejects missing roots, altered source digest and cross-workspace dependencies
+ok 4 - locale recovery inspection rejects missing roots, altered source digest and cross-workspace dependencies
+  ---
+  duration_ms: 129.199208
+  type: 'test'
+  ...
+# Subtest: PERSON erasure clears its locale derivatives and rolls back failed cleanup audits
+ok 5 - PERSON erasure clears its locale derivatives and rolls back failed cleanup audits
+  ---
+  duration_ms: 134.071125
+  type: 'test'
+  ...
+# Subtest: WORK erasure clears its locale derivatives and rolls back failed cleanup audits
+ok 6 - WORK erasure clears its locale derivatives and rolls back failed cleanup audits
+  ---
+  duration_ms: 131.249916
+  type: 'test'
+  ...
+# Subtest: PROJECT erasure clears its locale derivatives and rolls back failed cleanup audits
+ok 7 - PROJECT erasure clears its locale derivatives and rolls back failed cleanup audits
+  ---
+  duration_ms: 130.144958
+  type: 'test'
+  ...
+# Subtest: TD2 explicit person and fact-source permits export a typed whitelist and atomically rebuild stable relationships
+ok 8 - TD2 explicit person and fact-source permits export a typed whitelist and atomically rebuild stable relationships
+  ---
+  duration_ms: 382.19675
+  type: 'test'
+  ...
+# Subtest: TD2 frozen professional downloads fail closed after fact changes, source revocation, or disabled requestor
+ok 9 - TD2 frozen professional downloads fail closed after fact changes, source revocation, or disabled requestor
+  ---
+  duration_ms: 462.927709
+  type: 'test'
+  ...
+# Subtest: TD2 selected dependencies are explicit and unsupported typed fields cannot be smuggled into export
+ok 10 - TD2 selected dependencies are explicit and unsupported typed fields cannot be smuggled into export
+  ---
+  duration_ms: 282.295791
+  type: 'test'
+  ...
+# Subtest: TD2 foreign-source field evidence cannot be silently flattened and worker rechecks revoked grants
+ok 11 - TD2 foreign-source field evidence cannot be silently flattened and worker rechecks revoked grants
+  ---
+  duration_ms: 320.615625
+  type: 'test'
+  ...
+# Subtest: TD2 capability transfer preserves only referenced definitions and stales queued or ready exports when meaning changes
+ok 12 - TD2 capability transfer preserves only referenced definitions and stales queued or ready exports when meaning changes
+  ---
+  duration_ms: 163.687833
+  type: 'test'
+  ...
+# Subtest: TD2 capability rebuild rejects omitted, unrelated, duplicate, invalid-role and invalid-level definitions before writes
+ok 13 - TD2 capability rebuild rejects omitted, unrelated, duplicate, invalid-role and invalid-level definitions before writes
+  ---
+  duration_ms: 283.5215
+  type: 'test'
+  ...
+# Subtest: TD2 selected eight groups use current format without exporting unselected capabilities
+ok 14 - TD2 selected eight groups use current format without exporting unselected capabilities
+  ---
+  duration_ms: 284.034958
+  type: 'test'
+  ...
+# Subtest: TD2 shared inactive capability definitions and nullable role or level survive rebuild without reactivation
+ok 15 - TD2 shared inactive capability definitions and nullable role or level survive rebuild without reactivation
+  ---
+  duration_ms: 305.176791
+  type: 'test'
+  ...
+# Subtest: TD2 retired development formats v1-v13 are rejected before any rebuild write
+ok 16 - TD2 retired development formats v1-v13 are rejected before any rebuild write
+  ---
+  duration_ms: 294.558167
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4171.61475

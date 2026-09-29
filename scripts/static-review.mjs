@@ -1,3 +1,4 @@
+import {forbiddenBrowserGlobals} from './browser-storage-policy.mjs';
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import { createRequire } from 'node:module';
 const ts=createRequire(import.meta.url)('typescript');
 const root=process.cwd();const checks=[];function record(name,passed,detail){checks.push({name,passed,detail});}
@@ -8,11 +9,11 @@ record('typescript-syntax-transpile',diagnostics.length===0,{files:sources.lengt
 const prod=sources.map(f=>[f,fs.readFileSync(f,'utf8')]);
 record('test-double-not-in-production',prod.every(([,s])=>!s.includes('MemoryStore')&&!s.includes('/tests/support')),null);
 const web=prod.filter(([f])=>f.includes('admin-web'));
-const forbidden=[];for(const[file,text]of web){const tree=ts.createSourceFile(file,text,ts.ScriptTarget.Latest,true,file.endsWith('.tsx')?ts.ScriptKind.TSX:ts.ScriptKind.TS);const visit=node=>{if(ts.isIdentifier(node)&&['localStorage','sessionStorage','dangerouslySetInnerHTML','eval'].includes(node.text))forbidden.push({file,name:node.text});ts.forEachChild(node,visit);};visit(tree);}
+const forbidden=web.flatMap(([file,text])=>forbiddenBrowserGlobals(file,text));
 record('no-business-localStorage-or-unsafe-html',forbidden.length===0,{forbidden,note:'AST identifier check; not a complete XSS or data-loss audit.'});
 const artifacts=JSON.parse(fs.readFileSync('artifacts/openapi.json','utf8'));const routes=Object.values(artifacts.paths).flatMap(p=>Object.values(p));
 record('unique-route-operation-identities',new Set(routes.map(r=>r.operationId)).size===routes.length,{routes:routes.length});
-record('strict-request-object-schemas',routes.filter(r=>r.requestBody).every(r=>r.requestBody.content['application/json'].schema.additionalProperties===false),null);
+record('strict-request-object-schemas',routes.filter(r=>r.requestBody?.content['application/json']).every(r=>r.requestBody.content['application/json'].schema.additionalProperties===false),null);
 record('command-key-header-required',routes.filter(r=>r['x-mode']==='COMMAND').every(r=>r.parameters.some(p=>p.name==='Idempotency-Key'&&p.required)),null);
 record('no-deferred-http-surfaces',Object.keys(artifacts.paths).every(p=>!/(publish|anqicms|share|quote|invoice|ai\/)/.test(p)),null);
 const migration=fs.readFileSync('prisma/migrations/202609220001_initial/migration.sql','utf8');

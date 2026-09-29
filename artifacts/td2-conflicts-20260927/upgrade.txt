@@ -1,0 +1,3 @@
+PASS retained synthetic PostgreSQL upgrade: all 59 existing tables have identical original columns and records
+new retirement markers: 0
+schema migration: 202609270002_talent_merge_history

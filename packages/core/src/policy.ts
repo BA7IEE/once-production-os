@@ -1,18 +1,26 @@
+import {identitySupported} from './talent-identity-retention.ts';
 import type { Actor, Clock, Membership, Permission, Person, Role, Source } from './model.ts';
 import type { Tx } from './store.ts';
 import { fail, invariant, missing } from './errors.ts';
 import { workspaceRow } from './helpers.ts';
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
-    ADMIN: ['records.read', 'records.write', 'sources.read', 'sources.write', 'sources.review', 'members.manage', 'catalog.manage', 'audit.read'],
-    EDITOR: ['records.read', 'records.write', 'sources.read', 'sources.write'],
-    REVIEWER: ['records.read', 'sources.read', 'sources.review'], VIEWER: ['records.read']
+    ADMIN: ['assets.read', 'assets.upload', 'records.read', 'records.write', 'sources.read', 'sources.write', 'sources.review', 'members.manage', 'catalog.manage', 'audit.read', 'data.export', 'data.delete', 'data.merge'],
+    EDITOR: ['assets.read', 'assets.upload', 'records.read', 'records.write', 'sources.read', 'sources.write'],
+    REVIEWER: ['assets.read', 'records.read', 'sources.read', 'sources.review'], VIEWER: ['assets.read', 'records.read']
 };
 export const permissionsFor = (member: Membership): Permission[] => [...new Set([...ROLE_PERMISSIONS[member.role], ...member.extraPermissions])];
+export async function personAliasFor(tx: Tx, workspaceId: string, oldPersonId: string) {
+    return (await tx.find('personAliases', { workspaceId, oldPersonId }))[0] ?? null;
+}
+export async function deletionBlocked(tx: Tx, workspaceId: string, kind: 'SOURCE' | 'PERSON' | 'WORK' | 'PROJECT' | 'ASSET', id: string): Promise<boolean> {
+    return (await tx.find('deletionRequests', { workspaceId, targetKind: kind, targetId: id })).some(row => row.state !== 'DRAFT');
+}
 export function requirePermission(actor: Actor, permission: Permission): void {
     if (!actor.permissions.includes(permission))
         fail(403, 'FORBIDDEN', '当前账号没有执行此操作的权限');
 }
 export async function scopeVisible(tx: Tx, actor: Actor, scopeId: string): Promise<boolean> {
+    if (actor.actorKind === 'MACHINE' && actor.machineScopeId !== scopeId) return false;
     const scope = await workspaceRow(tx, 'scopes', scopeId, actor.workspaceId);
     if (!scope)
         return false;
@@ -26,33 +34,49 @@ export async function requireScope(tx: Tx, actor: Actor, scopeId: string): Promi
 }
 export function sourceCurrent(source: Source, clock: Clock): boolean {
     const now = clock.now().getTime();
-    return source.status !== 'SUSPENDED' && Date.parse(source.validFrom) <= now && now < Date.parse(source.validUntil)
+    return !['SUSPENDED','ERASED'].includes(source.status) && Date.parse(source.validFrom) <= now && now < Date.parse(source.validUntil)
         && (source.basisMode === 'TEMP_ORGANIZE' || source.status === 'CONFIRMED');
 }
 export async function sourceVisible(tx: Tx, actor: Actor, source: Source, clock: Clock): Promise<boolean> {
-    return source.workspaceId === actor.workspaceId && sourceCurrent(source, clock) && await scopeVisible(tx, actor, source.scopeId);
+    return source.workspaceId === actor.workspaceId && !(await deletionBlocked(tx, actor.workspaceId, 'SOURCE', source.id))
+        && sourceCurrent(source, clock) && await scopeVisible(tx, actor, source.scopeId);
 }
-export async function sourceFor(tx: Tx, actor: Actor, id: string, clock: Clock, active = true): Promise<Source> {
+export async function sourceFor(tx: Tx, actor: Actor, id: string, clock: Clock, active = true, allowBlocked = false): Promise<Source> {
     const source = await workspaceRow(tx, 'sources', id, actor.workspaceId);
     if (!source)
         missing();
     await requireScope(tx, actor, source.scopeId);
+    if (!allowBlocked && source.status === 'ERASED') missing();
+    if (!allowBlocked && await deletionBlocked(tx, actor.workspaceId, 'SOURCE', source.id))
+        missing();
     if (active && !sourceCurrent(source, clock))
         missing();
     return source;
 }
+async function retainedPersonVisible(tx:Tx,actor:Actor,person:Person,clock:Clock){
+ const allowed=new Map<string,number>();
+ for(const source of await tx.find('sources',{workspaceId:actor.workspaceId}))if(source.basisMode==='INTERNAL_USE'&&await sourceVisible(tx,actor,source,clock))allowed.set(source.id,source.revision);
+ return identitySupported(person,await tx.find('evidence',{workspaceId:actor.workspaceId,personId:person.id}),id=>allowed.get(id));
+}
 export async function personVisible(tx: Tx, actor: Actor, person: Person, clock: Clock): Promise<boolean> {
-    if (person.workspaceId !== actor.workspaceId || !(await scopeVisible(tx, actor, person.scopeId)))
+    if (await personAliasFor(tx, actor.workspaceId, person.id)) return false;
+    if (person.status==='ERASED' || person.workspaceId !== actor.workspaceId || await deletionBlocked(tx, actor.workspaceId, 'PERSON', person.id) || !(await scopeVisible(tx, actor, person.scopeId)))
         return false;
     const source = await workspaceRow(tx, 'sources', person.sourceId, actor.workspaceId);
-    return !!source && await sourceVisible(tx, actor, source, clock);
+    return !!source && (await sourceVisible(tx, actor, source, clock)||source.status==='ERASED'&&await scopeVisible(tx,actor,source.scopeId)&&await retainedPersonVisible(tx,actor,person,clock));
 }
 export async function personFor(tx: Tx, actor: Actor, id: string, clock: Clock, activeSource = true): Promise<Person> {
     const person = await workspaceRow(tx, 'people', id, actor.workspaceId);
-    if (!person)
+    if (!person || person.status==='ERASED')
         missing();
+    // Never let a guessed UUID reveal that a hidden record became an alias.
     await requireScope(tx, actor, person.scopeId);
-    await sourceFor(tx, actor, person.sourceId, clock, activeSource);
+    const alias = await personAliasFor(tx, actor.workspaceId, id);
+    invariant(!alias, 'MERGED_ID_READ_ONLY', '该人才ID已合并，只允许通过详情只读解析到主档案', 409);
+    if (await deletionBlocked(tx, actor.workspaceId, 'PERSON', person.id)) missing();
+    const origin=await workspaceRow(tx,'sources',person.sourceId,actor.workspaceId);
+    if(origin?.status==='ERASED'){await requireScope(tx,actor,origin.scopeId);if(!await retainedPersonVisible(tx,actor,person,clock))missing();}
+    else await sourceFor(tx, actor, person.sourceId, clock, activeSource);
     return person;
 }
 export async function validateScopeMembers(tx: Tx, actor: Actor, ids: string[]): Promise<void> {

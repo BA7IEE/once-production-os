@@ -8,6 +8,9 @@ import { encryptContact, decryptContact } from './crypto.ts';
 import { requirePermission, personFor, scopeVisible, requireScope, sourceFor, sourceCurrent, sourceVisible, validateScopeMembers } from './policy.ts';
 import { appendSourceHistory } from './source-history.ts';
 import { loadVisibility } from './visibility.ts';
+import { profileAccess, delegatedPeople, handoffForAction } from './handoff-policy.ts';
+import { loadTalentGraph } from './talent-v2-graph.ts';
+import { legacyProfessionalProjection, professionallyManaged, LEGACY_PROFESSIONAL_FIELDS, type TalentGraph } from './talent-legacy-projection.ts';
 import { PersonInput, PersonPatch, Schemas, SourceInput, type Parsed } from './validation.ts';
 export class Talent {
     clock: Clock;
@@ -83,9 +86,10 @@ export class Talent {
     }
     async listSources(tx: Tx, actor: Actor, query: Record<string, string>): Promise<unknown> {
         requirePermission(actor, 'sources.read');
+        const visibility = await loadVisibility(tx, actor, this.clock);
         const result = [];
         for (const source of await tx.find('sources', { workspaceId: actor.workspaceId })) {
-            if (!(await scopeVisible(tx, actor, source.scopeId)))
+            if (visibility.blocked('SOURCE', source.id) || !(await scopeVisible(tx, actor, source.scopeId)))
                 continue;
             if (!sourceCurrent(source, this.clock) && !actor.permissions.includes('sources.review'))
                 continue;
@@ -140,7 +144,7 @@ export class Talent {
         await appendSourceHistory(tx, actor, next, 'SUSPENDED', this.clock, data.reason);
         return next;
     }
-    async validateCatalog(tx: Tx, workspaceId: string, namespace: 'role' | 'city' | 'language' | 'skill', codes: string[], previous: string[] = []): Promise<void> {
+    async validateCatalog(tx: Tx, workspaceId: string, namespace: 'role' | 'city' | 'language' | 'skill' | 'industry' | 'workType', codes: string[], previous: string[] = []): Promise<void> {
         invariant(unique(codes).length === codes.length, 'DUPLICATE_CODE', '同一分类不能重复', 400);
         for (const code of codes) {
             const item = (await tx.find('dictionary', { workspaceId, namespace, code }))[0];
@@ -178,60 +182,80 @@ export class Talent {
     async updatePerson(tx: Tx, actor: Actor, id: string, input: unknown): Promise<Person> {
         requirePermission(actor, 'records.write');
         const data = PersonPatch.parse(input);
-        const person = await personFor(tx, actor, id, this.clock);
+        const access = await profileAccess(tx, actor, id, this.clock, 'edit');
+        const person = access.person;
+        if(LEGACY_PROFESSIONAL_FIELDS.some(key=>Object.hasOwn(data,key))) invariant(!professionallyManaged(person,await loadTalentGraph(tx,actor,this.clock)),'TD2_TYPED_WRITE_REQUIRED','专业资料请在专业工作台逐项维护，旧字段不能再修改',409);
+        invariant((await tx.get('sources',person.sourceId))?.status!=='ERASED','TD2_IDENTITY_PROPOSAL_REQUIRED','最初来源已删除，请通过独立来源的字段建议修改身份资料',409);
+        invariant(access.native || data.status === undefined, 'HANDOFF_FIELD_FORBIDDEN', '交接不能归档或改变档案生命周期', 403);
         cas(person, data.expectedRevision);
         invariant(Object.keys(data).length > 1, 'EMPTY_UPDATE', '没有需要保存的修改', 400);
         await this.validateProfile(tx, actor.workspaceId, data, person);
         const { expectedRevision: _, ...patch } = data;
         const next = patchDefined(touch(person, this.clock), patch);
+        if (data.status !== undefined && data.status !== person.status) next.protectionEpoch++;
         await tx.replace('people', next);
         return next;
     }
-    private personDto(person: Person): Record<string, unknown> {
-        return { id: person.id, displayName: person.displayName, aliases: person.aliases, roles: person.roles, cityCode: person.cityCode,
-            languageCodes: person.languageCodes, skillCodes: person.skillCodes, heightCm: person.heightCm, intro: person.intro,
+    private personDto(person: Person, graph: TalentGraph): Record<string, unknown> {
+        return { id: person.id, displayName: person.displayName, aliases: person.aliases, intro: person.intro,
             status: person.status, sourceId: person.sourceId, scopeId: person.scopeId, maintainerId: person.maintainerId,
-            revision: person.revision, createdAt: person.createdAt, updatedAt: person.updatedAt };
+            revision: person.revision, createdAt: person.createdAt, updatedAt: person.updatedAt, ...legacyProfessionalProjection(person,graph) };
     }
     async visiblePeople(tx: Tx, actor: Actor): Promise<Person[]> {
         requirePermission(actor, 'records.read');
         const visibility = await loadVisibility(tx, actor, this.clock);
-        return (await tx.find('people', { workspaceId: actor.workspaceId })).filter(p => visibility.personVisible(p));
+        const rows = (await tx.find('people', { workspaceId: actor.workspaceId })).filter(p => visibility.personVisible(p));
+        const combined = new Map(rows.map(p => [p.id, p]));
+        for (const p of await delegatedPeople(tx, actor, this.clock)) combined.set(p.id, p);
+        return [...combined.values()];
     }
     async listPeople(tx: Tx, actor: Actor, query: Record<string, string>): Promise<unknown> {
         requirePermission(actor, 'records.read');
         invariant((query.q?.length ?? 0) <= 120, 'QUERY_INVALID', '关键词过长', 400);
         const result: Record<string, unknown>[] = [];
         const q = query.q?.toLocaleLowerCase() ?? '';
+        const graph=await loadTalentGraph(tx,actor,this.clock);
         for (const person of await this.visiblePeople(tx, actor)) {
             if (q && ![person.displayName, ...person.aliases].some(s => s.toLocaleLowerCase().includes(q)))
                 continue;
-            if (query.role && !person.roles.includes(query.role))
+            const dto=this.personDto(person,graph);
+            if (query.role && !(dto.roles as string[]).includes(query.role))
                 continue;
-            if (query.cityCode && person.cityCode !== query.cityCode)
+            if (query.cityCode && dto.cityCode !== query.cityCode)
                 continue;
-            if (query.languageCode && !person.languageCodes.includes(query.languageCode))
+            if (query.languageCode && !(dto.languageCodes as string[]).includes(query.languageCode))
                 continue;
             if (query.status && person.status !== query.status)
                 continue;
-            result.push(this.personDto(person));
+            result.push(dto);
         }
         result.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)) || String(a.id).localeCompare(String(b.id)));
         return page(result, query, ['q', 'role', 'cityCode', 'languageCode', 'status']);
     }
     async getPerson(tx: Tx, actor: Actor, id: string): Promise<unknown> {
         requirePermission(actor, 'records.read');
-        const person = await personFor(tx, actor, id, this.clock);
-        const source = await sourceFor(tx, actor, person.sourceId, this.clock);
+        const access = await profileAccess(tx, actor, id, this.clock);
+        const person = access.person;
+        const graph=await loadTalentGraph(tx,actor,this.clock);
+        // The profile contains only a safe source summary; it does not grant the source endpoint.
+        const source = (await workspaceRow(tx, 'sources', person.sourceId, actor.workspaceId))!;
         const evidence = [];
         for (const row of await tx.find('evidence', { workspaceId: actor.workspaceId, personId: id })) {
+            if(professionallyManaged(person,graph)&&(LEGACY_PROFESSIONAL_FIELDS as readonly string[]).includes(row.fieldPath))continue;
             const evidenceSource = await workspaceRow(tx, 'sources', row.sourceId, actor.workspaceId);
             if (!evidenceSource || !(await sourceVisible(tx, actor, evidenceSource, this.clock)))
                 continue;
             const current = row.sourceRevision === evidenceSource.revision && row.valueDigest === digest(person[row.fieldPath as keyof Person]);
             evidence.push({ id: row.id, fieldPath: row.fieldPath, reviewedAt: row.reviewedAt, sourceId: row.sourceId, state: current ? 'VERIFIED' : 'STALE' });
         }
-        return { ...this.personDto(person), source: { id: source.id, title: source.title, basisMode: source.basisMode, validUntil: source.validUntil, status: source.status }, evidence };
+        const canEdit = source.status!=='ERASED' && actor.permissions.includes('records.write') && (access.native || !!await handoffForAction(tx, actor, id, this.clock, 'edit'));
+        const canReview = actor.permissions.includes('sources.review') && (access.native || !!await handoffForAction(tx, actor, id, this.clock, 'review'));
+        return { ...this.personDto(person,graph), access: { mode: access.native ? 'NATIVE' : 'HANDOFF', canEdit, canReview,
+            canReadSource: source.status!=='ERASED' && access.native && actor.permissions.includes('sources.read'),
+            canReadContacts: access.native && actor.permissions.includes('sensitive.read'),
+            canManageScope: access.native && actor.permissions.includes('members.manage'),
+            canOffer: source.status!=='ERASED' && access.native && person.status !== 'ARCHIVED' && person.maintainerId === actor.membershipId
+                && source.maintainerId === actor.membershipId && actor.permissions.includes('records.write') && actor.permissions.includes('sources.write') }, source: { id: source.id, revision: source.revision, title: source.title, basisMode: source.basisMode, validUntil: source.validUntil, status: source.status }, evidence };
     }
     async contacts(tx: Tx, actor: Actor, personId: string, meta: RequestMeta): Promise<unknown> {
         requirePermission(actor, 'sensitive.read');
@@ -271,7 +295,10 @@ export class Talent {
     async confirmEvidence(tx: Tx, actor: Actor, input: unknown): Promise<Person> {
         requirePermission(actor, 'sources.review');
         const data = Schemas.evidence.parse(input);
-        const person = await personFor(tx, actor, data.personId, this.clock);
+        const { person } = await profileAccess(tx, actor, data.personId, this.clock, 'review');
+        if((LEGACY_PROFESSIONAL_FIELDS as readonly string[]).includes(data.fieldPath)) invariant(!professionallyManaged(person,await loadTalentGraph(tx,actor,this.clock)),'TD2_TYPED_EVIDENCE_REQUIRED','专业资料请逐项核验当前事实，不能核验旧字段',409);
+        // A REVIEW handoff grants the basic profile, not raw evidence. The chosen source must
+        // still be independently readable under its original scope. Never bypass sourceFor here.
         cas(person, data.expectedRevision);
         const source = await sourceFor(tx, actor, data.sourceId, this.clock);
         cas(source, data.sourceRevision);

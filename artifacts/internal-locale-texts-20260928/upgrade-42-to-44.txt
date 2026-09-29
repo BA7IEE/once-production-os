@@ -1,0 +1,22 @@
+
+> once-production-os@0.1.0-dev.1 db:deploy /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> prisma migrate deploy
+
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_test_typed_scale_full01", schema "public" at "127.0.0.1:55447"
+
+44 migrations found in prisma/migrations
+
+Applying migration `202609280009_internal_locale_texts`
+Applying migration `202609280010_locale_dependency_identity`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609280009_internal_locale_texts/
+    └─ migration.sql
+  └─ 202609280010_locale_dependency_identity/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+PASS populated 42 -> 44 upgrade: 60 existing tables preserved exactly; two locale tables created empty.

@@ -1,0 +1,154 @@
+
+> once-production-os@0.1.0-dev.1 db:deploy /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> prisma migrate deploy
+
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "once_backup_source_facts01", schema "public" at "127.0.0.1:55447"
+
+40 migrations found in prisma/migrations
+
+Applying migration `202609220001_initial`
+Applying migration `202609230001_source_history`
+Applying migration `202609230002_record_handoffs`
+Applying migration `202609230003_private_images`
+Applying migration `202609240001_works_projects`
+Applying migration `202609240002_search_shortlists`
+Applying migration `202609240003_shortlist_asset_unlink`
+Applying migration `202609240004_search_facts_sql`
+Applying migration `202609240005_dictionary_search_namespaces`
+Applying migration `202609240006_export_dependencies`
+Applying migration `202609240007_export_payload_json_null`
+Applying migration `202609240008_deletion_impact_preview`
+Applying migration `202609240009_deletion_blocking`
+Applying migration `202609240010_deletion_retention_plan`
+Applying migration `202609240011_deletion_cleanup_execution`
+Applying migration `202609240012_cleanup_null_guards`
+Applying migration `202609250001_deletion_finalization_states`
+Applying migration `202609250002_person_merge_foundation`
+Applying migration `202609250003_person_merge_integrity`
+Applying migration `202609260001_recovery_runs`
+Applying migration `202609260002_recovery_inspection`
+Applying migration `202609260003_recovery_report_guards`
+Applying migration `202609260004_recovery_approval_evidence`
+Applying migration `202609260005_recovery_approval_media_guard`
+Applying migration `202609260006_recovery_backup_media_identity`
+Applying migration `202609260007_recovery_delta_resolution`
+Applying migration `202609270001_talent_domain_v2`
+Applying migration `202609270002_talent_merge_history`
+Applying migration `202609270003_talent_transfer`
+Applying migration `202609270004_capability_transfer`
+Applying migration `202609270005_external_ref_transfer`
+Applying migration `202609270006_representation_transfer`
+Applying migration `202609270007_field_evidence_transfer`
+Applying migration `202609270008_credential_transfer`
+Applying migration `202609280001_credential_media_transfer`
+Applying migration `202609280002_collection_transfer`
+Applying migration `202609280003_adult_eligibility_transfer`
+Applying migration `202609280004_identity_evidence_transfer`
+Applying migration `202609280005_merge_history_transfer`
+Applying migration `202609280006_candidate_review_lineage`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 202609220001_initial/
+    └─ migration.sql
+  └─ 202609230001_source_history/
+    └─ migration.sql
+  └─ 202609230002_record_handoffs/
+    └─ migration.sql
+  └─ 202609230003_private_images/
+    └─ migration.sql
+  └─ 202609240001_works_projects/
+    └─ migration.sql
+  └─ 202609240002_search_shortlists/
+    └─ migration.sql
+  └─ 202609240003_shortlist_asset_unlink/
+    └─ migration.sql
+  └─ 202609240004_search_facts_sql/
+    └─ migration.sql
+  └─ 202609240005_dictionary_search_namespaces/
+    └─ migration.sql
+  └─ 202609240006_export_dependencies/
+    └─ migration.sql
+  └─ 202609240007_export_payload_json_null/
+    └─ migration.sql
+  └─ 202609240008_deletion_impact_preview/
+    └─ migration.sql
+  └─ 202609240009_deletion_blocking/
+    └─ migration.sql
+  └─ 202609240010_deletion_retention_plan/
+    └─ migration.sql
+  └─ 202609240011_deletion_cleanup_execution/
+    └─ migration.sql
+  └─ 202609240012_cleanup_null_guards/
+    └─ migration.sql
+  └─ 202609250001_deletion_finalization_states/
+    └─ migration.sql
+  └─ 202609250002_person_merge_foundation/
+    └─ migration.sql
+  └─ 202609250003_person_merge_integrity/
+    └─ migration.sql
+  └─ 202609260001_recovery_runs/
+    └─ migration.sql
+  └─ 202609260002_recovery_inspection/
+    └─ migration.sql
+  └─ 202609260003_recovery_report_guards/
+    └─ migration.sql
+  └─ 202609260004_recovery_approval_evidence/
+    └─ migration.sql
+  └─ 202609260005_recovery_approval_media_guard/
+    └─ migration.sql
+  └─ 202609260006_recovery_backup_media_identity/
+    └─ migration.sql
+  └─ 202609260007_recovery_delta_resolution/
+    └─ migration.sql
+  └─ 202609270001_talent_domain_v2/
+    └─ migration.sql
+  └─ 202609270002_talent_merge_history/
+    └─ migration.sql
+  └─ 202609270003_talent_transfer/
+    └─ migration.sql
+  └─ 202609270004_capability_transfer/
+    └─ migration.sql
+  └─ 202609270005_external_ref_transfer/
+    └─ migration.sql
+  └─ 202609270006_representation_transfer/
+    └─ migration.sql
+  └─ 202609270007_field_evidence_transfer/
+    └─ migration.sql
+  └─ 202609270008_credential_transfer/
+    └─ migration.sql
+  └─ 202609280001_credential_media_transfer/
+    └─ migration.sql
+  └─ 202609280002_collection_transfer/
+    └─ migration.sql
+  └─ 202609280003_adult_eligibility_transfer/
+    └─ migration.sql
+  └─ 202609280004_identity_evidence_transfer/
+    └─ migration.sql
+  └─ 202609280005_merge_history_transfer/
+    └─ migration.sql
+  └─ 202609280006_candidate_review_lineage/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+TAP version 13
+# PASS actual backup/restore preserves erased historical source, retained language and exact independent evidence plus pending candidate role review
+# PASS TD2 pg_dump/pg_restore+media: stable roles, measurements, external refs, collection links, encrypted credential, original evidence and adult verification attribution and revoked machine identity
+# PASS DEV-09E pg_dump/pg_restore+media: contained post-backup delta resolves and approves; unresolved committed member.disable remains blocked
+# Subtest: DEV-09E real backup/restore resolves contained deltas and blocks unresolved committed mutations
+ok 1 - DEV-09E real backup/restore resolves contained deltas and blocks unresolved committed mutations
+  ---
+  duration_ms: 9688.290375
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9837.843666

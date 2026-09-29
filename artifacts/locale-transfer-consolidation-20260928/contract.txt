@@ -1,0 +1,5 @@
+
+> once-production-os@0.1.0-dev.1 contract:generate /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> node --experimental-strip-types scripts/generate-contract.ts
+
+Contract generated: 174 routes; request schemas only

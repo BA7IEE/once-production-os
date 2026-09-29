@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: ordinary contact identity evidence rebuild keeps IDs and original review; audit failure rolls back then retry succeeds
+ok 1 - ordinary contact identity evidence rebuild keeps IDs and original review; audit failure rolls back then retry succeeds
+  ---
+  duration_ms: 279.743917
+  type: 'test'
+  ...
+# Subtest: identity evidence needs person, field and actual source permission; review rights and current scope are rechecked
+ok 2 - identity evidence needs person, field and actual source permission; review rights and current scope are rechecked
+  ---
+  duration_ms: 136.232667
+  type: 'test'
+  ...
+# Subtest: missing identity owner or selected field, bad source version, duplicate ID and review metadata fail before writes
+ok 3 - missing identity owner or selected field, bad source version, duplicate ID and review metadata fail before writes
+  ---
+  duration_ms: 253.752958
+  type: 'test'
+  ...
+# Subtest: identity evidence changes and evidence-only source grant revocation stale queued and ready files
+ok 4 - identity evidence changes and evidence-only source grant revocation stale queued and ready files
+  ---
+  duration_ms: 268.804875
+  type: 'test'
+  ...
+# Subtest: identity transfer preserves previous value digests and excludes unselected fields; old formats reject new identity sections
+ok 5 - identity transfer preserves previous value digests and excludes unselected fields; old formats reject new identity sections
+  ---
+  duration_ms: 256.770541
+  type: 'test'
+  ...
+# Subtest: v10 identity evidence can accompany verified adult, credential and shared collection media without downgrading them
+ok 6 - v10 identity evidence can accompany verified adult, credential and shared collection media without downgrading them
+  ---
+  duration_ms: 476.448375
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1849.83175

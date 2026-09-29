@@ -1,0 +1,31 @@
+{
+  "basis": "7c327b4e5bbd587f12c72ccafd20f39e4cb1a072",
+  "environment": {
+    "node": "22.16.0",
+    "dependencyInstall": "NOT_RUN",
+    "postgres": "NOT_RUN",
+    "browser": "NOT_RUN"
+  },
+  "checks": {
+    "coreMemoryTests": {
+      "pass": 135,
+      "fail": 0
+    },
+    "checkpointHelperTests": {
+      "pass": 17,
+      "fail": 0
+    },
+    "shellOrchestrationMocks": {
+      "pass": 9,
+      "fail": 0
+    },
+    "syntax": "PASS",
+    "missingOptInExitCode": 2
+  },
+  "boundaries": [
+    "No production logic/schema/lockfile changes",
+    "No real Docker/PG/browser run",
+    "No final-commit GitHub runner verification yet",
+    "Local tests and mock checks do not imply CI/production acceptance"
+  ]
+}

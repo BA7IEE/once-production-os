@@ -1,3 +1,4 @@
+import { isAbsolute } from 'node:path';
 import { readFileSync } from 'node:fs';
 import type { Config } from '../../../packages/core/src/model.ts';
 function required(name: string): string {
@@ -20,10 +21,33 @@ export function loadConfig(): Config {
     const accessMode = required('ACCESS_MODE');
     if (!['MAINTENANCE', 'INTERNAL'].includes(accessMode))
         throw new Error('ACCESS_MODE invalid');
+    const egress = process.env.DATA_EGRESS_MODE ?? 'DISABLED';
+    const cleanup = process.env.DATA_CLEANUP_MODE ?? 'DISABLED';
+    const merge = process.env.DATA_MERGE_MODE ?? 'DISABLED';
+    if (!['DISABLED', 'INTERNAL_APPROVED'].includes(egress))
+        throw new Error('DATA_EGRESS_MODE invalid');
+    if (!['DISABLED', 'INTERNAL_APPROVED'].includes(cleanup))
+        throw new Error('DATA_CLEANUP_MODE invalid');
+    if (!['DISABLED', 'INTERNAL_APPROVED'].includes(merge))
+        throw new Error('DATA_MERGE_MODE invalid');
     const secure = required('COOKIE_SECURE');
     if (!['true', 'false'].includes(secure))
         throw new Error('COOKIE_SECURE invalid');
     required('DATABASE_URL');
-    return { origin: required('APP_ORIGIN'), secureCookies: secure === 'true', environment: environment as Config['environment'], accessMode: accessMode as Config['accessMode'],
-        contactKey: key('CONTACT_KEY_FILE'), csrfKey: key('CSRF_KEY_FILE'), recoveryEpoch: readFileSync(required('RECOVERY_EPOCH_FILE'), 'utf8').trim() };
+    const media = process.env.MEDIA_PROVIDER ?? 'disabled';
+    if (!['disabled', 'local', 'cos'].includes(media))
+        throw new Error('MEDIA_PROVIDER not supported');
+    if(media==='cos'&&(!isAbsolute(process.env.MEDIA_ROOT??'')||!isAbsolute(process.env.COS_CREDENTIALS_FILE??'')))throw new Error('COS requires absolute private staging and credentials paths');
+    if (media === 'local' && (!['local', 'test'].includes(environment) || !isAbsolute(process.env.MEDIA_ROOT ?? '')))
+        throw new Error('Local media requires local/test and an absolute MEDIA_ROOT; production provider is not approved');
+    if (['staging', 'production'].includes(environment) && accessMode === 'INTERNAL') {
+        const journal = process.env.SAFETY_JOURNAL_FILE ?? '';
+        if (!isAbsolute(journal))
+            throw new Error('SAFETY_JOURNAL_FILE must be an absolute path for staging/production INTERNAL mode');
+    }
+    const recoveryEpoch = readFileSync(required('RECOVERY_EPOCH_FILE'), 'utf8').trim();
+    if (!/^[A-Za-z0-9_-]{32,128}$/.test(recoveryEpoch))
+        throw new Error('RECOVERY_EPOCH_FILE must contain a 32-128 character base64url-style epoch');
+    return { mediaEnabled: media !== 'disabled', origin: required('APP_ORIGIN'), secureCookies: secure === 'true', environment: environment as Config['environment'], accessMode: accessMode as Config['accessMode'], dataEgressMode: egress as Config['dataEgressMode'], dataCleanupMode: cleanup as Config['dataCleanupMode'], dataMergeMode: merge as Config['dataMergeMode'],
+        contactKey: key('CONTACT_KEY_FILE'), csrfKey: key('CSRF_KEY_FILE'), recoveryEpoch };
 }

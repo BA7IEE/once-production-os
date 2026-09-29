@@ -1,0 +1,21 @@
+
+> once-production-os@0.1.0-dev.1 build /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> pnpm build:api && pnpm build:web
+
+
+> once-production-os@0.1.0-dev.1 build:api /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> tsc -p tsconfig.server.json
+
+
+> once-production-os@0.1.0-dev.1 build:web /Users/dengwang/.codex/worktrees/talent-profile-continuation/once-production-os
+> vite build --config apps/admin-web/vite.config.ts
+
+vite v6.4.1 building for production...
+transforming...
+✓ 54 modules transformed.
+rendering chunks...
+computing gzip size...
+../../dist/web/index.html                   0.47 kB │ gzip:   0.33 kB
+../../dist/web/assets/index-DpHhiSdk.css   23.58 kB │ gzip:   5.56 kB
+../../dist/web/assets/index-TyMdgnBh.js   472.32 kB │ gzip: 141.65 kB
+✓ built in 582ms

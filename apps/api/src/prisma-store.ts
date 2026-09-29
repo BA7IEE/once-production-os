@@ -1,11 +1,12 @@
 import { PrismaClient, Prisma } from '@prisma/client';
 import type { Table, TableMap } from '../../../packages/core/src/model.ts';
 import type { Store, Tx } from '../../../packages/core/src/store.ts';
+import type { TalentQueryFilters, TalentQueryResult } from '../../../packages/core/src/search-query-model.ts';
 import { AppError } from '../../../packages/core/src/errors.ts';
-const DELEGATE: Record<Table, string> = { workspaces: 'workspace', users: 'user', memberships: 'membership', sessions: 'session', activations: 'activation',
+const DELEGATE: Record<Table, string> = { brands:"brand",projectParties:"projectParty", aiResponseMetadata:'aiResponseMetadata',aiConnections:'aiConnection',aiReconciliations:'aiReconciliation',aiBudgetReleases:'aiBudgetRelease',aiApprovals:'aiApproval',aiGrants:'aiGrant',aiTasks:'aiTask',aiDependencies:'aiDependency',aiBudgets:'aiBudget',aiRuns:'aiRun',aiAttempts:'aiAttempt',localeTexts:'localeText',localeDependencies:'localeDependency', mergeHistoryErasures: 'mergeHistoryErasure', talentProfiles: 'talentProfile', personRoles: 'personRole', capabilityDefinitions: 'capabilityDefinition', personCapabilities: 'personCapability', personLanguages: 'personLanguage', talentLocations: 'talentLocation', castingProfiles: 'castingProfile', measurementSets: 'measurementSet', adultEligibilities: 'adultEligibility', organizations: 'talentOrganization', representations: 'representation', personExternalRefs: 'personExternalRef', personCredentials: 'personCredential', translatorLanguagePairs: 'translatorLanguagePair', translatorServiceModes: 'translatorServiceMode', mediaCollections: 'mediaCollection', mediaCollectionTags: 'mediaCollectionTag', mediaCollectionItems: 'mediaCollectionItem', servicePrincipals: 'servicePrincipal', fieldProposals: 'fieldProposal', talentMigrationReviews: 'talentMigrationReview',  recoveryRuns: 'recoveryRun', personMerges: 'personMergeDecision', personAliases: 'personAlias', deletionRequests: 'deletionRequest', deletionItems: 'deletionItem', usePermissions: 'usePermission', exports: 'exportJob', exportDependencies: 'exportDependency', shortlists: 'shortlist', shortlistItems: 'shortlistItem', shortlistItemAssets: 'shortlistItemAsset', works: 'work', workAssets: 'workAsset', workCredits: 'workCredit', projects: 'project', projectParticipants: 'projectParticipant', projectWorks: 'projectWork', workspaces: 'workspace', users: 'user', memberships: 'membership', sessions: 'session', activations: 'activation',
     scopes: 'accessScope', scopeMembers: 'scopeMember', sources: 'sourceRecord', sourceHistory: 'sourceHistory', people: 'person', contacts: 'contact', evidence: 'fieldEvidence',
-    dictionary: 'dictionaryItem', receipts: 'commandReceipt', audits: 'auditEvent', rateBuckets: 'rateBucket', imports: 'importBatch', jobs: 'durableJob' };
-const DATES = new Set(['createdAt', 'updatedAt', 'idleUntil', 'absoluteUntil', 'revokedAt', 'expiresAt', 'consumedAt', 'validFrom', 'validUntil', 'reviewedAt', 'until', 'leaseUntil']);
+    dictionary: 'dictionaryItem', receipts: 'commandReceipt', audits: 'auditEvent', rateBuckets: 'rateBucket', imports: 'importBatch', jobs: 'durableJob', handoffs: 'recordHandoff', uploads: 'mediaUpload', assets: 'mediaAsset' };
+const DATES = new Set(['recordCreatedAt','recordUpdatedAt','erasedAt','reasonErasedAt','originalReviewedAt','createdAt','updatedAt','idleUntil','absoluteUntil','revokedAt','expiresAt','consumedAt','validFrom','validUntil','reviewedAt','until','leaseUntil','acceptedAt','closedAt','purgedAt','planFrozenAt','cleanupStartedAt','cleanupLeaseUntil','dependencyCleanupCompletedAt','decidedAt','cleanedAt','finalizedAt','finalizationLeaseUntil','preparedAt','checkedAt','approvedAt','verifiedAt','resolvedAt']);
 interface Delegate {
     findUnique(input: unknown): Promise<unknown>;
     findMany(input: unknown): Promise<unknown[]>;
@@ -13,7 +14,7 @@ interface Delegate {
     update(input: unknown): Promise<unknown>;
     delete(input: unknown): Promise<unknown>;
 }
-function data(row: object): Record<string, unknown> { return Object.fromEntries(Object.entries(row).map(([key, value]) => [key, DATES.has(key) && typeof value === 'string' ? new Date(value) : value])); }
+function data(row: object): Record<string, unknown> { return Object.fromEntries(Object.entries(row).map(([key, value]) => [key, key === 'proposedValue' && value === null ? Prisma.JsonNull : (key === 'importedBasis' || key === 'mergeHistory') && value === null ? Prisma.DbNull : DATES.has(key) && typeof value === 'string' ? new Date(value) : value])); }
 function plain(value: unknown): unknown {
     if (value instanceof Date)
         return value.toISOString();
@@ -38,8 +39,218 @@ export class PrismaStore implements Store {
                     get: async <K extends Table>(t: K, id: string) => plain(await delegate(t).findUnique({ where: { id } })) as TableMap[K] | null,
                     find: async <K extends Table>(t: K, where: Partial<TableMap[K]> = {}) => plain(await delegate(t).findMany({ where: Object.fromEntries(Object.entries(data(where)).map(([k, v]) => [k, Array.isArray(v) ? { equals: v } : v])) })) as TableMap[K][],
                     insert: async <K extends Table>(t: K, row: TableMap[K]) => { await delegate(t).create({ data: data(row) }); },
-                    replace: async <K extends Table>(t: K, row: TableMap[K]) => { if (t === 'sourceHistory') throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加'); const { id, ...update } = data(row); await delegate(t).update({ where: { id }, data: update }); },
-                    remove: async (t, id) => { if (t === 'sourceHistory') throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加'); await delegate(t).delete({ where: { id } }); }
+                    replace: async <K extends Table>(t: K, row: TableMap[K]) => {
+                        if (['aiResponseMetadata','aiReconciliations','aiBudgetReleases','mergeHistoryErasures'].includes(t)) throw new AppError(409,'HISTORY_IMMUTABLE','历史清理证据只允许追加');
+                        if (t === 'sourceHistory')
+                            throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加');
+                        if (t === 'talentProfiles' || t === 'castingProfiles') {
+                            const old = await tx.get(t, row.id);
+                            if (old && 'supersededById' in old && old.supersededById) throw new AppError(409, 'MERGE_HISTORY_IMMUTABLE', '合并保留的专业档案只读');
+                        }
+                        const { id, ...update } = data(row);
+                        await delegate(t).update({ where: { id }, data: update });
+                    },
+                    remove: async (t, id) => {
+                        if (['aiResponseMetadata','aiReconciliations','aiBudgetReleases','mergeHistoryErasures'].includes(t)) throw new AppError(409,'HISTORY_IMMUTABLE','历史清理证据只允许追加');
+                        if (t === 'sourceHistory')
+                            throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加');
+                        if (t === 'talentProfiles' || t === 'castingProfiles') {
+                            const old = await tx.get(t, id);
+                            if (old && 'supersededById' in old && old.supersededById) throw new AppError(409, 'MERGE_HISTORY_IMMUTABLE', '合并历史删除需要专用保留策略');
+                        }
+                        await delegate(t).delete({ where: { id } });
+                    },
+                    redactSourceHistory: async (id, at) => {
+                        await p.$executeRaw`UPDATE "sourceHistory"
+                            SET "updatedAt"=${new Date(at)},
+                                "decisionReason"=CASE WHEN "decisionReason" IS NULL THEN NULL ELSE '[ERASED]' END,
+                                "snapshot"=jsonb_build_object(
+                                    'id',"sourceId"::text,'workspaceId',"workspaceId"::text,
+                                    'revision',"sourceRevision",'scopeId',"scopeId"::text,'erased',true)
+                            WHERE "id"=${id}::uuid AND ("snapshot"->>'erased') IS DISTINCT FROM 'true'`;
+                    },
+                    eraseRetiredProfile: async (table,id,erasureId) => {
+                        const e=await tx.get('mergeHistoryErasures',erasureId);
+                        if(!e||e.recordId!==id||e.recordKind!==(table==='talentProfiles'?'TALENT_PROFILE':'CASTING_PROFILE')||!e.requestId)
+                            throw new AppError(409,'HISTORY_ERASURE_REQUIRED','缺少匹配的冻结历史清理记录');
+                        await delegate(table).delete({where:{id}});
+                    },
+                    redactMergeReason: async (id,erasureId,at) => {
+                        const e=await tx.get('mergeHistoryErasures',erasureId);
+                        if(!e||e.mergeDecisionId!==id||e.erasedAt!==at||!e.requestId)
+                            throw new AppError(409,'HISTORY_ERASURE_REQUIRED','缺少匹配的历史说明清理记录');
+                        await p.$executeRaw`UPDATE "personMerges" SET "revision"="revision"+1,"updatedAt"=${new Date(at)},"reasonErasedAt"=${new Date(at)},
+                            "decisionManifest"=jsonb_set("decisionManifest",'{reason}','"[ERASED]"'::jsonb,false)
+                            WHERE "id"=${id}::uuid AND "reasonErasedAt" IS NULL`;
+                    },
+                    talentQuery: async (input: TalentQueryFilters): Promise<TalentQueryResult> => {
+                        if (!input.visibleScopeIds.length || !input.visibleSourceIds.length)
+                            return { rows: [], baseTotal: 0, alreadyPaged: !input.scanForVerification,
+                                facets: { roles: [], cities: [], languages: [], skills: [], industries: [], workTypes: [] }, evidence: [] };
+                        const uuidList = (values: string[]) => Prisma.join(values.map(value => Prisma.sql`${value}::uuid`));
+                        const scopeList = uuidList(input.visibleScopeIds), sourceList = uuidList(input.visibleSourceIds);
+                        const clauses: Prisma.Sql[] = [
+                            Prisma.sql`p."workspaceId" = ${input.workspaceId}::uuid`,
+                            Prisma.sql`p."scopeId" IN (${scopeList})`,
+                            input.retainedPersonIds?.length?Prisma.sql`(p."sourceId" IN (${sourceList}) OR p."id" IN (${uuidList(input.retainedPersonIds)}))`:Prisma.sql`p."sourceId" IN (${sourceList})`,
+                            Prisma.sql`p."status" <> 'ERASED'`,
+                            Prisma.sql`NOT EXISTS (
+                                SELECT 1 FROM "deletionRequests" dr
+                                WHERE dr."workspaceId" = p."workspaceId" AND dr."state" <> 'DRAFT'
+                                  AND dr."targetKind" = 'PERSON' AND dr."targetId" = p."id"
+                            )`,
+                            Prisma.sql`NOT EXISTS (
+                                SELECT 1 FROM "personAliases" pa
+                                WHERE pa."workspaceId" = p."workspaceId" AND pa."oldPersonId" = p."id"
+                            )`
+                        ];
+                        if (input.q)
+                            clauses.push(Prisma.sql`(strpos(lower(p."displayName"), ${input.q}) > 0 OR EXISTS (SELECT 1 FROM unnest(p."aliases") AS a(alias) WHERE strpos(lower(a.alias), ${input.q}) > 0))`);
+                        if (input.role)
+                            clauses.push(Prisma.sql`${input.role} = ANY(p."roles")`);
+                        if (input.cityCode)
+                            clauses.push(Prisma.sql`p."cityCode" = ${input.cityCode}`);
+                        if (input.languageCode)
+                            clauses.push(Prisma.sql`${input.languageCode} = ANY(p."languageCodes")`);
+                        if (input.skillCode)
+                            clauses.push(Prisma.sql`${input.skillCode} = ANY(p."skillCodes")`);
+                        if (input.status)
+                            clauses.push(Prisma.sql`p."status" = ${input.status}`);
+                        if (input.actualProject)
+                            clauses.push(Prisma.sql`EXISTS (
+                                SELECT 1 FROM "projectParticipants" pp
+                                JOIN "projects" pr ON pr."workspaceId" = pp."workspaceId" AND pr."id" = pp."projectId"
+                                WHERE pp."workspaceId" = p."workspaceId" AND pp."personId" = p."id" AND pp."state" = 'ACTUAL'
+                                  AND pr."scopeId" IN (${scopeList}) AND pr."sourceId" IN (${sourceList})
+                                  AND NOT EXISTS (
+                                      SELECT 1 FROM "deletionRequests" dr
+                                      WHERE dr."workspaceId" = pr."workspaceId" AND dr."state" <> 'DRAFT'
+                                        AND dr."targetKind" = 'PROJECT' AND dr."targetId" = pr."id"
+                                  )
+                            )`);
+                        if (input.industryCode)
+                            clauses.push(Prisma.sql`EXISTS (
+                                SELECT 1 FROM "workCredits" wc
+                                JOIN "works" w ON w."workspaceId" = wc."workspaceId" AND w."id" = wc."workId"
+                                WHERE wc."workspaceId" = p."workspaceId" AND wc."personId" = p."id"
+                                  AND w."scopeId" IN (${scopeList}) AND w."sourceId" IN (${sourceList})
+                                  AND NOT EXISTS (
+                                      SELECT 1 FROM "deletionRequests" dr
+                                      WHERE dr."workspaceId" = w."workspaceId" AND dr."state" <> 'DRAFT'
+                                        AND dr."targetKind" = 'WORK' AND dr."targetId" = w."id"
+                                  )
+                                  AND w."industryCode" = ${input.industryCode}
+                            )`);
+                        if (input.workTypeCode)
+                            clauses.push(Prisma.sql`EXISTS (
+                                SELECT 1 FROM "workCredits" wc
+                                JOIN "works" w ON w."workspaceId" = wc."workspaceId" AND w."id" = wc."workId"
+                                WHERE wc."workspaceId" = p."workspaceId" AND wc."personId" = p."id"
+                                  AND w."scopeId" IN (${scopeList}) AND w."sourceId" IN (${sourceList})
+                                  AND NOT EXISTS (
+                                      SELECT 1 FROM "deletionRequests" dr
+                                      WHERE dr."workspaceId" = w."workspaceId" AND dr."state" <> 'DRAFT'
+                                        AND dr."targetKind" = 'WORK' AND dr."targetId" = w."id"
+                                  )
+                                  AND ${input.workTypeCode} = ANY(w."workTypeCodes")
+                            )`);
+                        const where = Prisma.join(clauses, ' AND ');
+                        type DbRow = {
+                            id: string; workspaceId: string; createdAt: Date; updatedAt: Date; revision: number;
+                            scopeId: string; sourceId: string; maintainerId: string; displayName: string; aliases: string[];
+                            roles: string[]; cityCode: string | null; languageCodes: string[]; skillCodes: string[];
+                            heightCm: number | null; intro: string; status: string; protectionEpoch: number;
+                            actualProjectCount: number; industryCodes: string[]; workTypeCodes: string[];
+                        };
+                        const select = Prisma.sql`SELECT p.*,
+                            (SELECT COUNT(DISTINCT pp."projectId")::int
+                               FROM "projectParticipants" pp
+                               JOIN "projects" pr ON pr."workspaceId" = pp."workspaceId" AND pr."id" = pp."projectId"
+                              WHERE pp."workspaceId" = p."workspaceId" AND pp."personId" = p."id" AND pp."state" = 'ACTUAL'
+                                AND pr."scopeId" IN (${scopeList}) AND pr."sourceId" IN (${sourceList})
+                                AND NOT EXISTS (
+                                    SELECT 1 FROM "deletionRequests" dr
+                                    WHERE dr."workspaceId" = pr."workspaceId" AND dr."state" <> 'DRAFT'
+                                      AND dr."targetKind" = 'PROJECT' AND dr."targetId" = pr."id"
+                                )) AS "actualProjectCount",
+                            COALESCE((SELECT array_agg(DISTINCT w."industryCode" ORDER BY w."industryCode") FILTER (WHERE w."industryCode" IS NOT NULL)
+                               FROM "workCredits" wc JOIN "works" w ON w."workspaceId" = wc."workspaceId" AND w."id" = wc."workId"
+                              WHERE wc."workspaceId" = p."workspaceId" AND wc."personId" = p."id"
+                                AND w."scopeId" IN (${scopeList}) AND w."sourceId" IN (${sourceList})
+                                AND NOT EXISTS (
+                                    SELECT 1 FROM "deletionRequests" dr
+                                    WHERE dr."workspaceId" = w."workspaceId" AND dr."state" <> 'DRAFT'
+                                      AND dr."targetKind" = 'WORK' AND dr."targetId" = w."id"
+                                )), ARRAY[]::text[]) AS "industryCodes",
+                            COALESCE((SELECT array_agg(DISTINCT wt.code ORDER BY wt.code)
+                               FROM "workCredits" wc JOIN "works" w ON w."workspaceId" = wc."workspaceId" AND w."id" = wc."workId"
+                               CROSS JOIN LATERAL unnest(w."workTypeCodes") AS wt(code)
+                              WHERE wc."workspaceId" = p."workspaceId" AND wc."personId" = p."id"
+                                AND w."scopeId" IN (${scopeList}) AND w."sourceId" IN (${sourceList})
+                                AND NOT EXISTS (
+                                    SELECT 1 FROM "deletionRequests" dr
+                                    WHERE dr."workspaceId" = w."workspaceId" AND dr."state" <> 'DRAFT'
+                                      AND dr."targetKind" = 'WORK' AND dr."targetId" = w."id"
+                                )), ARRAY[]::text[]) AS "workTypeCodes"
+                            FROM "people" p WHERE ${where}`;
+                        const count = await p.$queryRaw<Array<{ count: number }>>(Prisma.sql`SELECT COUNT(*)::int AS count FROM "people" p WHERE ${where}`);
+                        const pageSql = input.scanForVerification ? Prisma.empty : Prisma.sql` LIMIT ${input.pageSize} OFFSET ${(input.page - 1) * input.pageSize}`;
+                        const selected = await p.$queryRaw<DbRow[]>(Prisma.sql`${select} ORDER BY p."updatedAt" DESC, p."id" ASC${pageSql}`);
+                        type FacetDbRow = { kind: string; code: string; count: number };
+                        const facetDb = input.scanForVerification ? [] : await p.$queryRaw<FacetDbRow[]>(Prisma.sql`
+                            WITH base AS (
+                                SELECT p."id", p."roles", p."cityCode", p."languageCodes", p."skillCodes"
+                                FROM "people" p WHERE ${where}
+                            ),
+                            work_facts AS (
+                                SELECT DISTINCT b."id" AS "personId", w."industryCode", wt.code AS "workTypeCode"
+                                FROM base b
+                                JOIN "workCredits" wc ON wc."workspaceId" = ${input.workspaceId}::uuid AND wc."personId" = b."id"
+                                JOIN "works" w ON w."workspaceId" = wc."workspaceId" AND w."id" = wc."workId"
+                                LEFT JOIN LATERAL unnest(w."workTypeCodes") AS wt(code) ON TRUE
+                                WHERE w."scopeId" IN (${scopeList}) AND w."sourceId" IN (${sourceList})
+                                  AND NOT EXISTS (
+                                      SELECT 1 FROM "deletionRequests" dr
+                                      WHERE dr."workspaceId" = w."workspaceId" AND dr."state" <> 'DRAFT'
+                                        AND dr."targetKind" = 'WORK' AND dr."targetId" = w."id"
+                                  )
+                            )
+                            SELECT 'role' AS kind, x.code, COUNT(DISTINCT b."id")::int AS count
+                              FROM base b CROSS JOIN LATERAL unnest(b."roles") AS x(code) GROUP BY x.code
+                            UNION ALL
+                            SELECT 'city', b."cityCode", COUNT(*)::int FROM base b WHERE b."cityCode" IS NOT NULL GROUP BY b."cityCode"
+                            UNION ALL
+                            SELECT 'language', x.code, COUNT(DISTINCT b."id")::int
+                              FROM base b CROSS JOIN LATERAL unnest(b."languageCodes") AS x(code) GROUP BY x.code
+                            UNION ALL
+                            SELECT 'skill', x.code, COUNT(DISTINCT b."id")::int
+                              FROM base b CROSS JOIN LATERAL unnest(b."skillCodes") AS x(code) GROUP BY x.code
+                            UNION ALL
+                            SELECT 'industry', wf."industryCode", COUNT(DISTINCT wf."personId")::int
+                              FROM work_facts wf WHERE wf."industryCode" IS NOT NULL GROUP BY wf."industryCode"
+                            UNION ALL
+                            SELECT 'workType', wf."workTypeCode", COUNT(DISTINCT wf."personId")::int
+                              FROM work_facts wf WHERE wf."workTypeCode" IS NOT NULL GROUP BY wf."workTypeCode"
+                            ORDER BY kind, code
+                        `);
+                        const toRow = (row: DbRow) => ({
+                            person: plain({ id: row.id, workspaceId: row.workspaceId, createdAt: row.createdAt, updatedAt: row.updatedAt,
+                                revision: row.revision, scopeId: row.scopeId, sourceId: row.sourceId, maintainerId: row.maintainerId,
+                                displayName: row.displayName, aliases: row.aliases, roles: row.roles, cityCode: row.cityCode,
+                                languageCodes: row.languageCodes, skillCodes: row.skillCodes, heightCm: row.heightCm, intro: row.intro,
+                                status: row.status, protectionEpoch: row.protectionEpoch }) as TableMap['people'],
+                            actualProjectCount: row.actualProjectCount, industryCodes: row.industryCodes, workTypeCodes: row.workTypeCodes
+                        });
+                        const rows = selected.map(toRow);
+                        const ids = rows.map(row => row.person.id);
+                        const evidence = ids.length ? plain(await p.fieldEvidence.findMany({ where: {
+                            workspaceId: input.workspaceId, personId: { in: ids }, sourceId: { in: input.visibleSourceIds }
+                        } })) as TableMap['evidence'][] : [];
+                        const pick = (kind: string) => facetDb.filter(row => row.kind === kind).map(row => ({ code: row.code, count: row.count }));
+                        return { rows, baseTotal: count[0]?.count ?? 0, alreadyPaged: !input.scanForVerification,
+                            facets: { roles: pick('role'), cities: pick('city'), languages: pick('language'), skills: pick('skill'),
+                                industries: pick('industry'), workTypes: pick('workType') }, evidence };
+                    }
                 };
                 return work(tx);
             }, { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted, maxWait: 5000, timeout: 15000 });

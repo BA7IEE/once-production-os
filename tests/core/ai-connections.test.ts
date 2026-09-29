@@ -1,0 +1,50 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {fixture,member,result} from '../support/fixtures.ts';
+import {connectionInput,verifyAiConnections} from '../support/ai-connections.ts';
+import {aiBusinessFixture} from '../support/ai-business.ts';
+import {isolateAi} from '../../packages/core/src/ai-maintenance.ts';
+import {inspectAiLedger} from '../../packages/core/src/ai-ledger-integrity.ts';
+import {AiWorker} from '../../apps/api/src/ai/worker.ts';
+import {installedModelClient} from '../../apps/api/src/ai/installed-client.ts';
+test('model connection flows through encrypted storage, one-send SDK worker and human proposal despite unknown cost',async()=>verifyAiConnections(await fixture()));
+test('connection writes require current admin, strict fields and atomic audit; unknown response uses the original key',async()=>{
+ const f=await fixture(),editor=await member(f,'connection-editor');
+ assert.equal((await editor.client.raw('GET','/ai-connection')).status,403);
+ assert.equal((await editor.client.cmd('POST','/ai-connection',connectionInput)).status,403);
+ assert.equal((await f.owner.cmd('POST','/ai-connection',{...connectionInput,unexpected:true})).status,400);
+ const key=randomUUID();f.store.failNextAudit=true;
+ assert.equal((await f.owner.cmd('POST','/ai-connection',connectionInput,key)).status,500);
+ assert.equal((await f.store.transaction(tx=>tx.find('aiConnections'))).length,0);
+ assert.ok([200,201].includes((await f.owner.cmd('POST','/ai-connection',connectionInput,key)).status));
+ assert.equal(result(await f.owner.cmd('POST','/ai-connection',connectionInput,key)).replayed,true);
+ assert.equal((await f.owner.cmd('POST','/ai-connection',{...connectionInput,apiKey:'different'},key)).status,409);
+ assert.equal((await f.owner.cmd('POST','/ai-connection',connectionInput)).status,409);
+ f.app.config.dataEgressMode='DISABLED';assert.equal((await f.owner.cmd('POST','/ai-connection/test',{expectedRevision:1,confirmTest:true})).status,409);
+ const state=JSON.stringify(await f.store.transaction(async tx=>({receipts:await tx.find('receipts'),audits:await tx.find('audits')})));assert.ok(!state.includes(connectionInput.apiKey));
+});
+test('recovery disables saved connection approvals and cancels queued work without deleting encrypted configuration',async()=>{
+ const f=await fixture();await f.owner.cmd('POST','/ai-connection',connectionInput);
+ const t=await aiBusinessFixture(f);await t.create();
+ await f.store.transaction(tx=>isolateAi(tx,t.workspaceId,f.clock,{requestId:randomUUID(),ip:'test'}));
+ assert.equal(result(await f.owner.raw('GET','/ai-settings')).enabled,false);
+ assert.equal(result(await f.owner.raw('GET','/ai-connection')).hasKey,true);
+ let calls=0;const worker=new AiWorker(f.app,id=>installedModelClient(f.app,id,async()=>{calls++;throw new Error('must not call');}));
+ await worker.cycle(new AbortController().signal);assert.equal(calls,0);
+ const integrity=await f.store.transaction(tx=>inspectAiLedger(tx,t.workspaceId));assert.equal(integrity.relationFailures,0);
+});
+
+test('business and connection test dispatch both honor the saved 120 second deadline',async()=>{
+ const f=await fixture();assert.equal((await f.owner.cmd('POST','/ai-connection',{...connectionInput,connection:{...connectionInput.connection,timeoutMs:120000}})).status,200);
+ const {currentAiConfig}=await import('../../packages/core/src/ai-connection.ts');
+ const workspaceId=(await f.store.transaction(tx=>tx.find('workspaces')))[0]!.id;
+ const c=await f.store.transaction(tx=>currentAiConfig(tx,workspaceId,f.app.config));const deadlines:number[]=[];
+ const worker=new AiWorker(f.app,{providerIdentityHash:c!.providerIdentityHash,send:async(_input,context)=>{
+  deadlines.push(Date.parse(context.deadlineAt)-f.clock.now().getTime());
+  return {output:{changes:[],unknowns:[]},evidenceDigest:'synthetic-timeout-proof'};
+ }});
+ assert.equal((await f.owner.cmd('POST','/ai-connection/test',{expectedRevision:1,confirmTest:true})).status,200);
+ await worker.cycle(new AbortController().signal);
+ const t=await aiBusinessFixture(f);await t.create();await worker.cycle(new AbortController().signal);assert.deepEqual(deadlines,[120000,120000]);
+});

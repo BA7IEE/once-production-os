@@ -7,7 +7,7 @@ React 管理前端源码 ── cookie + CSRF ── Nest/Express 入口源码
                                       ↓
                              Application / routes
                                       ↓
-                Identity / Talent / Imports / replay-policy
+                Identity / Talent / Portfolio / Projects / Shortlists / Search / Exports / Deletions / DeletionCleanup / DeletionFinalization / PersonMerges / JsonRebuild
                                       ↓
                          Commands + 事务审计 + Tx
                            ↙                   ↘
@@ -24,20 +24,27 @@ React 管理前端源码 ── cookie + CSRF ── Nest/Express 入口源码
 |---|---|
 | packages/core/src/identity.ts | 账号、激活、会话、重置、限流、角色调整 |
 | policy.ts | 当前动作、范围、来源有效性；ADMIN 没有范围旁路 |
-| talent.ts | 本增量的人才、来源、受限联系信息、字段核验、分类；后续随领域增长拆分，不复制规则 |
-| source-history.ts / visibility.ts | 来源版本的受限读取与追加；同一事务中的批量可见性判断 |
+| talent.ts | 人才、来源、受限联系信息、字段核验与分类 |
+| portfolio.ts / projects.ts | 作品组图/署名与轻量项目/参与事实 |
+| talent-search.ts / shortlists.ts | 确定性人才检索、内部候选清单及依赖过滤 |
+| exports.ts / export-model.ts | INTERNAL_EXPORT 用途许可、冻结 JSON、精确依赖复查与 ExportJob |
+| deletions.ts / deletion-model.ts / deletion-cleanup.ts / deletion-finalization.ts | 删除影响扫描、使用阻断、保留决定、CLEANING 依赖清理、媒体/历史专用最终化与 ERASED 最小头 |
+| person-merges.ts / merge-policy.ts | 受控 Person merge、字段/关系冲突、旧 ID 只读解析、授权撤销与来源边界 |
+| rebuild.ts / rebuild-validation.ts / rebuild-model.ts | T29 隔离 JSON 重建：闭包、目标隔离、catalog/业务上限、稳定 UUID、单事务 APPLY |
+| source-history.ts / visibility.ts | 来源版本的受限读取与追加/单向脱敏；同一事务中的批量可见性判断 |
 | commands.ts | 最小幂等回执，接收领域鉴权回调；不读取人才表 |
 | replay-policy.ts | 回执重新读取时的领域权限和来源判断 |
 | imports.ts | 有界 JSON 预览、选择集冻结、任务领取、失败后显式继续、逐行原子执行 |
 | json-boundary.ts / validation.ts | 重复键、原型键、非法 Unicode、数值、嵌套、额外字段的请求约束 |
-| api.ts / routes.ts | 框架无关的请求入口与登记表；39 条路由 |
+| api.ts / routes.ts | 框架无关的请求入口与登记表；103 条路由 |
+| scripts/rebuild-export.ts | 仅维护人员使用的 T29 CLI；只接受 loopback once_rebuild_*，APPLY 绑定源 Export payloadDigest |
 | apps/api/src | Nest/Express、Prisma、配置、bootstrap 和独立 Worker 入口 |
 | apps/admin-web/src | React 页面、显式 DTO、内存请求状态和响应错误呈现 |
-| prisma | 18 个模型、初始迁移及追加来源历史迁移、组合 FK 与 CHECK；既有合成库升级及新空库专用测试 DB_TESTED，正式数据升级 NOT_RUN |
+| prisma | 37 个模型、20 条迁移、组合 FK/CHECK/延迟唯一约束；当前新空库 PG 测试通过，正式数据升级 NOT_RUN |
 
-## 3. 本增量数据表
+## 3. 当前数据表
 
-workspaces、users、memberships、sessions、activations、scopes、scopeMembers、sources、sourceHistory、people、contacts、evidence、dictionary、receipts、audits、rateBuckets、imports、jobs。
+workspaces、users、memberships、sessions、activations、scopes、scopeMembers、sources、sourceHistory、people、contacts、evidence、dictionary、receipts、audits、rateBuckets、imports、jobs、handoffs、uploads、assets、works、workAssets、workCredits、projects、projectParticipants、projectWorks、shortlists、shortlistItems、shortlistItemAssets、usePermissions、exports、exportDependencies、deletionRequests、deletionItems、personMerges、personAliases。
 
 用户不等于人才；角色为多值分类。敏感联系方式不在 Person 中，以 AES-256-GCM 保存，AAD 绑定 workspace/person/contact。一般人才 DTO 不携带密文、原文或联系信息。
 
@@ -49,7 +56,7 @@ PrismaStore 每个短事务获取一个 PostgreSQL advisory transaction lock，�
 
 正式数据规模前必须做真实 DB 压测，把授权过滤/分页下推 SQL，再评审细粒度锁与多进程竞争。不允许因为慢就拿掉锁，也不能声明已经达到 v0.3 性能目标。
 
-外部 I/O、密码 KDF 不放在业务事务内。Worker 现在只有 IMPORT_PEOPLE，无 AI、无文件或网站任务。任务按行重新查发起者、当前来源及其版本；租约 30 秒、过期可接管、最多 3 次领取，旧租约无法回写。失败会标记为 FAILED，已经提交的行保留；仅符合条件的失败可由本人显式继续，不承诺整批回滚。
+外部 I/O、密码 KDF 不放在业务事务内。Deletion preview 只读当前事务；DRAFT、BLOCKED_FOR_USE、保留决定、plan freeze 和 cleanup start 均在短事务内写事实/审计/回执。DeletionCleanup Worker 用 executionPlanDigest + lease 逐项执行；DeletionFinalization 另用专用租约做媒体物理 purge、SourceHistory 单向脱敏与根对象 ERASED 终结。HTTP 请求不在事务里做长 I/O。Person merge 是同步短事务原子命令，不做后台自动去重。后台另有导入、local/test 私有媒体和 ExportJob。JsonRebuild 不挂 HTTP，不由普通用户触发；CHECK 是零写读事务，APPLY 是一次短数据库事务，目标必须为隔离空业务图。ExportJob 不复用 ImportBatch 的 DurableJob 外键；生成前及下载时逐依赖复查。没有 AI 或网站发布任务。任务按行重新查发起者、当前来源及其版本；租约 30 秒、过期可接管、最多 3 次领取，旧租约无法回写。失败会标记为 FAILED，已经提交的行保留；仅符合条件的失败可由本人显式继续，不承诺整批回滚。
 
 ## 5. 协议与状态
 
@@ -57,7 +64,7 @@ PrismaStore 每个短事务获取一个 PostgreSQL advisory transaction lock，�
 
 同步成功回执 state=SUCCEEDED；import.commit 与 job.resume 为 HTTP 202/state=ACCEPTED，只代表排队。任务另有 QUEUED/RUNNING/SUCCEEDED/FAILED。前端结果未知保存原请求键于内存，不自动重发，不存 localStorage。关闭/刷新丢失内存键后应先检查已有记录。
 
-JSON 摘要使用排序键的受限输入规范：拒绝不安全整数、无效 Unicode、重复键等。它不是已经验证全部 RFC 8785/JCS 兼容向量的实现；完整跨客户端规范仍属于 DEV-02 待收敛事项。
+JSON 摘要使用排序键的受限输入规范：拒绝不安全整数、无效 Unicode、重复键等。T29 APPLY 还要求输入 digest 精确等于源 READY Export 的 payloadDigest；不一致在数据库访问前拒绝。它不是已经验证全部 RFC 8785/JCS 兼容向量的实现；完整跨客户端规范仍属于 DEV-02 待收敛事项。
 
 ## 6. 契约生成的准确范围
 
@@ -69,7 +76,7 @@ JSON 摘要使用排序键的受限输入规范：拒绝不安全整数、无效
 
 最小档案只需显示名、至少一个制作角色及一个来源（已有 ID 或 inline，二选一）。临时整理最长 7 天，限定范围；需要长期内部使用依据时由拥有 sources.review 的人核验。空缺字段保持未知，材料陈述不代表系统替本人或品牌证明真实性。
 
-新增人物初始 DRAFT；状态修改与来源有效性是两条不同轴。ARCHIVED 目前只是档案状态，不等于永久删除或访问撤销。来源暂停/到期会使依赖该来源的人才下一次读取受限，已发送到浏览器或被人复制的内容无法通过服务端撤回。
+新增人物初始 DRAFT；状态修改与来源有效性是两条不同轴。普通 ARCHIVED 只是档案状态；Person merge 会把 duplicate 归档并建立 append-only old-ID alias。DeletionRequest 的 DRAFT 只冻结影响；BLOCKED_FOR_USE/CLEANING 会阻断正常使用，DEV-07F 在依赖和专用清理都可证明完成后才进入 COMPLETED / RETAINED_WITH_BASIS，并把根对象写成严格 ERASED 最小头。来源暂停/到期会使依赖该来源的人才下一次读取受限，已发送到浏览器或被人复制的内容无法通过服务端撤回。
 
 ## 8. 后续扩展
 

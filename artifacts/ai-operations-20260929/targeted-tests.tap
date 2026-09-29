@@ -1,0 +1,274 @@
+TAP version 13
+# Subtest: AI extraction produces a reviewable proposal and applies selected fields exactly once
+ok 1 - AI extraction produces a reviewable proposal and applies selected fields exactly once
+  ---
+  duration_ms: 141.104375
+  type: 'test'
+  ...
+# Subtest: AI strict source permission and minimum input checks precede reservation
+ok 2 - AI strict source permission and minimum input checks precede reservation
+  ---
+  duration_ms: 125.671584
+  type: 'test'
+  ...
+# Subtest: AI source changes prevent dispatch and stale proposals cannot write facts
+ok 3 - AI source changes prevent dispatch and stale proposals cannot write facts
+  ---
+  duration_ms: 125.690708
+  type: 'test'
+  ...
+# Subtest: AI parse search confirms a restricted filter object and never writes facts
+ok 4 - AI parse search confirms a restricted filter object and never writes facts
+  ---
+  duration_ms: 123.957
+  type: 'test'
+  ...
+# Subtest: AI locale creates an unreviewed draft and work tags stay within the approved dictionary
+ok 5 - AI locale creates an unreviewed draft and work tags stay within the approved dictionary
+  ---
+  duration_ms: 132.929334
+  type: 'test'
+  ...
+# Subtest: AI selected fields and proposal state roll back together on audit failure
+ok 6 - AI selected fields and proposal state roll back together on audit failure
+  ---
+  duration_ms: 124.19975
+  type: 'test'
+  ...
+# Subtest: AI malformed output and invented quotations never become proposals or verified facts
+ok 7 - AI malformed output and invented quotations never become proposals or verified facts
+  ---
+  duration_ms: 240.549584
+  type: 'test'
+  ...
+# Subtest: AI source-linked proposals and grant evidence erase together without releasing unknown fees
+ok 8 - AI source-linked proposals and grant evidence erase together without releasing unknown fees
+  ---
+  duration_ms: 126.5835
+  type: 'test'
+  ...
+# Subtest: AI explicit permission and current source scope govern content, counts and replay
+ok 9 - AI explicit permission and current source scope govern content, counts and replay
+  ---
+  duration_ms: 120.990916
+  type: 'test'
+  ...
+# Subtest: AI recovery revokes grants, rejects pending proposals and retains unresolved charges
+ok 10 - AI recovery revokes grants, rejects pending proposals and retains unresolved charges
+  ---
+  duration_ms: 119.002875
+  type: 'test'
+  ...
+# Subtest: AI person deletion uses the normal impact, decision, freeze and cleanup workflow
+ok 11 - AI person deletion uses the normal impact, decision, freeze and cleanup workflow
+  ---
+  duration_ms: 127.299209
+  type: 'test'
+  ...
+# Subtest: AI may report no supported fields without guessing or treating confirmed usage as unknown
+ok 12 - AI may report no supported fields without guessing or treating confirmed usage as unknown
+  ---
+  duration_ms: 119.578583
+  type: 'test'
+  ...
+# Subtest: AI reservations serialize and uncertain/cancelled attempts retain funds until reconciliation
+ok 13 - AI reservations serialize and uncertain/cancelled attempts retain funds until reconciliation
+  ---
+  duration_ms: 129.72325
+  type: 'test'
+  ...
+# Subtest: AI accounting and dispatch authorization roll back when audit fails
+ok 14 - AI accounting and dispatch authorization roll back when audit fails
+  ---
+  duration_ms: 120.058542
+  type: 'test'
+  ...
+# Subtest: AI sends fail closed on changed provider, recovery epoch, disabled actor or midnight reservation
+ok 15 - AI sends fail closed on changed provider, recovery epoch, disabled actor or midnight reservation
+  ---
+  duration_ms: 120.087
+  type: 'test'
+  ...
+# Subtest: AI known not executed has a bounded attempt count; cancellation releases only unsent funds
+ok 16 - AI known not executed has a bounded attempt count; cancellation releases only unsent funds
+  ---
+  duration_ms: 120.200208
+  type: 'test'
+  ...
+# Subtest: AI request identity rejects reuse with different payload and invalid money/configuration
+ok 17 - AI request identity rejects reuse with different payload and invalid money/configuration
+  ---
+  duration_ms: 120.073083
+  type: 'test'
+  ...
+# Subtest: AI uncertain funds survive date rollover and an overrun freezes subsequent days too
+ok 18 - AI uncertain funds survive date rollover and an overrun freezes subsequent days too
+  ---
+  duration_ms: 116.266875
+  type: 'test'
+  ...
+# Subtest: AI in-flight settlement remains possible after actor disable and restoration, but never sends again
+ok 19 - AI in-flight settlement remains possible after actor disable and restoration, but never sends again
+  ---
+  duration_ms: 118.196625
+  type: 'test'
+  ...
+# Subtest: AI dispatcher commits its unique attempt before network and never repeats an uncertain request
+ok 20 - AI dispatcher commits its unique attempt before network and never repeats an uncertain request
+  ---
+  duration_ms: 116.94975
+  type: 'test'
+  ...
+# Subtest: AI dispatcher times out with reserved cost; late provider completion cannot create a proposal
+ok 21 - AI dispatcher times out with reserved cost; late provider completion cannot create a proposal
+  ---
+  duration_ms: 130.821542
+  type: 'test'
+  ...
+# Subtest: AI dispatcher checks input again before send and cancellation during HTTP suppresses proposals
+ok 22 - AI dispatcher checks input again before send and cancellation during HTTP suppresses proposals
+  ---
+  duration_ms: 120.448209
+  type: 'test'
+  ...
+# Subtest: AI proposal and settlement share a transaction; failed proposal does not create settled success
+ok 23 - AI proposal and settlement share a transaction; failed proposal does not create settled success
+  ---
+  duration_ms: 115.919416
+  type: 'test'
+  ...
+# Subtest: AI recovery inspection includes unresolved attempts and detects accounting or request-identity damage
+ok 24 - AI recovery inspection includes unresolved attempts and detects accounting or request-identity damage
+  ---
+  duration_ms: 118.942375
+  type: 'test'
+  ...
+# Subtest: AI approval binds the exact candidate and active human approver; disable is atomic and replayable
+ok 25 - AI approval binds the exact candidate and active human approver; disable is atomic and replayable
+  ---
+  duration_ms: 250.353083
+  type: 'test'
+  ...
+# Subtest: AI worker serializes send authority across concurrent workers and ignores cancelled sources
+ok 26 - AI worker serializes send authority across concurrent workers and ignores cancelled sources
+  ---
+  duration_ms: 128.49375
+  type: 'test'
+  ...
+# Subtest: AI worker restart isolates abandoned attempts even without an adapter and preserves reserved cost
+ok 27 - AI worker restart isolates abandoned attempts even without an adapter and preserves reserved cost
+  ---
+  duration_ms: 123.234042
+  type: 'test'
+  ...
+# Subtest: AI shutdown during provider work aborts and never creates a proposal or resend
+ok 28 - AI shutdown during provider work aborts and never creates a proposal or resend
+  ---
+  duration_ms: 121.385584
+  type: 'test'
+  ...
+# Subtest: AI reconciliation verifies original request evidence, rolls back with audit and never resends
+ok 29 - AI reconciliation verifies original request evidence, rolls back with audit and never resends
+  ---
+  duration_ms: 122.807584
+  type: 'test'
+  ...
+# Subtest: AI confirmed nonexecution releases funds but requires a new human task; unresolved cost blocks unfreeze
+ok 30 - AI confirmed nonexecution releases funds but requires a new human task; unresolved cost blocks unfreeze
+  ---
+  duration_ms: 123.916375
+  type: 'test'
+  ...
+# Subtest: AI approval is invalidated by approver qualification and recovery isolation
+ok 31 - AI approval is invalidated by approver qualification and recovery isolation
+  ---
+  duration_ms: 120.600167
+  type: 'test'
+  ...
+# Subtest: DEV-09A recovery preview is zero-write and requires a rotated deployment epoch
+ok 32 - DEV-09A recovery preview is zero-write and requires a rotated deployment epoch
+  ---
+  duration_ms: 248.906666
+  type: 'test'
+  ...
+# Subtest: DEV-09A prepare revokes old capabilities but deliberately does not approve workspace epoch
+ok 33 - DEV-09A prepare revokes old capabilities but deliberately does not approve workspace epoch
+  ---
+  duration_ms: 240.966625
+  type: 'test'
+  ...
+# Subtest: DEV-09A wrong source epoch digest and open execution gates fail before writes
+ok 34 - DEV-09A wrong source epoch digest and open execution gates fail before writes
+  ---
+  duration_ms: 239.053041
+  type: 'test'
+  ...
+# Subtest: DEV-09A audit failure rolls every recovery quarantine write back
+ok 35 - DEV-09A audit failure rolls every recovery quarantine write back
+  ---
+  duration_ms: 234.803916
+  type: 'test'
+  ...
+# Subtest: DEV-09B restore check is zero-write; record persists an allowlisted INSPECTED report
+ok 36 - DEV-09B restore check is zero-write; record persists an allowlisted INSPECTED report
+  ---
+  duration_ms: 249.234917
+  type: 'test'
+  ...
+# Subtest: DEV-09B wrong contact key and media/migration gaps become explicit blockers
+ok 37 - DEV-09B wrong contact key and media/migration gaps become explicit blockers
+  ---
+  duration_ms: 235.556
+  type: 'test'
+  ...
+# Subtest: DEV-09B stale media evidence is rejected and DB safety changes produce a new blocker/digest
+ok 38 - DEV-09B stale media evidence is rejected and DB safety changes produce a new blocker/digest
+  ---
+  duration_ms: 236.950291
+  type: 'test'
+  ...
+# Subtest: DEV-09C zero-delta approval changes only recovery epoch and preserves conservative quarantines
+ok 39 - DEV-09C zero-delta approval changes only recovery epoch and preserves conservative quarantines
+  ---
+  duration_ms: 241.033666
+  type: 'test'
+  ...
+# Subtest: DEV-09E unresolved post-backup safety journal entry blocks approval
+ok 40 - DEV-09E unresolved post-backup safety journal entry blocks approval
+  ---
+  duration_ms: 239.3385
+  type: 'test'
+  ...
+# Subtest: DEV-09E non-zero but fully prepare-contained delta may approve
+ok 41 - DEV-09E non-zero but fully prepare-contained delta may approve
+  ---
+  duration_ms: 235.884208
+  type: 'test'
+  ...
+# Subtest: DEV-09E incomplete or forged delta resolution is rejected before epoch approval
+ok 42 - DEV-09E incomplete or forged delta resolution is rejected before epoch approval
+  ---
+  duration_ms: 238.732583
+  type: 'test'
+  ...
+# Subtest: DEV-09C stale inspection or mismatched backup evidence cannot approve
+ok 43 - DEV-09C stale inspection or mismatched backup evidence cannot approve
+  ---
+  duration_ms: 237.051042
+  type: 'test'
+  ...
+# Subtest: DEV-09C approval audit failure rolls workspace epoch and approval evidence back
+ok 44 - DEV-09C approval audit failure rolls workspace epoch and approval evidence back
+  ---
+  duration_ms: 233.987625
+  type: 'test'
+  ...
+1..44
+# tests 44
+# suites 0
+# pass 44
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7692.4235

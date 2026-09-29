@@ -1,5 +1,6 @@
 // Explicit presentation DTOs. Never import Prisma models into the browser.
 export interface Me {
+    mediaEnabled?: boolean;
     membershipId: string;
     displayName: string;
     role: 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'VIEWER';
@@ -22,7 +23,7 @@ export interface Receipt {
 }
 export interface CatalogItem {
     id: string;
-    namespace: 'role' | 'city' | 'language' | 'skill';
+    namespace: 'role' | 'city' | 'language' | 'skill' | 'industry' | 'workType';
     code: string;
     labelZh: string;
     labelEn: string;
@@ -30,6 +31,16 @@ export interface CatalogItem {
     revision: number;
 }
 export interface Person {
+    professionalManaged?: boolean;
+    access?: {
+        mode: 'NATIVE' | 'HANDOFF';
+        canEdit: boolean;
+        canReview: boolean;
+        canReadSource: boolean;
+        canReadContacts: boolean;
+        canManageScope: boolean;
+        canOffer: boolean;
+    };
     id: string;
     displayName: string;
     aliases: string[];
@@ -48,6 +59,7 @@ export interface Person {
     updatedAt: string;
     source?: {
         id: string;
+        revision: number;
         title: string;
         basisMode: string;
         validUntil: string;
@@ -87,7 +99,13 @@ export interface SourceHistoryEntry {
     decisionReason: string | null;
     baselineOnly: boolean;
     legacyBasisAmbiguous: boolean;
-    snapshot: { title: string; basisDescription: string; textPayload: string; validUntil: string; status: string };
+    snapshot: {
+        title: string;
+        basisDescription: string;
+        textPayload: string;
+        validUntil: string;
+        status: string;
+    };
 }
 export interface Contact {
     id: string;
@@ -101,7 +119,7 @@ export interface Membership {
     displayName: string;
     loginName: string;
     role: Me['role'];
-    extraPermissions: Array<'sensitive.read' | 'sensitive.write'>;
+    extraPermissions: Array<'sensitive.read' | 'sensitive.write' | 'data.export' | 'data.delete' | 'data.merge' | 'ai.use'>;
     status: string;
     revision: number;
 }
@@ -155,4 +173,28 @@ export interface Scope {
     name: string;
     mode: 'WORKSPACE' | 'RESTRICTED';
     revision: number;
+}
+export interface Handoff {
+    id: string;
+    counterpart: string;
+    revision: number;
+    purpose: 'EDIT' | 'REVIEW';
+    state: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'REVOKED';
+    effectiveState: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'REVOKED' | 'EXPIRED' | 'INVALIDATED';
+    direction: 'SENT' | 'RECEIVED';
+    person: {
+        id: string;
+        displayName: string;
+    } | null;
+    expiresAt: string;
+    createdAt: string;
+    acceptedAt: string | null;
+    closedAt: string | null;
+    canAccept: boolean;
+    canDecline: boolean;
+    canRevoke: boolean;
+}
+export interface HandoffRecipient {
+    membershipId: string;
+    displayName: string;
 }

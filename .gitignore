@@ -13,3 +13,5 @@ artifacts/local-*
 *.zip
 
 .secrets/
+
+.local-media/

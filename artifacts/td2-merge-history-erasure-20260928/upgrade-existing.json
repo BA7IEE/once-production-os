@@ -1,0 +1,490 @@
+[
+  {
+    "database": "once_test_td2_other_identity01",
+    "tables": 59,
+    "oldRecordsUnchanged": true,
+    "oldHistoryUnchanged": "no reason erased and no historical erasure invented",
+    "snapshot": {
+      "activations": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "adultEligibilities": {
+        "count": 4,
+        "digest": "4943811213155488a92a4e6c03794229"
+      },
+      "assets": {
+        "count": 11,
+        "digest": "63da71bfc7183b0acff743a07be19384"
+      },
+      "audits": {
+        "count": 447,
+        "digest": "dea0b3dc792ef0bf5dae47781dc1065c"
+      },
+      "capabilityDefinitions": {
+        "count": 5,
+        "digest": "9a7463e237ba503e6d5429972314cf84"
+      },
+      "castingProfiles": {
+        "count": 4,
+        "digest": "4a770c52761a937891840195828097c0"
+      },
+      "contacts": {
+        "count": 2,
+        "digest": "66145d470fc514866ad38840d96dc4b7"
+      },
+      "deletionItems": {
+        "count": 66,
+        "digest": "b7f75e31a0ea65e54778c2bf5da0144d"
+      },
+      "deletionRequests": {
+        "count": 7,
+        "digest": "b2f8c84c4c1e880ee4e30e18e9662153"
+      },
+      "dictionary": {
+        "count": 20,
+        "digest": "f357d0c036be1b75fe117215bb3ee6c8"
+      },
+      "evidence": {
+        "count": 221,
+        "digest": "48e453f59cfb03d009cfbc0377c429b4"
+      },
+      "exportDependencies": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "exports": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "fieldProposals": {
+        "count": 7,
+        "digest": "81f5bca6fae484cd58e74b7f592b541c"
+      },
+      "handoffs": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "imports": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "jobs": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "measurementSets": {
+        "count": 4,
+        "digest": "d2f41b123fc711bd2e8c0f3c1a213918"
+      },
+      "mediaCollectionItems": {
+        "count": 7,
+        "digest": "563496a3f3c1310b39928c77da933813"
+      },
+      "mediaCollectionTags": {
+        "count": 4,
+        "digest": "3873563bcbb79bb4a608e5e6be107443"
+      },
+      "mediaCollections": {
+        "count": 8,
+        "digest": "b033319704b38963ee3a5afcb0ce8353"
+      },
+      "memberships": {
+        "count": 1,
+        "digest": "b4d7a77ff01196afb7568238f8fee188"
+      },
+      "organizations": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "people": {
+        "count": 15,
+        "digest": "88e0342a956cea34de423839b0fc7923"
+      },
+      "personAliases": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "personCapabilities": {
+        "count": 4,
+        "digest": "82203a13f6e177749aa8a654f369e754"
+      },
+      "personCredentials": {
+        "count": 9,
+        "digest": "b9fb998bb2c1ac719441412114c66c7c"
+      },
+      "personExternalRefs": {
+        "count": 4,
+        "digest": "b3cc80a3c0d17d7a1f4930ff617665d1"
+      },
+      "personLanguages": {
+        "count": 7,
+        "digest": "bab57de914a1dab8c2d6644628e3d25a"
+      },
+      "personMerges": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "personRoles": {
+        "count": 9,
+        "digest": "c0c928dcf06cafdf1810c529046b9e24"
+      },
+      "projectParticipants": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "projectWorks": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "projects": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "rateBuckets": {
+        "count": 2,
+        "digest": "a68daa1a574393c9996915e2b95e597d"
+      },
+      "receipts": {
+        "count": 356,
+        "digest": "2f2ae503f6ef117422c8d2b87c09a798"
+      },
+      "recoveryRuns": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "representations": {
+        "count": 5,
+        "digest": "3cab1a62f29211b6a54ca8b3f28ced5a"
+      },
+      "scopeMembers": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "scopes": {
+        "count": 3,
+        "digest": "63255636b78198cce6e08bf76130b9ae"
+      },
+      "servicePrincipals": {
+        "count": 5,
+        "digest": "b3dd9850b29bea6f5b5d4e020d5143c9"
+      },
+      "sessions": {
+        "count": 1,
+        "digest": "d4e05985e76af4201de1894df0e2f849"
+      },
+      "shortlistItemAssets": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "shortlistItems": {
+        "count": 3,
+        "digest": "e89401e51451071c260be7f14d8bf09f"
+      },
+      "shortlists": {
+        "count": 5,
+        "digest": "1f0c4e69d23951ef1f87b571c9f6d19b"
+      },
+      "sourceHistory": {
+        "count": 22,
+        "digest": "7766efdfe5ea2453e6b1d375d1f656a8"
+      },
+      "sources": {
+        "count": 16,
+        "digest": "02012bad9e2d520549b0f37020710003"
+      },
+      "talentLocations": {
+        "count": 4,
+        "digest": "febf1301a75df0cd55c2fe03d1e6cc19"
+      },
+      "talentMigrationReviews": {
+        "count": 2,
+        "digest": "57611c70a735ba6b5db6985e6f1c7695"
+      },
+      "talentProfiles": {
+        "count": 7,
+        "digest": "b1d0bebbb77d26be57ade1fc770faf7f"
+      },
+      "translatorLanguagePairs": {
+        "count": 4,
+        "digest": "0e99816530985704fc035b4ee2cb0a55"
+      },
+      "translatorServiceModes": {
+        "count": 4,
+        "digest": "96db69c5d6c83530b0ec7846125cab02"
+      },
+      "uploads": {
+        "count": 11,
+        "digest": "fd2e1889990cec7abb494c2d04251b0c"
+      },
+      "usePermissions": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "users": {
+        "count": 1,
+        "digest": "da3063055de58bd5e9c0fd31fb86f36f"
+      },
+      "workAssets": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "workCredits": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "works": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "workspaces": {
+        "count": 1,
+        "digest": "76562bd37faad65f05ece4f2a6644a58"
+      }
+    }
+  },
+  {
+    "database": "once_test_other_identity_browser02",
+    "tables": 59,
+    "oldRecordsUnchanged": true,
+    "oldHistoryUnchanged": "no reason erased and no historical erasure invented",
+    "snapshot": {
+      "activations": {
+        "count": 2,
+        "digest": "d101b254e1c10d54d32bce360ce8368d"
+      },
+      "adultEligibilities": {
+        "count": 2,
+        "digest": "dc4b1d4bc005f53b324e33a346206e24"
+      },
+      "assets": {
+        "count": 10,
+        "digest": "bdce6b1dcf745051fdca5287ccc61f59"
+      },
+      "audits": {
+        "count": 491,
+        "digest": "131f6922e896307551260ee7bb27ef08"
+      },
+      "capabilityDefinitions": {
+        "count": 2,
+        "digest": "ad768b9f2dcfb38efcf91a036b267007"
+      },
+      "castingProfiles": {
+        "count": 1,
+        "digest": "ff2481f2e0796cee5f9f02af15da2029"
+      },
+      "contacts": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "deletionItems": {
+        "count": 46,
+        "digest": "5221c88b5caaef9083090308ad33fded"
+      },
+      "deletionRequests": {
+        "count": 10,
+        "digest": "8b59a738d23adf131cfe98d6806932ee"
+      },
+      "dictionary": {
+        "count": 22,
+        "digest": "a311f43c56507435c4888876fb697708"
+      },
+      "evidence": {
+        "count": 105,
+        "digest": "7eeeacd9f80276f79d7db06edde9a1f7"
+      },
+      "exportDependencies": {
+        "count": 12,
+        "digest": "35d428dd7e60572395808e835bb1c314"
+      },
+      "exports": {
+        "count": 4,
+        "digest": "223fab8a68fe2cd1094bbc5feb2d852a"
+      },
+      "fieldProposals": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "handoffs": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "imports": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "jobs": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "measurementSets": {
+        "count": 1,
+        "digest": "f40112adb4f63c1a2ce9bc3e5ab7fe97"
+      },
+      "mediaCollectionItems": {
+        "count": 5,
+        "digest": "96ffff2b9760e1198dde6c544fb56b96"
+      },
+      "mediaCollectionTags": {
+        "count": 1,
+        "digest": "b7729afcc59267847451bfcb5b69fe9f"
+      },
+      "mediaCollections": {
+        "count": 6,
+        "digest": "8f8dac9a881fcd340793105daf91b4b0"
+      },
+      "memberships": {
+        "count": 3,
+        "digest": "c5aa790dad3fab64546064347a61a3d1"
+      },
+      "organizations": {
+        "count": 2,
+        "digest": "d64f276d66adfc50e44ba55289b23e39"
+      },
+      "people": {
+        "count": 15,
+        "digest": "61dea1f6806f6de55934503f66039e20"
+      },
+      "personAliases": {
+        "count": 2,
+        "digest": "3183c27e1ba0323d88ff5c356707650f"
+      },
+      "personCapabilities": {
+        "count": 2,
+        "digest": "ff7d5197da7205f4e95a3ab76bbbbb9d"
+      },
+      "personCredentials": {
+        "count": 6,
+        "digest": "dc2dbb82f13d13e430cee59c422d1308"
+      },
+      "personExternalRefs": {
+        "count": 1,
+        "digest": "90566d0894677d20dc422c28def5a712"
+      },
+      "personLanguages": {
+        "count": 5,
+        "digest": "d76e17bc8b93b15bc9f2fe4f3b9d4bd0"
+      },
+      "personMerges": {
+        "count": 2,
+        "digest": "0133f46850404fa7c75e0467dbdc73ec"
+      },
+      "personRoles": {
+        "count": 4,
+        "digest": "c39b5c5c4f2b72b7c1e0ce11c2ce8976"
+      },
+      "projectParticipants": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "projectWorks": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "projects": {
+        "count": 1,
+        "digest": "e860118f8e539295914c7254f55ba017"
+      },
+      "rateBuckets": {
+        "count": 6,
+        "digest": "8bffadfa43f70bdc47a0ad73344e825b"
+      },
+      "receipts": {
+        "count": 276,
+        "digest": "07babec3d5df7cf20b390ae1937fdf4a"
+      },
+      "recoveryRuns": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "representations": {
+        "count": 3,
+        "digest": "09f8b0296a0654db492d2181f7d9b1fd"
+      },
+      "scopeMembers": {
+        "count": 3,
+        "digest": "0d906c870658eb04979b00eccf8ed124"
+      },
+      "scopes": {
+        "count": 3,
+        "digest": "de2777b2d24c9e4910592f80b8cfa3bf"
+      },
+      "servicePrincipals": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "sessions": {
+        "count": 3,
+        "digest": "0eb1e29439ec7d49a36e8aaea23d2eb7"
+      },
+      "shortlistItemAssets": {
+        "count": 2,
+        "digest": "15de39ec2763fafbe486b68db665fb5d"
+      },
+      "shortlistItems": {
+        "count": 6,
+        "digest": "5c7fbe824ac6d25b049721a53a8c6df7"
+      },
+      "shortlists": {
+        "count": 5,
+        "digest": "7197d474f907743caeb777744b6ae1db"
+      },
+      "sourceHistory": {
+        "count": 31,
+        "digest": "0aa5083f547090c212147508a308445a"
+      },
+      "sources": {
+        "count": 20,
+        "digest": "2e6c4dde44882f9453b36adbc7a218db"
+      },
+      "talentLocations": {
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "talentMigrationReviews": {
+        "count": 2,
+        "digest": "9f6e74c2935057058449ec2c074beecb"
+      },
+      "talentProfiles": {
+        "count": 6,
+        "digest": "7637158f3e0b7714bde8c63110ff9a07"
+      },
+      "translatorLanguagePairs": {
+        "count": 1,
+        "digest": "08d686cae32d7b876f812ea69de40683"
+      },
+      "translatorServiceModes": {
+        "count": 1,
+        "digest": "98b6342972e4a09774907828f5e4303a"
+      },
+      "uploads": {
+        "count": 10,
+        "digest": "52b965aa30ab7d88abd8ad6c87c68bd9"
+      },
+      "usePermissions": {
+        "count": 12,
+        "digest": "d6cd3a08e02fe198222015902c62b462"
+      },
+      "users": {
+        "count": 3,
+        "digest": "02cc868d67efab5a1c7bf3fba9d0d9a4"
+      },
+      "workAssets": {
+        "count": 2,
+        "digest": "11590f024c69091d7dae81cbd582d672"
+      },
+      "workCredits": {
+        "count": 4,
+        "digest": "4eceee17efa81fbf70839ab6a8739a7f"
+      },
+      "works": {
+        "count": 4,
+        "digest": "e811e5795cc338f4aa5dd96365b80446"
+      },
+      "workspaces": {
+        "count": 1,
+        "digest": "959ca7323df27b1ce6df87d5ff6dfc6a"
+      }
+    }
+  }
+]

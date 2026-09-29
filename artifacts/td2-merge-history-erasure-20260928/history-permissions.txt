@@ -1,0 +1,43 @@
+TAP version 13
+# PASS merged history erasure: whole merged identity clears all historical payload, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# Subtest: TD2 erases whole merged identity and retained profiles while retaining explicit immutable lineage
+ok 1 - TD2 erases whole merged identity and retained profiles while retaining explicit immutable lineage
+  ---
+  duration_ms: 263.705917
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# Subtest: TD2 old merged identity erasure leaves canonical professional facts and measurements unchanged
+ok 2 - TD2 old merged identity erasure leaves canonical professional facts and measurements unchanged
+  ---
+  duration_ms: 224.527916
+  type: 'test'
+  ...
+# Subtest: TD2 historical erasure requires merge permission and never reveals a hidden old identity to administrators
+ok 3 - TD2 historical erasure requires merge permission and never reveals a hidden old identity to administrators
+  ---
+  duration_ms: 458.619584
+  type: 'test'
+  ...
+# Subtest: TD2 archived identity content changed after blocking invalidates its frozen erasure plan
+ok 4 - TD2 archived identity content changed after blocking invalidates its frozen erasure plan
+  ---
+  duration_ms: 196.567291
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# Subtest: TD2 cleared history markers still require the old identity scope and merge permission
+ok 5 - TD2 cleared history markers still require the old identity scope and merge permission
+  ---
+  duration_ms: 460.85775
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1768.122542

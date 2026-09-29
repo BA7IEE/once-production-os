@@ -1,0 +1,28 @@
+PASS WP1 browser: real images grouped and reordered with same-work cover; multi-role credit response-loss retry writes once
+PASS DEV-07A browser: explicit export permission -> worker JSON -> controlled browser download
+PASS DEV-06 browser: industry/work-type search -> internal shortlist -> credited work -> selected image -> collaboration note
+PASS DEV-07B browser: impact preview -> DRAFT request; target remains readable and no delete execution exists
+PASS WP1 browser/API/PG: nominated and confirmed are not actual; reference/delivery preserves EXTERNAL attribution; internal review and reverse talent links persist
+PASS DEV-06 privacy: selected image source loss redacts the entire shortlist item in the browser
+PASS WP1 privacy: suspended dependencies redact identities/previews; private roots and audits stay hidden; wrong-parent command writes nothing
+PASS DEV-07A privacy: source suspension makes the whole old export non-downloadable
+PASS DEV-07C browser: DRAFT -> BLOCKED_FOR_USE hides project while preserving underlying row and no cleanup action exists
+PASS DEV-07D browser: REVIEW_REQUIRED decision -> frozen plan; underlying project relations remain before cleanup
+PASS DEV-07E browser: frozen plan -> CLEANING -> dependency cleanup evidence
+PASS DEV-07F browser: project root finalized to ERASED minimal header and request COMPLETED
+PASS DEV-07F media: local original/preview directory physically purged before ERASED media headers and COMPLETED request
+PASS DEV-07G browser: explicit preview/decision/merge -> one alias; old Person id resolves read-only and disappears from normal lists
+PASS TD2 browser: explicit unknown-role collision keeps both pending review identities and original candidate lineage without inferring a role
+PASS TD2 browser: explicit conflict selection and retained history; per-record confirmation gates professional merge; stable role/language/collection/item IDs and original media survive
+PASS TD2 candidate role browser: explicit human selection resolves both retained reviews, preserving lineage; response-loss retry preserves body and key
+PASS TD2 transfer browser: original and preview downloads match exact hashes, verified credential retains attachment; explicit person, fact and evidence source grants -> v11 JSON preserves archived identities, retained profiles, immutable original merge decision and actor plus ordinary contact identity evidence and original adult verification plus collection/type/tag/item identity plus credential ciphertext without plaintext plus original field evidence and reviewer attribution -> evidence-only grant revocation blocks download
+PASS TD2 shared proof browser: human impact/decision -> frozen plan -> real original/preview purge; collection link removed and current credentials revoked, prior evidence and independent media retained
+PASS TD2 independent source browser: explicit source erasure removes its evidence/proposal, retains unchanged language and independent provenance, redacts source history and completes
+PASS TD2 source fact browser: explicit language retention and role erasure, independent evidence selection, frozen group execution, exact origin and reviewer preservation
+PASS TD2 retained-origin browser: explicit person and independent source permits, real v12 JSON download, erased source excluded from approval choices, minimal deleted header and original language/evidence preserved
+PASS TD2 source-owned person browser: explicit identity and all professional choices, whole candidate removal, original and preview purged, independent image untouched
+PASS TD2 source asset browser: source-wide two-original cleanup clears four collection links and two qualifications once, purges both real directories, preserves independent media and original evidence
+PASS TD2 combined source browser: retain language with current independent evidence, erase role and two shared originals, invalidate qualifications atomically
+PASS TD2 source asset browser: source-wide two-original cleanup clears four collection links and two qualifications once, purges both real directories, preserves independent media and original evidence
+PASS TD2 identity retention browser: real separate identity/group decisions, frozen original source erased, ordinary identity and original field evidence retained without inventing talent
+PASS TD2 workbench browser: actual person and multi-role forms, language levels, directional translation, confirmed measurement history, collection links, exact-body/key response-loss replay and stale-form preservation
