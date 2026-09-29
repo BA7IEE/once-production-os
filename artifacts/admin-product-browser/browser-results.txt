@@ -1,0 +1,56 @@
+## resume
+PASS browser: two-row import shows partial completion after only row 1 commits
+PASS browser: lost response replays one receipt, then only row 2 is added
+PASS browser/API: suspend blocks resume; job, rows, people and receipts unchanged
+PASS browser/API: revision blocks resume; job, rows, people and receipts unchanged
+PASS browser/API: revoked session gets 401; fresh viewer gets 403; checkpoints and receipts unchanged
+
+## handoff
+PASS H1 browser: private record offered; pending invitation exposes no profile
+PASS H1 browser/API: lost accept response replayed; source, contacts, history and sibling stay private
+PASS H1 browser/API: delegated edit preserved ownership; revoke denies next read and write
+
+## media
+PASS M1 browser: upload/unknown-complete replay/worker/decoded preview; metadata stripped and private scope enforced
+PASS PDF attachment: actual upload/worker/DB and explicit unparsed page, no administrator scope bypass
+PASS M1 API/worker: disguised HTML and cancelled upload produce no accessible asset
+PASS M1 API: quarantine and current source suspension deny subsequent preview requests
+
+## production
+PASS WP1 browser: real images grouped and reordered with same-work cover; multi-role credit response-loss retry writes once
+PASS DEV-07A browser: explicit export permission -> worker JSON -> controlled browser download
+PASS DEV-06 browser: industry/work-type search -> internal shortlist -> credited work -> selected image -> collaboration note
+PASS DEV-07B browser: impact preview -> DRAFT request; target remains readable and no delete execution exists
+PASS WP1 browser/API/PG: nominated and confirmed are not actual; reference/delivery preserves EXTERNAL attribution; internal review and reverse talent links persist
+PASS DEV-06 privacy: selected image source loss redacts the entire shortlist item in the browser
+PASS WP1 privacy: suspended dependencies redact identities/previews; private roots and audits stay hidden; wrong-parent command writes nothing
+PASS DEV-07A privacy: source suspension makes the whole old export non-downloadable
+PASS DEV-07C browser: DRAFT -> BLOCKED_FOR_USE hides project while preserving underlying row and no cleanup action exists
+PASS DEV-07D browser: REVIEW_REQUIRED decision -> frozen plan; underlying project relations remain before cleanup
+PASS DEV-07E browser: frozen plan -> CLEANING -> dependency cleanup evidence
+PASS DEV-07F browser: project root finalized to ERASED minimal header and request COMPLETED
+PASS DEV-07F media: local original/preview directory physically purged before ERASED media headers and COMPLETED request
+PASS DEV-07G browser: explicit preview/decision/merge -> one alias; old Person id resolves read-only and disappears from normal lists
+PASS TD2 browser: explicit unknown-role collision keeps both pending review identities and original candidate lineage without inferring a role
+PASS TD2 browser: explicit conflict selection and retained history; per-record confirmation gates professional merge; stable role/language/collection/item IDs and original media survive
+PASS TD2 candidate role browser: explicit human selection resolves both retained reviews, preserving lineage; response-loss retry preserves body and key
+PASS TD2 transfer browser: original and preview downloads match exact hashes, verified credential retains attachment; explicit person, fact and evidence source grants -> v11 JSON preserves archived identities, retained profiles, immutable original merge decision and actor plus ordinary contact identity evidence and original adult verification plus collection/type/tag/item identity plus credential ciphertext without plaintext plus original field evidence and reviewer attribution -> evidence-only grant revocation blocks download
+PASS TD2 shared proof browser: human impact/decision -> frozen plan -> real original/preview purge; collection link removed and current credentials revoked, prior evidence and independent media retained
+PASS TD2 independent source browser: explicit source erasure removes its evidence/proposal, retains unchanged language and independent provenance, redacts source history and completes
+PASS other identity withdrawal browser: explicit identity-field withdrawal alongside source fact choices preserves ordinary identity and exact surviving proof
+PASS TD2 source fact browser: explicit language retention and role erasure, independent evidence selection, frozen group execution, exact origin and reviewer preservation
+PASS TD2 retained-origin browser: explicit person and independent source permits, real v12 JSON download, erased source excluded from approval choices, minimal deleted header and original language/evidence preserved
+PASS TD2 source-owned person browser: explicit identity and all professional choices, whole candidate removal, original and preview purged, independent image untouched
+PASS TD2 source asset browser: source-wide two-original cleanup clears four collection links and two qualifications once, purges both real directories, preserves independent media and original evidence
+PASS TD2 combined source browser: retain language with current independent evidence, erase role and two shared originals, invalidate qualifications atomically
+PASS TD2 source asset browser: source-wide two-original cleanup clears four collection links and two qualifications once, purges both real directories, preserves independent media and original evidence
+PASS TD2 identity retention browser: real separate identity/group decisions, frozen original source erased, ordinary identity and original field evidence retained without inventing talent
+PASS retained identity v13 browser: explicit independent identity-basis approval, separate field/source grants, actual download preserves erased origin and all identity evidence without creating talent
+PASS TD2 manual maintenance browser: explicit old-height dismissal preserves historical value without measurement; restricted credential identifier cleared while status and proof remain
+PASS TD2 workbench browser: actual person and multi-role forms, language levels, directional translation, confirmed measurement history, collection links, exact-body/key response-loss replay and stale-form preservation
+PASS source after historical erasure browser: separately reviewed old identity then source cleanup, original history markers unchanged, live canonical profile retained, actual v14 download contains only minimal erased source and old identity
+PASS merged history browser: scoped old identity entry, explicit decisions and cleanup, current identity/profile unchanged, visible minimal erasure record and actual v14 JSON download
+PASS locale merge browser: explicit language choice, original text history, draft review state
+PASS internal locale v3 browser: explicit three owner grants and source grant -> real JSON download preserves typed dependencies and original review; source-only grant revocation blocks old download
+PASS internal locale browser: person/work/project real editor, explicit source and review, persisted text, uncertain committed response freezes form and replays identical key/body
+PASS AI browser (real PostgreSQL): confirmed input, restricted search, selected proposal fields and unknown response replay; configuration approval, human reconciliation and unfreeze; encrypted connection save/replay, fixed-input SDK test and enable; simulated provider only

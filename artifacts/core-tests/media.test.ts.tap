@@ -1,0 +1,154 @@
+TAP version 13
+# Subtest: M1 disabled provider rejects creation; no hidden memory storage
+ok 1 - M1 disabled provider rejects creation; no hidden memory storage
+  ---
+  duration_ms: 134.375542
+  type: 'test'
+  ...
+# Subtest: M1 upload create same-key replay consumes one reservation and minimal receipts
+ok 2 - M1 upload create same-key replay consumes one reservation and minimal receipts
+  ---
+  duration_ms: 130.270458
+  type: 'test'
+  ...
+# Subtest: M1 strict MIME, filename, size and unknown field input fail without writes
+ok 3 - M1 strict MIME, filename, size and unknown field input fail without writes
+  ---
+  duration_ms: 126.310459
+  type: 'test'
+  ...
+# Subtest: M1 actor active reservation cap includes expired rows until worker expiry
+ok 4 - M1 actor active reservation cap includes expired rows until worker expiry
+  ---
+  duration_ms: 128.649708
+  type: 'test'
+  ...
+# Subtest: M1 source CAS and person/source mismatch denied
+ok 5 - M1 source CAS and person/source mismatch denied
+  ---
+  duration_ms: 125.385375
+  type: 'test'
+  ...
+# Subtest: M1 private upload metadata and bytes require owning/native scope; administrator is not bypass
+ok 6 - M1 private upload metadata and bytes require owning/native scope; administrator is not bypass
+  ---
+  duration_ms: 255.554875
+  type: 'test'
+  ...
+# Subtest: M1 receive is one-shot and cannot overwrite UPLOADED bytes
+ok 7 - M1 receive is one-shot and cannot overwrite UPLOADED bytes
+  ---
+  duration_ms: 126.43625
+  type: 'test'
+  ...
+# Subtest: M1 length mismatch does not claim reservation
+ok 8 - M1 length mismatch does not claim reservation
+  ---
+  duration_ms: 126.087875
+  type: 'test'
+  ...
+# Subtest: M1 digest mismatch never marks file uploaded
+ok 9 - M1 digest mismatch never marks file uploaded
+  ---
+  duration_ms: 125.268042
+  type: 'test'
+  ...
+# Subtest: M1 complete same-key unknown response replays original 202 without a second job
+ok 10 - M1 complete same-key unknown response replays original 202 without a second job
+  ---
+  duration_ms: 125.2545
+  type: 'test'
+  ...
+# Subtest: M1 late receive cannot revive cancellation
+ok 11 - M1 late receive cannot revive cancellation
+  ---
+  duration_ms: 125.180792
+  type: 'test'
+  ...
+# Subtest: M1 worker lease replacement denies stale result and gives unique final identity
+ok 12 - M1 worker lease replacement denies stale result and gives unique final identity
+  ---
+  duration_ms: 125.911458
+  type: 'test'
+  ...
+# Subtest: M1 two workers cannot concurrently claim one upload
+ok 13 - M1 two workers cannot concurrently claim one upload
+  ---
+  duration_ms: 128.514875
+  type: 'test'
+  ...
+# Subtest: M1 worker cannot publish after source edits
+ok 14 - M1 worker cannot publish after source edits
+  ---
+  duration_ms: 127.332208
+  type: 'test'
+  ...
+# Subtest: M1 cancel during decode denies publication without removing others
+ok 15 - M1 cancel during decode denies publication without removing others
+  ---
+  duration_ms: 128.210375
+  type: 'test'
+  ...
+# Subtest: M1 preview DTO never exposes storage path, token, original URL or digest
+ok 16 - M1 preview DTO never exposes storage path, token, original URL or digest
+  ---
+  duration_ms: 125.384
+  type: 'test'
+  ...
+# Subtest: M1 quarantine denies next preview but preserves explicit asset state
+ok 17 - M1 quarantine denies next preview but preserves explicit asset state
+  ---
+  duration_ms: 127.090292
+  type: 'test'
+  ...
+# Subtest: M1 source suspension hides ready assets immediately
+ok 18 - M1 source suspension hides ready assets immediately
+  ---
+  duration_ms: 125.648083
+  type: 'test'
+  ...
+# Subtest: M1 renewed OPEN session remains one reservation and caps renewal count
+ok 19 - M1 renewed OPEN session remains one reservation and caps renewal count
+  ---
+  duration_ms: 123.750791
+  type: 'test'
+  ...
+# Subtest: M1 maintenance or recovery mismatch prevents cleanup and processing
+ok 20 - M1 maintenance or recovery mismatch prevents cleanup and processing
+  ---
+  duration_ms: 123.189542
+  type: 'test'
+  ...
+# Subtest: M1 only aged failed/cancelled sessions can be purged; READY never eligible
+ok 21 - M1 only aged failed/cancelled sessions can be purged; READY never eligible
+  ---
+  duration_ms: 135.91375
+  type: 'test'
+  ...
+# Subtest: M1 failed receive remains bounded and cannot be automatically sent again
+ok 22 - M1 failed receive remains bounded and cannot be automatically sent again
+  ---
+  duration_ms: 124.077833
+  type: 'test'
+  ...
+# Subtest: M1 accepted basic profile handoff does not grant its media or sources
+ok 23 - M1 accepted basic profile handoff does not grant its media or sources
+  ---
+  duration_ms: 375.485167
+  type: 'test'
+  ...
+# Subtest: PDF and selected MP4 have independent byte limits without widening image limits
+ok 24 - PDF and selected MP4 have independent byte limits without widening image limits
+  ---
+  duration_ms: 248.399584
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3689.539542

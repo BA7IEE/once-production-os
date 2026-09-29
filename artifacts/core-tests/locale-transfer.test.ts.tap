@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: locale transfer uses actual permissions and rebuilds typed dependencies without inventing local review
+ok 1 - locale transfer uses actual permissions and rebuilds typed dependencies without inventing local review
+  ---
+  duration_ms: 286.89
+  type: 'test'
+  ...
+# Subtest: locale edit without a parent revision change and evidence-only permission revocation both stale a ready export
+ok 2 - locale edit without a parent revision change and evidence-only permission revocation both stale a ready export
+  ---
+  duration_ms: 279.147125
+  type: 'test'
+  ...
+# Subtest: locale rebuild rejects broken roots, forged original review association, missing source and omitted digest before any writes
+ok 3 - locale rebuild rejects broken roots, forged original review association, missing source and omitted digest before any writes
+  ---
+  duration_ms: 264.575417
+  type: 'test'
+  ...
+# Subtest: a second locale export retains original review and bounded original basis, while edits distinguish earlier reviewed text
+ok 4 - a second locale export retains original review and bounded original basis, while edits distinguish earlier reviewed text
+  ---
+  duration_ms: 396.648416
+  type: 'test'
+  ...
+# Subtest: source cleanup erases imported locale provenance along with bodies and current dependencies
+ok 5 - source cleanup erases imported locale provenance along with bodies and current dependencies
+  ---
+  duration_ms: 270.606625
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1652.014333

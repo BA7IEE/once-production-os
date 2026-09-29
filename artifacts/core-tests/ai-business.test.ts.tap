@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: AI extraction produces a reviewable proposal and applies selected fields exactly once
+ok 1 - AI extraction produces a reviewable proposal and applies selected fields exactly once
+  ---
+  duration_ms: 147.984416
+  type: 'test'
+  ...
+# Subtest: AI strict source permission and minimum input checks precede reservation
+ok 2 - AI strict source permission and minimum input checks precede reservation
+  ---
+  duration_ms: 129.825208
+  type: 'test'
+  ...
+# Subtest: AI source changes prevent dispatch and stale proposals cannot write facts
+ok 3 - AI source changes prevent dispatch and stale proposals cannot write facts
+  ---
+  duration_ms: 132.176083
+  type: 'test'
+  ...
+# Subtest: AI parse search confirms a restricted filter object and never writes facts
+ok 4 - AI parse search confirms a restricted filter object and never writes facts
+  ---
+  duration_ms: 131.821458
+  type: 'test'
+  ...
+# Subtest: AI locale creates an unreviewed draft and work tags stay within the approved dictionary
+ok 5 - AI locale creates an unreviewed draft and work tags stay within the approved dictionary
+  ---
+  duration_ms: 142.721334
+  type: 'test'
+  ...
+# Subtest: AI selected fields and proposal state roll back together on audit failure
+ok 6 - AI selected fields and proposal state roll back together on audit failure
+  ---
+  duration_ms: 128.082709
+  type: 'test'
+  ...
+# Subtest: AI malformed output and invented quotations never become proposals or verified facts
+ok 7 - AI malformed output and invented quotations never become proposals or verified facts
+  ---
+  duration_ms: 256.104041
+  type: 'test'
+  ...
+# Subtest: AI source-linked proposals and grant evidence erase together without releasing unknown fees
+ok 8 - AI source-linked proposals and grant evidence erase together without releasing unknown fees
+  ---
+  duration_ms: 134.254125
+  type: 'test'
+  ...
+# Subtest: AI explicit permission and current source scope govern content, counts and replay
+ok 9 - AI explicit permission and current source scope govern content, counts and replay
+  ---
+  duration_ms: 125.983333
+  type: 'test'
+  ...
+# Subtest: AI recovery revokes grants, rejects pending proposals and retains unresolved charges
+ok 10 - AI recovery revokes grants, rejects pending proposals and retains unresolved charges
+  ---
+  duration_ms: 125.190667
+  type: 'test'
+  ...
+# Subtest: AI person deletion uses the normal impact, decision, freeze and cleanup workflow
+ok 11 - AI person deletion uses the normal impact, decision, freeze and cleanup workflow
+  ---
+  duration_ms: 136.66875
+  type: 'test'
+  ...
+# Subtest: AI may report no supported fields without guessing or treating confirmed usage as unknown
+ok 12 - AI may report no supported fields without guessing or treating confirmed usage as unknown
+  ---
+  duration_ms: 129.33375
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1868.386709

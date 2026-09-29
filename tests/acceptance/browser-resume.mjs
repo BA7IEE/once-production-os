@@ -1,3 +1,5 @@
+import {realpathSync} from 'node:fs';
+import {navigateUI,addModelOccupation} from './product-navigation.mjs';
 /** Real browser + API + Worker + PostgreSQL acceptance on a fresh, disposable loopback DB.
  * The SQL trigger is installed only in this empty test database and is removed after each fault.
  * No production entrypoint or business table is reset or deleted.
@@ -22,7 +24,7 @@ assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname));
 assert.match(url.pathname, /^\/once_test_[a-z0-9_]+$/);
 assert.ok(url.username && url.password && !url.search && !url.hash);
 
-const tmp = mkdtempSync(join(tmpdir(), 'once-browser-resume-'));
+const tmp = realpathSync(mkdtempSync(join(tmpdir(), 'once-browser-resume-')));
 const password = 'Synthetic-' + randomBytes(20).toString('base64url') + '!';
 const put = (name, value) => { const p = join(tmp, name); writeFileSync(p, value, { mode: 0o600 }); return p; };
 const contact = put('contact.hex', randomBytes(32).toString('hex'));
@@ -96,7 +98,7 @@ async function login(page, loginName, secret) {
     await page.locator('input[autocomplete=username]').fill(loginName);
     await page.locator('input[autocomplete=current-password]').fill(secret);
     await page.getByRole('button', { name: '登录', exact: true }).click();
-    await page.getByRole('button', { name: /概览/ }).waitFor();
+    await page.getByRole('button', { name: /工作台/ }).waitFor();
 }
 async function token(page) {
     const response = await page.context().request.get(base + '/api/v1/me');
@@ -127,7 +129,7 @@ async function queueByApi(page, sourceId, label) {
     return { jobId: committed.resourceId, batchId: preview.resourceId };
 }
 async function queueInBrowser(page, sourceTitle, label) {
-    await page.getByRole('button', { name: /批量导入/ }).click();
+    await navigateUI(page,'批量导入');
     await page.getByLabel('本批资料来源').selectOption({ label: sourceTitle });
     await page.getByLabel('JSON 数据').fill(JSON.stringify([
         { displayName: label + '-first', roles: ['model'] }, { displayName: label + '-second', roles: ['editor'] }
@@ -255,7 +257,7 @@ try {
     const permissionSource = await source(owner, '权限验收来源-' + suffix);
     const permissionName = `acceptance-${suffix}-permission`;
     const { jobId: permissionJob } = await queueByApi(editor, permissionSource, permissionName);
-    await editor.getByRole('button', { name: /批量导入/ }).click();
+    await navigateUI(editor,'批量导入');
     await failSecond(permissionJob);
     await partial(editor, permissionJob, permissionName);
     const beforePermission = await captureImportCheckpoint(prisma, permissionJob);

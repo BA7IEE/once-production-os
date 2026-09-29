@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode, type FormEvent } from 'react';
+import {useContext} from 'react';
+import {PageSurfaceContext,useSurfaceDirty} from './app/surface.tsx';
 import { ApiError } from './api.ts';
 export const labels: Record<string, string> = { DRAFT: '草稿', ACTIVE: '在库', ARCHIVED: '已归档', RECEIVED: '临时整理', CONFIRMED: '已核验', SUSPENDED: '已暂停', PENDING: '待激活', DISABLED: '已停用', ADMIN: '管理员', EDITOR: '资料维护', REVIEWER: '资料核验', VIEWER: '只读成员', QUEUED: '排队中', RUNNING: '处理中', SUCCEEDED: '已完成', READY: '可下载', REVOKED: '已撤销', ERASED: '已擦除', BLOCKED_FOR_USE: '已阻断使用', CLEANING: '清理中', COMPLETED: '已完成删除', RETAINED_WITH_BASIS: '有据保留后完成', FAILED: '失败', VALID: '可导入', INVALID: '需修正', IMPORTED: '已导入', VERIFIED: '已确认', STALE: '需重新确认' };
 export function date(value: string | null | undefined) {
@@ -27,9 +29,11 @@ export function Modal({ title, children, onClose, wide = false }: {
     onClose: () => void;
     wide?: boolean;
 }) {
+    const inline=useContext(PageSurfaceContext),markDirty=useSurfaceDirty();
     const root = useRef<HTMLDivElement>(null);
-    useEffect(() => { const old = document.activeElement as HTMLElement | null; const previous = document.body.style.overflow; document.body.style.overflow = 'hidden'; root.current?.querySelector<HTMLElement>('input,select,textarea,button')?.focus(); return () => { document.body.style.overflow = previous; old?.focus(); }; }, []);
-    return <div className="overlay"><div className={'modal' + (wide ? ' modal-wide' : '')} ref={root} role="dialog" aria-modal="true" aria-label={title} onKeyDown={e => {
+    useEffect(() => { if(inline)return; const old = document.activeElement as HTMLElement | null; const previous = document.body.style.overflow; document.body.style.overflow = 'hidden'; root.current?.querySelector<HTMLElement>('input,select,textarea,button')?.focus(); return () => { document.body.style.overflow = previous; old?.focus(); }; }, []);
+    if(inline)return <PageSurfaceContext.Provider value={false}><section className="page-surface" role="region" aria-label={title} onChange={e=>{if(!(e.target as HTMLElement).closest('[data-query-form]')&&(e.target as HTMLElement).closest('.overlay,.page-surface')===e.currentTarget)markDirty();}}><header><h2>{title}</h2><button onClick={onClose}>返回</button></header>{children}</section></PageSurfaceContext.Provider>;
+    return <div className="overlay" onChange={e=>{if(!(e.target as HTMLElement).closest('[data-query-form]')&&(e.target as HTMLElement).closest('.overlay,.page-surface')===e.currentTarget)markDirty();}}><div className={'modal' + (wide ? ' modal-wide' : '')} ref={root} role="dialog" aria-modal="true" aria-label={title} onKeyDown={e => {
             if (e.key === 'Escape')
                 onClose();
             if (e.key === 'Tab') {
@@ -107,5 +111,5 @@ export function Pager({ page, pageSize, total, setPage }: {
     pageSize: number;
     total: number;
     setPage: (page: number) => void;
-}) { return <div className="pager"><small>共 {total} 条 · 第 {page} 页</small><div><button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>上一页</button><button type="button" disabled={page * pageSize >= total} onClick={() => setPage(page + 1)}>下一页</button></div></div>; }
+}) { if(!total)return null; return <div className="pager"><small>共 {total} 条 · 第 {page} 页</small><div><button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>上一页</button><button type="button" disabled={page * pageSize >= total} onClick={() => setPage(page + 1)}>下一页</button></div></div>; }
 export function prevent(e: FormEvent) { e.preventDefault(); }

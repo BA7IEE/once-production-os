@@ -16,7 +16,7 @@ AI发送、任务预留和启用状态现检查INTERNAL及INTERNAL_APPROVED；�
 
 ## 2026-09-29 当前进展：AI 后台与费用核对
 
-通用后台执行器、配置批准/停用、人工费用核对、不可改的证据关联和解冻记录及操作页面已接通。并发防重复发送、中断转未知保留费用、审计回滚及原键重试已测；44/44 CORE_MEMORY_TESTED，类型/191条契约/构建及本地测试替身浏览器 PASS。第49次追加迁移的真实 PostgreSQL、48→49保留未决费用和浏览器链待本批 CI，最终结果回填 PR。正式后台仅运行遗留请求隔离，真实适配器/密钥与价格加载/供应商查询仍未实现，普通部署仍关闭外送。未合并、未部署。详见 [AI_OPERATIONS.md](docs/release/AI_OPERATIONS.md)。
+通用后台执行器、配置批准/停用、人工费用核对、不可改的证据关联和解冻记录及操作页面已接通。并发防重复发送、中断转未知保留费用、审计回滚及原键重试已测；44/44 CORE_MEMORY_TESTED，类型/191条契约/构建及本地测试替身浏览器 PASS。第49次追加迁移的真实 PostgreSQL、48→49保留未决费用和浏览器链待本批 CI，最终结果回填 PR。正式后台仅运行遗留请求隔离，真实适配器/密钥与价格加载/供应商查询仍未实现，普通部署仍关闭外送。未合并、未部署。详见 [AI_OPERATIONS.md](AI_OPERATIONS.md)。
 
 上一批最终提交151efb9 / Actions36445472822已确认核心507/507、五条CI 5/5；此证据不替代本批验证。以下为历史记录。
 
@@ -24,13 +24,13 @@ AI发送、任务预留和启用状态现检查INTERNAL及INTERNAL_APPROVED；�
 
 补充边界：原文不足时允许零条建议，已确认费用正常结算，不生成待采纳提议；AI专项12/12通过。第48次迁移已在云端应用并冻结，最终提交CI另行确认。
 
-四类文字任务、独立来源许可、原文输入预览、建议差异与一次性多字段采纳、未核验来源证据、关联删除及恢复隔离已接通。AI/费用/恢复/语言受影响43/43 CORE_MEMORY_TESTED；本地浏览器交互通过，使用测试数据库替身；真实 PostgreSQL 和浏览器已接入既有 CI，待新提交结果。生产调用仍关闭，真实供应商/模型、配置审批、实际 Worker 和费用核对尚未完成，不能标记 AI 生产可用或整期完成。详见 [AI_BUSINESS.md](docs/release/AI_BUSINESS.md)。前47次迁移冻结，本批仅追加第48次；未合并、未部署。
+四类文字任务、独立来源许可、原文输入预览、建议差异与一次性多字段采纳、未核验来源证据、关联删除及恢复隔离已接通。AI/费用/恢复/语言受影响43/43 CORE_MEMORY_TESTED；本地浏览器交互通过，使用测试数据库替身；真实 PostgreSQL 和浏览器已接入既有 CI，待新提交结果。生产调用仍关闭，真实供应商/模型、配置审批、实际 Worker 和费用核对尚未完成，不能标记 AI 生产可用或整期完成。详见 [AI_BUSINESS.md](AI_BUSINESS.md)。前47次迁移冻结，本批仅追加第48次；未合并、未部署。
 
 以下为此前批次的历史记录，已完成和剩余以本段及专项文档为准。
 
 ## 2026-09-28 AI 调用与费用底层进展
 
-新增供应商无关的持久化预算/发送账本和事务外调度器：防重复发送、未知费用保留、取消不假装免费、超额冻结、配置/恢复批次变化阻断。AI与恢复专项25/25 CORE_MEMORY_TESTED，类型/契约/静态检查 PASS；第47次追加迁移的真实 DB 验收待新提交 CI。没有 AI HTTP/Worker 生产入口，没有真实供应商调用，四类任务、独立许可、提议采纳和页面仍未完成；不能标记 AI 或整期完成。详见 [AI_DISPATCH_LEDGER.md](docs/release/AI_DISPATCH_LEDGER.md)。上一语言合并最终提交7bf33f7的CI36389831201已5/5通过，不替代本批验证。未合并、未部署。
+新增供应商无关的持久化预算/发送账本和事务外调度器：防重复发送、未知费用保留、取消不假装免费、超额冻结、配置/恢复批次变化阻断。AI与恢复专项25/25 CORE_MEMORY_TESTED，类型/契约/静态检查 PASS；第47次追加迁移的真实 DB 验收待新提交 CI。没有 AI HTTP/Worker 生产入口，没有真实供应商调用，四类任务、独立许可、提议采纳和页面仍未完成；不能标记 AI 或整期完成。详见 [AI_DISPATCH_LEDGER.md](AI_DISPATCH_LEDGER.md)。上一语言合并最终提交7bf33f7的CI36389831201已5/5通过，不替代本批验证。未合并、未部署。
 
 数据库验收36388534437发现新合并样本的来源依赖由6条变为7条，旧固定数量断言漏更新；现精确校验总数7、合并文本3条依赖、双方来源ID以及完整历史一致，专项6/6通过。原运行四条浏览器通过、数据库失败；修正提交需重新验收，不沿用旧通过记录。
 
@@ -78,37 +78,37 @@ AI发送、任务预留和启用状态现检查INTERNAL及INTERNAL_APPROVED；�
 
 共享图片专用删除已接通：人工确认后移出集合引用、撤销资质当前状态、将成年资格置为未知并使待审建议失效；其他原件与历史核验证据保留。419/419 CORE_MEMORY_TESTED，类型/契约/静态检查/构建 PASS；完整真实 PostgreSQL、共享引用审计回滚重试与物理文件删除 DB_TESTED；真实 Chromium 影响→决定→冻结→清理及原件目录检查 BROWSER_TESTED。执行时重新检查发起者当前资格和范围。本批无迁移。证据：`artifacts/td2-shared-asset-erasure-20260928/`。SOURCE多来源保留/删除、合并保留历史及完整交付继续推进，未合并、未部署。
 
-详见 [共享图片清理](docs/release/TD2_SHARED_ASSET_ERASURE.md)。
+详见 [共享图片清理](TD2_SHARED_ASSET_ERASURE.md)。
 
 云端运行36343700978暴露量尺确认后的浏览器断言竞态：数据库已为CONFIRMED，但测试在提交响应到达后立即检查旧页面。现先等待页面明确显示“已确认”，再断言没有编辑入口；保留数据库与UI两层断言，未加sleep、刷新或扩大超时。修正后整条真实Chromium流程再次通过；新head五条CI需重新确认。
 
 候选职业选择与人工复核已接通：同一人物按不同职业分别入选，作品须匹配本次职业；旧候选升级保留原编号/备注并逐项待核实，不猜职业。416/416 CORE_MEMORY_TESTED，服务/React/core/transport类型、契约、静态检查及构建 PASS；完整 PostgreSQL 链（含原合同67/67、职业上下文/升级的审计回滚重试、真实备份恢复与各版重建）DB_TESTED；真实 Chromium 双职业入选、合并后人工复核、响应丢失原请求回放 BROWSER_TESTED。证据：`artifacts/td2-candidate-context-20260928/`。本批无新迁移；复杂来源/共享媒体/保留历史清理及完整交付仍待继续，未合并、未部署。
 
-详见 [候选职业衔接](docs/release/TD2_CANDIDATE_CONTEXT.md)。
+详见 [候选职业衔接](TD2_CANDIDATE_CONTEXT.md)。
 
 专业工作台已接通人物建档、基本身份、多职业/语言、量尺与成年资格、翻译方向、能力和机构登记、资质编号、集合素材、字段建议及专业组合检索。412/412 CORE_MEMORY_TESTED；服务/React/core/transport类型、契约、静态检查与构建 PASS。真实 PostgreSQL + Chromium 表单验证通过，覆盖响应丢失后原请求回放、旧版本冲突、只读账号与来源暂停清屏。证据：`artifacts/td2-workbench-20260928/`。本批无数据库迁移；完整人才2.0仍未完成，角色候选衔接、复杂来源/共享媒体/历史清理及全部交付证据继续推进。
 
-详见 [专业工作台](docs/release/TD2_PROFESSIONAL_WORKBENCH.md)。
+详见 [专业工作台](TD2_PROFESSIONAL_WORKBENCH.md)。
 
 职业不明候选碰撞已支持人工选择保留项；两边复核记录的 UUID、原因和状态保留，原候选编号只追加，合并不会代替人工职业核实。412/412 CORE_MEMORY_TESTED，类型、契约、静态检查及完整构建 PASS；真实 PostgreSQL 双向选择、审计回滚/同键重试、SQL 历史保护和完整数据库链 DB_TESTED；真实 Chromium 合并与既有迁移流程 BROWSER_TESTED。40 次前向迁移在新空库通过，两个既有合成库各59表原内容摘要未变，其中一库显式含升级前复核记录；真实备份恢复保留新候选历史。证据：`artifacts/td2-candidate-review-20260928/`。完整人才2.0仍未完成；工作台、复杂来源/媒体清理继续开发，未部署。
 
-详见 [候选复核合并](docs/release/TD2_CANDIDATE_REVIEW_MERGE.md)。
+详见 [候选复核合并](TD2_CANDIDATE_REVIEW_MERGE.md)。
 
-当前接续：[合并保留历史迁移](docs/release/TD2_MERGE_HISTORY_TRANSFER.md)增加 v11；旧身份、原合并决定及操作者、保留主档案与量尺关系一起迁移，目标不伪造新合并。人才 2.0 整体仍未完成。
+当前接续：[合并保留历史迁移](TD2_MERGE_HISTORY_TRANSFER.md)增加 v11；旧身份、原合并决定及操作者、保留主档案与量尺关系一起迁移，目标不伪造新合并。人才 2.0 整体仍未完成。
 
-前批：[身份字段来源证据迁移](docs/release/TD2_IDENTITY_EVIDENCE_TRANSFER.md)增加 v10；普通联系人无需人才档案即可按独立许可迁移所选身份字段的来源和原核验记录。整体人才 2.0 仍未完成。
+前批：[身份字段来源证据迁移](TD2_IDENTITY_EVIDENCE_TRANSFER.md)增加 v10；普通联系人无需人才档案即可按独立许可迁移所选身份字段的来源和原核验记录。整体人才 2.0 仍未完成。
 
-前批：[成年资格与原核验归属迁移](docs/release/TD2_ADULT_TRANSFER.md)增加 v9；独立许可、原证明和核验证据一起保留，目标不伪造核验人或延长有效期。完整人才 2.0 仍未完成。
+前批：[成年资格与原核验归属迁移](TD2_ADULT_TRANSFER.md)增加 v9；独立许可、原证明和核验证据一起保留，目标不伪造核验人或延长有效期。完整人才 2.0 仍未完成。
 
-前批：[媒体集合与内容标签迁移](docs/release/TD2_COLLECTION_TRANSFER.md)增加 v8 白名单；图片顺序、说明、推荐标记及归档状态保留，共享文件只迁移一份。完整人才 2.0 仍待继续验收。
+前批：[媒体集合与内容标签迁移](TD2_COLLECTION_TRANSFER.md)增加 v8 白名单；图片顺序、说明、推荐标记及归档状态保留，共享文件只迁移一份。完整人才 2.0 仍待继续验收。
 
-前批：[资质证明原件迁移](docs/release/TD2_PROOF_MEDIA_TRANSFER.md)已接入独立图片/来源许可、真实文件下载和隔离重建；已核验状态与附件关系保留。完整人才 2.0 尚未完成，证据见该页与当前 head CI。
+前批：[资质证明原件迁移](TD2_PROOF_MEDIA_TRANSFER.md)已接入独立图片/来源许可、真实文件下载和隔离重建；已核验状态与附件关系保留。完整人才 2.0 尚未完成，证据见该页与当前 head CI。
 
-前批：[无附件资质与加密编号迁移](docs/release/TD2_CREDENTIAL_TRANSFER.md)已接入独立许可和隔离重建；带证明附件的资质仍阻断，完整人才2.0未完成。
+前批：[无附件资质与加密编号迁移](TD2_CREDENTIAL_TRANSFER.md)已接入独立许可和隔离重建；带证明附件的资质仍阻断，完整人才2.0未完成。
 
-前批：已支持的十一类专业资料可另行批准[字段来源证据迁移](docs/release/TD2_FIELD_EVIDENCE_TRANSFER.md)，保留原记录和核验归属；完整人才2.0仍未完成。
+前批：已支持的十一类专业资料可另行批准[字段来源证据迁移](TD2_FIELD_EVIDENCE_TRANSFER.md)，保留原记录和核验归属；完整人才2.0仍未完成。
 
-> 当前入口：[人才 2.0 状态](docs/release/TD2_MAINTENANCE_STATUS.md)、[专业冲突合并](docs/release/TD2_CONFLICT_MERGE.md)、[职业候选保留](docs/release/TD2_ROLE_CANDIDATE_MERGE.md)与[专业导出/重建子集](docs/release/TD2_TYPED_TRANSFER.md)、[代表关系及关联机构迁移](docs/release/TD2_REPRESENTATION_TRANSFER.md)。PR #26 基于 PR #25，尚未合入 main；以下旧阶段证据不替代当前 head 验收。
+> 当前入口：[人才 2.0 状态](TD2_MAINTENANCE_STATUS.md)、[专业冲突合并](TD2_CONFLICT_MERGE.md)、[职业候选保留](TD2_ROLE_CANDIDATE_MERGE.md)与[专业导出/重建子集](TD2_TYPED_TRANSFER.md)、[代表关系及关联机构迁移](TD2_REPRESENTATION_TRANSFER.md)。PR #26 基于 PR #25，尚未合入 main；以下旧阶段证据不替代当前 head 验收。
 
 # ONCE Production OS
 
@@ -137,17 +137,17 @@ DEV-09E 已有逐条 delta resolution 实现；正式运维、长期保留与并
 
 先读：
 
-- [WP9 DEV-09D Write-ahead 与媒体备份恢复](docs/release/WP9_RECOVERY_WRITEAHEAD_MEDIA.md)
-- [WP8 DEV-09A～09C Zero-delta 恢复链](docs/release/WP8_RECOVERY_ZERO_DELTA.md)
-- [WP7 T29 隔离 JSON 重建](docs/release/WP7_JSON_REBUILD.md)
-- [WP6 受控 Person merge](docs/release/WP6_PERSON_MERGE.md)
-- [WP5 删除阻断与清理](docs/release/WP5_DELETION_CLEANING.md)
-- [WP4 删除影响预览](docs/release/WP4_DELETION_IMPACT_PREVIEW.md)
-- [WP3 导出与依赖](docs/release/WP3_EXPORT_DEPENDENCIES.md)
-- [当前实现状态](docs/release/IMPLEMENTATION_STATUS.md)
-- [测试报告](docs/release/TEST_REPORT.md)
-- [开发 Agent 入口](AGENTS.md)
-- [原始 v0.3 规格](docs/spec/00_README.md)
+- [WP9 DEV-09D Write-ahead 与媒体备份恢复](WP9_RECOVERY_WRITEAHEAD_MEDIA.md)
+- [WP8 DEV-09A～09C Zero-delta 恢复链](WP8_RECOVERY_ZERO_DELTA.md)
+- [WP7 T29 隔离 JSON 重建](WP7_JSON_REBUILD.md)
+- [WP6 受控 Person merge](WP6_PERSON_MERGE.md)
+- [WP5 删除阻断与清理](WP5_DELETION_CLEANING.md)
+- [WP4 删除影响预览](WP4_DELETION_IMPACT_PREVIEW.md)
+- [WP3 导出与依赖](WP3_EXPORT_DEPENDENCIES.md)
+- [当前实现状态](IMPLEMENTATION_STATUS.md)
+- [测试报告](TEST_REPORT.md)
+- [开发 Agent 入口](../../AGENTS.md)
+- [原始 v0.3 规格](../spec/00_README.md)
 
 下一步是 **人才 2.0 冲突资料合并、白名单导出与类型化重建**。根目录 `MANIFEST.sha256` 是文件一致性清单，不是代码签名或安全认证。
 

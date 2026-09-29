@@ -1,0 +1,34 @@
+TAP version 13
+# Subtest: TD2 independent evidence source erasure retains exact other facts and provenance, rolls back audit failure and finishes after retry
+ok 1 - TD2 independent evidence source erasure retains exact other facts and provenance, rolls back audit failure and finishes after retry
+  ---
+  duration_ms: 206.014459
+  type: 'test'
+  ...
+# Subtest: TD2 independent source cannot erase the only basis of the current value or rewrite its reviewer to another source
+ok 2 - TD2 independent source cannot erase the only basis of the current value or rewrite its reviewer to another source
+  ---
+  duration_ms: 161.789208
+  type: 'test'
+  ...
+# Subtest: TD2 frozen independent source cleanup rechecks surviving basis and rejects a suspended source
+ok 3 - TD2 frozen independent source cleanup rechecks surviving basis and rejects a suspended source
+  ---
+  duration_ms: 165.783792
+  type: 'test'
+  ...
+# Subtest: TD2 source preview blocks when its professional owner is outside the current operator scope
+ok 4 - TD2 source preview blocks when its professional owner is outside the current operator scope
+  ---
+  duration_ms: 280.190208
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 966.009

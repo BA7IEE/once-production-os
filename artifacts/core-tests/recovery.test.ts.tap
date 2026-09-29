@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: DEV-09A recovery preview is zero-write and requires a rotated deployment epoch
+ok 1 - DEV-09A recovery preview is zero-write and requires a rotated deployment epoch
+  ---
+  duration_ms: 262.766791
+  type: 'test'
+  ...
+# Subtest: DEV-09A prepare revokes old capabilities but deliberately does not approve workspace epoch
+ok 2 - DEV-09A prepare revokes old capabilities but deliberately does not approve workspace epoch
+  ---
+  duration_ms: 253.224041
+  type: 'test'
+  ...
+# Subtest: DEV-09A wrong source epoch digest and open execution gates fail before writes
+ok 3 - DEV-09A wrong source epoch digest and open execution gates fail before writes
+  ---
+  duration_ms: 244.179458
+  type: 'test'
+  ...
+# Subtest: DEV-09A audit failure rolls every recovery quarantine write back
+ok 4 - DEV-09A audit failure rolls every recovery quarantine write back
+  ---
+  duration_ms: 246.246625
+  type: 'test'
+  ...
+# Subtest: DEV-09B restore check is zero-write; record persists an allowlisted INSPECTED report
+ok 5 - DEV-09B restore check is zero-write; record persists an allowlisted INSPECTED report
+  ---
+  duration_ms: 260.324042
+  type: 'test'
+  ...
+# Subtest: DEV-09B wrong contact key and media/migration gaps become explicit blockers
+ok 6 - DEV-09B wrong contact key and media/migration gaps become explicit blockers
+  ---
+  duration_ms: 250.508041
+  type: 'test'
+  ...
+# Subtest: DEV-09B stale media evidence is rejected and DB safety changes produce a new blocker/digest
+ok 7 - DEV-09B stale media evidence is rejected and DB safety changes produce a new blocker/digest
+  ---
+  duration_ms: 255.57225
+  type: 'test'
+  ...
+# Subtest: DEV-09C zero-delta approval changes only recovery epoch and preserves conservative quarantines
+ok 8 - DEV-09C zero-delta approval changes only recovery epoch and preserves conservative quarantines
+  ---
+  duration_ms: 259.462958
+  type: 'test'
+  ...
+# Subtest: DEV-09E unresolved post-backup safety journal entry blocks approval
+ok 9 - DEV-09E unresolved post-backup safety journal entry blocks approval
+  ---
+  duration_ms: 252.612625
+  type: 'test'
+  ...
+# Subtest: DEV-09E non-zero but fully prepare-contained delta may approve
+ok 10 - DEV-09E non-zero but fully prepare-contained delta may approve
+  ---
+  duration_ms: 249.748208
+  type: 'test'
+  ...
+# Subtest: DEV-09E incomplete or forged delta resolution is rejected before epoch approval
+ok 11 - DEV-09E incomplete or forged delta resolution is rejected before epoch approval
+  ---
+  duration_ms: 248.453208
+  type: 'test'
+  ...
+# Subtest: DEV-09C stale inspection or mismatched backup evidence cannot approve
+ok 12 - DEV-09C stale inspection or mismatched backup evidence cannot approve
+  ---
+  duration_ms: 250.21375
+  type: 'test'
+  ...
+# Subtest: DEV-09C approval audit failure rolls workspace epoch and approval evidence back
+ok 13 - DEV-09C approval audit failure rolls workspace epoch and approval evidence back
+  ---
+  duration_ms: 247.680042
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3444.098792

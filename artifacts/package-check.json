@@ -1,10 +1,10 @@
 {
   "scope": "package file presence, Markdown local links, recorded source digests",
-  "checkedAt": "2026-09-23T11:53:58.133Z",
-  "files": 128,
-  "markdownFiles": 25,
-  "checkedLinks": 87,
-  "checkedFingerprints": 72,
+  "checkedAt": "2026-09-29T10:27:17.563Z",
+  "files": 988,
+  "markdownFiles": 92,
+  "checkedLinks": 224,
+  "checkedFingerprints": 410,
   "issues": [],
   "passed": true
 }

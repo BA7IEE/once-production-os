@@ -2,140 +2,140 @@ TAP version 13
 # Subtest: R1 resume uses the same checkpoints; replay and two workers create exactly two people
 ok 1 - R1 resume uses the same checkpoints; replay and two workers create exactly two people
   ---
-  duration_ms: 167.485208
+  duration_ms: 142.812333
   type: 'test'
   ...
 # Subtest: R1 resume rejects changed payload under an existing command key
 ok 2 - R1 resume rejects changed payload under an existing command key
   ---
-  duration_ms: 159.481583
+  duration_ms: 124.128875
   type: 'test'
   ...
 # Subtest: R1 resume rechecks suspended
 ok 3 - R1 resume rechecks suspended
   ---
-  duration_ms: 274.690958
+  duration_ms: 249.568375
   type: 'test'
   ...
 # Subtest: R1 resume rechecks source-revision
 ok 4 - R1 resume rechecks source-revision
   ---
-  duration_ms: 265.300417
+  duration_ms: 246.96075
   type: 'test'
   ...
 # Subtest: R1 resume rechecks preview-expired
 ok 5 - R1 resume rechecks preview-expired
   ---
-  duration_ms: 332.429709
+  duration_ms: 310.682541
   type: 'test'
   ...
 # Subtest: R1 resume rechecks maintenance
 ok 6 - R1 resume rechecks maintenance
   ---
-  duration_ms: 261.814834
+  duration_ms: 247.718459
   type: 'test'
   ...
 # Subtest: R1 resume rechecks scope-revoked
 ok 7 - R1 resume rechecks scope-revoked
   ---
-  duration_ms: 269.420708
+  duration_ms: 244.999625
   type: 'test'
   ...
 # Subtest: R1 another administrator cannot resume someone else's job
 ok 8 - R1 another administrator cannot resume someone else's job
   ---
-  duration_ms: 270.285125
+  duration_ms: 244.022375
   type: 'test'
   ...
 # Subtest: R1 role revocation prevents resuming and also old receipt replay
 ok 9 - R1 role revocation prevents resuming and also old receipt replay
   ---
-  duration_ms: 330.099709
+  duration_ms: 317.156375
   type: 'test'
   ...
 # Subtest: R1 non-transient failure is not blindly resumable
 ok 10 - R1 non-transient failure is not blindly resumable
   ---
-  duration_ms: 146.736458
+  duration_ms: 125.150708
   type: 'test'
   ...
 # Subtest: R1 explicit resume preserves the lifetime attempt cap
 ok 11 - R1 explicit resume preserves the lifetime attempt cap
   ---
-  duration_ms: 176.807
+  duration_ms: 125.291625
   type: 'test'
   ...
 # Subtest: R1 resume requires CSRF and an idempotency key
 ok 12 - R1 resume requires CSRF and an idempotency key
   ---
-  duration_ms: 184.02275
+  duration_ms: 124.487209
   type: 'test'
   ...
 # Subtest: R1 source edit/review/pause/re-review preserve distinct immutable versions and decision reasons
 ok 13 - R1 source edit/review/pause/re-review preserve distinct immutable versions and decision reasons
   ---
-  duration_ms: 190.844125
+  duration_ms: 124.907541
   type: 'test'
   ...
 # Subtest: R1 history is denied without BOTH review and sensitive-read, even to ADMIN
 ok 14 - R1 history is denied without BOTH review and sensitive-read, even to ADMIN
   ---
-  duration_ms: 574.40325
+  duration_ms: 367.713708
   type: 'test'
   ...
 # Subtest: R1 history widening does not expose previously restricted snapshots
 ok 15 - R1 history widening does not expose previously restricted snapshots
   ---
-  duration_ms: 302.593375
+  duration_ms: 248.489291
   type: 'test'
   ...
 # Subtest: R1 historical review is audited and source-history cannot be overwritten or removed through Store
 ok 16 - R1 historical review is audited and source-history cannot be overwritten or removed through Store
   ---
-  duration_ms: 127.084959
+  duration_ms: 121.926959
   type: 'test'
   ...
 # Subtest: R1 baseline flags never present old overwritten pause text as verified original basis
 ok 17 - R1 baseline flags never present old overwritten pause text as verified original basis
   ---
-  duration_ms: 128.174375
+  duration_ms: 125.395583
   type: 'test'
   ...
 # Subtest: R1 command replay and failed audit never duplicate or orphan source history
 ok 18 - R1 command replay and failed audit never duplicate or orphan source history
   ---
-  duration_ms: 124.873208
+  duration_ms: 134.452541
   type: 'test'
   ...
 # Subtest: R1 field evidence becomes stale after a new source version, history remains
 ok 19 - R1 field evidence becomes stale after a new source version, history remains
   ---
-  duration_ms: 123.748917
+  duration_ms: 129.970542
   type: 'test'
   ...
 # Subtest: R1 batch visibility agrees with original point checks for restricted/current/expired sources
 ok 20 - R1 batch visibility agrees with original point checks for restricted/current/expired sources
   ---
-  duration_ms: 268.815542
+  duration_ms: 305.231959
   type: 'test'
   ...
-# {"metric":"R1-preview-100x100","storeReads":12,"backend":"MemoryStore instrumentation; not PG latency"}
+# {"metric":"R1-preview-100x100","storeReads":20,"backend":"MemoryStore instrumentation; not PG latency"}
 # Subtest: R1 100 existing people + 100 import rows use bounded Store reads, not N times M queries
 ok 21 - R1 100 existing people + 100 import rows use bounded Store reads, not N times M queries
   ---
-  duration_ms: 136.747292
+  duration_ms: 125.605333
   type: 'test'
   ...
 # Subtest: R1 duplicate-name hints neither leak private names nor miss an exact match behind five prefix matches
 ok 22 - R1 duplicate-name hints neither leak private names nor miss an exact match behind five prefix matches
   ---
-  duration_ms: 268.57975
+  duration_ms: 254.248875
   type: 'test'
   ...
 # Subtest: R1 an old-binary history gap blocks further mutation instead of manufacturing missing evidence
 ok 23 - R1 an old-binary history gap blocks further mutation instead of manufacturing missing evidence
   ---
-  duration_ms: 127.517875
+  duration_ms: 123.123375
   type: 'test'
   ...
 1..23
@@ -146,4 +146,4 @@ ok 23 - R1 an old-binary history gap blocks further mutation instead of manufact
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 5321.220583
+# duration_ms 4705.823791

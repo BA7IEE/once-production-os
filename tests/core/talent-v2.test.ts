@@ -167,3 +167,14 @@ test('TD2-T05 machine principal has real audit/receipt identity, bounded permiss
     assert.equal((await machine(rotated.token,'GET','/td2/people')).status,401);
     assert.ok(!JSON.stringify(f.store.rows('audits')).includes(principal.token));assert.ok(!JSON.stringify(f.store.rows('receipts')).includes(principal.token));
 });
+
+test('UI talent cover only comes from featured usable collection images and disappears after source suspension',async()=>{
+ const f=await setup(),a=await asset(f),collection=ok(await add(f,'mediaCollections',{collectionTypeCode:'PORTFOLIO',title:'合成推荐照片'}));
+ ok(await f.owner.cmd('POST',`/td2/collections/${collection.resourceId}/items`,{schemaVersion,expectedRevision:1,expectedPersonRevision:pRev(f),assetId:a.id,featured:true}),200);
+ const list=()=>f.owner.raw('GET','/td2/people');
+ assert.equal(ok(await list(),200).items[0].coverAssetId,a.id);
+ await f.store.transaction(async tx=>{const item=f.store.rows('mediaCollectionItems')[0]!;await tx.replace('mediaCollectionItems',{...item,featured:false});});
+ assert.equal(ok(await list(),200).items[0].coverAssetId,null);
+ ok(await f.owner.cmd('POST',`/sources/${f.sourceId}/suspend`,{expectedRevision:1,reason:'合成资料撤销'}),200);
+ assert.equal(ok(await list(),200).total,0);
+});

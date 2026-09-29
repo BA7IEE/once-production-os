@@ -1,3 +1,5 @@
+import {realpathSync} from 'node:fs';
+import {navigateUI,addModelOccupation} from './product-navigation.mjs';
 import { verifyTalentWorkbench } from './talent-workbench.mjs';
 /** WP1 real Works/Projects/Chromium acceptance. Only an empty disposable loopback test DB.
  * Never reads a .env target, resets a DB, or sends requests to a production host. */
@@ -19,7 +21,7 @@ assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname));
 assert.match(url.pathname, /^\/once_test_[a-z0-9_]+$/);
 assert.ok(url.username && url.password && !url.search && !url.hash);
 const prisma = new PrismaClient({ datasources: { db: { url: raw } }, log: [] });
-const tmp = mkdtempSync(join(tmpdir(), 'once-works-projects-'));
+const tmp = realpathSync(mkdtempSync(join(tmpdir(), 'once-works-projects-')));
 const password = 'Synthetic-' + randomBytes(20).toString('base64url') + '!';
 const put = (name, text) => { const path = join(tmp, name); writeFileSync(path, text, { mode: 0o600 }); return path; };
 const env = { ...process.env, DATABASE_URL: raw, APP_ENV: 'test', ACCESS_MODE: 'INTERNAL', DATA_EGRESS_MODE: 'INTERNAL_APPROVED', DATA_CLEANUP_MODE: 'INTERNAL_APPROVED', DATA_MERGE_MODE: 'INTERNAL_APPROVED', COOKIE_SECURE: 'false', HOST: '127.0.0.1',
@@ -42,7 +44,7 @@ async function login(page, loginName) {
     await page.locator('input[autocomplete=username]').fill(loginName);
     await page.locator('input[autocomplete=current-password]').fill(password);
     await page.getByRole('button', { name: '登录', exact: true }).click();
-    await page.getByRole('button', { name: /概览/ }).waitFor();
+    await page.getByRole('button', { name: /工作台/ }).waitFor();
 }
 async function cmd(page, method, path, data, expected = 200) {
     const me = await page.context().request.get(base + '/api/v1/me'); assert.equal(me.status(), 200);
@@ -65,7 +67,7 @@ async function writeUI(page, method, path, action, status=200) {
  const waited=page.waitForResponse(r=>r.url().endsWith('/api/v1'+path)&&r.request().method()===method);
  await action();const response=await waited;assert.equal(response.status(),status,method+' '+path+': '+await response.text());return response.json();
 }
-async function dialogReady(page,title){const d=page.getByRole('dialog',{name:title,exact:true});await d.waitFor();return d;}
+async function dialogReady(page,title){const d=page.getByRole('dialog',{name:title,exact:true}).or(page.getByRole('region',{name:title,exact:true}));await d.waitFor();return d;}
 async function reloadDetail(page,title){const d=await dialogReady(page,title);const r=page.waitForResponse(r=>r.request().method()==='GET'&&/\/api\/v1\/(works|projects)\/[^/]+$/.test(r.url()));await d.getByRole('button',{name:'刷新详情',exact:true}).click();assert.equal((await r).status(),200);await d.getByRole('heading',{name:title,exact:true}).waitFor();return d;}
 try {
  const tables=await prisma.$queryRawUnsafe("SELECT table_name FROM information_schema.tables WHERE table_schema='public'");
@@ -77,7 +79,7 @@ try {
  const owner=await browser.newPage(),editor=await browser.newPage();for(const p of[owner,editor])p.on('pageerror',e=>errors.push(e.message));await login(owner,'owner');
  await cmd(owner,'POST','/catalog/items',{namespace:'industry',code:'furniture',labelZh:'家具',labelEn:'Furniture'},201);
  await cmd(owner,'POST','/catalog/items',{namespace:'workType',code:'product_photo',labelZh:'产品摄影',labelEn:'Product photography'},201);
- await owner.reload({waitUntil:'networkidle'});await owner.getByRole('button',{name:/概览/}).waitFor();
+ await owner.reload({waitUntil:'networkidle'});await owner.getByRole('button',{name:/工作台/}).waitFor();
  const added=await cmd(owner,'POST','/memberships',{loginName:'wp_editor',displayName:'WP1合成编辑',role:'EDITOR',extraPermissions:[]},201);
  await editor.goto(base+'/activate',{waitUntil:'networkidle'});await editor.getByLabel('激活凭证').fill(added.activationToken);await editor.getByLabel('设置密码（至少 12 个字符）').fill(password);await editor.getByRole('button',{name:'激活账号',exact:true}).click();await editor.getByText('账号已激活').waitFor();await login(editor,'wp_editor');
  const source=title=>({title,type:'MANUAL',providerClaim:'WP1合成记录',basisMode:'INTERNAL_USE',basisDescription:'隔离自动化测试资料，不代表真实授权',validUntil:new Date(Date.now()+86400000*7).toISOString()});
@@ -93,7 +95,7 @@ try {
   const upload=await prepare(owner,imagePerson,bytes,'WP1-image-'+i+'.png');assert.equal((await binary(owner,upload.resourceId,bytes)).status(),200);await queue(owner,upload.resourceId);
   await until(async()=>await prisma.mediaAsset.count({where:{id:upload.resourceId,state:'READY'}})===1);assetIds.push(upload.resourceId);
  }
- await owner.getByRole('button',{name:/作品库/}).click();await owner.getByRole('button',{name:'新增作品',exact:true}).click();let d=await dialogReady(owner,'新增作品');
+ await navigateUI(owner,'作品库');await owner.getByRole('button',{name:'新增作品',exact:true}).click();let d=await dialogReady(owner,'新增作品');
  await d.getByLabel('作品标题',{exact:true}).fill('WP1外部家具作品');await d.getByLabel('作品说明',{exact:true}).fill('合成家具商业摄影作品，非ONCE制作');await d.getByLabel('行业',{exact:true}).selectOption('furniture');await d.getByLabel('产品摄影',{exact:true}).check();await d.getByLabel('制作归属',{exact:true}).selectOption('EXTERNAL');
  await d.getByRole('button',{name:'WP1作品来源',exact:true}).click();
  const wr=await writeUI(owner,'POST','/works',()=>d.getByRole('button',{name:'保存作品',exact:true}).click(),201),wid=wr.resourceId,wpath='/works/'+wid;
@@ -128,16 +130,16 @@ try {
  await writeUI(owner,'POST',wpath+'/credits',()=>f.getByRole('button',{name:'核对上次提交',exact:true}).click(),401);
  await owner.unroute(pattern);
  await owner.locator('input[autocomplete=username]').fill('owner');await owner.locator('input[autocomplete=current-password]').fill(password);
- await owner.getByRole('button',{name:'登录',exact:true}).click();await owner.getByRole('button',{name:/概览/}).waitFor();
+ await owner.getByRole('button',{name:'登录',exact:true}).click();await owner.getByRole('button',{name:/工作台/}).waitFor();
  const reconciled=await writeUI(owner,'POST',wpath+'/credits',()=>owner.getByRole('button',{name:'原样核对上次提交',exact:true}).click());assert.equal(reconciled.replayed,true);assert.equal(requests.length,6);for(const request of requests)assert.deepEqual(requests[0],request);assert.equal(await prisma.commandReceipt.count({where:{commandKey:requests[0].key,operation:'work.creditAdd'}}),1);
- await owner.getByRole('button',{name:/作品库/}).click();await owner.getByRole('button').filter({has:owner.getByRole('heading',{name:'WP1外部家具作品',exact:true})}).click();
+ await navigateUI(owner,'作品库');await owner.getByRole('button').filter({has:owner.getByRole('heading',{name:'WP1外部家具作品',exact:true})}).click();
  await owner.getByRole('heading',{name:'作品图片',exact:true}).waitFor();d=await dialogReady(owner,'WP1外部家具作品');
  await d.getByRole('button',{name:'添加署名',exact:true}).click();f=await dialogReady(owner,'添加作品署名');await f.getByRole('button',{name:'WP1摄影剪辑人员',exact:true}).click();await f.getByLabel('贡献角色',{exact:true}).selectOption('editor');await f.getByLabel('贡献说明').fill('合成后期剪辑贡献');await writeUI(owner,'POST',wpath+'/credits',()=>f.getByRole('button',{name:'保存关系',exact:true}).click());await owner.getByRole('heading',{name:'作品图片',exact:true}).waitFor();
  assert.equal(await prisma.workCredit.count({where:{workId:wid,personId:pid}}),2);assert.equal((await json(owner,'/people/'+pid+'/production')).actualProjectCount,0);
  d=await dialogReady(owner,'WP1外部家具作品');await writeUI(owner,'PATCH',wpath,()=>d.getByRole('button',{name:'标记使用中',exact:true}).click());await until(async()=>(await prisma.work.findUniqueOrThrow({where:{id:wid}})).status==='ACTIVE');
  await d.getByRole('button',{name:'关闭',exact:true}).last().click();
  console.log('PASS WP1 browser: real images grouped and reordered with same-work cover; multi-role credit response-loss retry writes once');
- await owner.getByRole('button',{name:/项目库/}).click();await owner.getByRole('button',{name:'新增项目',exact:true}).click();f=await dialogReady(owner,'新增项目');await f.getByLabel('项目标题',{exact:true}).fill('WP1家具拍摄项目');await f.getByLabel('项目需求',{exact:true}).fill('合成历史项目，不依赖报价合同');await f.getByLabel('地点说明',{exact:true}).fill('深圳合成摄影棚');await f.getByLabel('日期说明').fill('2026年9月合成拍摄记录');await f.getByRole('button',{name:'WP1项目来源',exact:true}).click();
+ await navigateUI(owner,'项目');await owner.getByRole('button',{name:'新增项目',exact:true}).click();f=await dialogReady(owner,'新增项目');await f.getByLabel('项目标题',{exact:true}).fill('WP1家具拍摄项目');await f.getByLabel('项目需求',{exact:true}).fill('合成历史项目，不依赖报价合同');await f.getByLabel('地点说明',{exact:true}).fill('深圳合成摄影棚');await f.getByLabel('日期说明').fill('2026年9月合成拍摄记录');await f.getByRole('button',{name:'WP1项目来源',exact:true}).click();
  const pr=await writeUI(owner,'POST','/projects',()=>f.getByRole('button',{name:'保存项目',exact:true}).click(),201),projectId=pr.resourceId,ppath='/projects/'+projectId;
  await owner.getByRole('heading',{name:'项目人员',exact:true}).waitFor();d=await dialogReady(owner,'WP1家具拍摄项目');await d.getByRole('button',{name:'添加项目人员',exact:true}).click();f=await dialogReady(owner,'添加项目人员');await f.getByRole('button',{name:'WP1摄影剪辑人员',exact:true}).click();await f.getByLabel('贡献角色',{exact:true}).selectOption('photographer');await writeUI(owner,'POST',ppath+'/participants',()=>f.getByRole('button',{name:'保存关系',exact:true}).click());await owner.getByRole('heading',{name:'项目人员',exact:true}).waitFor();
  assert.equal((await json(owner,'/people/'+pid+'/production')).actualProjectCount,0);
@@ -161,7 +163,7 @@ try {
  await f.getByRole('button',{name:'返回项目',exact:true}).click();d=await dialogReady(owner,'WP1家具拍摄项目');await d.getByText(/客户：WP1客户机构/).waitFor();await d.getByRole('button',{name:'关闭',exact:true}).last().click();
 
  // DEV-07A: explicit purpose approval -> frozen JSON export -> browser download.
- await owner.getByRole('button',{name:/内部导出/}).click();
+ await navigateUI(owner,'导出记录');
  await owner.getByRole('button',{name:'＋ 批准导出用途',exact:true}).click();
  f=await dialogReady(owner,'批准内部导出用途');
  await f.getByLabel('对象类型',{exact:true}).selectOption('PERSON');
@@ -188,7 +190,7 @@ try {
  console.log('PASS DEV-07A browser: explicit export permission -> worker JSON -> controlled browser download');
 
  // DEV-06: real browser internal shortlist flow. No share link/client state is created.
- await owner.getByRole('button',{name:/候选工作台/}).click();
+ await navigateUI(owner,'候选清单');
  await owner.getByRole('button',{name:'＋ 新建清单',exact:true}).click();
  f=await dialogReady(owner,'新建内部候选清单');
  await f.getByLabel('清单标题',{exact:true}).fill('WP1内部候选清单');
@@ -217,7 +219,7 @@ try {
  console.log('PASS DEV-06 browser: industry/work-type search -> internal shortlist -> credited work -> selected image -> collaboration note');
 
  // DEV-07B: preview real dependencies and freeze DRAFT only; no destructive execution exists.
- await owner.getByRole('button',{name:/删除影响评估/}).click();
+ await navigateUI(owner,'删除任务与影响核对');
  await owner.getByLabel('删除目标类型',{exact:true}).selectOption('PERSON');
  await owner.getByLabel('删除目标',{exact:true}).selectOption(pid);
  await writeUI(owner,'POST','/deletion-requests/preview',()=>owner.getByRole('button',{name:'预览影响',exact:true}).click());
@@ -233,7 +235,7 @@ try {
  assert.equal(await owner.getByRole('button',{name:/执行删除|立即删除|开始清理/}).count(),0);
  console.log('PASS DEV-07B browser: impact preview -> DRAFT request; target remains readable and no delete execution exists');
 
- await owner.getByRole('button',{name:/人才档案/}).click();await owner.getByRole('button').filter({has:owner.getByRole('heading',{name:'WP1摄影剪辑人员',exact:true})}).click();await owner.getByRole('heading',{name:'作品与项目经历',exact:true}).waitFor();await owner.getByText('当前可见的实际参与项目：1 个。',{exact:false}).waitFor();await owner.getByRole('button',{name:/WP1外部家具作品 ·/}).click();await owner.getByRole('heading',{name:'作品图片',exact:true}).waitFor();
+ await navigateUI(owner,'人才库');await owner.getByRole('button',{name:'WP1摄影剪辑人员',exact:true}).click();await owner.getByRole('button',{name:'作品与项目',exact:true}).click();await owner.getByRole('heading',{name:'作品与项目经历',exact:true}).waitFor();await owner.getByText('当前可见的实际参与项目：1 个。',{exact:false}).waitFor();await owner.getByRole('button',{name:/WP1外部家具作品 ·/}).click();await owner.getByRole('heading',{name:'作品图片',exact:true}).waitFor();
  console.log('PASS WP1 browser/API/PG: nominated and confirmed are not actual; reference/delivery preserves EXTERNAL attribution; internal review and reverse talent links persist');
  // A source may be suspended independently of the Work. Its assets must not leak in a reused collection.
  const s=await prisma.sourceRecord.findUniqueOrThrow({where:{id:imagePerson.sourceId}});await cmd(owner,'POST','/sources/'+s.id+'/suspend',{expectedRevision:s.revision,reason:'合成停止图片使用'});
@@ -242,14 +244,15 @@ try {
  await d.getByRole('button',{name:'关闭',exact:true}).last().click();
  const personDialog=await dialogReady(owner,'WP1摄影剪辑人员');
  await personDialog.getByRole('button',{name:'关闭',exact:true}).last().click();
- await owner.getByRole('button',{name:/候选工作台/}).click();
+ await navigateUI(owner,'候选清单');
+ await owner.locator('.sl-list-bar').getByRole('button',{name:/WP1内部候选清单/}).click();
  await owner.getByRole('heading',{name:'WP1内部候选清单',exact:true}).waitFor();
  const shortlistPanel=owner.locator('.sl-detail');
  await shortlistPanel.getByText('该条目当前不可用',{exact:true}).waitFor();
  assert.equal(await shortlistPanel.getByText('PRIVATE_BROWSER_SHORTLIST_NOTE',{exact:true}).count(),0);
  assert.equal(await shortlistPanel.getByText('WP1摄影剪辑人员',{exact:true}).count(),0);
  console.log('PASS DEV-06 privacy: selected image source loss redacts the entire shortlist item in the browser');
- await owner.getByRole('button',{name:/作品库/}).click();
+ await navigateUI(owner,'作品库');
  await owner.getByRole('button').filter({has:owner.getByRole('heading',{name:'WP1外部家具作品',exact:true})}).click();
  d=await dialogReady(owner,'WP1外部家具作品');
  const current=await json(owner,wpath);await cmd(owner,'POST',wpath+'/assets/remove',{expectedRevision:current.revision,entryId:current.items[0].id});assert.equal(await prisma.mediaAsset.count({where:{id:{in:assetIds}}}),2);
@@ -262,7 +265,7 @@ try {
 
  const exportPerson=await prisma.person.findUniqueOrThrow({where:{id:pid}}),exportSource=await prisma.sourceRecord.findUniqueOrThrow({where:{id:exportPerson.sourceId}});
  await cmd(owner,'POST','/sources/'+exportSource.id+'/suspend',{expectedRevision:exportSource.revision,reason:'合成测试：使旧导出依赖失效'});
- await owner.getByRole('button',{name:/内部导出/}).click();
+ await navigateUI(owner,'导出记录');
  const exportTasks=owner.locator('section.panel').filter({has:owner.getByRole('heading',{name:'我的导出任务',exact:true})});
  await exportTasks.getByRole('button',{name:'查看',exact:true}).first().click();
  await owner.getByText('依赖已失效',{exact:true}).waitFor();
@@ -271,7 +274,7 @@ try {
  console.log('PASS DEV-07A privacy: source suspension makes the whole old export non-downloadable');
 
  // DEV-07C: real browser DRAFT -> explicit BLOCKED_FOR_USE; no physical cleanup exists.
- await owner.getByRole('button',{name:/删除影响评估/}).click();
+ await navigateUI(owner,'删除任务与影响核对');
  await owner.getByLabel('删除目标类型',{exact:true}).selectOption('PROJECT');
  await owner.getByLabel('删除目标',{exact:true}).selectOption(projectId);
  await writeUI(owner,'POST','/deletion-requests/preview',()=>owner.getByRole('button',{name:'预览影响',exact:true}).click());
@@ -344,7 +347,7 @@ try {
  await until(async()=>await prisma.mediaAsset.count({where:{id:purgeUpload.resourceId,state:'READY'}})===1);
  const purgeDir=join(env.MEDIA_ROOT,'uploads',purgeUpload.resourceId);assert.equal(existsSync(purgeDir),true);
 
- await owner.getByRole('button',{name:/删除影响评估/}).click();
+ await navigateUI(owner,'删除任务与影响核对');
  await owner.getByRole('button',{name:'刷新',exact:true}).click();
  await owner.getByLabel('删除目标类型',{exact:true}).selectOption('ASSET');
  await owner.getByLabel('删除目标',{exact:true}).selectOption(purgeUpload.resourceId);
@@ -374,7 +377,7 @@ try {
  const mergeCanonicalId=(await cmd(owner,'POST','/people',{displayName:'DEV07G主档案',roles:['model'],inlineSource:source('DEV07G主档案来源')},201)).resourceId;
  const mergeDuplicateId=(await cmd(owner,'POST','/people',{displayName:'DEV07G重复档案',roles:['model'],inlineSource:source('DEV07G重复档案来源')},201)).resourceId;
  assert.equal(await prisma.person.count({where:{id:{in:[mergeCanonicalId,mergeDuplicateId]}}}),2);
- await owner.getByRole('button',{name:/人才合并/}).click();
+ await navigateUI(owner,'合并记录');
  const mergeHeading=owner.getByRole('heading',{name:'人才合并',exact:true});await mergeHeading.waitFor();
  const mergePickers=owner.locator('.merge-picker');
  const canonicalPicker=mergePickers.nth(0),duplicatePicker=mergePickers.nth(1);
@@ -441,8 +444,8 @@ try {
  }
  const tdCandidateBefore=await prisma.shortlistItem.findMany({where:{shortlistId:tdCandidateList},orderBy:{position:'asc'}});
  const tdCandidateLinksBefore=await prisma.shortlistItemAsset.findMany({where:{itemId:{in:tdCandidateBefore.map(r=>r.id)}},orderBy:{id:'asc'}});
- await owner.getByRole('button',{name:/概览/}).click();
- await owner.getByRole('button',{name:/人才合并/}).click();
+ await navigateUI(owner,'工作台');
+ await navigateUI(owner,'合并记录');
  for(const [index,label,name] of [[0,'主档案（保留）','TD2保留身份'],[1,'重复档案（归档并建立旧 ID 映射）','TD2专业重复']]){
   const picker=owner.locator('.merge-picker').nth(index);
   const response=owner.waitForResponse(r=>r.request().method()==='GET'&&r.url().includes('/api/v1/people?')&&decodeURIComponent(r.url()).includes('q='+name));
@@ -493,8 +496,8 @@ try {
  console.log('PASS TD2 browser: explicit conflict selection and retained history; per-record confirmation gates professional merge; stable role/language/collection/item IDs and original media survive');
 
  // The human role review is a real UI action; a lost response must replay the original request.
- await owner.getByRole('button',{name:/候选工作台/}).click();await owner.locator('.sl-list-bar').getByRole('button',{name:/TD2职业待核实候选/}).click();
- await owner.getByRole('button',{name:'核实候选职业',exact:true}).click();const roleDialog=owner.getByRole('dialog',{name:'核实候选职业',exact:true});
+ await navigateUI(owner,'候选清单');await owner.locator('.sl-list-bar').getByRole('button',{name:/TD2职业待核实候选/}).click();
+ await owner.getByRole('button',{name:'核实候选职业',exact:true}).click();const roleDialog=owner.getByRole('dialog',{name:'核实候选职业',exact:true}).or(owner.getByRole('region',{name:'核实候选职业',exact:true}));
  await roleDialog.getByLabel('本次入选职业',{exact:true}).selectOption(tdRole);await roleDialog.getByLabel('我已核对本次候选需求与职业',{exact:true}).check();
  const rolePath=`/td2/shortlists/${tdUnknownList}/role`,rolePattern='**/api/v1'+rolePath,roleRequests=[];
  const roleObserve=r=>{if(r.method()==='POST'&&r.url().endsWith(rolePath))roleRequests.push({body:r.postData(),key:r.headers()['idempotency-key']});};owner.on('request',roleObserve);
@@ -531,7 +534,7 @@ try {
  const identityEvidenceBefore=await prisma.fieldEvidence.findMany({where:{personId:{in:[tdCanonical,transferAgent]},fieldPath:'displayName',sourceId:transferEvidenceSource}});
  assert.equal(await prisma.talentProfile.count({where:{personId:transferAgent}}),0);
  const transferEvidenceBefore=await prisma.fieldEvidence.findFirstOrThrow({where:{personLanguageId:transferLanguage,sourceId:transferEvidenceSource}});
- await owner.getByRole('button',{name:/内部导出/}).click();
+ await navigateUI(owner,'导出记录');
  const transferLabels=['2.0 人才主档案（内部简介与状态）','2.0 职业及有效期','2.0 语言、熟练度及有效期','2.0 能力、等级及所用字典','2.0 外部标识、核验状态及关联机构','2.0 代表关系、有效期及关联机构','2.0 所选专业字段的来源证据与原核验记录','2.0 资质记录与核验状态','2.0 资质加密编号（单独批准）','2.0 媒体集合、图片顺序与说明','2.0 集合内容标签','2.0 成年资格与原核验归属（单独批准）','身份字段的来源证据与原核验记录','合并保留资料（旧身份、主档案和决定）'];
  const sourceLabels=['来源标题','来源类型','提供方说明','内部依据类型','依据说明','有效起点','有效截止','来源状态'];
  const transferPermits=[];

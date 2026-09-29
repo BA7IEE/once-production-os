@@ -1,0 +1,26 @@
+diff --git a/es/getScrollBarSize.js b/es/getScrollBarSize.js
+index d7ef1cfba22abfa7a05c02f324281eb029f60eea..feca32edb248011071ead5e24783107ce63e1d9b 100644
+--- a/es/getScrollBarSize.js
++++ b/es/getScrollBarSize.js
+@@ -36,7 +36,7 @@ function measureScrollbarSize(ele) {
+ #${randomId}::-webkit-scrollbar {
+ ${widthStyle}
+ ${heightStyle}
+-}`, randomId);
++}`, randomId, { csp: { nonce: document.querySelector('meta[name=once-style-nonce]')?.content } });
+     } catch (e) {
+       // Can't wrap, just log error
+       console.error(e);
+diff --git a/lib/getScrollBarSize.js b/lib/getScrollBarSize.js
+index ccf03ac7c2e3d7d73fcfaaa210a3234d91e6ceec..404cc766d560a124383900c181c8eaa42e49d1a0 100644
+--- a/lib/getScrollBarSize.js
++++ b/lib/getScrollBarSize.js
+@@ -44,7 +44,7 @@ function measureScrollbarSize(ele) {
+ #${randomId}::-webkit-scrollbar {
+ ${widthStyle}
+ ${heightStyle}
+-}`, randomId);
++}`, randomId, { csp: { nonce: document.querySelector('meta[name=once-style-nonce]')?.content } });
+     } catch (e) {
+       // Can't wrap, just log error
+       console.error(e);

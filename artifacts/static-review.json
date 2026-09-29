@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-29T06:22:01.616Z",
+  "generatedAt": "2026-09-29T10:19:47.763Z",
   "node": "v22.22.3",
   "typescript": "5.8.3",
   "scope": "static-source-and-contract",
@@ -10,7 +10,7 @@
       "name": "typescript-syntax-transpile",
       "passed": true,
       "detail": {
-        "files": 157,
+        "files": 164,
         "diagnostics": [],
         "note": "Syntax emit only. Not dependency resolution, full typecheck, Nest/Vite build, or browser execution."
       }

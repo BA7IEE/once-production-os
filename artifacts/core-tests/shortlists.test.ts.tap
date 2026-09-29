@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: DEV-06 structured search combines deterministic facts and visible ACTUAL participation without scores
+ok 1 - DEV-06 structured search combines deterministic facts and visible ACTUAL participation without scores
+  ---
+  duration_ms: 142.988459
+  type: 'test'
+  ...
+# Subtest: DEV-06 industry and work type come only from current visible credited works
+ok 2 - DEV-06 industry and work type come only from current visible credited works
+  ---
+  duration_ms: 262.462
+  type: 'test'
+  ...
+# Subtest: DEV-06 verification freshness uses current field evidence and never treats unknown as a match
+ok 3 - DEV-06 verification freshness uses current field evidence and never treats unknown as a match
+  ---
+  duration_ms: 186.339792
+  type: 'test'
+  ...
+# Subtest: DEV-06 shortlist is CAS-owned, supports notes/order and rejects wrong-parent child IDs
+ok 4 - DEV-06 shortlist is CAS-owned, supports notes/order and rejects wrong-parent child IDs
+  ---
+  duration_ms: 135.398417
+  type: 'test'
+  ...
+# Subtest: DEV-06 shortlist work must actually credit the candidate and changed facts are flagged
+ok 5 - DEV-06 shortlist work must actually credit the candidate and changed facts are flagged
+  ---
+  duration_ms: 128.7815
+  type: 'test'
+  ...
+# Subtest: DEV-06 source loss redacts the whole shortlist item but list-authorized member can remove placeholder
+ok 6 - DEV-06 source loss redacts the whole shortlist item but list-authorized member can remove placeholder
+  ---
+  duration_ms: 128.619958
+  type: 'test'
+  ...
+# Subtest: DEV-06 H1 profile handoff never expands into candidate search or shortlist association
+ok 7 - DEV-06 H1 profile handoff never expands into candidate search or shortlist association
+  ---
+  duration_ms: 253.092458
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1388.021917

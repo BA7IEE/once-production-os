@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: AI approval binds the exact candidate and active human approver; disable is atomic and replayable
+ok 1 - AI approval binds the exact candidate and active human approver; disable is atomic and replayable
+  ---
+  duration_ms: 267.221166
+  type: 'test'
+  ...
+# Subtest: AI worker serializes send authority across concurrent workers and ignores cancelled sources
+ok 2 - AI worker serializes send authority across concurrent workers and ignores cancelled sources
+  ---
+  duration_ms: 137.759083
+  type: 'test'
+  ...
+# Subtest: AI worker restart isolates abandoned attempts even without an adapter and preserves reserved cost
+ok 3 - AI worker restart isolates abandoned attempts even without an adapter and preserves reserved cost
+  ---
+  duration_ms: 125.644042
+  type: 'test'
+  ...
+# Subtest: AI shutdown during provider work aborts and never creates a proposal or resend
+ok 4 - AI shutdown during provider work aborts and never creates a proposal or resend
+  ---
+  duration_ms: 130.251042
+  type: 'test'
+  ...
+# Subtest: AI reconciliation verifies original request evidence, rolls back with audit and never resends
+ok 5 - AI reconciliation verifies original request evidence, rolls back with audit and never resends
+  ---
+  duration_ms: 131.172334
+  type: 'test'
+  ...
+# Subtest: AI confirmed nonexecution releases funds but requires a new human task; unresolved cost blocks unfreeze
+ok 6 - AI confirmed nonexecution releases funds but requires a new human task; unresolved cost blocks unfreeze
+  ---
+  duration_ms: 135.676875
+  type: 'test'
+  ...
+# Subtest: AI approval is invalidated by approver qualification and recovery isolation
+ok 7 - AI approval is invalidated by approver qualification and recovery isolation
+  ---
+  duration_ms: 127.50275
+  type: 'test'
+  ...
+# Subtest: AI global egress and maintenance switches block queued sends without blocking reconciliation
+ok 8 - AI global egress and maintenance switches block queued sends without blocking reconciliation
+  ---
+  duration_ms: 129.99825
+  type: 'test'
+  ...
+# Subtest: AI approval rejects invalid limits and still permits stopping while global egress is off
+ok 9 - AI approval rejects invalid limits and still permits stopping while global egress is off
+  ---
+  duration_ms: 124.438375
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1464.098166

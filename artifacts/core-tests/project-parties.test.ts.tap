@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: project parties current-source redaction, CAS, replay and audit rollback
+ok 1 - project parties current-source redaction, CAS, replay and audit rollback
+  ---
+  duration_ms: 143.344833
+  type: 'test'
+  ...
+# Subtest: project parties explicit multi-source export, stale protection and complete isolated rebuild
+ok 2 - project parties explicit multi-source export, stale protection and complete isolated rebuild
+  ---
+  duration_ms: 267.472584
+  type: 'test'
+  ...
+# Subtest: source erasure removes its brand and preserves independently sourced project client
+ok 3 - source erasure removes its brand and preserves independently sourced project client
+  ---
+  duration_ms: 138.213875
+  type: 'test'
+  ...
+# Subtest: brand write rejects viewer, hidden sources and unknown fields
+ok 4 - brand write rejects viewer, hidden sources and unknown fields
+  ---
+  duration_ms: 250.337333
+  type: 'test'
+  ...
+# Subtest: organization source cleanup detaches both references but retains an independently sourced brand
+ok 5 - organization source cleanup detaches both references but retains an independently sourced brand
+  ---
+  duration_ms: 136.67325
+  type: 'test'
+  ...
+# Subtest: private brands are absent from administrator list, replay and audit
+ok 6 - private brands are absent from administrator list, replay and audit
+  ---
+  duration_ms: 389.472291
+  type: 'test'
+  ...
+# Subtest: deletion preview does not expose a brand after only its source scope becomes private
+ok 7 - deletion preview does not expose a brand after only its source scope becomes private
+  ---
+  duration_ms: 257.223334
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1733.904583

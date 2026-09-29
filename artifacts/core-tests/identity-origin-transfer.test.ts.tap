@@ -1,0 +1,40 @@
+TAP version 13
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# PASS retained identity v13: separately approved current basis, erased original header, actual identity evidence and original reviewers, audit rollback and rebuild without restoring old permissions
+# Subtest: TD2 v13 identity export and rebuild preserve erased origin and current independent proof
+ok 1 - TD2 v13 identity export and rebuild preserve erased origin and current independent proof
+  ---
+  duration_ms: 346.71425
+  type: 'test'
+  ...
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# Subtest: TD2 v13 rebuild rejects missing, stale or forged identity provenance before any writes
+ok 2 - TD2 v13 rebuild rejects missing, stale or forged identity provenance before any writes
+  ---
+  duration_ms: 303.804709
+  type: 'test'
+  ...
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# Subtest: TD2 retained identity permissions and command replays recheck the independent basis
+ok 3 - TD2 retained identity permissions and command replays recheck the independent basis
+  ---
+  duration_ms: 181.438291
+  type: 'test'
+  ...
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# PASS retained identity v13: separately approved current basis, erased original header, actual identity evidence and original reviewers, audit rollback and rebuild without restoring old permissions
+# Subtest: TD2 v13 jointly rebuilds retained identity and its typed professional records from the same erased origin
+ok 4 - TD2 v13 jointly rebuilds retained identity and its typed professional records from the same erased origin
+  ---
+  duration_ms: 326.441208
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1308.586792

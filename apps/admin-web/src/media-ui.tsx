@@ -45,7 +45,8 @@ export function MediaPanel({ me, personId, source, compact = false }: {
     } | null>(null);
     const fileControl = useRef<HTMLInputElement | null>(null);
     const a = useAction(), control = useAction();
-    const sources = useLoad(() => me.permissions.includes('assets.upload') && !source ? read<Page<Source>>('source.list', {}, { pageSize: '100' }) : Promise.resolve({ items: [] } as unknown as Page<Source>), me.membershipId);
+    const [sourcePage,setSourcePage]=useState(1);
+    const sources = useLoad(() => me.permissions.includes('assets.upload') && !source ? read<Page<Source>>('source.list', {}, { page:String(sourcePage),pageSize: '20' }) : Promise.resolve({ items: [] } as unknown as Page<Source>), me.membershipId+':'+sourcePage);
     const assets = useLoad(() => read<Page<AssetDto>>('asset.list', {}, { page: String(page), pageSize: '20', ...(personId ? { personId } : {}) }), [personId, page, refresh].join(':'));
     const uploads = useLoad(() => read<Page<UploadDto>>('upload.list', {}, { pageSize: '20' }), refresh);
     const freeze = a.busy || uncertain(a.error) || !!upload;
@@ -134,7 +135,7 @@ export function MediaPanel({ me, personId, source, compact = false }: {
     return <section className="media-panel">{!compact && <PageTitle overline="PRIVATE MEDIA" title="私有素材" description="图片和精选MP4封面生成私有预览。PDF只保存附件，解析交给外部Agent；原件通过受控导出下载。"/>}
         {compact && <h3>关联私有素材</h3>}<ErrorBox error={assets.error ?? sources.error ?? a.error ?? control.error}/>
         {me.mediaEnabled && me.permissions.includes('assets.upload') && <form className="panel padded" onSubmit={e => { e.preventDefault(); void a.run(proceed); }}>
-            {!source && <Field label="文件资料来源"><select required disabled={freeze} value={selectedSource} onChange={e => { setSource(e.target.value); createInput.current = null; }}><option value="">选择当前有效来源</option>{sources.data?.items.filter(s => s.current).map(s => <option value={s.id} key={s.id}>{s.title}</option>)}</select></Field>}
+            {!source && <Field label="文件资料来源"><select required disabled={freeze} value={selectedSource} onChange={e => { setSource(e.target.value); createInput.current = null; }}><option value="">选择当前有效来源</option>{sources.data?.items.filter(s => s.current).map(s => <option value={s.id} key={s.id}>{s.title}</option>)}</select></Field>}{!source&&sources.data&&<Pager page={sourcePage} pageSize={20} total={sources.data.total} setPage={p=>{setSourcePage(p);setSource('');}}/>}
             <Field label="选择图片、PDF或精选MP4"><input ref={fileControl} type="file" required={!file} accept="image/jpeg,image/png,image/webp,application/pdf,video/mp4" disabled={freeze} onChange={e => { setFile(e.target.files?.[0] ?? null); createInput.current = null; }}/></Field>
             <p className="muted">预览会重新编码并移除元数据。图片随来源及原生访问范围管理，基本档案交接不会自动开放图片。</p>
             <div className="button-row"><Submit busy={a.busy}>{uncertain(a.error) || upload ? '核对上传状态并继续' : '上传并检查'}</Submit>{upload && terminal(upload.state) && !uncertain(a.error) && <button type="button" onClick={() => { setUpload(null); setFile(null); if (fileControl.current)

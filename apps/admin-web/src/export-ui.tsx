@@ -1,3 +1,4 @@
+import {useOptionPages,OptionPages} from './app/option-pages.tsx';
 import { useEffect, useMemo, useState } from 'react';
 import { call, read } from './api.ts';
 import type { Me, Page, Person, Receipt, Source } from './dto.ts';
@@ -136,7 +137,7 @@ function PermissionForm({ resources, onClose, onDone }: { resources: ResourceSet
                 <Field label="审批依据" hint="说明为什么这份资料允许做内部 JSON 导出；不要粘贴完整敏感原文。"><textarea required minLength={4} maxLength={2000} rows={4} value={evidenceNote} onChange={e => setEvidenceNote(e.target.value)}/></Field>
                 {sourceId && <p className="muted">来源 ID：{sourceId}</p>}
             </div>
-            <footer className="modal-footer"><button type="button" onClick={onClose} disabled={action.busy}>取消</button><Submit busy={action.busy||(kind==='PERSON'&&person.busy)}>批准用途</Submit></footer>
+            <footer className="modal-footer"><button type="button" onClick={onClose} disabled={action.busy}>取消</button><Submit busy={action.busy||(kind==='PERSON'&&person.busy)||(kind==='WORK'&&work.busy)||(kind==='PROJECT'&&project.busy)}>批准用途</Submit></footer>
         </form></Modal>;
 }
 
@@ -196,14 +197,14 @@ export function ExportPanel({ me }: { me: Me }) {
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]), [selectedExport, setSelectedExport] = useState<string | null>(null);
     const create = useAction(), revoke = useAction();
 
-    const people = useLoad(() => read<Page<Person>>('person.list', {}, { pageSize: '100' }), 'export-people:' + refresh);
-    const works = useLoad(() => read<Page<WorkSummary>>('work.list', {}, { pageSize: '100' }), 'export-works:' + refresh);
-    const projects = useLoad(() => read<Page<ProjectSummary>>('project.list', {}, { pageSize: '100' }), 'export-projects:' + refresh);
-    const sources = useLoad(() => me.permissions.includes('sources.read')
-        ? read<Page<Source>>('source.list', {}, { pageSize: '100' })
+    const people = useOptionPages<Person>(optionPage => read<Page<Person>>('person.list', {}, { page:String(optionPage),pageSize: '100' }), 'export-people:' + refresh);
+    const works = useOptionPages<WorkSummary>(optionPage => read<Page<WorkSummary>>('work.list', {}, { page:String(optionPage),pageSize: '100' }), 'export-works:' + refresh);
+    const projects = useOptionPages<ProjectSummary>(optionPage => read<Page<ProjectSummary>>('project.list', {}, { page:String(optionPage),pageSize: '100' }), 'export-projects:' + refresh);
+    const sources = useOptionPages<Source>(optionPage => me.permissions.includes('sources.read')
+        ? read<Page<Source>>('source.list', {}, { page:String(optionPage),pageSize: '100' })
         : Promise.resolve({ items: [], total: 0, page: 1, pageSize: 100 } as Page<Source>), 'export-sources:' + refresh);
-    const assets = useLoad(() => read<Page<AssetDto>>('asset.list', {}, { pageSize: '100' }), 'export-assets:' + refresh);
-    const permissions = useLoad(() => read<Page<UsePermissionDto>>('usePermission.list', {}, { pageSize: '100' }), 'export-permissions:' + refresh);
+    const assets = useOptionPages<AssetDto>(optionPage => read<Page<AssetDto>>('asset.list', {}, { page:String(optionPage),pageSize: '100' }), 'export-assets:' + refresh);
+    const permissions = useOptionPages<UsePermissionDto>(optionPage => read<Page<UsePermissionDto>>('usePermission.list', {}, { page:String(optionPage),pageSize: '100' }), 'export-permissions:' + refresh);
     const exports = useLoad(() => canExport ? read<Page<ExportSummary>>('export.list', {}, { page: String(page), pageSize: '20' }) : Promise.resolve({ items: [], total: 0, page: 1, pageSize: 20 }), 'exports:' + page + ':' + refresh);
 
     const resources: ResourceSets = {
@@ -227,7 +228,7 @@ export function ExportPanel({ me }: { me: Me }) {
     }
 
     return <><PageTitle overline="CONTROLLED DATA EGRESS" title="内部 JSON 导出" description="用于有权限的内部迁移/重建，不是客户资料包。可读不等于可导出；每个对象和字段都必须有独立 INTERNAL_EXPORT 许可。" action={canApprove ? <button className="primary" onClick={() => setPermissionModal(true)}>＋ 批准导出用途</button> : undefined}/>
-        <ErrorBox error={people.error ?? works.error ?? projects.error ?? sources.error ?? assets.error ?? permissions.error ?? exports.error ?? create.error ?? revoke.error}/>
+        <ErrorBox error={people.error ?? works.error ?? projects.error ?? sources.error ?? assets.error ?? permissions.error ?? exports.error ?? create.error ?? revoke.error}/><OptionPages entries={[{label:'人才',state:people},{label:'作品',state:works},{label:'项目',state:projects},{label:'来源',state:sources},{label:'素材',state:assets},{label:'导出许可',state:permissions}]}/>
         <div className="notice"><strong>三道安全门</strong><p>账号必须有 data.export；对象必须有当前有效的精确用途许可；部署侧 DATA_EGRESS_MODE 必须明确开放。生产默认关闭出口。</p></div>
 
         <div className="notice"><strong>内部语言文本</strong><p>请分别批准人物、作品或项目的语言文本字段，以及每份实际依据来源的相同字段。正文、依据和原复核记录一起迁移；在目标库保留为待复核文本，不会把导入人记作原复核人。</p></div><div className="notice"><strong>2.0 专业资料导出范围</strong><p>可选择主档案、职业、能力及所用字典、外部标识、代表关系及关联机构、语言、地点、外观、量尺历史和翻译资料；请同时选择必要关联；代表人须另行批准并一起选择导出。若需保留字段依据，请同时批准“所选专业字段的来源证据与原核验记录”，并批准每条证据来源及其对应专业资料；未选择时仍是旧版资料快照，不含字段证据。原核验仅保留历史归属，不等于新环境里的核验。包含每个来源的全部来源字段后，可用于隔离重建。无证明附件的资质可迁移；如有编号，必须另外批准加密编号并在隔离重建时提供原环境和目标环境密钥。带证明附件或已核验资质须同时批准图片及来源的“资质证明原件及预览”，下载 JSON 后再逐项保存原件和预览。媒体集合与内容标签可另行选择，必须同时批准集合引用的全部图片；类型、标签、顺序和说明分别保留。成年资格需单独批准，已核验记录还必须选择字段来源证据；原核验归属仅作历史记录，迁移不延长有效期。身份字段的来源证据可单独选择，普通联系人无需建立人才档案；须同时批准姓名、别名或简介以及各条证据的来源。合并保留资料可另行批准，包含旧身份、保留主档案、原合并决定及核验归属；须同时选择当前对应主档案、关联量尺及字段证据。原来源已删除而资料有独立依据保留时，必须一并选择字段证据；只迁移已删来源编号与删除状态，不恢复来源原文，也不把它重新变成可用依据。这份 JSON 不是完整备份。专业资料、所用能力定义或关联机构变化会使旧文件失效。</p></div>

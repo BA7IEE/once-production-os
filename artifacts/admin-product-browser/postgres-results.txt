@@ -1,0 +1,203 @@
+# Subtest: fresh disposable PostgreSQL: constraints, real transactions and independent workers
+ok 1 - fresh disposable PostgreSQL: constraints, real transactions and independent workers
+# tests 67
+# pass 67
+# fail 0
+# cancelled 0
+# skipped 0
+# Subtest: DEV-07H T29 real once-export-v1 -> PostgreSQL rollback -> CLI rebuild 10/3/1 graph
+ok 1 - DEV-07H T29 real once-export-v1 -> PostgreSQL rollback -> CLI rebuild 10/3/1 graph
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# PASS DEV-09A/09B recovery PG/CLI: old capabilities invalidated; DB/contact/media restore-check clean; tampered media, wrong key and state drift blocked; epoch remains unapproved
+# Subtest: DEV-09A restored PostgreSQL is quarantined before any recovery epoch approval
+ok 1 - DEV-09A restored PostgreSQL is quarantined before any recovery epoch approval
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# PASS merged history erasure: whole merged identity clears all historical payload, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# PASS actual backup/restore preserves append-only merge-history erasures and redacted reason without resurrecting deleted old profiles
+# PASS actual backup/restore preserves distinct erased identity origin and independent permission basis while revoking old permission
+# PASS actual backup/restore preserves erased historical source, retained language and exact independent evidence plus pending candidate role review
+# PASS TD2 pg_dump/pg_restore+media: stable roles, measurements, external refs, collection links, encrypted credential, original evidence and adult verification attribution and revoked machine identity
+# PASS DEV-09E pg_dump/pg_restore+media: contained post-backup delta resolves and approves; unresolved committed member.disable remains blocked
+# Subtest: DEV-09E real backup/restore resolves contained deltas and blocks unresolved committed mutations
+ok 1 - DEV-09E real backup/restore resolves contained deltas and blocks unresolved committed mutations
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# Subtest: TD2-T17 populated frozen pre-TD2 baseline upgrades without rewriting business rows
+ok 1 - TD2-T17 populated frozen pre-TD2 baseline upgrades without rewriting business rows
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# Subtest: TD2-T01 through T15 and T18: actual PostgreSQL domain contracts and private media
+ok 1 - TD2-T01 through T15 and T18: actual PostgreSQL domain contracts and private media
+# tests 25
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# Subtest: internal locale typed graph and actual PostgreSQL deferred constraints
+ok 1 - internal locale typed graph and actual PostgreSQL deferred constraints
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# PASS imported locale actual pg_dump/pg_restore: exact bodies, original review attribution, original basis and current typed dependencies survive; integrity inspection passes
+# PASS locale v3 real source permissions -> export -> CLI preview/apply; original review and exact basis preserved; local review remains unset; audit failure rolls back all inserted rows; database provenance constraints enforced
+# Subtest: locale transfer actual three PostgreSQL databases and CLI preserve provenance with rollback and explicit re-review
+ok 1 - locale transfer actual three PostgreSQL databases and CLI preserve provenance with rollback and explicit re-review
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# Subtest: typed and compatible searches retain exact permissions, facets and fixed query count at 100/1000 people
+ok 1 - typed and compatible searches retain exact permissions, facets and fixed query count at 100/1000 people
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# PASS TD2 PG: typed Person graph deletion, audit rollback, retry and ERASED finalization
+# PASS TD2 PG: machine credentials revoked; proposals stale; credential-key and graph-drift checks
+# Subtest: TD2 real PostgreSQL professional graph cleanup and recovery isolation
+ok 1 - TD2 real PostgreSQL professional graph cleanup and recovery isolation
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# PASS TD2 source identity: full professional and identity evidence graph rollback/retry, external representation cleanup, hidden-owner finalization rollback/retry, source-owned original purge, independent people and original files retained
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# PASS combined source/other-identity withdrawal: explicit field item, unchanged other identity and independent evidence, whole-group audit rollback/retry, final basis expiry refuses completion
+# PASS TD2 PG: shared collection/proof deletion, current requester checks, audit rollback/retry, historical evidence retained, physical media purge and ERASED finalization
+# Subtest: TD2 real PostgreSQL shared proof erasure and physical file cleanup
+ok 1 - TD2 real PostgreSQL shared proof erasure and physical file cleanup
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# PASS merged history erasure: whole merged identity clears all historical payload, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# PASS PG merge history: direct SQL history mutation/deletion and erasure-evidence mutation denied; actual frozen graph cleanup clears original payload with audit rollback/retry; alias-only leaves current identity and measurement facts unchanged
+# Subtest: real PostgreSQL reviewed merge-history erasure preserves immutable minimal lineage and rolls back audit failure
+ok 1 - real PostgreSQL reviewed merge-history erasure preserves immutable minimal lineage and rolls back audit failure
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# PASS v14 erased history rebuild: minimal erased identity, original alias/merge choice, distinct original erasure attribution, no deleted profile resurrection, audit rollback and retry
+# PASS v14 PG: actual CLI preview/apply restores only erased identity header, aliases, original merge choices and explicit erasure attribution; retired profile payload absent; SQL shape and immutable records preserved; audit rollback/retry
+# Subtest: TD2 PostgreSQL redacted merge-history export and real CLI rebuild preserve erased minimal headers, original evidence and audit rollback
+ok 1 - TD2 PostgreSQL redacted merge-history export and real CLI rebuild preserve erased minimal headers, original evidence and audit rollback
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# PASS source after separately reviewed old identity erasure: exact prior aliases/decisions/markers preserved, remaining source facts removed atomically with audit rollback/retry, canonical identity remains readable
+# PASS v14 erased history rebuild: minimal erased identity, original alias/merge choice, distinct original erasure attribution, no deleted profile resurrection, audit rollback and retry
+# PASS v14 PG: actual CLI preview/apply restores only erased identity header, aliases, original merge choices and explicit erasure attribution; retired profile payload absent; SQL shape and immutable records preserved; audit rollback/retry
+# Subtest: TD2 PostgreSQL redacted merge-history export and real CLI rebuild preserve erased minimal headers, original evidence and audit rollback
+ok 1 - TD2 PostgreSQL redacted merge-history export and real CLI rebuild preserve erased minimal headers, original evidence and audit rollback
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# PASS TD2 PG: explicit conflicts, immutable history, raw SQL lineage guards; typed merge stable IDs, original sources, role links, audit rollback, retry and replay
+# PASS TD2 evidence history PG: paginated current/stale field support, suspended sources and original review attribution; restricted fields and machine reads rejected
+# PASS real PostgreSQL independent source evidence cleanup: preserved facts/provenance, audit rollback/retry and final erasure
+# PASS real PostgreSQL source fact choices: independent complete retention, cross-source children, candidate role review, atomic rollback and final retained origin
+# Subtest: TD2 real PostgreSQL professional merge rollback and retry
+ok 1 - TD2 real PostgreSQL professional merge rollback and retry
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# PASS TD2 transfer PG: real CLI check/apply, exact source permits, typed UUID/role/measurement links, original field values, credential identifiers re-encrypted under target key and workspace, wrong key rejected without writes, unknown/cross-person references rejected, audit rollback and retry, populated target rejected, revoked source grant blocks download
+# Subtest: TD2 PostgreSQL controlled multi-source export and isolated typed rebuild preserve UUIDs and roll back audit failure
+ok 1 - TD2 PostgreSQL controlled multi-source export and isolated typed rebuild preserve UUIDs and roll back audit failure
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# PASS TD2 retained origin PG: actual CLI preview/apply, full independent field proof and source grants, exact language and reviewer preservation, erased-source reactivation denied, transaction audit rollback and repeat export
+# Subtest: TD2 PostgreSQL retained-origin export and real CLI rebuild preserve erased minimal headers, original evidence and audit rollback
+ok 1 - TD2 PostgreSQL retained-origin export and real CLI rebuild preserve erased minimal headers, original evidence and audit rollback
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# PASS retained identity v13: separately approved current basis, erased original header, actual identity evidence and original reviewers, audit rollback and rebuild without restoring old permissions
+# PASS PG permission CHECK and FK reject origin-as-basis, missing basis, and non-PERSON retention without changing original approval
+# PASS TD2 retained origin PG: actual CLI preview/apply, full independent field proof and source grants, original person identity and reviewer preservation, erased-source reactivation denied, transaction audit rollback and repeat export
+# Subtest: TD2 PostgreSQL retained-identity export and real CLI rebuild preserve erased minimal headers, original evidence and audit rollback
+ok 1 - TD2 PostgreSQL retained-identity export and real CLI rebuild preserve erased minimal headers, original evidence and audit rollback
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# PASS proof PG: source original/preview bytes verified, missing files no writes, real CLI preview/apply, DB audit rollback, private files preserved for retry, verified credential UUID and attachment retained, populated target rejects replay
+# Subtest: real PostgreSQL and private files: verified proof migration, CLI apply, audit rollback and retry
+ok 1 - real PostgreSQL and private files: verified proof migration, CLI apply, audit rollback and retry
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# PASS collection PG: archived collection, typed role/tag/item UUIDs, cross-source tags, one shared original; source original/preview bytes verified, missing files no writes, real CLI preview/apply, DB audit rollback, private files preserved for retry, verified credential UUID and attachment retained, populated target rejects replay
+# Subtest: real PostgreSQL collection migration preserves shared bytes, source tags and collection relationships with rollback
+ok 1 - real PostgreSQL collection migration preserves shared bytes, source tags and collection relationships with rollback
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# PASS adult PG: source reviewer attribution retained without creating target account; SQL rejects incomplete or hybrid attribution; archived collection, typed role/tag/item UUIDs, cross-source tags, one shared original; source original/preview bytes verified, missing files no writes, real CLI preview/apply, DB audit rollback, private files preserved for retry, verified credential UUID and attachment retained, populated target rejects replay
+# Subtest: real PostgreSQL adult eligibility migration preserves original verification and forbids false target reviewer attribution
+ok 1 - real PostgreSQL adult eligibility migration preserves original verification and forbids false target reviewer attribution
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# PASS identity PG: real CLI CHECK/APPLY; original person/evidence/source IDs, historical reviewer and digests retained; no extra talent or membership; audit failure rolls back and retry succeeds; nonempty target rejects replay
+# Subtest: real PostgreSQL identity-only CLI rebuild retains multi-source evidence without manufacturing a talent profile or reviewer account
+ok 1 - real PostgreSQL identity-only CLI rebuild retains multi-source evidence without manufacturing a talent profile or reviewer account
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# PASS history PG: real CLI CHECK/APPLY; archived person, alias, retained profile/measurement and source UUIDs preserved; original merge actor retained without creating account; SQL immutable history and original actor constraint enforced; audit failure rolls back and retry succeeds; nonempty target rejects replay
+# Subtest: real PostgreSQL merge history CLI rebuild retains archived identities, aliases, original decisions and actor attribution
+ok 1 - real PostgreSQL merge history CLI rebuild retains archived identities, aliases, original decisions and actor attribution
+# tests 1
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0

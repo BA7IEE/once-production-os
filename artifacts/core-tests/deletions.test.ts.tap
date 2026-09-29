@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: DEV-07B preview is zero-write and DRAFT request does not block the target
+ok 1 - DEV-07B preview is zero-write and DRAFT request does not block the target
+  ---
+  duration_ms: 138.091708
+  type: 'test'
+  ...
+# Subtest: DEV-07B stale preview is rejected when a new dependency appears
+ok 2 - DEV-07B stale preview is rejected when a new dependency appears
+  ---
+  duration_ms: 135.96975
+  type: 'test'
+  ...
+# Subtest: DEV-07B hidden dependency is counted but not enumerated, and request creation is refused
+ok 3 - DEV-07B hidden dependency is counted but not enumerated, and request creation is refused
+  ---
+  duration_ms: 251.144709
+  type: 'test'
+  ...
+# Subtest: DEV-07B visible source does not enumerate child records whose own scope is hidden
+ok 4 - DEV-07B visible source does not enumerate child records whose own scope is hidden
+  ---
+  duration_ms: 250.648167
+  type: 'test'
+  ...
+# Subtest: DEV-07B source preview reaches owned records, relations, permissions and frozen exports
+ok 5 - DEV-07B source preview reaches owned records, relations, permissions and frozen exports
+  ---
+  duration_ms: 129.537625
+  type: 'test'
+  ...
+# Subtest: DEV-07B persisted request returns only summary, not frozen dependency ids
+ok 6 - DEV-07B persisted request returns only summary, not frozen dependency ids
+  ---
+  duration_ms: 125.983917
+  type: 'test'
+  ...
+# Subtest: DEV-07B non-delete member cannot preview or enumerate draft deletion requests
+ok 7 - DEV-07B non-delete member cannot preview or enumerate draft deletion requests
+  ---
+  duration_ms: 249.08375
+  type: 'test'
+  ...
+# Subtest: DEV-07C blocking a person removes normal reads/search/handoff but preserves underlying data
+ok 8 - DEV-07C blocking a person removes normal reads/search/handoff but preserves underlying data
+  ---
+  duration_ms: 253.598458
+  type: 'test'
+  ...
+# Subtest: DEV-07C blocking a source cascades to normal source/person/work reads and appends protected history
+ok 9 - DEV-07C blocking a source cascades to normal source/person/work reads and appends protected history
+  ---
+  duration_ms: 129.001166
+  type: 'test'
+  ...
+# Subtest: DEV-07C block is refused when the frozen preview changed after DRAFT creation
+ok 10 - DEV-07C block is refused when the frozen preview changed after DRAFT creation
+  ---
+  duration_ms: 127.866417
+  type: 'test'
+  ...
+# Subtest: DEV-07C blocked person invalidates old export and shortlist item while preserving their records
+ok 11 - DEV-07C blocked person invalidates old export and shortlist item while preserving their records
+  ---
+  duration_ms: 132.028042
+  type: 'test'
+  ...
+# Subtest: DEV-07C already blocked target cannot create another deletion request
+ok 12 - DEV-07C already blocked target cannot create another deletion request
+  ---
+  duration_ms: 126.936916
+  type: 'test'
+  ...
+# Subtest: DEV-07D pending review decisions block plan freeze; safe review slots expose no underlying resource ids
+ok 13 - DEV-07D pending review decisions block plan freeze; safe review slots expose no underlying resource ids
+  ---
+  duration_ms: 129.019166
+  type: 'test'
+  ...
+# Subtest: DEV-07D manual proposed-action decision completes and freezes a non-executing cleanup plan
+ok 14 - DEV-07D manual proposed-action decision completes and freezes a non-executing cleanup plan
+  ---
+  duration_ms: 129.082708
+  type: 'test'
+  ...
+# Subtest: DEV-07D retain-with-basis requires independent current source and freezes its revision/epoch
+ok 15 - DEV-07D retain-with-basis requires independent current source and freezes its revision/epoch
+  ---
+  duration_ms: 131.547583
+  type: 'test'
+  ...
+# Subtest: DEV-07D delete-only member may apply proposed action but cannot authorize retain-with-basis
+ok 16 - DEV-07D delete-only member may apply proposed action but cannot authorize retain-with-basis
+  ---
+  duration_ms: 255.500666
+  type: 'test'
+  ...
+# Subtest: DEV-07D source reviewer may approve retention and delete-only operator may freeze the completed plan
+ok 17 - DEV-07D source reviewer may approve retention and delete-only operator may freeze the completed plan
+  ---
+  duration_ms: 252.354333
+  type: 'test'
+  ...
+# Subtest: DEV-07E cleanup gate is independent and disabled mode cannot enter CLEANING
+ok 18 - DEV-07E cleanup gate is independent and disabled mode cannot enter CLEANING
+  ---
+  duration_ms: 125.949167
+  type: 'test'
+  ...
+# Subtest: DEV-07E worker irreversibly cleans registered DB dependencies but preserves blocked root
+ok 19 - DEV-07E worker irreversibly cleans registered DB dependencies but preserves blocked root
+  ---
+  duration_ms: 137.840083
+  type: 'test'
+  ...
+# Subtest: DEV-07E source cleanup stops at explicit external/specialized work instead of claiming completion
+ok 20 - DEV-07E source cleanup stops at explicit external/specialized work instead of claiming completion
+  ---
+  duration_ms: 126.342666
+  type: 'test'
+  ...
+# Subtest: DEV-07E cleanup start rechecks retained-basis revision after plan freeze
+ok 21 - DEV-07E cleanup start rechecks retained-basis revision after plan freeze
+  ---
+  duration_ms: 128.930959
+  type: 'test'
+  ...
+# Subtest: DEV-07F finalizes a source to an erased root and redacted history only after specialized cleanup proves completion
+ok 22 - DEV-07F finalizes a source to an erased root and redacted history only after specialized cleanup proves completion
+  ---
+  duration_ms: 129.5965
+  type: 'test'
+  ...
+# Subtest: DEV-07F retained source-owned person requires complete field evidence and preserves original origin
+ok 23 - DEV-07F retained source-owned person requires complete field evidence and preserves original origin
+  ---
+  duration_ms: 145.728291
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3890.152042

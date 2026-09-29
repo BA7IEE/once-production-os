@@ -1,3 +1,5 @@
+import {realpathSync} from 'node:fs';
+import {navigateUI,addModelOccupation} from './product-navigation.mjs';
 /** M1 real Nest/Prisma/Chromium acceptance. Only an empty disposable loopback test DB.
  * Never reads a .env target, resets a DB, or sends requests to a production host. */
 import assert from 'node:assert/strict';
@@ -18,7 +20,7 @@ assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname));
 assert.match(url.pathname, /^\/once_test_[a-z0-9_]+$/);
 assert.ok(url.username && url.password && !url.search && !url.hash);
 const prisma = new PrismaClient({ datasources: { db: { url: raw } }, log: [] });
-const tmp = mkdtempSync(join(tmpdir(), 'once-private-media-'));
+const tmp = realpathSync(mkdtempSync(join(tmpdir(), 'once-private-media-')));
 const password = 'Synthetic-' + randomBytes(20).toString('base64url') + '!';
 const put = (name, text) => { const path = join(tmp, name); writeFileSync(path, text, { mode: 0o600 }); return path; };
 const env = { ...process.env, DATABASE_URL: raw, APP_ENV: 'test', ACCESS_MODE: 'INTERNAL', COOKIE_SECURE: 'false', HOST: '127.0.0.1',
@@ -41,7 +43,7 @@ async function login(page, loginName) {
     await page.locator('input[autocomplete=username]').fill(loginName);
     await page.locator('input[autocomplete=current-password]').fill(password);
     await page.getByRole('button', { name: '登录', exact: true }).click();
-    await page.getByRole('button', { name: /概览/ }).waitFor();
+    await page.getByRole('button', { name: /工作台/ }).waitFor();
 }
 async function cmd(page, method, path, data, expected = 200) {
     const me = await page.context().request.get(base + '/api/v1/me'); assert.equal(me.status(), 200);
@@ -70,11 +72,12 @@ try {
  const owner=await browser.newPage(),editor=await browser.newPage();for(const p of[owner,editor])p.on('pageerror',e=>errors.push(e.message));
  await login(owner,'owner');const added=await cmd(owner,'POST','/memberships',{loginName:'m1_editor',displayName:'合成图片维护人',role:'EDITOR',extraPermissions:[]},201);
  await editor.goto(base+'/activate',{waitUntil:'networkidle'});await editor.getByLabel('激活凭证').fill(added.activationToken);await editor.getByLabel('设置密码（至少 12 个字符）').fill(password);await editor.getByRole('button',{name:'激活账号',exact:true}).click();await editor.getByText('账号已激活').waitFor();await login(editor,'m1_editor');
- await editor.getByRole('button',{name:/人才档案/}).click();await editor.getByRole('button',{name:/新增人才/}).click();
- await editor.getByLabel('姓名 / 艺名 *').fill('M1私有图片人才');await editor.locator('label.check-chip').filter({hasText:'模特'}).getByRole('checkbox').check();
- await editor.getByLabel('来源标题 *').fill('M1合成图片来源');await editor.getByLabel('提供者 / 提供方式 *').fill('合成人物测试资料');await editor.getByLabel('依据说明 *').fill('仅合成数据用于隔离验收，不代表真实授权');
- const createdResponse=editor.waitForResponse(r=>r.url().endsWith('/people')&&r.request().method()==='POST');await editor.getByRole('button',{name:'建立档案',exact:true}).click();const created=await createdResponse;assert.equal(created.status(),201);
+ await navigateUI(editor,'人才库');await editor.getByRole('button',{name:/新增人才/}).click();
+ await editor.getByLabel('姓名或艺名 *').fill('M1私有图片人才');
+ await editor.getByLabel('来源标题 *').fill('M1合成图片来源');await editor.getByLabel('谁提供、怎样收到 *').fill('合成人物测试资料');await editor.getByLabel('使用依据 *').fill('仅合成数据用于隔离验收，不代表真实授权');
+ const createdResponse=editor.waitForResponse(r=>r.url().endsWith('/people')&&r.request().method()==='POST');await editor.getByRole('button',{name:'保存并继续',exact:true}).click();const created=await createdResponse;assert.equal(created.status(),201);
  const pid=(await created.json()).resourceId,person=await prisma.person.findUniqueOrThrow({where:{id:pid}});
+ await addModelOccupation(editor);await editor.getByRole('button',{name:'照片与附件',exact:true}).click();
  await editor.getByRole('heading',{name:'关联私有素材'}).waitFor();
  const image=await sharp({create:{width:80,height:40,channels:3,background:'#336699'}}).png().withMetadata({orientation:6}).toBuffer();
  const sends=[];const path='**/api/v1/uploads/*/complete';

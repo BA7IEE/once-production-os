@@ -1,3 +1,5 @@
+import {useOptionPages,OptionPages} from './app/option-pages.tsx';
+import {clearNavigationDirty} from './app/surface.tsx';
 import { useEffect, useRef, useState } from 'react';
 import { TALENT_VERSION, type TalentDetail } from './talent-dto.ts';
 import { ApiError, call, read } from './api.ts';
@@ -78,11 +80,11 @@ export function AddCandidate({ person, list, catalog, onClose, onDone }: {
     const [roleId, setRoleId] = useState('');
     const roles = profile.data?.facts.personRoles.filter(r => r.usable) ?? [];
     const role = roles.find(r => r.id === roleId);
-    const production = useLoad(() => read<PersonProduction>('person.production', { id: person.id }, { page: '1', pageSize: '100' }), person.id);
+    const production = useOptionPages(async page => (await read<PersonProduction>('person.production', { id: person.id }, { page: String(page), pageSize: '100' })).works, person.id);
     const [workId, setWorkId] = useState(''), [selectedAssets, setSelectedAssets] = useState<string[]>([]), [note, setNote] = useState('');
     const work = useLoad<WorkDetail | null>(() => workId ? read<WorkDetail>('work.get', { id: workId }) : Promise.resolve(null), workId || 'no-work');
     const command = useCommand(() => onDone());
-    const selectedWork = production.data?.works.items.find(w => w.id === workId);
+    const selectedWork = production.data?.items.find(w => w.id === workId);
     return <Modal title={'加入候选 · ' + person.displayName} onClose={() => { if (!command.busy && !command.unknown) onClose(); }} wide>
         <form onSubmit={e => {
             e.preventDefault();
@@ -101,7 +103,7 @@ export function AddCandidate({ person, list, catalog, onClose, onDone }: {
                 <fieldset disabled={command.busy || command.unknown}>
                     <dl className="detail-grid"><div><dt>人才</dt><dd>{person.displayName}</dd></div><div><dt>角色</dt><dd>{person.roles.map(r => catalogLabel(catalog, 'role', r)).join(' / ')}</dd></div></dl>
                     {profile.data?.isTalent && <Field label="本次入选职业" hint="同一人可以按不同职业分别入选；不把其他职业的作品算入本次候选。"><select required value={roleId} onChange={e => { setRoleId(e.target.value); setWorkId(''); setSelectedAssets([]); }}><option value="">请选择本次职业</option>{roles.map(r => <option key={r.id} value={r.id}>{catalogLabel(catalog, 'role', String(r.roleCode))}</option>)}</select></Field>}
-                    <Field label="关联署名作品（可选）" hint="不选作品也可以先把人才加入清单。"><select value={workId} onChange={e => { setWorkId(e.target.value); setSelectedAssets([]); }}><option value="">暂不关联作品</option>{production.data?.works.items.filter(w => !profile.data?.isTalent || (!!role && w.roles.includes(String(role.roleCode)))).map(w => <option key={w.id} value={w.id}>{w.title} · {w.roles.map(r => catalogLabel(catalog, 'role', r)).join('/')}</option>)}</select></Field>
+                    <OptionPages entries={[{state:production,label:"署名作品"}]}/><Field label="关联署名作品（可选）" hint="不选作品也可以先把人才加入清单。"><select value={workId} onChange={e => { setWorkId(e.target.value); setSelectedAssets([]); }}><option value="">暂不关联作品</option>{production.data?.items.filter(w => !profile.data?.isTalent || (!!role && w.roles.includes(String(role.roleCode)))).map(w => <option key={w.id} value={w.id}>{w.title} · {w.roles.map(r => catalogLabel(catalog, 'role', r)).join('/')}</option>)}</select></Field>
                     {production.busy && <p>正在读取该人才当前可见的署名作品…</p>}
                     {selectedWork && <p className="muted">已选作品：{selectedWork.title}</p>}
                     {workId && work.busy && <p>正在读取作品图片…</p>}
@@ -203,16 +205,13 @@ function ShortlistDetailPanel({ id, catalog, onChanged }: { id: string; catalog:
     </section>;
 }
 
-export function ShortlistWorkbench({ me, catalog }: { me: Me; catalog: CatalogItem[] }) {
+export function ShortlistWorkbench({ me, catalog,routeId,onSelect }: { me: Me; catalog: CatalogItem[];routeId?:string;onSelect?:(id:string)=>void }) {
     const canWrite = me.permissions.includes('records.write');
-    const [listTick, setListTick] = useState(0), [selectedListId, setSelectedListId] = useState<string | null>(null), [creating, setCreating] = useState(false);
-    const lists = useLoad(() => read<Page<ShortlistSummary>>('shortlist.list', {}, { page: '1', pageSize: '100' }), listTick);
-    useEffect(() => {
-        if (!selectedListId && lists.data?.items[0])
-            setSelectedListId(lists.data.items[0].id);
-        if (selectedListId && lists.data && !lists.data.items.some(x => x.id === selectedListId))
-            setSelectedListId(lists.data.items[0]?.id ?? null);
-    }, [lists.data, selectedListId]);
+    const [listTick, setListTick] = useState(0), [localListId, setLocalListId] = useState<string | null>(null), [creating, setCreating] = useState(false);
+    const [listPage,setListPage]=useState(1);
+    const lists = useLoad(() => read<Page<ShortlistSummary>>('shortlist.list', {}, { page: String(listPage), pageSize: '20' }), listTick+':'+listPage);
+    const selectedListId=routeId??localListId;
+    const setSelectedListId=(id:string)=>onSelect?onSelect(id):setLocalListId(id);
 
     const [page, setPage] = useState(1), [q, setQ] = useState(''), [query, setQuery] = useState('');
     const [role, setRole] = useState(''), [city, setCity] = useState(''), [language, setLanguage] = useState(''), [skill, setSkill] = useState('');
@@ -226,8 +225,8 @@ export function ShortlistWorkbench({ me, catalog }: { me: Me; catalog: CatalogIt
     };
     const search = useLoad(() => read<TalentSearchResponse>('talent.search', {}, queryParams), JSON.stringify(queryParams));
     const selectedList = useLoad(() => selectedListId ? read<ShortlistDetail>('shortlist.get', { id: selectedListId }) : Promise.resolve(null), (selectedListId ?? 'none') + ':' + detailTick);
-    return <><PageTitle overline="INTERNAL CASTING DESK" title="候选工作台" description="按当前内部事实检索人才，建立协作清单并挑选署名作品与作品图。这里没有客户分享、报价、档期锁定或预订状态。" action={canWrite ? <button className="primary" onClick={() => setCreating(true)}>＋ 新建清单</button> : undefined}/>
-        <section className="panel padded"><div className="sl-list-bar"><strong>当前清单</strong><div>{lists.data?.items.map(list => <button key={list.id} className={selectedListId === list.id ? 'selected' : ''} onClick={() => { setSelectedListId(list.id); setDetailTick(x => x + 1); }}>{list.title}<small>版本 {list.revision}</small></button>)}</div></div><ErrorBox error={lists.error}/>{!lists.busy && !lists.data?.items.length && <p className="muted">还没有候选清单。先建立一个内部清单，再从检索结果加入人才。</p>}</section>
+    return <><PageTitle overline="INTERNAL CASTING DESK" title="候选清单" description="整理本次需求的候选人才、职业与参考素材。" action={canWrite ? <button className="primary" onClick={() => setCreating(true)}>＋ 新建清单</button> : undefined}/>
+        <section className="panel padded"><div className="sl-list-bar"><strong>当前清单</strong><div>{lists.data?.items.map(list => <button key={list.id} className={selectedListId === list.id ? 'selected' : ''} onClick={() => { setSelectedListId(list.id); setDetailTick(x => x + 1); }}>{list.title}<small>查看清单</small></button>)}</div></div><ErrorBox error={lists.error}/>{lists.data&&<Pager page={listPage} pageSize={20} total={lists.data.total} setPage={setListPage}/>}{!lists.busy && !lists.error && !lists.data?.items.length && <p className="muted">还没有候选清单。先建立一个内部清单，再从检索结果加入人才。</p>}</section>
         <section className="panel padded"><h2>结构化找人</h2><p className="muted">系统只使用已有字段和当前可见事实，不生成“匹配百分比”。行业和作品类型来自当前可见且有本人署名的作品；报价与档期仍无结构化事实，不参与匹配。</p>
             <form onSubmit={e => { e.preventDefault(); setPage(1); setQuery(q); }}><div className="sl-filters">
                 <input aria-label="搜索人才姓名或别名" placeholder="姓名或别名" value={q} maxLength={120} onChange={e => setQ(e.target.value)}/>
@@ -242,7 +241,7 @@ export function ShortlistWorkbench({ me, catalog }: { me: Me; catalog: CatalogIt
             </div></form>
             <ErrorBox error={search.error}/>{search.busy ? <p>正在按当前权限检索…</p> : search.data && <><div className="people-grid">{search.data.items.map(person => <article className="person-card" key={person.id}><div className="card-top"><div className="person-monogram">{person.displayName.slice(0, 1)}</div><span className="tag">{person.verification.state === 'CURRENT' ? '有当前核验' : '核验未知'}</span></div><h3>{person.displayName}</h3><div className="role-list">{person.roles.map(x => <span key={x}>{catalogLabel(catalog, 'role', x)}</span>)}</div><p>{catalogLabel(catalog, 'city', person.cityCode)} · 实际合作 {person.actualProjectCount} 个</p>{(person.industryCodes.length > 0 || person.workTypeCodes.length > 0) && <small>作品事实：{[...person.industryCodes.map(x => catalogLabel(catalog, 'industry', x)), ...person.workTypeCodes.map(x => catalogLabel(catalog, 'workType', x))].join(' / ')}</small>}{person.match.length > 0 && <small>命中依据：{person.match.map(x => x.basis).join('、')}</small>}<footer><span>{date(person.updatedAt)}</span>{canWrite && selectedListId ? <button onClick={() => setCandidate(person)}>加入当前清单</button> : <span>{canWrite ? '先选择清单' : '只读'}</span>}</footer></article>)}</div>{!search.data.items.length && <Empty title="当前条件没有可见候选">“未知”不会被当成“符合”；可减少筛选条件后重新查询。</Empty>}<Pager page={page} pageSize={20} total={search.data.total} setPage={setPage}/></>}</section>
         {selectedListId && <ShortlistDetailPanel key={selectedListId + ':' + detailTick} id={selectedListId} catalog={catalog} onChanged={() => { setListTick(x => x + 1); setDetailTick(x => x + 1); }}/>}
-        {creating && <CreateShortlist onClose={() => setCreating(false)} onDone={id => { setCreating(false); setSelectedListId(id); setListTick(x => x + 1); }}/>}
+        {creating && <CreateShortlist onClose={() => setCreating(false)} onDone={id => { clearNavigationDirty(); setCreating(false); setSelectedListId(id); setListTick(x => x + 1); }}/>}
         {candidate && selectedList.data && <AddCandidate person={candidate} list={selectedList.data} catalog={catalog} onClose={() => setCandidate(null)} onDone={() => { setCandidate(null); setDetailTick(x => x + 1); setListTick(x => x + 1); }}/>}
     </>;
 }
