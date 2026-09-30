@@ -16,13 +16,14 @@ export async function verifyTalentWorkbench({owner,prisma,cmd,writeUI,source,ass
  const sid=(await cmd(owner,'POST','/sources',source('工作台验收独立来源'),201)).resourceId;
  let basis=await prisma.sourceRecord.findUniqueOrThrow({where:{id:sid}});
  if(basis.status!=='CONFIRMED'){await cmd(owner,'POST',`/sources/${sid}/review`,{expectedRevision:basis.revision,basisDescription:'合成工作台核验依据，不对应真实人物',validUntil:basis.validUntil.toISOString()});basis=await prisma.sourceRecord.findUniqueOrThrow({where:{id:sid}});}
- await owner.getByRole('button',{name:/概览/}).click();await owner.getByRole('button',{name:/人才档案/}).click();await owner.getByRole('button',{name:'新建人物',exact:true}).click();
- let dialog=owner.getByRole('dialog',{name:'新建人物',exact:true});await dialog.getByLabel('姓名或艺名 *',{exact:true}).fill('工作台模特兼翻译');await dialog.getByLabel('同时建立专业档案（稍后逐项填写职业）',{exact:true}).check();await chooseSource(dialog,sid);
- const pid=(await writeUI(owner,'POST','/td2/people',()=>dialog.getByRole('button',{name:'保存人物',exact:true}).click(),201)).resourceId;
+ await owner.getByRole('button',{name:/概览/}).click();await owner.getByRole('button',{name:/人才档案/}).click();await owner.getByRole('button',{name:/新增人才/}).click();
+ let dialog=owner.getByRole('dialog',{name:'新增人才',exact:true});await dialog.getByLabel('姓名 / 艺名 *',{exact:true}).fill('工作台模特兼翻译');await dialog.getByLabel('使用已有资料来源',{exact:true}).check();await chooseSource(dialog,sid);
+ const pid=(await writeUI(owner,'POST','/directory/talents',()=>dialog.getByRole('button',{name:'保存草稿',exact:true}).click(),201)).resourceId;
  await owner.getByRole('button',{name:'打开专业工作台',exact:true}).click();
  const group=async name=>owner.getByRole('button',{name,exact:true}).click();
  const add=async(title,slug,fill)=>{await owner.getByRole('button',{name:'新增'+title,exact:true}).click();const form=owner.getByRole('dialog',{name:'新增'+title,exact:true});await chooseSource(form,sid);await fill(form);return writeUI(owner,'POST',`/td2/people/${pid}/${slug}`,()=>form.getByRole('button',{name:'保存'+title,exact:true}).click(),201);};
- for(const role of ['model','translator'])await add('职业','roles',async f=>f.getByLabel('职业 *',{exact:true}).selectOption(role));
+ assert.equal(await prisma.personRole.count({where:{personId:pid,roleCode:'model',status:'ACTIVE'}}),1);
+ for(const role of ['translator'])await add('职业','roles',async f=>f.getByLabel('职业 *',{exact:true}).selectOption(role));
  assert.equal(await prisma.personRole.count({where:{personId:pid,status:'ACTIVE'}}),2);
  await owner.getByRole('button',{name:'编辑人物信息',exact:true}).click();dialog=owner.getByRole('dialog',{name:'编辑人物信息',exact:true});await dialog.getByLabel('人物简介',{exact:true}).fill('合成多职业工作台验收');await writeUI(owner,'PATCH',`/td2/people/${pid}`,()=>dialog.getByRole('button',{name:'保存人物信息',exact:true}).click());
  await owner.getByRole('button',{name:'登记专业能力',exact:true}).click();dialog=owner.getByRole('dialog',{name:'登记专业能力',exact:true});await dialog.getByLabel('能力名称 *',{exact:true}).fill('合成镜头表现');await dialog.getByLabel('稳定代码 *',{exact:true}).fill('workbench_camera');await writeUI(owner,'POST','/td2/capability-definitions',()=>dialog.getByRole('button',{name:'保存登记',exact:true}).click(),201);

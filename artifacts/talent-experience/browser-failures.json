@@ -20,6 +20,11 @@
       "run": "media-r1",
       "failure": "macOS /tmp is a symlink, rejected by existing private media root safety check",
       "fix": "Run with TMPDIR=/private/tmp; no production safety check weakened"
+    },
+    {
+      "run": "ci-36720518123-browser-production",
+      "failure": "Talent workbench helper still clicked removed 新建人物 entry; real production browser reached this helper after prior checks passed",
+      "fix": "Use unified talent intake with confirmed existing source; assert default model role, then add translator through existing role form. Retain all subsequent business assertions; no sleep, retry or timeout changes"
     }
   ]
 }
