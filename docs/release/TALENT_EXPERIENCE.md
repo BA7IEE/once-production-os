@@ -1,3 +1,7 @@
+## 2026-10-01 当前状态
+
+PR-01 已正式冻结，[PR #29](https://github.com/BA7IEE/once-production-os/pull/29) 已合并至 main `79e064980fda7df9f90ea6a2fef13d3b3eeccb9f`，对应完整 CI 36755091719 七项通过；仍未部署。详情见 [PR-01b 合并记录](TALENT_EXPERIENCE_PR01B.md)。现从最新 main 启动独立 [PR-02](TALENT_EXPERIENCE_PR02.md)，只做人才账号、邀请、同档认领和本人文本维护；下面为 PR-00/01a 当时的历史交付，不覆盖当前状态。
+
 # Talent Experience 首轮开发交付
 
 日期：2026-09-30。工作分支 `codex/talent-experience`。本轮为 PR-00 文档/合同回填与 PR-01a 内部快速建档子切片；PR-01 以及 Release A/B/C 均未完成。

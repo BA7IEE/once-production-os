@@ -1,3 +1,11 @@
+## 2026-10-01：PR-01 已合并冻结，未部署
+
+[PR #29](https://github.com/BA7IEE/once-production-os/pull/29) 已从 Draft 转为 Ready 并合并。合并前精确核对 head 为 `b74cb79702b517ee1a1ed2125587a9a107ec2801`，没有夹带新改动；合并提交与远端 main 均为 `79e064980fda7df9f90ea6a2fef13d3b3eeccb9f`，合并后的文件树与该 head 一致。
+
+该 main 的 [完整 CI 36755091719](https://github.com/BA7IEE/once-production-os/actions/runs/36755091719) 已完成，7/7 SUCCESS：postgres-contract、browser-resume、browser-production、browser-talent-intake、browser-media、browser-handoff、browser-talent-directory。此处引用合并后的 main 运行，不沿用 PR 运行。核对记录见 `artifacts/talent-experience-pr01b/merge-verification.json`。
+
+PR-01 正式冻结；未执行部署或生产迁移。55 次已有迁移保持不变。PR #27 未合并、未修改。仅在上述 main CI 全部通过后回填本状态；此前 Draft/待复核描述保留为历史记录，不代表当前状态。PR-02 从此 main 建立独立分支，当前进度见 [PR-02 启动记录](TALENT_EXPERIENCE_PR02.md)。Release A/B/C 仍未整体验收。
+
 # 2026-09-30 Talent Experience 开发增量
 
 当前新增范围与验收边界见 [TALENT_EXPERIENCE.md](TALENT_EXPERIENCE.md)。基线 PR #26 已合并；下面保留其历史交付证据，不能用历史“未合并”描述当前 main。人才外部入口尚未实现/开放，A/B/C 均未完成。

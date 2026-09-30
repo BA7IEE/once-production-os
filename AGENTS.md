@@ -1,3 +1,9 @@
+# 2026-10-01 当前授权：PR-01 冻结，启动 PR-02
+
+PR #29 已按指定 head b74cb79702b517ee1a1ed2125587a9a107ec2801 合并；main=79e064980fda7df9f90ea6a2fef13d3b3eeccb9f 的 CI 36755091719 七项 SUCCESS。PR-01 正式冻结、未部署。下方“保持 Draft、不进入 PR-02”为历史范围，已由本次用户授权替代。
+
+PR-02 使用独立分支 codex/talent-experience-pr02，先读 docs/release/TALENT_EXPERIENCE_PR02.md，沿用 spec/15 冻结规范与 spec/16 ADR，不重开产品规划。范围仅人才账号、邀请、同档认领和本人文本维护。禁止顺带多来源媒体、客户分享、官网发布或占位菜单；前55次迁移不可改写。新增实体必须同步权限、回执、导出重建、删除、合并与恢复。PR-02 未获合并或生产部署授权。
+
 # 2026-10-01 PR-01b finalization
 
 仅继续 PR #29 的同维度多选 OR、完整 11 维 facet、版本化年龄预设、安全刷新恢复和 Person+Role 候选选择。保持 Draft，不进入 PR-02；55 次迁移均冻结，本轮无新增 schema。查询与导航合同见 docs/spec/16_TALENT_EXPERIENCE_CONTRACT.md 末节，实际证据见 docs/release/TALENT_EXPERIENCE_PR01B.md。本轮最终 head 的 CI 才能证明本轮完成。
