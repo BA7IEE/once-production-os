@@ -260,7 +260,7 @@
       "cases": "11-13",
       "result": "PASS",
       "evidence": "finalization-talent-directory-state.test.ts.tap; finalization-browser.txt; finalization-static-review.json",
-      "coverage": "second page refresh, browser Back, logout and expiry, old session/member rejection, strict data whitelist; storage gate unchanged"
+      "coverage": "second page refresh, browser Back, logout and expiry, old session/member rejection, strict data whitelist; storage gate unchanged; browser Back from an empty query restores the prior second page without stale-response page reset"
     },
     {
       "cases": "14-16",
