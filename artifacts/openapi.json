@@ -2660,71 +2660,262 @@
                     ]
                   },
                   "role": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 60
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 60,
+                        "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 1,
+                        "maxItems": 20,
+                        "uniqueItems": true
+                      }
+                    ]
                   },
                   "gender": {
-                    "type": "string",
-                    "enum": [
-                      "FEMALE",
-                      "MALE",
-                      "NON_BINARY",
-                      "OTHER",
-                      "UNKNOWN"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "FEMALE",
+                          "MALE",
+                          "NON_BINARY",
+                          "OTHER",
+                          "UNKNOWN"
+                        ]
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "FEMALE",
+                            "MALE",
+                            "NON_BINARY",
+                            "OTHER",
+                            "UNKNOWN"
+                          ]
+                        },
+                        "minItems": 1,
+                        "maxItems": 20,
+                        "uniqueItems": true
+                      }
                     ]
                   },
                   "nationality": {
-                    "type": "string",
-                    "minLength": 2,
-                    "maxLength": 2,
-                    "pattern": "^[A-Z]{2}$"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 2,
+                        "pattern": "^[A-Z]{2}$"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 2,
+                          "pattern": "^[A-Z]{2}$"
+                        },
+                        "minItems": 1,
+                        "maxItems": 20,
+                        "uniqueItems": true
+                      }
+                    ]
                   },
                   "market": {
-                    "type": "string",
-                    "enum": [
-                      "DOMESTIC",
-                      "INTERNATIONAL",
-                      "UNCLASSIFIED"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "DOMESTIC",
+                          "INTERNATIONAL",
+                          "UNCLASSIFIED"
+                        ]
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "DOMESTIC",
+                            "INTERNATIONAL",
+                            "UNCLASSIFIED"
+                          ]
+                        },
+                        "minItems": 1,
+                        "maxItems": 20,
+                        "uniqueItems": true
+                      }
                     ]
                   },
                   "experience": {
-                    "type": "string",
-                    "enum": [
-                      "AMATEUR",
-                      "PROFESSIONAL",
-                      "UNSPECIFIED"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "AMATEUR",
+                          "PROFESSIONAL",
+                          "UNSPECIFIED"
+                        ]
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "AMATEUR",
+                            "PROFESSIONAL",
+                            "UNSPECIFIED"
+                          ]
+                        },
+                        "minItems": 1,
+                        "maxItems": 20,
+                        "uniqueItems": true
+                      }
                     ]
                   },
                   "style": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 60
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 60,
+                        "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 1,
+                        "maxItems": 20,
+                        "uniqueItems": true
+                      }
+                    ]
                   },
                   "service": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 60
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 60,
+                        "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 1,
+                        "maxItems": 20,
+                        "uniqueItems": true
+                      }
+                    ]
                   },
                   "location": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 60
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 60,
+                        "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 1,
+                        "maxItems": 20,
+                        "uniqueItems": true
+                      }
+                    ]
                   },
                   "language": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 60
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 60,
+                        "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 1,
+                        "maxItems": 20,
+                        "uniqueItems": true
+                      }
+                    ]
                   },
                   "industryCode": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 60
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 60,
+                        "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 1,
+                        "maxItems": 20,
+                        "uniqueItems": true
+                      }
+                    ]
                   },
                   "workTypeCode": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 60
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 60,
+                        "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 1,
+                        "maxItems": 20,
+                        "uniqueItems": true
+                      }
+                    ]
                   },
                   "status": {
                     "type": "string",

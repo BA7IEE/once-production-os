@@ -73,15 +73,15 @@ function CreateShortlist({ onClose, onDone }: { onClose: () => void; onDone: (id
 }
 
 export function AddCandidate({ person, list, catalog, onClose, onDone }: {
-    person: Pick<TalentSearchPerson, 'id' | 'displayName' | 'roles'>;
+    person: Pick<TalentSearchPerson, 'id' | 'displayName' | 'roles'> & {personRoleId?:string|null;allowedRoleIds?:string[]};
     list: ShortlistDetail;
     catalog: CatalogItem[];
     onClose: () => void;
     onDone: () => void;
 }) {
     const profile = useLoad(() => read<TalentDetail>('td2.person.get', { id: person.id }), person.id);
-    const [roleId, setRoleId] = useState('');
-    const roles = profile.data?.facts.personRoles.filter(r => r.usable) ?? [];
+    const [roleId, setRoleId] = useState(person.personRoleId??'');
+    const roles = profile.data?.facts.personRoles.filter(r => r.usable&&(!person.allowedRoleIds||person.allowedRoleIds.includes(r.id))) ?? [];
     const role = roles.find(r => r.id === roleId);
     const production = useLoad(() => read<PersonProduction>('person.production', { id: person.id }, { page: '1', pageSize: '100' }), person.id);
     const [workId, setWorkId] = useState(''), [selectedAssets, setSelectedAssets] = useState<string[]>([]), [note, setNote] = useState('');
@@ -219,11 +219,11 @@ export function ShortlistWorkbench({ me, catalog }: { me: Me; catalog: CatalogIt
             setSelectedListId(lists.data.items[0]?.id ?? null);
     }, [lists.data, selectedListId]);
 
-    const [candidate,setCandidate]=useState<Pick<TalentSearchPerson,'id'|'displayName'|'roles'>|null>(null),[detailTick,setDetailTick]=useState(0),[personId,setPersonId]=useState<string|null>(null),[advanced,setAdvanced]=useState(false),[production,setProduction]=useState<Selection|null>(null);
+    const [candidate,setCandidate]=useState<(Pick<TalentSearchPerson,'id'|'displayName'|'roles'>&{personRoleId:string|null;allowedRoleIds:string[]})|null>(null),[detailTick,setDetailTick]=useState(0),[personId,setPersonId]=useState<string|null>(null),[advanced,setAdvanced]=useState(false),[production,setProduction]=useState<Selection|null>(null);
     const selectedList = useLoad(() => selectedListId ? read<ShortlistDetail>('shortlist.get', { id: selectedListId }) : Promise.resolve(null), (selectedListId ?? 'none') + ':' + detailTick);
     return <><PageTitle overline="INTERNAL CASTING DESK" title="候选工作台" description="按当前内部事实检索人才，建立协作清单并挑选署名作品与作品图。这里没有客户分享、报价、档期锁定或预订状态。" action={canWrite ? <button className="primary" onClick={() => setCreating(true)}>＋ 新建清单</button> : undefined}/>
         <section className="panel padded"><div className="sl-list-bar"><strong>当前清单</strong><div>{lists.data?.items.map(list => <button key={list.id} className={selectedListId === list.id ? 'selected' : ''} onClick={() => { setSelectedListId(list.id); setDetailTick(x => x + 1); }}>{list.title}<small>版本 {list.revision}</small></button>)}</div></div><ErrorBox error={lists.error}/>{!lists.busy && !lists.data?.items.length && <p className="muted">还没有候选清单。先建立一个内部清单，再从检索结果加入人才。</p>}</section>
-        {personId?<TalentDirectoryDetail id={personId} me={me} catalog={catalog} onClose={()=>setPersonId(null)} onAdvanced={()=>setAdvanced(true)} onProduction={setProduction}/>:<TalentDirectory surface="candidate" me={me} catalog={catalog} onOpen={setPersonId} onPick={canWrite&&selectedListId?person=>setCandidate({id:person.id,displayName:person.displayName,roles:person.roles.map(r=>r.roleCode)}):undefined}/>}
+        {personId?<TalentDirectoryDetail id={personId} me={me} catalog={catalog} onClose={()=>setPersonId(null)} onAdvanced={()=>setAdvanced(true)} onProduction={setProduction}/>:<TalentDirectory surface="candidate" me={me} catalog={catalog} onOpen={setPersonId} onPick={canWrite&&selectedListId?(person,context)=>setCandidate({id:person.id,displayName:person.displayName,roles:person.roles.map(r=>r.roleCode),personRoleId:context.personRoleId,allowedRoleIds:person.matchingRoleIds}):undefined}/>}
         {advanced&&personId&&<TalentWorkbench personId={personId} me={me} catalog={catalog} onClose={()=>setAdvanced(false)} onChange={()=>setDetailTick(t=>t+1)}/>}
         {production&&<ProductionDetail selection={production} me={me} catalog={catalog} onClose={()=>setProduction(null)} onNavigate={setProduction}/>}
         {selectedListId && <ShortlistDetailPanel key={selectedListId + ':' + detailTick} id={selectedListId} catalog={catalog} onChanged={() => { setListTick(x => x + 1); setDetailTick(x => x + 1); }}/>}

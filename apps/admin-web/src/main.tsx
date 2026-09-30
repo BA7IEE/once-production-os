@@ -1,3 +1,4 @@
+import {bindDirectoryIdentity,navigateDirectoryPath} from './directory-state.ts';
 import {TalentDirectory,clearDirectoryMemory} from './talent-directory.tsx';
 import {TalentDirectoryDetail} from './talent-directory-detail.tsx';
 import {PendingCommands} from './pending-ui.tsx';
@@ -41,14 +42,14 @@ function App() {
     const [checking, setChecking] = useState(true);
     const [initialError, setInitialError] = useState<unknown>(null);
     const [active, setActive] = useState(routePage());
-    const navigate=(key:string)=>{history.pushState({},'',pagePath(key));setActive(key);window.dispatchEvent(new PopStateEvent('popstate'));};
+    const navigate=(key:string)=>{navigateDirectoryPath(pagePath(key));setActive(key);window.dispatchEvent(new PopStateEvent('popstate'));};
     useEffect(()=>{const pop=()=>setActive(routePage());window.addEventListener('popstate',pop);return()=>window.removeEventListener('popstate',pop);},[]);
     const [deletionPerson, setDeletionPerson] = useState<HistoricalIdentity | null>(null);
     const [catRefresh, setCatRefresh] = useState(0);
     const [handoffPerson, setHandoffPerson] = useState<string | null>(null);
     useEffect(() => {
-        read<Me>('identity.me').then(setMe).catch(e => {
-            if (e.status !== 401)
+        read<Me>('identity.me').then(value=>{bindDirectoryIdentity(value);setMe(value);}).catch(e => {
+            clearDirectoryMemory();if (e.status !== 401)
                 setInitialError(e);
         }).finally(() => setChecking(false));
         const expire = () => { setMe(null); setDeletionPerson(null); clearDirectoryMemory(); suspendTransport(); };
@@ -61,7 +62,7 @@ function App() {
     if (checking)
         return <main className="boot">正在连接 ONCE…</main>;
     if (!me)
-        return <Auth initialError={initialError} onLogin={async () => { setMe(await read<Me>('identity.me')); setInitialError(null); navigate('dashboard'); }}/>;
+        return <Auth initialError={initialError} onLogin={async () => { const identity=await read<Me>('identity.me');bindDirectoryIdentity(identity);setMe(identity); setInitialError(null); navigate('dashboard'); }}/>;
     const pages = [['dashboard', '概览', '◈'], ...((me.permissions.includes('ai.use')||me.permissions.includes('sources.review'))?[['ai','AI 辅助整理','✧']]:[]), ['people', '人才档案', '◎'], ...(me.permissions.includes('data.merge') ? [['merges', '人才合并', '⇉']] : []), ['shortlists', '候选工作台', '◇'], ['works', '作品库', '▧'], ['projects', '项目库', '▦'], ['handoffs', '资料交接', '⇄'], ...(me.permissions.includes('assets.read') ? [['media', '私有图片', '▧']] : []), ...(me.permissions.includes('sources.read') ? [['sources', '资料来源', '▤']] : []), ...(me.permissions.includes('records.write') ? [['imports', '批量导入', '↥']] : []), ...((me.permissions.includes('data.export') || me.permissions.includes('sources.review')) ? [['exports', '内部导出', '⇩']] : []), ...(me.permissions.includes('data.delete') ? [['deletions', '删除影响评估', '⚠']] : []), ...(me.permissions.includes('members.manage') ? [['members', '成员与范围', '▦']] : []), ...(me.permissions.includes('catalog.manage') ? [['catalog', '分类字典', '⋮']] : []), ...(me.permissions.includes('audit.read') ? [['audit', '操作记录', '≡']] : [])];
     return <Ctx.Provider value={{ me, catalog: catalogs.data?.items ?? [], refreshCatalog: () => setCatRefresh(x => x + 1) }}><div className="shell"><aside className="sidebar"><div className="brand">ONCE<span>PRODUCTION OS</span></div><div className="workspace-label"><i />内部工作空间</div><nav>{[['日常业务',['dashboard','people','shortlists','works','projects']],['高级管理',['ai','merges','handoffs','media','sources','imports','exports','deletions','members','catalog','audit']]].map(([group,keys])=><div className="nav-group" key={String(group)}><small>{group}</small>{pages.filter(p=>(keys as string[]).includes(p[0]!)).map(([key, name, icon]) => <button key={key} className={active === key ? 'selected' : ''} onClick={() => { setDeletionPerson(null); navigate(key!); }}><span className="nav-icon">{icon}</span>{name}</button>)}</div>)}</nav><div className="sidebar-foot"><div className="avatar">{me.displayName.slice(0, 1)}</div><div><strong>{me.displayName}</strong><small>{labels[me.role]}</small></div><button aria-label="账号设置" className="account-button" onClick={() => navigate('account')}>⚙</button></div></aside><div className="main"><header className="topbar"><span>制作资源 / {pages.find(p => p[0] === active)?.[1] ?? '账号设置'}</span><div><span className="internal-chip">仅内部使用</span><span className="version">开发增量 01</span></div></header><main className="content"><PendingCommands/><ErrorBox error={catalogs.error}/>{active === 'dashboard' ? <Dashboard onPeople={() => navigate('people')}/> : active === 'ai' ? <AiWorkspace me={me}/> : active === 'people' ? <People /> : active === 'merges' ? <PersonMergePanel me={me} onReviewDeletion={p => { setDeletionPerson(p); navigate('deletions'); }}/> : active === 'shortlists' ? <ShortlistWorkbench me={me} catalog={catalogs.data?.items ?? []}/> : active === 'works' ? <ProductionPanel key="works" kind="work" me={me} catalog={catalogs.data?.items ?? []}/> : active === 'projects' ? <ProductionPanel key="projects" kind="project" me={me} catalog={catalogs.data?.items ?? []}/> : active === 'media' ? <MediaPanel me={me}/> : active === 'sources' ? <Sources /> : active === 'imports' ? <Imports /> : active === 'exports' ? <ExportPanel me={me}/> : active === 'deletions' ? <DeletionImpactPanel me={me} initialPerson={deletionPerson}/> : active === 'handoffs' ? <HandoffInbox onOpen={setHandoffPerson}/> : active === 'members' ? <Members /> : active === 'catalog' ? <Catalog /> : active === 'audit' ? <Audits /> : <Account onLogout={() => { setMe(null); setDeletionPerson(null); clearDirectoryMemory(); suspendTransport(); }}/>}{handoffPerson && <PersonDetail id={handoffPerson} onClose={() => setHandoffPerson(null)} onChange={() => { }}/>}</main></div></div></Ctx.Provider>;
 }
@@ -119,7 +120,7 @@ function City({ value, onChange }: {
 }) { const { catalog } = useOS(); return <select value={value} onChange={e => onChange(e.target.value)}><option value="">未确认</option>{catalog.filter(c => c.namespace === 'city' && (c.status === 'ACTIVE' || c.code === value)).map(c => <option key={c.id} value={c.code}>{c.labelZh}{c.status === 'INACTIVE' ? '（停用）' : ''}</option>)}</select>; }
 function People() {
  const {me,catalog,can}=useOS();const [id,setId]=useState<string|null>(location.pathname.startsWith('/talents/')?location.pathname.split('/')[2]!:null),[creating,setCreating]=useState(false),[advanced,setAdvanced]=useState(false),[tick,setTick]=useState(0),[production,setProduction]=useState<Selection|null>(null);
- const open=(id:string|null)=>{setId(id);history.pushState(null,'',id?'/talents/'+id:'/talents');};
+ const open=(id:string|null)=>{setId(id);navigateDirectoryPath(id?'/talents/'+id:'/talents');};
  useEffect(()=>{const back=()=>setId(location.pathname.startsWith('/talents/')?location.pathname.split('/')[2]!:null);window.addEventListener('popstate',back);return()=>window.removeEventListener('popstate',back);},[]);
  return <>{id?<TalentDirectoryDetail key={id} id={id} me={me} catalog={catalog} refreshVersion={tick} onClose={()=>{open(null);setTick(t=>t+1);}} onAdvanced={()=>setAdvanced(true)} onProduction={setProduction}/>:<TalentDirectory me={me} catalog={catalog} tick={tick} onOpen={open} onCreate={can('records.write')?()=>setCreating(true):undefined}/>}
  {creating&&<TalentIntake catalog={catalog} canChooseSource={can('sources.read')} onClose={()=>setCreating(false)} onSaved={id=>{setCreating(false);open(id);setTick(t=>t+1);}}/>}

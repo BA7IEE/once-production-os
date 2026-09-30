@@ -1,11 +1,11 @@
 {
   "status": "PASSED",
   "database": "PostgreSQL 14.19 (Homebrew) on aarch64-apple-darwin24.4.0, compiled by Apple clang version 17.0.0 (clang-1700.0.13.3), 64-bit",
-  "profileId": "07a4c22e-7620-4e10-a6e4-5d2f031a259f",
-  "modelRoleId": "fec4f323-8334-40b3-9f1e-77f5da9467f8",
-  "measurementId": "fc903aff-065b-4fd3-8f24-738653decf94",
-  "coverAssetId": "5727259f-9c0b-43f5-846a-381ad305717d",
-  "canonicalPersonId": "0cd976bd-6d1d-4f14-920d-fea3fd60f36a",
+  "profileId": "a6c1f21d-9135-4ed8-80b3-519551f9a026",
+  "modelRoleId": "0f9c43c8-fd85-4e24-8222-4c56b9bfeaba",
+  "measurementId": "f9ab61e5-b00d-45e2-b887-462402fa10ab",
+  "coverAssetId": "f70a8576-6375-417c-bc65-fac95b0b6ea1",
+  "canonicalPersonId": "b69bdc41-d4e9-43fe-ad1f-e80d1003171b",
   "checks": [
     "persisted-new-fields",
     "stale-export",
@@ -16,6 +16,13 @@
     "asset-erasure-clears-cover",
     "sql-reference-parity",
     "withdrawn-source-queries",
-    "actual-pg-dump-restore-new-fields-and-cover"
+    "actual-pg-dump-restore-new-fields-and-cover",
+    "multi-value OR / cross-dimension AND",
+    "strict bounded arrays and unknown codes",
+    "eleven self-excluded unique-person facets",
+    "same-work same-role matching",
+    "versioned conservative age presets",
+    "memory and SQL parity",
+    "explicit shortlist role and wrong-role work rejection"
   ]
 }

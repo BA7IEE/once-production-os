@@ -1,3 +1,4 @@
+import {verifyDirectoryFinalization} from '../support/talent-directory-finalization.ts';
 import {spawnSync} from 'node:child_process';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -24,6 +25,7 @@ test('PR01b real PostgreSQL new fields, private cover, typed transfer, recovery,
  for(const model of ['talentProfile','personRole','measurementSet','castingProfile','mediaAsset','fieldEvidence','commandReceipt'] as const)assert.deepEqual(await restored.client[model].findMany({orderBy:{id:'asc'}} as never),await stores[1]!.client[model].findMany({orderBy:{id:'asc'}} as never),model+' physical restore');
  result.checks.push('actual-pg-dump-restore-new-fields-and-cover');
  }finally{await restored.close();}
+const finalization=await verifyDirectoryFinalization(contexts[0]!);result.checks.push(...finalization.checks);
 const versions=await stores[0]!.client.$queryRawUnsafe<any[]>('SELECT version()');await mkdir('artifacts/talent-experience-pr01b',{recursive:true});await writeFile('artifacts/talent-experience-pr01b/postgres-lifecycle.json',JSON.stringify({status:'PASSED',database:versions[0].version,...result},null,2)+'\n');console.log('PASS PR01b PostgreSQL: '+result.checks.join(', '));
  }finally{for(const store of stores)await store.close();await rm(root,{recursive:true,force:true});}
 });

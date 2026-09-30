@@ -1,6 +1,6 @@
 import type { Actor, Clock, Config } from './model.ts';
 import type { Tx } from './store.ts';
-import { v, revision, uuid } from './validation.ts';
+import { v, revision, uuid, code, type Schema } from './validation.ts';
 import { invariant } from './errors.ts';
 import { TalentV2 } from './talent-v2.ts';
 import { TALENT_SCHEMA_VERSION } from './talent-v2-model.ts';
@@ -29,4 +29,8 @@ export async function updateTalentDirectory(tx:Tx,actor:Actor,id:string,input:un
  return person;
 }
 
-export const DirectoryQuerySchema=v.object({q:v.optional(v.string(160)),mode:v.optional(v.enum(['ALL','TALENT','CONTACT'])),role:v.optional(v.string(60,1)),gender:v.optional(v.enum(['FEMALE','MALE','NON_BINARY','OTHER','UNKNOWN'])),nationality:v.optional(v.string(2,2,/^[A-Z]{2}$/)),market:v.optional(v.enum(['DOMESTIC','INTERNATIONAL','UNCLASSIFIED'])),experience:v.optional(v.enum(['AMATEUR','PROFESSIONAL','UNSPECIFIED'])),style:v.optional(v.string(60,1)),service:v.optional(v.string(60,1)),location:v.optional(v.string(60,1)),language:v.optional(v.string(60,1)),industryCode:v.optional(v.string(60,1)),workTypeCode:v.optional(v.string(60,1)),status:v.optional(v.enum(['DRAFT','ACTIVE','ARCHIVED'])),ageMin:v.optional(v.number(0,130)),ageMax:v.optional(v.number(0,130)),ageUnknown:v.optional(v.boolean()),heightMin:v.optional(v.number(40,260,false)),heightMax:v.optional(v.number(40,260,false)),page:v.optional(v.number(1,100000)),pageSize:v.optional(v.number(1,100))});
+/** Legacy scalar and bounded OR-array share one strict contract. Duplicate codes are rejected. */
+function selection<T extends string>(item:Schema<T>):Schema<T|T[]>{
+ const list=v.array(item,20,1);return {json:{anyOf:[item.json,{...list.json,uniqueItems:true}]},parse(value,path){if(!Array.isArray(value))return item.parse(value,path);const parsed=list.parse(value,path);invariant(new Set(parsed).size===parsed.length,'DUPLICATE_FILTER_CODE','同一筛选维度不能重复选项',400);return parsed;}};
+}
+export const DirectoryQuerySchema=v.object({q:v.optional(v.string(160)),mode:v.optional(v.enum(['ALL','TALENT','CONTACT'])),role:v.optional(selection(code)),gender:v.optional(selection(v.enum(['FEMALE','MALE','NON_BINARY','OTHER','UNKNOWN']))),nationality:v.optional(selection(v.string(2,2,/^[A-Z]{2}$/))),market:v.optional(selection(v.enum(['DOMESTIC','INTERNATIONAL','UNCLASSIFIED']))),experience:v.optional(selection(v.enum(['AMATEUR','PROFESSIONAL','UNSPECIFIED']))),style:v.optional(selection(code)),service:v.optional(selection(code)),location:v.optional(selection(code)),language:v.optional(selection(code)),industryCode:v.optional(selection(code)),workTypeCode:v.optional(selection(code)),status:v.optional(v.enum(['DRAFT','ACTIVE','ARCHIVED'])),ageMin:v.optional(v.number(0,130)),ageMax:v.optional(v.number(0,130)),ageUnknown:v.optional(v.boolean()),heightMin:v.optional(v.number(40,260,false)),heightMax:v.optional(v.number(40,260,false)),page:v.optional(v.number(1,100000)),pageSize:v.optional(v.number(1,100))});

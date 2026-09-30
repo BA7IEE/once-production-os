@@ -75,3 +75,17 @@ INTERNAL_SOURCE、TALENT_SUBMISSION、AGENT_SUBMISSION 显式上下文；真实 
 | 独立会话/挑战/身份hash/消息密钥、邮件短信provider与凭证/发送人/模板/预算 | 无默认secret/provider；未配置不发送，PROVIDER_NOT_VERIFIED | 02 |
 
 价格、身份、秘密查询不写普通日志；配置校验错误不得输出secret。声明时间取服务器真实接收，测量日期未知则UNKNOWN，不写今日伪日期。
+
+## PR-01b finalization · 查询与导航合同（2026-10-01）
+
+`POST /directory/talents/search` 返回 `queryVersion=once-talent-directory-query-v1.1`，TD2 读事实仍为 2.1。role、gender、nationality、market、experience、style、service、location、language、industryCode、workTypeCode 接受旧字符串或 1–20 个值的数组；重复值、未知/停用字典代码、非法枚举及未知字段均拒绝。正常 UI 只发送数组。数组内 OR，维度间 AND；角色业务条件与作品职业绑定，同一 WorkCredit/Work 满足行业与作品类型。前端只请求一次，内存参考、Prisma SQL 初筛、最终权限匹配、候选查询共用语义。
+
+十一维 facet 对当前维度去除全部已选值，保留其他条件，对每个选项计算可见的唯一 Person 数；多职业、多标签、多作品不重复计人。响应包含 roles/genders/nationalities/markets/experiences/styles/services/locations/languages/industries/workTypes，全部在 UI 展示计数。
+
+产品配置 `DIRECTORY_AGE_PRESETS` / `age-presets-v1` 统一采用儿童 0–17、18–24、25–34、35–49、50–130，加自定义范围。此处按本轮确认的年龄快捷入口细化原规范的建议分组，名称仅为查询预设，不写人物分类。最终发送 ageMin/ageMax；YEAR_ONLY、DECLARED_RANGE 保留整个可能区间，UNKNOWN 不进入任何明确区间，不影响成年资格。
+
+`history.state` 仅保存白名单查询草稿/已应用条件、页码、surface、Person ID + nullable PersonRole ID 和明确职业选择；不保存 DTO、联系方式、来源正文、明文生日、价格、备注或任何认证凭证。`GET /me.directoryStateScope` 是当前身份会话的不可用于认证的导航命名空间摘要；状态同时绑定 membershipId。退出、401、身份变化或同账号新会话均清除当前条目或拒绝历史条目；其他历史条目再返回时复核绑定。每次恢复重新请求当前权限数据。localStorage/sessionStorage 门禁不变。
+
+候选保存 `{personId,personRoleId}`。普通联系人明确 null；仅一个有效职业可直接绑定，多职业必须显式选择，查询只允许满足当前职业/业务/作品条件的 matchingRoleIds。两个职业可分别选择同一人，进入既有 Shortlist 时复查当前职业版本和署名作品，不建立第二套候选模型。
+
+本轮无数据库 schema 变化或新迁移，既有第 55 次迁移冻结。PR #29 保持 Draft；PR-02 及邀请、认领、门户、多来源上传、分享、官网发布未启动。

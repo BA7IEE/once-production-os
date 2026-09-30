@@ -428,7 +428,7 @@ export class Application {
                     case 'asset.list': return this.media.listAssets(tx, actor, query);
                     case 'asset.get': return this.media.getAsset(tx, actor, id);
                     case 'asset.quarantine': return command('asset', () => this.media.quarantine(tx, actor, id, data));
-                    case 'identity.me': return { membershipId: actor.membershipId, displayName: actor.displayName, role: actor.role, permissions: actor.permissions, mediaEnabled: this.config.mediaEnabled === true, workspaceName: (await tx.get('workspaces', actor.workspaceId))?.name ?? 'ONCE', csrfToken: csrfFor(token, this.config.csrfKey), version: '0.1.0-dev.1' };
+                    case 'identity.me': return { directoryStateScope: digest({purpose:'directory-state-v1',sessionId:actor.sessionId}), membershipId: actor.membershipId, displayName: actor.displayName, role: actor.role, permissions: actor.permissions, mediaEnabled: this.config.mediaEnabled === true, workspaceName: (await tx.get('workspaces', actor.workspaceId))?.name ?? 'ONCE', csrfToken: csrfFor(token, this.config.csrfKey), version: '0.1.0-dev.1' };
                     case 'dashboard.get': return this.dashboard(tx, actor);
                     case 'member.list': return this.identity.listMembers(tx, actor, query);
                     case 'member.create': return this.identity.createMember(tx, actor, data, meta);

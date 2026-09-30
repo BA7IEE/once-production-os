@@ -1,3 +1,7 @@
+# 2026-10-01 PR-01b finalization
+
+仅继续 PR #29 的同维度多选 OR、完整 11 维 facet、版本化年龄预设、安全刷新恢复和 Person+Role 候选选择。保持 Draft，不进入 PR-02；55 次迁移均冻结，本轮无新增 schema。查询与导航合同见 docs/spec/16_TALENT_EXPERIENCE_CONTRACT.md 末节，实际证据见 docs/release/TALENT_EXPERIENCE_PR01B.md。本轮最终 head 的 CI 才能证明本轮完成。
+
 # 2026-09-30 PR-01b 当前范围
 
 当前基线 main=aa2ab9f（PR #28 已合并，六项 CI SUCCESS）。本轮按用户要求完成 PR-01b，先读 docs/release/TALENT_EXPERIENCE_PR01B.md；下方 PR-01a 是历史交付记录。新增第55次前向迁移，前54次不改写。日常目录/候选使用同一 POST 查询与单一主详情；快速建档继续复用已合并实现。所有新增事实须同步权限、证据、导出重建、删除、合并和恢复。后续邀请/门户/多来源上传/分享/官网不预建菜单。生产迁移、部署未获本轮授权。
