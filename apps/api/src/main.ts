@@ -93,7 +93,7 @@ async function main() {
     const assets = join(process.cwd(), 'dist/web');
     if (existsSync(assets)) {
         server.use(express.static(assets, { index: false, maxAge: 0, fallthrough: true, setHeaders: (res) => res.setHeader('Cache-Control', 'no-cache') }));
-        server.get(['/', '/activate'], (_req, res) => res.set('Cache-Control', 'no-store').sendFile('index.html', { root: assets }));
+        server.get(['/', '/activate','/talents','/talents/:id','/workspace/:page'], (_req, res) => res.set('Cache-Control', 'no-store').sendFile('index.html', { root: assets }));
     }
     app.enableShutdownHooks();
     const port = Number(process.env.PORT ?? 4318);

@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [browser-resume, browser-handoff, browser-media, browser-production, postgres-contract]
+        suite: [browser-resume, browser-handoff, browser-media, browser-production, browser-talent-directory, postgres-contract]
     services:
       postgres:
         image: postgres:16

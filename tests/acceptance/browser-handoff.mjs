@@ -87,6 +87,7 @@ try {
     const sourceBefore = await prisma.sourceRecord.findUniqueOrThrow({ where: { id: person.sourceId } });
     const scopesBefore = await prisma.scopeMember.findMany({ orderBy: { id: 'asc' } });
     const sibling = await cmd(sender, 'POST', '/people', { displayName: 'H1同来源但未交接的人才', roles: ['model'], sourceId: person.sourceId }, 201);
+    await sender.locator('summary').filter({hasText:'高级管理：来源、依据、历史与权限'}).click();await sender.getByRole('button',{name:'打开高级管理',exact:true}).click();
     await sender.getByRole('button', { name: '交给指定同事', exact: true }).click();
     await sender.getByLabel('接收同事').selectOption(recipientMember.id);
     await sender.getByRole('checkbox', { name: /我已检查基本字段/ }).check();

@@ -1,7 +1,10 @@
+import type {DirectoryDatabaseQuery,DirectoryDatabaseResult} from './talent-directory-query.ts';
 import type { Table, TableMap } from './model.ts';
 import type { TalentQueryFilters, TalentQueryResult } from './search-query-model.ts';
 /** A short database transaction. All implementations must atomically commit or roll back. */
 export interface Tx {
+    talentDirectoryQuery(input:DirectoryDatabaseQuery):Promise<DirectoryDatabaseResult>;
+    findIn<K extends Table>(table:K,workspaceId:string,field:keyof TableMap[K],ids:string[]):Promise<TableMap[K][]>;
     get<K extends Table>(table: K, id: string): Promise<TableMap[K] | null>;
     find<K extends Table>(table: K, where?: Partial<TableMap[K]>): Promise<TableMap[K][]>;
     insert<K extends Table>(table: K, row: TableMap[K]): Promise<void>;

@@ -38,6 +38,6 @@ export async function proofTransfer(f:{app:Application;store:Store;clock:FakeClo
     const job=ok(await f.owner.cmd('POST','/exports',input),202).resourceId as string;
     const exportClaim=await f.app.exports.claim();assert.ok(exportClaim);await f.app.exports.process(exportClaim);
     const download=ok(await f.owner.raw('POST',`/exports/${job}/download`,{}),200);
-    assert.equal(download.payload.manifest.talent.schemaVersion,'once-talent-transfer-v14');
+    assert.equal(download.payload.manifest.talent.schemaVersion,'once-talent-transfer-v15');
     return {...t,graph:{...t.graph,credentialId},input,jobId:job,download,asset,provider,actor,original,preview};
 }

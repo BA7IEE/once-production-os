@@ -1,3 +1,4 @@
+import { DEMOGRAPHIC_FIELDS, PROFILE_DEFAULTS } from './talent-demographics.ts';
 import type {Actor,Clock,TableMap} from './model.ts';
 import type {Tx} from './store.ts';
 import {v,uuid,revision,dateIso,code} from './validation.ts';
@@ -9,7 +10,7 @@ import {TALENT_OWNER_EMPTY,TALENT_FACT_TABLES} from './talent-v2-model.ts';
 import {PERSON_MERGE_FIELDS} from './merge-model.ts';
 import type {TalentTransfer} from './talent-transfer.ts';
 export const MERGE_HISTORY_CODE='person.td2.mergeHistory' as const;
-export const MERGE_ERASURE_VERSION='once-talent-transfer-v14' as const;
+export const MERGE_ERASURE_VERSION='once-talent-transfer-v15' as const;
 const stamp={id:uuid,revision,createdAt:dateIso,updatedAt:dateIso};
 const hash=v.string(64,64,/^[a-f0-9]{64}$/),count=v.number(0);
 const originalReview=v.nullable(v.object({workspaceId:uuid,membershipId:uuid,reviewedAt:dateIso}));
@@ -27,7 +28,7 @@ const decisionFields={...stamp,origin:v.object({workspaceId:uuid,membershipId:uu
 const decision=v.object(decisionFields);
 const alias=v.object({...stamp,oldPersonId:uuid,canonicalPersonId:uuid,mergeDecisionId:uuid});
 const profileBase={...stamp,personId:uuid,sourceId:uuid,supersededById:uuid};
-const talent=v.object({...profileBase,internalSummary:v.string(5000),status:v.enum(['ACTIVE','INACTIVE'])});
+const talent=v.object({...profileBase,...Object.fromEntries(DEMOGRAPHIC_FIELDS.map(k=>[k,v.optional(fieldSchema(TD2_FACTS.talentProfiles.fields[k],k))])),internalSummary:v.string(5000),status:v.enum(['ACTIVE','INACTIVE'])});
 const casting=v.object({...profileBase,hairColorCode:fieldSchema(TD2_FACTS.castingProfiles.fields.hairColorCode,'hairColorCode'),eyeColorCode:fieldSchema(TD2_FACTS.castingProfiles.fields.eyeColorCode,'eyeColorCode'),appearanceObservedOn:fieldSchema(TD2_FACTS.castingProfiles.fields.appearanceObservedOn,'appearanceObservedOn'),currentMeasurementSetId:v.nullable(uuid),retiredCurrentMeasurementSetId:v.nullable(uuid)});
 const evidence=v.object({...stamp,ownerKind:v.enum(['talentProfiles','castingProfiles']),ownerId:uuid,fieldPath:v.string(160,1),valueDigest:hash,sourceId:uuid,sourceRevision:revision,originalReview});
 export const MergeHistorySchema=v.object({people:v.array(historyPerson,100),aliases:v.array(alias,100),decisions:v.array(decision,100),talentProfiles:v.array(talent,100),castingProfiles:v.array(casting,100),evidence:v.array(evidence,500)});
@@ -36,7 +37,7 @@ const anyHistoryPerson:import('./validation.ts').Schema<ReturnType<typeof histor
 const historyErasure=v.object({...stamp,mergeDecisionId:uuid,personId:uuid,sourceId:uuid,recordKind:v.enum(['PERSON','TALENT_PROFILE','CASTING_PROFILE']),recordStatusBefore:v.nullable(v.enum(['ARCHIVED','ERASED'])),recordId:uuid,recordRevision:revision,recordCreatedAt:dateIso,recordUpdatedAt:dateIso,supersededById:v.nullable(uuid),retiredMeasurementSetId:v.nullable(uuid),erasedAt:dateIso,origin:v.object({workspaceId:uuid,requestId:uuid,membershipId:uuid})});
 export const ErasedMergeHistorySchema=v.object({people:v.array(anyHistoryPerson,100),aliases:v.array(alias,100),decisions:v.array(v.object({...decisionFields,reasonErasedAt:v.optional(v.nullable(dateIso))}),100),talentProfiles:v.array(talent,100),castingProfiles:v.array(casting,100),evidence:v.array(evidence,500),erasures:v.array(historyErasure,300)});
 type LegacyMergeHistory=ReturnType<typeof MergeHistorySchema.parse>;
-export type MergeHistory=Omit<LegacyMergeHistory,'people'|'decisions'>&{people:Array<ReturnType<typeof anyHistoryPerson.parse>>;decisions:Array<LegacyMergeHistory['decisions'][number]&{reasonErasedAt?:string|null}>;erasures?:Array<ReturnType<typeof historyErasure.parse>>};
+export type MergeHistory=Omit<LegacyMergeHistory,'people'|'decisions'|'talentProfiles'>&{talentProfiles:Array<LegacyMergeHistory['talentProfiles'][number]&{coverAssetId?:string|null}>;people:Array<ReturnType<typeof anyHistoryPerson.parse>>;decisions:Array<LegacyMergeHistory['decisions'][number]&{reasonErasedAt?:string|null}>;erasures?:Array<ReturnType<typeof historyErasure.parse>>};
 export async function collectMergeHistory(tx:Tx,actor:Actor,clock:Clock,peopleIds:string[],bundle:TalentTransfer,withEvidence:boolean):Promise<MergeHistory> {
  requirePermission(actor,'data.merge');requirePermission(actor,'sources.review');
  for(const id of peopleIds)await personFor(tx,actor,id,clock);
@@ -59,6 +60,7 @@ export async function collectMergeHistory(tx:Tx,actor:Actor,clock:Clock,peopleId
    invariant(row.supersededById&&bundle.tables[table]?.some(r=>r.id===row.supersededById&&r.personId===a.canonicalPersonId),'MERGE_HISTORY_CURRENT_REQUIRED','保留主档案必须与当前对应档案一起导出',422);
    await sourceFor(tx,actor,row.sourceId,clock);
    const projected=graph.project(table,{...row,personId:a.canonicalPersonId} as unknown as FactRow);invariant(projected&&(projected.unavailableFields as string[]).length===0,'MERGE_HISTORY_RESTRICTED','保留主档案有不可读字段',409);
+   if(table==='talentProfiles'&&'birthDate' in row&&row.birthDate!=null)requirePermission(actor,'sensitive.read');
    const schema=table==='talentProfiles'?talent:casting;
    output[table]!.push(schema.parse(Object.fromEntries(Object.keys(schema.json.properties as object).map(k=>[k,(row as unknown as Record<string,unknown>)[k]]))));
    const owner=TD2_FACTS[table].ownerKey,ev=graph.rows('evidence').filter(e=>(e as unknown as Record<string,unknown>)[owner]===row.id);

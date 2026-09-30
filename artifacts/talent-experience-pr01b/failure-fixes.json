@@ -1,0 +1,71 @@
+{
+  "failedRunsNotCountedAsPassing": true,
+  "fixes": [
+    {
+      "finding": "Populated upgrade expected no dictionary additions",
+      "fix": "Preserve every old dictionary ID and byte value; verify exactly 14 new entries in three new namespaces"
+    },
+    {
+      "finding": "New birthday export code absent from SOURCE permit eligibility and ordinary Person field exclusions",
+      "fix": "Add exact new code in source whitelist and keep birthday solely in restricted typed profile transfer; separate grants and target-member permission tests pass"
+    },
+    {
+      "finding": "Legacy 2.0 schema could accept new business fields",
+      "fix": "Explicit 2.0 field adapter rejects new demographic/model fields and unknown dates"
+    },
+    {
+      "finding": "Upload READY callback remounted entire detail and lost upload-another state",
+      "fix": "Refresh photos independently; unchanged real media/PDF/privacy browser assertions pass"
+    },
+    {
+      "finding": "Old candidate browser test selected hidden advanced filter",
+      "fix": "Open actual more-conditions section before selecting same DRAFT and industry/type values"
+    },
+    {
+      "finding": "Lifecycle helper hardcoded role revision before business field update",
+      "fix": "Read current role revision, retain same CAS checks"
+    },
+    {
+      "finding": "Pagination test interacted before second-page response rendered",
+      "fix": "Await the actual page-2 POST response and exact returned card, retain page/query/selection assertions"
+    },
+    {
+      "finding": "Multi-role facet could borrow model classification for actor count",
+      "fix": "Count each option through the same complete matching query; memory and real PostgreSQL parity assertions"
+    },
+    {
+      "finding": "Browser captured initial default response before combined query",
+      "fix": "Match the actual combined request body and wait for returned facet option"
+    },
+    {
+      "finding": "Obsolete required measurement-date label stopped CI browser production",
+      "fix": "Use current optional-date label, retain exact-day confirmation and history assertions"
+    },
+    {
+      "finding": "Legacy normal-search and locale entry selectors no longer matched unified navigation",
+      "fix": "Exercise unified directory and advanced editors; separately verify legacy machine query semantics"
+    },
+    {
+      "finding": "Duplicate refresh buttons caused ambiguity in readonly workbench assertion",
+      "fix": "Scope action to actual advanced modal and retain 404/source-revocation assertions"
+    },
+    {
+      "finding": "Export approval could submit before selected Work/Project source had loaded",
+      "fix": "Disable until matching selected owner and actual source are ready; complete original download and revocation assertions"
+    },
+    {
+      "finding": "Earlier local legacy-browser summary was read before full process completion",
+      "fix": "Corrected user update; replace evidence with complete exit-zero production log"
+    },
+    {
+      "finding": "Empty declared-age inputs converted to zero",
+      "fix": "Preserve null and verify clear action in real browser"
+    },
+    {
+      "finding": "Cloud media suite could submit before primary-detail source loaded; browser required an unrelated source choice",
+      "fix": "Wait for source readiness before rendering source-backed media form; actual browser holds source response, verifies loading state, then completes unchanged upload/replay/PDF/privacy assertions"
+    }
+  ],
+  "noSkippedTests": true,
+  "noIncreasedTimeouts": true
+}

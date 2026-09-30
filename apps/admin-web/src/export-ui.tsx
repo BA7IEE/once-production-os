@@ -8,6 +8,7 @@ import type { ExportFieldCode, ExportSubjectKind } from '../../../packages/core/
 import { ErrorBox, Field, Modal, PageTitle, Pager, Submit, Tag, date, useAction, useLoad } from './ui.tsx';
 
 const professionalFields: Array<[ExportFieldCode,string]> = [
+    ['person.td2.birthDate','完整出生日期（受限，须单独批准）'],
     ['person.td2.mergeHistory','合并保留资料（旧身份、主档案和决定）'],
     ['person.td2.adultEligibilities','2.0 成年资格与原核验归属（单独批准）'],
     ['person.td2.mediaCollections','2.0 媒体集合、图片顺序与说明'],
@@ -113,6 +114,7 @@ function PermissionForm({ resources, onClose, onDone }: { resources: ResourceSet
     return <Modal title="批准内部导出用途" onClose={onClose} wide><form onSubmit={e => { e.preventDefault(); void action.run(async () => {
             if(kind==='PERSON'&&(person.busy||person.data?.id!==subjectId))throw new Error('人物身份仍在核对，请稍后再提交');
             if(retainedOrigin&&!retentionBasisSourceId)throw new Error('请选择已登记完整身份字段证据的独立依据');
+            if(kind==='WORK'&&(work.busy||work.data?.id!==subjectId)||kind==='PROJECT'&&(project.busy||project.data?.id!==subjectId))throw new Error('对象来源仍在核对，请稍后再提交');
             if (!sourceId) throw new Error('对象来源尚未读取完成，请稍后再提交');
             if (!fields.length) throw new Error('至少选择一个允许导出的字段');
             await call('usePermission.create', {
@@ -136,7 +138,7 @@ function PermissionForm({ resources, onClose, onDone }: { resources: ResourceSet
                 <Field label="审批依据" hint="说明为什么这份资料允许做内部 JSON 导出；不要粘贴完整敏感原文。"><textarea required minLength={4} maxLength={2000} rows={4} value={evidenceNote} onChange={e => setEvidenceNote(e.target.value)}/></Field>
                 {sourceId && <p className="muted">来源 ID：{sourceId}</p>}
             </div>
-            <footer className="modal-footer"><button type="button" onClick={onClose} disabled={action.busy}>取消</button><Submit busy={action.busy||(kind==='PERSON'&&person.busy)}>批准用途</Submit></footer>
+            <footer className="modal-footer"><button type="button" onClick={onClose} disabled={action.busy}>取消</button><Submit busy={action.busy} disabled={!subjectId||!sourceId||(kind==='PERSON'&&(person.busy||person.data?.id!==subjectId))||(kind==='WORK'&&(work.busy||work.data?.id!==subjectId))||(kind==='PROJECT'&&(project.busy||project.data?.id!==subjectId))}>批准用途</Submit></footer>
         </form></Modal>;
 }
 

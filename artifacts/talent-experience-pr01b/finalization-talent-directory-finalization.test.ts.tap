@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: PR01b finalization OR/AND, complete facets, conservative presets and explicit candidate role
+ok 1 - PR01b finalization OR/AND, complete facets, conservative presets and explicit candidate role
+  ---
+  duration_ms: 501.108125
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 661.722375

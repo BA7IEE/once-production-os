@@ -1,6 +1,7 @@
 // Explicit presentation DTOs. Never import Prisma models into the browser.
 export interface Me {
     mediaEnabled?: boolean;
+    directoryStateScope?: string; // Noncredential identity-session namespace for safe navigation state.
     membershipId: string;
     displayName: string;
     role: 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'VIEWER';
@@ -23,7 +24,7 @@ export interface Receipt {
 }
 export interface CatalogItem {
     id: string;
-    namespace: 'role' | 'city' | 'language' | 'skill' | 'industry' | 'workType';
+    namespace: 'role' | 'city' | 'language' | 'skill' | 'industry' | 'workType' | 'nationality' | 'roleStyle' | 'roleService';
     code: string;
     labelZh: string;
     labelEn: string;

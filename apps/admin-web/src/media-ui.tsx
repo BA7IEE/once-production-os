@@ -30,7 +30,7 @@ const states: Record<string, string> = { OPEN: '等待文件', RECEIVING: '正�
 const errors: Record<string, string> = { IMAGE_REJECTED: '文件损坏或超过处理限制；图片请另存为静态图，视频请缩短或降低分辨率后重传', MEDIA_TYPE_INVALID: '真实类型与声明不符', MEDIA_CONTEXT_CHANGED: '来源或权限发生变化，请重新核对', UPLOAD_EXPIRED: '上传已过期', UPLOAD_INTERRUPTED: '文件未完整接收', MEDIA_DIGEST_INVALID: '文件校验不一致', MEDIA_IO_FAILED: '存储操作未完成，请联系维护人员' };
 const terminal = (s: string) => ['READY', 'FAILED', 'CANCELLED'].includes(s);
 const uncertain = (e: unknown) => e instanceof ApiError && e.unknownOutcome;
-export function MediaPanel({ me, personId, source, compact = false }: {
+export function MediaPanel({ me, personId, source, compact = false, onReady }: {
     me: Me;
     personId?: string;
     source?: {
@@ -38,6 +38,7 @@ export function MediaPanel({ me, personId, source, compact = false }: {
         revision: number;
     };
     compact?: boolean;
+    onReady?:()=>void;
 }) {
     const [refresh, setRefresh] = useState(0), [page, setPage] = useState(1), [selectedSource, setSource] = useState(source?.id ?? ''), [file, setFile] = useState<File | null>(null), [upload, setUpload] = useState<UploadDto | null>(null), [status, setStatus] = useState('');
     const createInput = useRef<Inputs['upload.create'] | null>(null), completeInput = useRef<{
@@ -56,8 +57,8 @@ export function MediaPanel({ me, personId, source, compact = false }: {
         const timer = setInterval(() => {
             void read<UploadDto>('upload.get', { id: upload.id }).then(u => { if (alive) {
                 setUpload(u);
-                if (terminal(u.state))
-                    setRefresh(x => x + 1);
+                if (terminal(u.state)){
+                    setRefresh(x => x + 1);if(u.state==='READY')onReady?.();}
             } }).catch(() => { if (alive)
                 setStatus('状态读取失败，请手动核对；不会自动重新上传。'); });
         }, 2000);

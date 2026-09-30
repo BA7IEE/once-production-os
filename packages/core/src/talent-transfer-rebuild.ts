@@ -1,9 +1,11 @@
+import { validateDemographics, PROFILE_DEFAULTS, ROLE_DEFAULTS } from './talent-demographics.ts';
 import {mediaByteLimit} from './media-model.ts';
 import {rekeyCredential,type CredentialRebuildKeys} from './credential-transfer-crypto.ts';
 import { TALENT_OWNER_EMPTY } from './talent-v2-model.ts';
 import { TD2_FACTS } from './talent-v2-schema.ts';
 import type { Actor, Clock, TableMap } from './model.ts';
 import type { Tx } from './store.ts';
+import {requirePermission} from './policy.ts';
 import { invariant } from './errors.ts';
 import { transferRows, TRANSFER_TABLES, validateTransferLinks, type TalentTransfer } from './talent-transfer.ts';
 
@@ -46,13 +48,17 @@ export async function validateTalentRebuild(tx: Tx, actor: Actor, clock: Clock, 
             invariant(!d.verifiedAt||Date.parse(String(d.verifiedAt))>=Date.parse(row.createdAt)&&Date.parse(String(d.verifiedAt))<=Date.parse(row.updatedAt),'TD2_TRANSFER_TIME_INVALID','原成年核验时间不合法',422);
             invariant(!d.verifiedAt||!d.validUntil||Date.parse(String(d.validUntil))>Date.parse(String(d.verifiedAt)),'ELIGIBILITY_VALIDITY_INVALID','成年资格截止必须晚于核验时间',422);
         }
+        if(table==='talentProfiles'){if(d.birthDate!=null)requirePermission(actor,'sensitive.write');validateDemographics(d,clock);for(const code of (d.nationalityCodes as string[]??[]))catalog('nationality',code);}
+        if(table==='personRoles'){for(const code of (d.styleCodes as string[]??[]))catalog('roleStyle',code);for(const code of (d.serviceCodes as string[]??[]))catalog('roleService',code);invariant(d.roleCode==='model'||d.castingMarketCode==='UNCLASSIFIED'&&d.experienceCode==='UNSPECIFIED'&&!(d.styleCodes as string[]).length&&!(d.serviceCodes as string[]).length,'MODEL_ROLE_REQUIRED','模特业务分类须属于模特职业',422);}
         if (table === 'measurementSets') {
-            invariant(String(d.measuredOn) <= clock.now().toISOString().slice(0,10), 'MEASUREMENT_FUTURE', '量尺日期不能在未来', 422);
+            invariant(d.reportedAt==null||Date.parse(String(d.reportedAt))>=Date.parse(row.createdAt)&&Date.parse(String(d.reportedAt))<=Date.parse(row.updatedAt),'TD2_TRANSFER_TIME_INVALID','量尺收录时间不合法',422);
+            invariant(d.datePrecision==='UNKNOWN'?d.measuredOn===null:typeof d.measuredOn==='string','MEASUREMENT_DATE_PRECISION','量尺日期和精度不一致',422);
+            invariant(d.measuredOn===null||String(d.measuredOn) <= clock.now().toISOString().slice(0,10), 'MEASUREMENT_FUTURE', '量尺日期不能在未来', 422);
             for (const key of ['shoe','clothing']) invariant((d[key+'SizeValue']===null)===(d[key+'SizeSystem']===null), 'SIZE_SYSTEM_REQUIRED', '尺码和体系必须同时存在', 422);
             invariant(['heightCm','bustCm','waistCm','hipsCm','shoeSizeValue','clothingSizeValue'].some(k=>d[k]!==null&&d[k]!==''), 'MEASUREMENT_EMPTY', '量尺记录不能为空', 422);
             if (d.supersedesId) {
                 const previous = bundle.tables.measurementSets.find(r=>r.id===d.supersedesId)!;
-                invariant(['CONFIRMED','SUPERSEDED'].includes(String(previous.data.status)) && String(previous.data.measuredOn)<=String(d.measuredOn), 'MEASUREMENT_PREDECESSOR_INVALID', '量尺历史状态或日期不合法', 422);
+                invariant(['CONFIRMED','SUPERSEDED'].includes(String(previous.data.status)) && (d.measuredOn==null||previous.data.measuredOn==null||String(previous.data.measuredOn)<=String(d.measuredOn)), 'MEASUREMENT_PREDECESSOR_INVALID', '量尺历史状态或日期不合法', 422);
             }
         }
         if (table === 'castingProfiles' && d.currentMeasurementSetId) invariant(bundle.tables.measurementSets.some(r=>r.id===d.currentMeasurementSetId&&r.data.status==='CONFIRMED'), 'CURRENT_MEASUREMENT_INVALID', '当前量尺必须是同人物已确认的记录', 422);

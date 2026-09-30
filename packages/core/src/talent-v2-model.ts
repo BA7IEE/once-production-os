@@ -1,15 +1,23 @@
 import type { Base } from './model.ts';
-export const TALENT_SCHEMA_VERSION = 'once-talent-v2.0.0' as const;
+export const LEGACY_TALENT_SCHEMA_VERSION = 'once-talent-v2.0.0' as const;
+export const TALENT_SCHEMA_VERSION = 'once-talent-v2.1.0' as const;
 export interface TalentProfile extends Base {
     supersededById?: string | null;
     personId: string;
     sourceId: string;
+    genderCode?: 'FEMALE'|'MALE'|'NON_BINARY'|'OTHER'|null;
+    birthPrecision?: 'UNKNOWN'|'EXACT_DATE'|'YEAR_ONLY'|'DECLARED_RANGE';
+    birthDate?: string|null; birthYear?: number|null; minAgeYears?: number|null; maxAgeYears?: number|null; ageAsOfDate?: string|null;
+    nationalityCodes?: string[]; coverAssetId?: string|null;
     internalSummary: string;
     status: 'ACTIVE' | 'ARCHIVED';
 }
 export interface PersonRole extends Base {
     personId: string;
     sourceId: string;
+    castingMarketCode?: 'UNCLASSIFIED'|'DOMESTIC'|'INTERNATIONAL';
+    experienceCode?: 'UNSPECIFIED'|'AMATEUR'|'PROFESSIONAL';
+    styleCodes?: string[]; serviceCodes?: string[];
     roleCode: string;
     validFrom: string | null;
     validUntil: string | null;
@@ -72,8 +80,9 @@ export interface CastingProfile extends Base {
 export interface MeasurementSet extends Base {
     personId: string;
     sourceId: string;
-    measuredOn: string;
-    datePrecision: 'EXACT_DAY' | 'APPROXIMATE';
+    measuredOn: string|null;
+    reportedAt?:string|null;
+    datePrecision: 'EXACT_DAY' | 'APPROXIMATE' | 'UNKNOWN';
     heightCm: number | null;
     bustCm: number | null;
     waistCm: number | null;

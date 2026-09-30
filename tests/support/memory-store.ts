@@ -19,6 +19,8 @@ export class MemoryStore implements Store {
         await previous;
         const draft = structuredClone(this.data);
         const tx: Tx = {
+            findIn:async(table,workspaceId,field,ids)=>structuredClone([...draft[table].values()].filter(r=>(r as unknown as Record<string,unknown>).workspaceId===workspaceId&&ids.includes(String((r as unknown as Record<string,unknown>)[String(field)])))) as never,
+            talentDirectoryQuery:async input=>{const rows=[...draft.people.values()].filter(p=>p.workspaceId===input.workspaceId&&input.visibleScopeIds.includes(p.scopeId)&&p.status!=='ERASED'&&(input.phase==='CANDIDATES'||input.verifiedIds?.includes(p.id))).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)||a.id.localeCompare(b.id));return {total:rows.length,ids:(input.phase==='PAGE'?rows.slice(((input.page??1)-1)*(input.pageSize??20),(input.page??1)*(input.pageSize??20)):rows).map(p=>p.id)};},
             get: async <K extends Table>(table: K, id: string): Promise<TableMap[K] | null> => structuredClone(draft[table].get(id) ?? null) as TableMap[K] | null,
             find: async <K extends Table>(table: K, where: Partial<TableMap[K]> = {}): Promise<TableMap[K][]> => {
                 const rows = [...draft[table].values()] as TableMap[K][];

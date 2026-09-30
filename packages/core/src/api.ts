@@ -1,3 +1,5 @@
+import {queryTalentDirectory} from './talent-directory-query.ts';
+import { updateTalentDirectory } from './talent-directory.ts';
 import { createTalentIntake } from './talent-intake.ts';
 import {ProjectParties,brandFor} from './project-parties.ts';
 import {readConnection,saveConnection,testConnection} from './ai-connection.ts';
@@ -337,6 +339,9 @@ export class Application {
                     case 'td2.schema': return this.talentV2.schema(tx,actor);
                     case 'td2.person.list': return searchTalentV2(tx,actor,this.clock,query);
                     case 'td2.person.get': return this.talentV2.get(tx,actor,id);
+                    case 'directory.talent.update': return command('person',()=>updateTalentDirectory(tx,actor,id,data,this.clock,this.config));
+                    case 'directory.talent.get': return this.talentV2.get(tx,actor,id);
+                    case 'directory.talent.search': return queryTalentDirectory(tx,actor,this.clock,data);
                     case 'directory.talent.create': return command('person',()=>createTalentIntake(tx,actor,data,this.clock,this.config));
                     case 'td2.person.create': return command('person',()=>this.talentV2.createPerson(tx,actor,data));
                     case 'td2.person.patch': return command('person',()=>this.talentV2.patchPerson(tx,actor,id,data));
@@ -423,7 +428,7 @@ export class Application {
                     case 'asset.list': return this.media.listAssets(tx, actor, query);
                     case 'asset.get': return this.media.getAsset(tx, actor, id);
                     case 'asset.quarantine': return command('asset', () => this.media.quarantine(tx, actor, id, data));
-                    case 'identity.me': return { membershipId: actor.membershipId, displayName: actor.displayName, role: actor.role, permissions: actor.permissions, mediaEnabled: this.config.mediaEnabled === true, workspaceName: (await tx.get('workspaces', actor.workspaceId))?.name ?? 'ONCE', csrfToken: csrfFor(token, this.config.csrfKey), version: '0.1.0-dev.1' };
+                    case 'identity.me': return { directoryStateScope: digest({purpose:'directory-state-v1',sessionId:actor.sessionId}), membershipId: actor.membershipId, displayName: actor.displayName, role: actor.role, permissions: actor.permissions, mediaEnabled: this.config.mediaEnabled === true, workspaceName: (await tx.get('workspaces', actor.workspaceId))?.name ?? 'ONCE', csrfToken: csrfFor(token, this.config.csrfKey), version: '0.1.0-dev.1' };
                     case 'dashboard.get': return this.dashboard(tx, actor);
                     case 'member.list': return this.identity.listMembers(tx, actor, query);
                     case 'member.create': return this.identity.createMember(tx, actor, data, meta);

@@ -1,3 +1,4 @@
+import { DirectoryUpdateSchema, DirectoryQuerySchema } from './talent-directory.ts';
 import {PartySchemas} from './project-parties.ts';
 import {ConnectionSaveSchema,ConnectionTestSchema} from './ai-connection.ts';
 import {AiSchemas as AS} from './ai-validation.ts';
@@ -49,6 +50,9 @@ export const ROUTES: RouteDefinition[] = [
     {method:'GET',path:'/locale-texts/{id}',operation:'locale.get',mode:'READ',permission:'records.read'},
     {method:'POST',path:'/locale-texts',operation:'locale.create',mode:'COMMAND',permission:'records.write',schema:LS.create},
     {method:'PATCH',path:'/locale-texts/{id}',operation:'locale.update',mode:'COMMAND',permission:'records.write',schema:LS.update},
+    {method:'PATCH',path:'/directory/talents/{id}',operation:'directory.talent.update',mode:'COMMAND',permission:'records.write',schema:DirectoryUpdateSchema},
+    {method:'POST',path:'/directory/talents/search',operation:'directory.talent.search',mode:'READ',permission:'records.read',schema:DirectoryQuerySchema},
+    {method:'GET',path:'/directory/talents/{id}',operation:'directory.talent.get',mode:'READ',permission:'records.read'},
     {method:'POST',path:'/directory/talents',operation:'directory.talent.create',mode:'COMMAND',permission:'records.write',schema:TalentIntakeSchema},
     ...TD2_ROUTES,
     { method: 'GET', path: '/works', operation: 'work.list', mode: 'READ', permission: 'records.read' },

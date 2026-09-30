@@ -1,0 +1,8 @@
+PASS UI intake reuses merged name-only multi-role flow and opens primary detail
+PASS UI maintenance, conservative age and unknown measurement date persist in PostgreSQL; lost response replays atomically
+PASS Real private upload and worker preview decode; same-person image becomes persisted cover
+PASS Combination finds one correct person, opens direct core detail and preserves query/selection on return
+PASS Real directory cards and filters fit 360/390/430/1280 widths
+PASS Year-only possible age interval does not falsely match exact 25; honest empty state
+PASS Candidate finder uses the same POST contract, exact combined result and photo card
+PASS Actual second-page detail return preserves page, query and selected person

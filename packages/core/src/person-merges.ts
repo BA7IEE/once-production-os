@@ -157,6 +157,8 @@ export class PersonMerges {
         }
         const assetReassignIds = assetRows.filter(a => a.sourceId === canonical.sourceId && a.state !== 'ERASED').map(a=>a.id).sort();
         const assetDetachIds = assetRows.filter(a => a.sourceId !== canonical.sourceId && a.state !== 'ERASED').map(a=>a.id).sort();
+        const covers=await tx.find('talentProfiles',{workspaceId:actor.workspaceId,personId:duplicate.id});
+        invariant(!covers.some(p=>p.coverAssetId&&assetDetachIds.includes(p.coverAssetId)),'MERGE_COVER_DETACH_CONFLICT','重复人物的封面原件来自另一来源，请先明确移除封面选择后重新预览合并；原件仍按来源保留',409);
         const uploadIds = uploadRows.filter(u => u.state !== 'ERASED').map(u=>u.id).sort();
 
         const collisions: Collision[] = [];

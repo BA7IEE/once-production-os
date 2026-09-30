@@ -78,6 +78,10 @@ if(mainStatus!==0){process.exitCode=mainStatus;}else{
    },240000);
   }
   if(status===0){
+   const directory=await fresh('once_test_td2_pr01b_','PR01b lifecycle source'),target=await fresh('once_test_td2_pr01b_target_','PR01b lifecycle target'),restore=await fresh('once_restore_pr01b_','PR01b physical restore',false);
+   status=runNode('tests/postgres/talent-directory.test.ts',{...process.env,DATABASE_URL_TD2_TEST:directory,DATABASE_URL_DIRECTORY_REBUILD_TEST:target,DATABASE_URL_DIRECTORY_RESTORE_TEST:restore,ALLOW_TD2_DB_TESTS:'yes'},240000);
+  }
+  if(status===0){
    const sharedProof=await fresh('once_test_td2_asset_','Talent 2 shared proof erasure');
    status=runNode('tests/postgres/talent-asset-erasure.test.ts',{
     ...process.env,DATABASE_URL_TD2_TEST:sharedProof,ALLOW_TD2_DB_TESTS:'yes'

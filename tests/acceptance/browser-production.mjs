@@ -195,12 +195,13 @@ try {
  await f.getByLabel('需求简述',{exact:true}).fill('合成内部选人需求，不是客户确认或预订');
  const shortlistCreate=await writeUI(owner,'POST','/shortlists',()=>f.getByRole('button',{name:'建立清单',exact:true}).click(),201),shortlistId=shortlistCreate.resourceId,slpath='/shortlists/'+shortlistId;
  await owner.getByRole('heading',{name:'WP1内部候选清单',exact:true}).waitFor();
+ await owner.locator('.talent-directory summary').filter({hasText:'更多条件'}).click();
  await owner.getByLabel('档案状态',{exact:true}).selectOption('DRAFT');
- await owner.getByLabel('行业',{exact:true}).selectOption('furniture');
+ await owner.getByLabel('作品行业',{exact:true}).selectOption('furniture');
  await owner.getByLabel('作品类型',{exact:true}).selectOption('product_photo');
- await owner.getByLabel('搜索人才姓名或别名',{exact:true}).fill('WP1摄影剪辑人员');
- await owner.getByRole('button',{name:'搜索姓名',exact:true}).click();
- const candidateCard=owner.locator('article.person-card').filter({has:owner.getByRole('heading',{name:'WP1摄影剪辑人员',exact:true})});
+ await owner.getByLabel('搜索姓名或别名',{exact:true}).fill('WP1摄影剪辑人员');
+ await owner.getByRole('button',{name:'组合找人',exact:true}).click();
+ const candidateCard=owner.locator('article.directory-card').filter({has:owner.getByRole('heading',{name:'WP1摄影剪辑人员',exact:true})});
  await candidateCard.getByRole('button',{name:'加入当前清单',exact:true}).click();
  f=await dialogReady(owner,'加入候选 · WP1摄影剪辑人员');
  await f.getByLabel('关联署名作品（可选）',{exact:true}).selectOption(wid);
@@ -240,8 +241,7 @@ try {
  const w=await json(owner,wpath);assert.equal(w.items.length,2);assert.ok(w.items.every(x=>x.asset===null));for(const aid of assetIds){assert.ok(!JSON.stringify(w).includes(aid));assert.equal(await getStatus(owner,'/assets/'+aid+'/preview'),404);}
  d=await reloadDetail(owner,'WP1外部家具作品');await until(async()=>await d.locator('img').count()===0);assert.equal(await d.getByText('该图片当前不可用',{exact:true}).count(),2);
  await d.getByRole('button',{name:'关闭',exact:true}).last().click();
- const personDialog=await dialogReady(owner,'WP1摄影剪辑人员');
- await personDialog.getByRole('button',{name:'关闭',exact:true}).last().click();
+ await owner.getByRole('button',{name:'← 返回目录',exact:true}).click();
  await owner.getByRole('button',{name:/候选工作台/}).click();
  await owner.getByRole('heading',{name:'WP1内部候选清单',exact:true}).waitFor();
  const shortlistPanel=owner.locator('.sl-detail');
@@ -551,7 +551,7 @@ try {
  const typedDownload=owner.waitForEvent('download');await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();
  const typedFile=await typedDownload,typedPayload=JSON.parse(readFileSync(await typedFile.path(),'utf8'));
  assert.equal(typedPayload.schemaVersion,'once-export-v2-talent');
- assert.equal(typedPayload.manifest.talent.schemaVersion,'once-talent-transfer-v14');
+ assert.equal(typedPayload.manifest.talent.schemaVersion,'once-talent-transfer-v15');
  const exportedHistory=typedPayload.manifest.talent.mergeHistory;assert.equal(exportedHistory.people.length,1);assert.equal(exportedHistory.people[0].id,tdDuplicate);assert.equal(exportedHistory.people[0].status,'ARCHIVED');assert.equal(exportedHistory.aliases[0].oldPersonId,tdDuplicate);assert.equal(exportedHistory.aliases[0].canonicalPersonId,tdCanonical);
  const mergeOriginal=await prisma.personMergeDecision.findUniqueOrThrow({where:{id:exportedHistory.decisions[0].id}});assert.equal(exportedHistory.decisions[0].origin.membershipId,mergeOriginal.actorId);assert.equal(exportedHistory.decisions[0].origin.workspaceId,mergeOriginal.workspaceId);assert.deepEqual(exportedHistory.decisions[0].decisionManifest,mergeOriginal.decisionManifest);assert.equal(exportedHistory.talentProfiles[0].personId,tdDuplicate);assert.ok(typedPayload.manifest.talent.tables.talentProfiles.some(p=>p.id===exportedHistory.talentProfiles[0].supersededById));
  for(const original of identityEvidenceBefore){const e=typedPayload.manifest.talent.identityEvidence.find(e=>e.id===original.id);assert.ok(e);assert.equal(e.personId,original.personId);assert.equal(e.valueDigest,original.valueDigest);assert.equal(e.originalReview.membershipId,original.reviewerId);assert.equal(e.originalReview.reviewedAt,original.reviewedAt.toISOString());}

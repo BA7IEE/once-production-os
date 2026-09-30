@@ -76,7 +76,7 @@ test('TD2 capability rebuild rejects omitted, unrelated, duplicate, invalid-role
 
 test('TD2 selected eight groups use current format without exporting unselected capabilities',async()=>{
     const source=await fixture(),target=await fixture(),t=await controlledTransfer(source.app,source.store,source.clock,source.owner,false);
-    assert.equal(t.bundle.schemaVersion,'once-talent-transfer-v14');
+    assert.equal(t.bundle.schemaVersion,'once-talent-transfer-v15');
     assert.deepEqual(t.bundle.tables.personCapabilities,[]);assert.deepEqual(t.bundle.capabilityDefinitions,[]);
     await source.store.transaction(async tx=>{const row=(await tx.find('capabilityDefinitions'))[0]!;await tx.replace('capabilityDefinitions',{...row,labelZh:'旧文件不引用这个定义',revision:row.revision+1});});
     const downloaded=await source.owner.raw('POST',`/exports/${t.jobId}/download`,{});assert.equal(downloaded.status,200);assert.equal(result(downloaded).sha256,t.download.sha256);

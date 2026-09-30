@@ -5,7 +5,7 @@ import { TransferAssetSchema, transferAsset, type TransferAsset } from './media-
 import { readyAsset } from './production-policy.ts';
 import { digest } from './json.ts';
 import { v, uuid, revision, dateIso, code, type Schema } from './validation.ts';
-import { TD2_FACTS, fieldSchema, type FactRow } from './talent-v2-schema.ts';
+import { TD2_FACTS, fieldSchema, rowDefaults, type FactRow } from './talent-v2-schema.ts';
 import { loadTalentGraph } from './talent-v2-graph.ts';
 import { TALENT_SCHEMA_VERSION, TALENT_OWNER_EMPTY } from './talent-v2-model.ts';
 import type { Actor, Clock } from './model.ts';
@@ -15,15 +15,15 @@ import { requirePermission, sourceFor } from './policy.ts';
 
 // Deliberately explicit transfer whitelist; adding a domain field never exports it automatically.
 export const TALENT_TRANSFER_FIELDS = {
-    talentProfiles: ['internalSummary', 'status'],
-    personRoles: ['roleCode', 'validFrom', 'validUntil', 'status'],
+    talentProfiles: ['internalSummary', 'status', 'genderCode', 'birthPrecision', 'birthDate', 'birthYear', 'minAgeYears', 'maxAgeYears', 'ageAsOfDate', 'nationalityCodes', 'coverAssetId'],
+    personRoles: ['roleCode', 'validFrom', 'validUntil', 'status', 'castingMarketCode', 'experienceCode', 'styleCodes', 'serviceCodes'],
     personCapabilities: ['personRoleId', 'capabilityCode', 'levelCode', 'validFrom', 'validUntil', 'status'],
     representations: ['personRoleId','agencyOrganizationId','agentPersonId','relationCode','territoryCode','validFrom','validUntil','status'],
     personCredentials: ['personRoleId','credentialTypeCode','issuerOrganizationId','issuerName','issuedOn','expiresOn','evidenceAssetId','status','identifierCiphertext','maskedIdentifier'],
     personExternalRefs: ['providerCode', 'namespaceCode', 'issuerOrganizationId', 'externalKey', 'state', 'verifiedAt'],
     personLanguages: ['languageCode', 'speakingLevelCode', 'listeningLevelCode', 'readingLevelCode', 'writingLevelCode', 'validFrom', 'validUntil', 'status', 'verifiedAt'],
     talentLocations: ['locationCode', 'relationCode', 'validFrom', 'validUntil', 'status', 'verifiedAt'],
-    measurementSets: ['measuredOn', 'datePrecision', 'heightCm', 'bustCm', 'waistCm', 'hipsCm', 'shoeSizeValue', 'shoeSizeSystem', 'clothingSizeValue', 'clothingSizeSystem', 'supersedesId', 'status'],
+    measurementSets: ['reportedAt','measuredOn', 'datePrecision', 'heightCm', 'bustCm', 'waistCm', 'hipsCm', 'shoeSizeValue', 'shoeSizeSystem', 'clothingSizeValue', 'clothingSizeSystem', 'supersedesId', 'status'],
     castingProfiles: ['hairColorCode', 'eyeColorCode', 'appearanceObservedOn', 'currentMeasurementSetId'],
     translatorLanguagePairs: ['personRoleId', 'sourceLanguageCode', 'targetLanguageCode', 'status'],
     translatorServiceModes: ['personRoleId', 'modeCode', 'status'],
@@ -37,11 +37,12 @@ export const TRANSFER_CODES = TRANSFER_TABLES.map(t => `person.td2.${t}` as cons
 export type TransferCode = typeof TRANSFER_CODES[number];
 export const TALENT_EXPORT_VERSION = 'once-export-v2-talent' as const;
 export const CREDENTIAL_IDENTIFIER_CODE = 'person.td2.credentialIdentifiers' as const;
+export const BIRTH_DATE_CODE='person.td2.birthDate' as const;
 export const EVIDENCE_TRANSFER_CODE = 'person.td2.fieldEvidence' as const;
 export const transferCode = (table: TransferTable): TransferCode => `person.td2.${table}`;
 export const isTransferCode = (code: string): code is TransferCode => (TRANSFER_CODES as readonly string[]).includes(code);
 export interface TransferRow { id: string; personId: string; sourceId: string; revision: number; createdAt: string; updatedAt: string; data: Record<string, unknown> }
-export interface TransferDefinition { id: string; revision: number; createdAt: string; updatedAt: string; code: string; labelZh: string; labelEn: string; aliases: string[]; applicableRoleCodes: string[]; levelSchemeCode: 'ABILITY_5' | null; semanticVersion: string; schemaVersion: typeof TALENT_SCHEMA_VERSION; status: 'ACTIVE' | 'INACTIVE' }
+export interface TransferDefinition { id: string; revision: number; createdAt: string; updatedAt: string; code: string; labelZh: string; labelEn: string; aliases: string[]; applicableRoleCodes: string[]; levelSchemeCode: 'ABILITY_5' | null; semanticVersion: string; schemaVersion: typeof TALENT_SCHEMA_VERSION|'once-talent-v2.0.0'; status: 'ACTIVE' | 'INACTIVE' }
 export interface TransferOrganization { id: string; sourceId: string; revision: number; createdAt: string; updatedAt: string; name: string; kind: 'AGENCY' | 'ISSUER' | 'OTHER'; status: 'ACTIVE' }
 export interface TransferEvidence { id: string; revision: number; createdAt: string; updatedAt: string; ownerKind: TransferTable; ownerId: string; fieldPath: string; valueDigest: string; sourceId: string; sourceRevision: number; originalReview: {workspaceId:string; membershipId:string; reviewedAt:string} | null }
 export interface TransferCollectionItem {id:string;personId:string;collectionId:string;assetId:string;revision:number;createdAt:string;updatedAt:string;orderIndex:number;caption:string;featured:boolean}
@@ -51,23 +52,24 @@ export const transferRows = (bundle: TalentTransfer, table: TransferTable): Tran
 const definitionSchema = v.object({ id: uuid, revision, createdAt: dateIso, updatedAt: dateIso, code,
     labelZh: v.string(120,1), labelEn: v.string(120), aliases: v.array(v.string(120,1),30), applicableRoleCodes: v.array(code,20),
     levelSchemeCode: v.nullable(v.enum(['ABILITY_5'])), semanticVersion: v.string(30,5,/^\d+\.\d+\.\d+$/),
-    schemaVersion: v.enum([TALENT_SCHEMA_VERSION]), status: v.enum(['ACTIVE','INACTIVE']) });
+    schemaVersion: v.enum([TALENT_SCHEMA_VERSION,'once-talent-v2.0.0']), status: v.enum(['ACTIVE','INACTIVE']) });
 const organizationSchema = v.object({id:uuid,sourceId:uuid,revision,createdAt:dateIso,updatedAt:dateIso,name:v.string(200,1),kind:v.enum(['AGENCY','ISSUER','OTHER']),status:v.enum(['ACTIVE'])});
 const tableSchemas: Record<string, Schema<unknown>> = {};
 for (const table of TRANSFER_TABLES) {
     const shape: Record<string, Schema<unknown>> = {};
     for (const field of TALENT_TRANSFER_FIELDS[table]) {
         const type = (TD2_FACTS[table].fields as Record<string, string>)[field];
-        shape[field] = table==='adultEligibilities'&&field==='verification' ? v.nullable(v.object({workspaceId:uuid,membershipId:uuid})) : table==='adultEligibilities'&&field==='state' ? v.enum(['UNKNOWN','SELF_DECLARED_ADULT','VERIFIED_ADULT','RESTRICTED']) : table==='personCredentials'&&field==='status' ? v.enum(['UNVERIFIED','VERIFIED','REVOKED']) : field==='identifierCiphertext' ? v.nullable(v.string(2048,1,/^v1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/)) : field==='maskedIdentifier' ? v.nullable(v.string(7,4)) : type ? fieldSchema(type, field) : field === 'state' ? v.enum(['OBSERVED','VERIFIED','REVOKED']) : field === 'status' ? v.enum(['DRAFT','CONFIRMED','SUPERSEDED'])
+        shape[field] = field==='reportedAt' ? v.optional(v.nullable(dateIso)) : table==='adultEligibilities'&&field==='verification' ? v.nullable(v.object({workspaceId:uuid,membershipId:uuid})) : table==='adultEligibilities'&&field==='state' ? v.enum(['UNKNOWN','SELF_DECLARED_ADULT','VERIFIED_ADULT','RESTRICTED']) : table==='personCredentials'&&field==='status' ? v.enum(['UNVERIFIED','VERIFIED','REVOKED']) : field==='identifierCiphertext' ? v.nullable(v.string(2048,1,/^v1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/)) : field==='maskedIdentifier' ? v.nullable(v.string(7,4)) : type ? fieldSchema(type, field) : field === 'state' ? v.enum(['OBSERVED','VERIFIED','REVOKED']) : field === 'status' ? v.enum(['DRAFT','CONFIRMED','SUPERSEDED'])
             : field === 'currentMeasurementSetId' ? v.nullable(uuid) : v.nullable(dateIso);
     }
+    if(table==='talentProfiles'||table==='personRoles')for(const field of Object.keys(rowDefaults(table)))if(!['internalSummary','status','roleCode','validFrom','validUntil'].includes(field))shape[field]=v.optional(shape[field]!);
     tableSchemas[table] = v.array(v.object({ id: uuid, personId: uuid, sourceId: uuid, revision, createdAt: dateIso, updatedAt: dateIso, data: v.object(shape) }), 500);
 }
 // Pre-release formats v1-v13 are retired. One strict shape covers all selected fields.
 const evidenceSchema=v.object({id:uuid,revision,createdAt:dateIso,updatedAt:dateIso,ownerKind:v.enum(TRANSFER_TABLES),ownerId:uuid,fieldPath:v.string(160,1),valueDigest:v.string(64,64,/^[a-f0-9]{64}$/),sourceId:uuid,sourceRevision:revision,originalReview:v.nullable(v.object({workspaceId:uuid,membershipId:uuid,reviewedAt:dateIso}))});
 const collectionItemSchema=v.object({id:uuid,personId:uuid,collectionId:uuid,assetId:uuid,revision,createdAt:dateIso,updatedAt:dateIso,orderIndex:v.number(0,199),caption:v.string(1000),featured:v.boolean()});
 const currentSchema=v.object({
- schemaVersion:v.enum([MERGE_ERASURE_VERSION]),
+ schemaVersion:v.enum([MERGE_ERASURE_VERSION,'once-talent-transfer-v14']),
  retainedOrigins:v.array(RetainedOriginSchema,500),mergeHistory:v.optional(ErasedMergeHistorySchema),
  identityFields:v.array(v.enum(IDENTITY_FIELDS),3),identityEvidence:v.array(IdentityEvidenceSchema,500),
  assets:v.array(TransferAssetSchema,500),collectionItems:v.array(collectionItemSchema,500),
@@ -79,20 +81,22 @@ export const TransferSchema: Schema<TalentTransfer> = {
  json:currentSchema.json,
  parse(input,path){
   const version=input&&typeof input==='object'?(input as Record<string,unknown>).schemaVersion:null;
-  invariant(version===MERGE_ERASURE_VERSION,'TD2_TRANSFER_VERSION_RETIRED','只接受当前导出格式；开发期旧文件请从当前系统重新导出',422);
-  return currentSchema.parse(input,path) as unknown as TalentTransfer;
+  invariant(version===MERGE_ERASURE_VERSION||version==='once-talent-transfer-v14','TD2_TRANSFER_VERSION_RETIRED','只接受当前导出格式；开发期旧文件请从当前系统重新导出',422);
+  const parsed=currentSchema.parse(input,path) as unknown as TalentTransfer;parsed.schemaVersion=MERGE_ERASURE_VERSION;for(const table of ['talentProfiles','personRoles'] as const)for(const row of parsed.tables[table])row.data={...rowDefaults(table),...row.data};for(const row of parsed.tables.measurementSets)row.data={reportedAt:null,...row.data};return parsed;
  }
 };
 
-export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, peopleIds: string[], codes: TransferCode[], withEvidence = false, withIdentifiers = false, withMedia = false, identityFields?:string[],withHistory=false): Promise<TalentTransfer> {
+export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, peopleIds: string[], codes: TransferCode[], withEvidence = false, withIdentifiers = false, withMedia = false, identityFields?:string[],withHistory=false,withBirthDate=false): Promise<TalentTransfer> {
     requirePermission(actor, 'records.read');
     const identityEvidence=identityFields?await collectIdentityEvidence(tx,actor,clock,peopleIds,identityFields):undefined;
     const withAdults=codes.includes('person.td2.adultEligibilities');
     if(withAdults)requirePermission(actor,'sources.review');
+    const withProfiles=codes.includes('person.td2.talentProfiles');
     const withCredentials=codes.includes('person.td2.personCredentials');
     const withCollections=codes.includes('person.td2.mediaCollections')||codes.includes('person.td2.mediaCollectionTags');
-    invariant(!withMedia||withCredentials||withCollections||withAdults,'TD2_TRANSFER_MEDIA_OWNER_REQUIRED','原件须随资质或媒体集合迁移',422);
+    invariant(!withMedia||withProfiles||withCredentials||withCollections||withAdults,'TD2_TRANSFER_MEDIA_OWNER_REQUIRED','原件须随资质或媒体集合迁移',422);
     invariant(!withIdentifiers||withCredentials,'TD2_TRANSFER_CREDENTIAL_REQUIRED','编号迁移必须同时选择资质记录',422);
+    if(withBirthDate)requirePermission(actor,'sensitive.read');
     if(withIdentifiers) requirePermission(actor,'sensitive.read');
     if(withEvidence) requirePermission(actor,'sources.review');
     const graph = await loadTalentGraph(tx, actor, clock), people = new Set(peopleIds);
@@ -105,6 +109,7 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
         for (const raw of graph.rows(table).filter(r => people.has(r.personId))) {
             const row = raw as unknown as FactRow;
             invariant(!row.supersededById, 'TD2_EXPORT_HISTORY_UNSUPPORTED', '合并历史需要专用导出格式，不能作为当前专业资料导出', 409);
+            if(table==='talentProfiles'){if(row.birthDate!=null){requirePermission(actor,'sensitive.read');invariant(withBirthDate,'BIRTH_DATE_GRANT_REQUIRED','完整生日须另行批准迁移',422);}invariant(withMedia||!row.coverAssetId,'TD2_TRANSFER_MEDIA_GRANT_REQUIRED','封面须连同原件及许可一起迁移，不能丢弃引用',422);}
             if(table==='adultEligibilities') invariant(withMedia||!row.evidenceAssetId,'TD2_TRANSFER_MEDIA_GRANT_REQUIRED','成年资格含证明材料，必须另行批准原件迁移',422);
             if(table==='personCredentials') {
                 invariant(withMedia||(!row.evidenceAssetId&&row.status!=='VERIFIED'),'TD2_CREDENTIAL_MEDIA_UNSUPPORTED','带证明材料或已核验的资质必须等待原件迁移，不能丢弃证明后导出',409);
@@ -124,7 +129,7 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
                 'TD2_EXPORT_EVIDENCE_UNSUPPORTED', '同一条专业事实包含其他来源证据，当前格式不能完整保存其来源关系', 409);
             tables[table].push({ id: row.id, personId: row.personId, sourceId: row.sourceId, revision: row.revision,
                 createdAt: row.createdAt, updatedAt: row.updatedAt,
-                data: Object.fromEntries(TALENT_TRANSFER_FIELDS[table].map(field => [field, table==='adultEligibilities'&&field==='verification' ? row.verifiedByMembershipId ? {workspaceId:actor.workspaceId,membershipId:row.verifiedByMembershipId} : row.originalVerificationWorkspaceId ? {workspaceId:row.originalVerificationWorkspaceId,membershipId:row.originalVerificationMembershipId} : null : row[field]])) });
+                data: Object.fromEntries(TALENT_TRANSFER_FIELDS[table].map(field => [field, table==='adultEligibilities'&&field==='verification' ? row.verifiedByMembershipId ? {workspaceId:actor.workspaceId,membershipId:row.verifiedByMembershipId} : row.originalVerificationWorkspaceId ? {workspaceId:row.originalVerificationWorkspaceId,membershipId:row.originalVerificationMembershipId} : null : row[field] ?? rowDefaults(table)[field] ?? null])) });
             invariant(++total <= 500, 'TD2_EXPORT_LIMIT', '单次专业资料导出最多 500 条', 422);
         }
         tables[table].sort((a,b) => a.id.localeCompare(b.id));
@@ -179,7 +184,7 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
     const assets: TransferAsset[]=[];
     if(withMedia) {
         requirePermission(actor,'assets.read');
-        const ids=new Set([...tables.personCredentials.map(r=>r.data.evidenceAssetId),...tables.adultEligibilities.map(r=>r.data.evidenceAssetId),...collectionItems.map(i=>i.assetId)].filter(Boolean));
+        const ids=new Set([...tables.talentProfiles.map(r=>r.data.coverAssetId),...tables.personCredentials.map(r=>r.data.evidenceAssetId),...tables.adultEligibilities.map(r=>r.data.evidenceAssetId),...collectionItems.map(i=>i.assetId)].filter(Boolean));
         for(const id of ids) {
             const asset=await readyAsset(tx,actor,String(id),clock);
             invariant(!asset.personId||people.has(asset.personId),'TD2_TRANSFER_MEDIA_PERSON','证明图片所属人物必须一同选择并批准',422);
@@ -195,7 +200,10 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
         retainedOrigins
     };
     const mergeHistory=withHistory?await collectMergeHistory(tx,actor,clock,peopleIds,data,withEvidence):undefined;
+    for(const profile of mergeHistory?.talentProfiles??[])if(profile.coverAssetId&&!assets.some(a=>a.id===profile.coverAssetId)){invariant(withMedia,'TD2_TRANSFER_MEDIA_GRANT_REQUIRED','历史封面须连同原件及许可迁移',422);requirePermission(actor,'assets.read');const asset=await readyAsset(tx,actor,profile.coverAssetId,clock);assets.push(transferAsset(asset));}
+    assets.sort((a,b)=>a.id.localeCompare(b.id));
     if(mergeHistory?.erasures?.length){for(const id of new Set([...mergeHistory.people,...mergeHistory.erasures].map(r=>r.sourceId).concat(mergeHistory.decisions.flatMap(d=>[d.canonicalSourceId,d.duplicateSourceId])))){const source=await sourceFor(tx,actor,id,clock,false,true);if(source.status==='ERASED'&&!retainedOrigins.some(o=>o.id===id))retainedOrigins.push({id,revision:source.revision,protectionEpoch:source.protectionEpoch,status:'ERASED'});}}
+    for(const profile of mergeHistory?.talentProfiles??[])if((profile as unknown as Record<string,unknown>).birthDate!=null)invariant(withBirthDate,'BIRTH_DATE_GRANT_REQUIRED','历史完整生日须另行批准迁移',422);
     const transfer=TransferSchema.parse({...data,retainedOrigins:retainedOrigins.sort((a,b)=>a.id.localeCompare(b.id)),...(mergeHistory?{mergeHistory:{...mergeHistory,erasures:mergeHistory.erasures??[]}}:{})});
     const withOrigins=retainedOrigins.length>0;
     if(withOrigins) {
@@ -275,8 +283,9 @@ export function validateTransferLinks(bundle: TalentTransfer, personIds: string[
     }
     const tags=transferRows(bundle,'mediaCollectionTags');
     invariant(new Set(tags.map(t=>String(t.data.collectionId)+':'+String(t.data.tagCode))).size===tags.length,'TD2_TRANSFER_COLLECTION_TAG_DUPLICATE','集合内容标签重复',422);
-    const assets=bundle.assets??[], assetIds=new Set([...credentials.map(r=>r.data.evidenceAssetId),...adults.map(r=>r.data.evidenceAssetId),...items.map(i=>i.assetId)].filter(Boolean));
+    const assets=bundle.assets??[], assetIds=new Set([...bundle.tables.talentProfiles.map(r=>r.data.coverAssetId),...(bundle.mergeHistory?.talentProfiles??[]).map(r=>r.coverAssetId),...credentials.map(r=>r.data.evidenceAssetId),...adults.map(r=>r.data.evidenceAssetId),...items.map(i=>i.assetId)].filter(Boolean));
     invariant(assets.length===new Set(assets.map(a=>a.id)).size && assets.length===assetIds.size && assets.every(a=>assetIds.has(a.id)), 'TD2_TRANSFER_MEDIA_MISSING','证明原件清单必须完整且不得夹带无关文件',422);
+    for(const profile of bundle.tables.talentProfiles) if(profile.data.coverAssetId) invariant(assets.some(a=>a.id===profile.data.coverAssetId&&a.personId===profile.personId&&a.mime.startsWith('image/')),'TD2_TRANSFER_COVER_INVALID','封面须是同人物的图片原件',422);
     for(const asset of assets) {
         invariant(!asset.personId||people.has(asset.personId),'TD2_TRANSFER_MEDIA_PERSON','证明图片所属人物缺失',422);
         invariant(asset.width*asset.height<=60000000,'TD2_TRANSFER_MEDIA_SIZE','图片像素超过上限',422);

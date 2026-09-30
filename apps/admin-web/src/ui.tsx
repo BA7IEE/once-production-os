@@ -92,10 +92,11 @@ export function useAction() {
             }
         } };
 }
-export function Submit({ busy, children = '保存' }: {
+export function Submit({ busy, disabled = false, children = '保存' }: {
     busy: boolean;
+    disabled?: boolean;
     children?: ReactNode;
-}) { return <button type="submit" className="primary" disabled={busy}>{busy ? '正在处理…' : children}</button>; }
+}) { return <button type="submit" className="primary" disabled={busy||disabled}>{busy ? '正在处理…' : children}</button>; }
 export function PageTitle({ overline, title, description, action }: {
     overline: string;
     title: string;

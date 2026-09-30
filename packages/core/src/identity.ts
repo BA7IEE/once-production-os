@@ -40,6 +40,9 @@ export class Identity {
                 ['role', 'producer', '制片', 'Producer'], ['role', 'cinematographer', '摄影指导', 'Cinematographer'],
                 ['city', 'shenzhen', '深圳', 'Shenzhen'], ['city', 'guangzhou', '广州', 'Guangzhou'], ['city', 'dongguan', '东莞', 'Dongguan'],
                 ['language', 'zh', '中文', 'Chinese'], ['language', 'en', '英语', 'English'], ['language', 'fr', '法语', 'French'],
+                ['nationality','CN','中国','China'],['nationality','US','美国','United States'],['nationality','GB','英国','United Kingdom'],['nationality','FR','法国','France'],['nationality','RU','俄罗斯','Russia'],['nationality','BR','巴西','Brazil'],
+                ['roleStyle','natural','自然','Natural'],['roleStyle','sport','运动','Sport'],['roleStyle','fashion','时尚','Fashion'],['roleStyle','business','商务','Business'],
+                ['roleService','print','平面','Print'],['roleService','ecommerce','电商','E-commerce'],['roleService','runway','走秀','Runway'],['roleService','advertising','广告','Advertising'],
                 ['skill', 'commercial', '商业拍摄', 'Commercial'], ['skill', 'lifestyle', '生活方式', 'Lifestyle'], ['skill', 'fashion', '时尚', 'Fashion']
             ];
             for (const [namespace, code, labelZh, labelEn] of seeds)

@@ -1,3 +1,4 @@
+import { ageRange, PROFILE_DEFAULTS, ROLE_DEFAULTS } from './talent-demographics.ts';
 import type { Actor, Clock, Person, Source, Table, TableMap } from './model.ts';
 import type { Tx } from './store.ts';
 import { invariant, missing } from './errors.ts';
@@ -31,15 +32,24 @@ export async function insertFact(tx:Tx,table:FactTable,row:FactRow){await tx.ins
 export async function replaceFact(tx:Tx,table:FactTable,row:FactRow){await tx.replace(table,row as unknown as TableMap[FactTable]);}
 
 /** A single bounded snapshot feeds detail, search, facets, shortlists and export projections. */
-export async function loadTalentGraph(tx:Tx,actor:Actor,clock:Clock){
+export async function loadTalentGraph(tx:Tx,actor:Actor,clock:Clock,personIds?:string[]){
     const visibility=await loadVisibility(tx,actor,clock);
     const tables=[...TD2_TABLES,'people','organizations','capabilityDefinitions','mediaCollectionItems','assets','evidence','personAliases','deletionRequests','workCredits','works','projectParticipants','projects','dictionary'] as const;
     const data:Partial<Record<Table,unknown[]>>={};
     for(const table of tables){
-        const rows=await tx.find(table,{workspaceId:actor.workspaceId});
+        let rows:TableMap[typeof table][];
+        if(!personIds)rows=await tx.find(table,{workspaceId:actor.workspaceId});
+        else if(table==='people')rows=await tx.findIn('people',actor.workspaceId,'id',personIds);
+        else if((TD2_TABLES as readonly string[]).includes(table)||['mediaCollectionItems','workCredits','projectParticipants'].includes(table))rows=await tx.findIn(table,actor.workspaceId,'personId' as never,personIds);
+        else if(table==='assets'){const refs=new Set<string>();for(const t of TD2_TABLES)for(const r of data[t]??[])for(const key of ['coverAssetId','evidenceAssetId'])if(asRow(r)[key])refs.add(String(asRow(r)[key]));for(const r of data.mediaCollectionItems??[])refs.add(String(asRow(r).assetId));rows=await tx.findIn('assets',actor.workspaceId,'id',[...refs]);}
+        else if(table==='evidence'){const entries=await tx.findIn('evidence',actor.workspaceId,'personId',personIds);for(const t of TD2_TABLES)entries.push(...await tx.findIn('evidence',actor.workspaceId,TD2_FACTS[t].ownerKey as never,(data[t]??[]).map(r=>String(asRow(r).id))));rows=entries;}
+        else if(table==='works')rows=await tx.findIn('works',actor.workspaceId,'id',(data.workCredits??[]).map(r=>String(asRow(r).workId)));
+        else if(table==='projects')rows=await tx.findIn('projects',actor.workspaceId,'id',(data.projectParticipants??[]).map(r=>String(asRow(r).projectId)));
+        else rows=await tx.find(table,{workspaceId:actor.workspaceId});
         invariant(rows.length<=50000,'TD2_DATASET_LIMIT','当前资料规模超出单次查询范围，需要缩小工作空间',503);
         data[table]=rows;
     }
+    if(personIds){const refs=new Set<string>();for(const r of data.representations??[])if(asRow(r).agentPersonId)refs.add(String(asRow(r).agentPersonId));for(const r of data.assets??[])if(asRow(r).personId)refs.add(String(asRow(r).personId));data.people=[...(data.people??[]),...await tx.findIn('people',actor.workspaceId,'id',[...refs].filter(id=>!personIds.includes(id)))];}
     const rows=<K extends Table>(t:K)=> (data[t]??[]) as TableMap[K][];
     // Transaction-local indexes keep the existing snapshot and authorization rules;
     // they do not cache a result across requests or bypass source/evidence checks.
@@ -100,11 +110,14 @@ export async function loadTalentGraph(tx:Tx,actor:Actor,clock:Clock){
         const out:Record<string,unknown>={id:row.id,personId:row.personId,sourceId:row.sourceId,revision:row.revision,createdAt:row.createdAt,updatedAt:row.updatedAt};
         const unavailableFields:string[]=[];
         for(const key of Object.keys(TD2_FACTS[table].fields)){
-            if(fieldReadable(table,row,key))out[key]=row[key]; else{out[key]=null;unavailableFields.push(key);}
+            if(fieldReadable(table,row,key))out[key]=row[key]??(table==='talentProfiles'?PROFILE_DEFAULTS:table==='personRoles'?ROLE_DEFAULTS:{} as Record<string,unknown>)[key as never]??null; else{out[key]=null;unavailableFields.push(key);}
         }
+        if(table==='measurementSets')out.reportedAt=row.reportedAt??null;
         for(const key of ['status','state','verifiedAt','verifiedByMembershipId','currentMeasurementSetId'])if(Object.hasOwn(row,key)&&!Object.hasOwn(out,key))out[key]=row[key];
         if(table==='adultEligibilities'&&actor.permissions.includes('sources.review'))out.originalVerification=row.originalVerificationWorkspaceId?{workspaceId:row.originalVerificationWorkspaceId,membershipId:row.originalVerificationMembershipId,verifiedAt:row.verifiedAt}:null;
         if(table==='personCredentials' && actor.permissions.includes('sensitive.read'))out.maskedIdentifier=row.maskedIdentifier;
+        if(table==='talentProfiles'&&out.birthDate!=null&&!actor.permissions.includes('sensitive.read')){out.birthDate=null;unavailableFields.push('birthDate');}
+        if(table==='talentProfiles'&&out.coverAssetId&&(!actor.permissions.includes('assets.read')||!assetReadable(String(out.coverAssetId))))out.coverAssetId=null;
         out.unavailableFields=unavailableFields;
         out.usable=usable(table,row,out);
         return out;
@@ -145,7 +158,9 @@ export async function loadTalentGraph(tx:Tx,actor:Actor,clock:Clock){
         const profile=facts.talentProfiles!.find(r=>r.usable)??null;
         const collections=(facts.mediaCollections??[]).map(c=>({...c,items:actor.permissions.includes('assets.read')?(collectionItems.get(String(c.id))??[]).filter(i=>assetReadable(i.assetId)).sort((a,b)=>a.orderIndex-b.orderIndex).map(i=>({id:i.id,assetId:i.assetId,caption:i.caption,featured:i.featured,orderIndex:i.orderIndex,asset:assetSummary(i.assetId)})):[]}));
         const age=facts.adultEligibilities!.find(r=>r.usable);
-        return {...personHeader(p),schemaVersion:'once-talent-v2.0.0',isTalent:personRows('talentProfiles',id).some(p=>p.status==='ACTIVE'),facts:{...facts,mediaCollections:collections},adultState:age?.state??'UNKNOWN',canEdit:actor.permissions.includes('records.write')||actor.permissions.includes('talent.fact.write')};
+        const rawProfile=personRows('talentProfiles',id).find(r=>!r.supersededById&&r.status==='ACTIVE');
+        const ageInfo=rawProfile&&['birthPrecision','birthDate','birthYear','minAgeYears','maxAgeYears','ageAsOfDate'].every(k=>fieldReadable('talentProfiles',asRow(rawProfile),k))?ageRange(asRow(rawProfile),clock.now().toISOString().slice(0,10)):null;
+        return {...personHeader(p),ageRange:ageInfo,schemaVersion:'once-talent-v2.1.0',isTalent:personRows('talentProfiles',id).some(p=>p.status==='ACTIVE'),facts:{...facts,mediaCollections:collections},adultState:age?.state??'UNKNOWN',canEdit:actor.permissions.includes('records.write')||actor.permissions.includes('talent.fact.write')};
     };
     return {rows,record,personRows,source,sourceUsable,identityReadable,fieldReadable,assetReadable,organizationReadable,fact,readable,usable,project,personHeader,get,visibility};
 }

@@ -8,8 +8,8 @@ export async function verifyLocaleBrowser({owner,prisma,cmd,writeUI,source,json,
   const id=(await cmd(owner,'POST',path,{...(kind==='PERSON'?{displayName:name,roles:['photographer']}:{title:name}),sourceId},201)).resourceId;
   roots.push({kind,id});
   await owner.getByRole('button',{name:kind==='PERSON'?/人才档案/:kind==='WORK'?/作品库/:/项目库/}).click();
-  const query=owner.getByLabel(kind==='PERSON'?'搜索姓名或别名':kind==='WORK'?'搜索作品':'搜索项目',{exact:true});await query.fill(name);await owner.getByRole('button',{name:'搜索',exact:true}).click();
-  await owner.locator('.person-card').filter({has:owner.getByRole('heading',{name,exact:true})}).click();
+  if(kind==='PERSON')await owner.getByRole('button',{name:'重置条件',exact:true}).click();const query=owner.getByLabel(kind==='PERSON'?'搜索姓名或别名':kind==='WORK'?'搜索作品':'搜索项目',{exact:true});await query.fill(name);await owner.getByRole('button',{name:kind==='PERSON'?'组合找人':'搜索',exact:true}).click();
+  await owner.locator('.person-card').filter({has:owner.getByRole('heading',{name,exact:true})}).click();if(kind==='PERSON'){await owner.locator('summary').filter({hasText:'高级管理：来源、依据、历史与权限'}).click();await owner.getByRole('button',{name:'打开高级管理',exact:true}).click();}
   await owner.getByRole('button',{name:'内部中英文文本',exact:true}).click();await owner.getByRole('button',{name:'新增语言文本',exact:true}).click();
   let dialog=owner.getByRole('dialog',{name:'新增内部文本',exact:true});await dialog.getByLabel('内部文本',{exact:true}).fill('Synthetic '+kind+' English.');
   await dialog.getByText('正在查询来源…',{exact:true}).waitFor({state:'hidden'});
@@ -43,7 +43,7 @@ export async function verifyLocaleBrowser({owner,prisma,cmd,writeUI,source,json,
  await owner.locator('label').filter({hasText:'采用重复档案文本'}).getByRole('radio').check();
  owner.once('dialog',dialog=>void dialog.accept());await writeUI(owner,'POST','/people/merge',()=>owner.getByRole('button',{name:'执行受控合并',exact:true}).click());
  await owner.getByText('合并已完成',{exact:true}).waitFor();
- await owner.getByRole('button',{name:/人才档案/}).click();await owner.getByLabel('搜索姓名或别名',{exact:true}).fill('浏览器语言PERSON');await owner.getByRole('button',{name:'搜索',exact:true}).click();await owner.locator('.person-card').filter({has:owner.getByRole('heading',{name:'浏览器语言PERSON',exact:true})}).click();
+ await owner.getByRole('button',{name:/人才档案/}).click();await owner.getByRole('button',{name:'重置条件',exact:true}).click();await owner.getByLabel('搜索姓名或别名',{exact:true}).fill('浏览器语言PERSON');await owner.getByRole('button',{name:'组合找人',exact:true}).click();await owner.locator('.person-card').filter({has:owner.getByRole('heading',{name:'浏览器语言PERSON',exact:true})}).click();await owner.locator('summary').filter({hasText:'高级管理：来源、依据、历史与权限'}).click();await owner.getByRole('button',{name:'打开高级管理',exact:true}).click();
  await owner.getByRole('button',{name:'内部中英文文本',exact:true}).click();const mergedDialog=owner.getByRole('dialog',{name:'内部中英文文本',exact:true});
  await mergedDialog.getByText('Chosen browser merged English.',{exact:true}).first().waitFor();await mergedDialog.getByText('合并保留原文（2）',{exact:true}).click();await mergedDialog.getByText('Synthetic text after uncertain response.',{exact:true}).waitFor();
  assert.equal(await mergedDialog.getByText('待复核',{exact:true}).count(),1);

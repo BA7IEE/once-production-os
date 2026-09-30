@@ -11,7 +11,7 @@ import { loadVisibility } from './visibility.ts';
 import { profileAccess, delegatedPeople, handoffForAction } from './handoff-policy.ts';
 import { loadTalentGraph } from './talent-v2-graph.ts';
 import { legacyProfessionalProjection, professionallyManaged, LEGACY_PROFESSIONAL_FIELDS, type TalentGraph } from './talent-legacy-projection.ts';
-import { PersonInput, PersonPatch, Schemas, SourceInput, type Parsed } from './validation.ts';
+import { PersonInput, PersonPatch, Schemas, SourceInput, code, v, type Parsed } from './validation.ts';
 export class Talent {
     clock: Clock;
     config: Config;
@@ -339,6 +339,7 @@ export class Talent {
     }> {
         requirePermission(actor, 'catalog.manage');
         const data = Schemas.dictionaryCreate.parse(input);
+        if(data.namespace==='nationality')v.string(2,2,/^[A-Z]{2}$/).parse(data.code);else code.parse(data.code);
         invariant((await tx.find('dictionary', { workspaceId: actor.workspaceId, namespace: data.namespace, code: data.code })).length === 0, 'CODE_EXISTS', '分类代码已经存在', 409);
         const row = { ...base(actor.workspaceId, this.clock), ...data, status: 'ACTIVE' as const };
         await tx.insert('dictionary', row);
