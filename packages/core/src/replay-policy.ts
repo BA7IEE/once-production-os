@@ -81,6 +81,7 @@ export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandRec
             await handoffParticipant(tx, actor, id);
             return;
         case 'person':
+            if(receipt.operation==='directory.talent.create'){requirePermission(actor,'records.write');const person=await td2PersonFor(tx,actor,id);await sourceFor(tx,actor,person.sourceId,clock);return;}
             if(receipt.operation.startsWith('td2.')){await td2PersonFor(tx,actor,id);return;}
             if (['person.update', 'evidence.confirm'].includes(receipt.operation)) {
                 await profileAccess(tx, actor, id, clock, receipt.operation === 'person.update' ? 'edit' : 'review');

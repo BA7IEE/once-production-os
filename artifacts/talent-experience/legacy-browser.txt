@@ -1,0 +1,17 @@
+Handoff (real PG14 / Chrome)
+PASS H1 browser: private record offered; pending invitation exposes no profile
+PASS H1 browser/API: lost accept response replayed; source, contacts, history and sibling stay private
+PASS H1 browser/API: delegated edit preserved ownership; revoke denies next read and write
+
+Media (real PG14 / Chrome; TMPDIR=/private/tmp)
+PASS M1 browser: upload/unknown-complete replay/worker/decoded preview; metadata stripped and private scope enforced
+PASS PDF attachment: actual upload/worker/DB and explicit unparsed page, no administrator scope bypass
+PASS M1 API/worker: disguised HTML and cancelled upload produce no accessible asset
+PASS M1 API: quarantine and current source suspension deny subsequent preview requests
+
+Intake (real PG14 / Chrome)
+PASS PostgreSQL same-key concurrency creates exactly one typed person and receipt
+PASS PostgreSQL audit fault rolls back all composed writes; original key retries
+PASS Browser name-only intake, multi-role and lost response replay keep one person
+PASS Browser contact branch creates no professional record; form fits 360/390/430/1280
+PASS Real viewer UI/API refuse creation and restricted person access

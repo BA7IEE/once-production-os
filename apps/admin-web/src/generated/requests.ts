@@ -28,6 +28,7 @@ export interface Inputs {
   "locale.get": undefined;
   "locale.create": { "subjectKind": "PERSON" | "WORK" | "PROJECT"; "subjectId": string; "locale": "zh" | "en"; "text": string; "sourceRefs": Array<{ "id": string; "expectedRevision": number }>; "expectedSubjectRevision": number; "confirmCurrentBasis": boolean };
   "locale.update": { "expectedRevision": number; "text": string; "sourceRefs": Array<{ "id": string; "expectedRevision": number }>; "expectedSubjectRevision": number; "confirmCurrentBasis": boolean };
+  "directory.talent.create": { "schemaVersion": "once-talent-experience-v1"; "displayName": string; "kind": "TALENT" | "CONTACT"; "roleCodes"?: Array<string>; "sourceId"?: string; "sourceRevision"?: number };
   "td2.heightReview.list": undefined;
   "td2.heightReview.dismiss": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "sourceRevision": number; "resolution": "DO_NOT_USE_LEGACY_HEIGHT"; "acknowledge": boolean };
   "td2.credential.secret.clear": { "schemaVersion": "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "sourceRevision": number; "acknowledge": boolean };
@@ -338,6 +339,11 @@ export const ENDPOINTS = {
   "locale.update": {
     "method": "PATCH",
     "path": "/locale-texts/{id}",
+    "mode": "COMMAND"
+  },
+  "directory.talent.create": {
+    "method": "POST",
+    "path": "/directory/talents",
     "mode": "COMMAND"
   },
   "td2.heightReview.list": {

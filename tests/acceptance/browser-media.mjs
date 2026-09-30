@@ -71,9 +71,8 @@ try {
  await login(owner,'owner');const added=await cmd(owner,'POST','/memberships',{loginName:'m1_editor',displayName:'合成图片维护人',role:'EDITOR',extraPermissions:[]},201);
  await editor.goto(base+'/activate',{waitUntil:'networkidle'});await editor.getByLabel('激活凭证').fill(added.activationToken);await editor.getByLabel('设置密码（至少 12 个字符）').fill(password);await editor.getByRole('button',{name:'激活账号',exact:true}).click();await editor.getByText('账号已激活').waitFor();await login(editor,'m1_editor');
  await editor.getByRole('button',{name:/人才档案/}).click();await editor.getByRole('button',{name:/新增人才/}).click();
- await editor.getByLabel('姓名 / 艺名 *').fill('M1私有图片人才');await editor.locator('label.check-chip').filter({hasText:'模特'}).getByRole('checkbox').check();
- await editor.getByLabel('来源标题 *').fill('M1合成图片来源');await editor.getByLabel('提供者 / 提供方式 *').fill('合成人物测试资料');await editor.getByLabel('依据说明 *').fill('仅合成数据用于隔离验收，不代表真实授权');
- const createdResponse=editor.waitForResponse(r=>r.url().endsWith('/people')&&r.request().method()==='POST');await editor.getByRole('button',{name:'建立档案',exact:true}).click();const created=await createdResponse;assert.equal(created.status(),201);
+ await editor.getByLabel('姓名 / 艺名 *').fill('M1私有图片人才');await editor.getByRole('checkbox',{name:'模特',exact:true}).check();
+ const createdResponse=editor.waitForResponse(r=>r.url().endsWith('/directory/talents')&&r.request().method()==='POST');await editor.getByRole('button',{name:'保存草稿',exact:true}).click();const created=await createdResponse;assert.equal(created.status(),201);
  const pid=(await created.json()).resourceId,person=await prisma.person.findUniqueOrThrow({where:{id:pid}});
  await editor.getByRole('heading',{name:'关联私有素材'}).waitFor();
  const image=await sharp({create:{width:80,height:40,channels:3,background:'#336699'}}).png().withMetadata({orientation:6}).toBuffer();

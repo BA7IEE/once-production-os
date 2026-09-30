@@ -1,3 +1,4 @@
+import { createTalentIntake } from './talent-intake.ts';
 import {ProjectParties,brandFor} from './project-parties.ts';
 import {readConnection,saveConnection,testConnection} from './ai-connection.ts';
 import {AiOperations,aiOperator} from './ai-operations.ts';
@@ -336,6 +337,7 @@ export class Application {
                     case 'td2.schema': return this.talentV2.schema(tx,actor);
                     case 'td2.person.list': return searchTalentV2(tx,actor,this.clock,query);
                     case 'td2.person.get': return this.talentV2.get(tx,actor,id);
+                    case 'directory.talent.create': return command('person',()=>createTalentIntake(tx,actor,data,this.clock,this.config));
                     case 'td2.person.create': return command('person',()=>this.talentV2.createPerson(tx,actor,data));
                     case 'td2.person.patch': return command('person',()=>this.talentV2.patchPerson(tx,actor,id,data));
                     case 'td2.person.enroll': return command('person',()=>this.talentV2.enroll(tx,actor,id,data));
@@ -485,7 +487,7 @@ export class Application {
                 this.resultResourceId(response.body, params.id ?? safetyIntent?.resourceId ?? meta.requestId));
             if (['ai.create', 'import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation))
                 response.status = 202;
-            else if (route.operation.startsWith('td2.') && route.operation.endsWith('.create')) response.status = 201;
+            else if (route.operation==='directory.talent.create' || route.operation.startsWith('td2.') && route.operation.endsWith('.create')) response.status = 201;
             else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['brand.create', 'ai.grant', 'locale.create', 'deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
                 response.status = 201;
             return response;

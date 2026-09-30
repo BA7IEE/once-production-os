@@ -1,0 +1,30 @@
+{
+  "node": "v22.22.3",
+  "core": {
+    "tests": 569,
+    "pass": 569,
+    "fail": 0,
+    "allPassed": true,
+    "adapter": "tests/support/MemoryStore (NOT PostgreSQL)"
+  },
+  "static": {
+    "pass": 12,
+    "fail": 0
+  },
+  "checks": [
+    "pnpm verify",
+    "pnpm typecheck:transport"
+  ],
+  "providers": "NOT_RUN",
+  "sourceSha256": {
+    "packages/core/src/talent-intake.ts": "2815c008dac3327f869fa6581a52432b7b3b0aa3eafa894d16c38dd2f19e8b32",
+    "packages/core/src/routes.ts": "1fde0a80bc5dcdb9d5424bc32d341d736edccd1d1bd93a9605a270201a6c1221",
+    "packages/core/src/api.ts": "945ce1f4a7b7d494f3d6887bd65d80c381a83356e33364a07ef11dbe3e5db35e",
+    "packages/core/src/replay-policy.ts": "b4015dc3a5a6941bbfd7cb38921d3503ea7d619d3fa2153bfdefbf7eb20ad6bb",
+    "apps/admin-web/src/talent-intake.tsx": "2bbc0e36e6b03583d8f635187d9171d740a114dc704344aaea753cae7663e838",
+    "apps/admin-web/src/main.tsx": "1969fdaf3768b4608445a6f767a6a097dbff805f94ff6199d778710bb1888d49",
+    "scripts/talent-experience-surface-policy.mjs": "425f6cbebb5a32b0147a58d223daf63232ccb2a151142377af65e5835f8e2a03",
+    "tests/acceptance/browser-talent-intake.mjs": "3d27d4170acdcc317c24a1ce24093df5c98f15d0ac539241d525958335aaab64"
+  },
+  "surfacePolicyTests": 2
+}

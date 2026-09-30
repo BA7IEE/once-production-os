@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: unreviewed external and legacy-named publishing routes remain blocked
+ok 1 - unreviewed external and legacy-named publishing routes remain blocked
+  ---
+  duration_ms: 0.88525
+  type: 'test'
+  ...
+# Subtest: internal directory acceptance never admits child paths or transactions/booking
+ok 2 - internal directory acceptance never admits child paths or transactions/booking
+  ---
+  duration_ms: 0.21825
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 46.680917

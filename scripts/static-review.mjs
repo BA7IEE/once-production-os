@@ -1,3 +1,4 @@
+import {unsupportedExperienceSurfaces,forbiddenNonGoalSurfaces} from './talent-experience-surface-policy.mjs';
 import {forbiddenBrowserGlobals} from './browser-storage-policy.mjs';
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import { createRequire } from 'node:module';
 const ts=createRequire(import.meta.url)('typescript');
@@ -15,7 +16,9 @@ const artifacts=JSON.parse(fs.readFileSync('artifacts/openapi.json','utf8'));con
 record('unique-route-operation-identities',new Set(routes.map(r=>r.operationId)).size===routes.length,{routes:routes.length});
 record('strict-request-object-schemas',routes.filter(r=>r.requestBody?.content['application/json']).every(r=>r.requestBody.content['application/json'].schema.additionalProperties===false),null);
 record('command-key-header-required',routes.filter(r=>r['x-mode']==='COMMAND').every(r=>r.parameters.some(p=>p.name==='Idempotency-Key'&&p.required)),null);
-record('no-deferred-http-surfaces',Object.keys(artifacts.paths).every(p=>!/(publish|anqicms|share|quote|invoice|ai\/)/.test(p)),null);
+const paths=Object.keys(artifacts.paths),unsupported=unsupportedExperienceSurfaces(paths),nonGoals=forbiddenNonGoalSurfaces(paths);
+record('reviewed-experience-http-surfaces',unsupported.length===0,{unsupported,note:'PR-00/01a admits only the internal intake command. Later reviewed work packages must extend exact paths; route presence is not release acceptance.'});
+record('no-non-goal-http-surfaces',nonGoals.length===0,{nonGoals});
 const migration=fs.readFileSync('prisma/migrations/202609220001_initial/migration.sql','utf8');
 record('candidate-migration-typed-tables',(migration.match(/CREATE TABLE/g)||[]).length===17,{tables:17,note:'Text inspection only, not PostgreSQL execution.'});
 record('candidate-composite-FKs',migration.includes('FOREIGN KEY ("workspaceId", "sourceId")')&&migration.includes('FOREIGN KEY ("workspaceId", "membershipId")'),null);
