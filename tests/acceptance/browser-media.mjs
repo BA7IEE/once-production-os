@@ -72,9 +72,12 @@ try {
  await editor.goto(base+'/activate',{waitUntil:'networkidle'});await editor.getByLabel('激活凭证').fill(added.activationToken);await editor.getByLabel('设置密码（至少 12 个字符）').fill(password);await editor.getByRole('button',{name:'激活账号',exact:true}).click();await editor.getByText('账号已激活').waitFor();await login(editor,'m1_editor');
  await editor.getByRole('button',{name:/人才档案/}).click();await editor.getByRole('button',{name:/新增人才/}).click();
  await editor.getByLabel('姓名 / 艺名 *').fill('M1私有图片人才');await editor.getByRole('checkbox',{name:'模特',exact:true}).check();
+ const sourceReadPath='**/api/v1/sources/*';let releaseSource,sourceEntered;const sourceGate=new Promise(resolve=>{releaseSource=resolve;}),sourceRequested=new Promise(resolve=>{sourceEntered=resolve;});
+ const holdSource=async route=>{const response=await route.fetch();sourceEntered();await sourceGate;await route.fulfill({response});};await editor.route(sourceReadPath,holdSource);
  const createdResponse=editor.waitForResponse(r=>r.url().endsWith('/directory/talents')&&r.request().method()==='POST');await editor.getByRole('button',{name:'保存草稿',exact:true}).click();const created=await createdResponse;assert.equal(created.status(),201);
  const pid=(await created.json()).resourceId,person=await prisma.person.findUniqueOrThrow({where:{id:pid}});
- await editor.getByRole('heading',{name:'关联私有素材'}).waitFor();
+ await sourceRequested;await editor.getByText('正在核对素材来源…',{exact:true}).waitFor();assert.equal(await editor.getByRole('heading',{name:'关联私有素材'}).count(),0,'source-backed upload must not render an unrelated required source selector while the profile source loads');releaseSource();
+ await editor.getByRole('heading',{name:'关联私有素材'}).waitFor();await editor.unroute(sourceReadPath,holdSource);
  const image=await sharp({create:{width:80,height:40,channels:3,background:'#336699'}}).png().withMetadata({orientation:6}).toBuffer();
  const sends=[];const path='**/api/v1/uploads/*/complete';
  editor.on('request',r=>{if(r.url().endsWith('/complete'))sends.push({key:r.headers()['idempotency-key'],body:r.postData()});});

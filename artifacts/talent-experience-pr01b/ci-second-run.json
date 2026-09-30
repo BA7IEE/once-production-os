@@ -1,0 +1,8 @@
+{
+  "head": "8473917c6f75b49129a820451fb14ea9f7aad19b",
+  "run": 36746070493,
+  "successfulJobs": 6,
+  "failedJob": "browser-media",
+  "cause": "Main-detail source readiness race prevents form submission",
+  "resolution": "Source-ready rendering plus deterministic held-response browser coverage; no timeout change or skipped assertions"
+}

@@ -60,6 +60,10 @@
     {
       "finding": "Empty declared-age inputs converted to zero",
       "fix": "Preserve null and verify clear action in real browser"
+    },
+    {
+      "finding": "Cloud media suite could submit before primary-detail source loaded; browser required an unrelated source choice",
+      "fix": "Wait for source readiness before rendering source-backed media form; actual browser holds source response, verifies loading state, then completes unchanged upload/replay/PDF/privacy assertions"
     }
   ],
   "noSkippedTests": true,

@@ -37,6 +37,7 @@
     "Cleared declared-age inputs remain null",
     "Advanced changes refresh main detail",
     "Complete legacy browser production suite exits zero, including locale and AI",
-    "Export approval waits for selected subject and actual source"
+    "Export approval waits for selected subject and actual source",
+    "Source-backed upload waits for main-detail source, verified by held-response real browser"
   ]
 }
