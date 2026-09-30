@@ -1,13 +1,22 @@
 import { v, uuid, revision, dateIso, code, type Schema } from './validation.ts';
 import { invariant } from './errors.ts';
-import { TALENT_SCHEMA_VERSION } from './talent-v2-model.ts';
+import { TALENT_SCHEMA_VERSION, LEGACY_TALENT_SCHEMA_VERSION } from './talent-v2-model.ts';
 export const TD2_FACTS = {
   "talentProfiles": {
     "slug": "profile",
     "ownerKey": "talentProfileId",
     "fields": {
       "internalSummary": "text",
-      "status": "enum:ACTIVE,ARCHIVED"
+      "status": "enum:ACTIVE,ARCHIVED",
+      "genderCode": "enum:FEMALE,MALE,NON_BINARY,OTHER?",
+      "birthPrecision": "enum:UNKNOWN,EXACT_DATE,YEAR_ONLY,DECLARED_RANGE",
+      "birthDate": "day?",
+      "birthYear": "int?",
+      "minAgeYears": "int?",
+      "maxAgeYears": "int?",
+      "ageAsOfDate": "day?",
+      "nationalityCodes": "texts",
+      "coverAssetId": "uuid?"
     },
     "required": [],
     "immutable": [],
@@ -20,7 +29,11 @@ export const TD2_FACTS = {
       "roleCode": "text",
       "validFrom": "time?",
       "validUntil": "time?",
-      "status": "enum:ACTIVE,INACTIVE"
+      "status": "enum:ACTIVE,INACTIVE",
+      "castingMarketCode": "enum:UNCLASSIFIED,DOMESTIC,INTERNATIONAL",
+      "experienceCode": "enum:UNSPECIFIED,AMATEUR,PROFESSIONAL",
+      "styleCodes": "texts",
+      "serviceCodes": "texts"
     },
     "required": [
       "roleCode"
@@ -104,8 +117,8 @@ export const TD2_FACTS = {
     "slug": "measurements",
     "ownerKey": "measurementSetId",
     "fields": {
-      "measuredOn": "day",
-      "datePrecision": "enum:EXACT_DAY,APPROXIMATE",
+      "measuredOn": "day?",
+      "datePrecision": "enum:EXACT_DAY,APPROXIMATE,UNKNOWN",
       "heightCm": "float?",
       "bustCm": "float?",
       "waistCm": "float?",
@@ -287,7 +300,7 @@ export const TD2_FACTS = {
 export type FactTable = keyof typeof TD2_FACTS;
 export type FactRow = import('./model.ts').Base & { personId: string; sourceId: string; [key: string]: unknown };
 export const TD2_TABLES = Object.keys(TD2_FACTS) as FactTable[];
-export const VERSION = v.enum([TALENT_SCHEMA_VERSION]);
+export const VERSION = v.enum([TALENT_SCHEMA_VERSION,LEGACY_TALENT_SCHEMA_VERSION]);
 export const day: Schema<string> = { json: { type: 'string', format: 'date' }, parse(x, path='') {
     const value = v.string(10,10,/^\d{4}-\d{2}-\d{2}$/).parse(x,path);
     const time = new Date(value+'T00:00:00.000Z');

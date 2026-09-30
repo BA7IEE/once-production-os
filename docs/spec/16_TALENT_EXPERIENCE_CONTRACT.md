@@ -2,7 +2,7 @@
 
 日期：2026-09-30。配套 [v1.1完整规范](15_TALENT_EXPERIENCE_V1_1.md)。本文件将拟实施合同与本次已实现切片分开；所有未实现项均不提供占位入口。
 
-## 本次已实现合同（PR-01a）
+## 已合并合同（PR-01a）
 
 `POST /api/v1/directory/talents`，`directory.talent.create`，COMMAND，HTTP 201。
 
@@ -12,7 +12,7 @@
 
 同一数据库事务创建 Person、TalentProfile、PersonRole 及对应字段依据，写回执和审计。返回现有最小回执，不返回来源全文。角色由既有 TD2 createFact 生成；每项递增人物 revision，回执为最后 revision。写前安全日志沿用正式 Application 入口。审计失败全部回滚，提交成功失去响应则原键重放；重放重新检查当前人物、来源和权限。来源失效返回不可用，不凭回执重新创建人物。
 
-UI 只有“新增人才”入口，默认模特，支持多职业与次级普通联系人分支；可选已有来源。姓名和提示之外无强制假填。结果未知时冻结正文、关闭/取消入口并显式核对原提交。既有专业工作台、普通联系人同档升级与兼容API保留。照片目录、组合筛选和主详情整合尚未完成。
+UI 只有“新增人才”入口，默认模特，支持多职业与次级普通联系人分支；可选已有来源。姓名和提示之外无强制假填。结果未知时冻结正文、关闭/取消入口并显式核对原提交。既有专业工作台、普通联系人同档升级与兼容API保留。PR-01b 的照片目录、组合筛选和主详情及生命周期合同见 [本轮交付](../release/TALENT_EXPERIENCE_PR01B.md)。
 
 ## ADR-TE-01：四类真实主体
 
@@ -41,7 +41,7 @@ INTERNAL_SOURCE、TALENT_SUBMISSION、AGENT_SUBMISSION 显式上下文；真实 
 | 子包 | 数据变更与强约束 | 保留/升级验证 | 生命周期前置 |
 |---|---|---|---|
 | PR-01a 本次 | 无 schema/迁移；组合既有表 | main的54次迁移和所有实体ID保持；PG同键竞争/回滚 | 沿用既有Person/TD2来源/导出/删除/恢复链，无新增实体 |
-| PR-01b | TD2 2.1：Demographics、ModelProfile、tag、presentation、measuredOn nullable/UNKNOWN/reportedAt | 不伪填旧日期；角色FK/字典、生日受限投影；旧2.0严格适配 | 同步字段依据/OWNER_KEYS、查询、转移、删除、恢复 |
+| PR-01b | TD2 2.1：以现有 talentProfiles/personRoles 承载 Demographics/ModelProfile/角色标签，封面 Asset 引用、measuredOn nullable/UNKNOWN/reportedAt | 不伪填旧日期；角色FK/字典、生日受限投影；旧2.0严格适配 | 同步字段依据/OWNER_KEYS、查询、转移、删除、恢复 |
 | PR-02a | account/identity/session/challenge/delivery、principal分支/索引/FK/XOR | 历史内部/机器回执原键重放；账号身份keyed hash唯一 | safety intent、replay、审计、账号停用、恢复不补发 |
 | PR-02b | invitation/claim/grant、submission/item、consent/source attribution/use basis | SELF双向唯一、名额原子预留、提交终态、关系原子采纳 | grant撤回、所有旧消费者用途即时失效、self manifest |
 | PR-03 | uploader/暂存归属、同人角色媒体、WorkMetadata、回收计划/配额 | 已有媒体source/hash/objectRef不改；真实异步worker | 草稿READY清理、依赖/共享原件、播放和首字节撤权 |

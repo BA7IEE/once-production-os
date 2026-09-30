@@ -1,3 +1,4 @@
+import { validateDemographics } from './talent-demographics.ts';
 import type { Actor, Clock, Table, TableMap } from './model.ts';
 import type { Tx } from './store.ts';
 import { TALENT_V2_TABLES, TALENT_OWNER_TABLES } from './talent-v2-model.ts';
@@ -94,6 +95,10 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
         ref(row, 'agencyOrganizationId', 'organizations');
         ref(row, 'issuerOrganizationId', 'organizations');
         ref(row, 'evidenceAssetId', 'assets');
+        ref(row, 'coverAssetId', 'assets');
+        if(table==='talentProfiles'){try{validateDemographics(row,{now:()=>new Date()});}catch{check(false);}if(row.coverAssetId)check(maps.assets.get(String(row.coverAssetId))?.personId===row.personId||!!row.supersededById);}
+        if(table==='measurementSets')check(row.reportedAt==null||Date.parse(String(row.reportedAt))>=Date.parse(String(row.createdAt))&&Date.parse(String(row.reportedAt))<=Date.parse(String(row.updatedAt)));
+        if(table==='measurementSets')check(row.datePrecision==='UNKNOWN'?row.measuredOn===null:typeof row.measuredOn==='string');
         if (table === 'castingProfiles') ref(row, 'currentMeasurementSetId', 'measurementSets', true);
         if ((table === 'talentProfiles' || table === 'castingProfiles') && row.supersededById) {
             ref(row, 'supersededById', table, false, true);
@@ -196,7 +201,7 @@ export async function talentDependencyCounts(tx: Tx, workspaceId: string, kind: 
     for (const table of TALENT_V2_TABLES) for (const row of data[table]) {
         if ((kind === 'PERSON' && (row.personId === id || row.agentPersonId === id))
             || (kind === 'SOURCE' && row.sourceId === id)
-            || (kind === 'ASSET' && (row.assetId === id || row.evidenceAssetId === id))) add(table, row);
+            || (kind === 'ASSET' && (row.assetId === id || row.evidenceAssetId === id || row.coverAssetId === id))) add(table, row);
     }
     if (kind === 'PERSON') for (const table of ['talentProfiles', 'castingProfiles'] as const)
         for (const row of data[table]) if (row.supersededById && data[table].some(r => r.id === row.supersededById && r.personId === id)) add(table, row);

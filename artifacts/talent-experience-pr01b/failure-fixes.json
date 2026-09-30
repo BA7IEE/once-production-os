@@ -1,0 +1,35 @@
+{
+  "failedRunsNotCountedAsPassing": true,
+  "fixes": [
+    {
+      "finding": "Populated upgrade expected no dictionary additions",
+      "fix": "Preserve every old dictionary ID and byte value; verify exactly 14 new entries in three new namespaces"
+    },
+    {
+      "finding": "New birthday export code absent from SOURCE permit eligibility and ordinary Person field exclusions",
+      "fix": "Add exact new code in source whitelist and keep birthday solely in restricted typed profile transfer; separate grants and target-member permission tests pass"
+    },
+    {
+      "finding": "Legacy 2.0 schema could accept new business fields",
+      "fix": "Explicit 2.0 field adapter rejects new demographic/model fields and unknown dates"
+    },
+    {
+      "finding": "Upload READY callback remounted entire detail and lost upload-another state",
+      "fix": "Refresh photos independently; unchanged real media/PDF/privacy browser assertions pass"
+    },
+    {
+      "finding": "Old candidate browser test selected hidden advanced filter",
+      "fix": "Open actual more-conditions section before selecting same DRAFT and industry/type values"
+    },
+    {
+      "finding": "Lifecycle helper hardcoded role revision before business field update",
+      "fix": "Read current role revision, retain same CAS checks"
+    },
+    {
+      "finding": "Pagination test interacted before second-page response rendered",
+      "fix": "Await the actual page-2 POST response and exact returned card, retain page/query/selection assertions"
+    }
+  ],
+  "noSkippedTests": true,
+  "noIncreasedTimeouts": true
+}

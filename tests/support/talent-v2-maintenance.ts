@@ -78,10 +78,11 @@ export async function seedProfessionalGraph(app: Application, store: Store, cloc
 
 export async function verifyProfessionalErasure(app: Application, store: Store, clock: FakeClock, owner: Client) {
     const f = await seedProfessionalGraph(app, store, clock, owner);
+    expectResponse(await owner.cmd('PATCH',`/directory/talents/${f.personId}`,{schemaVersion:'once-talent-experience-v1',expectedRevision:(await f.current()).revision,sourceId:f.sourceId,sourceRevision:1,profile:{genderCode:'FEMALE',birthPrecision:'YEAR_ONLY',birthYear:2000,nationalityCodes:['CN']},model:{castingMarketCode:'DOMESTIC',experienceCode:'AMATEUR',styleCodes:['natural'],serviceCodes:['print']}}),200);
     const p = await f.current();
     const listId = expectResponse(await owner.cmd('POST', '/shortlists', { title: '合成职业候选', scopeId: p.scopeId })).resourceId as string;
     expectResponse(await owner.cmd('POST', `/shortlists/${listId}/items`, {
-        expectedRevision: 1, personId: p.id, personRoleId: f.roleId, personRoleRevision: 1, note: '', workAssetIds: []
+        expectedRevision: 1, personId: p.id, personRoleId: f.roleId, personRoleRevision: (await store.transaction(tx=>tx.get('personRoles',f.roleId)))!.revision, note: '', workAssetIds: []
     }), 200);
     const preview = expectResponse(await owner.raw('POST', '/deletion-requests/preview', {
         targetKind: 'PERSON', targetId: p.id, expectedRevision: p.revision
@@ -129,6 +130,7 @@ export async function verifyProfessionalErasure(app: Application, store: Store, 
 
 export async function verifyProfessionalRecovery(app: Application, store: Store, clock: FakeClock, owner: Client) {
     const f = await seedProfessionalGraph(app, store, clock, owner);
+    expectResponse(await owner.cmd('PATCH',`/directory/talents/${f.personId}`,{schemaVersion:'once-talent-experience-v1',expectedRevision:(await f.current()).revision,sourceId:f.sourceId,sourceRevision:1,profile:{genderCode:'FEMALE',birthPrecision:'YEAR_ONLY',birthYear:2000,nationalityCodes:['CN']},model:{castingMarketCode:'DOMESTIC',experienceCode:'AMATEUR',styleCodes:['natural'],serviceCodes:['print']}}),200);
     const p = await f.current();
     const config = { ...app.config, accessMode: 'MAINTENANCE' as const, dataEgressMode: 'DISABLED' as const,
         dataCleanupMode: 'DISABLED' as const, dataMergeMode: 'DISABLED' as const, recoveryEpoch: 'td2_new_epoch_' + 'x'.repeat(40) };

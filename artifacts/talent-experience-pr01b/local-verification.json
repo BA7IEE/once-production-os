@@ -1,0 +1,35 @@
+{
+  "status": "PASSED",
+  "commands": [
+    "pnpm verify",
+    "pnpm typecheck:transport",
+    "pnpm verify:postgres",
+    "node --test tests/postgres/talent-directory.test.ts",
+    "node tests/acceptance/browser-talent-directory.mjs",
+    "node tests/acceptance/browser-handoff.mjs",
+    "node tests/acceptance/browser-media.mjs",
+    "node tests/acceptance/browser-production.mjs"
+  ],
+  "core": {
+    "tests": 577,
+    "pass": 577,
+    "fail": 0,
+    "skipped": 0
+  },
+  "routes": 202,
+  "postgresVersion": "14.19",
+  "physicalBackupRestore": "PASSED with new fields, measurement date unknown, reportedAt and cover",
+  "browserWidths": [
+    360,
+    390,
+    430,
+    1280
+  ],
+  "browser": "system Chrome on synthetic PostgreSQL only",
+  "limitations": [
+    "PG16 final commit checked by CI",
+    "No production migration or deployment",
+    "No invitation, portal, multi-source uploads, client share or publication",
+    "50,000 bounded graph candidates, not final unlimited scale acceptance"
+  ]
+}

@@ -90,7 +90,7 @@ export async function call<K extends keyof Inputs, T = unknown>(operation: K, in
         if(key)uncertain();
         if (route.mode === 'SECRET')
             blockedSecret = true;
-        throw new ApiError(key ? '网络中断，提交结果未知。保留当前表单，原样再次提交会复用同一个请求编号。' : '网络中断，请核对服务状态后重试。', 'NETWORK_ERROR', 0, key ?? '', route.method !== 'GET');
+        throw new ApiError(key ? '网络中断，提交结果未知。保留当前表单，原样再次提交会复用同一个请求编号。' : '网络中断，请核对服务状态后重试。', 'NETWORK_ERROR', 0, key ?? '', route.mode !== 'READ' && route.method !== 'GET');
     }
     let decoded: unknown;
     try {
@@ -100,7 +100,7 @@ export async function call<K extends keyof Inputs, T = unknown>(operation: K, in
         if(key)uncertain();
         if (route.mode === 'SECRET')
             blockedSecret = true;
-        throw new ApiError('服务响应无法解析；写入结果可能不明确。', 'RESPONSE_INVALID', response.status, key ?? '', route.method !== 'GET');
+        throw new ApiError('服务响应无法解析；写入结果可能不明确。', 'RESPONSE_INVALID', response.status, key ?? '', route.mode !== 'READ' && route.method !== 'GET');
     }
     if (!response.ok) {
         const e = (decoded as {
@@ -120,7 +120,7 @@ export async function call<K extends keyof Inputs, T = unknown>(operation: K, in
         if (response.status === 401) {
             suspendTransport(); window.dispatchEvent(new Event('once-session-expired'));
         }
-        throw new ApiError(e?.message ?? '请求未完成', e?.code ?? 'HTTP_ERROR', response.status, e?.requestId ?? '', (!!previous?.uncertain || response.status >= 500) && route.method !== 'GET');
+        throw new ApiError(e?.message ?? '请求未完成', e?.code ?? 'HTTP_ERROR', response.status, e?.requestId ?? '', (!!previous?.uncertain || response.status >= 500) && route.mode !== 'READ' && route.method !== 'GET');
     }
     if(key && !validReceipt(decoded,operation)){
         uncertain(); throw new ApiError('服务未返回有效写入回执，请保留原请求核对。','RECEIPT_INVALID',response.status,key,true);

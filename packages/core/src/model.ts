@@ -133,7 +133,7 @@ export interface FieldEvidence extends Base, Partial<TalentOwnerRefs> {
     reviewedAt: string | null;
 }
 export interface DictionaryItem extends Base {
-    namespace: 'role' | 'city' | 'language' | 'skill' | 'industry' | 'workType';
+    namespace: 'role' | 'city' | 'language' | 'skill' | 'industry' | 'workType' | 'nationality' | 'roleStyle' | 'roleService';
     code: string;
     labelZh: string;
     labelEn: string;

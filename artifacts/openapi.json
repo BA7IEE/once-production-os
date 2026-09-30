@@ -2123,6 +2123,668 @@
         "x-mode": "COMMAND"
       }
     },
+    "/api/v1/directory/talents/{id}": {
+      "patch": {
+        "operationId": "directory.talent.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "schemaVersion": {
+                    "type": "string",
+                    "enum": [
+                      "once-talent-experience-v1"
+                    ]
+                  },
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "sourceRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "profile": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "internalSummary": {
+                        "type": "string",
+                        "minLength": 0,
+                        "maxLength": 5000
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "ACTIVE",
+                          "ARCHIVED"
+                        ]
+                      },
+                      "genderCode": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "FEMALE",
+                              "MALE",
+                              "NON_BINARY",
+                              "OTHER"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "birthPrecision": {
+                        "type": "string",
+                        "enum": [
+                          "UNKNOWN",
+                          "EXACT_DATE",
+                          "YEAR_ONLY",
+                          "DECLARED_RANGE"
+                        ]
+                      },
+                      "birthDate": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "birthYear": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 10000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "minAgeYears": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 10000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "maxAgeYears": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 10000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "ageAsOfDate": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "nationalityCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "minItems": 0,
+                        "maxItems": 30
+                      },
+                      "coverAssetId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 36,
+                            "maxLength": 36,
+                            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": []
+                  },
+                  "model": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "validFrom": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "validUntil": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "ACTIVE",
+                          "INACTIVE"
+                        ]
+                      },
+                      "castingMarketCode": {
+                        "type": "string",
+                        "enum": [
+                          "UNCLASSIFIED",
+                          "DOMESTIC",
+                          "INTERNATIONAL"
+                        ]
+                      },
+                      "experienceCode": {
+                        "type": "string",
+                        "enum": [
+                          "UNSPECIFIED",
+                          "AMATEUR",
+                          "PROFESSIONAL"
+                        ]
+                      },
+                      "styleCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "minItems": 0,
+                        "maxItems": 30
+                      },
+                      "serviceCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "minItems": 0,
+                        "maxItems": 30
+                      }
+                    },
+                    "required": []
+                  },
+                  "locationCode": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 60
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "measurement": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "measuredOn": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "datePrecision": {
+                        "type": "string",
+                        "enum": [
+                          "EXACT_DAY",
+                          "APPROXIMATE",
+                          "UNKNOWN"
+                        ]
+                      },
+                      "heightCm": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 40,
+                            "maximum": 260
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "bustCm": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 10,
+                            "maximum": 300
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "waistCm": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 10,
+                            "maximum": 300
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "hipsCm": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 10,
+                            "maximum": 300
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "shoeSizeValue": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 0,
+                            "maxLength": 1000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "shoeSizeSystem": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "EU",
+                              "US",
+                              "UK",
+                              "CN"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "clothingSizeValue": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 0,
+                            "maxLength": 1000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "clothingSizeSystem": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "INTL",
+                              "EU",
+                              "US",
+                              "UK",
+                              "CN"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "supersedesId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 36,
+                            "maxLength": 36,
+                            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "measuredOn",
+                      "datePrecision"
+                    ]
+                  },
+                  "confirmMeasurement": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "schemaVersion",
+                  "expectedRevision",
+                  "sourceId",
+                  "sourceRevision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.write",
+        "x-mode": "COMMAND"
+      },
+      "get": {
+        "operationId": "directory.talent.get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.read",
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/directory/talents/search": {
+      "post": {
+        "operationId": "directory.talent.search",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "q": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 160
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "ALL",
+                      "TALENT",
+                      "CONTACT"
+                    ]
+                  },
+                  "role": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "gender": {
+                    "type": "string",
+                    "enum": [
+                      "FEMALE",
+                      "MALE",
+                      "NON_BINARY",
+                      "OTHER",
+                      "UNKNOWN"
+                    ]
+                  },
+                  "nationality": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 2,
+                    "pattern": "^[A-Z]{2}$"
+                  },
+                  "market": {
+                    "type": "string",
+                    "enum": [
+                      "DOMESTIC",
+                      "INTERNATIONAL",
+                      "UNCLASSIFIED"
+                    ]
+                  },
+                  "experience": {
+                    "type": "string",
+                    "enum": [
+                      "AMATEUR",
+                      "PROFESSIONAL",
+                      "UNSPECIFIED"
+                    ]
+                  },
+                  "style": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "service": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "location": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "language": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "industryCode": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "workTypeCode": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DRAFT",
+                      "ACTIVE",
+                      "ARCHIVED"
+                    ]
+                  },
+                  "ageMin": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 130
+                  },
+                  "ageMax": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 130
+                  },
+                  "ageUnknown": {
+                    "type": "boolean"
+                  },
+                  "heightMin": {
+                    "type": "number",
+                    "minimum": 40,
+                    "maximum": 260
+                  },
+                  "heightMax": {
+                    "type": "number",
+                    "minimum": 40,
+                    "maximum": 260
+                  },
+                  "page": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100000
+                  },
+                  "pageSize": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  }
+                },
+                "required": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.read",
+        "x-mode": "READ"
+      }
+    },
     "/api/v1/directory/talents": {
       "post": {
         "operationId": "directory.talent.create",
@@ -2319,6 +2981,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -2428,6 +3091,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -2530,6 +3194,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -2791,6 +3456,78 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "gender",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nationality",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "experience",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "style",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "service",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ageMin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ageMax",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ageUnknown",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "security": [
@@ -2863,6 +3600,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -3074,6 +3812,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -3191,6 +3930,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -3294,6 +4034,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -3422,6 +4163,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -3603,6 +4345,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -3688,6 +4431,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -3831,6 +4575,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -3925,6 +4670,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -4073,6 +4819,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -4171,6 +4918,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -4269,6 +5017,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -4367,6 +5116,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -4465,6 +5215,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -4563,6 +5314,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -4661,6 +5413,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -4771,6 +5524,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -4878,6 +5632,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -4977,6 +5732,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -5099,6 +5855,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -5209,6 +5966,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -5295,6 +6053,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -5384,6 +6143,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -5417,6 +6177,112 @@
                         "enum": [
                           "ACTIVE",
                           "ARCHIVED"
+                        ]
+                      },
+                      "genderCode": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "FEMALE",
+                              "MALE",
+                              "NON_BINARY",
+                              "OTHER"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "birthPrecision": {
+                        "type": "string",
+                        "enum": [
+                          "UNKNOWN",
+                          "EXACT_DATE",
+                          "YEAR_ONLY",
+                          "DECLARED_RANGE"
+                        ]
+                      },
+                      "birthDate": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "birthYear": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 10000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "minAgeYears": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 10000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "maxAgeYears": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 10000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "ageAsOfDate": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "nationalityCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "minItems": 0,
+                        "maxItems": 30
+                      },
+                      "coverAssetId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 36,
+                            "maxLength": 36,
+                            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                          },
+                          {
+                            "type": "null"
+                          }
                         ]
                       }
                     },
@@ -5506,6 +6372,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -5544,6 +6411,112 @@
                         "enum": [
                           "ACTIVE",
                           "ARCHIVED"
+                        ]
+                      },
+                      "genderCode": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "FEMALE",
+                              "MALE",
+                              "NON_BINARY",
+                              "OTHER"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "birthPrecision": {
+                        "type": "string",
+                        "enum": [
+                          "UNKNOWN",
+                          "EXACT_DATE",
+                          "YEAR_ONLY",
+                          "DECLARED_RANGE"
+                        ]
+                      },
+                      "birthDate": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "birthYear": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 10000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "minAgeYears": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 10000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "maxAgeYears": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 10000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "ageAsOfDate": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "nationalityCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "minItems": 0,
+                        "maxItems": 30
+                      },
+                      "coverAssetId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 36,
+                            "maxLength": 36,
+                            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                          },
+                          {
+                            "type": "null"
+                          }
                         ]
                       }
                     },
@@ -5634,6 +6607,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -5691,6 +6665,42 @@
                           "ACTIVE",
                           "INACTIVE"
                         ]
+                      },
+                      "castingMarketCode": {
+                        "type": "string",
+                        "enum": [
+                          "UNCLASSIFIED",
+                          "DOMESTIC",
+                          "INTERNATIONAL"
+                        ]
+                      },
+                      "experienceCode": {
+                        "type": "string",
+                        "enum": [
+                          "UNSPECIFIED",
+                          "AMATEUR",
+                          "PROFESSIONAL"
+                        ]
+                      },
+                      "styleCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "minItems": 0,
+                        "maxItems": 30
+                      },
+                      "serviceCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "minItems": 0,
+                        "maxItems": 30
                       }
                     },
                     "required": [
@@ -5781,6 +6791,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -5837,6 +6848,42 @@
                           "ACTIVE",
                           "INACTIVE"
                         ]
+                      },
+                      "castingMarketCode": {
+                        "type": "string",
+                        "enum": [
+                          "UNCLASSIFIED",
+                          "DOMESTIC",
+                          "INTERNATIONAL"
+                        ]
+                      },
+                      "experienceCode": {
+                        "type": "string",
+                        "enum": [
+                          "UNSPECIFIED",
+                          "AMATEUR",
+                          "PROFESSIONAL"
+                        ]
+                      },
+                      "styleCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "minItems": 0,
+                        "maxItems": 30
+                      },
+                      "serviceCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "minItems": 0,
+                        "maxItems": 30
                       }
                     },
                     "required": []
@@ -5926,6 +6973,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -6103,6 +7151,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -6265,6 +7314,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -6480,6 +7530,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -6693,6 +7744,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -6848,6 +7900,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -7006,6 +8059,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -7165,6 +8219,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -7330,6 +8385,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -7354,14 +8410,22 @@
                     "additionalProperties": false,
                     "properties": {
                       "measuredOn": {
-                        "type": "string",
-                        "format": "date"
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
                       },
                       "datePrecision": {
                         "type": "string",
                         "enum": [
                           "EXACT_DAY",
-                          "APPROXIMATE"
+                          "APPROXIMATE",
+                          "UNKNOWN"
                         ]
                       },
                       "heightCm": {
@@ -7572,6 +8636,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -7601,14 +8666,22 @@
                     "additionalProperties": false,
                     "properties": {
                       "measuredOn": {
-                        "type": "string",
-                        "format": "date"
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
                       },
                       "datePrecision": {
                         "type": "string",
                         "enum": [
                           "EXACT_DAY",
-                          "APPROXIMATE"
+                          "APPROXIMATE",
+                          "UNKNOWN"
                         ]
                       },
                       "heightCm": {
@@ -7804,6 +8877,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -7955,6 +9029,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -8097,6 +9172,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -8298,6 +9374,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -8464,6 +9541,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -8612,6 +9690,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -8727,6 +9806,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -8922,6 +10002,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -9082,6 +10163,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -9221,6 +10303,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -9344,6 +10427,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -9481,6 +10565,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -9604,6 +10689,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -9753,6 +10839,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -9892,6 +10979,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -10024,6 +11112,7 @@
                   "schemaVersion": {
                     "type": "string",
                     "enum": [
+                      "once-talent-v2.1.0",
                       "once-talent-v2.0.0"
                     ]
                   },
@@ -12872,14 +13961,17 @@
                       "language",
                       "skill",
                       "industry",
-                      "workType"
+                      "workType",
+                      "nationality",
+                      "roleStyle",
+                      "roleService"
                     ]
                   },
                   "code": {
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 60,
-                    "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                    "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]*$"
                   },
                   "labelZh": {
                     "type": "string",
@@ -16968,12 +18060,13 @@
                         "person.td2.mediaCollections",
                         "person.td2.mediaCollectionTags",
                         "person.td2.adultEligibilities",
+                        "person.td2.birthDate",
                         "person.td2.credentialIdentifiers",
                         "person.td2.fieldEvidence"
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 57
+                    "maxItems": 58
                   },
                   "validUntil": {
                     "type": "string",
@@ -17280,12 +18373,13 @@
                         "person.td2.mediaCollections",
                         "person.td2.mediaCollectionTags",
                         "person.td2.adultEligibilities",
+                        "person.td2.birthDate",
                         "person.td2.credentialIdentifiers",
                         "person.td2.fieldEvidence"
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 57
+                    "maxItems": 58
                   },
                   "usePermissionRefs": {
                     "type": "array",

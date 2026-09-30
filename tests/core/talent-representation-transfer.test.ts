@@ -8,7 +8,7 @@ const setup=async()=>{const f=await fixture();return {f,t:await controlledTransf
 
 test('TD2 representatives require explicit person selection and grants plus the actual organization source group',async()=>{
     const {f,t}=await setup();
-    assert.equal(t.bundle.schemaVersion,'once-talent-transfer-v14');assert.equal(t.bundle.organizations!.length,1);
+    assert.equal(t.bundle.schemaVersion,'once-talent-transfer-v15');assert.equal(t.bundle.organizations!.length,1);
     assert.equal((await f.owner.cmd('POST','/exports',{...t.input,selectedIds:{...t.input.selectedIds,people:[t.graph.personId]}})).status,422);
     assert.equal((await f.owner.cmd('POST','/exports',{...t.input,usePermissionRefs:t.input.usePermissionRefs.filter(id=>id!==t.agentPermission)})).status,422);
     const onlyExternal=result(await f.owner.cmd('POST','/use-permissions',{subjectKind:'SOURCE',subjectId:t.organizationSource,sourceId:t.organizationSource,fields:[...SOURCE_FIELDS,'person.td2.personExternalRefs'],validUntil:'2026-10-01T00:00:00.000Z',evidenceNote:'合成：只批准标识，不批准代表关系'})).resourceId;
@@ -52,7 +52,7 @@ test('TD2 representative grant or visibility loss and relationship changes inval
 
 test('TD2 current external export excludes unselected representatives',async()=>{
     const f=await fixture(),t=await controlledTransfer(f.app,f.store,f.clock,f.owner,true,true),target=await fixture();
-    assert.equal(t.bundle.schemaVersion,'once-talent-transfer-v14');assert.deepEqual(t.bundle.tables.representations,[]);
+    assert.equal(t.bundle.schemaVersion,'once-talent-transfer-v15');assert.deepEqual(t.bundle.tables.representations,[]);
     await f.store.transaction(async tx=>{const row=(await tx.find('representations',{personId:t.graph.personId}))[0]!;await tx.replace('representations',{...row,status:'INACTIVE',revision:row.revision+1});});
     assert.equal(result(await f.owner.raw('POST',`/exports/${t.jobId}/download`,{})).sha256,t.download.sha256);
     const rebuild=new JsonRebuild(target.clock),actor=await target.store.transaction(tx=>rebuild.actorFromTarget(tx,'owner'));

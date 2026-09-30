@@ -1,6 +1,6 @@
 # ONCE Production OS
 
-人才与制作资料系统，当前按 [Talent Experience v1.1](docs/spec/15_TALENT_EXPERIENCE_V1_1.md) 扩展；首轮已新增统一快速建档，A/B/C均未完成，外部入口尚未开放。
+人才与制作资料系统，当前按 [Talent Experience v1.1](docs/spec/15_TALENT_EXPERIENCE_V1_1.md) 扩展；已合并统一快速建档；[PR-01b](docs/release/TALENT_EXPERIENCE_PR01B.md) 补业务字段、照片目录、统一筛选与主详情及新增事实生命周期。A/B/C仍未完成，外部入口尚未开放。
 
 内部底座：当前开发分支已接通来源/权限、人才2.0、作品项目、专业检索、候选清单、受控合并/导出重建/删除、内部语言文本，以及四类文字AI辅助。
 

@@ -1,3 +1,4 @@
+import { validateDemographics, PROFILE_DEFAULTS, ROLE_DEFAULTS, MODEL_ROLE_FIELDS } from './talent-demographics.ts';
 import { shortlistFor } from './shortlists.ts';
 import type { Actor, Clock, Config, Person, RequestMeta, TableMap, FieldEvidence } from './model.ts';
 import type { Tx } from './store.ts';
@@ -10,6 +11,8 @@ import { encryptContact } from './crypto.ts';
 import { TD2Schemas as S, TD2_FACTS, TD2_TABLES, FACT_SCHEMAS, OWNER_KEYS, VERSION, rowDefaults, valuesSchema, fieldSchema, type FactRow, type FactTable } from './talent-v2-schema.ts';
 import { loadTalentGraph, td2PersonFor, rawFact, insertFact, replaceFact, asRow, periodCurrent } from './talent-v2-graph.ts';
 import { TALENT_SCHEMA_VERSION, type FieldProposal } from './talent-v2-model.ts';
+
+function legacyFields(version:string,table:string,fields:string[]){if(version!=='once-talent-v2.0.0')return;const added=table==='talentProfiles'?Object.keys(PROFILE_DEFAULTS):table==='personRoles'?[...MODEL_ROLE_FIELDS]:[];invariant(!fields.some(f=>added.includes(f)),'TD2_SCHEMA_UPGRADE_REQUIRED','新增业务字段须使用2.1合同',422);}
 
 export function talentWrite(actor:Actor):void{
     requirePermission(actor,actor.actorKind==='MACHINE'?'talent.fact.write':'records.write');
@@ -32,7 +35,7 @@ export class TalentV2 {
         talentWrite(actor);const d=S.personCreate.parse(input),source=await this.source(tx,actor,d.originSourceId,d.sourceRevision);
         const person:Person={...base(actor.workspaceId,this.clock),sourceId:source.id,scopeId:source.scopeId,maintainerId:actor.membershipId,displayName:d.displayName,aliases:d.aliases??[],intro:d.intro??'',roles:[],languageCodes:[],skillCodes:[],cityCode:null,heightCm:null,status:'DRAFT',protectionEpoch:1};
         await tx.insert('people',person);
-        if(d.createTalent)await tx.insert('talentProfiles',{...base(actor.workspaceId,this.clock),personId:person.id,sourceId:source.id,internalSummary:'',status:'ACTIVE'});
+        if(d.createTalent)await tx.insert('talentProfiles',{...base(actor.workspaceId,this.clock),personId:person.id,sourceId:source.id,...PROFILE_DEFAULTS,internalSummary:'',status:'ACTIVE'});
         return person;
     }
     async patchPerson(tx:Tx,actor:Actor,id:string,input:unknown){
@@ -52,8 +55,8 @@ export class TalentV2 {
         invariant(legacyCandidates.length<=500,'TALENT_ENROLL_DEPENDENCY_LIMIT','现有候选关系超过单次升级上限，需要先核对',409);
         const candidateLists=new Map<string,TableMap['shortlists']>();
         for(const item of legacyCandidates)if(!candidateLists.has(item.shortlistId))candidateLists.set(item.shortlistId,await shortlistFor(tx,actor,item.shortlistId));
-        await tx.insert('talentProfiles',{...base(actor.workspaceId,this.clock),personId:id,sourceId:p.sourceId,internalSummary:'',status:'ACTIVE'});
-        for(const roleCode of p.roles)await tx.insert('personRoles',{...base(actor.workspaceId,this.clock),personId:id,sourceId:p.sourceId,roleCode,validFrom:null,validUntil:null,status:'ACTIVE'});
+        await tx.insert('talentProfiles',{...base(actor.workspaceId,this.clock),personId:id,sourceId:p.sourceId,...PROFILE_DEFAULTS,internalSummary:'',status:'ACTIVE'});
+        for(const roleCode of p.roles)await tx.insert('personRoles',{...base(actor.workspaceId,this.clock),personId:id,sourceId:p.sourceId,...ROLE_DEFAULTS,roleCode,validFrom:null,validUntil:null,status:'ACTIVE'});
         for(const languageCode of p.languageCodes)await tx.insert('personLanguages',{...base(actor.workspaceId,this.clock),personId:id,sourceId:p.sourceId,languageCode,speakingLevelCode:null,listeningLevelCode:null,readingLevelCode:null,writingLevelCode:null,verifiedAt:null,validFrom:null,validUntil:null,status:'ACTIVE'});
         if(p.cityCode)await tx.insert('talentLocations',{...base(actor.workspaceId,this.clock),personId:id,sourceId:p.sourceId,locationCode:p.cityCode,relationCode:'BASE',verifiedAt:null,validFrom:null,validUntil:null,status:'ACTIVE'});
         for(const capabilityCode of p.skillCodes){
@@ -86,7 +89,14 @@ export class TalentV2 {
         if(row.agentPersonId){await td2PersonFor(tx,actor,String(row.agentPersonId));invariant(row.agentPersonId!==p.id,'REPRESENTATION_INVALID','代表人不能是本人',422);}
         if(row.evidenceAssetId)invariant(graph.assetReadable(String(row.evidenceAssetId)),'EVIDENCE_ASSET_UNAVAILABLE','证明材料不可用',422);
         if(table==='talentProfiles'||table==='castingProfiles')invariant(same.length===0,'FACT_SINGLETON_EXISTS','该人物已有此类唯一档案',409);
+        if(table==='talentProfiles'){
+            validateDemographics(row,this.clock);
+            for(const code of (row.nationalityCodes??[]) as string[])await this.dictionary(tx,actor,'nationality',code);
+            if(row.coverAssetId){const asset=graph.record('assets',String(row.coverAssetId));invariant(actor.permissions.includes('assets.read')&&graph.assetReadable(String(row.coverAssetId))&&asset?.personId===p.id&&asset.mime.startsWith('image/'),'COVER_UNAVAILABLE','封面须是本人当前可见且处理完成的照片',422);}
+        }
         if(table==='personRoles'){
+            for(const [field,namespace]of [['styleCodes','roleStyle'],['serviceCodes','roleService']] as const){const codes=(row[field]??[]) as string[];invariant(new Set(codes).size===codes.length,'DUPLICATE_CODE','标签不能重复',422);for(const code of codes)await this.dictionary(tx,actor,namespace,code);}
+            invariant(row.roleCode==='model'||(row.castingMarketCode??'UNCLASSIFIED')==='UNCLASSIFIED'&&(row.experienceCode??'UNSPECIFIED')==='UNSPECIFIED','MODEL_ROLE_REQUIRED','国模/外模与素人/专业分类只属于模特职业',422);
             await this.dictionary(tx,actor,'role',String(row.roleCode));
             if(row.status==='ACTIVE')invariant(!same.some(x=>x.status==='ACTIVE'&&x.roleCode===row.roleCode&&overlap(x,row)),'ROLE_PERIOD_OVERLAP','同一职业的有效期不能重叠',409);
         }
@@ -106,10 +116,11 @@ export class TalentV2 {
         }
         if(table==='castingProfiles'||table==='measurementSets'||table==='adultEligibilities')invariant(graph.rows('personRoles').some(x=>x.personId===p.id&&['model','actor','kol'].includes(x.roleCode)&&graph.usable('personRoles',x as unknown as FactRow)),'CASTING_ROLE_REQUIRED','选角资料需要模特、演员或达人职业',422);
         if(table==='measurementSets'){
-            invariant(String(row.measuredOn)<=this.clock.now().toISOString().slice(0,10),'MEASUREMENT_FUTURE','量尺日期不能在未来',422);
+            invariant(row.datePrecision==='UNKNOWN'?row.measuredOn===null:typeof row.measuredOn==='string','MEASUREMENT_DATE_PRECISION','未知量尺日期必须留空，已知日期必须注明精度',422);
+            invariant(row.measuredOn===null||String(row.measuredOn)<=this.clock.now().toISOString().slice(0,10),'MEASUREMENT_FUTURE','量尺日期不能在未来',422);
             for(const prefix of ['shoe','clothing'])invariant((row[prefix+'SizeValue']===null)===(row[prefix+'SizeSystem']===null),'SIZE_SYSTEM_REQUIRED','鞋码和服装尺码必须同时注明尺码体系',422);
             invariant(['heightCm','bustCm','waistCm','hipsCm','shoeSizeValue','clothingSizeValue'].some(k=>row[k]!==null&&row[k]!==''),'MEASUREMENT_EMPTY','至少记录一项真实量尺结果',422);
-            if(row.supersedesId){const old=graph.fact('measurementSets',String(row.supersedesId));invariant(!!old&&old.personId===p.id&&['CONFIRMED','SUPERSEDED'].includes(String(old.status))&&graph.readable('measurementSets',old),'MEASUREMENT_PREDECESSOR_INVALID','历史量尺记录不匹配',422);invariant(String(row.measuredOn)>=String(old.measuredOn),'MEASUREMENT_DATE_ORDER','新量尺日期不能早于关联的历史记录',422);}
+            if(row.supersedesId){const old=graph.fact('measurementSets',String(row.supersedesId));invariant(!!old&&old.personId===p.id&&['CONFIRMED','SUPERSEDED'].includes(String(old.status))&&graph.readable('measurementSets',old),'MEASUREMENT_PREDECESSOR_INVALID','历史量尺记录不匹配',422);invariant(row.measuredOn==null||old.measuredOn==null||String(row.measuredOn)>=String(old.measuredOn),'MEASUREMENT_DATE_ORDER','新量尺日期不能早于关联的历史记录',422);}
         }
         if(table==='adultEligibilities')invariant(!same.some(x=>x.status==='ACTIVE')||row.status!=='ACTIVE','ADULT_ELIGIBILITY_EXISTS','请更新现有成年适格记录',409);
         if(table==='representations')invariant(Number(!!row.agencyOrganizationId)+Number(!!row.agentPersonId)===1,'REPRESENTATION_SUBJECT_REQUIRED','经纪机构与代表人必须且只能选择一个',422);
@@ -142,15 +153,16 @@ export class TalentV2 {
         }
     }
     async createFact(tx:Tx,actor:Actor,table:FactTable,personId:string,input:unknown){
-        talentWrite(actor);const d=FACT_SCHEMAS[table].create.parse(input),p=await this.parent(tx,actor,personId,d.expectedPersonRevision);
+        talentWrite(actor);const d=FACT_SCHEMAS[table].create.parse(input);legacyFields(d.schemaVersion,table,Object.keys(d.values));if(table==='measurementSets'&&d.schemaVersion==='once-talent-v2.0.0')invariant(d.values.datePrecision!=='UNKNOWN'&&d.values.measuredOn!==null,'TD2_SCHEMA_UPGRADE_REQUIRED','未知量尺日期须使用2.1合同',422);if(table==='talentProfiles'&&d.values.birthDate!=null)requirePermission(actor,'sensitive.write');const p=await this.parent(tx,actor,personId,d.expectedPersonRevision);
         await this.source(tx,actor,d.sourceId,d.sourceRevision);
         const row:FactRow={...base(actor.workspaceId,this.clock),personId,sourceId:d.sourceId,...rowDefaults(table),...d.values};
+        if(table==='measurementSets')row.reportedAt=row.createdAt;
         await this.validate(tx,actor,table,row);await insertFact(tx,table,row);
         await this.evidenceFor(tx,actor,table,row,Object.keys(d.values),d.sourceId,d.sourceRevision);
         await this.bump(tx,p);return row;
     }
     async patchFact(tx:Tx,actor:Actor,table:FactTable,id:string,input:unknown){
-        talentWrite(actor);const d=FACT_SCHEMAS[table].patch.parse(input),row=await rawFact(tx,actor,table,id),p=await this.parent(tx,actor,row.personId,d.expectedPersonRevision);
+        talentWrite(actor);const d=FACT_SCHEMAS[table].patch.parse(input);legacyFields(d.schemaVersion,table,Object.keys(d.values));if(table==='measurementSets'&&d.schemaVersion==='once-talent-v2.0.0')invariant(d.values.datePrecision!=='UNKNOWN'&&d.values.measuredOn!==null,'TD2_SCHEMA_UPGRADE_REQUIRED','未知量尺日期须使用2.1合同',422);if(table==='talentProfiles'&&Object.hasOwn(d.values,'birthDate'))requirePermission(actor,'sensitive.write');const row=await rawFact(tx,actor,table,id),p=await this.parent(tx,actor,row.personId,d.expectedPersonRevision);
         cas(row,d.expectedRevision!);await this.source(tx,actor,d.sourceId,d.sourceRevision);
         invariant(Object.keys(d.values).length>0,'EMPTY_UPDATE','没有需要保存的修改',400);
         const graph=await loadTalentGraph(tx,actor,this.clock);invariant(graph.readable(table,row),'FACT_UNAVAILABLE','目标资料不可用',404);
@@ -162,7 +174,7 @@ export class TalentV2 {
     async get(tx:Tx,actor:Actor,id:string){requirePermission(actor,'records.read');return (await loadTalentGraph(tx,actor,this.clock)).get(id);}
     async schema(tx:Tx,actor:Actor){
         requirePermission(actor,'records.read');
-        return {schemaVersion:TALENT_SCHEMA_VERSION,identity:S.personCreate.json,facts:Object.fromEntries(TD2_TABLES.map(t=>[t,{slug:TD2_FACTS[t].slug,ownerKey:TD2_FACTS[t].ownerKey,create:FACT_SCHEMAS[t].create.json,patch:FACT_SCHEMAS[t].patch.json}])),capabilities:await tx.find('capabilityDefinitions',{workspaceId:actor.workspaceId,status:'ACTIVE'}),unknownFields:'REJECT',unknownCodes:'REJECT',conflictAction:'FIELD_PROPOSAL'};
+        return {schemaVersion:TALENT_SCHEMA_VERSION,identity:S.personCreate.json,serverFields:{measurementSets:{reportedAt:{type:'string',format:'date-time',nullable:true,readOnly:true}}},legacyVersion:'once-talent-v2.0.0',legacyNewFields:'REJECT',facts:Object.fromEntries(TD2_TABLES.map(t=>[t,{slug:TD2_FACTS[t].slug,ownerKey:TD2_FACTS[t].ownerKey,create:FACT_SCHEMAS[t].create.json,patch:FACT_SCHEMAS[t].patch.json}])),capabilities:await tx.find('capabilityDefinitions',{workspaceId:actor.workspaceId,status:'ACTIVE'}),unknownFields:'REJECT',unknownCodes:'REJECT',conflictAction:'FIELD_PROPOSAL'};
     }
     async organization(tx:Tx,actor:Actor,input:unknown){
         talentWrite(actor);invariant(actor.actorKind!=='MACHINE','HUMAN_OPERATION_REQUIRED','机构建档需要内部成员',403);const d=S.organization.parse(input),source=await this.source(tx,actor,d.sourceId,d.sourceRevision);
@@ -196,7 +208,7 @@ export class TalentV2 {
     async evidenceHistory(tx: Tx, actor: Actor, query: Record<string,string>) {
         humanReview(actor); requirePermission(actor,'records.read'); requirePermission(actor,'sources.read');
         page([],query,['ownerKind','ownerId','fieldPath']);
-        const kind=query.ownerKind??'', id=uuid.parse(query.ownerId), field=query.fieldPath??'';
+        const kind=query.ownerKind??'', id=uuid.parse(query.ownerId), field=query.fieldPath??'';if(kind==='talentProfiles'&&field==='birthDate')requirePermission(actor,'sensitive.read');
         invariant(Object.hasOwn(OWNER_KEYS,kind),'FACT_KIND_INVALID','资料类型未注册',400); this.field(kind,field);
         let row: Record<string,unknown>;
         if(kind==='person') { const graph=await loadTalentGraph(tx,actor,this.clock); graph.get(id); row=asRow(await td2PersonFor(tx,actor,id)); }
@@ -219,12 +231,13 @@ export class TalentV2 {
         return page(items,query,['ownerKind','ownerId','fieldPath']);
     }
     async addEvidence(tx:Tx,actor:Actor,input:unknown){
-        humanReview(actor);const d=S.evidence.parse(input),o=await this.owner(tx,actor,d.ownerKind,d.ownerId);cas(o.row as {revision:number},d.expectedRevision);this.field(d.ownerKind,d.fieldPath);
+        humanReview(actor);const d=S.evidence.parse(input);if(d.ownerKind==='talentProfiles'&&d.fieldPath==='birthDate')requirePermission(actor,'sensitive.read');const o=await this.owner(tx,actor,d.ownerKind,d.ownerId);cas(o.row as {revision:number},d.expectedRevision);this.field(d.ownerKind,d.fieldPath);
         await this.source(tx,actor,d.sourceId,d.sourceRevision);await this.evidenceFor(tx,actor,d.ownerKind,o.row,[d.fieldPath],d.sourceId,d.sourceRevision,true);return this.bump(tx,o.person);
     }
     async proposal(tx:Tx,actor:Actor,input:unknown){
         if(actor.actorKind==='MACHINE')requirePermission(actor,'talent.propose');else invariant(actor.permissions.includes('records.write')||actor.permissions.includes('sources.review'),'FORBIDDEN','当前账号不能提交字段建议',403);
-        const d=S.proposal.parse(input),o=await this.owner(tx,actor,d.ownerKind,d.ownerId);cas(o.row as {revision:number},d.expectedRevision);
+        const d=S.proposal.parse(input);legacyFields(d.schemaVersion,d.ownerKind,[d.fieldPath]);const o=await this.owner(tx,actor,d.ownerKind,d.ownerId);cas(o.row as {revision:number},d.expectedRevision);
+        if(d.ownerKind==='talentProfiles'&&d.fieldPath==='birthDate')requirePermission(actor,'sensitive.write');
         const value=this.field(d.ownerKind,d.fieldPath,true).parse(d.proposedValue);await this.source(tx,actor,d.sourceId,d.sourceRevision);
         const ownerFields=Object.fromEntries(Object.values(OWNER_KEYS).map(k=>[k,null]));
         const row={...base(actor.workspaceId,this.clock),...ownerFields,[OWNER_KEYS[d.ownerKind]!]:d.ownerId,fieldPath:d.fieldPath,proposedValue:value,valueDigest:digest(value),sourceId:d.sourceId,sourceRevision:d.sourceRevision,originType:actor.actorKind==='MACHINE'?'AGENT':'IMPORT',actorId:actor.actorKind==='MACHINE'?null:actor.membershipId,servicePrincipalId:actor.actorKind==='MACHINE'?actor.servicePrincipalId:null,baseRevision:d.expectedRevision,schemaVersion:TALENT_SCHEMA_VERSION,state:'PENDING',decidedAt:null,decidedById:null} as FieldProposal;
@@ -238,9 +251,10 @@ export class TalentV2 {
         try{owner=await this.owner(tx,actor,pair[0],String(asRow(row)[pair[1]]));}catch(e){if(!(e instanceof AppError && [404,409].includes(e.status)))throw e;}
         // Scope is rechecked before revealing either a stale or a valid proposal.
         if(!owner){const kind=pair[0], raw=kind==='person'?await workspaceRow(tx,'people',String(asRow(row)[pair[1]]),actor.workspaceId):await workspaceRow(tx,kind as FactTable,String(asRow(row)[pair[1]]),actor.workspaceId);if(raw){const p=kind==='person'?raw as Person:await workspaceRow(tx,'people',String(asRow(raw).personId),actor.workspaceId);if(p)await requireScope(tx,actor,p.scopeId);}}
-        const graph=await loadTalentGraph(tx,actor,this.clock),stale=!owner||owner.row.revision!==row.baseRevision||source.revision!==row.sourceRevision||!graph.sourceUsable(source.id)||row.schemaVersion!==TALENT_SCHEMA_VERSION||digest(row.proposedValue)!==row.valueDigest;
+        const graph=await loadTalentGraph(tx,actor,this.clock),stale=!owner||owner.row.revision!==row.baseRevision||source.revision!==row.sourceRevision||!graph.sourceUsable(source.id)||!['once-talent-v2.0.0',TALENT_SCHEMA_VERSION].includes(row.schemaVersion)||digest(row.proposedValue)!==row.valueDigest;
         let state:FieldProposal['state']=stale?'STALE':d.decision==='REJECT'?'REJECTED':'APPLIED';
         if(state==='APPLIED'&&owner){
+            if(pair[0]==='talentProfiles'&&row.fieldPath==='birthDate')requirePermission(actor,'sensitive.write');
             const value=this.field(pair[0],row.fieldPath,true).parse(row.proposedValue);
             if(owner.table==='people'){
                 const p=touch(owner.person,this.clock);Object.assign(p,{[row.fieldPath]:value});await tx.replace('people',p);await this.evidenceFor(tx,actor,'person',asRow(p),[row.fieldPath],source.id,source.revision,true);
@@ -254,7 +268,7 @@ export class TalentV2 {
     async proposals(tx:Tx,actor:Actor,query:Record<string,string>){
         humanReview(actor);page([],query,['personId']);const result:FieldProposal[]=[];
         for(const row of await tx.find('fieldProposals',{workspaceId:actor.workspaceId})){
-            try{const pair=Object.entries(OWNER_KEYS).find(([,key])=>asRow(row)[key]);if(!pair)continue;const o=await this.owner(tx,actor,pair[0],String(asRow(row)[pair[1]]));await sourceFor(tx,actor,row.sourceId,this.clock,false);if(query.personId&&o.person.id!==query.personId)continue;result.push(row);}catch(e){if(!(e instanceof AppError&&[404,409].includes(e.status)))throw e;}
+            try{const pair=Object.entries(OWNER_KEYS).find(([,key])=>asRow(row)[key]);if(!pair)continue;if(pair[0]==='talentProfiles'&&row.fieldPath==='birthDate'&&!actor.permissions.includes('sensitive.read'))continue;const o=await this.owner(tx,actor,pair[0],String(asRow(row)[pair[1]]));await sourceFor(tx,actor,row.sourceId,this.clock,false);if(query.personId&&o.person.id!==query.personId)continue;result.push(row);}catch(e){if(!(e instanceof AppError&&[404,409].includes(e.status)))throw e;}
         }
         return page(result,query,['personId']);
     }

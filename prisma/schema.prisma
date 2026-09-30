@@ -1315,6 +1315,16 @@ model TalentProfile {
   supersededBy TalentProfile? @relation("TalentProfile_superseded", fields: [workspaceId, supersededById], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "talentProfiles_superseded_fk")
   supersededProfiles TalentProfile[] @relation("TalentProfile_superseded")
   @@index([workspaceId, supersededById], map: "talentProfiles_superseded_idx")
+  genderCode String? @db.Text
+  birthPrecision String @default("UNKNOWN") @db.Text
+  birthDate String? @db.Text
+  birthYear Int?
+  minAgeYears Int?
+  maxAgeYears Int?
+  ageAsOfDate String? @db.Text
+  nationalityCodes String[] @default([])
+  coverAssetId String? @db.Uuid
+
 }
 
 model PersonRole {
@@ -1346,6 +1356,11 @@ model PersonRole {
   @@unique([workspaceId, personId, id])
   @@index([workspaceId, createdAt], map: "personRoles_td2_created_idx")
   @@map("personRoles")
+  castingMarketCode String @default("UNCLASSIFIED") @db.Text
+  experienceCode String @default("UNSPECIFIED") @db.Text
+  styleCodes String[] @default([])
+  serviceCodes String[] @default([])
+
 }
 
 model CapabilityDefinition {
@@ -1493,7 +1508,8 @@ model MeasurementSet {
   revision Int
   personId String @db.Uuid
   sourceId String @db.Uuid
-  measuredOn String @db.Text
+  measuredOn String? @db.Text
+  reportedAt DateTime? @db.Timestamptz(3)
   datePrecision String @db.Text
   heightCm Float? @db.DoublePrecision
   bustCm Float? @db.DoublePrecision

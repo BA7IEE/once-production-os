@@ -9,7 +9,7 @@ import {inspectTalentIntegrity} from '../../packages/core/src/talent-v2-integrit
 const setup=async()=>{const f=await fixture();return {f,t:await controlledTransfer(f.app,f.store,f.clock,f.owner,true,true,true,true)};};
 
 test('TD2 evidence export requires explicit person, original field group and every evidence source grant',async()=>{
-    const {f,t}=await setup();assert.equal(t.bundle.schemaVersion,'once-talent-transfer-v14');
+    const {f,t}=await setup();assert.equal(t.bundle.schemaVersion,'once-talent-transfer-v15');
     const actor=await f.store.transaction(tx=>f.app.identity.authenticate(tx,f.owner.jar.once_session!));
     await assert.rejects(f.store.transaction(tx=>collectTalentTransfer(tx,{...actor,permissions:actor.permissions.filter(p=>p!=='sources.review')},f.clock,t.input.selectedIds.people,t.bundle.selectedFields,true)),(e:any)=>e.status===403);
     assert.ok(t.bundle.evidence!.some(e=>e.sourceId===t.evidenceSource&&e.originalReview?.membershipId===f.membershipId));

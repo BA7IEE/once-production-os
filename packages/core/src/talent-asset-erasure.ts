@@ -16,12 +16,13 @@ async function assetGraph(tx: Tx, workspaceId: string, assetIds: string[], sourc
     const links = data.mediaCollectionItems.filter(r => assetIds.includes(String(r.assetId)));
     const collections = data.mediaCollections.filter(r => links.some(l => l.collectionId === r.id));
     const orderedItems = data.mediaCollectionItems.filter(r => collections.some(c => c.id === r.collectionId));
+    const covers=data.talentProfiles.filter(r=>assetIds.includes(String(r.coverAssetId)));
     const adults = data.adultEligibilities.filter(r => assetIds.includes(String(r.evidenceAssetId)));
     const credentials = data.personCredentials.filter(r => assetIds.includes(String(r.evidenceAssetId)));
     const evidence = data.evidence.filter(r => adults.some(a => a.id === r.adultEligibilityId) || credentials.some(c => c.id === r.personCredentialId));
     const proposals = data.fieldProposals.filter(r => r.state === 'PENDING' && (adults.some(a => a.id === r.adultEligibilityId) || credentials.some(c => c.id === r.personCredentialId)
-        || (r.fieldPath === 'evidenceAssetId' && assetIds.includes(String(r.proposedValue)))));
-    const relatedOwners = [...adults, ...credentials, ...collections,
+        || (['evidenceAssetId','coverAssetId'].includes(String(r.fieldPath)) && assetIds.includes(String(r.proposedValue)))));
+    const relatedOwners = [...data.talentProfiles.filter(r=>proposals.some(p=>p.talentProfileId===r.id)), ...covers, ...adults, ...credentials, ...collections,
         ...data.adultEligibilities.filter(a => proposals.some(p => p.adultEligibilityId === a.id)),
         ...data.personCredentials.filter(c => proposals.some(p => p.personCredentialId === c.id))];
     const personIds = new Set([...relatedOwners.map(r => r.personId), ...ownedAssets.map(r => r.personId).filter(id => typeof id === 'string')]);
@@ -32,9 +33,9 @@ async function assetGraph(tx: Tx, workspaceId: string, assetIds: string[], sourc
     const scopes = data.scopes.filter(r => scopeIds.has(r.id));
     const unknownReference = TALENT_V2_TABLES.some(table => !['mediaCollectionItems','adultEligibilities','personCredentials'].includes(table) && data[table].some(r => assetIds.includes(String(r.assetId)) || assetIds.includes(String(r.evidenceAssetId))));
     const missingEndpoint = ownedAssets.length !== assetIds.length || collections.length !== new Set(links.map(l => l.collectionId)).size || people.length !== personIds.size || sources.length !== sourceIds.size;
-    return { links, collections, adults, credentials, proposals, people, sources, ownedAssets, unknownReference, missingEndpoint,
-        count: links.length + adults.length + credentials.length + proposals.length,
-        digest: digest({ ownedAssets, links, collections, orderedItems, adults, credentials, evidence, proposals,
+    return { covers, links, collections, adults, credentials, proposals, people, sources, ownedAssets, unknownReference, missingEndpoint,
+        count: covers.length + links.length + adults.length + credentials.length + proposals.length,
+        digest: digest({ covers, ownedAssets, links, collections, orderedItems, adults, credentials, evidence, proposals,
             people: people.map(r => ({ id: r.id, scopeId: r.scopeId })),
             sources: sources.map(s => { if (s.id !== sourceRootId) return s; const {revision,protectionEpoch,updatedAt,...rest}=s; return rest; }), scopes }) };
 }
@@ -43,6 +44,7 @@ function graphCode(graph: Awaited<ReturnType<typeof assetGraph>>) {
 }
 export async function previewTalentAssetErasure(tx: Tx, actor: Actor, assetId: string) {
     const graph = await assetGraph(tx, actor.workspaceId, [assetId]);
+    if (graph.covers.some(r=>r.supersededById))return {count:graph.count,detailCode:graphCode(graph),blocker:'MERGE_HISTORY_COVER_ERASURE_REQUIRED'};
     if (graph.unknownReference || graph.missingEndpoint) return { count: graph.count, detailCode: graphCode(graph), blocker: 'TD2_ASSET_REFERENCE_UNREGISTERED' };
     for (const row of [...graph.people, ...graph.sources, ...graph.ownedAssets]) if (!await scopeVisible(tx, actor, String(row.scopeId)))
         return { count: graph.count, detailCode: graphCode(graph), blocker: 'TD2_HIDDEN_DEPENDENCY' };
@@ -51,7 +53,7 @@ export async function previewTalentAssetErasure(tx: Tx, actor: Actor, assetId: s
 export async function snapshotTalentSourceAssets(tx: Tx, actor: Actor, sourceId: string) {
     const ids=(await tx.find('assets',{workspaceId:actor.workspaceId,sourceId})).filter(a=>a.state!=='ERASED').map(a=>a.id).sort();
     const graph=await assetGraph(tx,actor.workspaceId,ids,sourceId);
-    let blocker:string|null=graph.unknownReference||graph.missingEndpoint?'TD2_ASSET_REFERENCE_UNREGISTERED':null;
+    let blocker:string|null=graph.covers.some(r=>r.supersededById)?'MERGE_HISTORY_COVER_ERASURE_REQUIRED':graph.unknownReference||graph.missingEndpoint?'TD2_ASSET_REFERENCE_UNREGISTERED':null;
     for(const row of [...graph.people,...graph.sources,...graph.ownedAssets])if(!await scopeVisible(tx,actor,String(row.scopeId)))blocker='TD2_HIDDEN_DEPENDENCY';
     return {...graph,detailCode:graphCode(graph),blocker};
 }
@@ -75,6 +77,7 @@ export async function eraseTalentAssetReferences(tx: Tx, request: DeletionReques
 /** Internal transaction component: caller first binds this complete snapshot to its frozen plan. */
 export async function applyTalentAssetGraph(tx:Tx,actor:Actor,graph:Awaited<ReturnType<typeof assetGraph>>,clock:Clock) {
     for (const row of [...graph.people, ...graph.sources, ...graph.ownedAssets]) invariant(await scopeVisible(tx, actor, String(row.scopeId)), 'TD2_HIDDEN_DEPENDENCY', '清理发起者已失去关联资料的范围权限', 403);
+    for(const old of graph.covers){invariant(!old.supersededById,'MERGE_HISTORY_COVER_ERASURE_REQUIRED','封面属于保留合并历史，须先清理该历史资料',409);const row=(await tx.get('talentProfiles',old.id))!;await tx.replace('talentProfiles',{...touch(row,clock),coverAssetId:null});}
     for (const link of graph.links) await tx.remove('mediaCollectionItems', link.id);
     for (const collection of graph.collections) {
         const row = (await tx.get('mediaCollections', collection.id))!;

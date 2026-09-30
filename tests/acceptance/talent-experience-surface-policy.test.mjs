@@ -7,6 +7,6 @@ test('unreviewed external and legacy-named publishing routes remain blocked',()=
  assert.deepEqual(unsupportedExperienceSurfaces(['/directory/talents','/people','/td2/people','/ai-jobs']),[]);
 });
 test('internal directory acceptance never admits child paths or transactions/booking',()=>{
- assert.deepEqual(unsupportedExperienceSurfaces(['/directory/talents/share','/directory/talents/{id}','/directory/talents/search']),['/directory/talents/share','/directory/talents/{id}','/directory/talents/search']);
+ assert.deepEqual(unsupportedExperienceSurfaces(['/directory/talents/share','/directory/talents/search']),['/directory/talents/share']);
  assert.deepEqual(forbiddenNonGoalSurfaces(['/payment','/booking/{id}','/crm','/invoice','/seo']),['/payment','/booking/{id}','/crm','/invoice','/seo']);
 });

@@ -69,7 +69,7 @@ export class JsonRebuild {
         return { workspace: workspaces[0]!, scope: scopes[0]!, member: memberships[0]! };
     }
 
-    private async catalog(tx: Tx, actor: Actor, namespace: 'role' | 'city' | 'language' | 'skill' | 'industry' | 'workType', codes: string[]) {
+    private async catalog(tx: Tx, actor: Actor, namespace: 'role' | 'city' | 'language' | 'skill' | 'industry' | 'workType' | 'nationality' | 'roleStyle' | 'roleService', codes: string[]) {
         for (const code of unique(codes)) {
             const row = (await tx.find('dictionary', { workspaceId: actor.workspaceId, namespace, code, status: 'ACTIVE' }))[0];
             invariant(row, 'REBUILD_CATALOG_MISSING', '目标环境缺少导出数据使用的启用分类代码，请先补齐字典再重建', 409);
@@ -83,6 +83,7 @@ export class JsonRebuild {
         invariant(payload.schemaVersion === payload.manifest.schemaVersion && (payload.schemaVersion===LOCALE_EXPORT_VERSION?!!payload.manifest.locales:!payload.manifest.locales&&(payload.schemaVersion===TALENT_EXPORT_VERSION) === typed), 'REBUILD_SCHEMA_MISMATCH', '导出版本与专业资料结构不一致', 422);
         if (payload.manifest.talent) validateRetainedOrigins(payload.manifest.talent,payload.manifest.sources,this.clock,payload.manifest.people);
         if (payload.manifest.talent) await validateTalentRebuild(tx, actor, this.clock, payload.manifest.talent, payload.manifest.people.map(p=>p.id), payload.manifest.sources.map(s=>s.id));
+        if(payload.manifest.talent&&(transferRows(payload.manifest.talent,'talentProfiles').some(r=>r.data.birthDate)||(payload.manifest.talent.mergeHistory?.talentProfiles??[]).some(r=>(r as unknown as Record<string,unknown>).birthDate))){requirePermission(actor,'sensitive.write');requirePermission({...actor,permissions:permissionsFor(target.member)},'sensitive.write');}
         if(payload.manifest.talent&&transferRows(payload.manifest.talent,'personCredentials').some(r=>r.data.identifierCiphertext)) {
             requirePermission(actor,'sensitive.write');
             requirePermission({...actor,permissions:permissionsFor(target.member)},'sensitive.write');
@@ -116,7 +117,7 @@ export class JsonRebuild {
                 'REBUILD_SOURCE_NOT_CURRENT', '重建只接受当前仍有效的 INTERNAL_USE 来源快照', 409);
         }
         for (const row of [...people, ...works, ...projects])
-            invariant(sourceIds.has(row.sourceId)||(people.includes(row as typeof people[number])&&payload.manifest.talent?.schemaVersion==='once-talent-transfer-v14'&&payload.manifest.talent.retainedOrigins?.some(o=>o.id===row.sourceId)), 'REBUILD_SOURCE_MISSING', '业务对象引用的来源没有包含在重建清单中', 422);
+            invariant(sourceIds.has(row.sourceId)||(people.includes(row as typeof people[number])&&['once-talent-transfer-v14','once-talent-transfer-v15'].includes(payload.manifest.talent?.schemaVersion??'')&&payload.manifest.talent?.retainedOrigins?.some(o=>o.id===row.sourceId)), 'REBUILD_SOURCE_MISSING', '业务对象引用的来源没有包含在重建清单中', 422);
         const assetIdentity = new Map<string,string>();
         for (const row of media) {
             invariant(row.bytes<=mediaByteLimit(row.mime),'MEDIA_SIZE_INVALID','媒体超过对应类型上限',422);

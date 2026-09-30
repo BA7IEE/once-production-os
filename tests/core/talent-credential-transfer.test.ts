@@ -12,7 +12,7 @@ import {loadCredentialRebuildKeys} from '../../scripts/rebuild-credential-keys.t
 const setup=async()=>{const f=await fixture();return {f,t:await controlledTransfer(f.app,f.store,f.clock,f.owner,true,true,true,true,true)};};
 
 test('TD2 credential identifiers require separate record/source grants and current sensitive read permission',async()=>{
-    const {f,t}=await setup();assert.equal(t.bundle.schemaVersion,'once-talent-transfer-v14');assert.equal(t.bundle.tables.personCredentials.length,3);
+    const {f,t}=await setup();assert.equal(t.bundle.schemaVersion,'once-talent-transfer-v15');assert.equal(t.bundle.tables.personCredentials.length,3);
     const missing=await f.owner.cmd('POST','/exports',{...t.input,fields:t.input.fields.filter(c=>c!==CREDENTIAL_IDENTIFIER_CODE)});
     assert.equal(missing.status,422);assert.equal(result(missing).error.code,'TD2_CREDENTIAL_IDENTIFIER_GRANT_REQUIRED');
     for(const kind of ['PERSON','SOURCE']) {
@@ -84,7 +84,7 @@ test('TD2 rebuild key files reject missing, public, symlink and malformed keys w
 
 test('TD2 current evidence-only export rebuilds without key files or unrelated credentials',async()=>{
     const f=await fixture(),t=await controlledTransfer(f.app,f.store,f.clock,f.owner,true,true,true,true),target=await fixture();
-    assert.equal(t.bundle.schemaVersion,'once-talent-transfer-v14');assert.deepEqual(t.bundle.tables.personCredentials,[]);assert.equal(t.bundle.credentialIdentifiersIncluded,false);
+    assert.equal(t.bundle.schemaVersion,'once-talent-transfer-v15');assert.deepEqual(t.bundle.tables.personCredentials,[]);assert.equal(t.bundle.credentialIdentifiersIncluded,false);
     assert.equal(loadCredentialRebuildKeys(t.download.payload,{CONTACT_KEY_FILE:'nonexistent'}),undefined);
     const rebuild=new JsonRebuild(target.clock),actor=await target.store.transaction(tx=>rebuild.actorFromTarget(tx,'owner'));
     await target.store.transaction(tx=>rebuild.apply(tx,actor,t.download.payload,{requestId:randomUUID(),ip:'test'}));assert.equal(target.store.rows('personCredentials').length,0);

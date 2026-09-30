@@ -1,5 +1,5 @@
 /** Only the permission-filtered talent projection, never database rows or credential ciphertext. */
-export const TALENT_VERSION = 'once-talent-v2.0.0' as const;
+export const TALENT_VERSION = 'once-talent-v2.1.0' as const;
 export type TalentFactKind = 'talentProfiles' | 'personRoles' | 'personCapabilities' | 'personLanguages' | 'talentLocations' | 'castingProfiles' | 'measurementSets' | 'adultEligibilities' | 'representations' | 'personExternalRefs' | 'personCredentials' | 'translatorLanguagePairs' | 'translatorServiceModes' | 'mediaCollections' | 'mediaCollectionTags';
 export interface TalentFact {
     id: string; personId: string; sourceId: string; revision: number;
@@ -9,6 +9,7 @@ export interface TalentFact {
 export interface TalentDetail {
     id: string; displayName: string; intro: string; aliases: string[]; revision: number;
     originSourceId: string; originAvailable: boolean; scopeId: string; status: string;
+    ageRange?:{min:number;max:number;asOf:string;precision:string}|null;
     isTalent: boolean; canEdit: boolean; adultState: string;
     facts: Record<TalentFactKind, TalentFact[]>;
 }

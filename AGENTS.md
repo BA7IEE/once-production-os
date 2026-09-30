@@ -1,3 +1,7 @@
+# 2026-09-30 PR-01b 当前范围
+
+当前基线 main=aa2ab9f（PR #28 已合并，六项 CI SUCCESS）。本轮按用户要求完成 PR-01b，先读 docs/release/TALENT_EXPERIENCE_PR01B.md；下方 PR-01a 是历史交付记录。新增第55次前向迁移，前54次不改写。日常目录/候选使用同一 POST 查询与单一主详情；快速建档继续复用已合并实现。所有新增事实须同步权限、证据、导出重建、删除、合并和恢复。后续邀请/门户/多来源上传/分享/官网不预建菜单。生产迁移、部署未获本轮授权。
+
 # 2026-09-30 当前开发范围：Talent Experience v1.1
 
 用户已请求落地。先读 docs/release/TALENT_EXPERIENCE.md 和 docs/spec/15_TALENT_EXPERIENCE_V1_1.md，再读当前主 PRD、开发说明和参数。基线 main=6aeaab51565699ce8b9f5a830e13d5d706a09ed0 已合并 PR #26；下方历史“未合并/main 未含”等语句不得覆盖当前 GitHub 状态。

@@ -8,6 +8,7 @@ import type { ExportFieldCode, ExportSubjectKind } from '../../../packages/core/
 import { ErrorBox, Field, Modal, PageTitle, Pager, Submit, Tag, date, useAction, useLoad } from './ui.tsx';
 
 const professionalFields: Array<[ExportFieldCode,string]> = [
+    ['person.td2.birthDate','完整出生日期（受限，须单独批准）'],
     ['person.td2.mergeHistory','合并保留资料（旧身份、主档案和决定）'],
     ['person.td2.adultEligibilities','2.0 成年资格与原核验归属（单独批准）'],
     ['person.td2.mediaCollections','2.0 媒体集合、图片顺序与说明'],

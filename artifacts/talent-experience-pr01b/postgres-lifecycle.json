@@ -1,0 +1,21 @@
+{
+  "status": "PASSED",
+  "database": "PostgreSQL 14.19 (Homebrew) on aarch64-apple-darwin24.4.0, compiled by Apple clang version 17.0.0 (clang-1700.0.13.3), 64-bit",
+  "profileId": "8bb9dee0-de42-4c92-b089-6ea13906ef91",
+  "modelRoleId": "7edee776-fe01-4e25-92b3-7ed5857f319b",
+  "measurementId": "754a91bf-57dc-44ae-8a47-738476647057",
+  "coverAssetId": "2cad92f8-191f-4e57-92ab-887f3a401068",
+  "canonicalPersonId": "6b4b544a-e742-4214-a62e-48b990eae139",
+  "checks": [
+    "persisted-new-fields",
+    "stale-export",
+    "controlled-media-export",
+    "typed-rebuild-preserves-ids",
+    "recovery-keeps-unknowns",
+    "merge-preserves-old-id-and-business-fields",
+    "asset-erasure-clears-cover",
+    "sql-reference-parity",
+    "withdrawn-source-queries",
+    "actual-pg-dump-restore-new-fields-and-cover"
+  ]
+}
