@@ -1,0 +1,8 @@
+{
+  "head": "3b9b392f7b0f104060a9549b556a8909a37fb053",
+  "run": 36741058199,
+  "successfulJobs": 6,
+  "failedJob": "browser-production",
+  "cause": "Obsolete required measurement date label in workbench acceptance",
+  "resolution": "Updated current form locator and completed whole suite; final head CI separately required"
+}

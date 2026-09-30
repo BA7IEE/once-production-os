@@ -28,6 +28,38 @@
     {
       "finding": "Pagination test interacted before second-page response rendered",
       "fix": "Await the actual page-2 POST response and exact returned card, retain page/query/selection assertions"
+    },
+    {
+      "finding": "Multi-role facet could borrow model classification for actor count",
+      "fix": "Count each option through the same complete matching query; memory and real PostgreSQL parity assertions"
+    },
+    {
+      "finding": "Browser captured initial default response before combined query",
+      "fix": "Match the actual combined request body and wait for returned facet option"
+    },
+    {
+      "finding": "Obsolete required measurement-date label stopped CI browser production",
+      "fix": "Use current optional-date label, retain exact-day confirmation and history assertions"
+    },
+    {
+      "finding": "Legacy normal-search and locale entry selectors no longer matched unified navigation",
+      "fix": "Exercise unified directory and advanced editors; separately verify legacy machine query semantics"
+    },
+    {
+      "finding": "Duplicate refresh buttons caused ambiguity in readonly workbench assertion",
+      "fix": "Scope action to actual advanced modal and retain 404/source-revocation assertions"
+    },
+    {
+      "finding": "Export approval could submit before selected Work/Project source had loaded",
+      "fix": "Disable until matching selected owner and actual source are ready; complete original download and revocation assertions"
+    },
+    {
+      "finding": "Earlier local legacy-browser summary was read before full process completion",
+      "fix": "Corrected user update; replace evidence with complete exit-zero production log"
+    },
+    {
+      "finding": "Empty declared-age inputs converted to zero",
+      "fix": "Preserve null and verify clear action in real browser"
     }
   ],
   "noSkippedTests": true,

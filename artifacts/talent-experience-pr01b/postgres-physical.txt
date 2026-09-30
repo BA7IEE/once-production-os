@@ -3,7 +3,7 @@ TAP version 13
 # Subtest: PR01b real PostgreSQL new fields, private cover, typed transfer, recovery, merge and erasure
 ok 1 - PR01b real PostgreSQL new fields, private cover, typed transfer, recovery, merge and erasure
   ---
-  duration_ms: 4654.288583
+  duration_ms: 6297.299125
   type: 'test'
   ...
 1..1
@@ -14,4 +14,4 @@ ok 1 - PR01b real PostgreSQL new fields, private cover, typed transfer, recovery
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 4968.94875
+# duration_ms 6624.594333
