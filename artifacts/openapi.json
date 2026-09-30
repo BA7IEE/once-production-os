@@ -585,6 +585,1671 @@
         "x-mode": "COMMAND"
       }
     },
+    "/api/v1/talent-invitations": {
+      "post": {
+        "operationId": "talent.invitation.create",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "purpose": {
+                    "type": "string",
+                    "enum": [
+                      "CLAIM",
+                      "ENROLL"
+                    ]
+                  },
+                  "targetPersonId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "scopeId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "recipientKind": {
+                    "type": "string",
+                    "enum": [
+                      "EMAIL",
+                      "PHONE"
+                    ]
+                  },
+                  "recipient": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 320
+                  },
+                  "maxUses": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1000
+                  },
+                  "exposureFields": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "displayName",
+                        "aliases",
+                        "intro"
+                      ]
+                    },
+                    "minItems": 0,
+                    "maxItems": 3
+                  }
+                },
+                "required": [
+                  "purpose",
+                  "scopeId",
+                  "exposureFields"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "talent.invite",
+        "x-mode": "COMMAND"
+      },
+      "get": {
+        "operationId": "talent.invitation.list",
+        "parameters": [],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "talent.invite",
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/talent-invitations/{id}/issue": {
+      "post": {
+        "operationId": "talent.invitation.issue",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "expectedRevision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "talent.invite",
+        "x-mode": "SECRET"
+      }
+    },
+    "/api/v1/talent-invitations/{id}/revoke": {
+      "post": {
+        "operationId": "talent.invitation.revoke",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "expectedRevision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "talent.invite",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/talent-claims": {
+      "get": {
+        "operationId": "talent.claim.list",
+        "parameters": [],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "talent.review",
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/talent-claims/{id}/decide": {
+      "post": {
+        "operationId": "talent.claim.decide",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "decision": {
+                    "type": "string",
+                    "enum": [
+                      "APPROVE",
+                      "REJECT"
+                    ]
+                  },
+                  "ownershipBasis": {
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 2000
+                  },
+                  "guardianConfirmed": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "decision",
+                  "ownershipBasis",
+                  "guardianConfirmed"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "talent.review",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/talent-grants/{id}/revoke": {
+      "post": {
+        "operationId": "talent.grant.revoke",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "expectedRevision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "talent.review",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/talent-submissions": {
+      "get": {
+        "operationId": "talent.submission.list",
+        "parameters": [],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "talent.review",
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/talent-submissions/{id}": {
+      "get": {
+        "operationId": "talent.submission.get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "talent.review",
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/talent-submissions/{id}/decide": {
+      "post": {
+        "operationId": "talent.submission.decide",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "acceptedKeys": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64
+                    },
+                    "minItems": 0,
+                    "maxItems": 3
+                  },
+                  "publicReason": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 500
+                  },
+                  "targetPersonId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "createPerson": {
+                    "type": "boolean"
+                  },
+                  "ownershipBasis": {
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 2000
+                  },
+                  "guardianConfirmed": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "acceptedKeys",
+                  "publicReason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "talent.review",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/portal/invitations/exchange": {
+      "post": {
+        "operationId": "portal.invitation.exchange",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "invitationId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "token": {
+                    "type": "string",
+                    "minLength": 43,
+                    "maxLength": 43,
+                    "pattern": "^[A-Za-z0-9_-]+$"
+                  }
+                },
+                "required": [
+                  "invitationId",
+                  "token"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "AUTH"
+      }
+    },
+    "/api/v1/portal/invitations/{id}": {
+      "get": {
+        "operationId": "portal.invitation.inspect",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/portal/claims": {
+      "post": {
+        "operationId": "portal.claim.create",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "contextId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "relation": {
+                    "type": "string",
+                    "enum": [
+                      "SELF",
+                      "GUARDIAN",
+                      "AGENT"
+                    ]
+                  },
+                  "applicantKey": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[A-Za-z0-9_-]+$"
+                  },
+                  "adultDeclared": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "contextId",
+                  "relation",
+                  "applicantKey",
+                  "adultDeclared"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      },
+      "get": {
+        "operationId": "portal.claim.list",
+        "parameters": [],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/portal/claims/{id}/renew-admission": {
+      "post": {
+        "operationId": "portal.claim.renew",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "contextId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "contextId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/portal/profiles": {
+      "get": {
+        "operationId": "portal.profile.list",
+        "parameters": [],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/portal/profiles/{id}": {
+      "get": {
+        "operationId": "portal.profile.get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/portal/submissions": {
+      "post": {
+        "operationId": "portal.submission.create",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "schemaVersion": {
+                    "type": "string",
+                    "enum": [
+                      "once-talent-text-v1"
+                    ]
+                  },
+                  "claimId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "grantId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "consentTextVersion": {
+                    "type": "string",
+                    "enum": [
+                      "internal-directory-2026-10-v1"
+                    ]
+                  },
+                  "consentAccepted": {
+                    "type": "boolean"
+                  },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "clientItemKey": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64,
+                          "pattern": "^[A-Za-z0-9_-]+$"
+                        },
+                        "field": {
+                          "type": "string",
+                          "enum": [
+                            "displayName",
+                            "aliases",
+                            "intro"
+                          ]
+                        },
+                        "text": {
+                          "type": "string",
+                          "minLength": 0,
+                          "maxLength": 5000
+                        },
+                        "aliases": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120
+                          },
+                          "minItems": 0,
+                          "maxItems": 20
+                        },
+                        "dependencyGroup": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64,
+                          "pattern": "^[A-Za-z0-9_-]+$"
+                        },
+                        "dependsOn": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64
+                          },
+                          "minItems": 0,
+                          "maxItems": 20
+                        }
+                      },
+                      "required": [
+                        "clientItemKey",
+                        "field",
+                        "dependencyGroup",
+                        "dependsOn"
+                      ]
+                    },
+                    "minItems": 1,
+                    "maxItems": 3
+                  }
+                },
+                "required": [
+                  "schemaVersion",
+                  "consentTextVersion",
+                  "consentAccepted",
+                  "items"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      },
+      "get": {
+        "operationId": "portal.submission.list",
+        "parameters": [],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/portal/submissions/{id}": {
+      "get": {
+        "operationId": "portal.submission.get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "READ"
+      },
+      "patch": {
+        "operationId": "portal.submission.save",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "clientItemKey": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64,
+                          "pattern": "^[A-Za-z0-9_-]+$"
+                        },
+                        "field": {
+                          "type": "string",
+                          "enum": [
+                            "displayName",
+                            "aliases",
+                            "intro"
+                          ]
+                        },
+                        "text": {
+                          "type": "string",
+                          "minLength": 0,
+                          "maxLength": 5000
+                        },
+                        "aliases": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120
+                          },
+                          "minItems": 0,
+                          "maxItems": 20
+                        },
+                        "dependencyGroup": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64,
+                          "pattern": "^[A-Za-z0-9_-]+$"
+                        },
+                        "dependsOn": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64
+                          },
+                          "minItems": 0,
+                          "maxItems": 20
+                        }
+                      },
+                      "required": [
+                        "clientItemKey",
+                        "field",
+                        "dependencyGroup",
+                        "dependsOn"
+                      ]
+                    },
+                    "minItems": 1,
+                    "maxItems": 3
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "items"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/portal/submissions/{id}/submit": {
+      "post": {
+        "operationId": "portal.submission.submit",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "expectedRevision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/portal/submissions/{id}/withdraw": {
+      "post": {
+        "operationId": "portal.submission.withdraw",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "expectedRevision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/portal/submissions/{id}/fork": {
+      "post": {
+        "operationId": "portal.submission.fork",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "expectedRevision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/portal/consents/{id}/revoke": {
+      "post": {
+        "operationId": "portal.consent.revoke",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "expectedRevision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
     "/api/v1/brands": {
       "post": {
         "operationId": "brand.create",
@@ -14974,11 +16639,13 @@
                         "data.export",
                         "data.delete",
                         "data.merge",
-                        "ai.use"
+                        "ai.use",
+                        "talent.invite",
+                        "talent.review"
                       ]
                     },
                     "minItems": 0,
-                    "maxItems": 6
+                    "maxItems": 8
                   }
                 },
                 "required": [
@@ -15160,11 +16827,13 @@
                         "data.export",
                         "data.delete",
                         "data.merge",
-                        "ai.use"
+                        "ai.use",
+                        "talent.invite",
+                        "talent.review"
                       ]
                     },
                     "minItems": 0,
-                    "maxItems": 6
+                    "maxItems": 8
                   }
                 },
                 "required": [

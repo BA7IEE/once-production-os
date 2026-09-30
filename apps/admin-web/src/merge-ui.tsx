@@ -122,7 +122,7 @@ function PreviewPanel({ preview, fieldChoices, collisionChoices, setFieldChoice,
         <section className="panel padded">
             <h2>将发生的安全处置</h2>
             <dl className="detail-grid">
-                <div><dt>旧交接撤销</dt><dd>{preview.revocations.handoffs}</dd></div>
+                <div><dt>外部人才维护授权撤销（两份档案需重新核对认领）</dt><dd>{preview.externalAccessRevocations??0}</dd></div><div><dt>旧交接撤销</dt><dd>{preview.revocations.handoffs}</dd></div>
                 <div><dt>旧用途许可撤销</dt><dd>{preview.revocations.usePermissions ?? '受限'}</dd></div>
                 <div><dt>联系方式重新加密</dt><dd>{preview.contactsToReencrypt ?? '受限'}</dd></div>
                 <div><dt>上传记录解除人物绑定</dt><dd>{preview.media.uploadsToDetach}</dd></div>
@@ -179,7 +179,7 @@ export function PersonMergePanel({ me, onReviewDeletion }: { me: Me; onReviewDel
     const [done, setDone] = useState<Receipt | null>(null);
     const action = useAction();
 
-    const revocationCount = preview ? preview.revocations.handoffs + (preview.revocations.usePermissions ?? 0) : 0;
+    const revocationCount = preview ? preview.revocations.handoffs + (preview.revocations.usePermissions ?? 0) + (preview.externalAccessRevocations??0) : 0;
     const detachCount = preview ? preview.media.uploadsToDetach + preview.media.assetsToDetach : 0;
     const allFields = !!preview && preview.fieldConflicts.every(x => !!fieldChoices[x.field]);
     const allCollisions = !!preview && preview.collisions.every(x => !!collisionChoices[x.id]);

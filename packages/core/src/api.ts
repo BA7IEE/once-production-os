@@ -1,3 +1,4 @@
+import {TalentMaintenance} from './talent-maintenance.ts';
 import {TalentPortal} from './talent-portal.ts';
 import {TalentAuth,isolateTalentAuth} from './talent-auth.ts';
 import type {AuthProvider,CommandPrincipal} from './talent-auth-model.ts';
@@ -313,7 +314,18 @@ export class Application {
                     invariant(TD2_TABLES.includes(table as FactTable),'NOT_FOUND','资料类型不存在',404);
                     return command('talentFact',()=>action==='create'?this.talentV2.createFact(tx,actor,table as FactTable,id,data):this.talentV2.patchFact(tx,actor,table as FactTable,id,data));
                 }
+                const maintenance=new TalentMaintenance(this.clock,this.config);
                 switch (route.operation) {
+                    case 'talent.invitation.create':return command('talentInvitation',()=>maintenance.createInvitation(tx,actor,data));
+                    case 'talent.invitation.list':return maintenance.internalList(tx,actor,'invitation');
+                    case 'talent.invitation.issue':return maintenance.issue(tx,actor,id,data,meta);
+                    case 'talent.invitation.revoke':return command('talentInvitation',()=>maintenance.revokeInvitation(tx,actor,id,data));
+                    case 'talent.claim.list':return maintenance.internalList(tx,actor,'claim');
+                    case 'talent.claim.decide':return command('talentClaim',()=>maintenance.decideClaim(tx,actor,id,data));
+                    case 'talent.grant.revoke':return command('talentGrant',()=>maintenance.revokeGrant(tx,actor,id,data));
+                    case 'talent.submission.list':return maintenance.internalList(tx,actor,'submission');
+                    case 'talent.submission.get':return maintenance.submissionDto(tx,await maintenance.internalSubmission(tx,actor,id),actor);
+                    case 'talent.submission.decide':return command('talentSubmission',()=>maintenance.review(tx,actor,id,data));
                     case 'talent.account.disable': case 'talent.account.erase':return command('talentAccount',async()=>{const a=await workspaceRow(tx,'talentAccounts',id,actor.workspaceId);invariant(a,'NOT_FOUND','账号不存在',404);cas(a,(data as {expectedRevision:number}).expectedRevision);await isolateTalentAuth(tx,actor.workspaceId,this.clock,id,route.operation==='talent.account.erase');const updated=(await tx.get('talentAccounts',id))!;return {id,revision:updated.revision};});
                     case 'ai.settings': return this.ai.settings(tx,actor.workspaceId);
                     case 'ai.connection.test': return command('aiConnectionTest',()=>testConnection(tx,actor,data,this.clock,this.config,request.headers['idempotency-key']??'',meta));

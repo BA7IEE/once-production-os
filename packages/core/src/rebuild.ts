@@ -252,11 +252,13 @@ export class JsonRebuild {
                 scopeId: target.scope.id, maintainerId: actor.membershipId,
                 title: row.data.title, type: row.data.type, providerClaim: row.data.providerClaim,
                 textPayload: '', basisMode: 'INTERNAL_USE', basisDescription: row.data.basisDescription,
-                validFrom: row.data.validFrom, validUntil: row.data.validUntil, status: 'CONFIRMED',
+                validFrom: row.data.validFrom, validUntil: row.data.validUntil,...(row.talentBasis?{internalUseUntil:row.talentBasis.validUntil}:{}), status: 'CONFIRMED',
                 protectionEpoch: row.protectionEpoch + 1,
                 reviewedBy: actor.membershipId, reviewedAt: at
             };
+            if(row.talentBasis)invariant(Date.parse(row.talentBasis.validUntil)>this.clock.now().getTime()&&Date.parse(row.data.validUntil)<=Date.parse(row.talentBasis.validUntil),'CONSENT_UNAVAILABLE','重建不能延长本人使用依据',422);
             await tx.insert('sources', source);
+            if(row.talentBasis){await tx.insert('sourceUseBases',{...base(actor.workspaceId,this.clock),sourceId:source.id,consentId:null,consentRevision:row.talentBasis.consentRevision,purpose:'INTERNAL_DIRECTORY',fieldScope:row.talentBasis.fieldScope,state:'ACTIVE',validUntil:row.talentBasis.validUntil,importedBasis:row.talentBasis});await tx.insert('sourceAttributions',{...base(actor.workspaceId,this.clock),sourceId:source.id,submissionId:null,talentAccountId:null,consentId:null,reviewerId:actor.membershipId,materialDescription:'受控业务JSON重建，原提供者/提交/同意见不可冒充的原始归因引用',importedBasis:row.talentBasis});}
             const history: SourceHistory = {
                 ...base(actor.workspaceId, this.clock), sourceId: source.id, sourceRevision: source.revision,
                 scopeId: source.scopeId, actorId: null, action: 'BASELINE',

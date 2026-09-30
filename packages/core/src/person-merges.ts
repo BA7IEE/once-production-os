@@ -1,3 +1,4 @@
+import {maintenanceSnapshot,maintenanceScopeBlocker,revokePersonMaintenance} from './talent-maintenance-lifecycle.ts';
 import {scanLocaleMerge,applyLocaleMerge,type LocaleMergePlan} from './locale-merge.ts';
 import { scanTalentMerge, applyTalentMerge, type TalentMergePlan } from './talent-v2-merge.ts';
 import type { Actor, Clock, Config, Contact, Person, Source } from './model.ts';
@@ -49,6 +50,7 @@ type ScanPlan = {
     previewDigest: string;
     talent: TalentMergePlan;
     locales: LocaleMergePlan;
+    maintenance:Awaited<ReturnType<typeof maintenanceSnapshot>>;
 };
 const ARRAY_FIELDS = new Set<PersonMergeField>(['aliases','roles','languageCodes','skillCodes']);
 function same(a: unknown, b: unknown) { return digest(a) === digest(b); }
@@ -222,7 +224,8 @@ export class PersonMerges {
             media: { uploadsToDetach: uploadIds.length, assetsToReassign: assetReassignIds.length, assetsToDetach: assetDetachIds.length },
             moves: { workCredits: workCreditMoveIds.length, projectParticipants: projectParticipantMoveIds.length, shortlistItems: shortlistItemMoveIds.length }
         };
-        const internal = { ...responseCore, talentDigest: talent.digest, localeDigest:locales.digest,
+        const maintenance=await maintenanceSnapshot(tx,actor.workspaceId,[canonical.id,duplicate.id]);const maintenanceBlocker=await maintenanceScopeBlocker(tx,actor,maintenance.data);if(maintenanceBlocker)responseCore.blockers.push({code:maintenanceBlocker,count:1});
+        const internal = { ...responseCore,maintenanceDigest:maintenance.digest, talentDigest: talent.digest, localeDigest:locales.digest,
             activeHandoffIds: activeHandoffs.map(x=>x.id).sort(), activePermissionIds: activePermissions.map(x=>x.id).sort(),
             contactIds: contactRows.map(x=>x.id).sort(), evidenceIds: evidenceRows.map(x=>x.id).sort(), uploadIds,
             assetReassignIds, assetDetachIds, workCreditMoveIds: workCreditMoveIds.sort(),
@@ -235,7 +238,7 @@ export class PersonMerges {
             workCreditMoveIds: internal.workCreditMoveIds, projectParticipantMoveIds: internal.projectParticipantMoveIds,
             shortlistItemMoveIds: internal.shortlistItemMoveIds, affectedWorkIds: internal.affectedWorkIds,
             affectedProjectIds: internal.affectedProjectIds, affectedShortlistIds: internal.affectedShortlistIds,
-            previewDigest: digest(internal), talent, locales };
+            previewDigest: digest(internal), talent, locales,maintenance };
     }
 
     async preview(tx: Tx, actor: Actor, input: unknown) {
@@ -250,6 +253,7 @@ export class PersonMerges {
             contactsToReencrypt: actor.permissions.includes('sensitive.write') ? plan.contactIds.length : null,
             media: { uploadsToDetach: plan.uploadIds.length, assetsToReassign: plan.assetReassignIds.length, assetsToDetach: plan.assetDetachIds.length },
             moves: { workCredits: plan.workCreditMoveIds.length, projectParticipants: plan.projectParticipantMoveIds.length, shortlistItems: plan.shortlistItemMoveIds.length },
+            externalAccessRevocations:plan.maintenance.data.talentAccessGrants!.filter(g=>g.state==='ACTIVE').length,
             previewDigest: plan.previewDigest, professional: plan.talent.preview, locales:plan.locales.preview
         };
     }
@@ -300,6 +304,8 @@ export class PersonMerges {
         invariant((plan.uploadIds.length + plan.assetDetachIds.length) === 0 || d.acknowledgeMediaDetach,
             'MERGE_MEDIA_DETACH_ACK_REQUIRED', '请确认无法保持来源一致的个人媒体关联将被解除', 400);
 
+        invariant(!plan.maintenance.count||d.acknowledgeRevocations,'MERGE_REVOCATION_ACK_REQUIRED','合并将关闭两份档案的外部维护授权及待处理邀请，请确认后重新认领',400);
+        await revokePersonMaintenance(tx,actor.workspaceId,[plan.canonical.id,plan.duplicate.id],this.clock);
         const fieldMap = new Map<PersonMergeField,PersonMergeFieldChoice>();
         for (const row of d.fieldDecisions) {
             invariant(!fieldMap.has(row.field), 'DUPLICATE_FIELD', '同一字段只能做一次合并决定', 400);

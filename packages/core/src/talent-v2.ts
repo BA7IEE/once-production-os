@@ -1,3 +1,4 @@
+import {sourceAllowsInternalAuthoring} from './talent-maintenance-policy.ts';
 import { validateDemographics, PROFILE_DEFAULTS, ROLE_DEFAULTS, MODEL_ROLE_FIELDS } from './talent-demographics.ts';
 import { shortlistFor } from './shortlists.ts';
 import type { Actor, Clock, Config, Person, RequestMeta, TableMap, FieldEvidence } from './model.ts';
@@ -28,7 +29,7 @@ const updateResult=<T extends {id:string;revision:number}>(row:T)=>row;
 export class TalentV2 {
     clock:Clock; config:Config;
     constructor(clock:Clock,config:Config){this.clock=clock;this.config=config;}
-    async source(tx:Tx,actor:Actor,id:string,expected:number){const source=await sourceFor(tx,actor,id,this.clock);cas(source,expected);return source;}
+    async source(tx:Tx,actor:Actor,id:string,expected:number){const source=await sourceFor(tx,actor,id,this.clock);invariant(sourceAllowsInternalAuthoring(source),'TALENT_BASIS_SCOPED','本人文字来源仅支持已批准的本次内容；新增内部资料须使用独立来源',409);cas(source,expected);return source;}
     async parent(tx:Tx,actor:Actor,id:string,expected:number){const person=await td2PersonFor(tx,actor,id);cas(person,expected);invariant(person.status!=='ARCHIVED','PERSON_ARCHIVED','已归档人物不能修改专业资料',409);return person;}
     async bump(tx:Tx,p:Person){const next=touch(p,this.clock);await tx.replace('people',next);return next;}
     async createPerson(tx:Tx,actor:Actor,input:unknown){
@@ -40,7 +41,7 @@ export class TalentV2 {
     }
     async patchPerson(tx:Tx,actor:Actor,id:string,input:unknown){
         talentWrite(actor);const d=S.personPatch.parse(input),p=await this.parent(tx,actor,id,d.expectedRevision);
-        await sourceFor(tx,actor,p.sourceId,this.clock);
+        const origin=await sourceFor(tx,actor,p.sourceId,this.clock);if(['displayName','aliases','intro'].some(k=>Object.hasOwn(d,k)))invariant(sourceAllowsInternalAuthoring(origin),'TALENT_BASIS_SCOPED','本人文字来源仅支持已批准的本次内容；新增内部资料须使用独立来源',409);
         const next=touch(p,this.clock);
         for(const key of ['displayName','intro','aliases','status'] as const)if(d[key]!==undefined)Object.assign(next,{[key]:d[key]});
         invariant(Object.keys(d).length>2,'EMPTY_UPDATE','没有需要保存的修改',400);

@@ -97,3 +97,17 @@ INTERNAL_SOURCE、TALENT_SUBMISSION、AGENT_SUBMISSION 显式上下文；真实 
 身份规则固定 `talent-identity-v1`：邮箱仅 domain IDNA/lowercase，local-part 保留大小写/点号/加号；PHONE 显式 E.164，不推断区号。HMAC 独立key并绑定workspace/渠道；身份检索key与账号摘要不符时拒绝，不能恢复错key后复制账号。LOGIN 已开放实现，RECOVER 无恢复权限捷径。认证表不进入普通业务 JSON，实际备份恢复在 prepare/检查阶段阻断旧凭证。默认 Portal 关闭，真实Provider未验不等于生产可用。
 
 新增第56/57次前向迁移，前55次不变。仅基础认证，不建立 Invitation/Claim/Grant/Submission/Consent，也无任何本人媒体、客户或公开接口。详细证据绑定 PR #30 最终提交，不以 PR-01 main CI 代替。
+
+## PR-02b 已实现合同（2026-10-01，Draft 待复核）
+
+本节接续已冻结 PR-02a。邀请/认领/grant、文本草稿/Submission、审核、来源和同意实际实现详见 [PR-02b 交付](../release/TALENT_EXPERIENCE_PR02.md) 顶部。前57次迁移冻结，新增58–61；保留原 Person/来源/媒体/作品/候选及机器接口语义，不实现PR-03。
+
+- `once-talent-text-v1`：displayName、aliases、intro三个字段，最多3条；稳定 clientItemKey、依赖组和DAG、服务端字段摘要基线。保存不暗自更新基线，提交摘要冻结，整批一次决定，部分采纳后只fork未采纳项。UI将姓名/别名作为一组，简介为独立组。首次ENROLL明确采纳三项（后两项可为空），避免从旧隐藏档案复制补全。
+- CLAIM7天/1次，ENROLL30天/默认100次，admission7天；产品常量集中 `TALENT_MAINTENANCE_LIMITS`，没有散落未校验env。草稿90天、已提交180天、已处理30天、撤回7天；活动文字草稿/提交每账号最多100个，创建和fork同门禁。过期镜像清理不擦除已采纳正式事实及合法依据。
+- 所有绑定经过内部人工归属审核，指定identity匹配不能替代年龄/监护核实。批准前CLAIM无Person读权，ENROLL无Person占位；后续读取依赖当前账号+APPROVED Claim+ACTIVE Grant+Person，而非有效邀请。每个新增Portal业务GET与COMMAND均对照账号header，所有写入继续Origin/CSRF；身份失败不回退内部或机器主体。
+- `selfExposureManifest`只保存字段、当前值摘要、来源及版本；返回前重新检查当前值/依据、用途期限和删除/合并保护。内部备注、来源原文、联系方式、报价及敏感生日不进入本人预填。自己提交的未到期草稿只能按本人查询用途查看。
+- `internal-directory-2026-10-v1`明确365天、三个文字字段、内部目录/候选/受控业务导出；客户、公开和媒体均不包括。SourceUseBasis/SourceAttribution分离用途依据、本人材料提供者和实际审核员工。Source.internalUseUntil是数据库强约束的同事务用途投影，旧来源为null且保留原依据；撤回即时生效。匹配当前本人事实的FieldEvidence失效后不能退回旧来源冒充新值依据。
+- 导出只传已采纳事实和必要历史依据；JSON重建的 importedBasis 不产生外部身份/账号/授权。物理恢复关闭旧grant及邀请，停用/删除/合并即时阻断旧关系；不把旧Grant自动挂到合并主档。所有新表进入原生命周期和恢复检查摘要。
+- `/talent/*`与内部同源仅凭证分流，不声称浏览器脚本隔离。文本使用React转义，本地二维码、无第三方脚本或跟踪；沿用CSP、浏览器存储静态门禁。正式开放仍须真实Provider验证及单独上线审批。
+
+当前状态：PR-02b IMPLEMENTED，交付证据与最终提交CI绑定PR #30；保持Draft待复核，未合并未部署，PROVIDER_VERIFIED=NOT_RUN。

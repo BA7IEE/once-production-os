@@ -1,3 +1,4 @@
+import {isolateTalentMaintenance,inspectTalentMaintenance,cleanupTalentMaintenance} from './talent-maintenance-lifecycle.ts';
 import {digest} from './json.ts';
 import {createHmac,randomInt} from 'node:crypto';
 import {domainToASCII} from 'node:url';
@@ -22,7 +23,7 @@ export class TalentAuth {
  constructor(store:Store,config:Config,clock:Clock,provider?:AuthProvider){this.store=store;this.config=config;this.clock=clock;this.provider=provider;}
  settings():TalentAuthConfig {const c=this.config.talentAuth;invariant(c?.enabled,'PORTAL_DISABLED','人才登录暂未开放',503);return c;}
  async workspace(tx:Tx){this.settings();const rows=await tx.find('workspaces');const w=rows[0];invariant(rows.length===1&&w&&this.config.accessMode==='INTERNAL'&&w.recoveryEpoch===this.config.recoveryEpoch,'MAINTENANCE','系统处于维护或恢复隔离状态',503);const binding=talentHash(this.settings().identityKey,'key-binding',w.id);invariant((await tx.find('talentAccounts',{workspaceId:w.id})).every(a=>a.identityKeyDigest===binding),'TALENT_KEY_MISMATCH','人才认证密钥与现有账号不匹配，请由维护人员核对恢复密钥',503);return w;}
- private async rate(tx:Tx,workspaceId:string,key:string,max:number,ms:number){const c=this.settings(),id=talentHash(c.identityKey,'rate',workspaceId+':'+key),old=await tx.get('rateBuckets',id),now=this.clock.now().getTime();invariant(!old||Date.parse(old.until)<=now||old.count<max,'RATE_LIMITED','操作过于频繁，请稍后再试',429);const r={id,workspaceId,count:old&&Date.parse(old.until)>now?old.count+1:1,until:old&&Date.parse(old.until)>now?old.until:new Date(now+ms).toISOString()};if(old)await tx.replace('rateBuckets',r);else await tx.insert('rateBuckets',r);}
+ async rate(tx:Tx,workspaceId:string,key:string,max:number,ms:number){const c=this.settings(),id=talentHash(c.identityKey,'rate',workspaceId+':'+key),old=await tx.get('rateBuckets',id),now=this.clock.now().getTime();invariant(!old||Date.parse(old.until)<=now||old.count<max,'RATE_LIMITED','操作过于频繁，请稍后再试',429);const r={id,workspaceId,count:old&&Date.parse(old.until)>now?old.count+1:1,until:old&&Date.parse(old.until)>now?old.until:new Date(now+ms).toISOString()};if(old)await tx.replace('rateBuckets',r);else await tx.insert('rateBuckets',r);}
  async context(browser:string,purpose:AuthPurpose,meta:RequestMeta){const c=this.settings();return this.store.transaction(async tx=>{const w=await this.workspace(tx);await this.rate(tx,w.id,'context:'+meta.ip,30,3600000);const browserHash=talentHash(c.sessionKey,'browser',browser);const rows=await tx.find('talentAuthContexts',{workspaceId:w.id,browserHash});invariant(rows.filter(x=>Date.parse(x.expiresAt)>this.clock.now().getTime()&&x.recoveryEpoch===this.config.recoveryEpoch).length<5,'CONTEXT_LIMIT','请先完成现有认证或等待上下文过期',429);const row={...base(w.id,this.clock),browserHash,purpose,recoveryEpoch:this.config.recoveryEpoch,expiresAt:new Date(this.clock.now().getTime()+c.contextMs).toISOString()};await tx.insert('talentAuthContexts',row);return {contextId:row.id,expiresAt:row.expiresAt,csrfToken:csrfFor(browser,c.csrfKey)};});}
  async getContext(tx:Tx,browser:string,id:string,purpose?:AuthPurpose){const c=this.settings(),w=await this.workspace(tx),row=await tx.get('talentAuthContexts',id);invariant(row&&row.workspaceId===w.id&&equalSecret(row.browserHash,talentHash(c.sessionKey,'browser',browser))&&row.recoveryEpoch===this.config.recoveryEpoch&&Date.parse(row.expiresAt)>this.clock.now().getTime()&&(!purpose||purpose===row.purpose),'CONTEXT_INVALID','认证上下文已失效，请重新开始',401);return row;}
  async contextStatus(browser:string,id:string){return this.store.transaction(async tx=>{const row=await this.getContext(tx,browser,id);const challenges=(await tx.find('talentAuthChallenges',{workspaceId:row.workspaceId,contextId:id})).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||b.id.localeCompare(a.id));const ch=challenges.find(x=>live(x,this.clock.now().getTime()));const consumed=challenges.find(x=>x.state==='CONSUMED');const identity=consumed?(await tx.find('talentIdentities',{workspaceId:row.workspaceId,kind:consumed.kind,identityHash:consumed.identityHash}))[0]:null;return {contextId:id,purpose:row.purpose,csrfToken:csrfFor(browser,this.settings().csrfKey),verifiedAccountId:identity?.talentAccountId??null,challenge:ch?{id:ch.id,state:ch.state,expiresAt:ch.expiresAt}:null};});}
@@ -57,6 +58,7 @@ export class TalentAuth {
  async logout(tx:Tx,actor:TalentActor,meta:RequestMeta){const s=await tx.get('talentSessions',actor.sessionId);if(s)await tx.replace('talentSessions',{...touch(s,this.clock),revokedAt:this.clock.now().toISOString()});await audit(tx,actor,actor.workspaceId,'talent.auth.logout','talentAccount',actor.talentAccountId,[],meta,this.clock);}
 }
 export async function isolateTalentAuth(tx:Tx,workspaceId:string,clock:Clock,accountId?:string,erase=false){
+ await isolateTalentMaintenance(tx,workspaceId,clock,accountId,erase);
  const accounts=await tx.find('talentAccounts',{workspaceId,...(accountId?{id:accountId}:{})});const ids=new Set(accounts.map(x=>x.id));
  for(const a of accounts)await tx.replace('talentAccounts',{...touch(a,clock),sessionEpoch:a.sessionEpoch+1,...(accountId?{status:erase?'ERASED' as const:'DISABLED' as const}:{})});
  for(const s of await tx.find('talentSessions',{workspaceId}))if(ids.has(s.talentAccountId))await tx.replace('talentSessions',{...touch(s,clock),revokedAt:clock.now().toISOString()});
@@ -67,6 +69,7 @@ export async function isolateTalentAuth(tx:Tx,workspaceId:string,clock:Clock,acc
 
 /** Purges expired encrypted delivery payloads without sending anything, including after crashes. */
 export async function cleanupTalentAuth(tx:Tx,clock:Clock){
+ await cleanupTalentMaintenance(tx,clock);
  const now=clock.now().getTime();
  for(const ch of await tx.find('talentAuthChallenges'))if(Date.parse(ch.expiresAt)<=now&&(ch.codeHash||!['EXPIRED','CONSUMED','FAILED'].includes(ch.state)))await tx.replace('talentAuthChallenges',{...touch(ch,clock),codeHash:null,state:ch.state==='CONSUMED'?'CONSUMED':'EXPIRED'});
  for(const d of await tx.find('talentAuthDeliveries'))if(Date.parse(d.expiresAt)<=now&&d.encryptedPayload)await tx.replace('talentAuthDeliveries',{...touch(d,clock),encryptedPayload:null,state:d.state==='UNKNOWN'?'UNKNOWN':'EXPIRED'});
@@ -80,6 +83,7 @@ export async function inspectTalentAuth(tx:Tx,workspaceId:string){
  if(sessions.some(s=>!s.revokedAt))blockers.push('TALENT_SESSION_ACTIVE');
  if(challenges.some(c=>c.codeHash||!['CONSUMED','EXPIRED','FAILED'].includes(c.state)))blockers.push('TALENT_CHALLENGE_ACTIVE');
  if(deliveries.some(d=>d.encryptedPayload))blockers.push('TALENT_DELIVERY_PAYLOAD_RETAINED');
+ const maintenance=await inspectTalentMaintenance(tx,workspaceId);blockers.push(...maintenance.blockers);
  const groups=[accounts,identities,sessions,contexts,challenges,deliveries].map(rows=>[...rows].sort((a,b)=>a.id.localeCompare(b.id)));
- return {accountCount:accounts.length,identityCount:identities.length,sessionCount:sessions.length,challengeCount:challenges.length,graphDigest:digest(groups),blockers};
+ return {accountCount:accounts.length,identityCount:identities.length,sessionCount:sessions.length,challengeCount:challenges.length,graphDigest:digest({groups,maintenance}),blockers};
 }

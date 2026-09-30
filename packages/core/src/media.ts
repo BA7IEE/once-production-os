@@ -1,3 +1,4 @@
+import {sourceAllowsInternalAuthoring} from './talent-maintenance-policy.ts';
 import { randomUUID } from 'node:crypto';
 import type { Actor, Clock, Config, RequestMeta } from './model.ts';
 import type { Store, Tx } from './store.ts';
@@ -62,6 +63,7 @@ export class Media {
         this.enabled();
         requirePermission(actor, 'assets.upload');
         const d = MediaSchemas.create.parse(input), s = await sourceFor(tx, actor, d.sourceId, this.clock);
+        invariant(sourceAllowsInternalAuthoring(s),'TALENT_BASIS_SCOPED','本人文字来源仅支持已批准的本次内容；新增内部资料须使用独立来源',409);
         cas(s, d.expectedSourceRevision);
         invariant(d.expectedBytes<=mediaByteLimit(d.mime),'MEDIA_SIZE_INVALID','文件超过该类型大小限制',400);
         const p = d.personId ? await personFor(tx, actor, d.personId, this.clock) : null;

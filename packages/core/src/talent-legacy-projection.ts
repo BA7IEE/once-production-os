@@ -9,6 +9,7 @@ export function professionallyManaged(person:Person,graph:TalentGraph):boolean{
  return person.roles.length===0 || graph.personRows('talentProfiles',person.id).length>0;
 }
 export function legacyProfessionalProjection(person:Person,graph:TalentGraph){
+ if(!professionallyManaged(person,graph)&&!graph.sourceUsable(person.sourceId))return {professionalManaged:false,roles:[],cityCode:null,languageCodes:[],skillCodes:[],heightCm:null};
  if(!professionallyManaged(person,graph))return {professionalManaged:false,roles:person.roles,cityCode:person.cityCode,languageCodes:person.languageCodes,skillCodes:person.skillCodes,heightCm:person.heightCm};
  const current=(table:FactTable)=>graph.personRows(table,person.id).map(row=>graph.project(table,row as unknown as FactRow)).filter((row):row is Record<string,unknown>=>!!row&&row.usable===true);
  const codes=(table:FactTable,key:string)=>[...new Set(current(table).map(row=>row[key]).filter((value):value is string=>typeof value==='string'))];

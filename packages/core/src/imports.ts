@@ -1,3 +1,4 @@
+import {sourceAllowsInternalAuthoring} from './talent-maintenance-policy.ts';
 import { randomUUID } from 'node:crypto';
 import type { Actor, Clock, Config, DurableJob, ImportBatch, ImportRow } from './model.ts';
 import { LIMITS } from './model.ts';
@@ -17,7 +18,7 @@ export class Imports {
     async preview(tx: Tx, actor: Actor, input: unknown): Promise<ImportBatch> {
         requirePermission(actor, 'records.write');
         const data = Schemas.importPreview.parse(input);
-        const source = await sourceFor(tx, actor, data.sourceId, this.clock);
+        const source = await sourceFor(tx, actor, data.sourceId, this.clock);invariant(sourceAllowsInternalAuthoring(source),'TALENT_BASIS_SCOPED','本人文字来源仅支持已批准的本次内容；新增内部资料须使用独立来源',409);
         const rows: ImportRow[] = [];
         // One batch read, not one full talent traversal per input row. Names remain permission-filtered.
         const visibleNames = new Set((await this.talent.visiblePeople(tx, actor)).map(p => p.displayName));

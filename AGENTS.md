@@ -1,3 +1,7 @@
+# 2026-10-01 当前实现范围：PR-02b
+
+用户已复核冻结 PR-02a。继续当前 PR #30 分支实施定向 CLAIM、ENROLL、逐人 grant、同档认领、服务器文本草稿/Submission、批量审核、来源归因与 INTERNAL_DIRECTORY 同意。保持 Draft，不合并、不部署；PROVIDER_VERIFIED=NOT_RUN。下方 PR-02a 禁止进入02b为历史范围，已被本次用户授权替代。前57次迁移冻结，只追加58及后续。不得进入PR-03媒体或客户分享/官网。
+
 # 2026-10-01 当前实现范围：PR-02a
 
 PR #30 本轮仅独立人才账号、认证、真实 TALENT 主体的统一回执/审计/writeAhead、最小 Portal 和生命周期。保持 Draft，先复核；不进入 PR-02b 认领/投稿审核，不创建 Invitation/Claim/Grant/Submission/Consent，不进入 PR-03 或客户分享/官网。详情以 docs/release/TALENT_EXPERIENCE_PR02.md 最上方为准。默认 Portal 关闭，PROVIDER_VERIFIED=NOT_RUN；本地测试服务不能视为真实供应商通过。第56/57次迁移仅追加，已有迁移不可改写，未部署。

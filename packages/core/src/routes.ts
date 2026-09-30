@@ -1,3 +1,4 @@
+import {TALENT_MAINTENANCE_ROUTES} from './talent-maintenance-routes.ts';
 import {TALENT_AUTH_ROUTES} from './talent-auth-routes.ts';
 import { DirectoryUpdateSchema, DirectoryQuerySchema } from './talent-directory.ts';
 import {PartySchemas} from './project-parties.ts';
@@ -22,7 +23,7 @@ export interface RouteDefinition {
     permission?: Permission;
     schema?: Schema<unknown>;
 }
-export const ROUTES: RouteDefinition[] = [...TALENT_AUTH_ROUTES,
+export const ROUTES: RouteDefinition[] = [...TALENT_AUTH_ROUTES,...TALENT_MAINTENANCE_ROUTES,
     {method:'POST',path:'/brands',operation:'brand.create',mode:'COMMAND',permission:'records.write',schema:PartySchemas.create},
     {method:'GET',path:'/brands',operation:'brand.list',mode:'READ',permission:'records.read'},
     {method:'PATCH',path:'/brands/{id}',operation:'brand.patch',mode:'COMMAND',permission:'records.write',schema:PartySchemas.patch},

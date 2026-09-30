@@ -1,3 +1,4 @@
+import {MAINTENANCE_TABLES} from './talent-maintenance-lifecycle.ts';
 import {LOCALE_EXPORT_VERSION} from './locale-transfer.ts';
 import { TALENT_EXPORT_VERSION } from './talent-transfer.ts';
 import { TALENT_V2_TABLES } from './talent-v2-model.ts';
@@ -5,7 +6,7 @@ import type { Table } from './model.ts';
 
 export const REBUILD_SCHEMA_VERSION = 'once-export-v1' as const;
 
-export const REBUILD_EMPTY_TABLES: Table[] = ['brands','projectParties','localeTexts','localeDependencies',
+export const REBUILD_EMPTY_TABLES: Table[] = [...MAINTENANCE_TABLES,'brands','projectParties','localeTexts','localeDependencies',
     ...TALENT_V2_TABLES,
     'personMerges', 'personAliases', 'deletionRequests', 'deletionItems',
     'usePermissions', 'exports', 'exportDependencies',

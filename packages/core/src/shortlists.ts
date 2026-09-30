@@ -167,7 +167,9 @@ export class Shortlists {
     private async ensurePair(tx: Tx, actor: Actor, personId: string, workId?: string, roleCode?: string) {
         const person = await personFor(tx, actor, personId, this.clock);
         invariant(person.status !== 'ARCHIVED', 'PERSON_ARCHIVED', '已归档人才不能新增到候选清单', 409);
-        const personSource = await sourceFor(tx, actor, person.sourceId, this.clock);
+        const graph=await loadTalentGraph(tx,actor,this.clock,[person.id]);
+        const supporting=(await tx.find('evidence',{workspaceId:actor.workspaceId,personId:person.id,fieldPath:'displayName'})).find(e=>graph.sourceUsable(e.sourceId)&&graph.source(e.sourceId)?.revision===e.sourceRevision);
+        const personSource = await sourceFor(tx, actor, graph.sourceUsable(person.sourceId)?person.sourceId:supporting?.sourceId??person.sourceId, this.clock);
         if (!workId)
             return { person, personSource, work: null, workSource: null };
         const work = await workFor(tx, actor, workId, this.clock);

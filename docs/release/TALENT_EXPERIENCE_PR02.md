@@ -1,3 +1,53 @@
+## 2026-10-01：PR-02b 实现与验收（Draft 待复核）
+
+PR-02a 已经用户复核冻结。本轮在 PR #30 原分支上实现 PR-02b；**保持 Draft，未合并、未部署，PROVIDER_VERIFIED=NOT_RUN**。下方 PR-02a 和启动记录是历史状态，其“未进入 PR-02b”不覆盖本节。PR-03 多来源媒体、客户分享和官网发布未启动。
+
+### 本轮实际交付
+
+- 内部详情创建定向 CLAIM，选择限定审核范围和可向本人开放的字段，签发链接及本地生成二维码；审核收件箱支持通用 ENROLL。秘密只在签发响应出现，数据库只保存 keyed hash。链接 fragment 兑换浏览器绑定上下文后立即移除，不进入请求 URL、普通回执或日志；GET 不占名额。
+- CLAIM 默认7天/1次，ENROLL默认30天/100次、7天 reservation；事务内保证 used+reserved 上限。ENROLL先建立归属申请和本人可读草稿，没有假 Person。到期释放名额但不立即丢弃服务器草稿，可显式续办。批准后 grant 不再依赖邀请是否到期。
+- 所有认领都由内部人员记录独立归属依据后批准；指定收件渠道必须匹配已验证 identity。SELF 按 Person 和 TalentAccount 分别唯一；未知年龄未声明成年、已知可能未成年均不能批准 SELF。监护/代理须独立确认。邀请本身不赋予读取 Person 的权利。
+- 本人手机端开放**姓名/艺名、别名、简介**的文字维护。每次读取均复查当前 TalentAccount、Claim/Grant、Person、恢复 epoch、删除/合并状态；新 Portal 业务 GET 也要求 `X-ONCE-Talent-Account`。账号切换后旧标签读写拒绝并清空旧内容。
+- 服务器 DRAFT 通过 revision 保存；提交冻结摘要和字段基线。一次审核逐项决定整批，依赖组/DAG 不可拆开采纳；独立字段可部分采纳。同一字段变化进入 NEEDS_REBASE，不因人物其他字段变更一概冲突。修改旧提交必须 fork；已采纳项不重复进入部分退回的新草稿。
+- 采纳复用原 Person/TD2/FieldEvidence，同档 CLAIM 保持 Person ID。ENROLL必须明确选择同档绑定或新建，并记录独立归属证明；首版新建 UI 明示“新建模特档案”。提交者 TalentAccount、审核员工和来源依据分别记录，不把审核员写成材料提供者。
+- 同意文本 `internal-directory-2026-10-v1` 明确姓名/别名/简介、内部目录/候选/受控导出、365天及可撤回；不包含客户分享、公开发布或媒体。SourceUseBasis 是独立用途依据，`Source.internalUseUntil` 为同事务保护投影。撤回立即影响新旧目录、计数、候选及导出检查，不等待缓存或 worker；旧历史来源不伪补同意。本人文字来源不能借用于新增其他人、作品、专业事实或媒体。
+
+### 数据库、合同及权限
+
+新增9个实体：TalentInvitation、TalentInvitationContext、TalentClaim、TalentAccessGrant、TalentConsent、TalentSubmission、TalentSubmissionItem、SourceAttribution、SourceUseBasis。普通提交条目是文本声明，不是第二套 Person 模型。
+
+| 迁移 | 内容 |
+|---|---|
+| 58 `202610010003_talent_maintenance` | 9表、用途保护投影、workspace/身份/人物 FK、SELF 唯一、名额与状态 CHECK |
+| 59 `202610010004_talent_basis_rebuild` | live/imported 依据分支、归属复合 FK、冻结条目触发器、用途/同意一致性延迟约束 |
+| 60 `202610010005_talent_maintenance_permissions` | `talent.invite` / `talent.review` 纳入既有 Membership 权限 CHECK |
+| 61 `202610010006_talent_submission_ownership` | ENROLL Claim/Consent/Submission/Attribution 账号归属复合 FK |
+
+前57次迁移逐文件保持原样。默认仅 ADMIN 获得邀请/审核权限；其他员工需显式授权，同时仍受来源和范围权限限制。新增25条精确路由，生成请求类型/OpenAPI同步；unknown-fields reject保留。`once-talent-text-v1`只接受3种文字条目，最多3项，依赖和重复键严格校验。
+
+内部路由 `/talent-invitations`、`/talent-claims`、`/talent-grants`、`/talent-submissions`；Portal路由 `/portal/invitations`、`/portal/claims`、`/portal/profiles`、`/portal/submissions`、`/portal/consents`，细分方法见生成合同。页面 `/talent/login`、`/talent/claim`、`/talent/home`，内部 `/workspace/talent-review`。没有媒体上传、客户或公开路由。
+
+全部业务 COMMAND 使用原统一回执、审计、write-ahead 和稳定 TalentAccount 幂等作用域；签发邀请是 SECRET，不进入普通业务回执。丢响应显式原键核对，不能产生第二次审核/采纳。审核审计失败回滚人物、来源、证据、提交状态和回执。
+
+### 生命周期与恢复
+
+新增实体进入原删除预览、冻结摘要、范围检查及执行链。Person 合并要求确认撤销两端外部授权，保留旧ID映射，不把 TalentAccount 跟着别名转移；人物删除清除服务器提交镜像，保留必要最小归因。停用账号关闭 grant、未结束申请及名额；恢复 prepare 关闭旧邀请、上下文、grant和未完成提交，原会话/挑战不复活。
+
+普通业务 JSON 仅包含已批准事实及必要来源归因/用途元数据，不导出邀请 secret、认证表、session、验证码或草稿。JSON重建保留原提供者/提交/同意编号作为历史依据，不重建这些账号或 grant，也不能延长用途有效期。物理备份包含必要实体，实际恢复后必须经过原恢复隔离。
+
+### 验收证据与状态
+
+本地完整核心 **597/597通过、零失败/跳过**；真实PostgreSQL14.19专项 **32项通过**，完整PG回归退出0；HTTPS/Chrome真实浏览器6组场景通过。类型、transport、236条生成合同、静态/存储门禁、构建均通过。最终 head 的 CI 链接回填 PR #30，不能使用上一提交的 CI 代替。证据目录 `artifacts/talent-experience-pr02b/`：
+
+- `core-suite.json`：完整核心回归；新核心测试覆盖归属、权限、部分采纳、冲突、用途撤回、生命周期和恢复。
+- `postgres.json`：真实PG共享业务场景、名额并发、复合归属FK、SELF唯一、冻结内容触发器、审核审计失败回滚、受控JSON重建、真实pg_dump/restore与恢复prepare、实际合并及删除。
+- `browser.json`、`draft/review/approved-360/390/430.png`：真实Nest/Prisma/HTTPS/Chrome完成“邀请→登录→同档认领→保存草稿→刷新→提交→内部批量审核→查看采纳”。另有 ENROLL 新建、双标签切换账号读写拒绝、丢响应原键核对；没有模拟API成功来代替页面演示。
+- `migration-baseline.json`：前57次迁移和冻结规范原文未变，新迁移58–61。
+
+认证发送仍只用受控本地HTTP服务验证，**PROVIDER_VERIFIED=NOT_RUN**，正式入口默认关闭。本轮代码完成不代表生产入口可用；真实供应商/网关凭证、渠道验证和单独上线审批仍未完成。PR-02b等待本轮复核，不宣布PR-02或Release A已正式冻结。
+
+---
+
 ## 2026-10-01：PR-02a 实现与验收
 
 本轮只推进 PR-02a「独立人才账号、认证和真实外部主体基础」。PR #30 保持 Draft，未合并、未部署。PR-02b 的邀请/认领/grant/草稿/投稿审核/consent，以及多来源媒体、客户分享和官网均未实现。以下原启动记录保留为历史范围。

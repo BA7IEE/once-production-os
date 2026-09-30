@@ -120,7 +120,7 @@ export interface Membership {
     displayName: string;
     loginName: string;
     role: Me['role'];
-    extraPermissions: Array<'sensitive.read' | 'sensitive.write' | 'data.export' | 'data.delete' | 'data.merge' | 'ai.use'>;
+    extraPermissions: Array<'sensitive.read' | 'sensitive.write' | 'data.export' | 'data.delete' | 'data.merge' | 'ai.use' | 'talent.invite' | 'talent.review'>;
     status: string;
     revision: number;
 }

@@ -1,3 +1,4 @@
+import {currentIdentity} from './talent-maintenance-policy.ts';
 import {identitySupported} from './talent-identity-retention.ts';
 import type {FieldEvidence} from './model.ts';
 import type { Actor, Clock, Person, Scope, ScopeMember, Source } from './model.ts';
@@ -27,8 +28,7 @@ export function visibilityIndex(actor: Actor, clock: Clock, scopes: Scope[], mem
         personVisible(person: Person): boolean {
             const source = sourceById.get(person.sourceId);
             return person.workspaceId === actor.workspaceId && !mergedOldIds.has(person.id) && !isBlocked('PERSON', person.id) && scopeVisible(person.scopeId)
-                && person.status!=='ERASED' && !!source && ((!isBlocked('SOURCE', source.id) && sourceCurrent(source, clock) && scopeVisible(source.scopeId))
-                 || source.status==='ERASED' && scopeVisible(source.scopeId) && identitySupported(person,evidence,id=>{const s=sourceById.get(id);return s&&s.basisMode==='INTERNAL_USE'&&!isBlocked('SOURCE',id)&&sourceCurrent(s,clock)&&scopeVisible(s.scopeId)?s.revision:undefined;}));
+                && person.status!=='ERASED' && currentIdentity(person,evidence,id=>{const s=sourceById.get(id);return s&&!isBlocked('SOURCE',id)&&sourceCurrent(s,clock)&&scopeVisible(s.scopeId)?s:null;},id=>sourceById.get(id));
         } };
 }
 export async function loadVisibility(tx: Tx, actor: Actor, clock: Clock) {
@@ -38,6 +38,6 @@ export async function loadVisibility(tx: Tx, actor: Actor, clock: Clock) {
     const sources = await tx.find('sources', { workspaceId: actor.workspaceId });
     const blocks = (await tx.find('deletionRequests', { workspaceId: actor.workspaceId })).filter(row => row.state !== 'DRAFT');
     const aliases = await tx.find('personAliases', { workspaceId: actor.workspaceId });
-    const evidence=sources.some(s=>s.status==='ERASED')?(await tx.find('evidence',{workspaceId:actor.workspaceId})).filter(e=>!!e.personId):[];
+    const evidence=sources.some(s=>s.status==='ERASED'||s.internalUseUntil)?(await tx.find('evidence',{workspaceId:actor.workspaceId})).filter(e=>!!e.personId):[];
     return visibilityIndex(actor, clock, scopes, members, sources, blocks, aliases,evidence);
 }

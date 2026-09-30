@@ -1,0 +1,29 @@
+{
+  "status": "PASSED",
+  "core": {
+    "passed": 597,
+    "failed": 0,
+    "skipped": 0
+  },
+  "postgres": {
+    "version": "14.19",
+    "fullSuiteExitCode": 0,
+    "maintenanceChecks": 32
+  },
+  "browser": {
+    "engine": "Google Chrome / Playwright",
+    "realHttps": true,
+    "widths": [
+      360,
+      390,
+      430
+    ],
+    "scenarioGroups": 6
+  },
+  "contractRoutes": 236,
+  "providerVerified": "NOT_RUN",
+  "deployment": "NOT_DEPLOYED",
+  "prStatus": "DRAFT",
+  "baseMain": "79e064980fda7df9f90ea6a2fef13d3b3eeccb9f",
+  "frozenPr02a": "15a4b33d1319c7d97244a4b34f32f0466354a33b"
+}

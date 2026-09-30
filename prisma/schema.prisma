@@ -269,6 +269,7 @@ model ScopeMember {
 }
 
 model SourceRecord {
+  internalUseUntil DateTime? @db.Timestamptz(3)
   brands Brand[] @relation("BrandSource")
 
  aiReconciliations AiReconciliation[]
@@ -2430,4 +2431,191 @@ model TalentAuthDelivery {
   @@unique([workspaceId, challengeId])
   @@unique([workspaceId, id])
   @@map("talentAuthDeliveries")
+}
+
+model TalentInvitation {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  purpose String
+  targetPersonId String? @db.Uuid
+  scopeId String @db.Uuid
+  maintainerId String @db.Uuid
+  recipientHash String?
+  recipientKind String?
+  state String
+  tokenHash String?
+  secretVersion Int
+  expiresAt DateTime @db.Timestamptz(3)
+  maxUses Int
+  usedCount Int
+  reservedCount Int
+  recoveryEpoch String
+  exposureFields String[]
+  @@unique([workspaceId, id])
+  @@map("talentInvitations")
+}
+
+model TalentInvitationContext {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  invitationId String @db.Uuid
+  browserHash String
+  secretVersion Int
+  recoveryEpoch String
+  expiresAt DateTime @db.Timestamptz(3)
+  @@unique([workspaceId, id])
+  @@map("talentInvitationContexts")
+}
+
+model TalentClaim {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  invitationId String @db.Uuid
+  talentAccountId String @db.Uuid
+  targetPersonId String? @db.Uuid
+  scopeId String @db.Uuid
+  kind String
+  relation String
+  applicantKey String
+  state String
+  admissionUntil DateTime @db.Timestamptz(3)
+  reserved Boolean
+  adultDeclared Boolean
+  ownershipBasis String
+  recoveryEpoch String
+  decidedById String? @db.Uuid
+  decidedAt DateTime? @db.Timestamptz(3)
+  @@unique([workspaceId, id])
+  @@map("talentClaims")
+}
+
+model TalentAccessGrant {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  talentAccountId String @db.Uuid
+  personId String @db.Uuid
+  claimId String @db.Uuid
+  relation String
+  state String
+  actions String[]
+  authorizationEpoch Int
+  selfExposureManifest Json
+  approvedById String @db.Uuid
+  approvalBasis String
+  recoveryEpoch String
+  @@unique([workspaceId, id])
+  @@map("talentAccessGrants")
+}
+
+model TalentConsent {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  talentAccountId String @db.Uuid
+  personId String? @db.Uuid
+  claimId String? @db.Uuid
+  purpose String
+  textVersion String
+  fieldScope String[]
+  state String
+  validUntil DateTime @db.Timestamptz(3)
+  revokedAt DateTime? @db.Timestamptz(3)
+  @@unique([workspaceId, id])
+  @@map("talentConsents")
+}
+
+model TalentSubmission {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  talentAccountId String @db.Uuid
+  personId String? @db.Uuid
+  claimId String? @db.Uuid
+  grantId String? @db.Uuid
+  consentId String @db.Uuid
+  scopeId String @db.Uuid
+  schemaVersion String
+  state String
+  payloadDigest String?
+  forkedFromId String? @db.Uuid
+  expiresAt DateTime @db.Timestamptz(3)
+  submittedAt DateTime? @db.Timestamptz(3)
+  decidedAt DateTime? @db.Timestamptz(3)
+  decidedById String? @db.Uuid
+  publicReason String
+  protectionEpoch Int
+  recoveryEpoch String
+  @@unique([workspaceId, id])
+  @@map("talentSubmissions")
+}
+
+model TalentSubmissionItem {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  submissionId String @db.Uuid
+  clientItemKey String
+  kind String
+  targetId String? @db.Uuid
+  values Json
+  baseline Json
+  dependencyGroup String
+  dependsOn String[]
+  state String
+  appliedId String? @db.Uuid
+  @@unique([workspaceId, id])
+  @@map("talentSubmissionItems")
+}
+
+model SourceAttribution {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  sourceId String @db.Uuid
+  submissionId String? @db.Uuid
+  talentAccountId String? @db.Uuid
+  consentId String? @db.Uuid
+  reviewerId String @db.Uuid
+  materialDescription String
+  @@unique([workspaceId, id])
+  @@map("sourceAttributions")
+  importedBasis Json?
+}
+
+model SourceUseBasis {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  sourceId String @db.Uuid
+  consentId String? @db.Uuid
+  consentRevision Int
+  purpose String
+  fieldScope String[]
+  state String
+  validUntil DateTime @db.Timestamptz(3)
+  @@unique([workspaceId, id])
+  @@map("sourceUseBases")
+  importedBasis Json?
 }
