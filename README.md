@@ -1,6 +1,8 @@
 # ONCE Production OS
 
-内部人才与制作资料系统。当前开发分支已接通来源/权限、人才2.0、作品项目、专业检索、候选清单、受控合并/导出重建/删除、内部语言文本，以及四类文字AI辅助。
+人才与制作资料系统，当前按 [Talent Experience v1.1](docs/spec/15_TALENT_EXPERIENCE_V1_1.md) 扩展；首轮已新增统一快速建档，A/B/C均未完成，外部入口尚未开放。
+
+内部底座：当前开发分支已接通来源/权限、人才2.0、作品项目、专业检索、候选清单、受控合并/导出重建/删除、内部语言文本，以及四类文字AI辅助。
 
 模型连接由管理员填写URL、协议、模型名称和密钥，保存、测试后批准启用，无需独立网关。AI只提供待确认建议。
 
@@ -8,6 +10,7 @@
 
 当前不是完整一期验收或正式部署声明。真实供应商、性能/运维及生产接管待验；品牌、所属机构和项目客户／品牌关联已接通，当前提交的集中验收结果见 PR。
 
+- [本轮快速建档与迁移/验收计划](docs/release/TALENT_EXPERIENCE.md)
 - [当前交付与剩余清单](docs/release/CURRENT_DELIVERY.md)
 - [媒体处理、COS配置与边界](docs/release/MEDIA_COMPLETION.md)
 - [模型连接](docs/release/AI_MODEL_CONNECTION.md)

@@ -78,12 +78,9 @@ try {
     await sender.getByRole('button', { name: /人才档案/ }).click();
     await sender.getByRole('button', { name: /新增人才/ }).click();
     await sender.getByLabel('姓名 / 艺名 *').fill('H1浏览器私有人才');
-    await sender.locator('label.check-chip').filter({ hasText: '模特' }).getByRole('checkbox').check();
-    await sender.getByLabel('来源标题 *').fill('H1私有来源');
-    await sender.getByLabel('提供者 / 提供方式 *').fill('合成角色主动提供');
-    await sender.getByLabel('依据说明 *').fill('仅用于隔离验收，不代表任何真实授权');
-    const createdResponse = sender.waitForResponse(r => r.url().endsWith('/people') && r.request().method() === 'POST');
-    await sender.getByRole('button', { name: '建立档案', exact: true }).click();
+    await sender.getByRole('checkbox', {name:'模特',exact:true}).check();
+    const createdResponse = sender.waitForResponse(r => r.url().endsWith('/directory/talents') && r.request().method() === 'POST');
+    await sender.getByRole('button', { name: '保存草稿', exact: true }).click();
     const created = await createdResponse; assert.equal(created.status(), 201);
     const personId = (await created.json()).resourceId;
     const person = await prisma.person.findUniqueOrThrow({ where: { id: personId } });

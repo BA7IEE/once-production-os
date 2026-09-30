@@ -1,10 +1,10 @@
 # ONCE Production OS｜内部 API、权限与交互契约
 
-版本：v0.3｜日期：2026-09-22｜当前范围：一期内部 OS + AI｜状态：文档已修订，产品实现和运行测试未执行
+版本：Talent Experience v1.1增量｜日期：2026-09-30｜内部底座保留；A/B/C按当前合同增量实施。已实现状态查release，不以逻辑模型冒充落表成功。
 
 ## 1. 接口面
 
-所有业务路径相对 `/api/v1`，只允许内部成员认证后的入口。匿名仅登录/激活这类认证动作；没有公开、客户分享或人才自助业务路由。健康检查由部署入口限制，不暴露内部配置。
+所有路径相对 `/api/v1`。本次已实现内部 `POST /directory/talents`（COMMAND/records.write/严格版本/来源CAS），正常用户只一个新增入口。A/B/C的portal/casting/ingestion/publication合同见 [15第17节](15_TALENT_EXPERIENCE_V1_1.md)；尚未实现入口不提供占位，后续独立认证和严格路由分流，不借内部会话或VIEWER放行。健康检查不暴露配置。
 
 四种角色模板ADMIN/EDITOR/REVIEWER/VIEWER。ADMIN是当前空间管理人，不是绕过用途检查的系统超级用户；敏感权限在配置里显式可见。角色与权限表只管理一期功能，不提供任意策略编程。
 

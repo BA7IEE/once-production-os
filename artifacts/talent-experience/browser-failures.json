@@ -1,0 +1,25 @@
+{
+  "scope": "test harness failures retained separately from passing run",
+  "runs": [
+    {
+      "run": "intake-r1",
+      "failure": "Test referred to auditEvents; actual DB map is audits",
+      "fix": "Use verified schema mapping; no runtime change"
+    },
+    {
+      "run": "intake-r2",
+      "failure": "Test expected 500; PrismaStore formal DB_UNAVAILABLE is 503",
+      "fix": "Assert existing 503 and exact database rollback counts"
+    },
+    {
+      "run": "intake-r3",
+      "failure": "Detail has header and footer close buttons; ambiguous selector",
+      "fix": "Select footer close explicitly; assertions retained"
+    },
+    {
+      "run": "media-r1",
+      "failure": "macOS /tmp is a symlink, rejected by existing private media root safety check",
+      "fix": "Run with TMPDIR=/private/tmp; no production safety check weakened"
+    }
+  ]
+}

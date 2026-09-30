@@ -1,6 +1,6 @@
 # ONCE Production OS｜数据模型与一致性契约｜仅当前实体
 
-版本：v0.3｜日期：2026-09-22｜当前范围：一期内部 OS + AI｜状态：文档已修订，产品实现和运行测试未执行
+版本：Talent Experience v1.1增量｜日期：2026-09-30｜内部底座保留；A/B/C按当前合同增量实施。已实现状态查release，不以逻辑模型冒充落表成功。
 
 ## 1. 共同约定
 
@@ -8,7 +8,9 @@
 
 主身份UUID，业务短号只是展示。业务表有workspaceId并建立`UNIQUE(workspaceId,id)`供组合FK使用；一期只运营一个空间，服务端从会话确定空间，不提供多租户开通。所有写入有revision及变更人/时间；部分安全对象另有protectionEpoch。
 
-时刻用UTC+timestamptz；只有年月日的业务日期保持date+precision，不伪造00:00跨时区时刻。尺寸明确单位，未知null。秘密不放业务快照；金额仅在AI成本控制用定点十进制/最小单位，不创建商业账本。
+新增资源、主体XOR/FK、日期精度、来源用途、投影和生命周期见 [15第6/7/9/16节](15_TALENT_EXPERIENCE_V1_1.md) 与 [16迁移/ADR](16_TALENT_EXPERIENCE_CONTRACT.md)。本次内部建档使用既有Person/TalentProfile/PersonRole，无schema变更。
+
+时刻用UTC+timestamptz；只有年月日的业务日期保持date+precision，不伪造00:00跨时区时刻。尺寸明确单位，未知null。秘密不放业务快照；参考价在B使用整数最小货币单位，三层权限独立；不创建交易/财务账本。
 
 ## 2. 核心关系
 

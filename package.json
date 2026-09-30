@@ -38,7 +38,8 @@
     "safety-journal": "node --experimental-strip-types scripts/safety-journal.ts",
     "recovery:backup": "node --experimental-strip-types scripts/recovery-backup.ts",
     "recovery:approve": "node --experimental-strip-types scripts/recovery-approve.ts",
-    "recovery:restore-media": "node --experimental-strip-types scripts/recovery-restore-media.ts"
+    "recovery:restore-media": "node --experimental-strip-types scripts/recovery-restore-media.ts",
+    "verify:talent-intake": "node tests/acceptance/browser-talent-intake.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "4.0.65",
