@@ -1,3 +1,4 @@
+import {configuredAuthProvider} from './talent-auth-provider.ts';
 import { registerMediaHttp } from './media/http.ts';
 import { SafetyJournalWriter } from './recovery/safety-journal.ts';
 import {configuredMediaProvider} from './media/cos-provider.ts';
@@ -52,7 +53,7 @@ async function main() {
     const safetyJournal = process.env.SAFETY_JOURNAL_FILE
         ? await SafetyJournalWriter.open(process.env.SAFETY_JOURNAL_FILE)
         : null;
-    core = new Application(store, config, undefined, safetyJournal);
+    core = new Application(store, config, undefined, safetyJournal,configuredAuthProvider(config.talentAuth));
     const app = await NestFactory.create(AppModule, { bodyParser: false, logger: ['error', 'warn'] });
     const server = app.getHttpAdapter().getInstance() as express.Express;
     server.disable('x-powered-by');
@@ -93,6 +94,7 @@ async function main() {
     const assets = join(process.cwd(), 'dist/web');
     if (existsSync(assets)) {
         server.use(express.static(assets, { index: false, maxAge: 0, fallthrough: true, setHeaders: (res) => res.setHeader('Cache-Control', 'no-cache') }));
+        server.get('/talent/login', (_req,res)=>config.talentAuth?.enabled?res.set('Cache-Control','no-store').sendFile('index.html',{root:assets}):res.status(503).set('Cache-Control','no-store').type('text/plain').send('人才登录暂未开放'));
         server.get(['/', '/activate','/talents','/talents/:id','/workspace/:page'], (_req, res) => res.set('Cache-Control', 'no-store').sendFile('index.html', { root: assets }));
     }
     app.enableShutdownHooks();

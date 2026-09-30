@@ -1,3 +1,4 @@
+import type {TalentAuthTables,TalentAuthConfig} from './talent-auth-model.ts';
 import type {Brand,ProjectParty} from './project-parties.ts';
 import type {AiResponseMetadata} from './ai-dispatch.ts';
 import type {AiConnection} from './ai-connection.ts';
@@ -140,12 +141,14 @@ export interface DictionaryItem extends Base {
     status: 'ACTIVE' | 'INACTIVE';
 }
 export interface CommandReceipt extends Base {
+    principalKind?: 'INTERNAL'|'MACHINE'|'TALENT';
+    talentAccountId?:string|null;
     servicePrincipalId?: string | null;
     actorId: string | null;
     operation: string;
     commandKey: string;
     requestDigest: string;
-    resourceKind: 'brand' | 'aiConnectionTest' | 'aiConnection' | 'aiApproval' | 'aiAttempt' | 'aiBudget' | 'aiTask' | 'aiGrant' | 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
+    resourceKind: 'talentAccount' | 'brand' | 'aiConnectionTest' | 'aiConnection' | 'aiApproval' | 'aiAttempt' | 'aiBudget' | 'aiTask' | 'aiGrant' | 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
     resourceId: string;
     result: ReceiptResult;
 }
@@ -157,6 +160,8 @@ export interface ReceiptResult {
     replayed?: boolean;
 }
 export interface AuditEvent extends Base {
+    principalKind?: 'INTERNAL'|'MACHINE'|'TALENT'|'SYSTEM';
+    talentAccountId?:string|null;
     servicePrincipalId?: string | null;
     actorId: string | null;
     action: string;
@@ -222,7 +227,7 @@ export interface RecordHandoff extends Base {
     closedAt: string | null;
     closedById: string | null;
 }
-export interface TableMap extends TalentV2Tables {
+export interface TableMap extends TalentV2Tables, TalentAuthTables {
     brands:Brand;projectParties:ProjectParty;
     aiResponseMetadata: AiResponseMetadata;
     aiConnections: AiConnection;
@@ -299,6 +304,7 @@ export interface Clock {
     now(): Date;
 }
 export interface Config {
+    talentAuth?: TalentAuthConfig;
     ai?: AiLedgerConfig;
     mediaEnabled?: boolean;
     origin: string;

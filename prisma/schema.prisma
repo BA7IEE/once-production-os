@@ -9,6 +9,12 @@ datasource db {
 }
 
 model Workspace {
+  talentAuthDeliveries TalentAuthDelivery[]
+  talentAuthChallenges TalentAuthChallenge[]
+  talentAuthContexts TalentAuthContext[]
+  talentSessions TalentSession[]
+  talentIdentities TalentIdentity[]
+  talentAccounts TalentAccount[]
   brands Brand[] @relation("BrandWorkspace")
   projectParties ProjectParty[] @relation("PartyWorkspace")
 
@@ -502,6 +508,9 @@ model DictionaryItem {
 }
 
 model CommandReceipt {
+  principalKind String @db.Text
+  talentAccountId String? @db.Uuid
+  talentAccount TalentAccount? @relation(fields: [workspaceId, talentAccountId], references: [workspaceId, id], onDelete: Restrict, map: "receipts_talent_fk")
   servicePrincipalId String? @db.Uuid
   servicePrincipalIdTd2 ServicePrincipal? @relation("CommandReceipt_servicePrincipalId_td2", fields: [workspaceId, servicePrincipalId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "receipts_servicePrincipalId_td2_fk")
   id String @id @db.Uuid
@@ -525,6 +534,9 @@ model CommandReceipt {
 }
 
 model AuditEvent {
+  principalKind String @db.Text
+  talentAccountId String? @db.Uuid
+  talentAccount TalentAccount? @relation(fields: [workspaceId, talentAccountId], references: [workspaceId, id], onDelete: Restrict, map: "audits_talent_fk")
   servicePrincipalId String? @db.Uuid
   servicePrincipalIdTd2 ServicePrincipal? @relation("AuditEvent_servicePrincipalId_td2", fields: [workspaceId, servicePrincipalId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "audits_servicePrincipalId_td2_fk")
   id String @id @db.Uuid
@@ -2305,4 +2317,117 @@ model ProjectParty {
  @@unique([workspaceId,projectId])
  @@unique([workspaceId,id])
  @@map("projectParties")
+}
+
+model TalentAccount {
+  identityKeyDigest String @db.Text
+  audits AuditEvent[]
+  receipts CommandReceipt[]
+  talentSessions TalentSession[]
+  talentIdentities TalentIdentity[]
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  status String @db.Text
+  sessionEpoch Int
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  @@unique([workspaceId, id])
+  @@map("talentAccounts")
+}
+
+model TalentIdentity {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  talentAccountId String @db.Uuid
+  kind String @db.Text
+  identityHash String @db.Text
+  encryptedValue String? @db.Text
+  verifiedAt DateTime @db.Timestamptz(3)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  account TalentAccount @relation(fields: [workspaceId, talentAccountId], references: [workspaceId, id], onDelete: Restrict)
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, kind, identityHash])
+  @@map("talentIdentities")
+}
+
+model TalentSession {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  talentAccountId String @db.Uuid
+  tokenHash String @db.Text
+  sessionEpoch Int
+  recoveryEpoch String @db.Text
+  idleUntil DateTime @db.Timestamptz(3)
+  absoluteUntil DateTime @db.Timestamptz(3)
+  revokedAt DateTime? @db.Timestamptz(3)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  account TalentAccount @relation(fields: [workspaceId, talentAccountId], references: [workspaceId, id], onDelete: Restrict)
+  @@unique([workspaceId, id])
+  @@unique([tokenHash])
+  @@map("talentSessions")
+}
+
+model TalentAuthContext {
+  challenges TalentAuthChallenge[]
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  browserHash String @db.Text
+  purpose String @db.Text
+  recoveryEpoch String @db.Text
+  expiresAt DateTime @db.Timestamptz(3)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  @@unique([workspaceId, id])
+  @@map("talentAuthContexts")
+}
+
+model TalentAuthChallenge {
+  deliveries TalentAuthDelivery[]
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  contextId String @db.Uuid
+  kind String @db.Text
+  identityHash String @db.Text
+  purpose String @db.Text
+  codeHash String? @db.Text
+  state String @db.Text
+  attempts Int
+  recoveryEpoch String @db.Text
+  expiresAt DateTime @db.Timestamptz(3)
+  consumedAt DateTime? @db.Timestamptz(3)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  context TalentAuthContext @relation(fields: [workspaceId, contextId], references: [workspaceId, id], onDelete: Restrict)
+  @@unique([workspaceId, id])
+  @@map("talentAuthChallenges")
+}
+
+model TalentAuthDelivery {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  challengeId String @db.Uuid
+  state String @db.Text
+  encryptedPayload String? @db.Text
+  providerRequestKey String @db.Text
+  expiresAt DateTime @db.Timestamptz(3)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  challenge TalentAuthChallenge @relation(fields: [workspaceId, challengeId], references: [workspaceId, id], onDelete: Restrict)
+  @@unique([workspaceId, challengeId])
+  @@unique([workspaceId, id])
+  @@map("talentAuthDeliveries")
 }

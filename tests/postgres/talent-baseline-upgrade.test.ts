@@ -55,7 +55,9 @@ test('TD2-T17 populated frozen pre-TD2 baseline upgrades without rewriting busin
   for(const name of prior.filter(n=>!old.includes(n))){mkdirSync(join(temp,'migrations',name));copyFileSync(join(migrations,name,'migration.sql'),join(temp,'migrations',name,'migration.sql'));}
   deploy(join(temp,'schema.prisma'));
   const aiStore=new PrismaStore(db),aiClock=new FakeClock(),ledger=new AiLedger(aiClock),aiConfig={enabled:true,providerIdentityHash:digest('synthetic upgrade provider'),configRevision:1,recoveryEpoch:'synthetic-upgrade-epoch',currency:'USD',perTaskLimitUnits:50,dailyLimitUnits:1000,maxAttempts:3},meta={requestId:randomUUID(),ip:'test'};
-  await aiStore.transaction(async tx=>{const r=await ledger.reserve(tx,workspaceId,membershipId,randomUUID(),digest('synthetic upgrade input'),50,aiConfig,meta);const a=await ledger.begin(tx,workspaceId,r.id,aiConfig,meta);await ledger.unknown(tx,workspaceId,a.id,meta);});
+  const legacyAudits:object[]=[];
+  await aiStore.transaction(async current=>{const tx={...current,insert:async(table:any,row:any)=>{if(table==='audits'){const {principalKind,talentAccountId,...legacy}=row;legacyAudits.push(legacy);}else await current.insert(table,row);}};const r=await ledger.reserve(tx,workspaceId,membershipId,randomUUID(),digest('synthetic upgrade input'),50,aiConfig,meta);const a=await ledger.begin(tx,workspaceId,r.id,aiConfig,meta);await ledger.unknown(tx,workspaceId,a.id,meta);});
+  for(const row of legacyAudits)await db.$executeRawUnsafe('INSERT INTO "audits" SELECT * FROM jsonb_populate_record(NULL::"audits", $1::jsonb)',JSON.stringify(row));
   const aiBefore=JSON.stringify({budgets:await db.aiBudget.findMany(),runs:await db.aiRun.findMany(),attempts:await db.aiAttempt.findMany()});
   const brandId=randomUUID(),linkId=randomUUID(),projectId=(await db.project.findFirstOrThrow()).id;
   await db.brand.create({data:{...base(brandId),sourceId,scopeId,name:'升级保留品牌',organizationId:null,status:'ACTIVE'}});

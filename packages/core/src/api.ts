@@ -1,3 +1,7 @@
+import {TalentPortal} from './talent-portal.ts';
+import {TalentAuth,isolateTalentAuth} from './talent-auth.ts';
+import type {AuthProvider,CommandPrincipal} from './talent-auth-model.ts';
+import {cas} from './helpers.ts';
 import {queryTalentDirectory} from './talent-directory-query.ts';
 import { updateTalentDirectory } from './talent-directory.ts';
 import { createTalentIntake } from './talent-intake.ts';
@@ -71,6 +75,7 @@ function cookies(header: string): Record<string, string> {
     return out;
 }
 export class Application {
+    portal: TalentPortal;
     store: Store;
     clock: Clock;
     config: Config;
@@ -94,7 +99,7 @@ export class Application {
     talentV2: TalentV2;
     machine: MachineIdentity;
     safetyIntent: SafetyIntentSink | null;
-    constructor(store: Store, config: Config, clock: Clock = { now: () => new Date() }, safetyIntent: SafetyIntentSink | null = null) {
+    constructor(store: Store, config: Config, clock: Clock = { now: () => new Date() }, safetyIntent: SafetyIntentSink | null = null, authProvider?:AuthProvider) {
         invariant(config.contactKey.length === 32 && config.csrfKey.length === 32, 'CONFIG_INVALID', '密钥必须为 32 字节', 503);
         const origin = new URL(config.origin);
         invariant(origin.origin === config.origin && !origin.username && !origin.password && ['http:', 'https:'].includes(origin.protocol), 'CONFIG_INVALID', '必须配置精确 Origin', 503);
@@ -105,6 +110,7 @@ export class Application {
         this.safetyIntent = safetyIntent;
         this.config = config;
         this.identity = new Identity(store, clock, config);
+        this.portal=new TalentPortal(new TalentAuth(store,config,clock,authProvider),(a,o,r,id,k)=>this.writeAhead(a,o,r,id,k),safetyIntent);
         this.talent = new Talent(clock, config);
         this.talentV2 = new TalentV2(clock, config);
         this.machine = new MachineIdentity(clock, config);
@@ -124,13 +130,13 @@ export class Application {
         this.commands = new Commands(clock);
         this.imports = new Imports(store, clock, config, this.talent);
     }
-    private async writeAhead(actor: Actor, operation: string, requestId: string, resourceId: string, commandKey = ''): Promise<SafetyIntent | null> {
+    private async writeAhead(actor: CommandPrincipal, operation: string, requestId: string, resourceId: string, commandKey = ''): Promise<SafetyIntent | null> {
         if (!this.safetyIntent) return null;
         if (commandKey)
             invariant(/^[A-Za-z0-9_-]{8,128}$/.test(commandKey), 'IDEMPOTENCY_REQUIRED',
                 '写入需要 8–128 位 Idempotency-Key', 400);
         const stable = commandKey
-            ? digest({ workspaceId: actor.workspaceId, ...(actor.actorKind === 'MACHINE' ? {servicePrincipalId: actor.servicePrincipalId} : {actorId: actor.membershipId}), operation, commandKey })
+            ? digest({ workspaceId: actor.workspaceId, ...(actor.actorKind === 'TALENT' ? {principalKind:'TALENT',talentAccountId:actor.talentAccountId} : actor.actorKind === 'MACHINE' ? {servicePrincipalId: actor.servicePrincipalId} : {actorId: actor.membershipId}), operation, commandKey })
             : requestId;
         const intent: SafetyIntent = {
             intentId: 'intent:' + stable,
@@ -207,6 +213,7 @@ export class Application {
         try {
             const url = new URL(request.url, this.config.origin);
             invariant(url.pathname.startsWith('/api/v1/'), 'NOT_FOUND', '接口不存在', 404);
+            if(url.pathname==='/api/v1/portal'||url.pathname.startsWith('/api/v1/portal/'))return await this.portal.handle(request,response,meta);
             const { route, params } = this.match(request.method, url.pathname.slice('/api/v1'.length));
             const bearerHeader=request.headers.authorization;
             const machineRequest=bearerHeader!==undefined;
@@ -307,6 +314,7 @@ export class Application {
                     return command('talentFact',()=>action==='create'?this.talentV2.createFact(tx,actor,table as FactTable,id,data):this.talentV2.patchFact(tx,actor,table as FactTable,id,data));
                 }
                 switch (route.operation) {
+                    case 'talent.account.disable': case 'talent.account.erase':return command('talentAccount',async()=>{const a=await workspaceRow(tx,'talentAccounts',id,actor.workspaceId);invariant(a,'NOT_FOUND','账号不存在',404);cas(a,(data as {expectedRevision:number}).expectedRevision);await isolateTalentAuth(tx,actor.workspaceId,this.clock,id,route.operation==='talent.account.erase');const updated=(await tx.get('talentAccounts',id))!;return {id,revision:updated.revision};});
                     case 'ai.settings': return this.ai.settings(tx,actor.workspaceId);
                     case 'ai.connection.test': return command('aiConnectionTest',()=>testConnection(tx,actor,data,this.clock,this.config,request.headers['idempotency-key']??'',meta));
                     case 'ai.connection': return readConnection(tx,actor);
@@ -571,7 +579,8 @@ export class Application {
                     if (!job || job.actorId !== actor.membershipId)
                         continue;
                 }
-                result.push({ id: row.id, actorId: row.actorId, actorKind: row.servicePrincipalId ? 'MACHINE' : row.actorId ? 'HUMAN' : 'SYSTEM', servicePrincipalId: row.servicePrincipalId ?? null, action: row.action, resourceKind: row.resourceKind, resourceId: row.resourceId, changedFields: row.changedFields, at: row.createdAt, requestId: row.requestId });
+                if(row.resourceKind==='talentAccount'&&!actor.permissions.includes('members.manage'))continue;
+                result.push({ id: row.id, principalKind:row.principalKind, talentAccountId:row.talentAccountId??null, actorId: row.actorId, actorKind: row.talentAccountId ? 'TALENT' : row.servicePrincipalId ? 'MACHINE' : row.actorId ? 'HUMAN' : 'SYSTEM', servicePrincipalId: row.servicePrincipalId ?? null, action: row.action, resourceKind: row.resourceKind, resourceId: row.resourceId, changedFields: row.changedFields, at: row.createdAt, requestId: row.requestId });
             }
             catch (e) {
                 if (!(e instanceof AppError && e.status === 404))

@@ -89,3 +89,11 @@ INTERNAL_SOURCE、TALENT_SUBMISSION、AGENT_SUBMISSION 显式上下文；真实 
 候选保存 `{personId,personRoleId}`。普通联系人明确 null；仅一个有效职业可直接绑定，多职业必须显式选择，查询只允许满足当前职业/业务/作品条件的 matchingRoleIds。两个职业可分别选择同一人，进入既有 Shortlist 时复查当前职业版本和署名作品，不建立第二套候选模型。
 
 本轮无数据库 schema 变化或新迁移，既有第 55 次迁移冻结。PR #29 保持 Draft；PR-02 及邀请、认领、门户、多来源上传、分享、官网发布未启动。
+
+## PR-02a 已实现合同（2026-10-01，Draft 待复核）
+
+本轮仅 INTERNAL/MACHINE/TALENT 三个 COMMAND 主体；CASTING 尚未实现，不预建外部分享入口。SYSTEM 仅审计。既有 Actor 保留，TalentActor 不含 membershipId/userId；统一 CommandPrincipal 只用于回执、审计及写前归因，人才认证由独立 Portal 处理器执行。实际路由、身份规范化、发送状态、配置及生命周期详见 [PR-02a 交付](../release/TALENT_EXPERIENCE_PR02.md)。
+
+身份规则固定 `talent-identity-v1`：邮箱仅 domain IDNA/lowercase，local-part 保留大小写/点号/加号；PHONE 显式 E.164，不推断区号。HMAC 独立key并绑定workspace/渠道；身份检索key与账号摘要不符时拒绝，不能恢复错key后复制账号。LOGIN 已开放实现，RECOVER 无恢复权限捷径。认证表不进入普通业务 JSON，实际备份恢复在 prepare/检查阶段阻断旧凭证。默认 Portal 关闭，真实Provider未验不等于生产可用。
+
+新增第56/57次前向迁移，前55次不变。仅基础认证，不建立 Invitation/Claim/Grant/Submission/Consent，也无任何本人媒体、客户或公开接口。详细证据绑定 PR #30 最终提交，不以 PR-01 main CI 代替。

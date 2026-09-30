@@ -1,3 +1,63 @@
+## 2026-10-01：PR-02a 实现与验收
+
+本轮只推进 PR-02a「独立人才账号、认证和真实外部主体基础」。PR #30 保持 Draft，未合并、未部署。PR-02b 的邀请/认领/grant/草稿/投稿审核/consent，以及多来源媒体、客户分享和官网均未实现。以下原启动记录保留为历史范围。
+
+### 已实现
+
+- 6 个独立实体：TalentAccount、TalentIdentity、TalentSession、TalentAuthContext、TalentAuthChallenge、TalentAuthDelivery。不新增内部 User/Membership，也不关联 Person。
+- 第 56 次前向迁移 `202610010001_talent_auth_principals`：独立账号/认证表，原 receipts/audits 真实主体字段、历史归因回填、FK/XOR/CHECK 和人才幂等唯一索引。第 57 次 `202610010002_talent_auth_key_binding`：账号身份检索密钥绑定，恢复换错 key 时拒绝使用，不能默默重建同身份账号。第56次已用于隔离测试库，后续修正通过新迁移追加；前55次逐文件冻结。
+- `CommandPrincipal = Actor | TalentActor`；内部与机器旧 Actor 保留原语义。统一 Commands/audit/PrismaStore/MemoryStore 写入 principalKind 与唯一真实主体 ID。SYSTEM 只用于真实系统审计；COMMAND 无 SYSTEM 分支。
+- Talent COMMAND 幂等范围为 workspace/TALENT/talentAccountId/operation/key，与 session 无关；writeAhead 使用同一稳定主体摘要。原 INTERNAL/MACHINE 回执逐字段升级保留，并用新引擎原键重放验证。人才回执重放检查当前账号/epoch、资源及账号归属。
+
+### 身份与认证合同
+
+`talent-identity-v1`：去除输入首尾空白；邮箱 domain 转 IDNA ASCII 并小写，**local-part 保留大小写、点号和 +suffix**，不做供应商特有合并；PHONE 只接受带 `+` 的 8–15 位 E.164 形式，不猜国家代码。身份查重 HMAC 包含 workspace 和渠道类型；独立 identity key。成功验证后才建立 identity，账号与身份唯一约束由数据库保证；本轮不持久化邮箱/电话原值。
+
+验证码使用独立 code key 的 HMAC，绑定 challenge ID；正式会话、预认证浏览器绑定和 CSRF 使用各自密钥。发送前最小收件地址/验证码仅短期 AES-GCM 加密存储于 AuthDelivery；进入发送前将 delivery 记 UNKNOWN 并清除加密载荷，网络请求在事务外。明确响应才变 ACCEPTED/DELIVERED/FAILED；网络、超时、重定向或无法确认的响应保持 UNKNOWN，禁止自动重发。验证码正确与否不依赖供应商是否能证明 DELIVERED。
+
+实际路径为 QUEUED → UNKNOWN（发送期间）→ ACCEPTED/DELIVERED/FAILED/UNKNOWN；合法验证一次性变 CONSUMED。过期/新 challenge 使旧记录不可验证，清除 codeHash；错误次数达到上限变 FAILED。新 challenge 需显式申请，遵守重发间隔和身份/地址/工作空间累计额度。LOGIN 为唯一已开放用途；RECOVER 是明确拒绝的保留用途，不提供账号恢复捷径。
+
+预认证 15 分钟、每浏览器最多5个未过期上下文；OTP 10分钟/5次错误/60秒重发；identity 每小时5次/每天10次、IP每小时20次、workspace每小时100次/每天200次，配置可收紧。人才会话 idle 7天/absolute 30天，同时检查账号 sessionEpoch、部署及数据库 recoveryEpoch。
+
+### Portal 与管理路由
+
+手机入口 `/talent/login`，开关关闭时返回503“人才登录暂未开放”。只登录/查看自身账号概要/退出，不读取人物资料。Cookie 为 `once_talent_pre`、`once_talent_session`，Path=/api/v1/portal，HttpOnly、Secure、SameSite=Lax，无 Domain。员工 Cookie 可共存但不代用；Bearer 在 Portal 一律拒绝。
+
+| 方法 | 路由 | 合同 |
+|---|---|---|
+| POST | `/api/v1/portal/auth/context` | 精确 Origin + X-ONCE-Portal:1，产生独立上下文/CSRF |
+| GET | `/api/v1/portal/auth/contexts/{id}` | 当前预认证 Cookie 绑定；刷新查状态，不发送验证码 |
+| POST | `/api/v1/portal/auth/challenges` | 上下文、purpose、严格 EMAIL/PHONE/identity；Origin/CSRF |
+| POST | `/api/v1/portal/auth/verify` | 上下文、challenge、purpose、code；一次消费，独立会话 |
+| GET | `/api/v1/portal/me` | 只返回账号 ID/status/revision 与 CSRF，无 Person/联系方式/来源 |
+| POST | `/api/v1/portal/auth/logout` | Talent Cookie + Origin/CSRF + X-ONCE-Talent-Account；原 Path 清 Cookie |
+| POST | `/api/v1/portal/auth/revoke-other-sessions` | 同上及 Idempotency-Key；统一 COMMAND，保留当前会话，撤销其他会话 |
+| POST | `/api/v1/talent-accounts/{id}/disable`、`.../erase` | 内部 members.manage + expectedRevision + 统一 COMMAND；不开放额外菜单 |
+
+旧页面账号不符时先拒绝身份变化，不把请求交给新账号。验证码响应丢失先读 me 和当前上下文的已验证账号，只有两者一致才认定完成，避免误认旧标签页已有账号。上下文 ID 是非秘密引用，可在 URL 恢复；凭证、OTP 和业务正文不进入浏览器存储。
+
+### Provider 与生命周期边界
+
+集中配置见 `.env.example` / `talent-auth-config.ts`。`TALENT_PORTAL_ENABLED=false` 为默认值；已提供受控 test provider 与真实 HTTPS notification gateway 适配接口，后者需要实际自有网关/供应商接入、credential 文件、sender、template、timeout 和额度。接口为 POST JSON，发送 requestKey/kind/recipient/code/expiresAt/sender/template，Bearer 凭证与 Idempotency-Key；返回相同 requestKey 和 ACCEPTED/DELIVERED/FAILED/UNKNOWN。禁止重定向、自动重试或记录供应商正文，响应上限4096字节。没有假装已接入某家短信/邮件厂商。
+
+**PROVIDER_VERIFIED=NOT_RUN**。开发验证使用隔离的本地 HTTP 合成服务，未向真实收件人发送消息；test provider 禁止 staging/production，http provider 要求 HTTPS。真实账号认证是否可对外开放仍取决于实际供应商验证和单独发布审批。
+
+停用/擦除立即递增账号 epoch、撤销全部人才会话并使已有挑战失效；擦除保留最小账号/身份 keyed hash 墓碑及审计归因，避免同一停用身份重新注册绕过限制，无原始联系方式可回显。新主体不连接 Person，所以本轮 Person 合并/删除不隐式转移账号；认领相关生命周期属于 PR-02b。
+
+普通业务 JSON 导出继续按业务白名单构造，**不导出认证表、OTP、session hash/token 或 secret**；不能把该文件当账号迁移文件。账号恢复使用受控实际数据库备份；恢复 prepare 同事务撤销会话、挑战并清除发送密文，UNKNOWN 不补发。恢复检查包含人才认证关系、存活凭证阻断和全表状态摘要，防止检查后更改新实体。worker 只清理过期挑战/发送密文，不补发丢失或结果未知请求。
+
+### 本地最终结果与待复核边界
+
+`PR-02a IMPLEMENTED + BROWSER/POSTGRES_TESTED + PROVIDER_VERIFIED=NOT_RUN`。核心 590/590、零失败/跳过；完整 PostgreSQL14.19 回归退出0（含55→57升级、实际备份恢复与新旧业务）；真实 Nest/Prisma/Chrome HTTPS 浏览器通过360/390/430px及双标签/刷新/丢响应恢复；类型、transport、211路由生成合同、静态门禁与构建通过。独立真实HTTP供应商协议测试涵盖接收、送达、坏响应、连接重置、超时与重定向，均无自动重发。
+
+CI 新增独立 `browser-talent-auth`，最终共有8项；最终 head/SHA及绑定CI运行在 PR #30 描述回填，不沿用启动提交结果。PR-02a 等待本轮复核；剩余为真实供应商/网关凭证与渠道验证，正式入口保持关闭。PR-02 整包未完成，不进入PR-02b，未部署。
+
+### 证据
+
+真实数据库、55→57升级、备份恢复及手机页面证据见 `artifacts/talent-experience-pr02a/`。`postgres.json` 记录数据库实际版本与覆盖项；`upgrade.json` 记录旧回执逐字段保留及新引擎重放；`browser.json` 和 360/390/430px 截图记录 HTTPS 手机认证、刷新不重发、双标签隔离和无 Person/User/Membership 副作用。本地 PostgreSQL 14.19 与 CI PostgreSQL16 分开记录，最终结果与最终提交见 PR #30。
+
+本轮23项验收对应：1–3 身份规则/唯一账号；4–9 过期、尝试、替换、purpose、UNKNOWN、并发一次消费；10–13 Cookie/Bearer 隔离；14–17 统一回执/新会话归属/审计回滚；18–19 停用/恢复epoch；20 实际业务导出/日志/审计/回执检查；21–23 HTTPS手机宽度、刷新不重发和双标签上下文。共享测试位于 `tests/support/talent-auth.ts`，由核心和真实PG调用；供应商异常、累计限流、清理和密钥错配有独立核心测试。
+
 # PR-02：人才账号、邀请、同档认领和本人文本维护
 
 2026-10-01 启动；分支 `codex/talent-experience-pr02`，基线为最新 main `79e064980fda7df9f90ea6a2fef13d3b3eeccb9f`。基线完整 CI [36755091719](https://github.com/BA7IEE/once-production-os/actions/runs/36755091719) 七项 SUCCESS。PR-01 已冻结、已合并、未部署。

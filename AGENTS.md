@@ -1,3 +1,7 @@
+# 2026-10-01 当前实现范围：PR-02a
+
+PR #30 本轮仅独立人才账号、认证、真实 TALENT 主体的统一回执/审计/writeAhead、最小 Portal 和生命周期。保持 Draft，先复核；不进入 PR-02b 认领/投稿审核，不创建 Invitation/Claim/Grant/Submission/Consent，不进入 PR-03 或客户分享/官网。详情以 docs/release/TALENT_EXPERIENCE_PR02.md 最上方为准。默认 Portal 关闭，PROVIDER_VERIFIED=NOT_RUN；本地测试服务不能视为真实供应商通过。第56/57次迁移仅追加，已有迁移不可改写，未部署。
+
 # 2026-10-01 当前授权：PR-01 冻结，启动 PR-02
 
 PR #29 已按指定 head b74cb79702b517ee1a1ed2125587a9a107ec2801 合并；main=79e064980fda7df9f90ea6a2fef13d3b3eeccb9f 的 CI 36755091719 七项 SUCCESS。PR-01 正式冻结、未部署。下方“保持 Draft、不进入 PR-02”为历史范围，已由本次用户授权替代。

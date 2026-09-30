@@ -1,3 +1,4 @@
+import {isolateTalentAuth,inspectTalentAuth} from './talent-auth.ts';
 import {inspectPartyIntegrity} from './project-parties.ts';
 import {connectionKey} from './ai-connection.ts';
 import {isolateAi} from './ai-maintenance.ts';
@@ -206,6 +207,7 @@ export class RecoveryOps {
         for(const row of await tx.find('aiConnections',{workspaceId:actor.workspaceId})){
             try{connectionKey(row,this.config as Config);}catch{ai.blockers.push('AI_CONNECTION_KEY_INVALID');}
         }
+        const talentAuth=await inspectTalentAuth(tx,actor.workspaceId);
         const talent = await inspectTalentIntegrity(tx, actor.workspaceId, this.config.contactKey);
         const currentAssets = state.assets.filter(x => x.state !== 'ERASED');
         const expectedAssetIds = currentAssets.map(x => x.id).sort();
@@ -259,8 +261,9 @@ export class RecoveryOps {
             workspaceId: actor.workspaceId,
             targetEpochDigest: run.targetEpochDigest,
             checkedAt: this.clock.now().toISOString(),
-            databaseStateDigest: digest({ legacy: state.databaseStateDigest, talent: talent.graphDigest, locale: locale.graphDigest, ai: ai.graphDigest,parties }),
+            databaseStateDigest: digest({ legacy: state.databaseStateDigest, talent: talent.graphDigest, locale: locale.graphDigest, ai: ai.graphDigest,parties,talentAuth:talentAuth.graphDigest }),
             talent,
+            talentAuth,
             migrationDigest: external.migrationDigest,
             migrationMatch: external.migrationMatch,
             contactKeyDigest: hashSecret(this.config.contactKey.toString('hex')),
@@ -269,7 +272,7 @@ export class RecoveryOps {
             contactCount: state.contacts.length,
             contactDecryptFailures,
             media: external.media,
-            blockers: unique([...blockers, ...talent.blockers, ...locale.blockers, ...ai.blockers,...parties.blockers]).sort()
+            blockers: unique([...blockers, ...talent.blockers, ...locale.blockers, ...ai.blockers,...parties.blockers,...talentAuth.blockers]).sort()
         };
         return { run, report };
     }
@@ -433,6 +436,7 @@ export class RecoveryOps {
         const runBase = base(actor.workspaceId, this.clock);
         const now = runBase.createdAt;
         await quarantineTalentActors(tx, actor, this.clock);
+        await isolateTalentAuth(tx,actor.workspaceId,this.clock);
 
         for (const row of await tx.find('sessions', { workspaceId: actor.workspaceId }))
             if (!row.revokedAt) await tx.replace('sessions', { ...touch(row, this.clock), revokedAt: now });

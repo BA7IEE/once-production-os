@@ -24,6 +24,7 @@ export interface RecoveryCheckReport {
     migrationMatch: boolean;
     contactKeyDigest: string;
     talent?: TalentIntegrityReport;
+    talentAuth?:{accountCount:number;identityCount:number;sessionCount:number;challengeCount:number;graphDigest:string;blockers:string[]};
     locale?: {textCount:number;dependencyCount:number;relationFailures:number;graphDigest:string;blockers:string[]};
     ai?: {runCount:number;attemptCount:number;unresolvedCount:number;relationFailures:number;graphDigest:string;blockers:string[]};
     contactCount: number;

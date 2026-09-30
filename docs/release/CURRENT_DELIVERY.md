@@ -1,3 +1,7 @@
+## 2026-10-01 PR-02a 开发状态
+
+PR-01 已合并冻结、未部署。PR #30 在独立分支实现 PR-02a 的人才账号/认证/真实主体与最小登录页，保持 Draft 待复核；[本包交付与证据](TALENT_EXPERIENCE_PR02.md)。默认外部入口关闭，PROVIDER_VERIFIED=NOT_RUN。PR-02b 及后续功能未开始，PR-02 整包未完成；本轮没有生产迁移或部署。
+
 ## 2026-10-01：PR-01 已合并冻结，未部署
 
 [PR #29](https://github.com/BA7IEE/once-production-os/pull/29) 已从 Draft 转为 Ready 并合并。合并前精确核对 head 为 `b74cb79702b517ee1a1ed2125587a9a107ec2801`，没有夹带新改动；合并提交与远端 main 均为 `79e064980fda7df9f90ea6a2fef13d3b3eeccb9f`，合并后的文件树与该 head 一致。

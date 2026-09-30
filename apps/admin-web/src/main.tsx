@@ -1,3 +1,4 @@
+import {TalentLogin} from './talent-login.tsx';
 import {bindDirectoryIdentity,navigateDirectoryPath} from './directory-state.ts';
 import {TalentDirectory,clearDirectoryMemory} from './talent-directory.tsx';
 import {TalentDirectoryDetail} from './talent-directory-detail.tsx';
@@ -456,4 +457,4 @@ function Audits() { const [page, setPage] = useState(1); const [refresh, setRefr
 function Account({ onLogout }: {
     onLogout: () => void;
 }) { const { me } = useOS(); const [oldPassword, setOld] = useState(''); const [newPassword, setNew] = useState(''); const a = useAction(); return <><PageTitle overline="ACCOUNT SECURITY" title="账号设置" description="修改密码后，当前账号的全部旧会话失效，需要重新登录。"/><section className="panel padded narrow"><h2>{me.displayName}</h2><ErrorBox error={a.error}/><form onSubmit={e => { e.preventDefault(); void a.run(async () => { await call('auth.changePassword', { oldPassword, newPassword }); setOld(''); setNew(''); onLogout(); }); }}><Field label="原密码"><input required type="password" autoComplete="current-password" value={oldPassword} onChange={e => setOld(e.target.value)}/></Field><Field label="新密码（至少 12 个字符）"><input required type="password" minLength={12} maxLength={256} autoComplete="new-password" value={newPassword} onChange={e => setNew(e.target.value)}/></Field><Submit busy={a.busy}>更新密码并退出</Submit></form><hr /><button disabled={a.busy} onClick={() => void a.run(async () => { await call('auth.logout', {}); onLogout(); })}>退出当前会话</button></section></>; }
-createRoot(document.getElementById('root')!).render(<App />);
+createRoot(document.getElementById('root')!).render(location.pathname==='/talent/login'?<TalentLogin/>:<App />);

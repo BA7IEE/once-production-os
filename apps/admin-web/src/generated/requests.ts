@@ -1,5 +1,14 @@
 // Generated from packages/core/src/routes.ts and validation.ts. Do not edit.
 export interface Inputs {
+  "portal.auth.context": { "purpose": "LOGIN" | "RECOVER" };
+  "portal.auth.contextStatus": undefined;
+  "portal.auth.challenge": { "contextId": string; "purpose": "LOGIN" | "RECOVER"; "kind": "EMAIL" | "PHONE"; "identity": string };
+  "portal.auth.verify": { "contextId": string; "challengeId": string; "purpose": "LOGIN" | "RECOVER"; "code": string };
+  "portal.me": undefined;
+  "portal.auth.logout": {  };
+  "portal.sessions.revoke": {  };
+  "talent.account.disable": { "expectedRevision": number };
+  "talent.account.erase": { "expectedRevision": number };
   "brand.create": { "sourceId": string; "sourceRevision": number; "name": string; "organizationId": string | null };
   "brand.list": undefined;
   "brand.patch": { "expectedRevision": number; "name"?: string; "organizationId"?: string | null; "status"?: "ACTIVE" | "ARCHIVED" };
@@ -204,6 +213,51 @@ export interface Inputs {
   "shortlist.reorder": { "expectedRevision": number; "entryIds": Array<string> };
 }
 export const ENDPOINTS = {
+  "portal.auth.context": {
+    "method": "POST",
+    "path": "/portal/auth/context",
+    "mode": "AUTH"
+  },
+  "portal.auth.contextStatus": {
+    "method": "GET",
+    "path": "/portal/auth/contexts/{id}",
+    "mode": "AUTH"
+  },
+  "portal.auth.challenge": {
+    "method": "POST",
+    "path": "/portal/auth/challenges",
+    "mode": "AUTH"
+  },
+  "portal.auth.verify": {
+    "method": "POST",
+    "path": "/portal/auth/verify",
+    "mode": "AUTH"
+  },
+  "portal.me": {
+    "method": "GET",
+    "path": "/portal/me",
+    "mode": "READ"
+  },
+  "portal.auth.logout": {
+    "method": "POST",
+    "path": "/portal/auth/logout",
+    "mode": "AUTH"
+  },
+  "portal.sessions.revoke": {
+    "method": "POST",
+    "path": "/portal/auth/revoke-other-sessions",
+    "mode": "COMMAND"
+  },
+  "talent.account.disable": {
+    "method": "POST",
+    "path": "/talent-accounts/{id}/disable",
+    "mode": "COMMAND"
+  },
+  "talent.account.erase": {
+    "method": "POST",
+    "path": "/talent-accounts/{id}/erase",
+    "mode": "COMMAND"
+  },
   "brand.create": {
     "method": "POST",
     "path": "/brands",

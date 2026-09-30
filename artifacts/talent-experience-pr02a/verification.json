@@ -1,0 +1,21 @@
+{
+  "status": "IMPLEMENTED + BROWSER/POSTGRES_TESTED",
+  "providerVerified": "NOT_RUN",
+  "core": {
+    "tests": 590,
+    "pass": 590,
+    "fail": 0
+  },
+  "migrations": {
+    "previousUnchanged": 55,
+    "added": [
+      "202610010001_talent_auth_principals",
+      "202610010002_talent_auth_key_binding"
+    ]
+  },
+  "postgres": "Full suite exit 0; PostgreSQL 14.19; physical dump/restore",
+  "browser": "Real HTTPS Nest + Prisma + PostgreSQL + Chrome; controlled notification gateway",
+  "ci": "Final head run recorded on PR #30",
+  "deployed": false,
+  "pr02Complete": false
+}

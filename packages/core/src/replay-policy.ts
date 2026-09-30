@@ -1,3 +1,5 @@
+import type {CommandPrincipal} from './talent-auth-model.ts';
+import {invariant} from './errors.ts';
 import {brandFor} from './project-parties.ts';
 import {aiOperator} from './ai-operations.ts';
 import {AiBusiness} from './ai-business.ts';
@@ -17,9 +19,14 @@ import { workspaceRow } from './helpers.ts';
 import { missing } from './errors.ts';
 import { personFor, sourceFor, sourceCurrent, requireScope, requirePermission } from './policy.ts';
 /** Domain authorization for returning minimal command receipts. Not part of the generic receipt engine. */
-export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandReceipt, clock: Clock, config?: Config): Promise<void> {
+export async function authorizeReceipt(tx: Tx, actor: CommandPrincipal, receipt: CommandReceipt, clock: Clock, config?: Config): Promise<void> {
+    if(actor.actorKind==='TALENT'){
+        const account=await tx.get('talentAccounts',actor.talentAccountId);
+        invariant(receipt.principalKind==='TALENT'&&receipt.talentAccountId===actor.talentAccountId&&receipt.workspaceId===actor.workspaceId&&receipt.resourceKind==='talentAccount'&&receipt.resourceId===actor.talentAccountId&&account?.status==='ACTIVE'&&account.sessionEpoch===actor.sessionEpoch,'REPLAY_FORBIDDEN','当前账号不能读取此回执',403);return;
+    }
     const id = receipt.resourceId;
     switch (receipt.resourceKind) {
+        case 'talentAccount': requirePermission(actor,'members.manage');if(!await workspaceRow(tx,'talentAccounts',id,actor.workspaceId))missing();return;
         case 'brand': await brandFor(tx,actor,id,clock);return;
         case 'aiConnectionTest': case 'aiConnection': case 'aiApproval': case 'aiAttempt': case 'aiBudget': {
             aiOperator(actor);const table=receipt.resourceKind==='aiConnectionTest'?'aiRuns':receipt.resourceKind==='aiConnection'?'aiConnections':receipt.resourceKind==='aiApproval'?'aiApprovals':receipt.resourceKind==='aiAttempt'?'aiAttempts':'aiBudgets';
