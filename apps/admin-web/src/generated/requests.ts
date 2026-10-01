@@ -9,6 +9,10 @@ export interface Inputs {
   "portal.sessions.revoke": {  };
   "talent.account.disable": { "expectedRevision": number };
   "talent.account.erase": { "expectedRevision": number };
+  "portal.asset.attachment": undefined;
+  "talent.asset.attachment": undefined;
+  "portal.submission.collections": { "expectedRevision": number; "collections": Array<{ "clientItemKey": string; "targetCollectionId": string | null; "expectedCollectionRevision": number | null; "personRoleId": string | null; "collectionTypeCode": "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "title": string; "isCurrent": boolean; "coverAssetId": string | null; "tagCodes": Array<"FASHION" | "BEAUTY" | "COMMERCIAL" | "LINGERIE" | "RUNWAY" | "LIFESTYLE" | "INDUSTRIAL" | "PRODUCT">; "items": Array<{ "referenceKind": "SUBMISSION_STAGED_ASSET" | "EXISTING_ADOPTED_ASSET_REFERENCE"; "assetId": string; "caption": string; "featured": boolean }> }> };
+  "portal.collection.list": undefined;
   "portal.submission.mediaConsent": { "expectedRevision": number; "textVersion": "internal-directory-media-2026-10-v1"; "accepted": boolean };
   "portal.upload.create": { "context": { "kind": "TALENT_SUBMISSION"; "submissionId": string; "personRoleId"?: string }; "expectedSubmissionRevision": number; "fileName": string; "mime": "image/jpeg" | "image/png" | "image/webp" | "application/pdf" | "video/mp4"; "expectedBytes": number; "sha256": string };
   "portal.upload.get": undefined;
@@ -77,6 +81,7 @@ export interface Inputs {
   "directory.talent.search": { "q"?: string; "mode"?: "ALL" | "TALENT" | "CONTACT"; "role"?: string | Array<string>; "gender"?: "FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | "UNKNOWN" | Array<"FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | "UNKNOWN">; "nationality"?: string | Array<string>; "market"?: "DOMESTIC" | "INTERNATIONAL" | "UNCLASSIFIED" | Array<"DOMESTIC" | "INTERNATIONAL" | "UNCLASSIFIED">; "experience"?: "AMATEUR" | "PROFESSIONAL" | "UNSPECIFIED" | Array<"AMATEUR" | "PROFESSIONAL" | "UNSPECIFIED">; "style"?: string | Array<string>; "service"?: string | Array<string>; "location"?: string | Array<string>; "language"?: string | Array<string>; "industryCode"?: string | Array<string>; "workTypeCode"?: string | Array<string>; "status"?: "DRAFT" | "ACTIVE" | "ARCHIVED"; "ageMin"?: number; "ageMax"?: number; "ageUnknown"?: boolean; "heightMin"?: number; "heightMax"?: number; "page"?: number; "pageSize"?: number };
   "directory.talent.get": undefined;
   "directory.talent.create": { "schemaVersion": "once-talent-experience-v1"; "displayName": string; "kind": "TALENT" | "CONTACT"; "roleCodes"?: Array<string>; "sourceId"?: string; "sourceRevision"?: number };
+  "td2.collection.save": { "schemaVersion": "once-talent-v2.1.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "collection": { "clientItemKey": string; "targetCollectionId": string | null; "expectedCollectionRevision": number | null; "personRoleId": string | null; "collectionTypeCode": "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "title": string; "isCurrent": boolean; "coverAssetId": string | null; "tagCodes": Array<"FASHION" | "BEAUTY" | "COMMERCIAL" | "LINGERIE" | "RUNWAY" | "LIFESTYLE" | "INDUSTRIAL" | "PRODUCT">; "items": Array<{ "referenceKind": "SUBMISSION_STAGED_ASSET" | "EXISTING_ADOPTED_ASSET_REFERENCE"; "assetId": string; "caption": string; "featured": boolean }> } };
   "td2.heightReview.list": undefined;
   "td2.heightReview.dismiss": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "sourceRevision": number; "resolution": "DO_NOT_USE_LEGACY_HEIGHT"; "acknowledge": boolean };
   "td2.credential.secret.clear": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "sourceRevision": number; "acknowledge": boolean };
@@ -137,10 +142,10 @@ export interface Inputs {
   "td2.fact.translatorLanguagePairs.patch": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "status"?: "ACTIVE" | "INACTIVE" } };
   "td2.fact.translatorServiceModes.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "personRoleId": string; "modeCode": "BUSINESS_MEETING" | "ON_SET" | "ESCORT" | "CONSECUTIVE" | "SIMULTANEOUS" | "WRITTEN"; "status"?: "ACTIVE" | "INACTIVE" } };
   "td2.fact.translatorServiceModes.patch": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "status"?: "ACTIVE" | "INACTIVE" } };
-  "td2.fact.mediaCollections.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "personRoleId"?: string | null; "collectionTypeCode": "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "title": string; "status"?: "ACTIVE" | "ARCHIVED" } };
-  "td2.fact.mediaCollections.patch": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "collectionTypeCode"?: "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "title"?: string; "status"?: "ACTIVE" | "ARCHIVED" } };
-  "td2.fact.mediaCollectionTags.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "collectionId": string; "tagCode": "FASHION" | "BEAUTY" | "COMMERCIAL" | "LINGERIE" | "RUNWAY" | "LIFESTYLE" | "INDUSTRIAL" | "PRODUCT" } };
-  "td2.fact.mediaCollectionTags.patch": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": {  } };
+  "td2.fact.mediaCollections.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "personRoleId"?: string | null; "collectionTypeCode": "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "coverAssetId"?: string | null; "isCurrent"?: boolean; "title": string; "status"?: "ACTIVE" | "ARCHIVED" } };
+  "td2.fact.mediaCollections.patch": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "collectionTypeCode"?: "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "coverAssetId"?: string | null; "isCurrent"?: boolean; "title"?: string; "status"?: "ACTIVE" | "ARCHIVED" } };
+  "td2.fact.mediaCollectionTags.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "collectionId": string; "tagCode": "FASHION" | "BEAUTY" | "COMMERCIAL" | "LINGERIE" | "RUNWAY" | "LIFESTYLE" | "INDUSTRIAL" | "PRODUCT"; "status"?: "ACTIVE" | "ARCHIVED" } };
+  "td2.fact.mediaCollectionTags.patch": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "status"?: "ACTIVE" | "ARCHIVED" } };
   "work.list": undefined;
   "work.create": { "title": string; "sourceId"?: string; "inlineSource"?: { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string }; "description"?: string; "industryCode"?: string | null; "workTypeCodes"?: Array<string>; "origin"?: "ONCE" | "EXTERNAL" | "UNKNOWN"; "originNote"?: string };
   "work.get": undefined;
@@ -170,6 +175,7 @@ export interface Inputs {
   "asset.list": undefined;
   "asset.get": undefined;
   "asset.playback": undefined;
+  "asset.attachment": undefined;
   "asset.preview": undefined;
   "asset.quarantine": { "expectedRevision": number };
   "auth.csrf": undefined;
@@ -294,6 +300,26 @@ export const ENDPOINTS = {
     "method": "POST",
     "path": "/talent-accounts/{id}/erase",
     "mode": "COMMAND"
+  },
+  "portal.asset.attachment": {
+    "method": "GET",
+    "path": "/portal/accounts/{accountId}/assets/{id}/attachment",
+    "mode": "BINARY"
+  },
+  "talent.asset.attachment": {
+    "method": "GET",
+    "path": "/talent-staged-assets/{id}/attachment",
+    "mode": "BINARY"
+  },
+  "portal.submission.collections": {
+    "method": "POST",
+    "path": "/portal/submissions/{id}/collections",
+    "mode": "COMMAND"
+  },
+  "portal.collection.list": {
+    "method": "GET",
+    "path": "/portal/profiles/{id}/collections",
+    "mode": "READ"
   },
   "portal.submission.mediaConsent": {
     "method": "POST",
@@ -633,6 +659,11 @@ export const ENDPOINTS = {
   "directory.talent.create": {
     "method": "POST",
     "path": "/directory/talents",
+    "mode": "COMMAND"
+  },
+  "td2.collection.save": {
+    "method": "POST",
+    "path": "/td2/people/{id}/media-collections",
     "mode": "COMMAND"
   },
   "td2.heightReview.list": {
@@ -1098,6 +1129,11 @@ export const ENDPOINTS = {
   "asset.playback": {
     "method": "GET",
     "path": "/assets/{id}/playback",
+    "mode": "BINARY"
+  },
+  "asset.attachment": {
+    "method": "GET",
+    "path": "/assets/{id}/attachment",
     "mode": "BINARY"
   },
   "asset.preview": {

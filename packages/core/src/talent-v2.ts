@@ -1,3 +1,4 @@
+import {assertCollectionTags,collectionAssetFor} from './media-collections.ts';
 import {sourceAllowsInternalAuthoring} from './talent-maintenance-policy.ts';
 import { validateDemographics, PROFILE_DEFAULTS, ROLE_DEFAULTS, MODEL_ROLE_FIELDS } from './talent-demographics.ts';
 import { shortlistFor } from './shortlists.ts';
@@ -141,6 +142,8 @@ export class TalentV2 {
                 invariant(!same.some(x=>x.personRoleId===row.personRoleId&&x.sourceLanguageCode===row.sourceLanguageCode&&x.targetLanguageCode===row.targetLanguageCode),'TRANSLATION_PAIR_EXISTS','该方向的语言对已存在',409);
             }else invariant(!same.some(x=>x.personRoleId===row.personRoleId&&x.modeCode===row.modeCode),'TRANSLATION_MODE_EXISTS','该翻译服务方式已存在',409);
         }
+        if(table==='mediaCollections'){const c=row as unknown as import('./talent-v2-model.ts').MediaCollection;for(const i of await tx.find('mediaCollectionItems',{workspaceId:actor.workspaceId,collectionId:c.id}))await collectionAssetFor(tx,actor,c,i.assetId,this.clock);if(c.coverAssetId){invariant((await tx.find('mediaCollectionItems',{workspaceId:actor.workspaceId,collectionId:c.id,assetId:c.coverAssetId})).length===1,'COLLECTION_COVER_INVALID','封面必须在集合内',422);const a=await collectionAssetFor(tx,actor,c,c.coverAssetId,this.clock);invariant(a.mime.startsWith('image/'),'COLLECTION_COVER_INVALID','封面须为图片',422);}if(c.isCurrent)invariant(c.status==='ACTIVE'&&!same.some(o=>o.isCurrent&&o.personRoleId===c.personRoleId&&o.collectionTypeCode===c.collectionTypeCode),'COLLECTION_CURRENT_CONFLICT','请通过集合整理明确切换当前版本',409);}
+        if(table==='mediaCollectionTags'&&row.status!=='ARCHIVED')assertCollectionTags([String(row.tagCode)]);
         if(table==='mediaCollectionTags')invariant(!same.some(x=>x.collectionId===row.collectionId&&x.tagCode===row.tagCode),'COLLECTION_TAG_EXISTS','此集合已使用该内容标签',409);
     }
     async evidenceFor(tx:Tx,actor:Actor,table:string,row:Record<string,unknown>,fields:string[],sourceId:string,sourceRevision:number,reviewed=false,eventClock:Clock=this.clock){
@@ -314,11 +317,11 @@ export class TalentV2 {
         const row=await rawFact(tx,actor,'mediaCollections',id),p=await this.parent(tx,actor,row.personId,d.expectedPersonRevision);cas(row,d.expectedRevision);const g=await loadTalentGraph(tx,actor,this.clock);invariant(g.usable('mediaCollections',row),'COLLECTION_UNAVAILABLE','媒体集合不可用',409);
         const items=(await tx.find('mediaCollectionItems',{workspaceId:actor.workspaceId,collectionId:id})).sort((a,b)=>a.orderIndex-b.orderIndex);
         if(action==='ADD'&&'assetId' in d){
-            invariant(g.assetReadable(d.assetId),'ASSET_UNAVAILABLE','媒体不可用',422);invariant(!items.some(i=>i.assetId===d.assetId),'COLLECTION_ASSET_EXISTS','此媒体已在集合内',409);invariant(items.length<200,'COLLECTION_LIMIT','单集合最多收纳200个媒体',422);
+            await collectionAssetFor(tx,actor,{personId:p.id,personRoleId:row.personRoleId as string|null,collectionTypeCode:row.collectionTypeCode as import('./talent-v2-model.ts').MediaCollection['collectionTypeCode']},d.assetId,this.clock,true);invariant(!items.some(i=>i.assetId===d.assetId),'COLLECTION_ASSET_EXISTS','此媒体已在集合内',409);invariant(items.length<200,'COLLECTION_LIMIT','单集合最多收纳200个媒体',422);
             await tx.insert('mediaCollectionItems',{...base(actor.workspaceId,this.clock),personId:p.id,collectionId:id,assetId:d.assetId,orderIndex:items.length,caption:d.caption??'',featured:d.featured??false});
-        }else if(action==='REMOVE'&&'itemId' in d){invariant(items.some(i=>i.id===d.itemId),'COLLECTION_ITEM_MISSING','此集合中没有该媒体条目',404);await tx.remove('mediaCollectionItems',d.itemId);let n=0;for(const item of items.filter(i=>i.id!==d.itemId))await tx.replace('mediaCollectionItems',{...touch(item,this.clock),orderIndex:n++});}
+        }else if(action==='REMOVE'&&'itemId' in d){invariant(items.some(i=>i.id===d.itemId),'COLLECTION_ITEM_MISSING','此集合中没有该媒体条目',404);if(items.find(i=>i.id===d.itemId)?.assetId===row.coverAssetId)row.coverAssetId=null;await tx.remove('mediaCollectionItems',d.itemId);let n=0;for(const item of items.filter(i=>i.id!==d.itemId))await tx.replace('mediaCollectionItems',{...touch(item,this.clock),orderIndex:n++});}
         else if('itemIds' in d){invariant(d.itemIds.length===items.length&&new Set(d.itemIds).size===items.length&&items.every(i=>d.itemIds.includes(i.id)),'COLLECTION_ORDER_INVALID','排序必须完整包含本集合的全部媒体条目',422);for(const item of items)await tx.replace('mediaCollectionItems',{...touch(item,this.clock),orderIndex:d.itemIds.indexOf(item.id)});}
-        const next=touch(row,this.clock);await replaceFact(tx,'mediaCollections',next);await this.bump(tx,p);return next;
+        const next=touch(row,this.clock);await replaceFact(tx,'mediaCollections',next);if(action==='REMOVE'&&row.coverAssetId===null){const source=await sourceFor(tx,actor,row.sourceId,this.clock);await this.evidenceFor(tx,actor,'mediaCollections',next,['coverAssetId'],source.id,source.revision,true);}await this.bump(tx,p);return next;
     }
     async clearCredentialSecret(tx:Tx,actor:Actor,id:string,input:unknown){
         invariant(actor.actorKind!=='MACHINE','HUMAN_REVIEW_REQUIRED','受限编号清除需要内部成员确认',403);talentWrite(actor);requirePermission(actor,'sensitive.write');const d=S.credentialSecretClear.parse(input);invariant(d.acknowledge,'EXPLICIT_CONFIRMATION_REQUIRED','请明确确认清除受限编号',422);

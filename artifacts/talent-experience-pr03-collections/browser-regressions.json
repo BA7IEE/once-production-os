@@ -1,0 +1,62 @@
+[
+  {
+    "suite": "resume",
+    "exitCode": 0,
+    "seconds": 16.1,
+    "database": "once_test_pr03c_resume_b"
+  },
+  {
+    "suite": "handoff",
+    "exitCode": 0,
+    "seconds": 10.4,
+    "database": "once_test_pr03c_handoff_b"
+  },
+  {
+    "suite": "media",
+    "exitCode": 0,
+    "seconds": 19.9,
+    "database": "once_test_pr03c_media_b"
+  },
+  {
+    "suite": "production",
+    "exitCode": 1,
+    "seconds": 46.7,
+    "database": "once_test_pr03c_production_b"
+  },
+  {
+    "suite": "production",
+    "exitCode": 0,
+    "seconds": 121.2,
+    "database": "once_test_pr03c_production_c"
+  },
+  {
+    "suite": "talent-intake",
+    "exitCode": 0,
+    "seconds": 6.9,
+    "database": "once_test_pr03c_talent_intake_c"
+  },
+  {
+    "suite": "talent-directory",
+    "exitCode": 0,
+    "seconds": 15.4,
+    "database": "once_test_pr03c_talent_directory_c"
+  },
+  {
+    "suite": "talent-auth",
+    "exitCode": 0,
+    "seconds": 9.6,
+    "database": "once_test_pr03c_talent_auth_c"
+  },
+  {
+    "suite": "talent-maintenance",
+    "exitCode": 0,
+    "seconds": 27.0,
+    "database": "once_test_pr03c_talent_maintenance_c"
+  },
+  {
+    "suite": "media-staging",
+    "exitCode": 0,
+    "seconds": 49.5,
+    "database": "once_test_pr03c_media_staging_c"
+  }
+]

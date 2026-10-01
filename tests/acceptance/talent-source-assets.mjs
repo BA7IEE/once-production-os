@@ -1,9 +1,11 @@
+import {independentCollectionImage} from './collection-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {existsSync} from 'node:fs';
 import {join} from 'node:path';
 /** Independent-source original images and shared proof facts are synthetic API setup; deletion is real UI. */
 export async function verifySourceAssetChoices({owner,prisma,cmd,writeUI,source,originSourceId,keptAssetId,binary,queue,until,mediaBytes,mediaRoot,combined=false}) {
+ keptAssetId=await independentCollectionImage({owner,prisma,cmd,binary,queue,until,mediaBytes},keptAssetId);
  const schemaVersion='once-talent-v2.0.0',targetId=(await cmd(owner,'POST','/sources',source('合成两张证明原件来源'),201)).resourceId;
  let target=await prisma.sourceRecord.findUniqueOrThrow({where:{id:targetId}});if(target.status!=='CONFIRMED'){await cmd(owner,'POST',`/sources/${targetId}/review`,{expectedRevision:target.revision,basisDescription:'合成原件来源核验',validUntil:target.validUntil.toISOString()});target=await prisma.sourceRecord.findUniqueOrThrow({where:{id:targetId}});}
  const ids=[];for(let i=0;i<2;i++){const id=(await cmd(owner,'POST','/uploads',{sourceId:targetId,expectedSourceRevision:target.revision,fileName:`source-proof-${i}.png`,mime:'image/png',expectedBytes:mediaBytes.length,sha256:createHash('sha256').update(mediaBytes).digest('hex')},201)).resourceId;assert.equal((await binary(owner,id,mediaBytes)).status(),200);await queue(owner,id);await until(async()=>await prisma.mediaAsset.count({where:{id,state:'READY'}})===1);ids.push(id);}

@@ -116,9 +116,11 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
         }
         if (table === 'castingProfiles' && !row.supersededById) check(row.retiredCurrentMeasurementSetId == null);
         if (table === 'measurementSets') ref(row, 'supersedesId', 'measurementSets', true);
+        if(table==='mediaCollections'){if(row.coverAssetId)check(data.mediaCollectionItems.some(i=>i.collectionId===row.id&&i.assetId===row.coverAssetId)&&String(maps.assets.get(String(row.coverAssetId))?.mime).startsWith('image/'));if(row.isCurrent)check(row.status==='ACTIVE'&&data.mediaCollections.filter(c=>c.personId===row.personId&&c.personRoleId===row.personRoleId&&c.collectionTypeCode===row.collectionTypeCode&&c.isCurrent).length===1);const items=data.mediaCollectionItems.filter(i=>i.collectionId===row.id).sort((a,b)=>Number(a.orderIndex)-Number(b.orderIndex));check(items.every((i,n)=>i.orderIndex===n)&&new Set(items.map(i=>i.assetId)).size===items.length);}
         if (table === 'mediaCollectionItems') {
             ref(row, 'assetId', 'assets', false, true);
             ref(row, 'collectionId', 'mediaCollections', true, true);
+            const relation=data.personMedia.find(r=>r.assetId===row.assetId),collection=maps.mediaCollections.get(String(row.collectionId));if(relation)check(relation.personId===row.personId&&relation.usageState==='ADOPTED'&&(!relation.personRoleId||relation.personRoleId===collection?.personRoleId));
         }
         if (table === 'servicePrincipals') ref(row, 'defaultMaintainerMembershipId', 'memberships', false, true);
         if (table === 'adultEligibilities') {

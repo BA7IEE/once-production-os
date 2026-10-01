@@ -13,7 +13,7 @@ export const MaintenanceSchemas={
  claim:v.object({contextId:uuid,relation,applicantKey:v.string(64,1,/^[A-Za-z0-9_-]+$/),adultDeclared:v.boolean()}),
  renew:v.object({expectedRevision:revision,contextId:uuid}),
  decideClaim:v.object({expectedRevision:revision,decision:v.enum(['APPROVE','REJECT'] as const),ownershipBasis:v.string(2000,4),guardianConfirmed:v.boolean()}),
- createDraft:v.object({schemaVersion:v.enum([MAINTENANCE_VERSION]),claimId:v.optional(uuid),grantId:v.optional(uuid),consentTextVersion:v.enum([CONSENT_VERSION]),consentAccepted:v.boolean(),items:v.array(TextItemSchema,3,1)}),
- saveDraft:v.object({expectedRevision:revision,items:v.array(TextItemSchema,3,1)}),
- review:v.object({expectedRevision:revision,acceptedKeys:v.array(v.string(64,1),103),publicReason:v.string(500),targetPersonId:v.optional(uuid),createPerson:v.optional(v.boolean()),ownershipBasis:v.optional(v.string(2000,4)),guardianConfirmed:v.optional(v.boolean())}),
+ createDraft:v.object({schemaVersion:v.enum([MAINTENANCE_VERSION]),claimId:v.optional(uuid),grantId:v.optional(uuid),consentTextVersion:v.enum([CONSENT_VERSION]),consentAccepted:v.boolean(),items:v.array(TextItemSchema,3)}),
+ saveDraft:v.object({expectedRevision:revision,items:v.array(TextItemSchema,3)}),
+ review:v.object({expectedRevision:revision,acceptedKeys:v.array(v.string(64,1),113),publicReason:v.string(500),targetPersonId:v.optional(uuid),createPerson:v.optional(v.boolean()),ownershipBasis:v.optional(v.string(2000,4)),guardianConfirmed:v.optional(v.boolean())}),
 };

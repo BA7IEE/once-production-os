@@ -1,0 +1,11 @@
+{
+  "status": "PASSED",
+  "fromMigrations": 55,
+  "toMigrations": 63,
+  "checks": [
+    "old-internal-machine-command-keys-and-results-preserved",
+    "system-audits-not-guessed-as-member",
+    "all-original-receipt-audit-fields-preserved",
+    "both-principals-replay-with-current-engine"
+  ]
+}

@@ -153,6 +153,12 @@ export class DeletionFinalization {
         }
         if (kind === 'PERSON') {
             const row = await tx.get('people', id); if (!row) missing();
+            // A legacy source-owned file remains owned by its independent Source.
+            // Clearing its explicit collection association does not erase the original.
+            for (const relation of await tx.find('personMedia', {workspaceId:row.workspaceId,personId:id})) {
+                const asset=await tx.get('assets',relation.assetId);
+                if (!relation.submissionId && asset?.sourceId && !asset.personId) await tx.remove('personMedia',relation.id);
+            }
             const next = { ...touch(row, this.clock), displayName: '[ERASED]', aliases: [], roles: ['erased'], cityCode: null,
                 languageCodes: [], skillCodes: [], heightCm: null, intro: '', status: 'ERASED' as const,
                 protectionEpoch: row.protectionEpoch + 1 };

@@ -1761,6 +1761,8 @@ model MediaCollection {
   collectionTypeCode String @db.Text
   title String @db.Text
   status String @db.Text
+  coverAssetId String? @db.Uuid
+  isCurrent Boolean @default(false)
   workspaceIdTd2 Workspace @relation("MediaCollection_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mediaCollections_workspaceId_td2_fk")
   personIdTd2 Person @relation("MediaCollection_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "mediaCollections_personId_td2_fk")
   sourceIdTd2 SourceRecord @relation("MediaCollection_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "mediaCollections_sourceId_td2_fk")
@@ -1776,6 +1778,7 @@ model MediaCollection {
 }
 
 model MediaCollectionTag {
+  status String @default("ACTIVE") @db.Text
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)

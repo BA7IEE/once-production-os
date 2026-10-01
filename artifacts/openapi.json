@@ -585,6 +585,349 @@
         "x-mode": "COMMAND"
       }
     },
+    "/api/v1/portal/accounts/{accountId}/assets/{id}/attachment": {
+      "get": {
+        "operationId": "portal.asset.attachment",
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "person",
+                "source"
+              ]
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "BINARY"
+      }
+    },
+    "/api/v1/talent-staged-assets/{id}/attachment": {
+      "get": {
+        "operationId": "talent.asset.attachment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "talent.review",
+        "x-mode": "BINARY"
+      }
+    },
+    "/api/v1/portal/submissions/{id}/collections": {
+      "post": {
+        "operationId": "portal.submission.collections",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "collections": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "clientItemKey": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64,
+                          "pattern": "^[A-Za-z0-9_-]+$"
+                        },
+                        "targetCollectionId": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 36,
+                              "maxLength": 36,
+                              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "expectedCollectionRevision": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "personRoleId": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 36,
+                              "maxLength": 36,
+                              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "collectionTypeCode": {
+                          "type": "string",
+                          "enum": [
+                            "MODEL_CARD",
+                            "POLAROIDS",
+                            "PORTFOLIO",
+                            "SHOWREEL",
+                            "INTRO_VIDEO",
+                            "OTHER"
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "isCurrent": {
+                          "type": "boolean"
+                        },
+                        "coverAssetId": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 36,
+                              "maxLength": 36,
+                              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "tagCodes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "FASHION",
+                              "BEAUTY",
+                              "COMMERCIAL",
+                              "LINGERIE",
+                              "RUNWAY",
+                              "LIFESTYLE",
+                              "INDUSTRIAL",
+                              "PRODUCT"
+                            ]
+                          },
+                          "minItems": 0,
+                          "maxItems": 8
+                        },
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "referenceKind": {
+                                "type": "string",
+                                "enum": [
+                                  "SUBMISSION_STAGED_ASSET",
+                                  "EXISTING_ADOPTED_ASSET_REFERENCE"
+                                ]
+                              },
+                              "assetId": {
+                                "type": "string",
+                                "minLength": 36,
+                                "maxLength": 36,
+                                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                              },
+                              "caption": {
+                                "type": "string",
+                                "minLength": 0,
+                                "maxLength": 1000
+                              },
+                              "featured": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "referenceKind",
+                              "assetId",
+                              "caption",
+                              "featured"
+                            ]
+                          },
+                          "minItems": 0,
+                          "maxItems": 200
+                        }
+                      },
+                      "required": [
+                        "clientItemKey",
+                        "targetCollectionId",
+                        "expectedCollectionRevision",
+                        "personRoleId",
+                        "collectionTypeCode",
+                        "title",
+                        "isCurrent",
+                        "coverAssetId",
+                        "tagCodes",
+                        "items"
+                      ]
+                    },
+                    "minItems": 0,
+                    "maxItems": 10
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "collections"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/portal/profiles/{id}/collections": {
+      "get": {
+        "operationId": "portal.collection.list",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "READ"
+      }
+    },
     "/api/v1/portal/submissions/{id}/media-consent": {
       "post": {
         "operationId": "portal.submission.mediaConsent",
@@ -1877,7 +2220,7 @@
                       "maxLength": 64
                     },
                     "minItems": 0,
-                    "maxItems": 103
+                    "maxItems": 113
                   },
                   "publicReason": {
                     "type": "string",
@@ -2405,7 +2748,7 @@
                         "dependsOn"
                       ]
                     },
-                    "minItems": 1,
+                    "minItems": 0,
                     "maxItems": 3
                   }
                 },
@@ -2599,7 +2942,7 @@
                         "dependsOn"
                       ]
                     },
-                    "minItems": 1,
+                    "minItems": 0,
                     "maxItems": 3
                   }
                 },
@@ -6006,6 +6349,256 @@
         },
         "responses": {
           "201": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.write",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/td2/people/{id}/media-collections": {
+      "post": {
+        "operationId": "td2.collection.save",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "schemaVersion": {
+                    "type": "string",
+                    "enum": [
+                      "once-talent-v2.1.0"
+                    ]
+                  },
+                  "expectedPersonRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "sourceRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "collection": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "clientItemKey": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64,
+                        "pattern": "^[A-Za-z0-9_-]+$"
+                      },
+                      "targetCollectionId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 36,
+                            "maxLength": 36,
+                            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "expectedCollectionRevision": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "personRoleId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 36,
+                            "maxLength": 36,
+                            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "collectionTypeCode": {
+                        "type": "string",
+                        "enum": [
+                          "MODEL_CARD",
+                          "POLAROIDS",
+                          "PORTFOLIO",
+                          "SHOWREEL",
+                          "INTRO_VIDEO",
+                          "OTHER"
+                        ]
+                      },
+                      "title": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "isCurrent": {
+                        "type": "boolean"
+                      },
+                      "coverAssetId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 36,
+                            "maxLength": 36,
+                            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "tagCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "FASHION",
+                            "BEAUTY",
+                            "COMMERCIAL",
+                            "LINGERIE",
+                            "RUNWAY",
+                            "LIFESTYLE",
+                            "INDUSTRIAL",
+                            "PRODUCT"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 8
+                      },
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "referenceKind": {
+                              "type": "string",
+                              "enum": [
+                                "SUBMISSION_STAGED_ASSET",
+                                "EXISTING_ADOPTED_ASSET_REFERENCE"
+                              ]
+                            },
+                            "assetId": {
+                              "type": "string",
+                              "minLength": 36,
+                              "maxLength": 36,
+                              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                            },
+                            "caption": {
+                              "type": "string",
+                              "minLength": 0,
+                              "maxLength": 1000
+                            },
+                            "featured": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "referenceKind",
+                            "assetId",
+                            "caption",
+                            "featured"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 200
+                      }
+                    },
+                    "required": [
+                      "clientItemKey",
+                      "targetCollectionId",
+                      "expectedCollectionRevision",
+                      "personRoleId",
+                      "collectionTypeCode",
+                      "title",
+                      "isCurrent",
+                      "coverAssetId",
+                      "tagCodes",
+                      "items"
+                    ]
+                  }
+                },
+                "required": [
+                  "schemaVersion",
+                  "expectedPersonRevision",
+                  "sourceId",
+                  "sourceRevision",
+                  "collection"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
             "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
           },
           "default": {
@@ -13861,6 +14454,22 @@
                           "OTHER"
                         ]
                       },
+                      "coverAssetId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 36,
+                            "maxLength": 36,
+                            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "isCurrent": {
+                        "type": "boolean"
+                      },
                       "title": {
                         "type": "string",
                         "minLength": 1,
@@ -14002,6 +14611,22 @@
                           "INTRO_VIDEO",
                           "OTHER"
                         ]
+                      },
+                      "coverAssetId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 36,
+                            "maxLength": 36,
+                            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "isCurrent": {
+                        "type": "boolean"
                       },
                       "title": {
                         "type": "string",
@@ -14145,6 +14770,13 @@
                           "INDUSTRIAL",
                           "PRODUCT"
                         ]
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "ACTIVE",
+                          "ARCHIVED"
+                        ]
                       }
                     },
                     "required": [
@@ -14264,7 +14896,15 @@
                   "values": {
                     "type": "object",
                     "additionalProperties": false,
-                    "properties": {},
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "ACTIVE",
+                          "ARCHIVED"
+                        ]
+                      }
+                    },
                     "required": []
                   }
                 },
@@ -16656,6 +17296,38 @@
           },
           "416": {
             "description": "Unsatisfiable range after authorization; Content-Range: bytes */size"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "assets.read",
+        "x-mode": "BINARY"
+      }
+    },
+    "/api/v1/assets/{id}/attachment": {
+      "get": {
+        "operationId": "asset.attachment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
           },
           "default": {
             "description": "Sanitized error with code, message, requestId"

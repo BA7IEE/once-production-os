@@ -1,3 +1,4 @@
+import {talentFormalAsset} from './media-collections.ts';
 import type {CommandPrincipal, TalentActor} from './talent-auth-model.ts';
 import {ownsUpload,uploadContext,talentUploadContext,adoptedMediaFor} from './media-ownership.ts';
 import {syncMediaRetention} from './media-adoption.ts';
@@ -131,6 +132,9 @@ export class Media {
         await this.context(tx,actor,u);await tx.insert('uploads',u);
         const next={...touch(s,this.clock),expiresAt:m.until(90)};await tx.replace('talentSubmissions',next);await syncMediaRetention(tx,next,this.clock);
         return u;
+    }
+    async talentRead(tx:Tx,actor:TalentActor,id:string,meta?:RequestMeta):Promise<MediaAsset>{
+        await this.maintenanceGuard(tx,actor.workspaceId);const a=await workspaceRow(tx,'assets',id,actor.workspaceId);if(a&&mediaUsage(a)==='ADOPTED'){const result=await talentFormalAsset(tx,actor,id,this.clock,this.config);if(meta)await audit(tx,actor,actor.workspaceId,'asset.talent-formal-read','asset',id,[],meta,this.clock);return result.asset;}return this.staged(tx,actor,id,meta);
     }
     async staged(tx:Tx,actor:CommandPrincipal,id:string,meta?:RequestMeta):Promise<MediaAsset>{
         await this.maintenanceGuard(tx,actor.workspaceId);

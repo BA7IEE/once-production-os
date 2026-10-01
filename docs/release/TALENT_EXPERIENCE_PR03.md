@@ -1,3 +1,47 @@
+# PR-03C：媒体集合（Draft，待复核）
+
+PR-03A/03B 已由用户复核冻结，基线 `2c29e6819b3a1bcced4bd172777050415230c684`。本轮复用现有 MediaCollection / MediaCollectionItem / MediaCollectionTag，PR #31 继续 **Draft、未合并、未部署**；PR-03整体未完成。不进入 PR-03D Work。
+
+## 模型与规则
+
+追加 **迁移63 `202610010008_media_collections`**：原模型没有独立集合封面和当前版本，故只增 `coverAssetId`、`isCurrent`；标签增加 ACTIVE/ARCHIVED 以保留移除历史。没有重建集合表，迁移1–62不改。cover 通过延期复合 FK 指向本集合 Item 的 assetId；旧 FK 继续约束 workspace/Person/Role，原唯一约束限制重复 Asset/orderIndex。部分唯一索引保证每个 Person + 可空 Role + 类型仅一个当前版本；新版本把旧版本取消当前，保留历史。
+
+正式 Item 只能使用 READY + ADOPTED 的同一 Person 素材。Person 通用素材可进入精确 Role 集合；精确 Role 素材只能进入同一 Role，不能借给另一职业或无 Role 集合。新本人素材检查 PersonMedia、当前 Source/用途、Role、删除与恢复保护；旧 INTERNAL_SOURCE 的精确 Person 归属兼容，旧独立来源文件首次加入集合建立显式 PersonMedia 关联，不改原上传归属。删除人物不会因此误删独立来源原件。
+
+MODEL_CARD 接受照片/PDF；PDF 为受控私有附件，不解析/OCR/生成封面。POLAROIDS 只收照片；PORTFOLIO/OTHER 可照片和 MP4；SHOWREEL/INTRO_VIDEO 为 MP4，复用现有 Range 播放。封面必须明确选本集合图片，不改人物总封面，不复制字节。完整 ordered items 一次提交，CAS + Commands 幂等；移出 Item 不退休/删除 Asset。内容标签仍为原8个 code，版本化目录检查重复、未知和停用新增值，历史标签保留。
+
+## 本人草稿、审核与正式读取
+
+`TalentSubmissionItem.kind=COLLECTION` 保存服务器集合方案：目标集合与 expectedCollectionRevision、Role、类型、名称、current、cover、tags、完整顺序/caption/featured。引用明确区分 `SUBMISSION_STAGED_ASSET` 与 `EXISTING_ADOPTED_ASSET_REFERENCE`。前者只允许本次 Submission 新文件；后者必须当前本人 uploader + 活跃 Grant/Claim + 同 Person/兼容 Role + 正式 Source/用途有效，跨 Submission 复用同一 Asset ID/hash，不重新上传。未绑定 ENROLL 仍只能选择自己本次新素材。
+
+DRAFT 可修改，SUBMITTED 冻结；集合依赖的新媒体条目必须一起批准。批准事务写正式来源/归因/用途依据，采纳媒体、集合、排序、标签、封面、当前版本和审核回执。任何审计或业务失败全部回滚。审核页显示文件名、新增/移出、旧新顺序、封面和标签差异，非 JSON diff。本人无正式集合直接写入口。
+
+后台人才主详情提供媒体集合画廊和整理入口；Portal 支持保存、刷新继续、选择已有自有原件、调整顺序/封面/标签、提交和看正式结果。所有 Portal Person 读取继续核对当前账号和 Grant/Claim；切换账号后拒绝旧页读写。
+
+集合投影逐 Item 复查正式授权：素材 Source A 撤回只隐藏 A，独立 Source B 素材仍保留；集合自身 Source 失效才使整集合不可用。封面失效返回空，不自动认定第一张为封面。
+
+## 生命周期
+
+- merge：安全的普通集合/Item/正式媒体关系迁到 canonical Person；未明确处理的精确 Role 冲突及 current 冲突拒绝合并，不转移 STAGED 草稿。
+- deletion：预览与执行涵盖集合/标签/封面，人物保护立即阻断正式与本人读取；移出关系不删原件，物理删除仍走原依赖决定。全量旧来源删除回归保留独立来源原件。
+- Source/Consent 撤回：逐项动态过滤；正式本人媒体读取不借原 intake scope，STAGED 仍严格审核接收范围。
+- JSON export/rebuild：扩展原白名单，保留正式集合、顺序、cover/current、标签和来源关系；不带服务器草稿、账号、Grant。完整证据导出沿用原合同：不可读必需来源阻止该完整包，不伪造来源或悄悄导出草稿。
+- 真实 pg_dump/restore + 私有原件恢复：保持集合/Item/Asset/Source、顺序封面与状态；恢复隔离撤销旧 session/Grant，原授权不复活。完整性检查增加封面归属、连续排序、重复原件、唯一当前版本及 Person/Role 兼容检查。
+
+## 本轮实测与证据
+
+本地最终结果：**Core 632/632、PostgreSQL 49组程序/139项、10组真实Chrome流程全部通过**；254路由合同、core/server/web/transport类型检查、静态检查、构建与17项checkpoint通过。实际恢复11个私有文件（73631字节），集合/顺序/封面/current完整，旧授权拒绝。
+
+结果汇总见 `artifacts/talent-experience-pr03-collections/verification.json`，Core/PG/Browser 原始日志及截图同目录；不引用下方旧切片通过数字替代本轮。真实流程为 Nest + PostgreSQL + 异步媒体 worker + Chrome，360/390/430px 完成登录、上传、模卡排序与封面、保存刷新、审核、本人及主详情查看；额外覆盖 PDF 附件、素颜照多图、Portfolio 照片+视频、Showreel/介绍视频 H.264 播放和 seek。截图均为合成资料，不包含真实人才身份。
+
+## 明确边界
+
+`PROVIDER_VERIFIED=NOT_RUN`、`COS_PROVIDER_VERIFIED=NOT_RUN`、`MOBILE_DEVICE_VERIFIED=NOT_RUN`。浏览器手机宽度不等于真实手机验收。认证使用受控测试发送端；没有真实 COS 上线。STAGED 跨 Submission 继续 fail-closed，完整暂存回收调度仍属后续；不新增 Work 案例、客户分享、官网、机器摄取、HEIC/MOV、PDF OCR 或转码服务。
+
+最终 commit / 精确 head CI 见 PR #31 描述及本次交付回复。以下内容保留旧切片历史证据，旧“尚未进入集合”范围已被本轮授权替代。
+
+---
+
 # PR-03：模卡、照片、视频、作品案例和本人多来源媒体维护
 
 ## 当前修正：ADOPTED 正式媒体授权

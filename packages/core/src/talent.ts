@@ -81,7 +81,7 @@ export class Talent {
         return { id: source.id, title: source.title, type: source.type, scopeId: source.scopeId, maintainerId: source.maintainerId,
             status: source.status, basisMode: source.basisMode, basisDescription: current ? source.basisDescription : '',
             providerClaim: current ? source.providerClaim : '', validUntil: source.validUntil, revision: source.revision,
-            current, reviewedAt: source.reviewedAt, protectionEpoch: source.protectionEpoch,
+            current, allowsInternalAuthoring: !source.internalUseUntil, reviewedAt: source.reviewedAt, protectionEpoch: source.protectionEpoch,
             ...(includeContent && current && actor.permissions.includes('sensitive.read') ? { textPayload: source.textPayload } : {}),
             textRestricted: !actor.permissions.includes('sensitive.read') || !current };
     }

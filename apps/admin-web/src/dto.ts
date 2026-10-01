@@ -75,6 +75,7 @@ export interface Person {
     }[];
 }
 export interface Source {
+    allowsInternalAuthoring?: boolean;
     id: string;
     title: string;
     type: 'MANUAL' | 'TEXT';

@@ -86,6 +86,7 @@ export const ROUTES: RouteDefinition[] = [...TALENT_AUTH_ROUTES,...TALENT_MAINTE
     { method: 'GET', path: '/assets', operation: 'asset.list', mode: 'READ', permission: 'assets.read' },
     { method: 'GET', path: '/assets/{id}', operation: 'asset.get', mode: 'READ', permission: 'assets.read' },
     { method: 'GET', path: '/assets/{id}/playback', operation: 'asset.playback', mode: 'BINARY', permission: 'assets.read' },
+    {method:'GET',path:'/assets/{id}/attachment',operation:'asset.attachment',mode:'BINARY',permission:'assets.read'},
     { method: 'GET', path: '/assets/{id}/preview', operation: 'asset.preview', mode: 'BINARY', permission: 'assets.read' },
     { method: 'POST', path: '/assets/{id}/quarantine', operation: 'asset.quarantine', mode: 'COMMAND', permission: 'sources.review', schema: MediaSchemas.revision },
     { method: 'GET', path: '/auth/csrf', operation: 'auth.csrf', mode: 'AUTH' },

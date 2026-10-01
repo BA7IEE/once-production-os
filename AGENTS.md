@@ -1,3 +1,7 @@
+# 2026-10-01 当前切片：PR-03C 媒体集合
+
+用户已复核冻结 PR-03A/03B（head 2c29e6819b3a1bcced4bd172777050415230c684）。当前继续 PR #31 Draft、未合并未部署，只做复用 MediaCollection/Item/Tag 的模卡、素颜照、Portfolio、Showreel、介绍视频和本人集合提交审核。下方禁止进入集合是历史范围，由本次用户授权替代。迁移1–62冻结，本轮增量63；先读 docs/release/TALENT_EXPERIENCE_PR03.md。完成后停下来复核，不进入 PR-03D Work、客户分享、官网或 Agent 摄取。Provider/COS/真实手机验证继续 NOT_RUN。
+
 # 2026-10-01 当前切片：ADOPTED 正式媒体授权修正
 
 只修正式媒体对原intake范围的依赖；STAGED审核接收范围保持严格。正式读统一PersonMedia Person/Role/Source及当前用途/删除保护。迁移1–62冻结、无新增迁移；PR #31继续Draft、未合并未部署。最终Core/PG/全部浏览器和精确head CI证据见PR-03交付说明及formal-auth证据目录。先交复核，不进入MediaCollection/模卡/素颜照/Portfolio/介绍视频。

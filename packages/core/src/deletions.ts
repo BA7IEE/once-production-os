@@ -163,7 +163,7 @@ export class Deletions {
                 if ((row.sourceId!==null&&sources.has(row.sourceId))) continue; // SOURCE_UPLOAD already mandates erasure with its original.
                 add({ resourceKind: 'upload', resourceId: row.id, dependencyKind: 'PERSON_MEDIA_UPLOAD', proposedAction: 'REVIEW_RETENTION', evidenceState: 'REVIEW_REQUIRED', detailCode: 'MEDIA_MAY_HAVE_INDEPENDENT_SOURCE' });
             }
-            for (const row of (await tx.find('assets', { workspaceId: actor.workspaceId })).filter(a=>a.personId===personId||formalRelations.some(r=>r.personId===personId&&r.assetId===a.id))) {
+            for (const row of (await tx.find('assets', { workspaceId: actor.workspaceId })).filter(a=>a.personId===personId||(!a.sourceId&&formalRelations.some(r=>r.personId===personId&&r.assetId===a.id)))) {
                 if (!(await scopeVisible(tx, actor, row.scopeId))) { miss('HIDDEN_ASSET_DEPENDENCY'); continue; }
                 if (!(row.sourceId!==null&&sources.has(row.sourceId)))
                     add({ resourceKind: 'asset', resourceId: row.id, dependencyKind: 'PERSON_MEDIA_ASSET', proposedAction: 'REVIEW_RETENTION', evidenceState: 'REVIEW_REQUIRED', detailCode: 'MEDIA_MAY_HAVE_INDEPENDENT_SOURCE' });

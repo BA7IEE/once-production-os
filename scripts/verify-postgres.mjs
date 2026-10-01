@@ -36,11 +36,13 @@ if(mainStatus!==0){process.exitCode=mainStatus;}else{
  try{
   await admin.$connect();
   let status=0;
+  for(const variant of ['base','security','enroll','export','merge']){const db=await fresh('once_test_collection_'+variant+'_','Media collections '+variant);const target=variant==='export'?await fresh('once_test_collection_rebuild_','Collection JSON rebuild'):undefined;status=runNode('tests/postgres/media-collections.test.ts',{...process.env,DATABASE_URL_COLLECTION_REBUILD_TEST:target,DATABASE_URL_COLLECTION_TEST:db,COLLECTION_SECURITY:variant==='security'?'yes':'no',COLLECTION_ENROLL:variant==='enroll'?'yes':'no',COLLECTION_EXPORT:variant==='export'?'yes':'no',COLLECTION_MERGE:variant==='merge'?'yes':'no'},180000);if(status!==0)throw new Error('Media collection PostgreSQL verification failed');}
   for(const variant of ['formal-bound','formal-enroll','formal-role','bound','enroll','security','merge','adopted-merge','delete','expiry','grant','withdraw','consent','recovery','concurrency']){
    const media=await fresh('once_test_media_'+variant.replaceAll('-','_')+'_','Media staging '+variant);
    status=runNode('tests/postgres/media-staging.test.ts',{...process.env,DATABASE_URL_MEDIA_STAGING_TEST:media,ALLOW_DB_TESTS:'yes',MEDIA_FORMAL_AUTH:variant.startsWith('formal-')?variant.slice(7):'',MEDIA_STAGING_WORKER:['grant','withdraw','consent','recovery'].includes(variant)?variant:'',MEDIA_STAGING_CONCURRENCY:variant==='concurrency'?'yes':'no',MEDIA_STAGING_LIFECYCLE:['merge','adopted-merge','delete','expiry'].includes(variant)?variant:'',MEDIA_STAGING_ENROLL:variant==='enroll'?'yes':'no',MEDIA_STAGING_SECURITY:variant==='security'?'yes':'no'},180000);
    if(status!==0)throw new Error('Media staging PostgreSQL verification failed');
   }
+  const collectionUpgrade=await fresh('once_test_collection_upgrade_','Populated migration 62 to 63 upgrade',false);status=runNode('tests/postgres/collection-upgrade.test.ts',{...process.env,DATABASE_URL_COLLECTION_UPGRADE_TEST:collectionUpgrade},180000);if(status!==0)throw new Error('Collection upgrade failed');
   const mediaUpgrade=await fresh('once_test_media_upgrade_','Media populated migration 61 upgrade',false);
   status=runNode('tests/postgres/media-upgrade.test.ts',{...process.env,DATABASE_URL_MEDIA_UPGRADE_TEST:mediaUpgrade,ALLOW_DB_TESTS:'yes'},180000);
   if(status!==0)throw new Error('Media upgrade verification failed');

@@ -147,3 +147,16 @@ Local/COS stat/openByteStream合同及200/206/416、取消、背压和流式额�
 ADOPTED 正式读取统一使用 PersonMedia 的当前 Person + 可选精确 PersonRole + 正式 Source + 当前用途/删除保护；Upload.scopeId 与 Claim/邀请 intake scope 是历史归因，不是正式读授权或附加门槛。关系、人物、来源、职业失效即时拒绝；预览/播放继续要求技术READY，Range每次请求沿用相同授权。直接Asset读/列表、TD2、作品/候选、导出与合并预览共用判断。没有显式正式关系的旧INTERNAL_SOURCE继续原有范围与主来源规则。
 
 STAGED本人/审核路径保持既有账号、Submission/Upload intake scope和Grant/Claim关系要求；不能通过普通入口读。合并保留完整历史摘要，但只有当前邀请/申请/打开的Submission及任一根的STAGED材料继续要求接收范围，已终结的历史intake不额外限制正式媒体。精确Role迁移阻断、删除/恢复隔离不变。本修正不修改迁移62，不新增迁移、请求字段、路由或DTO。
+
+## PR-03C 集合合同（2026-10-01，Draft待复核）
+
+增量63复用现有Collection/Item/Tag，只增加独立coverAssetId、isCurrent和Tag ACTIVE/ARCHIVED。原workspace/Person/Role/Item FK保留，cover必须指本集合Item，current按Person+可空Role+类型唯一。1–62不改。
+
+- `POST /td2/people/{id}/media-collections`：内部 `records.write` + `assets.read`，完整 ordered items、Person CAS、目标 Collection CAS、独立当前内部 Source CAS；禁止以本人期限来源承接新的员工材料。只接受 EXISTING_ADOPTED_ASSET_REFERENCE。
+- `POST /portal/submissions/{id}/collections`：当前TalentAccount+Claim/Grant/Person+DRAFT+媒体使用同意，Submission CAS；替换本批COLLECTION方案，最多10个集合，每集合200项/8标签。unknown-fields reject保留；明确旧集合版本、职业、类型、封面、current、tag、ordered items。新文件只接受本批SUBMISSION_STAGED_ASSET，自有正式文件可用EXISTING_ADOPTED_ASSET_REFERENCE跨提交复用；不复制文件，不改上传归因。
+- `GET /portal/profiles/{id}/collections`：仅当前有效Grant的本人账号、自有上传且当前正式用途有效的素材/自有来源集合摘要；不开放全库搜索或Person内部资料。
+- 受控PDF附件：内部`/assets/{id}/attachment`、审核`/talent-staged-assets/{id}/attachment`、本人`/portal/accounts/{accountId}/assets/{id}/attachment`，分别检查正式/暂存/当前账号授权；事务外读私有原件，返回前复查并写审计，不解析PDF、不生成公开URL。
+
+MODEL_CARD图片/PDF、POLAROIDS图片、PORTFOLIO/OTHER图片/MP4、SHOWREEL/INTRO_VIDEO MP4。封面只能选本集合图片，与人物总封面独立。通用Person素材可放精确Role集合，精确Role素材不能借给另一Role或通用集合。审批准同事务采纳依赖媒体、正式来源/归因/同意依据、完整集合和审核回执；SUBMITTED不改写。Sources各自控制每个Item，集合本身Source失效才禁用整个集合。移出Item不删文件；旧内部来源原件的字节所有权不因新集合关系改变。完整JSON包仍要求所有必需证据可读，草稿永不入普通导出。
+
+内容标签采用collection-tags-v1固定原8个code与ACTIVE状态目录；未知、停用或重复值拒绝新增；移除关系转ARCHIVED保留历史。本轮无标签管理或新业务菜单。PR03A/03B冻结，PR03C待复核；PR03D及后续未开始，三项外部验证保持NOT_RUN。

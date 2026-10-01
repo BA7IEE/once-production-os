@@ -1,3 +1,4 @@
+import {saveInternalCollection} from './media-collections.ts';
 import {TalentMaintenance} from './talent-maintenance.ts';
 import {TalentPortal} from './talent-portal.ts';
 import {TalentAuth,isolateTalentAuth} from './talent-auth.ts';
@@ -383,6 +384,7 @@ export class Application {
                     case 'td2.credential.secret': return command('talentFact',()=>this.talentV2.credentialSecret(tx,actor,id,data));
                     case 'td2.adult.verify': return command('talentFact',()=>this.talentV2.adultVerify(tx,actor,id,data));
                     case 'td2.resolve': return this.talentV2.resolve(tx,actor,query);
+                    case 'td2.collection.save': return command('talentFact',()=>saveInternalCollection(tx,actor,id,data,this.clock,this.config));
                     case 'td2.collection.add': return command('talentFact',()=>this.talentV2.collectionMutation(tx,actor,id,data,'ADD'));
                     case 'td2.collection.remove': return command('talentFact',()=>this.talentV2.collectionMutation(tx,actor,id,data,'REMOVE'));
                     case 'td2.collection.order': return command('talentFact',()=>this.talentV2.collectionMutation(tx,actor,id,data,'ORDER'));

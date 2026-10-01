@@ -1,7 +1,12 @@
+import {CollectionSchemas} from './media-collections.ts';
 import {TalentMediaSchemas,MediaSchemas} from './media-validation.ts';
 import type {RouteDefinition} from './routes.ts';
 import {MaintenanceSchemas as S} from './talent-maintenance-schema.ts';
 export const TALENT_MAINTENANCE_ROUTES:RouteDefinition[]=[
+ {method:'GET',path:'/portal/accounts/{accountId}/assets/{id}/attachment',operation:'portal.asset.attachment',mode:'BINARY'},
+ {method:'GET',path:'/talent-staged-assets/{id}/attachment',operation:'talent.asset.attachment',mode:'BINARY',permission:'talent.review'},
+ {method:'POST',path:'/portal/submissions/{id}/collections',operation:'portal.submission.collections',mode:'COMMAND',schema:CollectionSchemas.draft},
+ {method:'GET',path:'/portal/profiles/{id}/collections',operation:'portal.collection.list',mode:'READ'},
  {method:'POST',path:'/portal/submissions/{id}/media-consent',operation:'portal.submission.mediaConsent',mode:'COMMAND',schema:TalentMediaSchemas.consent},
  {method:'POST',path:'/portal/uploads',operation:'portal.upload.create',mode:'COMMAND',schema:TalentMediaSchemas.create},
  {method:'GET',path:'/portal/uploads/{id}',operation:'portal.upload.get',mode:'READ'},

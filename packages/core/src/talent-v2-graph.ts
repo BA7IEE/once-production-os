@@ -101,6 +101,7 @@ export async function loadTalentGraph(tx:Tx,actor:Actor,clock:Clock,personIds?:s
         const key=table+':'+row.id; if(seen.has(key)) return false;
         const next=new Set(seen);next.add(key);
         const p=personMap.get(row.personId);if(!p||!identityReadable(p)) return false;
+        if(table==='mediaCollections'&&!sourceUsable(row.sourceId))return false;
         if(!sourceUsable(row.sourceId)&&!ownerEvidence(table,row.id).some(e=>supported(e,row[e.fieldPath]??null)))return false;
         for(const [field,parent] of [['personRoleId','personRoles'],['collectionId','mediaCollections']] as const){
             if(row[field]){const r=fact(parent,String(row[field]));if(!r||r.personId!==row.personId||!readable(parent,r,next))return false;}
@@ -114,14 +115,14 @@ export async function loadTalentGraph(tx:Tx,actor:Actor,clock:Clock,personIds?:s
         const out:Record<string,unknown>={id:row.id,personId:row.personId,sourceId:row.sourceId,revision:row.revision,createdAt:row.createdAt,updatedAt:row.updatedAt};
         const unavailableFields:string[]=[];
         for(const key of Object.keys(TD2_FACTS[table].fields)){
-            if(fieldReadable(table,row,key))out[key]=row[key]??(table==='talentProfiles'?PROFILE_DEFAULTS:table==='personRoles'?ROLE_DEFAULTS:{} as Record<string,unknown>)[key as never]??null; else{out[key]=null;unavailableFields.push(key);}
+            if(fieldReadable(table,row,key))out[key]=row[key]??(table==='mediaCollections'?{isCurrent:false}:table==='mediaCollectionTags'?{status:'ACTIVE'}:table==='talentProfiles'?PROFILE_DEFAULTS:table==='personRoles'?ROLE_DEFAULTS:{} as Record<string,unknown>)[key as never]??null; else{out[key]=null;unavailableFields.push(key);}
         }
         if(table==='measurementSets')out.reportedAt=row.reportedAt??null;
         for(const key of ['status','state','verifiedAt','verifiedByMembershipId','currentMeasurementSetId'])if(Object.hasOwn(row,key)&&!Object.hasOwn(out,key))out[key]=row[key];
         if(table==='adultEligibilities'&&actor.permissions.includes('sources.review'))out.originalVerification=row.originalVerificationWorkspaceId?{workspaceId:row.originalVerificationWorkspaceId,membershipId:row.originalVerificationMembershipId,verifiedAt:row.verifiedAt}:null;
         if(table==='personCredentials' && actor.permissions.includes('sensitive.read'))out.maskedIdentifier=row.maskedIdentifier;
         if(table==='talentProfiles'&&out.birthDate!=null&&!actor.permissions.includes('sensitive.read')){out.birthDate=null;unavailableFields.push('birthDate');}
-        if(table==='talentProfiles'&&out.coverAssetId&&(!actor.permissions.includes('assets.read')||!assetReadable(String(out.coverAssetId))))out.coverAssetId=null;
+        if(['talentProfiles','mediaCollections'].includes(table)&&out.coverAssetId&&(!actor.permissions.includes('assets.read')||!assetReadable(String(out.coverAssetId))))out.coverAssetId=null;
         out.unavailableFields=unavailableFields;
         out.usable=usable(table,row,out);
         return out;
@@ -160,7 +161,7 @@ export async function loadTalentGraph(tx:Tx,actor:Actor,clock:Clock,personIds?:s
         for(const t of TD2_TABLES)facts[t]=personRows(t,id).map(r=>project(t,r as unknown as FactRow)).filter((r):r is Record<string,unknown>=>!!r);
         if(!sourceUsable(p.sourceId)&&!Object.values(facts).some(r=>r.length)&&!['displayName','aliases','intro'].every(field=>fieldReadable('person',asRow(p),field)))missing();
         const profile=facts.talentProfiles!.find(r=>r.usable)??null;
-        const collections=(facts.mediaCollections??[]).map(c=>({...c,items:actor.permissions.includes('assets.read')?(collectionItems.get(String(c.id))??[]).filter(i=>assetReadable(i.assetId)).sort((a,b)=>a.orderIndex-b.orderIndex).map(i=>({id:i.id,assetId:i.assetId,caption:i.caption,featured:i.featured,orderIndex:i.orderIndex,asset:assetSummary(i.assetId)})):[]}));
+        const collections=(facts.mediaCollections??[]).map(c=>({...c,items:c.usable&&actor.permissions.includes('assets.read')?(collectionItems.get(String(c.id))??[]).filter(i=>assetReadable(i.assetId)).sort((a,b)=>a.orderIndex-b.orderIndex).map(i=>({id:i.id,assetId:i.assetId,caption:i.caption,featured:i.featured,orderIndex:i.orderIndex,asset:assetSummary(i.assetId)})):[]}));
         const age=facts.adultEligibilities!.find(r=>r.usable);
         const rawProfile=personRows('talentProfiles',id).find(r=>!r.supersededById&&r.status==='ACTIVE');
         const ageInfo=rawProfile&&['birthPrecision','birthDate','birthYear','minAgeYears','maxAgeYears','ageAsOfDate'].every(k=>fieldReadable('talentProfiles',asRow(rawProfile),k))?ageRange(asRow(rawProfile),clock.now().toISOString().slice(0,10)):null;

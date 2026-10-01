@@ -267,6 +267,8 @@ export const TD2_FACTS = {
     "fields": {
       "personRoleId": "uuid?",
       "collectionTypeCode": "enum:MODEL_CARD,POLAROIDS,PORTFOLIO,SHOWREEL,INTRO_VIDEO,OTHER",
+      "coverAssetId": "uuid?",
+      "isCurrent": "bool",
       "title": "text",
       "status": "enum:ACTIVE,ARCHIVED"
     },
@@ -284,7 +286,8 @@ export const TD2_FACTS = {
     "ownerKey": "mediaCollectionTagId",
     "fields": {
       "collectionId": "uuid",
-      "tagCode": "enum:FASHION,BEAUTY,COMMERCIAL,LINGERIE,RUNWAY,LIFESTYLE,INDUSTRIAL,PRODUCT"
+      "tagCode": "enum:FASHION,BEAUTY,COMMERCIAL,LINGERIE,RUNWAY,LIFESTYLE,INDUSTRIAL,PRODUCT",
+      "status": "enum:ACTIVE,ARCHIVED"
     },
     "required": [
       "collectionId",
