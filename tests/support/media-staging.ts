@@ -8,8 +8,8 @@ import {loadTalentGraph} from '../../packages/core/src/talent-v2-graph.ts';
 import {transferFormalAsset} from '../../packages/core/src/media-transfer.ts';
 import {readyAsset} from '../../packages/core/src/production-policy.ts';
 import {MEDIA_CONSENT_VERSION} from '../../packages/core/src/media-validation.ts';
-export async function stagingFixture(store:Store,bound=true){
- const f=await maintenanceFixture(store);f.app.config.mediaEnabled=true;f.app.media.config.mediaEnabled=true;
+export async function stagingFixture(store:Store,bound=true,prepare?:(f:Awaited<ReturnType<typeof maintenanceFixture>>)=>Promise<void>){
+ const f=await maintenanceFixture(store);if(prepare)await prepare(f);f.app.config.mediaEnabled=true;f.app.media.config.mediaEnabled=true;
  const expect=async(p:Promise<any>,status=200)=>{const r=await p;assert.equal(r.status,status,JSON.stringify(r.body));return result(r);};
  const headers=(key=randomUUID())=>({'x-once-talent-account':f.a.accountId,'idempotency-key':key});
  const invite=await expect(f.owner.cmd('POST','/talent-invitations',{purpose:bound?'CLAIM':'ENROLL',...(bound?{targetPersonId:f.personId}:{}),scopeId:f.scopeId,exposureFields:[]}));

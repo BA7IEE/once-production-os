@@ -1,3 +1,7 @@
+# 2026-10-01 当前切片：ADOPTED 正式媒体授权修正
+
+只修正式媒体对原intake范围的依赖；STAGED审核接收范围保持严格。正式读统一PersonMedia Person/Role/Source及当前用途/删除保护。迁移1–62冻结、无新增迁移；PR #31继续Draft、未合并未部署。最终Core/PG/全部浏览器和精确head CI证据见PR-03交付说明及formal-auth证据目录。先交复核，不进入MediaCollection/模卡/素颜照/Portfolio/介绍视频。
+
 # 2026-10-01 当前切片：PR-03 媒体归属与暂存底座
 
 PR #31 保持 Draft，不合并、不部署。本轮仅 UploadContext、真实 uploader、STAGED/ADOPTED/RETIRED、Person/Role/Asset 多来源关系及本人/审核暂存读取、原子采纳和生命周期。当前迁移1–62已在隔离库应用，后续不得改写。先读 docs/release/TALENT_EXPERIENCE_PR03.md。本切片交付后等待复核，再进入 MediaCollection/模卡/素颜照/作品案例；不继续扩播放器、不进入客户分享、官网或PR-04。

@@ -1,3 +1,4 @@
+import {formalRelationReadable} from './formal-media-policy.ts';
 import {mediaUsage} from './media-model.ts';
 import { ageRange, PROFILE_DEFAULTS, ROLE_DEFAULTS } from './talent-demographics.ts';
 import type { Actor, Clock, Person, Source, Table, TableMap } from './model.ts';
@@ -50,7 +51,7 @@ export async function loadTalentGraph(tx:Tx,actor:Actor,clock:Clock,personIds?:s
         invariant(rows.length<=50000,'TD2_DATASET_LIMIT','当前资料规模超出单次查询范围，需要缩小工作空间',503);
         data[table]=rows;
     }
-    if(personIds){const refs=new Set<string>();for(const r of data.representations??[])if(asRow(r).agentPersonId)refs.add(String(asRow(r).agentPersonId));for(const r of data.assets??[])if(asRow(r).personId)refs.add(String(asRow(r).personId));data.people=[...(data.people??[]),...await tx.findIn('people',actor.workspaceId,'id',[...refs].filter(id=>!personIds.includes(id)))];}
+    if(personIds){const refs=new Set<string>();for(const r of data.representations??[])if(asRow(r).agentPersonId)refs.add(String(asRow(r).agentPersonId));for(const r of [...data.assets??[],...(data.personMedia??[]).filter(r=>(data.assets??[]).some(a=>asRow(a).id===asRow(r).assetId))])if(asRow(r).personId)refs.add(String(asRow(r).personId));data.people=[...(data.people??[]),...await tx.findIn('people',actor.workspaceId,'id',[...refs].filter(id=>!personIds.includes(id)))];}
     const rows=<K extends Table>(t:K)=> (data[t]??[]) as TableMap[K][];
     // Transaction-local indexes keep the existing snapshot and authorization rules;
     // they do not cache a result across requests or bypass source/evidence checks.
@@ -85,11 +86,11 @@ export async function loadTalentGraph(tx:Tx,actor:Actor,clock:Clock,personIds?:s
     };
     const assetReadable=(id:string)=>{
         const a=record('assets',id),r=rows('personMedia').find(r=>r.assetId===id&&r.usageState==='ADOPTED');
-        const sourceId=a?.sourceId??r?.sourceId,personId=r?.personId??a?.personId;
-        return !!a && mediaUsage(a)==='ADOPTED' && !!sourceId && a.state==='READY' && visibility.scopeVisible(a.scopeId) && sourceUsable(sourceId)
-            && (!personId || (!!personMap.get(personId) && identityReadable(personMap.get(personId)!)))
-            && (!r?.personRoleId || (()=>{const role=record('personRoles',r.personRoleId);return !!role&&role.personId===personId&&role.status==='ACTIVE'&&periodCurrent(asRow(role),clock)&&sourceUsable(role.sourceId);})())
-            && !blockedAssets.has(id);
+        if(!a||a.state!=='READY')return false;
+        if(r)return formalRelationReadable(a,r,{workspaceId:actor.workspaceId,clock,person:r.personId?personMap.get(r.personId):null,
+            role:r.personRoleId?record('personRoles',r.personRoleId):null,personAliased:!!r.personId&&aliases.has(r.personId),...visibility});
+        return mediaUsage(a)==='ADOPTED' && !!a.sourceId && visibility.scopeVisible(a.scopeId) && sourceUsable(a.sourceId)
+            && (!a.personId || (!!personMap.get(a.personId) && identityReadable(personMap.get(a.personId)!))) && !blockedAssets.has(id);
     };
     const organizationReadable=(id:string)=>{
         const o=record('organizations',id);

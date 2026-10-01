@@ -36,3 +36,7 @@ test('PR03 retiring a draft file revokes read but never fakes failure or release
  const store=new MemoryStore(),f=await stagingFixture(store),id=await unitReady(f),a=store.rows('assets')[0]!;
  await f.expect(f.a.client.raw('POST','/portal/assets/'+id+'/retire',{expectedRevision:a.revision},f.headers()));const relation=store.rows('personMedia')[0]!;assert.equal(relation.usageState,'RETIRED');assert.equal(Date.parse(relation.retainUntil!)-f.clock.now().getTime(),7*86400000);assert.equal(store.rows('uploads')[0]!.state,'READY');assert.equal(store.rows('uploads')[0]!.purgedAt,null);await assert.rejects(store.transaction(tx=>f.app.media.staged(tx,f.actor,id)));assert.equal(store.rows('talentSubmissionItems').filter(x=>x.kind==='MEDIA').length,0);
 });
+import {formalMediaScenario} from '../support/formal-media-authorization.ts';
+for(const bound of [true,false])test('PR03 formal media authorization replaces historical intake '+(bound?'bound':'ENROLL'),async()=>{await formalMediaScenario(new MemoryStore(),bound);});
+
+test('PR03 formal media requires the exact active Role after adoption',async()=>{await formalMediaScenario(new MemoryStore(),true,true);});

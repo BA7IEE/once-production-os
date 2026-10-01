@@ -1,3 +1,5 @@
+import {formalRelationReadable} from './formal-media-policy.ts';
+import {loadVisibility} from './visibility.ts';
 import type {Actor,Clock,Config} from './model.ts';
 import type {CommandPrincipal,TalentActor} from './talent-auth-model.ts';
 import type {MediaUpload,MediaAsset} from './media-model.ts';
@@ -8,7 +10,7 @@ import {TalentMaintenance} from './talent-maintenance.ts';
 import {workspaceRow} from './helpers.ts';
 import {invariant,missing} from './errors.ts';
 import {deletionBlocked,requireScope,sourceFor,sourceCurrent} from './policy.ts';
-import {td2PersonFor,periodCurrent} from './talent-v2-graph.ts';
+import {periodCurrent} from './talent-v2-graph.ts';
 
 export function ownsUpload(actor:CommandPrincipal,u:MediaUpload){
  return actor.actorKind==='TALENT'?u.principalKind==='TALENT'&&u.talentAccountId===actor.talentAccountId:
@@ -46,14 +48,16 @@ export async function formalMediaSource(tx:Tx,a:MediaAsset):Promise<string|null>
 }
 export async function adoptedMediaFor(tx:Tx,actor:Actor,a:MediaAsset,clock:Clock){
  if(mediaUsage(a)!=='ADOPTED')missing();
- await requireScope(tx,actor,a.scopeId);
- if(await deletionBlocked(tx,a.workspaceId,'ASSET',a.id))missing();
  const r=(await tx.find('personMedia',{workspaceId:a.workspaceId,assetId:a.id,usageState:'ADOPTED'}))[0];
- if(!r){if(!a.sourceId)missing();await sourceFor(tx,actor,a.sourceId,clock);return;}
- if(!r.sourceId||!r.personId)missing();
- await sourceFor(tx,actor,r.sourceId,clock);
- await td2PersonFor(tx,actor,r.personId);
- if(r.personRoleId){const role=await workspaceRow(tx,'personRoles',r.personRoleId,a.workspaceId);if(!role||role.personId!==r.personId||role.status!=='ACTIVE'||!periodCurrent(role as unknown as Record<string,unknown>,clock))missing();await sourceFor(tx,actor,role.sourceId,clock);}
+ if(!r){
+  await requireScope(tx,actor,a.scopeId);
+  if(await deletionBlocked(tx,a.workspaceId,'ASSET',a.id)||!a.sourceId)missing();
+  await sourceFor(tx,actor,a.sourceId,clock);return;
+ }
+ const visibility=await loadVisibility(tx,actor,clock);
+ const person=r.personId?await tx.get('people',r.personId):null,role=r.personRoleId?await tx.get('personRoles',r.personRoleId):null;
+ const personAliased=!!r.personId&&(await tx.find('personAliases',{workspaceId:actor.workspaceId,oldPersonId:r.personId})).length>0;
+ if(!formalRelationReadable(a,r,{workspaceId:actor.workspaceId,clock,person,role,personAliased,...visibility}))missing();
 }
 export function uploadContext(u:MediaUpload):import('./media-model.ts').UploadContext{
  if((u.contextKind??'INTERNAL_SOURCE')==='INTERNAL_SOURCE'){

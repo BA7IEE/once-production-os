@@ -1,6 +1,25 @@
 # PR-03：模卡、照片、视频、作品案例和本人多来源媒体维护
 
-## 当前交付：媒体归属与暂存底座
+## 当前修正：ADOPTED 正式媒体授权
+
+本轮只修复正式媒体依赖历史 intake scope 的问题。PR #31 **继续 Draft、未合并、未部署**，不进入 MediaCollection。修正基线为 `87ec47160a90680b97269f251a5f16668d34abf4`；**没有 schema、迁移、HTTP 请求或 DTO 变化，迁移1–62逐字节不改**。
+
+- `formalRelationReadable` 是事务内共用判断：ADOPTED 的 PersonMedia 必须属于当前工作空间，正式 Person 可见且未删除/合并，指定 Role 属于该 Person、当前有效且来源可用，正式 Source 有当前用途依据与范围权限，Asset/关系未退休或删除。技术 READY 仍由预览、播放、图和导出消费者检查。
+- 接线 `assetFor/listAssets/preview/playback`、TD2 `assetReadable`、作品/候选依赖、导出准备/执行/下载和合并预览。正式关系的 Person/Source 优先于不可变上传来源；原 Upload/Claim intake scope 既不额外限制 ADOPTED，也不能授予正式读取权限。
+- STAGED 保留原 Submission/Upload intake scope、当前账号/Grant/Claim/Submission、人物保护和审核权限。旧 INTERNAL_SOURCE 没有显式正式关系时，保留原资产范围、来源和主来源一致性规则。
+- 合并仍把全部申请历史纳入预览摘要并撤销外部授权；已终结邀请/Claim/Submission 的历史范围不再阻断正式媒体。当前申请、打开的 Submission、ACTIVE 邀请，以及任一合并根的 STAGED 文件仍检查接收范围。精确 Role 媒体迁移仍明确阻断，不自动换职业。
+
+### 本轮反例与证据
+
+Core/真实 PostgreSQL 共用三组：已绑定、未绑定 ENROLL、精确 Role。A 仅具 intake，B 仅具正式 Person/Source 范围；均为 ADMIN 以证明角色没有范围豁免。B 在 STAGED 阶段不可读，ADOPTED 后可读、导出、预览合并；A 不能仅凭历史 intake 读正式媒体。正式 Person/Source 收紧、Role 停用后同步拒绝直接读、列表、预览和 TD2 图。
+
+真实 Chrome 360/390/430 使用独立内部会话与 Talent 会话，上传图片及 H.264 MP4，经真实异步 worker 生成 READY/STAGED 后审核。额外 ENROLL 同批两文件验证 A 可在专用审核路径看 STAGED 图片与 MP4 Range，正式采纳并配置 Person/Source 范围后，B 正常读取而 A 被拒绝；Range 核对206、Content-Range及原始字节。下一次请求重新检查正式 Source 范围。实际 pg_dump/restore 和私有文件恢复继续验证授权不复活。
+
+本地完整 Core **625/625**、PG **43个TAP程序/133项**、最终新增共享场景 **3/3**、全部 **9组Chrome流程** 通过；typecheck/core/transport、248路由合同、静态检查及构建通过。实际备份恢复 **6个文件、46744字节**。最终结果、命令与统计见 `artifacts/talent-experience-pr03-formal-auth/verification.json`；截图、PG/Core/browser日志在同目录。最终 head 对应 CI run 回填 PR #31 描述，不引用旧 head 的通过记录。下文622项等数字是已复核底座历史证据，不能代替本轮结果。
+
+**Provider 未验证**：`PROVIDER_VERIFIED=NOT_RUN`、`COS_PROVIDER_VERIFIED=NOT_RUN`、`MOBILE_DEVICE_VERIFIED=NOT_RUN`。MediaCollection/模卡/素颜照/Portfolio/介绍视频、完整暂存回收调度仍未开始，等待此修正复核。
+
+## 已复核底座：媒体归属与暂存（87ec471）
 
 PR #31 保持 **Draft、未合并、未部署**。本轮接续已复核视频切片 `2fb01a713b62fce9513bd15d5ed289e80adb4453`，实现 spec/15 §10.2–10.8 的媒体归属与暂存底座；PR-03整体尚未完成。PR-02已合并、开发冻结、未部署，真实认证 `PROVIDER_VERIFIED=NOT_RUN`。
 

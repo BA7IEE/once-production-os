@@ -36,9 +36,9 @@ if(mainStatus!==0){process.exitCode=mainStatus;}else{
  try{
   await admin.$connect();
   let status=0;
-  for(const variant of ['bound','enroll','security','merge','adopted-merge','delete','expiry','grant','withdraw','consent','recovery','concurrency']){
+  for(const variant of ['formal-bound','formal-enroll','formal-role','bound','enroll','security','merge','adopted-merge','delete','expiry','grant','withdraw','consent','recovery','concurrency']){
    const media=await fresh('once_test_media_'+variant.replaceAll('-','_')+'_','Media staging '+variant);
-   status=runNode('tests/postgres/media-staging.test.ts',{...process.env,DATABASE_URL_MEDIA_STAGING_TEST:media,ALLOW_DB_TESTS:'yes',MEDIA_STAGING_WORKER:['grant','withdraw','consent','recovery'].includes(variant)?variant:'',MEDIA_STAGING_CONCURRENCY:variant==='concurrency'?'yes':'no',MEDIA_STAGING_LIFECYCLE:['merge','adopted-merge','delete','expiry'].includes(variant)?variant:'',MEDIA_STAGING_ENROLL:variant==='enroll'?'yes':'no',MEDIA_STAGING_SECURITY:variant==='security'?'yes':'no'},180000);
+   status=runNode('tests/postgres/media-staging.test.ts',{...process.env,DATABASE_URL_MEDIA_STAGING_TEST:media,ALLOW_DB_TESTS:'yes',MEDIA_FORMAL_AUTH:variant.startsWith('formal-')?variant.slice(7):'',MEDIA_STAGING_WORKER:['grant','withdraw','consent','recovery'].includes(variant)?variant:'',MEDIA_STAGING_CONCURRENCY:variant==='concurrency'?'yes':'no',MEDIA_STAGING_LIFECYCLE:['merge','adopted-merge','delete','expiry'].includes(variant)?variant:'',MEDIA_STAGING_ENROLL:variant==='enroll'?'yes':'no',MEDIA_STAGING_SECURITY:variant==='security'?'yes':'no'},180000);
    if(status!==0)throw new Error('Media staging PostgreSQL verification failed');
   }
   const mediaUpgrade=await fresh('once_test_media_upgrade_','Media populated migration 61 upgrade',false);

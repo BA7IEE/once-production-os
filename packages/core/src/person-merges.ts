@@ -1,3 +1,4 @@
+import {adoptedMediaFor} from './media-ownership.ts';
 import {maintenanceSnapshot,maintenanceScopeBlocker,revokePersonMaintenance} from './talent-maintenance-lifecycle.ts';
 import {scanLocaleMerge,applyLocaleMerge,type LocaleMergePlan} from './locale-merge.ts';
 import { scanTalentMerge, applyTalentMerge, type TalentMergePlan } from './talent-v2-merge.ts';
@@ -151,14 +152,20 @@ export class PersonMerges {
         if (activePermissions.length && !actor.permissions.includes('sources.review')) blocker(blockers, 'SOURCES_REVIEW_REQUIRED');
 
         const uploadRows = await tx.find('uploads', { workspaceId: actor.workspaceId, personId: duplicate.id });
+        const formalMedia=await tx.find('personMedia',{workspaceId:actor.workspaceId,personId:duplicate.id,usageState:'ADOPTED'});
+        const formalAssetIds=new Set(formalMedia.map(r=>r.assetId));
+        for(const r of formalMedia){
+            try{const a=await tx.get('assets',r.assetId);if(!a)missing();await adoptedMediaFor(tx,actor,a,this.clock);}
+            catch(e){if(e instanceof AppError&&e.status===404)blocker(blockers,'HIDDEN_MEDIA_DEPENDENCY');else throw e;}
+        }
         for (const row of uploadRows) {
+            if(formalAssetIds.has(row.id))continue;
             try { await requireScope(tx, actor, row.scopeId); if(row.sourceId)await sourceFor(tx, actor, row.sourceId, this.clock, false); }
             catch(e) { if(e instanceof AppError && e.status===404) blocker(blockers,'HIDDEN_MEDIA_DEPENDENCY'); else throw e; }
         }
-        const formalMedia=await tx.find('personMedia',{workspaceId:actor.workspaceId,personId:duplicate.id,usageState:'ADOPTED'});
-        for(const r of formalMedia){const a=await tx.get('assets',r.assetId);try{if(!a||!r.sourceId)missing();await requireScope(tx,actor,a.scopeId);await sourceFor(tx,actor,r.sourceId,this.clock,false);}catch(e){if(e instanceof AppError&&e.status===404)blocker(blockers,'HIDDEN_MEDIA_DEPENDENCY');else throw e;}}
         const assetRows = await tx.find('assets', { workspaceId: actor.workspaceId, personId: duplicate.id });
         for (const row of assetRows) {
+            if(formalAssetIds.has(row.id))continue;
             try { await requireScope(tx, actor, row.scopeId); if(row.sourceId)await sourceFor(tx, actor, row.sourceId, this.clock, false); }
             catch(e) { if(e instanceof AppError && e.status===404) blocker(blockers,'HIDDEN_MEDIA_DEPENDENCY'); else throw e; }
         }
@@ -229,7 +236,7 @@ export class PersonMerges {
             media: { uploadsToDetach: uploadIds.length, assetsToReassign: assetReassignIds.length, assetsToDetach: assetDetachIds.length },
             moves: { workCredits: workCreditMoveIds.length, projectParticipants: projectParticipantMoveIds.length, shortlistItems: shortlistItemMoveIds.length }
         };
-        const maintenance=await maintenanceSnapshot(tx,actor.workspaceId,[canonical.id,duplicate.id]);const maintenanceBlocker=await maintenanceScopeBlocker(tx,actor,maintenance.data);if(maintenanceBlocker)responseCore.blockers.push({code:maintenanceBlocker,count:1});
+        const maintenance=await maintenanceSnapshot(tx,actor.workspaceId,[canonical.id,duplicate.id]);const maintenanceBlocker=await maintenanceScopeBlocker(tx,actor,maintenance.data,'MERGE_CURRENT');if(maintenanceBlocker)responseCore.blockers.push({code:maintenanceBlocker,count:1});
         const internal = { ...responseCore,maintenanceDigest:maintenance.digest, talentDigest: talent.digest, localeDigest:locales.digest,
             activeHandoffIds: activeHandoffs.map(x=>x.id).sort(), activePermissionIds: activePermissions.map(x=>x.id).sort(),
             contactIds: contactRows.map(x=>x.id).sort(), evidenceIds: evidenceRows.map(x=>x.id).sort(), uploadIds,

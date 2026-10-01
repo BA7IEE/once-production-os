@@ -141,3 +141,9 @@ Local/COS stat/openByteStream合同及200/206/416、取消、背压和流式额�
 - JSON仅导出ADOPTED正式关系、依据及必要历史归因；重建不创建TalentAccount/Claim/Grant/Session。物理备份包含STAGED/ADOPTED，恢复准备保留usageState、隔离技术可读状态并使旧授权失效。Person删除纳入正式关系及暂存原件；Person合并只移动已ADOPTED正式关系，不转移本人STAGED材料，上传原归属保留，旧Grant撤销。若原上传精确绑定待迁移Role，预览以 `MEDIA_ROLE_DEPENDENCY_REQUIRES_REVIEW` 阻断，不能靠丢弃职业或改写原始归属完成合并。
 
 当前尚无跨Submission复用Asset授权合同；fork仅复制文字，需要重新上传媒体。MediaCollection/模卡/素颜照/作品案例与媒体自动回收交互在本切片复核后继续；不进入客户分享、官网或PR-04。
+
+## PR-03 正式媒体授权修正（2026-10-01）
+
+ADOPTED 正式读取统一使用 PersonMedia 的当前 Person + 可选精确 PersonRole + 正式 Source + 当前用途/删除保护；Upload.scopeId 与 Claim/邀请 intake scope 是历史归因，不是正式读授权或附加门槛。关系、人物、来源、职业失效即时拒绝；预览/播放继续要求技术READY，Range每次请求沿用相同授权。直接Asset读/列表、TD2、作品/候选、导出与合并预览共用判断。没有显式正式关系的旧INTERNAL_SOURCE继续原有范围与主来源规则。
+
+STAGED本人/审核路径保持既有账号、Submission/Upload intake scope和Grant/Claim关系要求；不能通过普通入口读。合并保留完整历史摘要，但只有当前邀请/申请/打开的Submission及任一根的STAGED材料继续要求接收范围，已终结的历史intake不额外限制正式媒体。精确Role迁移阻断、删除/恢复隔离不变。本修正不修改迁移62，不新增迁移、请求字段、路由或DTO。

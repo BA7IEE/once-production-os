@@ -9,7 +9,24 @@ export async function maintenanceSnapshot(tx:Tx,workspaceId:string,personIds?:st
  if(personIds){const ids=new Set(personIds);data.personMedia=data.personMedia!.filter(r=>ids.has(String(r.personId)));for(const t of ['talentInvitations','talentClaims','talentAccessGrants','talentConsents','talentSubmissions'])data[t]=data[t]!.filter(r=>ids.has(String(r.personId??r.targetPersonId)));const invitations=new Set(data.talentInvitations!.map(r=>r.id)),submissions=new Set(data.talentSubmissions!.map(r=>r.id)),consents=new Set(data.talentConsents!.map(r=>r.id));data.talentInvitationContexts=data.talentInvitationContexts!.filter(r=>invitations.has(r.invitationId));data.talentSubmissionItems=data.talentSubmissionItems!.filter(r=>submissions.has(r.submissionId));data.sourceAttributions=data.sourceAttributions!.filter(r=>submissions.has(r.submissionId));data.sourceUseBases=data.sourceUseBases!.filter(r=>consents.has(r.consentId));}
  return {data,digest:digest(data),count:Object.values(data).reduce((sum,r)=>sum+r.length,0)};
 }
-export async function maintenanceScopeBlocker(tx:Tx,actor:Actor,data:Record<string,Record<string,unknown>[]>){for(const rows of Object.values(data))for(const r of rows)if(typeof r.scopeId==='string'&&!await scopeVisible(tx,actor,r.scopeId))return 'TALENT_MAINTENANCE_HIDDEN_DEPENDENCY';return null;}
+export async function maintenanceScopeBlocker(tx:Tx,actor:Actor,data:Record<string,Record<string,unknown>[]>,mode:'ALL'|'MERGE_CURRENT'='ALL'){
+ // STAGED material on either merge root retains the original upload review scope,
+ // including rejected/partial submissions whose text decision is already closed.
+ if(mode==='MERGE_CURRENT')for(const r of data.personMedia??[])if(r.usageState==='STAGED'){
+  const asset=await tx.get('assets',String(r.assetId)),upload=asset?await tx.get('uploads',asset.uploadId):null;
+  if(!upload||!await scopeVisible(tx,actor,upload.scopeId))return 'TALENT_MAINTENANCE_HIDDEN_DEPENDENCY';
+ }
+ for(const [table,rows] of Object.entries(data))for(const r of rows){
+  // Merge retains the complete history in its digest and revokes external access.
+  // Closed intake records are not authority over formal Person/Source media.
+  // Pending claims, open submissions and active invitations still need intake scope.
+  const historical=table==='talentClaims'&&['APPROVED','REJECTED','WITHDRAWN','EXPIRED'].includes(String(r.state))&&!r.reserved
+   ||table==='talentInvitations'&&['CLAIMED','EXHAUSTED','REVOKED','EXPIRED'].includes(String(r.state))
+   ||table==='talentSubmissions'&&['APPROVED','PARTIALLY_APPROVED','REJECTED','WITHDRAWN','EXPIRED'].includes(String(r.state));
+  if(mode==='MERGE_CURRENT'&&historical)continue;
+  if(typeof r.scopeId==='string'&&!await scopeVisible(tx,actor,r.scopeId))return 'TALENT_MAINTENANCE_HIDDEN_DEPENDENCY';
+ }return null;
+}
 /** Existing merge's explicit revocation acknowledgement also closes external access on BOTH
  * roots. No account is silently transferred; retained submissions cannot read the merged alias. */
 export async function revokePersonMaintenance(tx:Tx,workspaceId:string,personIds:string[],clock:Clock,erase=false){const ids=new Set(personIds);

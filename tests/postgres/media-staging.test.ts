@@ -1,3 +1,4 @@
+import {formalMediaScenario} from '../support/formal-media-authorization.ts';
 import assert from 'node:assert/strict';
 import {PrismaClient} from '@prisma/client';
 import {PrismaStore} from '../../apps/api/src/prisma-store.ts';
@@ -14,7 +15,7 @@ assert.ok(process.env.ALLOW_DB_TESTS==='yes'&&url&&new URL(url).pathname.startsW
 const db=new PrismaClient({datasources:{db:{url}},log:[]}),store=new PrismaStore(db);
 try{
  assert.equal(await db.workspace.count(),0);
- if(process.env.MEDIA_STAGING_WORKER){const stop=process.env.MEDIA_STAGING_WORKER;assert.ok(stop==='grant'||stop==='withdraw'||stop==='consent'||stop==='recovery');console.log(JSON.stringify(await stagingWorkerScenario(store,stop)));}else if(process.env.MEDIA_STAGING_CONCURRENCY==='yes'){console.log(JSON.stringify(await stagingConcurrencyScenario(store)));}else if(process.env.MEDIA_STAGING_LIFECYCLE){const kind=process.env.MEDIA_STAGING_LIFECYCLE;assert.ok(kind==='merge'||kind==='adopted-merge'||kind==='delete'||kind==='expiry');const {checks}=await stagingLifecycleScenario(store,kind);console.log(JSON.stringify({checks}));}else if(process.env.MEDIA_STAGING_SECURITY==='yes'){const {checks}=await stagingSecurityScenario(store);console.log(JSON.stringify({checks}));}else{
+ if(process.env.MEDIA_FORMAL_AUTH){console.log(JSON.stringify(await formalMediaScenario(store,process.env.MEDIA_FORMAL_AUTH!=='enroll',process.env.MEDIA_FORMAL_AUTH==='role')));}else if(process.env.MEDIA_STAGING_WORKER){const stop=process.env.MEDIA_STAGING_WORKER;assert.ok(stop==='grant'||stop==='withdraw'||stop==='consent'||stop==='recovery');console.log(JSON.stringify(await stagingWorkerScenario(store,stop)));}else if(process.env.MEDIA_STAGING_CONCURRENCY==='yes'){console.log(JSON.stringify(await stagingConcurrencyScenario(store)));}else if(process.env.MEDIA_STAGING_LIFECYCLE){const kind=process.env.MEDIA_STAGING_LIFECYCLE;assert.ok(kind==='merge'||kind==='adopted-merge'||kind==='delete'||kind==='expiry');const {checks}=await stagingLifecycleScenario(store,kind);console.log(JSON.stringify({checks}));}else if(process.env.MEDIA_STAGING_SECURITY==='yes'){const {checks}=await stagingSecurityScenario(store);console.log(JSON.stringify({checks}));}else{
  const {f,id,checks}=await stagingScenario(store,process.env.MEDIA_STAGING_ENROLL!=='yes');
  const u=await db.mediaUpload.findUniqueOrThrow({where:{id}});
  await assert.rejects(db.mediaUpload.update({where:{id},data:{actorId:(await db.membership.findFirstOrThrow()).id}}));checks.push('postgres-uploader-xor');

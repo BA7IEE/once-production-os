@@ -1,0 +1,17 @@
+TAP version 13
+# {"checks":["merge-STAGED-keeps-intake-scope","READY-STAGED-denies-formal-B-without-intake","ADOPTED-direct-list-preview-TD2-use-formal-Person-Source-not-intake","formal-B-export-adopted-without-intake","formal-B-merge-preview-without-historical-intake","current-person-scope-remains-required","current-formal-source-scope-revocation-denies-all-consumers","exact-formal-Role-inactivation-denies-direct-list-preview-and-graph"]}
+# Subtest: tests/postgres/media-staging.test.ts
+ok 1 - tests/postgres/media-staging.test.ts
+  ---
+  duration_ms: 2312.410417
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2317.610292
