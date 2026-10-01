@@ -30,7 +30,7 @@ EXISTING：submit 冻结精确 Person、revision、protectionEpoch、scope/revis
 
 LINK reviewer 同时有 intake 与目标 formal scope；CREATE_NEW 正式 scope 由 reviewer 选择，Agent 输入该字段被 strict schema 拒绝。正式 Source 与 Person/事实使用 formal scope，Submission 保留 intake provenance。正式投影使用当前 Person/Source/Evidence，不额外要求历史 intake scope；授权变化阻断旧摄取操作，不把已采纳事实伪装成仍属于 Agent 的写权限。
 
-一次审核在同事务完成：重查主体、目标和 reviewer → 正式 Source + 历史 → Attribution + Basis → Person / Role / facts + 字段 Evidence → 条目 APPLIED/REJECTED → 根终态、回执与审计。真实 PostgreSQL 注入审核 Audit 失败时全部回滚。
+一次审核在同事务完成：重查主体、目标和 reviewer → 正式 Source + 历史 → Attribution + Basis → Person / Role / facts + 字段 Evidence → 条目 APPLIED/REJECTED（appliedId分别引用实际Person、PersonRole、TalentProfile、MeasurementSet）→ 根终态、回执与审计。真实 PostgreSQL 注入审核 Audit 失败时全部回滚。
 
 ## typed SourceUseBasis
 
@@ -75,6 +75,8 @@ MACHINE 只用真实 Bearer，Cookie 不回退，Bearer+Cookie 拒绝。A 不可
 对应冻结设计：I01身份、I02旧新权限边界、I03 scope/owner、I04幂等并发、I05未知事实、I07依赖审核的文字部分；I13 proposed目标未绑定、I14 merge/delete/revision rebase、I15真实INTERNAL_REVIEW、I16假Consent拒绝、I17 rotate继续、I18授权变化失效、I21机器不可指定正式scope、I22新Person明确正式scope。I19/I20媒体正式授权及I06/I08/I09/I10媒体/Collection/Work本人接手留在后续包，不将文字路径冒称完整媒体验收。
 
 补充反例：字段证据来自 Source B、事实本身仍主来源 A；B 撤回而 Person/事实 revision 不变时，审核仍必须 TARGET_REBASE_REQUIRED。初始实现漏掉这条支持来源，Core 真实复现为错误 200；已补冻结字段证据及其来源，Core/PG均拒绝 409，无新迁移。
+
+结构化条目采用真实事实记录ID作为appliedId，身份文字使用Person ID；Core/PG与真实Nest/Chrome审核数据库断言覆盖，避免把职业或量尺结果误记为Person ID。无需新增字段/迁移。
 
 首 head a79edae 的 CI36919823171有13项通过，media-purge因依赖安装触及30分钟job上限取消，Browser未执行；本地该旅程实跑通过。仅把该job预算改为45分钟，测试命令、断言及测试自身超时不变。最终新head仍完整重跑14项，不沿用旧head结果。
 

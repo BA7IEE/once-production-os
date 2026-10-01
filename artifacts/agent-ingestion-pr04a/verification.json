@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-10-01T20:46:37.334421+00:00",
+  "recordedAt": "2026-10-01T21:08:49.789500+00:00",
   "status": "IMPLEMENTED_PENDING_CODE_REVIEW",
   "baseFrozenSha": "aeaf49da7d5346785adac6df4e2d34321f9d92d2",
   "designFrozenSha": "7017d5ef9583b0fd6f7a19521a7faa0f43ce7252",
@@ -52,7 +52,7 @@
     "packages/core/src/exports.ts": "48d85c6078da7d2638b7eac7e70e5773a94a24d8a08b0ed7d5e45118e36600f6",
     "packages/core/src/ingestion-routes.ts": "9198a293a42050cf33bd75c78b6ae142e78fbc98aff08ebd3b33fd66624afa49",
     "packages/core/src/ingestion-schema.ts": "cc54e5075f8cbbcf7f0c94b01108ed178ba81cb6d833b6ef752cc5c4fc38dfc4",
-    "packages/core/src/ingestion.ts": "ff2a024db011283ce84cd8f8a010d10843a57a50636617cfa617ec580023e0c1",
+    "packages/core/src/ingestion.ts": "1b565878406527334301b278d64749ff8665bf62f79af866c4ec3b966d33016e",
     "packages/core/src/machine-authorization.ts": "432625b2019e817fb7e49fa5fdf947093ddf4487ff9ce7e1061af2cfe79ae45f",
     "packages/core/src/model.ts": "0dea94f6f8d97430b3605ba7a71e066d161bfbab379cd6b832f61c7328de25ff",
     "packages/core/src/rebuild-validation.ts": "3f458d7d64f79a211460fddb733dbbf7dfbdd32d1216d59e40670dfed030eebd",
@@ -73,12 +73,12 @@
     "prisma/migrations/202610020003_ingestion_declaration_retention/migration.sql": "7f1db5c67fcb7e14dc7e8d3042eb89d4ac6070a7807634c8975b33e86906a318",
     "prisma/schema.prisma": "d79e1e17ae80e0f0ed3abc4a1043164a0b13481c23e834bf0016a851fc4931e2",
     "scripts/verify-postgres.mjs": "96c825051242b8fd321cb4cdd1edc4cea2c0978127e830872994371aa7ec0313",
-    "tests/acceptance/browser-agent-ingestion.mjs": "962555e17ebd1c0dba562c788190b20a6f5f199df4d2fc9401f278140b363b7a",
+    "tests/acceptance/browser-agent-ingestion.mjs": "88a46bafeaa30699e35b39f1cea72842348f83a23e5d170156e7d75af738efbd",
     "tests/core/ingestion.test.ts": "e5d688b628ac6360a36fadced5edae78f7d714f8f0aa6c3970a1e34365bfddcd",
     "tests/postgres/ingestion-upgrade.test.ts": "ef3ea39027e1d97a532f8aa6ecb05c94cf0cbb11113778c2ed9f2415203220c6",
     "tests/postgres/ingestion.test.ts": "345584abd4e4833bc63ed4c801ff4663669091eb367c5833371f72b326690a74",
     "tests/support/ingestion-lifecycle.ts": "b95c9b2595ac91595db6e2b513f197213e2c1065e8915bc40f339a0ebd520fb6",
-    "tests/support/ingestion.ts": "89743a2d6acee2c5f45ae651c6f4900623c2e56733354e6c212e6c0d633b813e",
+    "tests/support/ingestion.ts": "49efc08b022af3e963899a948aa49f613acde42cf4d204657bf219eba78c05c4",
     "tests/support/memory-store.ts": "915ca98ccde882e419ba57d330a8a54c60567a334d9dcd324bc66e66773aca94"
   },
   "targetBaselineAdditionalRegression": "SourceB field evidence withdrawn while Person/fact revisions unchanged now409 TARGET_REBASE_REQUIRED; Core+PG",
@@ -88,5 +88,6 @@
     "successJobs": 13,
     "cancelledJob": "browser-media-purge dependency installation timeout",
     "finalHeadEvidence": false
-  }
+  },
+  "appliedTargetRegression": "Identity→Person; Role→PersonRole; Profile→TalentProfile; Measurement→MeasurementSet exact adopted record IDs; Core/PG/Nest-Chrome assertions"
 }
