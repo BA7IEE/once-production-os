@@ -32,7 +32,8 @@ export class DeletionFinalizer {
             }
             for (const task of tasks) {
                 if (signal.aborted) return true;
-                await this.provider!.purge(task.mediaId);
+                const already=await this.core.store.transaction(tx=>tx.get('uploads',task.mediaId));
+                if(!already?.purgedAt)await this.provider!.purge(task.mediaId);
                 await this.core.deletionFinalization.completeMediaPurge(claim, task.mediaId);
             }
             if (!signal.aborted) {

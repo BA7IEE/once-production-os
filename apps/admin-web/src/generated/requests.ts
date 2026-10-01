@@ -1,5 +1,7 @@
 // Generated from packages/core/src/routes.ts and validation.ts. Do not edit.
 export interface Inputs {
+  "mediaPurge.status": undefined;
+  "mediaPurge.reconcile": {  };
   "portal.auth.context": { "purpose": "LOGIN" | "RECOVER" };
   "portal.auth.contextStatus": undefined;
   "portal.auth.challenge": { "contextId": string; "purpose": "LOGIN" | "RECOVER"; "kind": "EMAIL" | "PHONE"; "identity": string };
@@ -262,6 +264,16 @@ export interface Inputs {
   "shortlist.reorder": { "expectedRevision": number; "entryIds": Array<string> };
 }
 export const ENDPOINTS = {
+  "mediaPurge.status": {
+    "method": "GET",
+    "path": "/media-purge/status",
+    "mode": "READ"
+  },
+  "mediaPurge.reconcile": {
+    "method": "POST",
+    "path": "/media-purge/reconcile",
+    "mode": "COMMAND"
+  },
   "portal.auth.context": {
     "method": "POST",
     "path": "/portal/auth/context",

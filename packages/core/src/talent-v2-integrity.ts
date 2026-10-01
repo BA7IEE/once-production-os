@@ -11,7 +11,7 @@ import { touch } from './helpers.ts';
 /** All TD2 rows and their security-relevant endpoints participate in one recovery digest.
  * Do not return raw rows, encrypted identifiers or machine credential hashes in a report. */
 export const TD2_INTEGRITY_TABLES = [...TALENT_V2_TABLES, 'people', 'sources', 'scopes',
-    'memberships', 'works','workCredits','workAssets','talentSubmissionItems', 'personMedia','uploads','talentSubmissions','talentAccounts','assets', 'evidence', 'shortlistItems', 'personAliases', 'personMerges', 'mergeHistoryErasures'] as const;
+    'memberships', 'works','workCredits','workAssets','talentSubmissionItems', 'mediaPurgeIntents','personMedia','uploads','talentSubmissions','talentAccounts','assets', 'evidence', 'shortlistItemAssets', 'shortlistItems', 'personAliases', 'personMerges', 'mergeHistoryErasures'] as const;
 export type IntegrityTable = typeof TD2_INTEGRITY_TABLES[number];
 type Row = { id: string; workspaceId: string; [key: string]: unknown };
 export interface TalentIntegrityReport {
@@ -170,6 +170,15 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
     const activeMachineCount = data.servicePrincipals.filter(r => r.status === 'ACTIVE').length;
     const remainingMachineSecretCount = data.servicePrincipals.filter(r => r.credentialHash !== null).length;
     const pendingProposalCount = data.fieldProposals.filter(r => r.state === 'PENDING').length;
+    for(const p of data.mediaPurgeIntents){
+        const a=data.assets.find(a=>a.id===p.assetId),u=data.uploads.find(u=>u.id===p.uploadId),rs=data.personMedia.filter(r=>r.assetId===p.assetId);
+        check(!!a&&!!u&&p.assetId===p.uploadId);
+        check((p.state==='ERASED')===!!p.purgedAt);
+        check((p.leaseToken===null)===(p.leaseUntil===null));
+        if(p.state==='ERASED')check(a?.state==='ERASED'&&u?.state==='ERASED'&&!!u?.purgedAt&&rs.every(r=>r.usageState==='RETIRED'&&!!r.purgedAt));
+        if(['DELETE_PENDING','DELETE_UNKNOWN','DELETE_CONFIRMED'].includes(String(p.state))){check(!u?.purgedAt&&Number(u?.expectedBytes)>0&&Number(a?.bytes)>0&&a?.usageState==='RETIRED');check(!rs.some(r=>r.usageState==='ADOPTED'));check(!a?.sourceId&&!rs.some(r=>r.sourceId));check(![...data.workAssets,...data.mediaCollectionItems,...data.shortlistItemAssets].some(r=>r.assetId===p.assetId));check(![...data.personCredentials,...data.adultEligibilities].some(r=>r.evidenceAssetId===p.assetId));check(![...data.talentProfiles,...data.mediaCollections].some(r=>r.coverAssetId===p.assetId));}
+    }
+    for(const r of data.personMedia){if(r.usageState==='STAGED')check(!!r.retainUntil);if(r.usageState==='ADOPTED')check(r.retainUntil===null&&!r.purgedAt);}
     const blockers = [
         ...(relationFailures ? ['TD2_RELATION_INVALID'] : []),
         ...(credentialDecryptFailures ? ['TD2_CREDENTIAL_KEY_MISMATCH'] : []),

@@ -1,3 +1,7 @@
+## PR-03E 执行补充（2026-10-01）
+
+spec/15 §10.8冻结保留语义已接入独立MediaPurgeIntent；技术READY与业务STAGED/ADOPTED/RETIRED不混用。正式依赖、审核竞争、UNKNOWN、多对象/独占目录、容量、恢复隔离与删除优先合同详见 [PR03E_ACCEPTANCE](../release/PR03E_ACCEPTANCE.md)。迁移67新增清理计划，68前向补强JSON计划约束及不可变身份，1–66冻结。普通业务JSON不导出STAGED/清理计划，不扩Agent摄取或其他业务。
+
 # Talent Experience：首轮合同、ADR 与迁移计划
 
 日期：2026-09-30。配套 [v1.1完整规范](15_TALENT_EXPERIENCE_V1_1.md)。本文件将拟实施合同与本次已实现切片分开；所有未实现项均不提供占位入口。

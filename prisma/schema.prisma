@@ -2663,3 +2663,27 @@ model PersonMedia {
   @@index([workspaceId,personId,usageState])
   @@map("personMedia")
 }
+
+// PR-03E: composite workspace/asset and upload FKs are enforced by migration 67.
+model MediaPurgeIntent {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ revision Int
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ assetId String @unique @db.Uuid
+ uploadId String @db.Uuid
+ objectToken String @db.Uuid
+ state String @db.Text
+ objects Json
+ leaseToken String? @db.Uuid
+ leaseUntil DateTime? @db.Timestamptz(3)
+ recoveryEpoch String @db.Text
+ attempts Int
+ nextAttemptAt DateTime @db.Timestamptz(3)
+ lastCode String? @db.Text
+ purgedAt DateTime? @db.Timestamptz(3)
+ @@unique([workspaceId,id])
+ @@index([state,nextAttemptAt,leaseUntil])
+ @@map("mediaPurgeIntents")
+}

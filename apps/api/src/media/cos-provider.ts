@@ -1,3 +1,4 @@
+import type {PurgeObjectRef,ObjectPresence} from './purge-provider.ts';
 import {openHttpsByteStream, validateByteRequest, type ImmutableMediaObject, type ByteStreamRequest, type OpenMediaStream} from './byte-stream.ts';
 import COS from 'cos-nodejs-sdk-v5';
 import {readFile,writeFile,lstat,readdir,rm,rename} from 'node:fs/promises';
@@ -40,11 +41,11 @@ export class CosMediaProvider extends LocalMediaProvider {
  });}
  private key(id:string,token:string,part:string){return `${this.prefix}/uploads/${uuid.parse(id)}/${uuid.parse(token)}/${part}`;}
  override async publish(u:MediaUpload,signal:AbortSignal){return this.publishSealed(u.id,u.leaseToken!,signal);}
- async publishSealed(id:string,token:string,signal:AbortSignal){
+ async publishSealed(id:string,token:string,signal:AbortSignal,parts:Array<'original.bin'|'preview.jpg'>=['original.bin','preview.jpg']){
   await this.checkBucket();
   const pending=join(this.work(id,token),'.cos-publishing');
   await writeFile(pending,'PENDING\n',{mode:0o600});
-  for(const name of ['original.bin','preview.jpg']){
+  for(const name of parts){
    invariant(!signal.aborted,'MEDIA_CANCELLED','处理已取消',409);
    // Local group is never recreated; purge or loss of the sealed copy blocks upload.
    const body=await readFile(join(this.work(id,token),name));
@@ -91,6 +92,21 @@ export class CosMediaProvider extends LocalMediaProvider {
  }
  override readOriginal(a:MediaAsset){return this.bytes(a,false);}
  override readPreview(a:MediaAsset){return this.bytes(a,true);}
+ private async purgeHead(ref:PurgeObjectRef,signal:AbortSignal):Promise<ObjectPresence>{
+  invariant(!signal.aborted,'MEDIA_CANCELLED','清理已取消',409);await this.checkBucket();
+  try{const h=await this.cos.headObject({...this.bucket,Key:this.key(ref.uploadId,ref.objectToken,ref.part==='original'?'original.bin':'preview.jpg')});
+   invariant(h.statusCode===200&&h.headers?.['content-length']===String(ref.bytes),'MEDIA_FILE_INVALID','COS对象身份不符或重定向',503);
+   await this.download(this.key(ref.uploadId,ref.objectToken,ref.part==='original'?'original.bin':'preview.jpg'),ref.bytes,ref.hash);return 'EXISTS';
+  }catch(e){if((e as COS.CosError)?.statusCode===404)return 'MISSING';throw e;}
+ }
+ override async statPurgeObject(ref:PurgeObjectRef,signal:AbortSignal):Promise<ObjectPresence>{const remote=await this.purgeHead(ref,signal),local=await super.statPurgeObject(ref,signal);return remote==='MISSING'&&local==='MISSING'?'MISSING':'EXISTS';}
+ override async deleteImmutableObject(ref:PurgeObjectRef,signal:AbortSignal){
+  if(await this.purgeHead(ref,signal)==='EXISTS'){
+   invariant(!signal.aborted,'MEDIA_CANCELLED','清理已取消',409);
+   try{const r=await this.cos.deleteObject({...this.bucket,Key:this.key(ref.uploadId,ref.objectToken,ref.part==='original'?'original.bin':'preview.jpg')});invariant(r.statusCode===200||r.statusCode===204,'COS_DELETE_UNKNOWN','COS删除结果尚未确认',503);}catch(e){if((e as COS.CosError)?.statusCode!==404)throw e;}
+  }
+  await super.deleteImmutableObject(ref,signal);
+ }
  override async purge(id:string){
   await this.checkBucket();const Prefix=`${this.prefix}/uploads/${uuid.parse(id)}/`;
   // Rename staging out of the active namespace first. A late publisher cannot start.
@@ -105,9 +121,10 @@ export class CosMediaProvider extends LocalMediaProvider {
   // At most three attempts, two objects per attempt. Bound both listing and deletion.
   await this.io(async()=>{
    const listed=await this.cos.getBucket({...this.bucket,Prefix,MaxKeys:100});
-   invariant(String(listed.IsTruncated)!=='true','COS_PURGE_INCOMPLETE','媒体对象数异常，未确认删除完成',503);
-   for(const row of listed.Contents??[]){invariant(row.Key.startsWith(Prefix),'COS_PURGE_INVALID','对象目录不符',503);await this.cos.deleteObject({...this.bucket,Key:row.Key});}
-   const after=await this.cos.getBucket({...this.bucket,Prefix,MaxKeys:1});invariant(!(after.Contents??[]).length,'COS_PURGE_INCOMPLETE','COS对象仍存在',503);
+   invariant(listed.statusCode===200&&String(listed.IsTruncated)!=='true','COS_PURGE_INCOMPLETE','媒体对象数异常，未确认删除完成',503);
+   invariant((listed.Contents??[]).length<=6,'COS_PURGE_INCOMPLETE','媒体对象数异常',503);
+   for(const row of listed.Contents??[]){const suffix=row.Key.slice(Prefix.length);invariant(row.Key.startsWith(Prefix)&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/(original\.bin|preview\.jpg)$/.test(suffix),'COS_PURGE_INVALID','对象目录或身份不符',503);try{const deleted=await this.cos.deleteObject({...this.bucket,Key:row.Key});invariant(deleted.statusCode===200||deleted.statusCode===204,'COS_DELETE_UNKNOWN','COS删除结果尚未确认',503);}catch(e){if((e as COS.CosError)?.statusCode!==404)throw e;}}
+   const after=await this.cos.getBucket({...this.bucket,Prefix,MaxKeys:1});invariant(after.statusCode===200&&!(after.Contents??[]).length,'COS_PURGE_INCOMPLETE','COS对象仍存在',503);
   });
   await super.purge(id);
  }

@@ -7,7 +7,7 @@ import type { SafetyIntentSink } from '../../packages/core/src/safety-intent.ts'
 
 function fixture() {
     const calls: string[] = [];
-    const core = { deletionFinalization: {
+    const core = { store: { transaction: async (work: (tx: unknown) => Promise<unknown>) => work({ get: async () => ({ purgedAt: null }) }) }, deletionFinalization: {
         claim: async () => ({ id: 'synthetic-claim', workspaceId: 'synthetic-workspace' }),
         mediaTasks: async () => { calls.push('tasks'); return [{ mediaId: 'synthetic-media' }]; },
         completeMediaPurge: async () => { calls.push('purge-record'); throw new Error('database unavailable after purge'); },

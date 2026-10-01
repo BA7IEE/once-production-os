@@ -1,3 +1,4 @@
+import {assertMediaNotPurging} from './media-purge.ts';
 import {mediaConsentVersion} from './media-validation.ts';
 import type {Tx} from './store.ts';
 import type {Actor,Clock,Config,Person,Source} from './model.ts';
@@ -19,6 +20,7 @@ export async function adoptSubmissionMedia(tx:Tx,actor:Actor,s:TalentSubmission,
  for(const item of items){
   const a=await tx.get('assets',String(item.values.assetId)),u=a?await tx.get('uploads',a.uploadId):null;
   invariant(a&&u&&a.state==='READY'&&mediaUsage(a)==='STAGED'&&a.sha256===item.values.sha256&&u.submissionId===s.id&&u.talentAccountId===s.talentAccountId,'MEDIA_NOT_ADOPTABLE','素材未就绪或归属不匹配',409);
+  await assertMediaNotPurging(tx,a.id);
   await talentUploadContext(tx,{actorKind:'TALENT',workspaceId:s.workspaceId,talentAccountId:s.talentAccountId,sessionId:'',sessionEpoch:u.actorEpoch},u,clock,config,false);
   const r=(await tx.find('personMedia',{workspaceId:s.workspaceId,assetId:a.id,submissionId:s.id,usageState:'STAGED'}))[0];
   invariant(r&&!r.retiredAt&&(!r.personId||r.personId===p.id),'MEDIA_NOT_ADOPTABLE','素材关系不可采纳',409);

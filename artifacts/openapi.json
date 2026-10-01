@@ -6,6 +6,90 @@
     "description": "Paths and strict request schemas are generated from runtime routes. Response shapes are currently TypeScript DTOs; this is not a complete response-schema validator."
   },
   "paths": {
+    "/api/v1/media-purge/status": {
+      "get": {
+        "operationId": "mediaPurge.status",
+        "parameters": [],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "members.manage",
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/media-purge/reconcile": {
+      "post": {
+        "operationId": "mediaPurge.reconcile",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "members.manage",
+        "x-mode": "COMMAND"
+      }
+    },
     "/api/v1/portal/auth/context": {
       "post": {
         "operationId": "portal.auth.context",

@@ -1,3 +1,4 @@
+import {MediaPurge} from './media-purge.ts';
 import {approveMediaExposure} from './talent-media-exposure.ts';
 import {saveInternalCollection} from './media-collections.ts';
 import {TalentMaintenance} from './talent-maintenance.ts';
@@ -78,6 +79,7 @@ function cookies(header: string): Record<string, string> {
     return out;
 }
 export class Application {
+    readonly mediaPurge:MediaPurge;
     portal: TalentPortal;
     store: Store;
     clock: Clock;
@@ -129,6 +131,7 @@ export class Application {
         this.deletionFinalization = new DeletionFinalization(store, clock, config);
         this.personMerges = new PersonMerges(clock, config);
         this.handoffs = new Handoffs(clock);
+        this.mediaPurge=new MediaPurge(store,clock,config);
         this.media = new Media(store, clock, config);
         this.commands = new Commands(clock);
         this.imports = new Imports(store, clock, config, this.talent);
@@ -318,6 +321,8 @@ export class Application {
                 }
                 const maintenance=new TalentMaintenance(this.clock,this.config);
                 switch (route.operation) {
+                    case 'mediaPurge.status':return this.mediaPurge.overview(tx,actor);
+                    case 'mediaPurge.reconcile':return command('mediaPurge',()=>this.mediaPurge.reconcile(tx,actor));
                     case 'talent.invitation.create':return command('talentInvitation',()=>maintenance.createInvitation(tx,actor,data));
                     case 'talent.invitation.list':return maintenance.internalList(tx,actor,'invitation');
                     case 'talent.invitation.issue':return maintenance.issue(tx,actor,id,data,meta);

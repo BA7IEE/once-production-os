@@ -33,6 +33,7 @@ export async function authorizeReceipt(tx: Tx, actor: CommandPrincipal, receipt:
     }
     const id = receipt.resourceId;
     switch (receipt.resourceKind) {
+        case 'mediaPurge':requirePermission(actor,'members.manage');invariant(actor.actorKind!=='MACHINE'&&id===actor.workspaceId,'REPLAY_FORBIDDEN','不可访问',403);return;
         case 'talentInvitation':if(!config)missing();await new TalentMaintenance(clock,config).invitation(tx,actor,id);return;
         case 'talentSubmission':if(!config)missing();await new TalentMaintenance(clock,config).internalSubmission(tx,actor,id);return;
         case 'talentClaim':{requirePermission(actor,'talent.review');const c=await workspaceRow(tx,'talentClaims',id,actor.workspaceId);if(!c)missing();await requireScope(tx,actor,c.scopeId);if(c.targetPersonId)await td2PersonFor(tx,actor,c.targetPersonId);return;}

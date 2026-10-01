@@ -1,3 +1,4 @@
+import {irreversiblePurge} from './media-purge-model.ts';
 import {affectedAi} from './ai-maintenance.ts';
 import {assertLocaleFinalizationClean} from './locale-maintenance.ts';
 import { deletionWorkerActor } from './deletion-worker-policy.ts';
@@ -50,6 +51,8 @@ export class DeletionFinalization {
                 if (row.cleanupLeaseUntil && Date.parse(row.cleanupLeaseUntil) > now) continue;
                 if (row.finalizationLeaseUntil && Date.parse(row.finalizationLeaseUntil) > now) continue;
                 const items = await tx.find('deletionItems', { workspaceId: row.workspaceId, requestId: row.id });
+                const activePurges=(await tx.find('mediaPurgeIntents',{workspaceId:row.workspaceId})).filter(p=>irreversiblePurge(p.state)&&p.state!=='ERASED');
+                if(activePurges.some(p=>row.targetKind==='ASSET'&&row.targetId===p.assetId||items.some(i=>i.resourceId===p.assetId)))continue;
                 if (items.some(item => item.cleanupState === 'PENDING' || (item.cleanupState === 'FAILED' && item.cleanupAttempts < 3)))
                     continue;
                 if (items.some(item => item.cleanupState === 'FAILED' && item.cleanupAttempts >= 3)) {
@@ -83,7 +86,11 @@ export class DeletionFinalization {
                     && (item.resourceKind === 'asset' || item.resourceKind === 'upload'))
                     ids.add(item.resourceId);
             if (row.targetKind === 'ASSET') ids.add(row.targetId);
-            for (const id of ids) await assertTalentFinalizationClean(tx, row.workspaceId, 'ASSET', id, this.clock);
+            for (const id of ids) {
+                const purge=(await tx.find('mediaPurgeIntents',{assetId:id}))[0];
+                invariant(!purge||!irreversiblePurge(purge.state)||purge.state==='ERASED','MEDIA_PURGE_IN_PROGRESS','自动清理正在确认物理结果，显式删除须等待',409);
+                await assertTalentFinalizationClean(tx,row.workspaceId,'ASSET',id,this.clock);
+            }
             return [...ids].sort().map(mediaId => ({ mediaId }));
         });
     }

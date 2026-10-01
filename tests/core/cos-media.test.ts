@@ -16,8 +16,8 @@ async function fixture(){
   async getBucketPolicy(){throw {statusCode:404};},async getBucketAcl(){return {ACL:acl};},async getBucketVersioning(){return {VersioningConfiguration:{Status:version}};},
   async putObject(p:COS.PutObjectParams){requests.push(p);if(objects.has(p.Key))throw {statusCode:409};objects.set(p.Key,Buffer.from(p.Body as Buffer));return {};},
   async getObject(p:COS.GetObjectParams){const b=objects.get(p.Key);if(!b)throw {statusCode:404};await new Promise<void>((resolve,reject)=>{const out=p.Output as import('node:stream').Writable;out.once('error',reject);out.end(b,resolve);});return {};},
-  async getBucket(p:COS.GetBucketParams){return {Contents:[...objects.keys()].filter(k=>k.startsWith(p.Prefix!)).map(Key=>({Key})),IsTruncated:'false'};},
-  async deleteObject(p:COS.DeleteObjectParams){if(failDelete)throw new Error('private-key must not leak');objects.delete(p.Key);return {};}
+  async getBucket(p:COS.GetBucketParams){return {statusCode:200,Contents:[...objects.keys()].filter(k=>k.startsWith(p.Prefix!)).map(Key=>({Key})),IsTruncated:'false'};},
+  async deleteObject(p:COS.DeleteObjectParams){if(failDelete)throw new Error('private-key must not leak');objects.delete(p.Key);return {statusCode:204};}
  } as unknown as COS;
  await mkdir(local.work(id,token),{recursive:true,mode:0o700});const original=Buffer.from('%PDF opaque'),preview=Buffer.from('synthetic JPEG');
  await writeFile(join(local.work(id,token),'original.bin'),original);await writeFile(join(local.work(id,token),'preview.jpg'),preview);

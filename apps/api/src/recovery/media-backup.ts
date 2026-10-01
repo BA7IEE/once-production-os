@@ -12,6 +12,8 @@ export interface BackupMediaAsset {
     id: string;
     uploadId: string;
     objectToken: string;
+    purgeIntentId?:string;
+    missingParts?:Array<'original'|'preview'>;
     original: { bytes: number; sha256: string };
     preview: { bytes: number; sha256: string };
 }
@@ -49,7 +51,7 @@ function stateIdentity(rows: MediaIdentityRow[]) {
 }
 export async function currentMediaIdentity(client: PrismaClient) {
     const assets=await client.mediaAsset.findMany({where:{state:{not:'ERASED'}},orderBy:{id:'asc'}});
-    return {assets,identityDigest:backupIdentity(assets),stateDigest:stateIdentity(assets)};
+    const purge=await client.mediaPurgeIntent.findMany({orderBy:{id:'asc'}});return {assets,identityDigest:backupIdentity(assets),stateDigest:digest({media:stateIdentity(assets),purge:JSON.parse(JSON.stringify(purge))})};
 }
 async function makeBundleRoot(root: string) {
     await mkdir(root,{mode:0o700});
@@ -81,18 +83,23 @@ export async function backupPrivateMedia(client: PrismaClient, providerMode: str
             width:asset.width,height:asset.height,previewBytes:asset.previewBytes,previewHash:asset.previewHash,
             objectToken:asset.objectToken,state:asset.state as 'READY'|'QUARANTINED'|'ERASED'
         };
-        await provider.verifyAsset(mediaAsset);
+        const purge=await client.mediaPurgeIntent.findUnique({where:{assetId:asset.id}});
+        const pending=purge&&['DELETE_PENDING','DELETE_UNKNOWN','DELETE_CONFIRMED'].includes(purge.state);
+        const missingParts:Array<'original'|'preview'>=[];
+        if(pending){invariant(asset.usageState==='RETIRED'&&purge.objectToken===asset.objectToken,'BACKUP_PURGE_INVALID','清理计划身份不符',503);
+            for(const o of purge.objects as Array<{part:'original'|'preview';bytes:number;hash:string}>){if(await provider.statPurgeObject({...o,uploadId:asset.uploadId,objectToken:asset.objectToken},new AbortController().signal)==='MISSING')missingParts.push(o.part);}
+        }else await provider.verifyAsset(mediaAsset);
         const target=join(destinationRoot,'uploads',asset.uploadId,'work-'+asset.objectToken);
         await mkdir(target,{recursive:true,mode:0o700});
         const originalTarget=join(target,'original.bin'),previewTarget=join(target,'preview.jpg');
-        await writeFile(originalTarget,await provider.readOriginal(mediaAsset),{flag:'wx',mode:0o400});
-        await writeFile(previewTarget,await provider.readPreview(mediaAsset),{flag:'wx',mode:0o400});
-        const original=await sha256File(originalTarget),preview=await sha256File(previewTarget);
+        if(!missingParts.includes('original'))await writeFile(originalTarget,await provider.readOriginal(mediaAsset),{flag:'wx',mode:0o400});
+        if(!missingParts.includes('preview'))await writeFile(previewTarget,await provider.readPreview(mediaAsset),{flag:'wx',mode:0o400});
+        const original=missingParts.includes('original')?{bytes:asset.bytes,sha256:asset.sha256}:await sha256File(originalTarget),preview=missingParts.includes('preview')?{bytes:asset.previewBytes,sha256:asset.previewHash}:await sha256File(previewTarget);
         invariant(original.bytes===asset.bytes&&original.sha256===asset.sha256
             &&preview.bytes===asset.previewBytes&&preview.sha256===asset.previewHash,
             'BACKUP_MEDIA_COPY_INVALID','媒体备份副本与数据库身份不一致',503);
-        rows.push({id:asset.id,uploadId:asset.uploadId,objectToken:asset.objectToken,original,preview});
-        totalBytes+=original.bytes+preview.bytes;
+        rows.push({id:asset.id,uploadId:asset.uploadId,objectToken:asset.objectToken,original,preview,...(pending?{purgeIntentId:purge.id,missingParts}:{})});
+        totalBytes+=(missingParts.includes('original')?0:original.bytes)+(missingParts.includes('preview')?0:preview.bytes);
     }
     return {provider:'local',identityDigest,assetCount:rows.length,totalBytes,assets:rows};
 }
@@ -107,16 +114,16 @@ export async function restorePrivateMedia(manifest: BackupMediaManifest, bundleR
         const targetDir=target.work(row.uploadId,row.objectToken);
         await mkdir(targetDir,{recursive:true,mode:0o700});
         const originalTarget=join(targetDir,'original.bin'),previewTarget=join(targetDir,'preview.jpg');
-        await copyFile(join(sourceDir,'original.bin'),originalTarget);await chmod(originalTarget,0o400);
-        await copyFile(join(sourceDir,'preview.jpg'),previewTarget);await chmod(previewTarget,0o400);
-        const original=await sha256File(originalTarget),preview=await sha256File(previewTarget);
+        if(!row.missingParts?.includes('original')){await copyFile(join(sourceDir,'original.bin'),originalTarget);await chmod(originalTarget,0o400);}
+        if(!row.missingParts?.includes('preview')){await copyFile(join(sourceDir,'preview.jpg'),previewTarget);await chmod(previewTarget,0o400);}
+        const original=row.missingParts?.includes('original')?row.original:await sha256File(originalTarget),preview=row.missingParts?.includes('preview')?row.preview:await sha256File(previewTarget);
         invariant(original.bytes===row.original.bytes&&original.sha256===row.original.sha256
             &&preview.bytes===row.preview.bytes&&preview.sha256===row.preview.sha256,
             'RESTORE_MEDIA_COPY_INVALID','恢复后的媒体文件与备份清单不一致',503);
     }
     if(process.env.MEDIA_PROVIDER==='cos'){
         const cloud=await CosMediaProvider.connect({...process.env,MEDIA_ROOT:targetRoot});
-        for(const row of manifest.assets)await cloud.publishSealed(row.uploadId,row.objectToken,new AbortController().signal);
+        for(const row of manifest.assets)await cloud.publishSealed(row.uploadId,row.objectToken,new AbortController().signal,(['original','preview'] as const).filter(p=>!row.missingParts?.includes(p)).map(p=>p==='original'?'original.bin':'preview.jpg'));
     }
     const targetStat=await stat(targetRoot);
     invariant(targetStat.isDirectory()&&(targetStat.mode&0o077)===0,'RESTORE_MEDIA_COPY_INVALID','恢复媒体目录权限不安全',503);

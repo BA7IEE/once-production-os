@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: COS stores private objects, verifies retries and round-trips original and preview
+ok 1 - COS stores private objects, verifies retries and round-trips original and preview
+  ---
+  duration_ms: 12.47
+  type: 'test'
+  ...
+# Subtest: COS refuses public or versioned buckets and detects changed or oversized objects
+ok 2 - COS refuses public or versioned buckets and detects changed or oversized objects
+  ---
+  duration_ms: 5.610958
+  type: 'test'
+  ...
+# Subtest: COS failed purge stays incomplete and never leaks SDK errors
+ok 3 - COS failed purge stays incomplete and never leaks SDK errors
+  ---
+  duration_ms: 3.417625
+  type: 'test'
+  ...
+# Subtest: COS purge blocks on an uncertain publication and prevents later publishing
+ok 4 - COS purge blocks on an uncertain publication and prevents later publishing
+  ---
+  duration_ms: 3.135958
+  type: 'test'
+  ...
+# Subtest: PR03E local exact immutable deletion, missing is idempotent
+ok 5 - PR03E local exact immutable deletion, missing is idempotent
+  ---
+  duration_ms: 11.033583
+  type: 'test'
+  ...
+# Subtest: PR03E local mismatch, symlink and path escape reject without touching target
+ok 6 - PR03E local mismatch, symlink and path escape reject without touching target
+  ---
+  duration_ms: 5.305
+  type: 'test'
+  ...
+# Subtest: PR03E controlled COS success
+ok 7 - PR03E controlled COS success
+  ---
+  duration_ms: 3.929
+  type: 'test'
+  ...
+# Subtest: PR03E controlled COS 404
+ok 8 - PR03E controlled COS 404
+  ---
+  duration_ms: 3.328458
+  type: 'test'
+  ...
+# Subtest: PR03E controlled COS unknown
+ok 9 - PR03E controlled COS unknown
+  ---
+  duration_ms: 3.732
+  type: 'test'
+  ...
+# Subtest: PR03E controlled COS redirect
+ok 10 - PR03E controlled COS redirect
+  ---
+  duration_ms: 2.240958
+  type: 'test'
+  ...
+# Subtest: PR03E controlled COS identity
+ok 11 - PR03E controlled COS identity
+  ---
+  duration_ms: 2.289208
+  type: 'test'
+  ...
+# Subtest: PR03E exclusive upload namespace removes bounded abandoned copies but rejects unknown names
+ok 12 - PR03E exclusive upload namespace removes bounded abandoned copies but rejects unknown names
+  ---
+  duration_ms: 4.472208
+  type: 'test'
+  ...
+# Subtest: PR03E COS exclusive namespace rejects redirect and unknown keys before deletion
+ok 13 - PR03E COS exclusive namespace rejects redirect and unknown keys before deletion
+  ---
+  duration_ms: 6.788
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 192.320167

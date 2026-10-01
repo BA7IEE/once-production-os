@@ -23,7 +23,9 @@ export interface RouteDefinition {
     permission?: Permission;
     schema?: Schema<unknown>;
 }
-export const ROUTES: RouteDefinition[] = [...TALENT_AUTH_ROUTES,...TALENT_MAINTENANCE_ROUTES,
+export const ROUTES: RouteDefinition[] = [
+    {method:'GET',path:'/media-purge/status',operation:'mediaPurge.status',mode:'READ',permission:'members.manage'},
+    {method:'POST',path:'/media-purge/reconcile',operation:'mediaPurge.reconcile',mode:'COMMAND',permission:'members.manage',schema:Schemas.empty},...TALENT_AUTH_ROUTES,...TALENT_MAINTENANCE_ROUTES,
     {method:'POST',path:'/brands',operation:'brand.create',mode:'COMMAND',permission:'records.write',schema:PartySchemas.create},
     {method:'GET',path:'/brands',operation:'brand.list',mode:'READ',permission:'records.read'},
     {method:'PATCH',path:'/brands/{id}',operation:'brand.patch',mode:'COMMAND',permission:'records.write',schema:PartySchemas.patch},

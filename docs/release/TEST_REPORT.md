@@ -1,3 +1,9 @@
+## 2026-10-01：PR-03E 回收与 PR-03 总收口（Draft、未合并、未部署）
+
+本轮本地 Core **677/677**，完整 PostgreSQL **70个程序 / 160项**，原11组Browser及新增清理Browser均通过，最终68迁移另复跑完整清理旅程；checkpoint17项、静态12项、类型/契约/构建均通过。恢复末次门禁另由真实PG复跑，CI须绑定最终head。
+
+A–D已由用户冻结，基线ff6e10f。本轮接通独立清理计划、逐对象UNKNOWN核对、确认物理删除后归还容量、审核竞争、显式删除交接和恢复隔离。新增前向迁移67–68，1–66未改；67应用后不回写，68补强JSON空值拒绝和对象身份不可变；保留库66→67的91张旧表内容摘要不变。完整合同、40项验收映射及限制见 [PR03E_ACCEPTANCE.md](PR03E_ACCEPTANCE.md)，本轮实测汇总见 `artifacts/talent-experience-pr03-cleanup/verification.json`。最终head CI另绑定PR描述和交付回复，通过前不宣称DEVELOPMENT FROZEN。Provider/COS/物理手机/生产迁移仍NOT_RUN，不进入PR-04等后续业务。下方为历史切片记录。
+
 ## 2026-10-01：PR-03D finalization（Draft，待复核）
 
 本轮本地验证：Core 643/643；PostgreSQL 60个测试程序、150项通过，关键反例另行复跑；11组真实Chrome通过，最终页面另复跑 Work/Production 两组。契约260路由、静态12项、checkpoint 17项通过。最终CI以交付回复和PR描述中绑定最终SHA的记录为准。

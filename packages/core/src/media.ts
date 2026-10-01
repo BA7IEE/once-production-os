@@ -154,7 +154,7 @@ export class Media {
         const u=await uploadFor(tx,actor,id),s=await talentUploadContext(tx,actor,u,this.clock,this.config);
         const d=MediaSchemas.revision.parse(input),a=await this.staged(tx,actor,id);cas(a,d.expectedRevision);
         const r=(await tx.find('personMedia',{workspaceId:u.workspaceId,assetId:id}))[0]!;
-        await tx.replace('personMedia',{...touch(r,this.clock),usageState:'RETIRED',protectionEpoch:r.protectionEpoch+1,retiredAt:this.clock.now().toISOString(),retainUntil:new Date(this.clock.now().getTime()+7*86400000).toISOString()});
+        await tx.replace('personMedia',{...touch(r,this.clock),usageState:'RETIRED',protectionEpoch:r.protectionEpoch+1,retiredAt:this.clock.now().toISOString(),retainUntil:new Date(this.clock.now().getTime()+(this.config.mediaRetention?.withdrawn??7)*86400000).toISOString()});
         const next={...touch(a,this.clock),usageState:'RETIRED' as const,protectionEpoch:(a.protectionEpoch??1)+1};await tx.replace('assets',next);
         for(const item of await tx.find('talentSubmissionItems',{workspaceId:u.workspaceId,submissionId:s.id,kind:'MEDIA',targetId:id}))await tx.remove('talentSubmissionItems',item.id);
         await tx.replace('talentSubmissions',touch(s,this.clock));return next;

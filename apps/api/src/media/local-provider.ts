@@ -1,6 +1,7 @@
+import type {PurgeObjectRef,ObjectPresence} from './purge-provider.ts';
 import {validateByteRequest, exactLengthStream, type ImmutableMediaObject, type ByteStreamRequest, type OpenMediaStream} from './byte-stream.ts';
 import { constants } from 'node:fs';
-import { mkdir, realpath, lstat, open, chmod, rename, rm, readdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, realpath, lstat, open, chmod, rename, rm, readdir, readFile, writeFile, unlink } from 'node:fs/promises';
 import type { FileHandle } from 'node:fs/promises';
 import { join, resolve, isAbsolute, dirname } from 'node:path';
 import { Transform, Writable, type Readable } from 'node:stream';
@@ -190,6 +191,38 @@ export class LocalMediaProvider {
         finally {
             await file.close();
         }
+    }
+    private async purgePath(ref:PurgeObjectRef):Promise<string|null> {
+        invariant(await realpath(this.root)===this.root,'MEDIA_FILE_INVALID','私有根目录身份异常',503);
+        const parts=[join(this.root,'uploads'),this.group(ref.uploadId),this.work(ref.uploadId,ref.objectToken)];
+        for(const path of parts){try{const s=await lstat(path);invariant(s.isDirectory()&&!s.isSymbolicLink(),'MEDIA_FILE_INVALID','对象父目录身份异常',503);}catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')return null;throw e;}}
+        invariant(ref.part==='original'||ref.part==='preview','MEDIA_FILE_INVALID','对象类型无效',503);
+        return join(parts[2]!,ref.part==='original'?'original.bin':'preview.jpg');
+    }
+    async statPurgeObject(ref:PurgeObjectRef,signal:AbortSignal):Promise<ObjectPresence>{
+        invariant(!signal.aborted,'MEDIA_CANCELLED','清理已取消',409);const path=await this.purgePath(ref);if(!path)return 'MISSING';
+        let opened:Awaited<ReturnType<LocalMediaProvider['checkedFile']>>;
+        try{opened=await this.checkedFile(path);}catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')return 'MISSING';throw e;}
+        const {file,st}=opened;
+        try{invariant(st.nlink===1&&st.size===ref.bytes&&(st.mode&0o222)===0,'MEDIA_FILE_INVALID','对象长度或权限变化',503);const hash=createHash('sha256');for await(const chunk of file.createReadStream({autoClose:false})){invariant(!signal.aborted,'MEDIA_CANCELLED','清理已取消',409);hash.update(chunk);}invariant(hash.digest('hex')===ref.hash,'MEDIA_FILE_INVALID','对象摘要变化',503);return 'EXISTS';}finally{await file.close();}
+    }
+    async deleteImmutableObject(ref:PurgeObjectRef,signal:AbortSignal){
+        if(await this.statPurgeObject(ref,signal)==='MISSING')return;const path=await this.purgePath(ref);if(!path)return;
+        invariant(!signal.aborted,'MEDIA_CANCELLED','清理已取消',409);try{await unlink(path);}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
+    }
+    /** Upload UUID namespaces are exclusive, including bounded abandoned processing attempts. */
+    async purgeOwnedNamespace(ref:PurgeObjectRef,signal:AbortSignal){
+        await this.purgePath(ref);invariant(!signal.aborted,'MEDIA_CANCELLED','清理已取消',409);
+        let entries:import('node:fs').Dirent[];try{entries=await readdir(this.group(ref.uploadId),{withFileTypes:true});}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;entries=[];}
+        invariant(entries.length<=5,'MEDIA_PURGE_IDENTITY','暂存目录对象数量异常',503);
+        for(const entry of entries){
+            invariant(!entry.isSymbolicLink(),'MEDIA_PURGE_IDENTITY','暂存目录不能有符号链接',503);
+            if(entry.isFile()){invariant(/^ingest-[0-9a-f-]{36}\.bin$/.test(entry.name),'MEDIA_PURGE_IDENTITY','未知暂存对象',503);continue;}
+            invariant(entry.isDirectory()&&/^work-[0-9a-f-]{36}$/.test(entry.name),'MEDIA_PURGE_IDENTITY','未知处理目录',503);
+            const files=await readdir(join(this.group(ref.uploadId),entry.name),{withFileTypes:true});invariant(files.length<=2&&files.every(f=>f.isFile()&&!f.isSymbolicLink()&&['original.bin','preview.jpg'].includes(f.name)),'MEDIA_PURGE_IDENTITY','处理目录有未知对象或未决云写入',503);
+        }
+        await this.purge(ref.uploadId);
+        try{await lstat(this.group(ref.uploadId));invariant(false,'MEDIA_PURGE_UNKNOWN','私有暂存目录仍存在',503);}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
     }
     async purge(id: string): Promise<void> {
         const from = this.group(id), trash = join(this.root, 'trash', uuid.parse(id));
