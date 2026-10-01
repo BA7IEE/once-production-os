@@ -23,7 +23,7 @@ function error(res: Response, e: unknown) {
 export function registerMediaHttp(server: Express, core: Application, provider: LocalMediaProvider | null) {
     registerPlaybackHttp(server, core, provider);
     const headers = (res: Response) => { res.set({ 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'Cross-Origin-Resource-Policy': 'same-origin' }); };
-    server.put('/api/v1/uploads/:id/content', async (req, res) => {
+    server.put(['/api/v1/uploads/:id/content','/api/v1/portal/uploads/:id/content'], async (req, res) => {
         headers(res);
         let claimed: Awaited<ReturnType<typeof core.media.beginReceive>> | null = null;
         const abort = new AbortController(), timer = setTimeout(() => abort.abort(), L.receiveMs);
@@ -33,9 +33,10 @@ export function registerMediaHttp(server: Express, core: Application, provider: 
             invariant(/^\d+$/.test(req.headers['content-length'] ?? ''), 'CONTENT_LENGTH_REQUIRED', '上传需要明确的Content-Length', 411);
             invariant(!req.headers['transfer-encoding'] && !req.url.includes('?'), 'BINARY_REQUEST_INVALID', '不支持该传输格式', 400);
             const id = uuid.parse(req.params.id), bytes = Number(req.headers['content-length']), r = request(req);
-            claimed = await core.authenticated(r, 'assets.upload', (tx, actor) => core.media.beginReceive(tx, actor, id, bytes));
+            const talent=req.path.startsWith('/api/v1/portal/');
+            claimed = talent?await core.portal.authenticated(r,(tx,actor)=>core.media.beginReceive(tx,actor,id,bytes)):await core.authenticated(r, 'assets.upload', (tx, actor) => core.media.beginReceive(tx, actor, id, bytes));
             const result = await provider.receive(claimed, req, abort.signal);
-            const received = await core.authenticated(r, 'assets.upload', (tx, actor) => core.media.finishReceive(tx, actor, id, claimed!.receiveToken!, result.bytes, result.sha256));
+            const received = talent?await core.portal.authenticated(r,(tx,actor)=>core.media.finishReceive(tx,actor,id,claimed!.receiveToken!,result.bytes,result.sha256)):await core.authenticated(r, 'assets.upload', (tx, actor) => core.media.finishReceive(tx, actor, id, claimed!.receiveToken!, result.bytes, result.sha256));
             res.status(200).json(received);
         }
         catch (e) {
@@ -61,6 +62,18 @@ export function registerMediaHttp(server: Express, core: Application, provider: 
             });
             res.set({'Content-Type':'application/octet-stream','Content-Disposition':`attachment; filename="${assetId}.${part==='original'?'original.bin':'preview.jpg'}"`,'Content-Security-Policy':"default-src 'none'; sandbox"}).status(200).send(bytes);
         } catch(e) {error(res,e);}
+    });
+    for(const path of ['/api/v1/portal/accounts/:accountId/assets/:id/preview','/api/v1/talent-staged-assets/:id/preview'])server.get(path,async(req,res)=>{
+        headers(res);
+        try{
+            invariant(provider,'MEDIA_DISABLED','私有媒体存储尚未启用',503);invariant(req.method==='GET'&&!req.url.includes('?')&&!req.headers.authorization,'BINARY_REQUEST_INVALID','请求无效',400);
+            const id=uuid.parse(req.params.id),r=request(req),talent=req.path.startsWith('/api/v1/portal/');
+            if(talent)r.headers['x-once-talent-account']=uuid.parse(req.params.accountId);
+            const read=(log:boolean)=>talent?core.portal.authenticated(r,(tx,a)=>core.media.staged(tx,a,id,log?{requestId:randomUUID(),ip:r.ip}:undefined)):core.authenticated(r,'talent.review',(tx,a)=>core.media.staged(tx,a,id,log?{requestId:randomUUID(),ip:r.ip}:undefined));
+            const a=await read(false),bytes=await provider.readPreview(a),current=await read(true);
+            invariant(current.revision===a.revision&&current.objectToken===a.objectToken,'NOT_FOUND','素材不可访问',404);
+            res.set({'Content-Type':'image/jpeg','Content-Disposition':'inline; filename="preview.jpg"','Content-Security-Policy':"default-src 'none'; sandbox"}).status(200).send(bytes);
+        }catch(e){error(res,e);}
     });
     server.get('/api/v1/assets/:id/preview', async (req, res) => {
         headers(res);

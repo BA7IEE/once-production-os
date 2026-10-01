@@ -7,6 +7,10 @@ export interface AssetDto {
     id: string;
     sourceId: string;
     personId: string | null;
+    originSourceId?: string | null;
+    personRoleId?: string | null;
+    relationId?: string;
+    usageState: 'STAGED' | 'ADOPTED' | 'RETIRED';
     fileName: string;
     mime: string;
     bytes: number;

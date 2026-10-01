@@ -1,3 +1,4 @@
+import {mediaUsage} from './media-model.ts';
 import { ageRange, PROFILE_DEFAULTS, ROLE_DEFAULTS } from './talent-demographics.ts';
 import type { Actor, Clock, Person, Source, Table, TableMap } from './model.ts';
 import type { Tx } from './store.ts';
@@ -34,7 +35,7 @@ export async function replaceFact(tx:Tx,table:FactTable,row:FactRow){await tx.re
 /** A single bounded snapshot feeds detail, search, facets, shortlists and export projections. */
 export async function loadTalentGraph(tx:Tx,actor:Actor,clock:Clock,personIds?:string[]){
     const visibility=await loadVisibility(tx,actor,clock);
-    const tables=[...TD2_TABLES,'people','organizations','capabilityDefinitions','mediaCollectionItems','assets','evidence','personAliases','deletionRequests','workCredits','works','projectParticipants','projects','dictionary'] as const;
+    const tables=[...TD2_TABLES,'people','organizations','capabilityDefinitions','mediaCollectionItems','personMedia','assets','evidence','personAliases','deletionRequests','workCredits','works','projectParticipants','projects','dictionary'] as const;
     const data:Partial<Record<Table,unknown[]>>={};
     for(const table of tables){
         let rows:TableMap[typeof table][];
@@ -83,9 +84,11 @@ export async function loadTalentGraph(tx:Tx,actor:Actor,clock:Clock,personIds?:s
         return evidence.length? evidence.some(e=>supported(e,row[key]??null)):sourceUsable(String(row.sourceId));
     };
     const assetReadable=(id:string)=>{
-        const a=record('assets',id);
-        return !!a && a.state==='READY' && visibility.scopeVisible(a.scopeId) && sourceUsable(a.sourceId)
-            && (!a.personId || (!!personMap.get(a.personId) && identityReadable(personMap.get(a.personId)!)))
+        const a=record('assets',id),r=rows('personMedia').find(r=>r.assetId===id&&r.usageState==='ADOPTED');
+        const sourceId=a?.sourceId??r?.sourceId,personId=r?.personId??a?.personId;
+        return !!a && mediaUsage(a)==='ADOPTED' && !!sourceId && a.state==='READY' && visibility.scopeVisible(a.scopeId) && sourceUsable(sourceId)
+            && (!personId || (!!personMap.get(personId) && identityReadable(personMap.get(personId)!)))
+            && (!r?.personRoleId || (()=>{const role=record('personRoles',r.personRoleId);return !!role&&role.personId===personId&&role.status==='ACTIVE'&&periodCurrent(asRow(role),clock)&&sourceUsable(role.sourceId);})())
             && !blockedAssets.has(id);
     };
     const organizationReadable=(id:string)=>{

@@ -24,9 +24,9 @@ export interface BackupMediaManifest {
 }
 
 type MediaIdentityRow = {
-    id:string;uploadId:string;sourceId:string;scopeId:string;personId:string|null;revision:number;
+    id:string;uploadId:string;sourceId:string|null;scopeId:string;personId:string|null;revision:number;
     fileName:string;mime:string;bytes:number;sha256:string;width:number;height:number;
-    previewBytes:number;previewHash:string;objectToken:string;state:string;
+    previewBytes:number;previewHash:string;objectToken:string;state:string;usageState?:string;protectionEpoch?:number;
 };
 function backupIdentity(rows: MediaIdentityRow[]) {
     return digest(rows.map(x=>({
@@ -38,7 +38,7 @@ function backupIdentity(rows: MediaIdentityRow[]) {
 }
 function stateIdentity(rows: MediaIdentityRow[]) {
     return digest(rows.map(x=>({
-        id:x.id,revision:x.revision,state:x.state,
+        id:x.id,revision:x.revision,state:x.state,usageState:x.usageState??'ADOPTED',protectionEpoch:x.protectionEpoch??1,
         backupIdentity: {
             uploadId:x.uploadId,sourceId:x.sourceId,scopeId:x.scopeId,personId:x.personId,
             fileName:x.fileName,mime:x.mime,bytes:x.bytes,sha256:x.sha256,

@@ -1,3 +1,4 @@
+import {loadMediaAdmission} from './media/admission-config.ts';
 import {loadPlaybackLimits} from './media/playback-limits.ts';
 import {loadTalentAuthConfig} from './talent-auth-config.ts';
 import { isAbsolute } from 'node:path';
@@ -50,6 +51,6 @@ export function loadConfig(): Config {
     const recoveryEpoch = readFileSync(required('RECOVERY_EPOCH_FILE'), 'utf8').trim();
     if (!/^[A-Za-z0-9_-]{32,128}$/.test(recoveryEpoch))
         throw new Error('RECOVERY_EPOCH_FILE must contain a 32-128 character base64url-style epoch');
-    return { mediaPlayback:loadPlaybackLimits(process.env), talentAuth:loadTalentAuthConfig(environment), mediaEnabled: media !== 'disabled', origin: required('APP_ORIGIN'), secureCookies: secure === 'true', environment: environment as Config['environment'], accessMode: accessMode as Config['accessMode'], dataEgressMode: egress as Config['dataEgressMode'], dataCleanupMode: cleanup as Config['dataCleanupMode'], dataMergeMode: merge as Config['dataMergeMode'],
+    return { mediaAdmission:loadMediaAdmission(process.env), mediaPlayback:loadPlaybackLimits(process.env), talentAuth:loadTalentAuthConfig(environment), mediaEnabled: media !== 'disabled', origin: required('APP_ORIGIN'), secureCookies: secure === 'true', environment: environment as Config['environment'], accessMode: accessMode as Config['accessMode'], dataEgressMode: egress as Config['dataEgressMode'], dataCleanupMode: cleanup as Config['dataCleanupMode'], dataMergeMode: merge as Config['dataMergeMode'],
         contactKey: key('CONTACT_KEY_FILE'), csrfKey: key('CSRF_KEY_FILE'), recoveryEpoch };
 }

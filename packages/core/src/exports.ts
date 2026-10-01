@@ -1,3 +1,4 @@
+import {formalMediaSource} from './media-ownership.ts';
 import {PARTY_FIELD,collectParties,type PartyTransfer} from './project-parties.ts';
 import {LOCALE_EXPORT_VERSION,collectLocaleTransfer,isLocaleCode,localeTransferCode,type LocaleTransfer} from './locale-transfer.ts';
 import {localeSubject} from './locale-model.ts';
@@ -88,7 +89,7 @@ export class Exports {
             return { source: await sourceFor(tx, actor, row.sourceId, this.clock), revision: row.revision, protectionEpoch: null };
         }
         const row = await readyAsset(tx, actor, id, this.clock);
-        return { source: await sourceFor(tx, actor, row.sourceId, this.clock), revision: row.revision, protectionEpoch: null };
+        return { source: await sourceFor(tx, actor, (await formalMediaSource(tx,row))??'', this.clock), revision: row.revision, protectionEpoch: null };
     }
 
     async createPermission(tx: Tx, actor: Actor, input: unknown): Promise<UsePermission> {
@@ -295,14 +296,14 @@ export class Exports {
                 const entries = (await tx.find('workAssets', { workspaceId: actor.workspaceId, workId: work.id })).sort((a, b) => a.position - b.position);
                 for (const entry of entries) {
                     const asset = await readyAsset(tx, actor, entry.assetId, this.clock);
-                    const source = await sourceFor(tx, actor, asset.sourceId, this.clock);
+                    const source = await sourceFor(tx, actor, (await formalMediaSource(tx,asset))??'', this.clock);
                     sources.set(source.id, source);
-                    const permission = this.choosePermission(permissions, used, 'ASSET', asset.id, asset.sourceId, ['media.identity']);
+                    const permission = this.choosePermission(permissions, used, 'ASSET', asset.id, source.id, ['media.identity']);
                     if (!mediaDependencies.has(asset.id)) {
                         dependencies.push(this.dependency(actor.workspaceId, job.id, 'ASSET', asset.id, ['media.identity'], source, asset.revision, null, permission, initialExpiry));
                         mediaDependencies.add(asset.id);
                     }
-                    media.push({ id: asset.id, workId: work.id, position: entry.position, isCover: entry.id === work.coverEntryId, sourceId: asset.sourceId,
+                    media.push({ id: asset.id, workId: work.id, position: entry.position, isCover: entry.id === work.coverEntryId, sourceId: source.id,
                         revision: asset.revision, fileName: asset.fileName, mime: asset.mime, bytes: asset.bytes, sha256: asset.sha256, width: asset.width, height: asset.height });
                 }
             }

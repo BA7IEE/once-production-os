@@ -1,12 +1,55 @@
 # PR-03：模卡、照片、视频、作品案例和本人多来源媒体维护
 
-## 基线与状态
+## 当前交付：媒体归属与暂存底座
 
-PR-02 已合并、开发冻结、未部署，`PROVIDER_VERIFIED=NOT_RUN`。PR #30 以 `9fc2f9295068a16a16e6409b6df1c230bbe055ca` 为 expected head 合并，main 为 `1a297d86ecfeac5d7a3c748322a867c9852a20c9`；[main CI 36815702669](https://github.com/BA7IEE/once-production-os/actions/runs/36815702669) 9/9 SUCCESS 后创建独立分支 `codex/talent-experience-pr03`。
+PR #31 保持 **Draft、未合并、未部署**。本轮接续已复核视频切片 `2fb01a713b62fce9513bd15d5ed289e80adb4453`，实现 spec/15 §10.2–10.8 的媒体归属与暂存底座；PR-03整体尚未完成。PR-02已合并、开发冻结、未部署，真实认证 `PROVIDER_VERIFIED=NOT_RUN`。
 
-**PR-03 已启动，当前仅交付内部受控视频播放切片；PR-03 整体未完成。** 本分支保持 Draft，未合并、未部署，不开放真实外部入口。范围沿用冻结 spec/15 第10、13、17.6、18节及 spec/16 ADR-TE-04，不重新做产品规划，不进入客户分享/官网/支付/CRM。
+### 数据与授权
 
-## 当前已实现切片
+- 新增 **迁移62 `202610010007_media_ownership`**；1–61不改。MediaUpload 的真实主体为 Membership 或 TalentAccount，数据库FK/XOR/CHECK验证归属。UploadContext区分INTERNAL_SOURCE/TALENT_SUBMISSION；AGENT_SUBMISSION只有保留类型及ServicePrincipal FK字段，数据库拒绝该分支，不存在机器摄取入口。
+- PersonMedia记录personId、可选personRoleId、assetId、正式sourceId或submissionId、用途、usageState、revision/protectionEpoch、保留/退休/物理清理时间。本人新上传保留null原始sourceId，绝不创建假Source/Membership。
+- 技术READY与业务STAGED正交。普通资产/TD2/目录/作品/候选/导出拒绝STAGED；本人和具备申请接收范围、档案范围及审核权限的员工使用专用路径。审核批准同事务创建Source、SourceAttribution/SourceUseBasis和ADOPTED关系，原Asset ID/hash/uploader不变。
+- 内部ADOPTED读取通过正式Person/Role/Source关系授权；旧INTERNAL_SOURCE仍要求原主来源一致。普通Asset DTO的sourceId/personId指正式关系，originSourceId明确原始来源，保留旧内部DTO值，导出许可选择器可继续使用正式sourceId。
+- 创建、接收、complete、worker claim/lease/heartbeat/finish逐阶段检查账号/Grant/Claim/Submission、DRAFT、媒体同意、recoveryEpoch、scope、删除保护与容量。账号切换后URL中的accountId和实际Talent Cookie不符即拒绝。
+
+### 请求及页面边界
+
+- `POST /portal/submissions/{id}/media-consent`：独立版本 `internal-directory-media-2026-10-v1`，不复用只包含文字的旧同意记录。
+- `POST /portal/uploads`：`context={kind:TALENT_SUBMISSION,submissionId,personRoleId?}`、expectedSubmissionRevision、新文件元数据；account、Person、Grant、scope由服务端推导。旧内部`POST /uploads`兼容原合同及显式INTERNAL_SOURCE。unknown-fields reject不变；ENROLL不能传既有assetId。
+- `GET /portal/uploads/{id}`、`PUT .../content`、`POST .../complete|cancel`、`POST /portal/assets/{id}/retire`。DRAFT可增删，SUBMITTED不得追加；单批最多100文件，处理全部结束后才可提交。
+- 本人 `GET /portal/accounts/{accountId}/assets/{id}/preview|playback`；审核 `GET /talent-staged-assets/{id}/preview|playback`。复用既有私有provider和Range/stream，不生成公开URL、不扩大播放器。
+- 仅在既有服务器草稿和审核页面嵌入最小上传/查看/采纳操作，用于验证链路；没有新媒体集合、作品或延期模块菜单。弱网传输结果未知先查询原uploadId，complete可继续原文件。
+
+### 生命周期
+
+| 路径 | 当前行为 |
+|---|---|
+| 保留状态 | DRAFT90天、SUBMITTED180天、拒绝/部分未采纳30天、撤回7天；ADOPTED无草稿TTL；有效保存同步关系到期时间 |
+| 主动退休 | DRAFT素材变RETIRED，立即拒绝读；技术READY不伪改FAILED；真实物理清理前不释放容量 |
+| 删除 | Person删除阻断本人暂存原件；正式Source/Person关系进入删除依赖；物理清理确认后才写ERASED/purgedAt |
+| 合并 | 只移动已ADOPTED正式关系，保留上传原归属；STAGED不转给主档，旧Grant撤销；精确Role被上传引用时预览明确阻断职业迁移，不能静默丢弃Role |
+| 业务JSON | STAGED不导出；ADOPTED带正式来源/关系和必要历史归因，重建不产生TalentAccount/Claim/Grant/Session |
+| 备份恢复 | 实际pg_dump/restore及私有原件/预览恢复保留usageState/hash/uploader；恢复prepare隔离技术读取、撤销会话/Grant，旧授权不复活 |
+| 完整性 | 新关系进入PrismaStore/MemoryStore、完整性检查及恢复摘要；无半采纳提交；旧上传/资产源字段不可变 |
+
+容量配置集中校验、仅允许收紧：本人2GB、ENROLL200MB，保持既有workspace2GB、活动1GB、并发3/20、每小时100。配置名与细节见 `.env.example` 和 spec/16 本轮合同；不代表扩大旧部署容量。
+
+### 验证与证据
+
+本轮证据目录：`artifacts/talent-experience-pr03-staging/`。Core覆盖15个新增媒体归属场景；真实PostgreSQL验证FK/XOR、并发、同事务采纳回滚、导出重建和迁移61→62；真实Chrome360/390/430通过本人图片/H.264上传→异步worker READY/STAGED→本人查看→审核ADOPTED，包含未绑定ENROLL。实际恢复5个文件、32174字节，原件与预览hash一致，恢复隔离拒绝旧Portal和暂存访问。
+
+本地完整Core **622/622**、PG **40个TAP程序/130项全部通过**（另含最终职业归属/重建专项及实际恢复）、**9组Chrome流程**、原生媒体 **17/17**、surface策略 **20/20**；248路由合同、typecheck/transport、静态12项及构建通过。实际统计、命令和最终head绑定CI在本目录verification.json及当前PR描述记录；下方视频切片历史结果不作为本轮结果。真实PG14本地和GitHub PG16分开记录，合成认证网关/COS协议不替代真实供应商。
+
+### 尚未完成，等待本切片复核后推进
+
+1. MediaCollection、模卡/素颜/作品集/介绍视频的上传、排序、封面与作品案例表单。
+2. 完整暂存自动回收计划、到期提醒和物理清理调度；本轮只建立保留/退休/占用状态，不借既有FAILED清理器删除READY文件。
+3. 跨Submission复用媒体的显式引用；当前fork仅复制文字，新批需重新上传。精确Role媒体依赖的进一步人工合并处理仍受预览阻断。
+4. 真实邮件/短信 `PROVIDER_VERIFIED=NOT_RUN`、实际COS `COS_PROVIDER_VERIFIED=NOT_RUN`、真实iOS/Android/微信 `MOBILE_DEVICE_VERIFIED=NOT_RUN`。
+
+不进入客户分享、官网或PR-04 Agent摄取业务。完成本轮后继续Draft，等待复核。
+
+## 历史切片：内部受控视频播放（2fb01a7）
 
 - 新增 `GET /api/v1/assets/{id}/playback`，BINARY、`assets.read`。沿用当前内部会话、原生scope、人物、来源、删除保护、恢复隔离和READY判定；Talent Cookie不替代内部会话，机器Bearer拒绝。没有借用导出链接或生成公开对象URL。
 - 无Range返回200，单个闭合/开放/后缀Range返回206，不可满足范围416；多Range和未知单位按HTTP允许方式忽略并完整200。Content-Length、Content-Range、Accept-Ranges正确；HEAD不实现，返回405。
@@ -19,7 +62,7 @@ PR-02 已合并、开发冻结、未部署，`PROVIDER_VERIFIED=NOT_RUN`。PR #3
 
 本切片无schema变化，无新增迁移；1–61逐文件冻结，保留旧素材source/hash/objectToken。新增读取路由和最小读取审计不改变业务JSON载荷、删除图或恢复实体。恢复隔离仍拒绝播放；物理清理与隔离后后续请求不可读。
 
-## 实测边界
+### 视频切片原始实测记录
 
 本地完整 `pnpm verify` 通过：Core **607/607**、零失败/跳过，类型、237路由合同、静态/存储门禁和构建通过；追加修改后的播放/COS专项 **13/13**、类型和transport通过。原生处理 **17/17**，真实PG/Chrome媒体链路通过。最终head的全量CI结果独立回填PR，不沿用main或PR-02结果。
 
@@ -30,17 +73,3 @@ PR-02 已合并、开发冻结、未部署，`PROVIDER_VERIFIED=NOT_RUN`。PR #3
 - 真实Nest/Prisma/PostgreSQL/Chrome媒体流程：图片、PDF、H.264/AAC上传与异步worker、原生播放/末尾seek、精确Range字节比对、原生scope拒绝、审计触发器失败不泄露视频、正式角色授权后的隔离。首跑测试错误使用无审核权编辑员隔离而403；修正为先断言拒绝、正式授权REVIEWER并重新登录后隔离，保留反例和复测日志，没有放宽权限或超时。
 
 真实邮件/短信 `PROVIDER_VERIFIED=NOT_RUN`；实际COS凭证与Range服务验证 `COS_PROVIDER_VERIFIED=NOT_RUN`；真实iOS/Android/微信浏览器播放 `MOBILE_DEVICE_VERIFIED=NOT_RUN`。Chrome及合成协议通过不替代这些验收。
-
-## PR-03 待继续的冻结范围
-
-以下尚未实现，不能因本次视频切片通过而标记完成：
-
-1. INTERNAL_SOURCE / TALENT_SUBMISSION / AGENT_SUBMISSION真实上传主体，已绑定Grant和未绑定ENROLL的暂存上下文；worker逐阶段资格复查，STAGED/ADOPTED/RETIRED与技术READY正交。
-2. 同一Person/Role的多来源媒体关系，A/B来源分别有效，不再要求沿用主来源；所有普通/本人/审核读取、目录、作品、候选、导出一致授权。
-3. 模卡/素颜/作品集/介绍视频行内上传、排序、封面；PDF保持不解析、显式图片封面。照片不能被迫伪造Work。
-4. 作品案例表单、EXTERNAL Work/WorkCredit/WorkAsset/WorkMetadata、未知品牌/年份、多人共用作品只提交本人署名声明。
-5. 本人媒体服务器草稿、冻结条目、依赖组审核和同档采纳；媒体用途同意版本，不能借用PR-02只覆盖文字的同意。
-6. 可配置个人/ENROLL/工作空间准入预算，READY未采纳素材的业务回收计划、安全日志、真实物理清理确认后归还额度；fork/采纳/回收并发。
-7. 新增关系同步前向迁移、旧库升级/空库安装、权限/回执/审计、JSON导出重建、删除、合并与备份恢复；本人多来源完整手机旅程及A来源失效/B可用反例。
-
-不提前实现PR-04机器摄取业务、PR-05价格与档期、PR-06客户分享或PR-07官网发布；相关媒体上下文与关系按冻结合同逐步接入。

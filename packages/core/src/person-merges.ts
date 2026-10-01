@@ -99,6 +99,9 @@ export class PersonMerges {
         const talent = await scanTalentMerge(tx, actor, this.clock, canonical.id, duplicate.id);
         for (const code of talent.blockers) blocker(blockers, code);
 
+        // A selected upload Role is a historical origin. Do not silently move or drop that binding.
+        const pinnedMediaRoles=(await tx.find('uploads',{workspaceId:actor.workspaceId,personId:duplicate.id})).filter(u=>u.personRoleId&&u.state!=='ERASED');
+        if(pinnedMediaRoles.length)blocker(blockers,'MEDIA_ROLE_DEPENDENCY_REQUIRES_REVIEW',pinnedMediaRoles.length);
         if (canonical.scopeId !== duplicate.scopeId) blocker(blockers, 'SCOPE_MISMATCH');
         if (canonical.status === 'ERASED' || duplicate.status === 'ERASED') blocker(blockers, 'ERASED_PERSON');
         if (await personAliasFor(tx, actor.workspaceId, canonical.id)) blocker(blockers, 'CANONICAL_ALREADY_ALIAS');
@@ -149,19 +152,21 @@ export class PersonMerges {
 
         const uploadRows = await tx.find('uploads', { workspaceId: actor.workspaceId, personId: duplicate.id });
         for (const row of uploadRows) {
-            try { await requireScope(tx, actor, row.scopeId); await sourceFor(tx, actor, row.sourceId, this.clock, false); }
+            try { await requireScope(tx, actor, row.scopeId); if(row.sourceId)await sourceFor(tx, actor, row.sourceId, this.clock, false); }
             catch(e) { if(e instanceof AppError && e.status===404) blocker(blockers,'HIDDEN_MEDIA_DEPENDENCY'); else throw e; }
         }
+        const formalMedia=await tx.find('personMedia',{workspaceId:actor.workspaceId,personId:duplicate.id,usageState:'ADOPTED'});
+        for(const r of formalMedia){const a=await tx.get('assets',r.assetId);try{if(!a||!r.sourceId)missing();await requireScope(tx,actor,a.scopeId);await sourceFor(tx,actor,r.sourceId,this.clock,false);}catch(e){if(e instanceof AppError&&e.status===404)blocker(blockers,'HIDDEN_MEDIA_DEPENDENCY');else throw e;}}
         const assetRows = await tx.find('assets', { workspaceId: actor.workspaceId, personId: duplicate.id });
         for (const row of assetRows) {
-            try { await requireScope(tx, actor, row.scopeId); await sourceFor(tx, actor, row.sourceId, this.clock, false); }
+            try { await requireScope(tx, actor, row.scopeId); if(row.sourceId)await sourceFor(tx, actor, row.sourceId, this.clock, false); }
             catch(e) { if(e instanceof AppError && e.status===404) blocker(blockers,'HIDDEN_MEDIA_DEPENDENCY'); else throw e; }
         }
-        const assetReassignIds = assetRows.filter(a => a.sourceId === canonical.sourceId && a.state !== 'ERASED').map(a=>a.id).sort();
-        const assetDetachIds = assetRows.filter(a => a.sourceId !== canonical.sourceId && a.state !== 'ERASED').map(a=>a.id).sort();
+        const assetReassignIds = assetRows.filter(a => a.sourceId!==null && a.sourceId === canonical.sourceId && a.state !== 'ERASED').map(a=>a.id).sort();
+        const assetDetachIds = assetRows.filter(a => a.sourceId!==null && a.sourceId !== canonical.sourceId && a.state !== 'ERASED').map(a=>a.id).sort();
         const covers=await tx.find('talentProfiles',{workspaceId:actor.workspaceId,personId:duplicate.id});
         invariant(!covers.some(p=>p.coverAssetId&&assetDetachIds.includes(p.coverAssetId)),'MERGE_COVER_DETACH_CONFLICT','重复人物的封面原件来自另一来源，请先明确移除封面选择后重新预览合并；原件仍按来源保留',409);
-        const uploadIds = uploadRows.filter(u => u.state !== 'ERASED').map(u=>u.id).sort();
+        const uploadIds = uploadRows.filter(u => u.sourceId!==null && u.state !== 'ERASED').map(u=>u.id).sort();
 
         const collisions: Collision[] = [];
         const workCreditMoveIds: string[] = [], projectParticipantMoveIds: string[] = [], shortlistItemMoveIds: string[] = [];
@@ -364,6 +369,8 @@ export class PersonMerges {
             if (row?.personId === plan.duplicate.id) await tx.replace('uploads', { ...touch(row, this.clock),
                 personId: null, personEpoch: null, personScopeId: null, personScopeRevision: null });
         }
+        // Only already adopted formal relations move. Staging and immutable upload origin stay put.
+        for(const r of await tx.find('personMedia',{workspaceId:actor.workspaceId,personId:plan.duplicate.id,usageState:'ADOPTED'}))await tx.replace('personMedia',{...touch(r,this.clock),personId:plan.canonical.id,protectionEpoch:r.protectionEpoch+1});
         for (const id of plan.assetReassignIds) {
             const row = await workspaceRow(tx, 'assets', id, actor.workspaceId);
             if (row?.personId === plan.duplicate.id) await tx.replace('assets', { ...touch(row, this.clock), personId: plan.canonical.id });

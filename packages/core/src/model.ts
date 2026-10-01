@@ -12,7 +12,7 @@ import type {MergeHistoryErasure} from './merge-history-erasure-model.ts';
 import type { TalentV2Tables, TalentOwnerRefs } from './talent-v2-model.ts';
 import type { Work, WorkAsset, WorkCredit, Project, ProjectParticipant, ProjectWork } from './production-model.ts';
 import type { Shortlist, ShortlistItem, ShortlistItemAsset } from './shortlist-model.ts';
-import type { MediaUpload, MediaAsset } from './media-model.ts';
+import type { MediaUpload, MediaAsset, PersonMedia } from './media-model.ts';
 import type { UsePermission, ExportJob, ExportDependency } from './export-model.ts';
 import type { DeletionRequest, DeletionItem } from './deletion-model.ts';
 import type { PersonMergeDecision, PersonAlias } from './merge-model.ts';
@@ -264,6 +264,7 @@ export interface TableMap extends TalentV2Tables, TalentAuthTables, TalentMainte
     projectWorks: ProjectWork;
     uploads: MediaUpload;
     assets: MediaAsset;
+    personMedia: PersonMedia;
     workspaces: Workspace;
     users: User;
     memberships: Membership;
@@ -308,6 +309,7 @@ export interface Clock {
 export interface Config {
     talentAuth?: TalentAuthConfig;
     ai?: AiLedgerConfig;
+    mediaAdmission?: import('./media-model.ts').MediaAdmission;
     mediaEnabled?: boolean;
     mediaPlayback?: import('./media-playback.ts').MediaPlaybackLimits;
     origin: string;

@@ -93,7 +93,7 @@ export class TalentV2 {
         if(table==='talentProfiles'){
             validateDemographics(row,this.clock);
             for(const code of (row.nationalityCodes??[]) as string[])await this.dictionary(tx,actor,'nationality',code);
-            if(row.coverAssetId){const asset=graph.record('assets',String(row.coverAssetId));invariant(actor.permissions.includes('assets.read')&&graph.assetReadable(String(row.coverAssetId))&&asset?.personId===p.id&&asset.mime.startsWith('image/'),'COVER_UNAVAILABLE','封面须是本人当前可见且处理完成的照片',422);}
+            if(row.coverAssetId){const asset=graph.record('assets',String(row.coverAssetId));invariant(actor.permissions.includes('assets.read')&&graph.assetReadable(String(row.coverAssetId))&&(asset?.personId===p.id||(await tx.find('personMedia',{workspaceId:actor.workspaceId,assetId:String(row.coverAssetId),personId:p.id,usageState:'ADOPTED'})).length>0)&&asset?.mime.startsWith('image/'),'COVER_UNAVAILABLE','封面须是本人当前可见且处理完成的照片',422);}
         }
         if(table==='personRoles'){
             for(const [field,namespace]of [['styleCodes','roleStyle'],['serviceCodes','roleService']] as const){const codes=(row[field]??[]) as string[];invariant(new Set(codes).size===codes.length,'DUPLICATE_CODE','标签不能重复',422);for(const code of codes)await this.dictionary(tx,actor,namespace,code);}

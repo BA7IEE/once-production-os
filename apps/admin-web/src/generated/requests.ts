@@ -9,6 +9,17 @@ export interface Inputs {
   "portal.sessions.revoke": {  };
   "talent.account.disable": { "expectedRevision": number };
   "talent.account.erase": { "expectedRevision": number };
+  "portal.submission.mediaConsent": { "expectedRevision": number; "textVersion": "internal-directory-media-2026-10-v1"; "accepted": boolean };
+  "portal.upload.create": { "context": { "kind": "TALENT_SUBMISSION"; "submissionId": string; "personRoleId"?: string }; "expectedSubmissionRevision": number; "fileName": string; "mime": "image/jpeg" | "image/png" | "image/webp" | "application/pdf" | "video/mp4"; "expectedBytes": number; "sha256": string };
+  "portal.upload.get": undefined;
+  "portal.upload.complete": { "expectedRevision": number };
+  "portal.upload.cancel": { "expectedRevision": number };
+  "portal.asset.retire": { "expectedRevision": number };
+  "portal.upload.content": undefined;
+  "portal.asset.preview": undefined;
+  "portal.asset.playback": undefined;
+  "talent.asset.preview": undefined;
+  "talent.asset.playback": undefined;
   "talent.invitation.create": { "purpose": "CLAIM" | "ENROLL"; "targetPersonId"?: string; "scopeId": string; "recipientKind"?: "EMAIL" | "PHONE"; "recipient"?: string; "maxUses"?: number; "exposureFields": Array<"displayName" | "aliases" | "intro"> };
   "talent.invitation.list": undefined;
   "talent.invitation.issue": { "expectedRevision": number };
@@ -149,7 +160,7 @@ export interface Inputs {
   "project.workLink": { "expectedRevision": number; "workId": string; "relation": "REFERENCE" | "DELIVERABLE" };
   "project.workRemove": { "expectedRevision": number; "entryId": string };
   "person.production": undefined;
-  "upload.create": { "sourceId": string; "expectedSourceRevision": number; "personId"?: string; "fileName": string; "mime": "image/jpeg" | "image/png" | "image/webp" | "application/pdf" | "video/mp4"; "expectedBytes": number; "sha256": string };
+  "upload.create": { "context"?: { "kind": "INTERNAL_SOURCE" }; "sourceId": string; "expectedSourceRevision": number; "personId"?: string; "fileName": string; "mime": "image/jpeg" | "image/png" | "image/webp" | "application/pdf" | "video/mp4"; "expectedBytes": number; "sha256": string };
   "upload.list": undefined;
   "upload.get": undefined;
   "upload.content": undefined;
@@ -283,6 +294,61 @@ export const ENDPOINTS = {
     "method": "POST",
     "path": "/talent-accounts/{id}/erase",
     "mode": "COMMAND"
+  },
+  "portal.submission.mediaConsent": {
+    "method": "POST",
+    "path": "/portal/submissions/{id}/media-consent",
+    "mode": "COMMAND"
+  },
+  "portal.upload.create": {
+    "method": "POST",
+    "path": "/portal/uploads",
+    "mode": "COMMAND"
+  },
+  "portal.upload.get": {
+    "method": "GET",
+    "path": "/portal/uploads/{id}",
+    "mode": "READ"
+  },
+  "portal.upload.complete": {
+    "method": "POST",
+    "path": "/portal/uploads/{id}/complete",
+    "mode": "COMMAND"
+  },
+  "portal.upload.cancel": {
+    "method": "POST",
+    "path": "/portal/uploads/{id}/cancel",
+    "mode": "COMMAND"
+  },
+  "portal.asset.retire": {
+    "method": "POST",
+    "path": "/portal/assets/{id}/retire",
+    "mode": "COMMAND"
+  },
+  "portal.upload.content": {
+    "method": "PUT",
+    "path": "/portal/uploads/{id}/content",
+    "mode": "BINARY"
+  },
+  "portal.asset.preview": {
+    "method": "GET",
+    "path": "/portal/accounts/{accountId}/assets/{id}/preview",
+    "mode": "BINARY"
+  },
+  "portal.asset.playback": {
+    "method": "GET",
+    "path": "/portal/accounts/{accountId}/assets/{id}/playback",
+    "mode": "BINARY"
+  },
+  "talent.asset.preview": {
+    "method": "GET",
+    "path": "/talent-staged-assets/{id}/preview",
+    "mode": "BINARY"
+  },
+  "talent.asset.playback": {
+    "method": "GET",
+    "path": "/talent-staged-assets/{id}/playback",
+    "mode": "BINARY"
   },
   "talent.invitation.create": {
     "method": "POST",

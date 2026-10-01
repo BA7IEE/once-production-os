@@ -11,7 +11,7 @@ import { touch } from './helpers.ts';
 /** All TD2 rows and their security-relevant endpoints participate in one recovery digest.
  * Do not return raw rows, encrypted identifiers or machine credential hashes in a report. */
 export const TD2_INTEGRITY_TABLES = [...TALENT_V2_TABLES, 'people', 'sources', 'scopes',
-    'memberships', 'assets', 'evidence', 'shortlistItems', 'personAliases', 'personMerges', 'mergeHistoryErasures'] as const;
+    'memberships', 'personMedia','uploads','talentSubmissions','talentAccounts','assets', 'evidence', 'shortlistItems', 'personAliases', 'personMerges', 'mergeHistoryErasures'] as const;
 export type IntegrityTable = typeof TD2_INTEGRITY_TABLES[number];
 type Row = { id: string; workspaceId: string; [key: string]: unknown };
 export interface TalentIntegrityReport {
@@ -59,6 +59,9 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
             check(!!def && Object.hasOwn(def.fields, String(row.fieldPath)));
         }
     };
+    for(const r of data.personMedia){ref(r,'personId','people');ref(r,'personRoleId','personRoles',true);ref(r,'assetId','assets',false,true);ref(r,'sourceId','sources');ref(r,'submissionId','talentSubmissions');const a=maps.assets.get(String(r.assetId));check(a?.usageState===r.usageState);if(r.usageState==='ADOPTED')check(!!r.sourceId&&!!r.personId&&r.retainUntil===null);}
+    for(const a of data.assets)if(a.sourceId===null)check(data.personMedia.some(r=>r.assetId===a.id&&r.usageState===a.usageState));
+    for(const u of data.uploads)if(u.principalKind==='TALENT'){ref(u,'talentAccountId','talentAccounts',false,true);ref(u,'submissionId','talentSubmissions',false,true);check(u.actorId===null&&u.sourceId===null&&maps.talentSubmissions.get(String(u.submissionId))?.talentAccountId===u.talentAccountId);}
     for(const e of data.mergeHistoryErasures){
         ref(e,'mergeDecisionId','personMerges',false,true);ref(e,'personId','people',false,true);ref(e,'sourceId','sources',false,true);ref(e,'actorId','memberships');
         const merge=maps.personMerges.get(String(e.mergeDecisionId));check(merge?.duplicatePersonId===e.personId);
@@ -96,7 +99,7 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
         ref(row, 'issuerOrganizationId', 'organizations');
         ref(row, 'evidenceAssetId', 'assets');
         ref(row, 'coverAssetId', 'assets');
-        if(table==='talentProfiles'){try{validateDemographics(row,{now:()=>new Date()});}catch{check(false);}if(row.coverAssetId)check(maps.assets.get(String(row.coverAssetId))?.personId===row.personId||!!row.supersededById);}
+        if(table==='talentProfiles'){try{validateDemographics(row,{now:()=>new Date()});}catch{check(false);}if(row.coverAssetId)check(maps.assets.get(String(row.coverAssetId))?.personId===row.personId||data.personMedia.some(r=>r.assetId===row.coverAssetId&&r.personId===row.personId&&r.usageState==='ADOPTED')||!!row.supersededById);}
         if(table==='measurementSets')check(row.reportedAt==null||Date.parse(String(row.reportedAt))>=Date.parse(String(row.createdAt))&&Date.parse(String(row.reportedAt))<=Date.parse(String(row.updatedAt)));
         if(table==='measurementSets')check(row.datePrecision==='UNKNOWN'?row.measuredOn===null:typeof row.measuredOn==='string');
         if (table === 'castingProfiles') ref(row, 'currentMeasurementSetId', 'measurementSets', true);

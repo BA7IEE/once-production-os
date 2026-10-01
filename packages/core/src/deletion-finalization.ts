@@ -101,7 +101,7 @@ export class DeletionFinalization {
 
     private erasedUpload(row: any) {
         return { ...touch(row, this.clock), fileName: '[ERASED]', expectedHash: ZERO_HASH, expectedBytes: 0,
-            state: 'ERASED' as const, personId: null, personScopeId: null, personEpoch: null, personScopeRevision: null,
+            state: 'ERASED' as const, personRoleId:null, personId: null, personScopeId: null, personEpoch: null, personScopeRevision: null,
             receiveToken: null, leaseToken: null, leaseUntil: null, errorCode: 'ERASED_BY_DELETION',
             purgedAt: row.purgedAt ?? this.clock.now().toISOString() };
     }
@@ -117,7 +117,11 @@ export class DeletionFinalization {
             const upload = await tx.get('uploads', mediaId);
             const asset = await tx.get('assets', mediaId);
             if (upload && upload.state !== 'ERASED') await tx.replace('uploads', this.erasedUpload(upload));
-            if (asset && asset.state !== 'ERASED') await tx.replace('assets', this.erasedAsset(asset));
+            if (asset && asset.state !== 'ERASED') {
+                const relations=await tx.find('personMedia',{workspaceId:asset.workspaceId,assetId:asset.id});
+                for(const r of relations)await tx.replace('personMedia',{...touch(r,this.clock),usageState:'RETIRED',protectionEpoch:r.protectionEpoch+1,retiredAt:r.retiredAt??this.clock.now().toISOString(),purgedAt:this.clock.now().toISOString(),retainUntil:null,importedOrigin:null});
+                await tx.replace('assets', {...this.erasedAsset(asset),...(relations.length?{usageState:'RETIRED',protectionEpoch:(asset.protectionEpoch??1)+1}:{})});
+            }
             for (const item of await tx.find('deletionItems', { workspaceId: request.workspaceId, requestId: request.id })) {
                 if (item.resourceId === mediaId && item.cleanupState === 'WAITING_EXTERNAL'
                     && item.cleanupErrorCode === 'MEDIA_PURGE_REQUIRED' && (item.resourceKind === 'asset' || item.resourceKind === 'upload'))

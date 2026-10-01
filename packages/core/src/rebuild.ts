@@ -332,11 +332,13 @@ export class JsonRebuild {
                 personId:a.personId,personEpoch:a.personId?1:null,personScopeId:a.personId?target.scope.id:null,personScopeRevision:a.personId?target.scope.revision:null,
                 fileName:a.fileName,mime:a.mime,expectedBytes:a.bytes,expectedHash:a.sha256,state:'READY',expiresAt:new Date(this.clock.now().getTime()+300000).toISOString(),renewals:0,attempts:1,receiveToken:randomUUID(),leaseToken:null,leaseUntil:null,errorCode:null,purgedAt:null};
             await tx.insert('uploads',upload);
-            const asset:MediaAsset={...a,workspaceId:actor.workspaceId,scopeId:target.scope.id,uploadId:a.id,objectToken:a.id,state:'READY'};
+            const {relation,...assetData}=a;
+            const asset:MediaAsset={...assetData,usageState:'ADOPTED',protectionEpoch:1,workspaceId:actor.workspaceId,scopeId:target.scope.id,uploadId:a.id,objectToken:a.id,state:'READY'};
             await tx.insert('assets',asset);
         }
         if (payload.manifest.talent?.mergeHistory) await applyHistoryPeople(tx,actor,target.scope.id,payload.manifest.talent.mergeHistory);
         if (payload.manifest.talent) await applyTalentRebuild(tx, actor, payload.manifest.talent, target.scope.id,this.credentialKeys);
+        for(const a of payload.manifest.talent?.assets??[])if(a.relation)await tx.insert('personMedia',{...base(actor.workspaceId,this.clock),assetId:a.id,personId:a.relation.personId,personRoleId:a.relation.personRoleId,sourceId:a.sourceId,submissionId:null,purpose:'SUBMITTED_MATERIAL',usageState:'ADOPTED',protectionEpoch:1,retainUntil:null,retiredAt:null,purgedAt:null,importedOrigin:a.relation.origin});
         if (payload.manifest.talent) await applyTransferEvidence(tx,actor,payload.manifest.talent);
         if(payload.manifest.parties)await applyParties(tx,actor,target.scope.id,payload.manifest.parties);
         if(payload.manifest.locales)await applyLocaleRebuild(tx,actor,this.clock,payload.manifest.locales);

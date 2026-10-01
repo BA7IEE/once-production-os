@@ -1,3 +1,7 @@
+# 2026-10-01 当前切片：PR-03 媒体归属与暂存底座
+
+PR #31 保持 Draft，不合并、不部署。本轮仅 UploadContext、真实 uploader、STAGED/ADOPTED/RETIRED、Person/Role/Asset 多来源关系及本人/审核暂存读取、原子采纳和生命周期。当前迁移1–62已在隔离库应用，后续不得改写。先读 docs/release/TALENT_EXPERIENCE_PR03.md。本切片交付后等待复核，再进入 MediaCollection/模卡/素颜照/作品案例；不继续扩播放器、不进入客户分享、官网或PR-04。
+
 # 2026-10-01 当前授权：PR-02 已合并冻结，启动 PR-03
 
 PR #30 按用户指定 head 9fc2f9295068a16a16e6409b6df1c230bbe055ca 合并，main=1a297d86ecfeac5d7a3c748322a867c9852a20c9 的 CI 36815702669 九项通过。PR-02 已合并、开发冻结、未部署，PROVIDER_VERIFIED=NOT_RUN。下方禁止进入 PR-03、保持 PR #30 Draft 的内容属于历史范围，已由本次用户授权替代。

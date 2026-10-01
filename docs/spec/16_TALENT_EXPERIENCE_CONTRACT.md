@@ -126,3 +126,18 @@ INTERNAL_SOURCE、TALENT_SUBMISSION、AGENT_SUBMISSION 显式上下文；真实 
 PR-02已合并冻结，main `1a297d86ecfeac5d7a3c748322a867c9852a20c9` 的CI 36815702669九项通过；未部署，Provider未验证。PR-03独立分支先增加 `GET /api/v1/assets/{id}/playback`（BINARY，assets.read），无schema/迁移变化。继承内部原生scope/来源/人物/删除/恢复边界，两个短事务夹住事务外存储读取，首字节前审计失败拒绝。
 
 Local/COS stat/openByteStream合同及200/206/416、取消、背压和流式额度按ADR-TE-04执行；当前只开放内部已批准素材，无Portal媒体或公开访问。新MP4限定H.264 yuv420p和AAC/无音频，PDF仍不解析。流每5秒尝试复查，绝对900秒上限可收紧。当前额度是单API进程边界，不宣称多副本全局限制或真实手机/COS验收。本人多来源、暂存归属、案例和回收生命周期仍属未完成范围，详见 [PR-03交付说明](../release/TALENT_EXPERIENCE_PR03.md)。
+
+## PR-03 媒体归属与暂存底座合同（2026-10-01，Draft 待复核）
+
+本节实现 spec/15 §10.2–10.8 的本轮底座，不改变冻结产品范围。迁移62追加 `PersonMedia`、真实 uploader、UploadContext 和独立 usageState；1–61逐文件不变。`INTERNAL_SOURCE` 保留旧创建参数并兼容显式 context；`TALENT_SUBMISSION` 的请求只接受 submissionId、可选 personRoleId、草稿 expectedSubmissionRevision 及新文件元数据，account/person/grant/scope 均由服务器推导。未知字段与已有 assetId 引用拒绝。`AGENT_SUBMISSION` 只保留判别联合和 ServicePrincipal FK 字段；数据库拒绝该分支，直到PR-04建立真实机器Submission及其FK，不开放机器入口。
+
+`MediaAsset.sourceId`、hash、源字节和上传主体是不可改写的来源记录；本人上传的 sourceId 保持 null。正式采纳来源位于 PersonMedia.sourceId。普通 Asset DTO 的 sourceId/personId 表示当前正式业务关系，新增 originSourceId/personRoleId/relationId 明确区分原始来源；旧内部DTO保留旧值。返回前仍检查当前正式来源、关系Person/Role和原生scope。普通Asset/TD2/作品/候选/导出一律拒绝STAGED和RETIRED。
+
+- 上传 → 接收 → complete → worker claim/lease/heartbeat/finish：复查真实主体、账号epoch、recoveryEpoch、当前Claim/Grant/Submission、DRAFT、媒体同意、人物/职业/范围版本、删除保护和存储资格。技术READY时原子生成STAGED关系和MEDIA条目；不建立假Source/Membership。
+- DRAFT可上传/退休；提交前须全部处理完毕，MEDIA条目冻结。审核批准同事务创建正式Source、SourceAttribution/SourceUseBasis、PersonMedia ADOPTED；失败整体回滚。依赖组仍使用既有整批审核合同。媒体同意版本 `internal-directory-media-2026-10-v1` 为独立记录，包含media，不能借用旧文字同意。
+- 本人预览/播放路径绑定URL内accountId，事务内对照实际Cookie账号；所有Portal写请求继续Origin/CSRF/账号header。审核专用路径另需talent.review、assets.read、申请接收scope与档案scope。Range/stream复用已复核播放实现，未增加播放器能力。
+- PersonMedia包含业务state、revision/protectionEpoch、retainUntil/retiredAt/purgedAt。90/180/30/7天来自Submission保留状态；ADOPTED解除草稿TTL。DRAFT主动退休立即拒绝读取，但技术READY和占用额度保持到真实物理清理。自动暂存回收计划/通知/清理调度仍为下一切片，不借FAILED清理器删除READY文件。
+- 个人2GB、ENROLL200MB；既有工作空间2GB与活动1GB配额保持。并发3/20、每小时100；`MEDIA_TALENT_BYTES / MEDIA_ENROLL_BYTES / MEDIA_WORKSPACE_BYTES / MEDIA_ACTIVE_BYTES / MEDIA_ACTOR_ACTIVE / MEDIA_WORKSPACE_ACTIVE / MEDIA_ACTOR_HOURLY` 集中校验，只允许收紧。旧部署不因新功能扩大额度；回收前占用不归还。
+- JSON仅导出ADOPTED正式关系、依据及必要历史归因；重建不创建TalentAccount/Claim/Grant/Session。物理备份包含STAGED/ADOPTED，恢复准备保留usageState、隔离技术可读状态并使旧授权失效。Person删除纳入正式关系及暂存原件；Person合并只移动已ADOPTED正式关系，不转移本人STAGED材料，上传原归属保留，旧Grant撤销。若原上传精确绑定待迁移Role，预览以 `MEDIA_ROLE_DEPENDENCY_REQUIRES_REVIEW` 阻断，不能靠丢弃职业或改写原始归属完成合并。
+
+当前尚无跨Submission复用Asset授权合同；fork仅复制文字，需要重新上传媒体。MediaCollection/模卡/素颜照/作品案例与媒体自动回收交互在本切片复核后继续；不进入客户分享、官网或PR-04。

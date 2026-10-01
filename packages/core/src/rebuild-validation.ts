@@ -44,7 +44,7 @@ const projectData = v.object({
     status: v.enum(['DRAFT', 'ACTIVE', 'COMPLETED', 'ARCHIVED'])
 });
 
-export const TalentBasisTransferSchema=v.object({version:v.enum(['talent-basis-v1']),providerAccountId:uuid,submissionId:uuid,consentId:uuid,consentRevision:revision,textVersion:v.string(100,1),purpose:v.enum(['INTERNAL_DIRECTORY']),fieldScope:v.array(v.enum(['displayName','aliases','intro']),3,1),validUntil:dateIso,reviewerId:uuid});
+export const TalentBasisTransferSchema=v.object({version:v.enum(['talent-basis-v1']),providerAccountId:uuid,submissionId:uuid,consentId:uuid,consentRevision:revision,textVersion:v.string(100,1),purpose:v.enum(['INTERNAL_DIRECTORY']),fieldScope:v.array(v.enum(['displayName','aliases','intro','media']),4,1),validUntil:dateIso,reviewerId:uuid});
 const source = v.object({ id: uuid, revision, protectionEpoch: revision, data: sourceData,talentBasis:v.optional(TalentBasisTransferSchema) });
 const person = v.object({ id: uuid, sourceId: uuid, revision, data: personData });
 const work = v.object({ id: uuid, sourceId: uuid, revision, data: workData });

@@ -1,3 +1,7 @@
+## 2026-10-01：PR-03 媒体归属与暂存底座（Draft待复核）
+
+迁移62新增真实上传主体与PersonMedia关系，READY与STAGED/ADOPTED/RETIRED分离；本人/审核专用读、原子采纳及生命周期已接入。1–61冻结。真实Chrome手机宽度与异步worker/PG、实际私有文件备份恢复已验证；完整当前提交测试及CI绑定见[本轮交付说明](TALENT_EXPERIENCE_PR03.md)和`artifacts/talent-experience-pr03-staging/verification.json`。本分支未合并、未部署，Provider未验证，PR-03整体未完成；不进入集合/作品下一切片。
+
 ## 2026-10-01 PR-02a 开发状态
 
 PR-01 已合并冻结、未部署。PR #30 在独立分支实现 PR-02a 的人才账号/认证/真实主体与最小登录页，保持 Draft 待复核；[本包交付与证据](TALENT_EXPERIENCE_PR02.md)。默认外部入口关闭，PROVIDER_VERIFIED=NOT_RUN。PR-02b 及后续功能未开始，PR-02 整包未完成；本轮没有生产迁移或部署。

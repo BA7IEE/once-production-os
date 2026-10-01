@@ -1,3 +1,4 @@
+import {mediaRead,type MediaReadSurface} from './access.ts';
 import {digest} from '../../../../packages/core/src/json.ts';
 import type {MediaAsset} from '../../../../packages/core/src/media-model.ts';
 import type {Express, Request, Response} from 'express';
@@ -24,7 +25,8 @@ function fail(res: Response, e: unknown) {
 }
 export function registerPlaybackHttp(server: Express, core: Application, provider: LocalMediaProvider | null) {
     const limits = core.config.mediaPlayback ?? MEDIA_PLAYBACK_DEFAULTS, budget = new PlaybackBudget(limits);
-    server.get('/api/v1/assets/:id/playback', async (req, res) => {
+    const surfaces:Array<[string,MediaReadSurface]>=[['/api/v1/assets/:id/playback','internal'],['/api/v1/talent-staged-assets/:id/playback','review'],['/api/v1/portal/accounts/:accountId/assets/:id/playback','talent']];
+    for(const [path,surface] of surfaces)server.get(path, async (req, res) => {
         res.set({'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'Cross-Origin-Resource-Policy': 'same-origin'});
         const controller = new AbortController(), abort = () => controller.abort();
         const timer = setTimeout(abort, limits.maxSeconds * 1000);
@@ -38,18 +40,16 @@ export function registerPlaybackHttp(server: Express, core: Application, provide
             invariant(!req.url.includes('?'), 'QUERY_INVALID', '播放地址不接受额外参数', 400);
             invariant(!req.headers.origin || req.headers.origin === core.config.origin, 'ORIGIN_DENIED', '播放来源不被允许', 403);
             const id = uuid.parse(req.params.id), r = request(req);
-            const initial = await core.authenticated(r, 'assets.read', async (tx, actor) => {
-                invariant(!r.headers['x-once-membership'] || r.headers['x-once-membership'] === actor.membershipId, 'IDENTITY_CHANGED', '当前账号已变化', 409);
-                return {asset: await core.media.playback(tx, actor, id), workspace: actor.workspaceId, actor: actor.membershipId};
-            });
-            const a = initial.asset; integrityAsset = a;
-            const range = playbackRange(req.headers.range, a.bytes);
-            release = budget.enter(initial.workspace, initial.actor, range.status === 416 ? 0 : range.endInclusive - range.start + 1);
-            const recheck = (audit: boolean) => core.authenticated(r, 'assets.read', async (tx, actor) => {
-                invariant(actor.membershipId === initial.actor, 'IDENTITY_CHANGED', '当前账号已变化', 409);
-                const current = await core.media.playback(tx, actor, id, audit ? {requestId: randomUUID(), ip: r.ip} : undefined);
-                invariant(current.revision === a.revision && current.uploadId === a.uploadId && current.objectToken === a.objectToken && current.sha256 === a.sha256 && current.bytes === a.bytes, 'NOT_FOUND', '素材已变化或不可访问', 404);
-            });
+            if(surface==='talent')r.headers['x-once-talent-account']=uuid.parse(req.params.accountId);
+            const initial=await mediaRead(core,r,id,surface);
+            const a=initial.asset;invariant(a.mime==='video/mp4','NOT_FOUND','素材不可播放',404);integrityAsset=a;
+            const range=playbackRange(req.headers.range,a.bytes);
+            release=budget.enter(initial.workspace,initial.actor,range.status===416?0:range.endInclusive-range.start+1);
+            const recheck=async(log:boolean)=>{
+                const result=await mediaRead(core,r,id,surface,log?{requestId:randomUUID(),ip:r.ip}:undefined),current=result.asset;
+                invariant(result.actor===initial.actor,'IDENTITY_CHANGED','当前账号已变化',409);
+                invariant(current.revision===a.revision&&current.uploadId===a.uploadId&&current.objectToken===a.objectToken&&current.sha256===a.sha256&&current.bytes===a.bytes,'NOT_FOUND','素材已变化或不可访问',404);
+            };
             if (range.status === 416) {
                 await recheck(false);
                 res.set({'Content-Range': `bytes */${a.bytes}`, 'Accept-Ranges': 'bytes'}).status(416).end(); return;

@@ -36,6 +36,14 @@ if(mainStatus!==0){process.exitCode=mainStatus;}else{
  try{
   await admin.$connect();
   let status=0;
+  for(const variant of ['bound','enroll','security','merge','adopted-merge','delete','expiry','grant','withdraw','consent','recovery','concurrency']){
+   const media=await fresh('once_test_media_'+variant.replaceAll('-','_')+'_','Media staging '+variant);
+   status=runNode('tests/postgres/media-staging.test.ts',{...process.env,DATABASE_URL_MEDIA_STAGING_TEST:media,ALLOW_DB_TESTS:'yes',MEDIA_STAGING_WORKER:['grant','withdraw','consent','recovery'].includes(variant)?variant:'',MEDIA_STAGING_CONCURRENCY:variant==='concurrency'?'yes':'no',MEDIA_STAGING_LIFECYCLE:['merge','adopted-merge','delete','expiry'].includes(variant)?variant:'',MEDIA_STAGING_ENROLL:variant==='enroll'?'yes':'no',MEDIA_STAGING_SECURITY:variant==='security'?'yes':'no'},180000);
+   if(status!==0)throw new Error('Media staging PostgreSQL verification failed');
+  }
+  const mediaUpgrade=await fresh('once_test_media_upgrade_','Media populated migration 61 upgrade',false);
+  status=runNode('tests/postgres/media-upgrade.test.ts',{...process.env,DATABASE_URL_MEDIA_UPGRADE_TEST:mediaUpgrade,ALLOW_DB_TESTS:'yes'},180000);
+  if(status!==0)throw new Error('Media upgrade verification failed');
   const maintenance=await fresh('once_test_maint_','Talent maintenance');
   const maintenanceRebuild=await fresh('once_test_maint_rebuild_','Talent maintenance JSON rebuild');const maintenanceRestore=await fresh('once_test_maint_restore_','Talent maintenance physical restore',false);
   status=runNode('tests/postgres/talent-maintenance.test.ts',{...process.env,DATABASE_URL_TALENT_MAINTENANCE_TEST:maintenance,DATABASE_URL_TALENT_MAINTENANCE_REBUILD_TEST:maintenanceRebuild,DATABASE_URL_TALENT_MAINTENANCE_RESTORE_TEST:maintenanceRestore,ALLOW_TALENT_MAINTENANCE_DB_TESTS:'yes'},180000);
