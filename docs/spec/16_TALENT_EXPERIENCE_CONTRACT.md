@@ -1,3 +1,9 @@
+## PR-03E finalization：删除权与保留配置
+
+显式删除取得finalization lease与接管可撤销MediaPurgeIntent在同一事务：有效TTL lease及DELETE_PENDING/UNKNOWN/CONFIRMED必须等待；无有效lease的ELIGIBLE/CLAIMED终结为SKIPPED，原因EXPLICIT_DELETION_TAKEOVER。TTL在创建计划前检查显式删除归属，ERASED不允许可重试计划；恢复完整性检查同步检查。显式finalizer每10秒续租30秒lease，物理I/O前后核对租约，续租失败不得确认或继续下一个对象。原件物理调用仍在事务外。
+
+本人上传沿用统一mediaRetention.draft配置续期并同步PersonMedia，不使用固定90天。迁移1–68冻结，本次无schema/迁移变化。
+
 ## PR-03E 执行补充（2026-10-01）
 
 spec/15 §10.8冻结保留语义已接入独立MediaPurgeIntent；技术READY与业务STAGED/ADOPTED/RETIRED不混用。正式依赖、审核竞争、UNKNOWN、多对象/独占目录、容量、恢复隔离与删除优先合同详见 [PR03E_ACCEPTANCE](../release/PR03E_ACCEPTANCE.md)。迁移67新增清理计划，68前向补强JSON计划约束及不可变身份，1–66冻结。普通业务JSON不导出STAGED/清理计划，不扩Agent摄取或其他业务。

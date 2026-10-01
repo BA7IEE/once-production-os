@@ -1,3 +1,7 @@
+## PR-03E finalization（Draft、未合并、未部署）
+
+删除权竞争与配置保留期已修复；本轮完整回归、迁移不变与最终CI边界见 [交付记录](docs/release/PR03E_ACCEPTANCE.md)。A–D冻结，E待本轮复核；不进入后续工作包。
+
 # ONCE Production OS
 
 人才与制作资料系统，当前按 [Talent Experience v1.1](docs/spec/15_TALENT_EXPERIENCE_V1_1.md) 扩展；已合并统一快速建档；[PR-01b](docs/release/TALENT_EXPERIENCE_PR01B.md) 补业务字段、照片目录、统一筛选与主详情及新增事实生命周期。PR-02已合并并开发冻结；[PR-03](docs/release/TALENT_EXPERIENCE_PR03.md)推进媒体维护：PR-03A受控播放、PR-03B暂存与正式授权已复核冻结，PR-03C媒体集合已复核冻结，PR-03D作品案例已复核冻结；本轮PR-03E完成独立回收、物理清理与恢复竞争保护，已完成[本地总验收](docs/release/PR03E_ACCEPTANCE.md)。PR-03是否满足开发冻结以本轮最终head完整CI及交付证据为准，未部署，Provider未验证，外部入口尚未开放。

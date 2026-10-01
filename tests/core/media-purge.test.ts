@@ -34,3 +34,7 @@ test('PR03E bounded scheduler with transient dependencies',async()=>{await purge
 import {purgeDecisionScenario} from '../support/media-purge.ts';
 for(const partial of [true,false])test('PR03E actual decision retention '+partial,async()=>{await purgeDecisionScenario(new MemoryStore(),partial);});
 test('PR03E write-ahead failure never starts DELETE or claims confirmation',async()=>{const f=await setup();await due(f);const c=(await f.app.mediaPurge.claim())!;let io=0;await new MediaPurgeWorker(f.app,{purgeOwnedNamespace:async()=>{io++;},statPurgeObject:async()=>{io++;return 'MISSING';},deleteImmutableObject:async()=>{io++;}},{writeAhead:async()=>{throw new Error('journal offline');},committed:async()=>{throw new Error('not committed');},aborted:async()=>{throw new Error('not aborted');}}).process(c,new AbortController().signal);assert.equal(io,0);assert.equal(f.store.rows('mediaPurgeIntents')[0]!.state,'CLAIMED');assert.equal(f.store.rows('assets')[0]!.usageState,'STAGED');});
+
+import {uploadRetentionScenario} from '../support/media-purge.ts';
+for(const days of [1,30])test('PR03E upload respects configured draft days '+days,async()=>{await uploadRetentionScenario(new MemoryStore(),days);});
+for(const mode of ['eligible','claimed','live','slow'])test('PR03E explicit finalizer ownership '+mode,async()=>{await purgeDeletionScenario(new MemoryStore(),false,mode);});

@@ -131,7 +131,7 @@ export class Media {
             sourceId:null,sourceRevision:null,sourceEpoch:null,scopeId:scope.id,scopeRevision:scope.revision,personId:p?.id??null,personEpoch:p?.protectionEpoch??null,personScopeId:p?.scopeId??null,personScopeRevision:ps?.revision??null,
             fileName:d.fileName,mime:d.mime,expectedBytes:d.expectedBytes,expectedHash:d.sha256,state:'OPEN',expiresAt:new Date(this.clock.now().getTime()+L.uploadMs).toISOString(),renewals:0,attempts:0,receiveToken:null,leaseToken:null,leaseUntil:null,errorCode:null,purgedAt:null};
         await this.context(tx,actor,u);await tx.insert('uploads',u);
-        const next={...touch(s,this.clock),expiresAt:m.until(90)};await tx.replace('talentSubmissions',next);await syncMediaRetention(tx,next,this.clock);
+        const next={...touch(s,this.clock),expiresAt:m.until(m.retention.draft)};await tx.replace('talentSubmissions',next);await syncMediaRetention(tx,next,this.clock);
         return u;
     }
     async talentRead(tx:Tx,actor:TalentActor,id:string,meta?:RequestMeta):Promise<MediaAsset>{

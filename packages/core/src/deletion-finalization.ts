@@ -51,8 +51,10 @@ export class DeletionFinalization {
                 if (row.cleanupLeaseUntil && Date.parse(row.cleanupLeaseUntil) > now) continue;
                 if (row.finalizationLeaseUntil && Date.parse(row.finalizationLeaseUntil) > now) continue;
                 const items = await tx.find('deletionItems', { workspaceId: row.workspaceId, requestId: row.id });
-                const activePurges=(await tx.find('mediaPurgeIntents',{workspaceId:row.workspaceId})).filter(p=>irreversiblePurge(p.state)&&p.state!=='ERASED');
-                if(activePurges.some(p=>row.targetKind==='ASSET'&&row.targetId===p.assetId||items.some(i=>i.resourceId===p.assetId)))continue;
+                const purges=(await tx.find('mediaPurgeIntents',{workspaceId:row.workspaceId})).filter(p=>
+                    row.targetKind==='ASSET'&&row.targetId===p.assetId||items.some(i=>i.resourceId===p.assetId));
+                if(purges.some(p=>['DELETE_PENDING','DELETE_UNKNOWN','DELETE_CONFIRMED'].includes(p.state)
+                    ||p.leaseUntil&&Date.parse(p.leaseUntil)>now))continue;
                 if (items.some(item => item.cleanupState === 'PENDING' || (item.cleanupState === 'FAILED' && item.cleanupAttempts < 3)))
                     continue;
                 if (items.some(item => item.cleanupState === 'FAILED' && item.cleanupAttempts >= 3)) {
@@ -70,10 +72,23 @@ export class DeletionFinalization {
                 const next: DeletionRequest = { ...touch(row, this.clock), finalizationAttempts: row.finalizationAttempts + 1,
                     finalizationLeaseToken: randomUUID(), finalizationLeaseUntil: new Date(now + LEASE_MS).toISOString(),
                     finalizationErrorCode: null };
+                for(const p of purges)if(['ELIGIBLE','CLAIMED'].includes(p.state)){
+                    await tx.replace('mediaPurgeIntents',{...touch(p,this.clock),state:'SKIPPED',leaseToken:null,leaseUntil:null,lastCode:'EXPLICIT_DELETION_TAKEOVER'});
+                    await audit(tx,null,row.workspaceId,'media.purge.skipped','mediaPurge',p.id,
+                        ['EXPLICIT_DELETION_TAKEOVER'],{requestId:randomUUID(),ip:'worker'},this.clock);
+                }
                 await tx.replace('deletionRequests', next);
                 return next;
             }
             return null;
+        });
+    }
+
+    async heartbeat(claim: DeletionRequest): Promise<void> {
+        await this.store.transaction(async tx => {
+            await this.enabled(tx,claim.workspaceId);
+            const row=await this.owned(tx,claim);
+            await tx.replace('deletionRequests',{...row,finalizationLeaseUntil:new Date(this.clock.now().getTime()+LEASE_MS).toISOString()});
         });
     }
 
@@ -121,6 +136,8 @@ export class DeletionFinalization {
         await this.store.transaction(async tx => {
             await this.enabled(tx, claim.workspaceId);
             const request = await this.owned(tx, claim);
+            const purge=(await tx.find('mediaPurgeIntents',{assetId:mediaId}))[0];
+            invariant(!purge||['SKIPPED','ERASED'].includes(purge.state),'MEDIA_PURGE_IN_PROGRESS','物理删除权已变化',409);
             const upload = await tx.get('uploads', mediaId);
             const asset = await tx.get('assets', mediaId);
             if (upload && upload.state !== 'ERASED') await tx.replace('uploads', this.erasedUpload(upload));

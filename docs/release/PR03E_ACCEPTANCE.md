@@ -1,3 +1,13 @@
+## PR-03E finalization：删除竞争与配置保留期（待复核）
+
+基线7016c4d；A–D保持FROZEN。两项阻塞已修复，PR #31继续Draft、未合并、未部署，本轮无schema或新增迁移，迁移1–68逐文件不变。
+
+显式finalization取得租约时，同事务把无有效lease的ELIGIBLE/CLAIMED转SKIPPED，记录EXPLICIT_DELETION_TAKEOVER；有效TTL lease和DELETE_PENDING/UNKNOWN/CONFIRMED必须等待。TTL创建计划前检查显式删除归属，旧ERASED悬空可撤销计划终结且不调用provider，完整性检查拒绝ERASED上的可重试计划。显式provider I/O期间每10秒续租30秒lease，调用前后复核；35秒真实等待反例中第二finalizer不能取得删除权。本人上传改用统一mediaRetention.draft，1天和30天配置均经Portal API与READY全链验证。
+
+本轮Core **683/683**；真实PostgreSQL **76个程序 / 166项**；原11组Browser + media-purge共 **12/12**；真实pg_dump/restore、68次空库迁移、保留库无待迁移且92张表摘要不变；类型、契约、构建、静态检查及额外媒体/验收测试均通过。完整日志及页面证据见 `artifacts/talent-experience-pr03-cleanup-finalization/verification.json`。精确head CI结果另绑定PR描述与交付回复，通过前不声明DEVELOPMENT FROZEN；本轮交回复核，不推进后续业务。Provider/COS/物理手机/生产迁移仍NOT_RUN。
+
+以下为历史记录。
+
 # PR-03E：回收与 PR-03 总验收
 
 基线 `ff6e10f951855831a9b5d0c966623be34b529442`；A–D 已由用户冻结。本轮新增67 `202610010012_media_purge`及68 `202610010013_media_purge_plan_guard`（67应用后发现SQL NULL约束缺口，只以前向68修正），迁移1–66逐文件不变。PR #31 Draft、未合并、未部署；不进入后续业务。
@@ -24,7 +34,7 @@ original删除但preview未知，仍不finalize。最后一个对象缺失时还
 
 ## 删除、恢复与审计
 
-显式DeletionRequest先阻断时，TTL清理退避。TTL先进入不可逆阶段时，显式依赖清理/物理finalizer等待；TTL完成后显式finalizer复用upload.purgedAt，完成自身依赖记录，不再调用provider。两种顺序均在Core和真实PG验证。
+显式DeletionRequest先阻断时，TTL不再新建可重试计划；原有可撤销计划在无有效租约后终结为SKIPPED。TTL先进入不可逆阶段时，显式依赖清理/物理finalizer等待；TTL完成后显式finalizer复用upload.purgedAt，完成自身依赖记录，不再调用provider。两种顺序均在Core和真实PG验证。
 
 恢复准备使旧purge lease失效；UNKNOWN原样保留，隔离环境不运行清理。claim/heartbeat/删除前复查同时拒绝未APPROVED的恢复记录，旧配置worker也不能重新领取。物理备份清单标注已缺失part，仅复制仍存在且摘要正确的字节；不是把缺失伪造为完整原件。pg_dump/restore保留计划和剩余字节，离线状态机核对“仍有preview”和“全缺失”两种UNKNOWN并释放额度。专项离线恢复测试不宣称完成生产恢复审批；完整既有恢复审批链另由全PG回归覆盖。
 

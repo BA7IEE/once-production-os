@@ -1,0 +1,208 @@
+TAP version 13
+# Subtest: PR03E exact deadline, independent READY lifecycle and physical confirmation quota
+ok 1 - PR03E exact deadline, independent READY lifecycle and physical confirmation quota
+  ---
+  duration_ms: 161.545
+  type: 'test'
+  ...
+# Subtest: PR03E two owners, crash lease fencing and UNKNOWN reconciliation
+ok 2 - PR03E two owners, crash lease fencing and UNKNOWN reconciliation
+  ---
+  duration_ms: 139.529791
+  type: 'test'
+  ...
+# Subtest: PR03E confirmed deletion with audit rollback stays unreadable and retains quota until retry
+ok 3 - PR03E confirmed deletion with audit rollback stays unreadable and retains quota until retry
+  ---
+  duration_ms: 131.856333
+  type: 'test'
+  ...
+# Subtest: PR03E DELETE timeout preserves UNKNOWN and backoff; next HEAD missing finalizes
+ok 4 - PR03E DELETE timeout preserves UNKNOWN and backoff; next HEAD missing finalizes
+  ---
+  duration_ms: 142.376833
+  type: 'test'
+  ...
+# Subtest: PR03E real review command vs purge true
+ok 5 - PR03E real review command vs purge true
+  ---
+  duration_ms: 227.821417
+  type: 'test'
+  ...
+# Subtest: PR03E real review command vs purge false
+ok 6 - PR03E real review command vs purge false
+  ---
+  duration_ms: 150.936959
+  type: 'test'
+  ...
+# Subtest: PR03E full withdrawal lifecycle
+ok 7 - PR03E full withdrawal lifecycle
+  ---
+  duration_ms: 140.6975
+  type: 'test'
+  ...
+# Subtest: PR03E retention config can only tighten
+ok 8 - PR03E retention config can only tighten
+  ---
+  duration_ms: 0.257417
+  type: 'test'
+  ...
+# Subtest: PR03E retention DRAFT
+ok 9 - PR03E retention DRAFT
+  ---
+  duration_ms: 132.36025
+  type: 'test'
+  ...
+# Subtest: PR03E retention SUBMITTED
+ok 10 - PR03E retention SUBMITTED
+  ---
+  duration_ms: 134.933625
+  type: 'test'
+  ...
+# Subtest: PR03E retention REJECTED
+ok 11 - PR03E retention REJECTED
+  ---
+  duration_ms: 137.905459
+  type: 'test'
+  ...
+# Subtest: PR03E retention PARTIALLY_APPROVED
+ok 12 - PR03E retention PARTIALLY_APPROVED
+  ---
+  duration_ms: 140.861084
+  type: 'test'
+  ...
+# Subtest: PR03E retention APPROVED
+ok 13 - PR03E retention APPROVED
+  ---
+  duration_ms: 372.190125
+  type: 'test'
+  ...
+# Subtest: PR03E retention WITHDRAWN
+ok 14 - PR03E retention WITHDRAWN
+  ---
+  duration_ms: 143.98025
+  type: 'test'
+  ...
+# Subtest: PR03E retention EXPIRED
+ok 15 - PR03E retention EXPIRED
+  ---
+  duration_ms: 141.076833
+  type: 'test'
+  ...
+# Subtest: PR03E formal source or any placement prevents purge even after usage retirement
+ok 16 - PR03E formal source or any placement prevents purge even after usage retirement
+  ---
+  duration_ms: 138.499375
+  type: 'test'
+  ...
+# Subtest: PR03E cleanup fence, recovery epoch and data gates
+ok 17 - PR03E cleanup fence, recovery epoch and data gates
+  ---
+  duration_ms: 437.059042
+  type: 'test'
+  ...
+# Subtest: PR03E maintenance status and reconciliation require internal maintenance permission
+ok 18 - PR03E maintenance status and reconciliation require internal maintenance permission
+  ---
+  duration_ms: 361.778375
+  type: 'test'
+  ...
+# Subtest: PR03E final-audit-fault recovery contract
+ok 19 - PR03E final-audit-fault recovery contract
+  ---
+  duration_ms: 155.552958
+  type: 'test'
+  ...
+# Subtest: PR03E explicit deletion competition true
+ok 20 - PR03E explicit deletion competition true
+  ---
+  duration_ms: 165.057375
+  type: 'test'
+  ...
+# Subtest: PR03E explicit deletion competition false
+ok 21 - PR03E explicit deletion competition false
+  ---
+  duration_ms: 157.258833
+  type: 'test'
+  ...
+# Subtest: PR03E bounded scheduler with transient dependencies
+ok 22 - PR03E bounded scheduler with transient dependencies
+  ---
+  duration_ms: 483.407334
+  type: 'test'
+  ...
+# Subtest: PR03E actual decision retention true
+ok 23 - PR03E actual decision retention true
+  ---
+  duration_ms: 142.183125
+  type: 'test'
+  ...
+# Subtest: PR03E actual decision retention false
+ok 24 - PR03E actual decision retention false
+  ---
+  duration_ms: 144.022291
+  type: 'test'
+  ...
+# Subtest: PR03E write-ahead failure never starts DELETE or claims confirmation
+ok 25 - PR03E write-ahead failure never starts DELETE or claims confirmation
+  ---
+  duration_ms: 132.943542
+  type: 'test'
+  ...
+# Subtest: PR03E upload respects configured draft days 1
+ok 26 - PR03E upload respects configured draft days 1
+  ---
+  duration_ms: 135.7035
+  type: 'test'
+  ...
+# Subtest: PR03E upload respects configured draft days 30
+ok 27 - PR03E upload respects configured draft days 30
+  ---
+  duration_ms: 132.758667
+  type: 'test'
+  ...
+# Subtest: PR03E explicit finalizer ownership eligible
+ok 28 - PR03E explicit finalizer ownership eligible
+  ---
+  duration_ms: 167.333
+  type: 'test'
+  ...
+# Subtest: PR03E explicit finalizer ownership claimed
+ok 29 - PR03E explicit finalizer ownership claimed
+  ---
+  duration_ms: 154.906042
+  type: 'test'
+  ...
+# Subtest: PR03E explicit finalizer ownership live
+ok 30 - PR03E explicit finalizer ownership live
+  ---
+  duration_ms: 171.892959
+  type: 'test'
+  ...
+# Subtest: PR03E explicit finalizer ownership slow
+ok 31 - PR03E explicit finalizer ownership slow
+  ---
+  duration_ms: 35157.592667
+  type: 'test'
+  ...
+# Subtest: DEV-09E finalizer journal failure cannot mutate failure state or touch media
+ok 32 - DEV-09E finalizer journal failure cannot mutate failure state or touch media
+  ---
+  duration_ms: 1.47125
+  type: 'test'
+  ...
+# Subtest: DEV-09E physical purge followed by database failure must keep intent unresolved
+ok 33 - DEV-09E physical purge followed by database failure must keep intent unresolved
+  ---
+  duration_ms: 0.437333
+  type: 'test'
+  ...
+1..33
+# tests 33
+# suites 0
+# pass 33
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 40752.840208

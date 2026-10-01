@@ -1,0 +1,108 @@
+{
+  "baseline": "7016c4d911647cba496ea2610493a0ebe613ba13",
+  "pr": 31,
+  "draft": true,
+  "merged": false,
+  "deployed": false,
+  "core": {
+    "tests": 683,
+    "pass": 683,
+    "fail": 0
+  },
+  "postgres": {
+    "programs": 76,
+    "tests": 166,
+    "fail": 0,
+    "version": "14.19 local; CI16",
+    "physicalPgDumpRestore": "PASS"
+  },
+  "browser": [
+    {
+      "group": "resume",
+      "exitCode": 0,
+      "seconds": 18
+    },
+    {
+      "group": "handoff",
+      "exitCode": 0,
+      "seconds": 12
+    },
+    {
+      "group": "media",
+      "exitCode": 0,
+      "seconds": 24
+    },
+    {
+      "group": "production",
+      "exitCode": 0,
+      "seconds": 179
+    },
+    {
+      "group": "talent-intake",
+      "exitCode": 0,
+      "seconds": 10
+    },
+    {
+      "group": "talent-directory",
+      "exitCode": 0,
+      "seconds": 23
+    },
+    {
+      "group": "talent-auth",
+      "exitCode": 0,
+      "seconds": 10
+    },
+    {
+      "group": "talent-maintenance",
+      "exitCode": 0,
+      "seconds": 40
+    },
+    {
+      "group": "media-staging",
+      "exitCode": 0,
+      "seconds": 74
+    },
+    {
+      "group": "media-collections",
+      "exitCode": 0,
+      "seconds": 85
+    },
+    {
+      "group": "work-cases",
+      "exitCode": 0,
+      "seconds": 88
+    },
+    {
+      "group": "media-purge",
+      "exitCode": 0,
+      "seconds": 95
+    }
+  ],
+  "migrations": {
+    "added": [],
+    "frozen1to68Unchanged": true,
+    "freshInstall": "68 PASS",
+    "retainedDeploy": "68 to 68 no-op; 92 table counts and content digests unchanged"
+  },
+  "blockers": {
+    "explicitDeletion": "atomic reversible-intent SKIPPED takeover; live purge lease / irreversible intent wait; TTL cannot create retryable intent; 35s provider call heartbeat; integrity rejects retryable erased media",
+    "retention": "configured 1 and 30 day draft preserved via Portal upload through READY"
+  },
+  "production": {
+    "PROVIDER_VERIFIED": "NOT_RUN",
+    "DEPLOYED": false
+  },
+  "ci": "Exact final SHA/run recorded in PR and delivery reply; required before DEVELOPMENT FROZEN criteria are met",
+  "sourceSha256": {
+    "apps/api/src/deletion/finalizer.ts": "b268ee84e5f8c5fd9d895ec203a19aed153f32392c82a3c6d7a65750a991d3fa",
+    "packages/core/src/deletion-finalization.ts": "542f39905c7068a2d23972952e4a8fd5ba803c89b893adb2c2119afd8e5c2f4e",
+    "packages/core/src/media-purge.ts": "56502aabe43d3c71b1b5bb766260104b54b3a613a0f5d7ddb7b3c0f83f772fce",
+    "packages/core/src/media.ts": "9b83020aa4f85c2dd9149f079c93808b26908c399a4100ad15e72df025c3aab4",
+    "packages/core/src/talent-v2-integrity.ts": "bc807808db1fa7080b806bb1b11b13221e5ebf94b314d9903e61abb1912fc471",
+    "scripts/verify-postgres.mjs": "6f98d2580efeee9649712af6fea82835d8926f747ecc9eeed1a4cee4ffe8484b",
+    "tests/core/media-purge.test.ts": "c273d14b7a6b594cf635eed7a8a6f2ccf9a8c0abee4df056ce6555c4ce083355",
+    "tests/core/recovery-worker-intent.test.ts": "26192d2a7efd42cf9b0e54c259bb7cce37f90244b4c4f667267c85a969fa34b1",
+    "tests/postgres/media-purge.test.ts": "ab8297a9e8c7eabcd0a152081e3c5f4e710367d57eb655fab480f4804f04a6a7",
+    "tests/support/media-purge.ts": "cbb0e7d8c8ccbe96a029248b549ccebb35dc6a6dedab4b6b8cb1e042432bc226"
+  }
+}

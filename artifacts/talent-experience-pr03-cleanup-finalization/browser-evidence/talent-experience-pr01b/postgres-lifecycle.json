@@ -1,0 +1,28 @@
+{
+  "status": "PASSED",
+  "database": "PostgreSQL 14.19 (Homebrew) on aarch64-apple-darwin24.4.0, compiled by Apple clang version 17.0.0 (clang-1700.0.13.3), 64-bit",
+  "profileId": "7176ca2e-8b76-4fda-94d1-e01eab1f323b",
+  "modelRoleId": "f05480dc-52cf-4833-8d24-8bab6c5ad259",
+  "measurementId": "76994668-3307-4303-8351-7a4d4b28a687",
+  "coverAssetId": "3867f25d-136f-4a90-85f7-02ade329fbca",
+  "canonicalPersonId": "238db3ba-4b35-4211-bbfb-d9bfbabd5310",
+  "checks": [
+    "persisted-new-fields",
+    "stale-export",
+    "controlled-media-export",
+    "typed-rebuild-preserves-ids",
+    "recovery-keeps-unknowns",
+    "merge-preserves-old-id-and-business-fields",
+    "asset-erasure-clears-cover",
+    "sql-reference-parity",
+    "withdrawn-source-queries",
+    "actual-pg-dump-restore-new-fields-and-cover",
+    "multi-value OR / cross-dimension AND",
+    "strict bounded arrays and unknown codes",
+    "eleven self-excluded unique-person facets",
+    "same-work same-role matching",
+    "versioned conservative age presets",
+    "memory and SQL parity",
+    "explicit shortlist role and wrong-role work rejection"
+  ]
+}

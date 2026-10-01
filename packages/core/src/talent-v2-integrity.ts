@@ -175,6 +175,7 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
         check(!!a&&!!u&&p.assetId===p.uploadId);
         check((p.state==='ERASED')===!!p.purgedAt);
         check((p.leaseToken===null)===(p.leaseUntil===null));
+        if(a?.state==='ERASED'||u?.state==='ERASED')check(['SKIPPED','ERASED'].includes(String(p.state))&&!p.leaseToken&&!p.leaseUntil);
         if(p.state==='ERASED')check(a?.state==='ERASED'&&u?.state==='ERASED'&&!!u?.purgedAt&&rs.every(r=>r.usageState==='RETIRED'&&!!r.purgedAt));
         if(['DELETE_PENDING','DELETE_UNKNOWN','DELETE_CONFIRMED'].includes(String(p.state))){check(!u?.purgedAt&&Number(u?.expectedBytes)>0&&Number(a?.bytes)>0&&a?.usageState==='RETIRED');check(!rs.some(r=>r.usageState==='ADOPTED'));check(!a?.sourceId&&!rs.some(r=>r.sourceId));check(![...data.workAssets,...data.mediaCollectionItems,...data.shortlistItemAssets].some(r=>r.assetId===p.assetId));check(![...data.personCredentials,...data.adultEligibilities].some(r=>r.evidenceAssetId===p.assetId));check(![...data.talentProfiles,...data.mediaCollections].some(r=>r.coverAssetId===p.assetId));}
     }

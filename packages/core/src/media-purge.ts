@@ -18,6 +18,12 @@ export async function formalMediaDependency(tx:Tx,a:MediaAsset){
  for(const table of ['talentProfiles','mediaCollections'] as const)if((await tx.find(table,{workspaceId:a.workspaceId,coverAssetId:a.id})).length)return true;
  return false;
 }
+/** Explicit deletion owns both direct targets and planned media dependencies, including completed requests. */
+export async function explicitMediaDeletion(tx:Tx,workspaceId:string,assetId:string){
+ const items=await tx.find('deletionItems',{workspaceId,resourceId:assetId});
+ return (await tx.find('deletionRequests',{workspaceId})).some(r=>r.state!=='DRAFT'&&
+  (r.targetKind==='ASSET'&&r.targetId===assetId||items.some(i=>i.requestId===r.id)));
+}
 export class MediaPurge {
  readonly store:Store;readonly clock:Clock;readonly config:Config;
  constructor(store:Store,clock:Clock,config:Config){this.store=store;this.clock=clock;this.config=config;}
@@ -47,6 +53,17 @@ export class MediaPurge {
     const a=await tx.get('assets',id);if(!a)continue;await this.enabled(tx,a.workspaceId);
     let p=(await tx.find('mediaPurgeIntents',{assetId:id}))[0];
     if(p?.leaseUntil&&p.leaseUntil>this.now())continue;
+    if(p&&['SKIPPED','ERASED'].includes(p.state))continue;
+    const upload=await tx.get('uploads',a.uploadId);
+    if(a.state==='ERASED'||upload?.state==='ERASED'||await explicitMediaDeletion(tx,a.workspaceId,id)){
+     if(p&&!irreversiblePurge(p.state)){
+      await tx.replace('mediaPurgeIntents',{...touch(p,this.clock),state:'SKIPPED',leaseToken:null,leaseUntil:null,lastCode:'EXPLICIT_DELETION_TAKEOVER'});
+      await this.event(tx,p,'skipped');
+     }
+     // An irreversible TTL plan must finish before explicit deletion can acquire ownership.
+     if(!p||!irreversiblePurge(p.state)||a.state==='ERASED'||upload?.state==='ERASED')continue;
+    }
+
     if(!p){if(a.state!=='READY'||a.bytes<=0)continue;p={...base(a.workspaceId,this.clock),assetId:id,uploadId:a.uploadId,objectToken:a.objectToken,state:'ELIGIBLE',objects:[{part:'original',bytes:a.bytes,hash:a.sha256,state:'PENDING'},...(a.previewBytes?[{part:'preview' as const,bytes:a.previewBytes,hash:a.previewHash,state:'PENDING' as const}]:[])],leaseToken:null,leaseUntil:null,recoveryEpoch:this.config.recoveryEpoch,attempts:0,nextAttemptAt:this.now(),lastCode:null,purgedAt:null};await tx.insert('mediaPurgeIntents',p);await this.event(tx,p,'eligible');}
     if(!irreversiblePurge(p.state)&&!await this.eligible(tx,a)){const formal=await formalMediaDependency(tx,a);await tx.replace('mediaPurgeIntents',{...touch(p,this.clock),state:formal?'SKIPPED':'ELIGIBLE',leaseToken:null,leaseUntil:null,nextAttemptAt:new Date(this.clock.now().getTime()+L.retryMs).toISOString(),lastCode:formal?'SKIPPED_FORMAL_DEPENDENCY':'PURGE_DEPENDENCY_DEFERRED'});await this.event(tx,p,formal?'skipped':'dependency-deferred');continue;}
     const n={...touch(p,this.clock),state:irreversiblePurge(p.state)?p.state:'CLAIMED' as const,leaseToken:randomUUID(),leaseUntil:new Date(this.clock.now().getTime()+L.leaseMs).toISOString(),recoveryEpoch:this.config.recoveryEpoch,attempts:p.attempts+1};await tx.replace('mediaPurgeIntents',n);await this.event(tx,n,'claimed');return n;
