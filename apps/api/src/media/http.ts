@@ -1,3 +1,4 @@
+import {registerPlaybackHttp} from './playback-http.ts';
 import type { Express, Request, Response } from 'express';
 import { randomUUID } from 'node:crypto';
 import type { Application, ApiRequest } from '../../../../packages/core/src/api.ts';
@@ -20,6 +21,7 @@ function error(res: Response, e: unknown) {
     res.status(known.status).json({ error: { code: known.code, message: known.message, requestId: randomUUID() } });
 }
 export function registerMediaHttp(server: Express, core: Application, provider: LocalMediaProvider | null) {
+    registerPlaybackHttp(server, core, provider);
     const headers = (res: Response) => { res.set({ 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'Cross-Origin-Resource-Policy': 'same-origin' }); };
     server.put('/api/v1/uploads/:id/content', async (req, res) => {
         headers(res);

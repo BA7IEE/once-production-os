@@ -1,3 +1,4 @@
+import {validateByteRequest, exactLengthStream, type ImmutableMediaObject, type ByteStreamRequest, type OpenMediaStream} from './byte-stream.ts';
 import { constants } from 'node:fs';
 import { mkdir, realpath, lstat, open, chmod, rename, rm, readdir, readFile, writeFile } from 'node:fs/promises';
 import type { FileHandle } from 'node:fs/promises';
@@ -145,6 +146,23 @@ export class LocalMediaProvider {
                 magic.toString('ascii', 0, 4) === 'RIFF' && magic.toString('ascii', 8, 12) === 'WEBP' ? 'image/webp' : null;
         invariant(mime === u.mime, 'MEDIA_TYPE_INVALID', '文件真实类型与声明不符或不支持', 422);
         return { path, preview: join(dir, 'preview.jpg') };
+    }
+    async statImmutableObject(a: MediaAsset, signal: AbortSignal): Promise<ImmutableMediaObject> {
+        invariant(!signal.aborted, 'MEDIA_CANCELLED', '播放已取消', 409);
+        const {file, st} = await this.checkedFile(join(this.work(a.uploadId, a.objectToken), 'original.bin'));
+        try {
+            invariant(st.size === a.bytes && a.bytes > 0 && a.bytes <= mediaByteLimit(a.mime) && (st.mode & 0o222) === 0, 'MEDIA_FILE_INVALID', '媒体对象长度或权限已变化', 503);
+            return {asset: a, bytes: st.size, identity: [st.dev, st.ino, st.size, st.mtimeMs, st.ctimeMs].join(':')};
+        } finally { await file.close(); }
+    }
+    async openByteStream(r: ByteStreamRequest): Promise<OpenMediaStream> {
+        validateByteRequest(r);
+        const a = r.objectRef.asset;
+        const {file, st} = await this.checkedFile(join(this.work(a.uploadId, a.objectToken), 'original.bin'));
+        try {
+            invariant((st.mode & 0o222) === 0 && [st.dev, st.ino, st.size, st.mtimeMs, st.ctimeMs].join(':') === r.objectRef.identity, 'MEDIA_FILE_INVALID', '媒体对象身份已变化', 503);
+            return exactLengthStream(file.createReadStream({start: r.start, end: r.endInclusive, highWaterMark: 64 * 1024, autoClose: true}), r.endInclusive - r.start + 1, r.signal);
+        } catch (e) { await file.close(); throw e; }
     }
     async readOriginal(a:MediaAsset):Promise<Buffer> {
         invariant(a.bytes>0&&a.bytes<=mediaByteLimit(a.mime),'MEDIA_FILE_INVALID','原件长度超过限制',503);

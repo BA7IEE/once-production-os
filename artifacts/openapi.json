@@ -15914,6 +15914,53 @@
         "x-mode": "READ"
       }
     },
+    "/api/v1/assets/{id}/playback": {
+      "get": {
+        "operationId": "asset.playback",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Range",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Single bytes range; multiple ranges are ignored with a full 200 response."
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "206": {
+            "description": "Authorized video/mp4 byte range with Content-Range, Content-Length and Accept-Ranges"
+          },
+          "416": {
+            "description": "Unsatisfiable range after authorization; Content-Range: bytes */size"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "assets.read",
+        "x-mode": "BINARY"
+      }
+    },
     "/api/v1/assets/{id}/preview": {
       "get": {
         "operationId": "asset.preview",

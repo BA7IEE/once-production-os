@@ -158,6 +158,7 @@ export interface Inputs {
   "upload.cancel": { "expectedRevision": number };
   "asset.list": undefined;
   "asset.get": undefined;
+  "asset.playback": undefined;
   "asset.preview": undefined;
   "asset.quarantine": { "expectedRevision": number };
   "auth.csrf": undefined;
@@ -1027,6 +1028,11 @@ export const ENDPOINTS = {
     "method": "GET",
     "path": "/assets/{id}",
     "mode": "READ"
+  },
+  "asset.playback": {
+    "method": "GET",
+    "path": "/assets/{id}/playback",
+    "mode": "BINARY"
   },
   "asset.preview": {
     "method": "GET",

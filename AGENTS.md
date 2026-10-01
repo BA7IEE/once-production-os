@@ -1,3 +1,9 @@
+# 2026-10-01 当前授权：PR-02 已合并冻结，启动 PR-03
+
+PR #30 按用户指定 head 9fc2f9295068a16a16e6409b6df1c230bbe055ca 合并，main=1a297d86ecfeac5d7a3c748322a867c9852a20c9 的 CI 36815702669 九项通过。PR-02 已合并、开发冻结、未部署，PROVIDER_VERIFIED=NOT_RUN。下方禁止进入 PR-03、保持 PR #30 Draft 的内容属于历史范围，已由本次用户授权替代。
+
+当前独立分支 codex/talent-experience-pr03，按 spec/15 与 spec/16 推进模卡、照片、视频、作品案例及本人多来源媒体维护。先读 docs/release/TALENT_EXPERIENCE_PR03.md；不得新增客户分享/官网/支付/CRM。既有迁移1–61冻结，新实体必须同步权限、审计、导出重建、删除、合并与恢复。PR-03 未获合并/部署授权，开发PR保持Draft，真实供应商结果不得由Mock替代。
+
 # 2026-10-01 当前实现范围：PR-02b
 
 用户已复核冻结 PR-02a。继续当前 PR #30 分支实施定向 CLAIM、ENROLL、逐人 grant、同档认领、服务器文本草稿/Submission、批量审核、来源归因与 INTERNAL_DIRECTORY 同意。保持 Draft，不合并、不部署；PROVIDER_VERIFIED=NOT_RUN。下方 PR-02a 禁止进入02b为历史范围，已被本次用户授权替代。前57次迁移冻结，只追加58及后续。不得进入PR-03媒体或客户分享/官网。

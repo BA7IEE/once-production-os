@@ -1,3 +1,4 @@
+import {openHttpsByteStream, validateByteRequest, type ImmutableMediaObject, type ByteStreamRequest, type OpenMediaStream} from './byte-stream.ts';
 import COS from 'cos-nodejs-sdk-v5';
 import {readFile,writeFile,lstat,readdir,rm,rename} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -73,6 +74,20 @@ export class CosMediaProvider extends LocalMediaProvider {
   output.on('error',()=>{});
   await this.io(()=>this.cos.getObject({...this.bucket,Key,Range:`bytes=0-${size}`,Output:output}));
   const body=Buffer.concat(chunks);invariant(body.length===size&&createHash('sha256').update(body).digest('hex')===hash,'MEDIA_FILE_INVALID','COS对象内容与登记摘要不符',503);return body;
+ }
+ override async statImmutableObject(a: MediaAsset, signal: AbortSignal): Promise<ImmutableMediaObject> {
+  invariant(!signal.aborted, 'MEDIA_CANCELLED', '播放已取消', 409);
+  const head = await this.io(() => this.cos.headObject({...this.bucket, Key: this.key(a.uploadId, a.objectToken, 'original.bin')}));
+  invariant(!signal.aborted, 'MEDIA_CANCELLED', '播放已取消', 409);
+  invariant(head.statusCode === 200 && head.headers?.['content-length'] === String(a.bytes) && a.bytes > 0 && a.bytes <= mediaByteLimit(a.mime) && /^"[^"\r\n]+"$/.test(head.ETag), 'MEDIA_FILE_INVALID', 'COS对象身份或长度不符', 503);
+  return {asset: a, identity: head.ETag, bytes: a.bytes};
+ }
+ override async openByteStream(r: ByteStreamRequest): Promise<OpenMediaStream> {
+  validateByteRequest(r);
+  const a = r.objectRef.asset;
+  const url = new URL(this.cos.getObjectUrl({...this.bucket, Key: this.key(a.uploadId, a.objectToken, 'original.bin'), Sign: true, Expires: 60}));
+  invariant(url.protocol === 'https:' && url.hostname === `${this.bucket.Bucket}.cos.${this.bucket.Region}.myqcloud.com` && !url.port && !url.username && !url.password && !url.hash, 'COS_CONFIG_INVALID', 'COS播放地址不符合私有存储配置', 503);
+  return openHttpsByteStream(url, r);
  }
  override readOriginal(a:MediaAsset){return this.bytes(a,false);}
  override readPreview(a:MediaAsset){return this.bytes(a,true);}

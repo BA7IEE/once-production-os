@@ -1,0 +1,89 @@
+{
+  "generatedAt": "2026-10-01T04:59:17.411Z",
+  "node": "v22.22.3",
+  "typescript": "5.8.3",
+  "scope": "static-source-and-contract",
+  "pass": 12,
+  "fail": 0,
+  "checks": [
+    {
+      "name": "typescript-syntax-transpile",
+      "passed": true,
+      "detail": {
+        "files": 187,
+        "diagnostics": [],
+        "note": "Syntax emit only. Not dependency resolution, full typecheck, Nest/Vite build, or browser execution."
+      }
+    },
+    {
+      "name": "test-double-not-in-production",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no-business-localStorage-or-unsafe-html",
+      "passed": true,
+      "detail": {
+        "forbidden": [],
+        "note": "AST identifier check; not a complete XSS or data-loss audit."
+      }
+    },
+    {
+      "name": "unique-route-operation-identities",
+      "passed": true,
+      "detail": {
+        "routes": 237
+      }
+    },
+    {
+      "name": "strict-request-object-schemas",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "command-key-header-required",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "reviewed-experience-http-surfaces",
+      "passed": true,
+      "detail": {
+        "unsupported": [],
+        "note": "PR-01 directory and PR-02a authentication and PR-02b text maintenance admit exact reviewed paths only; route presence is not release acceptance."
+      }
+    },
+    {
+      "name": "no-non-goal-http-surfaces",
+      "passed": true,
+      "detail": {
+        "nonGoals": []
+      }
+    },
+    {
+      "name": "candidate-migration-typed-tables",
+      "passed": true,
+      "detail": {
+        "tables": 17,
+        "note": "Text inspection only, not PostgreSQL execution."
+      }
+    },
+    {
+      "name": "candidate-composite-FKs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "candidate-job-lease-constraint",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no-fake-lockfile",
+      "passed": true,
+      "detail": {
+        "note": "Lockfile shape only; dependency resolution and audit are separate checks."
+      }
+    }
+  ]
+}

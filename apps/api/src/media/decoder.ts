@@ -20,9 +20,10 @@ async function decode() {
     }
     let imageInput=input;
     if(mime==='video/mp4'){
-        const args=['-v','error','-max_alloc','67108864','-protocol_whitelist','file','-show_entries','format=format_name,duration:stream=codec_type,width,height','-of','json',input];
+        const args=['-v','error','-max_alloc','67108864','-protocol_whitelist','file','-show_entries','format=format_name,duration:stream=codec_type,codec_name,pix_fmt,width,height','-of','json',input];
         const probe=JSON.parse(execFileSync('ffprobe',args,{timeout:15000,maxBuffer:32768,stdio:['ignore','pipe','ignore']}).toString());
         const video=probe.streams?.filter((s:{codec_type:string})=>s.codec_type==='video');
+        if (video?.[0]?.codec_name !== 'h264' || video[0].pix_fmt !== 'yuv420p' || probe.streams.some((s:{codec_type:string;codec_name:string}) => s.codec_type !== 'video' && !(s.codec_type === 'audio' && s.codec_name === 'aac'))) throw new Error('codec');
         if(!probe.format?.format_name?.split(',').includes('mp4')||video?.length!==1||!Number.isFinite(Number(probe.format.duration))||Number(probe.format.duration)<=0||Number(probe.format.duration)>1800||video[0].width*video[0].height>L.pixels)throw new Error('video');
         imageInput=output+'.frame.png';
         execFileSync('ffmpeg',['-v','error','-nostdin','-max_alloc','67108864','-threads','1','-protocol_whitelist','file','-enable_drefs','0','-use_absolute_path','0','-i',input,'-map','0:v:0','-frames:v','1','-vf','scale=1600:1600:force_original_aspect_ratio=decrease','-threads','1','-f','image2',imageInput],{timeout:30000,maxBuffer:32768,stdio:'ignore'});

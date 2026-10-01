@@ -120,3 +120,9 @@ INTERNAL_SOURCE、TALENT_SUBMISSION、AGENT_SUBMISSION 显式上下文；真实 
 未绑定ENROLL Submission全拒绝，同事务终结Claim、释放名额并记录内部决定人、时间及依据；无显式ownershipBasis时以本次Submission编号关联完整拒绝决定。已完成ENROLL之后的维护fork拒绝不改写原已批准Claim/Grant。普通JSON不携带被拒草稿或内部拒绝依据；实际恢复保留终态决定，不能复活reservation。
 
 对于internalUseUntil非空的本人来源，普通source.update禁止携带textPayload（含空字符串），返回409 TALENT_BASIS_SCOPED；独立内部材料另建Source。请求schema及236条路由不变，迁移1–61不变，无新增数据库字段。本轮继续Draft待复核，未合并未部署。
+
+## PR-03 启动切片：内部受控视频播放
+
+PR-02已合并冻结，main `1a297d86ecfeac5d7a3c748322a867c9852a20c9` 的CI 36815702669九项通过；未部署，Provider未验证。PR-03独立分支先增加 `GET /api/v1/assets/{id}/playback`（BINARY，assets.read），无schema/迁移变化。继承内部原生scope/来源/人物/删除/恢复边界，两个短事务夹住事务外存储读取，首字节前审计失败拒绝。
+
+Local/COS stat/openByteStream合同及200/206/416、取消、背压和流式额度按ADR-TE-04执行；当前只开放内部已批准素材，无Portal媒体或公开访问。新MP4限定H.264 yuv420p和AAC/无音频，PDF仍不解析。流每5秒尝试复查，绝对900秒上限可收紧。当前额度是单API进程边界，不宣称多副本全局限制或真实手机/COS验收。本人多来源、暂存归属、案例和回收生命周期仍属未完成范围，详见 [PR-03交付说明](../release/TALENT_EXPERIENCE_PR03.md)。

@@ -1,3 +1,13 @@
+## 2026-10-01：PR-03 已启动
+
+独立分支先实现内部受控视频播放，PR-03整体尚未完成、保持Draft、未部署；本人多来源媒体及生命周期待继续。当前能力、实际证据和明确剩余见 [PR-03交付说明](TALENT_EXPERIENCE_PR03.md)。
+
+## 2026-10-01：PR-02 已合并、开发冻结、未部署
+
+用户复核通过后，PR #30 从 Draft 转 Ready，并以 `9fc2f9295068a16a16e6409b6df1c230bbe055ca` 为 expected head 合并。合并后远端 main 为 `1a297d86ecfeac5d7a3c748322a867c9852a20c9`；[main 完整 CI 36815702669](https://github.com/BA7IEE/once-production-os/actions/runs/36815702669) **9/9 SUCCESS**，已核对精确 SHA，包含 PostgreSQL16 和全部8组浏览器。
+
+**PR-02 已合并、开发冻结、未部署，PROVIDER_VERIFIED=NOT_RUN。** 真实认证发送及生产接管未验证，正式外部入口默认关闭。下方 Draft/待复核内容保留为历史记录，由本节覆盖。PR-03 从该 main 独立分支推进，不修改已合并 PR-02 的迁移1–61。
+
 ## 2026-10-01 PR-02b finalization
 
 终态review不再返回可产生新成功回执的领域结果；新键一律409 SUBMISSION_CLOSED。未绑定ENROLL全拒绝同事务记录决定人/时间/内部依据并释放名额；已批准归属下的后续维护退回不撤销原Claim/Grant。本人来源textPayload在source.update被阻止，内部材料使用独立来源。

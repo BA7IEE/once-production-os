@@ -309,6 +309,7 @@ export interface Config {
     talentAuth?: TalentAuthConfig;
     ai?: AiLedgerConfig;
     mediaEnabled?: boolean;
+    mediaPlayback?: import('./media-playback.ts').MediaPlaybackLimits;
     origin: string;
     secureCookies: boolean;
     contactKey: Buffer;

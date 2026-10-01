@@ -179,6 +179,24 @@ export class Media {
         await audit(tx, actor, actor.workspaceId, 'asset.preview', 'asset', a.id, [], meta, this.clock);
         return a;
     }
+    async playback(tx: Tx, actor: Actor, id: string, meta?: RequestMeta): Promise<MediaAsset> {
+        this.enabled();
+        requirePermission(actor, 'assets.read');
+        const a = await assetFor(tx, actor, id, this.clock);
+        if (a.state !== 'READY' || a.mime !== 'video/mp4') missing();
+        if (meta) await audit(tx, actor, actor.workspaceId, 'asset.playback', 'asset', a.id, [], meta, this.clock);
+        return a;
+    }
+    /** Storage integrity response, only for the exact server-authorized object snapshot. */
+    async quarantineCorrupt(snapshot: MediaAsset, requestId: string): Promise<void> {
+        await this.store.transaction(async tx => {
+            await this.maintenanceGuard(tx, snapshot.workspaceId);
+            const current = await workspaceRow(tx, 'assets', snapshot.id, snapshot.workspaceId);
+            if (!current || current.state !== 'READY' || current.revision !== snapshot.revision || current.objectToken !== snapshot.objectToken) return;
+            await tx.replace('assets', {...touch(current, this.clock), state: 'QUARANTINED'});
+            await audit(tx, null, current.workspaceId, 'asset.integrity-quarantine', 'asset', current.id, ['state'], {requestId, ip: 'SYSTEM'}, this.clock);
+        });
+    }
     async maintenanceGuard(tx: Tx, workspaceId: string): Promise<void> {
         this.enabled();
         const w = await tx.get('workspaces', workspaceId);
