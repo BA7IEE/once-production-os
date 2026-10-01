@@ -104,7 +104,7 @@
     "tests/core/recovery-worker-intent.test.ts": "26192d2a7efd42cf9b0e54c259bb7cce37f90244b4c4f667267c85a969fa34b1",
     "tests/postgres/media-purge.test.ts": "ab8297a9e8c7eabcd0a152081e3c5f4e710367d57eb655fab480f4804f04a6a7",
     "tests/support/media-purge.ts": "cbb0e7d8c8ccbe96a029248b549ccebb35dc6a6dedab4b6b8cb1e042432bc226",
-    ".github/workflows/acceptance.yml": "3e0371f3d3d5330f42da5413c371012d4f0a27d2c948a61d48ebe2433265d9e1"
+    ".github/workflows/acceptance.yml": "19de1d05295bd2d5b88c72c6fcfe5013bc9c2be48cb819133c4ca32e7d4ac7e9"
   },
   "ciInfrastructure": {
     "run": 36889529259,
@@ -132,5 +132,16 @@
       }
     ],
     "adjustment": "Only this job timeout 20 -> 30 minutes; all tests, steps and assertions unchanged; new exact-head full CI required"
+  },
+  "ciBrowserBudget": {
+    "run": 36894916997,
+    "head": "1a39a05d86e467ceb07af100e6fe7e69f5fc0f21",
+    "job": "browser-media-purge",
+    "jobId": 110479375219,
+    "conclusion": "cancelled",
+    "annotation": "The job has exceeded the maximum execution time of 20m0s",
+    "browserStarted": true,
+    "rawLogSha256": "b548c63280da01fe1236c4eeb21f86cc2c46b510a8e0e4bb8ddb6bec16b5a812",
+    "adjustment": "All 12 browser jobs now have 30-minute total setup+test budget; PostgreSQL budget, browser per-step assertions and every test command unchanged; new exact-head complete CI required"
   }
 }

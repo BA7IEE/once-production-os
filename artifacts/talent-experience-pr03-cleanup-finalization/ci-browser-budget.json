@@ -1,0 +1,11 @@
+{
+  "run": 36894916997,
+  "head": "1a39a05d86e467ceb07af100e6fe7e69f5fc0f21",
+  "job": "browser-media-purge",
+  "jobId": 110479375219,
+  "conclusion": "cancelled",
+  "annotation": "The job has exceeded the maximum execution time of 20m0s",
+  "browserStarted": true,
+  "rawLogSha256": "b548c63280da01fe1236c4eeb21f86cc2c46b510a8e0e4bb8ddb6bec16b5a812",
+  "adjustment": "All 12 browser jobs now have 30-minute total setup+test budget; PostgreSQL budget, browser per-step assertions and every test command unchanged; new exact-head complete CI required"
+}

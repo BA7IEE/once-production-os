@@ -15,9 +15,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Browser jobs include slow Ubuntu/Chromium downloads; preserve every test step.
   browser-resume:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16
@@ -102,7 +103,7 @@ jobs:
 
   browser-handoff:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16
@@ -143,7 +144,7 @@ jobs:
 
   browser-media:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16
@@ -186,7 +187,7 @@ jobs:
 
   browser-production:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16
@@ -229,7 +230,7 @@ jobs:
 
   browser-talent-intake:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16
@@ -271,7 +272,7 @@ jobs:
 
   browser-talent-directory:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16
@@ -313,7 +314,7 @@ jobs:
 
   browser-talent-auth:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16
@@ -355,7 +356,7 @@ jobs:
 
   browser-talent-maintenance:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16
@@ -396,7 +397,6 @@ jobs:
 
   browser-media-staging:
     runs-on: ubuntu-24.04
-    # Allow slow Ubuntu dependency downloads; all validation steps still run.
     timeout-minutes: 30
     services:
       postgres:
@@ -440,7 +440,7 @@ jobs:
 
   browser-media-collections:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16
@@ -483,7 +483,7 @@ jobs:
 
   browser-work-cases:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16
@@ -526,7 +526,7 @@ jobs:
 
   browser-media-purge:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16
