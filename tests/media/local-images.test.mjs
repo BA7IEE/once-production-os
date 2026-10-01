@@ -61,7 +61,7 @@ test('PDF is an opaque private attachment: original preserved, no content interp
   const {backupPrivateMedia,restorePrivateMedia}=await import('../../dist/apps/api/src/recovery/media-backup.js');
   const copyRoot=await mkdtemp(join(await realpath(tmpdir()),'once-pdf-backup-'));
   try{
-   const db={mediaAsset:{findMany:async()=>[{...a,createdAt:new Date(a.createdAt),updatedAt:new Date(a.updatedAt)}]}};
+   const db={mediaAsset:{findMany:async()=>[{...a,createdAt:new Date(a.createdAt),updatedAt:new Date(a.updatedAt)}]},mediaPurgeIntent:{findMany:async()=>[],findUnique:async()=>null}};
    const manifest=await backupPrivateMedia(db,'local',f.root,join(copyRoot,'bundle'));
    await restorePrivateMedia(manifest,join(copyRoot,'bundle'),join(copyRoot,'restored'));
    const restored=await LocalMediaProvider.openExisting(join(copyRoot,'restored'));await restored.verifyAsset(a);assert.deepEqual(await restored.readOriginal(a),bytes);

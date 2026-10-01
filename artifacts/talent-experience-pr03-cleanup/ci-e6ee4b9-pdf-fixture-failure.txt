@@ -1,0 +1,45 @@
+Run 36879331682 / job 110426778160 / head e6ee4b92af52fe67c2f105423df18aa6f60be0e1
+2026-10-01T14:54:21.3023335Z not ok 14 - PDF is an opaque private attachment: original preserved, no content interpretation
+2026-10-01T14:54:21.3023987Z   ---
+2026-10-01T14:54:21.3024181Z   duration_ms: 570.401642
+2026-10-01T14:54:21.3024437Z   type: 'test'
+2026-10-01T14:54:21.3024909Z   location: '/home/runner/work/once-production-os/once-production-os/tests/media/local-images.test.mjs:56:1'
+2026-10-01T14:54:21.3025385Z   failureType: 'testCodeFailure'
+2026-10-01T14:54:21.3025742Z   error: "Cannot read properties of undefined (reading 'findMany')"
+2026-10-01T14:54:21.3026065Z   code: 'ERR_TEST_FAILURE'
+2026-10-01T14:54:21.3026568Z   name: 'TypeError'
+2026-10-01T14:54:21.3026747Z   stack: |-
+2026-10-01T14:54:21.3027240Z     currentMediaIdentity (file:///home/runner/work/once-production-os/once-production-os/dist/apps/api/src/recovery/media-backup.js:30:49)
+2026-10-01T14:54:21.3028067Z     async backupPrivateMedia (file:///home/runner/work/once-production-os/once-production-os/dist/apps/api/src/recovery/media-backup.js:43:40)
+2026-10-01T14:54:21.3028876Z     async TestContext.<anonymous> (file:///home/runner/work/once-production-os/once-production-os/tests/media/local-images.test.mjs:65:19)
+2026-10-01T14:54:21.3029449Z     async Test.run (node:internal/test_runner/test:1054:7)
+2026-10-01T14:54:21.3029861Z     async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+2026-10-01T14:54:21.3030195Z   ...
+2026-10-01T14:54:21.9280388Z # Subtest: selected MP4 produces a bounded private cover without modifying the original
+2026-10-01T14:54:21.9281281Z ok 15 - selected MP4 produces a bounded private cover without modifying the original
+2026-10-01T14:54:21.9281866Z   ---
+2026-10-01T14:54:21.9282037Z   duration_ms: 626.482837
+2026-10-01T14:54:21.9282230Z   type: 'test'
+2026-10-01T14:54:21.9282394Z   ...
+2026-10-01T14:54:22.4781076Z # Subtest: spoofed MP4 header fails actual probing
+2026-10-01T14:54:22.4781711Z ok 16 - spoofed MP4 header fails actual probing
+2026-10-01T14:54:22.4782090Z   ---
+2026-10-01T14:54:22.4782290Z   duration_ms: 550.120415
+2026-10-01T14:54:22.4782533Z   type: 'test'
+2026-10-01T14:54:22.4782702Z   ...
+2026-10-01T14:54:22.9643443Z # Subtest: new MP4 uploads reject MPEG-4 Part 2; require H.264 yuv420p with AAC or no audio
+2026-10-01T14:54:22.9645108Z ok 17 - new MP4 uploads reject MPEG-4 Part 2; require H.264 yuv420p with AAC or no audio
+2026-10-01T14:54:22.9645910Z   ---
+2026-10-01T14:54:22.9646390Z   duration_ms: 486.199107
+2026-10-01T14:54:22.9646907Z   type: 'test'
+2026-10-01T14:54:22.9647307Z   ...
+2026-10-01T14:54:22.9818109Z 1..17
+2026-10-01T14:54:22.9818367Z # tests 17
+2026-10-01T14:54:22.9818623Z # suites 0
+2026-10-01T14:54:22.9818849Z # pass 16
+2026-10-01T14:54:22.9819067Z # fail 1
+2026-10-01T14:54:22.9819296Z # cancelled 0
+2026-10-01T14:54:22.9819538Z # skipped 0
+2026-10-01T14:54:22.9819763Z # todo 0
+2026-10-01T14:54:22.9820092Z # duration_ms 5812.060513
+2026-10-01T14:54:22.9867779Z ##[error]Process completed with exit code 1.

@@ -14,3 +14,5 @@
 - 一次checkpoint命令误用了`.ts`扩展名，未找到文件；用实际`checkpoint.test.mjs`重新执行，17项通过。
 
 真实Provider/COS、物理手机、生产迁移与部署仍未执行。
+
+最终CI首轮36879331682：媒体job的PDF备份测试替身缺少mediaPurgeIntent delegate，17项中1项失败。仅补齐测试替身，不加生产fallback、不修改原断言；Local媒体17/17和surface policy3/3复跑通过。新head重新执行完整CI。

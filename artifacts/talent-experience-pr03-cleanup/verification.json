@@ -171,6 +171,25 @@
     "tests/postgres/media-purge-restore.ts": "ed0d0dfe415866f8eabfabdc8b2ad06ddc04688c5e47f0ab429b15d0b8ec4472",
     "tests/postgres/media-purge.test.ts": "13b5e2e43a810b09f9173eeb01844be0b4e098e143033e6574e9e0ef6dde8f90",
     "tests/support/media-purge.ts": "33b3036c3bca61a5b5bb3d4b81591f832d6afb041aaad4dcc4f6e5ed91bb4948",
-    "tests/support/memory-store.ts": "edce937f2c523e47d3a74f27f85da35dd2909bbecbc810ebc19fc7ab0e0c2c3d"
-  }
+    "tests/support/memory-store.ts": "edce937f2c523e47d3a74f27f85da35dd2909bbecbc810ebc19fc7ab0e0c2c3d",
+    "tests/media/local-images.test.mjs": "36ea3fc75dcf5edaf43d44f60b260d55c9372b3eec529282d4635dad159fc527"
+  },
+  "mediaLocalImages": {
+    "tests": 17,
+    "pass": 17,
+    "fail": 0
+  },
+  "surfacePolicy": {
+    "tests": 3,
+    "pass": 3
+  },
+  "ciAttempts": [
+    {
+      "head": "e6ee4b92af52fe67c2f105423df18aa6f60be0e1",
+      "run": 36879331682,
+      "failedJob": "browser-media",
+      "cause": "PDF backup test double missing mediaPurgeIntent delegate; real runtime code unchanged by correction",
+      "resolution": "mock interface completed; all original assertions retained; local 17/17"
+    }
+  ]
 }
