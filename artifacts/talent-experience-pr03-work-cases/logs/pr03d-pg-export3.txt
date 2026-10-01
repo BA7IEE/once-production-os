@@ -1,0 +1,20 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: {"error":{"code":"UNIQUE_CONFLICT","message":"记录已经存在，请刷新确认","requestId":"9d1217b4-f92d-40e6-bd54-01adc5bcf7dc"}}
+
+409 !== 202
+
+    at Object.expect (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/media-staging.ts:13:73)
+    at async workCaseExportScenario (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/work-cases.ts:46:17)
+    at async file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/postgres/work-cases.test.ts:7:294 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 409,
+  expected: 202,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.3

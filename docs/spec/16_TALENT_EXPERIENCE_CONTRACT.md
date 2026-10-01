@@ -173,3 +173,19 @@ MODEL_CARD图片/PDF、POLAROIDS图片、PORTFOLIO/OTHER图片/MP4、SHOWREEL/IN
 - `collectionTypeCode` 与 personRoleId 一样属于稳定 identity。已有集合换类型返回 `409 COLLECTION_IDENTITY_CONFLICT`（Portal draft、内部 save、generic patch）；字段建议也拒绝改类型。需要另一类型时新建集合。
 - 每次 Collection 审核/保存的有效 Tag 都使用本次正式 Source，包含重新启用和再次确认。ARCHIVED 历史及 FieldEvidence 保留。generic Tag create/patch 和字段建议落地均推进父 Collection revision，因此旧 expectedCollectionRevision 必须冲突。
 - 审核新的 current 时，只对旧 current 的取消检查旧来源 scope/删除保护，不要求旧 Source 仍 current；false 的 FieldEvidence 使用本次合法 Source。新 current 的来源仍须当前有效；不可见旧范围全事务拒绝。
+
+## PR-03D：作品案例实施合同
+
+基线7909fa2，PR-03A/B/C已冻结。此增量复用Work/WorkCredit/WorkAsset，Portfolio保持独立；无TalentWork/Project/CRM扩张。
+
+- `POST /portal/submissions/{id}/works`：expectedRevision + works[0..10]；严格workPlanSchema，未知字段拒绝。模式CREATE_EXTERNAL_WORK/LINK_EXISTING_WORK，targetWorkId与expectedWorkRevision同有同无；已绑定必须精确PersonRole，ENROLL仅declaredRoleCode。标题/简介/时间精度/地点/行业/作品类型/品牌展示名/本人署名、明确cover及最多30项有序素材。
+- `GET /portal/work-catalog`：当前人才账号可用的role/industry/workType代码与显示名，不含人物或企业记录。
+- `GET /portal/profiles/{id}/works`：当前账号+Grant+Person，逐个workCredit exposure；返回明确Work事实、本人Credit、单独获准媒体。无全库查询或其他参与者。
+- `GET /people/{id}/work-cases`：内部records.read及当前Person/Work/Credit/Asset来源和范围检查，主详情视觉卡片。
+- `talent.submission.decide.workDecisions`：每个已采纳WORK必须唯一decision、targetWorkId/expectedWorkRevision、basis。与文字/媒体/集合继续共用原Commands事务与重放策略；本轮没有第二套审核或候选模型。
+- 新EXTERNAL Work的公共事实来自正式审核Source，本人Credit独立Source，媒体保持PersonMedia来源、同Asset ID/hash/uploader。关联已有Work不写公共事实。相同标题不自动合并。
+- LINK冻结Work事实摘要及本人Credit版本；reviewer确认当前Work revision后可容忍纯非依赖版本变化；依赖变化409。本人稿件不能静默覆盖公共事实。
+- `selfExposureManifest.kind=workCredit, field=OWN_WORK_CASE`：绑定current Grant/Account/Person保护版本、Work明确事实及本人精确Credit。来源/角色/删除/恢复校验每次执行。媒体仍使用独立mediaAsset exposure，不能由Work关系扩大授权。
+- caseDate精度UNKNOWN/YEAR/MONTH/DAY/APPROXIMATE；未知为null。原Work字段不足以结构化表达时间、地点、展示品牌，新增四列，不建宽泛WorkMetadata。
+- WorkCredit personRoleId/sourceId为历史兼容可空，新人才案例同时非空；复合FK限定同workspace/person/roleCode。既有旧Credit继承Work来源。
+- 前向迁移64–66详见发布说明。导出四字段逐项许可，新原件依赖去重；验证过的原件才能重建WorkAsset/cover。

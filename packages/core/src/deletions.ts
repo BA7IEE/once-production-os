@@ -124,6 +124,7 @@ export class Deletions {
                     works.add(row.id);
                     add({ resourceKind: 'work', resourceId: row.id, dependencyKind: 'SOURCE_OWNS_WORK', proposedAction: 'REVIEW_RETENTION', evidenceState: 'REVIEW_REQUIRED', detailCode: 'WORK_MAY_REQUIRE_INDEPENDENT_BASIS' });
                 }
+                for(const row of await tx.find('workCredits',{workspaceId:actor.workspaceId,sourceId})){if(await this.rootVisible(tx,actor,'WORK',row.workId))add({resourceKind:'workCredit',resourceId:row.id,dependencyKind:'SOURCE_WORK_CREDIT',proposedAction:'REMOVE_RELATION',evidenceState:row.note?'REVIEW_REQUIRED':'PROVEN',detailCode:'CREDIT_BASIS_WITHDRAWN'});else miss('HIDDEN_WORK_DEPENDENCY');}
                 for (const row of await tx.find('projects', { workspaceId: actor.workspaceId, sourceId })) {
                     if (!(await scopeVisible(tx, actor, row.scopeId))) { miss('HIDDEN_PROJECT_DEPENDENCY'); continue; }
                     projects.add(row.id);

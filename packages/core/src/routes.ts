@@ -57,6 +57,7 @@ export const ROUTES: RouteDefinition[] = [...TALENT_AUTH_ROUTES,...TALENT_MAINTE
     {method:'GET',path:'/directory/talents/{id}',operation:'directory.talent.get',mode:'READ',permission:'records.read'},
     {method:'POST',path:'/directory/talents',operation:'directory.talent.create',mode:'COMMAND',permission:'records.write',schema:TalentIntakeSchema},
     ...TD2_ROUTES,
+    { method:'GET',path:'/people/{id}/work-cases',operation:'work.personCases',mode:'READ',permission:'records.read' },
     { method: 'GET', path: '/works', operation: 'work.list', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/works', operation: 'work.create', mode: 'COMMAND', permission: 'records.write', schema: PS.workCreate },
     { method: 'GET', path: '/works/{id}', operation: 'work.get', mode: 'READ', permission: 'records.read' },

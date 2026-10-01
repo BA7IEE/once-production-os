@@ -1,3 +1,46 @@
+## PR-03D Work / 作品案例（Draft，待代码级复核）
+
+PR-03A/B/C 已由用户冻结，基线 `7909fa204de15224ae7f1f7bb43b88a285d37dc9`。本轮只实现作品案例；未合并、未部署，Provider/COS/真实手机验证仍 `NOT_RUN`。不进入 PR-03E 自动回收或 PR-04 Agent 摄取。
+
+### 业务与模型
+
+复用 Work、WorkCredit、WorkAsset、Source、Person、PersonRole 和现有媒体上传/采纳链。Portfolio 仍是独立 MediaCollection；不要求集合素材先创建 Work，不创建 TalentWork 或 Project。本人新案例固定 `EXTERNAL`，不代表 ONCE 承接项目。Work 已有 title/description/industryCode/workTypeCodes/originNote、状态及封面；仅补 `caseDate/datePrecision/location/brandDisplayName`。年份、月份、日期、大致时间和未知分别表达，未知不补日期。品牌采用展示名：已有 ProjectParty 不能冒充 Work 品牌，未扩企业主体或 CRM。
+
+WorkCredit 新增精确 personRoleId 与独立 sourceId，旧署名保留原 ID 和 Work 来源继承语义。当前新署名必须同 workspace、同 Person、同 roleCode，并有正式来源。职业停用只停止当前展示/筛选，不删除历史。Work Source、Credit Source 和素材 PersonMedia Source 分别授权；其中一个失效不删除其他来源的记录或原件。
+
+### 提交和审核
+
+新增严格 `WORK` Submission plan。`CREATE_EXTERNAL_WORK` 新建外部案例；`LINK_EXISTING_WORK` 可提出关联申请，Portal 不开放作品库。本人明确获准的现有案例可带 targetWorkId/expectedWorkRevision 维护自己的 Credit。所有 target/Person/Role/Asset 读取复查当前账号、Claim/Grant 和 exposure。
+
+审核员必须逐项选择 CREATE_NEW / LINK_EXISTING、目标版本与审核依据。新建在同一事务建立 Source/归因/用途依据、Work、本人 Credit、媒体采纳和关系、Grant exposure；审核审计失败全部回滚。ENROLL 草稿不建立假 Person/Role/Work，批准时才按声明职业建立正式角色。关联共享 Work 不覆盖标题、时间、品牌、封面或其他署名；本人的不同声明保留在冻结 Submission。相同命令键精确重放，新的键审核终态返回 SUBMISSION_CLOSED。
+
+LINK 的草稿保存 Work 依赖事实摘要和本人 Credit 版本。审核请求仍带当前 Work revision，非依赖的版本变化允许审核员重新确认；公共事实变化或本人 Credit 被改，返回 WORK_NEEDS_REBASE / WORK_CREDIT_NEEDS_REBASE。不是任何 revision 变化都拒绝，也不无视并发。
+
+### 媒体、自助开放和页面
+
+复用 SUBMISSION_STAGED_ASSET / EXISTING_ADOPTED_ASSET_REFERENCE；只接受本批 READY 暂存素材或当前明确 exposure 的正式素材。案例接受图片与 MP4，PDF 明确拒绝，不 OCR/转码。审核依赖媒体须整组采纳。WorkAsset 只建立引用，同一原件可在多个 Work 与 Collection 复用；移除关系不 RETIRE Asset、不删 PersonMedia/CollectionItem/源字节。
+
+封面使用已有 coverEntryId，必须本 Work 的图片。删除封面后清空，不自动改选下一张；无静态图片不伪造封面。自助开放使用 grant-bound `workCredit/OWN_WORK_CASE`，摘要绑定当前 Grant/Account/Person 保护版本、Work 明确事实和本人 Credit；媒体另外要求自己的精确 exposure。不会暴露其他 Credit、人物、客户、Project、来源原文或内部备注。
+
+Portal 提供服务器案例草稿、职业/行业/类型、时间精度、照片视频选择、排序和封面，刷新可继续。审核界面呈现业务字段和明确新建/关联动作。人物主详情提供封面、标题、品牌、时间、本人角色和照片/视频数量的案例卡片及详情。
+
+### 数据库和生命周期
+
+- 64 `202610010009_work_cases`：Work 缺失字段、Credit 精确职业/来源 FK、唯一约束、WORK 冻结插入守卫。
+- 65 `202610010010_work_optional_cover`：首次保留的合成库实跑发现旧 ACTIVE 强制封面约束，前向移除；原同 Work 封面 FK 保留。
+- 66 `202610010011_work_export_fields`：PG 实测发现旧导出字段白名单，前向增加四个案例字段；已有许可不会自动扩权。
+- 迁移 1–63 未改写，64/65 实跑后也以新迁移修正，未 db push 或清库。
+
+Person 删除阻断本人案例/素材，Work 删除仅处理关系；Source 删除纳入独立 Credit，Work 擦除同步清空新字段。普通旧 Credit 合并沿用现有映射；精确 Role 不可安全映射时 fail-closed，暂存 Submission 不跟随迁移。恢复完整性摘要纳入 Work/Credit/WorkAsset/SubmissionItem，检查精确职业、来源、封面和唯一关系。
+
+普通 JSON 仅导出获准正式事实、署名和原件；精确署名要求随同迁移 PersonRole/独立来源。共享原件只生成一条合并字段的导出依赖，重建可恢复 WorkAsset 和图片封面，不能用身份元数据伪造文件。JSON 不重建 TalentAccount/Grant/Submission。物理 pg_dump/restore 保留完整关系，恢复隔离仍撤销 session/grant/exposure、隔离原件，不复活旧授权。
+
+### 验证与剩余
+
+最终本地结果、反例清单、页面截图、原始日志及迁移指纹记录在 `artifacts/talent-experience-pr03-work-cases/verification.json`。Core、真实 PG、全部浏览器及最终 head CI 逐项记录，旧通过记录不代替本轮结果。完整验收映射见 `PR03D_ACCEPTANCE.md`。
+
+本轮不宣称 PR-03 整体完成；停止在 PR-03D，等待代码级复核。真实 Provider/COS/物理手机、生产升级与部署未执行；PR-03E、PR-04、分享/官网/报价/排期均未实施。
+
 # PR-03C finalization：本人开放权限与集合一致性（Draft，待复核）
 
 基线 `d8e59f7ab70fdb5f55ea0aead0a2f54cef020579`。主体复核已通过，但本轮尚未冻结。PR #31 继续 **Draft、未合并、未部署**，不进入 PR-03D Work。

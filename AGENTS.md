@@ -1,3 +1,7 @@
+# 2026-10-01 当前切片：PR-03D Work / 作品案例
+
+用户已冻结 PR-03A/B/C，基线7909fa2。当前仅复用 Work/WorkCredit/WorkAsset，实现本人案例提交、精确职业署名、来源/授权和生命周期。迁移1–63冻结；本轮前向64–66，已实跑的64/65不改写。PR #31保持Draft、未合并、未部署，完成后等待代码复核，不进入PR-03E或其他延期模块。下方禁止进入Work为历史切片范围。
+
 # 2026-10-01 当前切片：PR-03C finalization
 
 主体复核通过但未冻结。本轮仅修 Grant-bound selfExposureManifest、Tag 当前来源和父集合版本、失效旧来源 current 切换、集合类型 identity。迁移1–63均保持原样；PR #31保持Draft、未合并、未部署。不进入PR-03D Work、客户分享、官网或Agent摄取。新增/完整实测证据见 docs/release/TALENT_EXPERIENCE_PR03.md，最终head CI以PR描述及本轮回复为准。

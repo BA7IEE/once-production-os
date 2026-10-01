@@ -11,7 +11,7 @@ import { touch } from './helpers.ts';
 /** All TD2 rows and their security-relevant endpoints participate in one recovery digest.
  * Do not return raw rows, encrypted identifiers or machine credential hashes in a report. */
 export const TD2_INTEGRITY_TABLES = [...TALENT_V2_TABLES, 'people', 'sources', 'scopes',
-    'memberships', 'personMedia','uploads','talentSubmissions','talentAccounts','assets', 'evidence', 'shortlistItems', 'personAliases', 'personMerges', 'mergeHistoryErasures'] as const;
+    'memberships', 'works','workCredits','workAssets','talentSubmissionItems', 'personMedia','uploads','talentSubmissions','talentAccounts','assets', 'evidence', 'shortlistItems', 'personAliases', 'personMerges', 'mergeHistoryErasures'] as const;
 export type IntegrityTable = typeof TD2_INTEGRITY_TABLES[number];
 type Row = { id: string; workspaceId: string; [key: string]: unknown };
 export interface TalentIntegrityReport {
@@ -46,6 +46,11 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
         const target = maps[table].get(String(id));
         check(!!target && target.workspaceId === workspaceId && (!samePerson || target.personId === row.personId));
     };
+    for(const w of data.works){ref(w,'sourceId','sources',false,true);ref(w,'scopeId','scopes',false,true);if(w.coverEntryId){const e=maps.workAssets.get(String(w.coverEntryId)),a=e?maps.assets.get(String(e.assetId)):null;check(!!e&&e.workId===w.id&&!!a&&String(a.mime).startsWith('image/'));}}
+    const creditKeys=new Set<string>(),placementKeys=new Set<string>();
+    for(const c of data.workCredits){ref(c,'workId','works',false,true);ref(c,'personId','people',false,true);check(!!c.personRoleId===!!c.sourceId);if(c.personRoleId){ref(c,'personRoleId','personRoles',true,true);ref(c,'sourceId','sources',false,true);check(maps.personRoles.get(String(c.personRoleId))?.roleCode===c.roleCode);}const key=c.workId+':'+c.personId+':'+c.roleCode;check(!creditKeys.has(key));creditKeys.add(key);}
+    for(const e of data.workAssets){ref(e,'workId','works',false,true);ref(e,'assetId','assets',false,true);const key=e.workId+':'+e.assetId;check(!placementKeys.has(key));placementKeys.add(key);}
+    for(const item of data.talentSubmissionItems)ref(item,'submissionId','talentSubmissions',false,true);
     const owner = (row: Row) => {
         const keys = Object.keys(TALENT_OWNER_TABLES).filter(k => row[k] !== null && row[k] !== undefined);
         check(keys.length === 1);

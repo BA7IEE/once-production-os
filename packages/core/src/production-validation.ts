@@ -1,13 +1,14 @@
 import { v, uuid, revision, code, SourceInput } from './validation.ts';
 import { PRODUCTION_LIMITS as L } from './production-model.ts';
+const caseFields={caseDate:v.optional(v.nullable(v.string(100,1))),datePrecision:v.optional(v.enum(['UNKNOWN','YEAR','MONTH','DAY','APPROXIMATE'])),location:v.optional(v.string(500)),brandDisplayName:v.optional(v.string(200))};
 const root = { title: v.string(160, 1), sourceId: v.optional(uuid), inlineSource: v.optional(SourceInput) };
 const origin = v.enum(['ONCE', 'EXTERNAL', 'UNKNOWN']);
 const workStatus = v.enum(['DRAFT', 'ACTIVE', 'ARCHIVED']);
 const projectStatus = v.enum(['DRAFT', 'ACTIVE', 'COMPLETED', 'ARCHIVED']);
 const participantState = v.enum(['NOMINATED', 'CONFIRMED', 'ACTUAL']);
 export const ProductionSchemas = {
-    workCreate: v.object({ ...root, description: v.optional(v.string(5000)), industryCode: v.optional(v.nullable(code)), workTypeCodes: v.optional(v.array(code, 10)), origin: v.optional(origin), originNote: v.optional(v.string(2000)) }),
-    workPatch: v.object({ expectedRevision: revision, title: v.optional(v.string(160, 1)), description: v.optional(v.string(5000)), industryCode: v.optional(v.nullable(code)), workTypeCodes: v.optional(v.array(code, 10)), origin: v.optional(origin), originNote: v.optional(v.string(2000)), status: v.optional(workStatus) }),
+    workCreate: v.object({ ...root,...caseFields, description: v.optional(v.string(5000)), industryCode: v.optional(v.nullable(code)), workTypeCodes: v.optional(v.array(code, 10)), origin: v.optional(origin), originNote: v.optional(v.string(2000)) }),
+    workPatch: v.object({ expectedRevision: revision,...caseFields, title: v.optional(v.string(160, 1)), description: v.optional(v.string(5000)), industryCode: v.optional(v.nullable(code)), workTypeCodes: v.optional(v.array(code, 10)), origin: v.optional(origin), originNote: v.optional(v.string(2000)), status: v.optional(workStatus) }),
     workAsset: v.object({ expectedRevision: revision, assetId: uuid }),
     remove: v.object({ expectedRevision: revision, entryId: uuid }),
     order: v.object({ expectedRevision: revision, entryIds: v.array(uuid, L.assets), coverEntryId: v.nullable(uuid) }),

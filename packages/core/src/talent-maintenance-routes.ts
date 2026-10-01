@@ -1,9 +1,13 @@
+import {WorkCaseSchemas} from './work-case-schema.ts';
 import {mediaExposureSchema} from './talent-media-exposure.ts';
 import {CollectionSchemas} from './media-collections.ts';
 import {TalentMediaSchemas,MediaSchemas} from './media-validation.ts';
 import type {RouteDefinition} from './routes.ts';
 import {MaintenanceSchemas as S} from './talent-maintenance-schema.ts';
 export const TALENT_MAINTENANCE_ROUTES:RouteDefinition[]=[
+ {method:'GET',path:'/portal/work-catalog',operation:'portal.work.catalog',mode:'READ'},
+ {method:'POST',path:'/portal/submissions/{id}/works',operation:'portal.submission.works',mode:'COMMAND',schema:WorkCaseSchemas.draft},
+ {method:'GET',path:'/portal/profiles/{id}/works',operation:'portal.work.list',mode:'READ'},
  {method:'POST',path:'/talent-grants/{id}/media-exposure',operation:'talent.grant.mediaExposure',mode:'COMMAND',permission:'talent.review',schema:mediaExposureSchema},
  {method:'GET',path:'/portal/accounts/{accountId}/assets/{id}/attachment',operation:'portal.asset.attachment',mode:'BINARY'},
  {method:'GET',path:'/talent-staged-assets/{id}/attachment',operation:'talent.asset.attachment',mode:'BINARY',permission:'talent.review'},

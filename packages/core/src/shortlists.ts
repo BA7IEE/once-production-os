@@ -1,3 +1,5 @@
+import {visibleOrNull} from './production-policy.ts';
+import {exactCreditCurrent} from './talent-work-cases.ts';
 import { loadTalentGraph, td2PersonFor } from './talent-v2-graph.ts';
 import type { FactRow } from './talent-v2-schema.ts';
 import { TD2Schemas } from './talent-v2-schema.ts';
@@ -99,7 +101,7 @@ export class Shortlists {
                 work = workHeader(full);
                 workSourceRevision = source.revision;
                 if(profile){
-                    creditedRoles=(await tx.find('workCredits',{workspaceId:actor.workspaceId,workId:full.id,personId:person.id})).map(c=>c.roleCode);
+                    creditedRoles=[];for(const c of await tx.find('workCredits',{workspaceId:actor.workspaceId,workId:full.id,personId:person.id}))if(await exactCreditCurrent(tx,c,this.clock)&&(!c.personRoleId||c.personRoleId===role?.id)&&(!c.sourceId||await visibleOrNull(()=>sourceFor(tx,actor,c.sourceId!,this.clock))))creditedRoles.push(c.roleCode);
                     if(!creditedRoles.length || (role&&!creditedRoles.includes(String(role.roleCode))))missing();
                 }
             }
@@ -174,7 +176,7 @@ export class Shortlists {
             return { person, personSource, work: null, workSource: null };
         const work = await workFor(tx, actor, workId, this.clock);
         invariant(work.status !== 'ARCHIVED', 'WORK_ARCHIVED', '已归档作品不能新增到候选清单', 409);
-        const credits = await tx.find('workCredits', { workspaceId: actor.workspaceId, workId, personId });
+        const credits=[];for(const c of await tx.find('workCredits', { workspaceId: actor.workspaceId, workId, personId }))if(await exactCreditCurrent(tx,c,this.clock)&&(!c.sourceId||await visibleOrNull(()=>sourceFor(tx,actor,c.sourceId!,this.clock))))credits.push(c);
         invariant(credits.length > 0, 'WORK_PERSON_MISMATCH', '选择的作品没有该候选人的署名记录', 422);
         invariant(!roleCode||credits.some(c=>c.roleCode===roleCode),'WORK_ROLE_MISMATCH','所选作品没有本次职业的署名，不能借用其他职业的作品',422);
         const workSource = await sourceFor(tx, actor, work.sourceId, this.clock);

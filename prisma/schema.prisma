@@ -800,6 +800,10 @@ model Work {
   origin String @db.Text
   originNote String @db.Text
   status String @db.Text
+  caseDate String? @db.Text
+  datePrecision String @default("UNKNOWN") @db.Text
+  location String @default("") @db.Text
+  brandDisplayName String @default("") @db.Text
   coverEntryId String? @db.Uuid
   workspace Workspace @relation("Work_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "works_workspace_fkey")
   @@unique([workspaceId, id])
@@ -846,6 +850,8 @@ model WorkCredit {
   revision Int 
   workId String @db.Uuid
   personId String @db.Uuid
+  personRoleId String? @db.Uuid
+  sourceId String? @db.Uuid
   roleCode String @db.Text
   note String @db.Text
   workspace Workspace @relation("WorkCredit_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "workCredits_workspace_fkey")

@@ -1,3 +1,4 @@
+import {saveWorkDrafts} from './talent-work-cases.ts';
 import {saveCollectionDrafts} from './media-collections.ts';
 import {Media,uploadFor} from './media.ts';
 import type {Tx} from './store.ts';
@@ -65,6 +66,7 @@ export class TalentPortal {
  case 'portal.claim.create':return maintenance.claim(tx,current,browser,data);
  case 'portal.claim.renew':return maintenance.renew(tx,current,browser,resourceId,data);
  case 'portal.submission.create':return maintenance.createDraft(tx,current,data);
+ case 'portal.submission.works':return saveWorkDrafts(tx,current,resourceId,data,this.auth.clock,this.auth.config);
  case 'portal.submission.collections':return saveCollectionDrafts(tx,current,resourceId,data,this.auth.clock,this.auth.config);
  case 'portal.submission.save':return maintenance.saveDraft(tx,current,resourceId,data);
  case 'portal.submission.submit':return maintenance.submissionAction(tx,current,resourceId,data,'submit');

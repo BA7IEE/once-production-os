@@ -182,6 +182,7 @@ export class PersonMerges {
         const duplicateCredits = await tx.find('workCredits', { workspaceId: actor.workspaceId, personId: duplicate.id });
         const canonicalCredits = await tx.find('workCredits', { workspaceId: actor.workspaceId, personId: canonical.id });
         for (const row of duplicateCredits) {
+            if (row.personRoleId) { blocker(blockers, 'EXACT_WORK_ROLE_CONFLICT'); continue; }
             const root = await this.visibleWork(tx, actor, row.workId);
             if (!root) { blocker(blockers, 'HIDDEN_WORK_REFERENCE'); continue; }
             affectedWorkIds.add(row.workId);

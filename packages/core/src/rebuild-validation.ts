@@ -27,6 +27,7 @@ const personData = v.object({
     status: v.enum(['DRAFT', 'ACTIVE', 'ARCHIVED'])
 });
 const workData = v.object({
+    caseDate:v.optional(v.nullable(v.string(100,1))),datePrecision:v.optional(v.enum(['UNKNOWN','YEAR','MONTH','DAY','APPROXIMATE'])),location:v.optional(v.string(500)),brandDisplayName:v.optional(v.string(200)),
     title: v.string(160, 1),
     description: v.optional(v.string(5000)),
     industryCode: v.optional(v.nullable(code)),
@@ -64,7 +65,7 @@ const media = v.object({
     height: v.number(1)
 });
 const relations = v.object({
-    workCredits: v.array(v.object({ workId: uuid, personId: uuid, roleCode: code }), L.relations),
+    workCredits: v.array(v.object({ workId: uuid, personId: uuid, roleCode: code, personRoleId:v.optional(uuid),sourceId:v.optional(uuid),note:v.optional(v.string(1000)) }), L.relations),
     projectParticipants: v.array(v.object({
         projectId: uuid, personId: uuid, roleCode: code,
         state: v.enum(['NOMINATED', 'CONFIRMED', 'ACTUAL'])

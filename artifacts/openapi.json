@@ -585,6 +585,346 @@
         "x-mode": "COMMAND"
       }
     },
+    "/api/v1/portal/work-catalog": {
+      "get": {
+        "operationId": "portal.work.catalog",
+        "parameters": [],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/portal/submissions/{id}/works": {
+      "post": {
+        "operationId": "portal.submission.works",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "works": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "clientItemKey": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64,
+                          "pattern": "^[A-Za-z0-9_-]+$"
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "CREATE_EXTERNAL_WORK",
+                            "LINK_EXISTING_WORK"
+                          ]
+                        },
+                        "targetWorkId": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 36,
+                              "maxLength": 36,
+                              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "expectedWorkRevision": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "personRoleId": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 36,
+                              "maxLength": 36,
+                              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "declaredRoleCode": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 60,
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 160
+                        },
+                        "description": {
+                          "type": "string",
+                          "minLength": 0,
+                          "maxLength": 5000
+                        },
+                        "caseDate": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 100
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "datePrecision": {
+                          "type": "string",
+                          "enum": [
+                            "UNKNOWN",
+                            "YEAR",
+                            "MONTH",
+                            "DAY",
+                            "APPROXIMATE"
+                          ]
+                        },
+                        "location": {
+                          "type": "string",
+                          "minLength": 0,
+                          "maxLength": 500
+                        },
+                        "industryCode": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 60,
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "workTypeCodes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 60,
+                            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                          },
+                          "minItems": 0,
+                          "maxItems": 10
+                        },
+                        "brandDisplayName": {
+                          "type": "string",
+                          "minLength": 0,
+                          "maxLength": 200
+                        },
+                        "creditNote": {
+                          "type": "string",
+                          "minLength": 0,
+                          "maxLength": 1000
+                        },
+                        "coverAssetId": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 36,
+                              "maxLength": 36,
+                              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "referenceKind": {
+                                "type": "string",
+                                "enum": [
+                                  "SUBMISSION_STAGED_ASSET",
+                                  "EXISTING_ADOPTED_ASSET_REFERENCE"
+                                ]
+                              },
+                              "assetId": {
+                                "type": "string",
+                                "minLength": 36,
+                                "maxLength": 36,
+                                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                              }
+                            },
+                            "required": [
+                              "referenceKind",
+                              "assetId"
+                            ]
+                          },
+                          "minItems": 0,
+                          "maxItems": 30
+                        }
+                      },
+                      "required": [
+                        "clientItemKey",
+                        "mode",
+                        "targetWorkId",
+                        "expectedWorkRevision",
+                        "personRoleId",
+                        "declaredRoleCode",
+                        "title",
+                        "description",
+                        "caseDate",
+                        "datePrecision",
+                        "location",
+                        "industryCode",
+                        "workTypeCodes",
+                        "brandDisplayName",
+                        "creditNote",
+                        "coverAssetId",
+                        "items"
+                      ]
+                    },
+                    "minItems": 0,
+                    "maxItems": 10
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "works"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/portal/profiles/{id}/works": {
+      "get": {
+        "operationId": "portal.work.list",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "READ"
+      }
+    },
     "/api/v1/talent-grants/{id}/media-exposure": {
       "post": {
         "operationId": "talent.grant.mediaExposure",
@@ -2359,6 +2699,66 @@
                     "minimum": 1,
                     "maximum": 9007199254740991
                   },
+                  "workDecisions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "clientItemKey": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64
+                        },
+                        "decision": {
+                          "type": "string",
+                          "enum": [
+                            "CREATE_NEW",
+                            "LINK_EXISTING"
+                          ]
+                        },
+                        "targetWorkId": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 36,
+                              "maxLength": 36,
+                              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "expectedWorkRevision": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "basis": {
+                          "type": "string",
+                          "minLength": 4,
+                          "maxLength": 2000
+                        }
+                      },
+                      "required": [
+                        "clientItemKey",
+                        "decision",
+                        "targetWorkId",
+                        "expectedWorkRevision",
+                        "basis"
+                      ]
+                    },
+                    "minItems": 0,
+                    "maxItems": 10
+                  },
                   "acceptedKeys": {
                     "type": "array",
                     "items": {
@@ -2367,7 +2767,7 @@
                       "maxLength": 64
                     },
                     "minItems": 0,
-                    "maxItems": 113
+                    "maxItems": 123
                   },
                   "publicReason": {
                     "type": "string",
@@ -15079,6 +15479,38 @@
         "x-mode": "COMMAND"
       }
     },
+    "/api/v1/people/{id}/work-cases": {
+      "get": {
+        "operationId": "work.personCases",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.read",
+        "x-mode": "READ"
+      }
+    },
     "/api/v1/works": {
       "get": {
         "operationId": "work.list",
@@ -15269,6 +15701,38 @@
                       "basisDescription"
                     ]
                   },
+                  "caseDate": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "datePrecision": {
+                    "type": "string",
+                    "enum": [
+                      "UNKNOWN",
+                      "YEAR",
+                      "MONTH",
+                      "DAY",
+                      "APPROXIMATE"
+                    ]
+                  },
+                  "location": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 500
+                  },
+                  "brandDisplayName": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 200
+                  },
                   "description": {
                     "type": "string",
                     "minLength": 0,
@@ -15419,6 +15883,38 @@
                     "type": "integer",
                     "minimum": 1,
                     "maximum": 9007199254740991
+                  },
+                  "caseDate": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "datePrecision": {
+                    "type": "string",
+                    "enum": [
+                      "UNKNOWN",
+                      "YEAR",
+                      "MONTH",
+                      "DAY",
+                      "APPROXIMATE"
+                    ]
+                  },
+                  "location": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 500
+                  },
+                  "brandDisplayName": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 200
                   },
                   "title": {
                     "type": "string",
@@ -22026,6 +22522,10 @@
                         "person.heightCm",
                         "person.intro",
                         "person.status",
+                        "work.caseDate",
+                        "work.datePrecision",
+                        "work.location",
+                        "work.brandDisplayName",
                         "work.title",
                         "work.description",
                         "work.industryCode",
@@ -22075,7 +22575,7 @@
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 58
+                    "maxItems": 62
                   },
                   "validUntil": {
                     "type": "string",
@@ -22339,6 +22839,10 @@
                         "person.heightCm",
                         "person.intro",
                         "person.status",
+                        "work.caseDate",
+                        "work.datePrecision",
+                        "work.location",
+                        "work.brandDisplayName",
                         "work.title",
                         "work.description",
                         "work.industryCode",
@@ -22388,7 +22892,7 @@
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 58
+                    "maxItems": 62
                   },
                   "usePermissionRefs": {
                     "type": "array",

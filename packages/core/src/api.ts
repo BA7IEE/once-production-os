@@ -424,6 +424,7 @@ export class Application {
                     case 'locale.get': return this.localeTexts.get(tx,actor,id);
                     case 'locale.create': return command('localeText',()=>this.localeTexts.create(tx,actor,data));
                     case 'locale.update': return command('localeText',()=>this.localeTexts.update(tx,actor,id,data));
+                    case 'work.personCases':return this.portfolio.personCases(tx,actor,id);
                     case 'work.list': return this.portfolio.list(tx, actor, query);
                     case 'work.create': return command('work', () => this.portfolio.create(tx, actor, data));
                     case 'work.get': return this.portfolio.get(tx, actor, id);

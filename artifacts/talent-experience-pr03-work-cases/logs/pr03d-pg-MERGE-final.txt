@@ -1,0 +1,1 @@
+{"checks":["exact-role-merge-conflict-fails-closed-no-silent-remap","ordinary-credit-maps-to-canonical-person-with-work-preserved"]}

@@ -168,7 +168,7 @@ export class DeletionFinalization {
         if (kind === 'WORK') {
             const row = await tx.get('works', id); if (!row) missing();
             const next = { ...touch(row, this.clock), title: '[ERASED]', description: '', industryCode: null, workTypeCodes: [],
-                origin: 'UNKNOWN' as const, originNote: '', status: 'ERASED' as const, coverEntryId: null };
+                origin: 'UNKNOWN' as const, originNote: '', caseDate:null,datePrecision:'UNKNOWN' as const,location:'',brandDisplayName:'',status: 'ERASED' as const, coverEntryId: null };
             await tx.replace('works', next);
             return { kind, id, revision: next.revision, status: next.status };
         }

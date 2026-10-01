@@ -1,3 +1,4 @@
+import {workDecisionSchema} from './work-case-schema.ts';
 import {v,uuid,revision,type Parsed} from './validation.ts';
 export const MAINTENANCE_VERSION='once-talent-text-v1';
 export const CONSENT_VERSION='internal-directory-2026-10-v1';
@@ -15,5 +16,5 @@ export const MaintenanceSchemas={
  decideClaim:v.object({expectedRevision:revision,decision:v.enum(['APPROVE','REJECT'] as const),ownershipBasis:v.string(2000,4),guardianConfirmed:v.boolean()}),
  createDraft:v.object({schemaVersion:v.enum([MAINTENANCE_VERSION]),claimId:v.optional(uuid),grantId:v.optional(uuid),consentTextVersion:v.enum([CONSENT_VERSION]),consentAccepted:v.boolean(),items:v.array(TextItemSchema,3)}),
  saveDraft:v.object({expectedRevision:revision,items:v.array(TextItemSchema,3)}),
- review:v.object({expectedRevision:revision,acceptedKeys:v.array(v.string(64,1),113),publicReason:v.string(500),targetPersonId:v.optional(uuid),createPerson:v.optional(v.boolean()),ownershipBasis:v.optional(v.string(2000,4)),guardianConfirmed:v.optional(v.boolean())}),
+ review:v.object({expectedRevision:revision,workDecisions:v.optional(v.array(workDecisionSchema,10)),acceptedKeys:v.array(v.string(64,1),123),publicReason:v.string(500),targetPersonId:v.optional(uuid),createPerson:v.optional(v.boolean()),ownershipBasis:v.optional(v.string(2000,4)),guardianConfirmed:v.optional(v.boolean())}),
 };

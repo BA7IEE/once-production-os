@@ -1,0 +1,14 @@
+import test from 'node:test';
+import {MemoryStore} from '../support/memory-store.ts';
+import {workCaseScenario} from '../support/work-cases.ts';
+test('PR03D exact-role external case, draft freeze, atomic review, replay and self projection',async()=>{await workCaseScenario(new MemoryStore());});
+import {workCaseLifecycleScenario} from '../support/work-cases.ts';
+test('PR03D source separation, sharing, role history and dependent/nondependent CAS',async()=>{await workCaseLifecycleScenario(new MemoryStore());});
+import {workCaseEnrollScenario} from '../support/work-cases.ts';
+test('PR03D ENROLL creates Person, Role, Work, Credit, media and Grant atomically',async()=>{await workCaseEnrollScenario(new MemoryStore());});
+import {workCaseExportScenario} from '../support/work-cases.ts';
+test('PR03D export worker and physical-original JSON rebuild preserve formal cases without external authority',async()=>{await workCaseExportScenario(new MemoryStore(),new MemoryStore());});
+import {workCaseProtectionScenario} from '../support/work-cases.ts';
+for(const kind of ['PERSON','WORK','MERGE'] as const)test('PR03D '+kind+' case lifecycle protection',async()=>{await workCaseProtectionScenario(new MemoryStore(),kind);});
+import {workCaseSharedScenario} from '../support/work-cases.ts';
+test('PR03D internal explicit shared Work link adds only own Credit and keeps public facts',async()=>{await workCaseSharedScenario(new MemoryStore());});

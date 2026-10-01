@@ -1,3 +1,4 @@
+import {exactCreditCurrent} from './talent-work-cases.ts';
 import {formalMediaSource} from './media-ownership.ts';
 import {PARTY_FIELD,collectParties,type PartyTransfer} from './project-parties.ts';
 import {LOCALE_EXPORT_VERSION,collectLocaleTransfer,isLocaleCode,localeTransferCode,type LocaleTransfer} from './locale-transfer.ts';
@@ -96,7 +97,7 @@ export class Exports {
         requirePermission(actor, 'sources.review');
         const d = S.permissionCreate.parse(input);
         invariant(unique(d.fields).length === d.fields.length, 'DUPLICATE_FIELD', '导出字段不能重复', 400);
-        const allowed = d.fields.filter(f => fieldsFor(d.subjectKind, [f]).length || (d.subjectKind === 'SOURCE' && (f===PARTY_FIELD||isLocaleCode(f)||f===MERGE_HISTORY_CODE||identityField(f)||f===IDENTITY_EVIDENCE_CODE||isTransferCode(f)||f===EVIDENCE_TRANSFER_CODE||f===CREDENTIAL_IDENTIFIER_CODE||f===BIRTH_DATE_CODE||f===MEDIA_TRANSFER_CODE)));
+        const allowed = d.fields.filter(f => fieldsFor(d.subjectKind, [f]).length || (d.subjectKind === 'SOURCE' && (f==='work.relations'||f===PARTY_FIELD||isLocaleCode(f)||f===MERGE_HISTORY_CODE||identityField(f)||f===IDENTITY_EVIDENCE_CODE||isTransferCode(f)||f===EVIDENCE_TRANSFER_CODE||f===CREDENTIAL_IDENTIFIER_CODE||f===BIRTH_DATE_CODE||f===MEDIA_TRANSFER_CODE)));
         invariant(allowed.length === d.fields.length, 'EXPORT_FIELD_SUBJECT_MISMATCH', '导出许可字段与对象类型不匹配', 422);
         const subject = d.retentionBasisSourceId?{source:await exportPermissionSource(tx,actor,d,this.clock)}:await this.subject(tx, actor, d.subjectKind, d.subjectId);
         invariant(!!d.retentionBasisSourceId || subject.source.id === d.sourceId, 'EXPORT_SOURCE_MISMATCH', '导出许可的来源与对象不一致', 422);
@@ -198,11 +199,17 @@ export class Exports {
         invariant(!d.fields.includes(BIRTH_DATE_CODE)||transferFields.includes('person.td2.talentProfiles'),'BIRTH_DATE_PROFILE_REQUIRED','完整生日须随专业档案及独立许可导出',422);
         invariant(!withIdentifiers||transferFields.includes('person.td2.personCredentials'),'TD2_TRANSFER_CREDENTIAL_REQUIRED','编号迁移必须同时选择资质记录',422);
         invariant(!withEvidence||transferFields.length>0,'TD2_TRANSFER_EVIDENCE_OWNER','字段证据必须同时选择专业资料',422);
-        invariant(!d.fields.includes(MEDIA_TRANSFER_CODE)||(transferFields.includes('person.td2.talentProfiles')||transferFields.includes('person.td2.personCredentials')||transferFields.includes('person.td2.mediaCollections')||transferFields.includes('person.td2.adultEligibilities')),'TD2_TRANSFER_MEDIA_OWNER_REQUIRED','原件必须随资质或媒体集合导出',422);
+        invariant(!d.fields.includes(MEDIA_TRANSFER_CODE)||(transferFields.includes('person.td2.talentProfiles')||transferFields.includes('person.td2.personCredentials')||transferFields.includes('person.td2.mediaCollections')||transferFields.includes('person.td2.adultEligibilities')||(workIds.length>0&&transferFields.includes('person.td2.personRoles'))),'TD2_TRANSFER_MEDIA_OWNER_REQUIRED','原件必须随资质或媒体集合导出',422);
         const identityFields=d.fields.includes(IDENTITY_EVIDENCE_CODE)?d.fields.filter(identityField):undefined;
         const talent = transferFields.length||identityFields||d.fields.includes(MERGE_HISTORY_CODE) ? await collectTalentTransfer(tx, actor, this.clock, peopleIds, transferFields, withEvidence, withIdentifiers, d.fields.includes(MEDIA_TRANSFER_CODE),identityFields,d.fields.includes(MERGE_HISTORY_CODE),d.fields.includes(BIRTH_DATE_CODE)) : null;
         invariant(!people.some(p=>sources.get(p.sourceId)?.status==='ERASED')||(talent?.schemaVersion==='once-talent-transfer-v15'),'TD2_RETAINED_IDENTITY_FIELDS','原始来源已删的人物须同时迁移完整身份字段与独立依据',422);
         const sourceTransferFields = new Map<string, Set<ExportFieldCode>>();
+        const caseCredits=[];
+        if(d.fields.includes('work.relations'))for(const work of works)for(const c of await tx.find('workCredits',{workspaceId:actor.workspaceId,workId:work.id}))if(peopleIds.includes(c.personId)&&await exactCreditCurrent(tx,c,this.clock)){
+            if(c.personRoleId){invariant(transferFields.includes('person.td2.personRoles')&&transferRows(talent!,'personRoles').some(r=>r.id===c.personRoleId),'WORK_ROLE_EXPORT_REQUIRED','精确案例署名须同时导出当前职业',422);sources.set(c.sourceId!,await sourceFor(tx,actor,c.sourceId!,this.clock));const fields=sourceTransferFields.get(c.sourceId!)??new Set<ExportFieldCode>();fields.add('work.relations');sourceTransferFields.set(c.sourceId!,fields);}
+            caseCredits.push(c);
+        }
+
         const parties=d.fields.includes(PARTY_FIELD)?await collectParties(tx,actor,this.clock,projectIds):undefined;
         for(const r of [...parties?.brands??[],...parties?.organizations??[]]){sources.set(r.sourceId,await sourceFor(tx,actor,r.sourceId,this.clock));sourceTransferFields.set(r.sourceId,new Set([PARTY_FIELD]));}
         if (talent) for (const table of TRANSFER_TABLES) for (const row of transferRows(talent,table)) {
@@ -278,8 +285,7 @@ export class Exports {
         const selectedPeople = new Set(peopleIds), selectedWorks = new Set(workIds), selectedProjects = new Set(projectIds);
         const relations: Record<string, unknown[]> = { workCredits: [], projectParticipants: [], projectWorks: [] };
         if (d.fields.includes('work.relations')) {
-            for (const work of works) for (const rel of await tx.find('workCredits', { workspaceId: actor.workspaceId, workId: work.id }))
-                if (selectedPeople.has(rel.personId)) relations.workCredits!.push({ workId: rel.workId, personId: rel.personId, roleCode: rel.roleCode });
+            for (const rel of caseCredits) relations.workCredits!.push({workId:rel.workId,personId:rel.personId,roleCode:rel.roleCode,...(rel.personRoleId?{personRoleId:rel.personRoleId,sourceId:rel.sourceId,note:rel.note}:{})});
         }
         if (d.fields.includes('project.relations')) {
             for (const project of projects) {
@@ -311,8 +317,9 @@ export class Exports {
 
         for(const asset of talent?.assets??[]) {
             const source=await sourceFor(tx,actor,asset.sourceId,this.clock);sources.set(source.id,source);
-            const permission=this.choosePermission(permissions,used,'ASSET',asset.id,asset.sourceId,[MEDIA_TRANSFER_CODE]);
-            dependencies.push(this.dependency(actor.workspaceId,job.id,'ASSET',asset.id,[MEDIA_TRANSFER_CODE],source,asset.revision,null,permission,initialExpiry));
+            const previous=dependencies.findIndex(d=>d.kind==='ASSET'&&d.assetId===asset.id),required:ExportFieldCode[]=unique([...(previous>=0?dependencies[previous]!.fields:[]),MEDIA_TRANSFER_CODE]);
+            const permission=this.choosePermission(permissions,used,'ASSET',asset.id,asset.sourceId,required);
+            const dependency=this.dependency(actor.workspaceId,job.id,'ASSET',asset.id,required,source,asset.revision,null,permission,initialExpiry);if(previous>=0)dependencies[previous]=dependency;else dependencies.push(dependency);
             const fields=sourceTransferFields.get(source.id)??new Set<ExportFieldCode>();fields.add(MEDIA_TRANSFER_CODE);sourceTransferFields.set(source.id,fields);
         }
         const manifestSources: unknown[] = [];
