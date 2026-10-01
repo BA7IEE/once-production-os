@@ -1,0 +1,1 @@
+{"checks":["media-consent-does-not-authorize-work-save-or-submit","exact-credit-takeover-preserves-id-source-note","LINK-new-B-never-changes-work-assets-cover-facts","independent-B-adopted","review-and-upgrade-audit-rollback-and-exact-replay","grant-work-exposure-revoked-with-consent"]}

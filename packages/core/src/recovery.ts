@@ -473,6 +473,7 @@ export class RecoveryOps {
                 await tx.replace('jobs', { ...touch(row, this.clock), state: 'FAILED',
                     errorCode: RECOVERY_ERROR, leaseToken: null, leaseUntil: null });
 
+        for(const p of await tx.find('mediaPurgeIntents',{workspaceId:actor.workspaceId}))if(!['ERASED','SKIPPED'].includes(p.state))await tx.replace('mediaPurgeIntents',{...touch(p,this.clock),leaseToken:null,leaseUntil:null,lastCode:'RECOVERY_RECONCILIATION_REQUIRED'});
         for (const row of await tx.find('uploads', { workspaceId: actor.workspaceId }))
             if (!['READY','FAILED','CANCELLED','ERASED'].includes(row.state))
                 await tx.replace('uploads', { ...touch(row, this.clock), state: 'FAILED',

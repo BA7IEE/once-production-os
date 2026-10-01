@@ -1,3 +1,4 @@
+import type {MediaPurgeIntent} from './media-purge-model.ts';
 import type {TalentMaintenanceTables} from './talent-maintenance-model.ts';
 import type {TalentAuthTables,TalentAuthConfig} from './talent-auth-model.ts';
 import type {Brand,ProjectParty} from './project-parties.ts';
@@ -12,7 +13,7 @@ import type {MergeHistoryErasure} from './merge-history-erasure-model.ts';
 import type { TalentV2Tables, TalentOwnerRefs } from './talent-v2-model.ts';
 import type { Work, WorkAsset, WorkCredit, Project, ProjectParticipant, ProjectWork } from './production-model.ts';
 import type { Shortlist, ShortlistItem, ShortlistItemAsset } from './shortlist-model.ts';
-import type { MediaUpload, MediaAsset } from './media-model.ts';
+import type { MediaUpload, MediaAsset, PersonMedia } from './media-model.ts';
 import type { UsePermission, ExportJob, ExportDependency } from './export-model.ts';
 import type { DeletionRequest, DeletionItem } from './deletion-model.ts';
 import type { PersonMergeDecision, PersonAlias } from './merge-model.ts';
@@ -150,7 +151,7 @@ export interface CommandReceipt extends Base {
     operation: string;
     commandKey: string;
     requestDigest: string;
-    resourceKind: 'talentInvitation' | 'talentClaim' | 'talentGrant' | 'talentSubmission' | 'talentConsent' | 'talentAccount' | 'brand' | 'aiConnectionTest' | 'aiConnection' | 'aiApproval' | 'aiAttempt' | 'aiBudget' | 'aiTask' | 'aiGrant' | 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
+    resourceKind: 'mediaPurge' | 'talentInvitation' | 'talentClaim' | 'talentGrant' | 'talentSubmission' | 'talentConsent' | 'talentAccount' | 'brand' | 'aiConnectionTest' | 'aiConnection' | 'aiApproval' | 'aiAttempt' | 'aiBudget' | 'aiTask' | 'aiGrant' | 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
     resourceId: string;
     result: ReceiptResult;
 }
@@ -230,6 +231,7 @@ export interface RecordHandoff extends Base {
     closedById: string | null;
 }
 export interface TableMap extends TalentV2Tables, TalentAuthTables, TalentMaintenanceTables {
+    mediaPurgeIntents:MediaPurgeIntent;
     brands:Brand;projectParties:ProjectParty;
     aiResponseMetadata: AiResponseMetadata;
     aiConnections: AiConnection;
@@ -264,6 +266,7 @@ export interface TableMap extends TalentV2Tables, TalentAuthTables, TalentMainte
     projectWorks: ProjectWork;
     uploads: MediaUpload;
     assets: MediaAsset;
+    personMedia: PersonMedia;
     workspaces: Workspace;
     users: User;
     memberships: Membership;
@@ -308,7 +311,10 @@ export interface Clock {
 export interface Config {
     talentAuth?: TalentAuthConfig;
     ai?: AiLedgerConfig;
+    mediaRetention?: import('./media-retention.ts').MediaRetention;
+    mediaAdmission?: import('./media-model.ts').MediaAdmission;
     mediaEnabled?: boolean;
+    mediaPlayback?: import('./media-playback.ts').MediaPlaybackLimits;
     origin: string;
     secureCookies: boolean;
     contactKey: Buffer;

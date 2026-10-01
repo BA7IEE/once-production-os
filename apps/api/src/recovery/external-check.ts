@@ -34,18 +34,30 @@ export async function collectRecoveryExternalCheck(client: PrismaClient,
     })));
     const verifiedAssetIds: string[] = [], missingAssetIds: string[] = [], mismatchAssetIds: string[] = [];
     const provider = env.MEDIA_PROVIDER ?? 'disabled';
+    const erasedPurges=await client.mediaPurgeIntent.findMany({where:{state:'ERASED'}});
+    invariant(!erasedPurges.length||provider!=='disabled','RECOVERY_MEDIA_PROVIDER_REQUIRED','已擦除清理计划仍须核对私有对象不存在',503);
     invariant(provider==='disabled'||provider==='local'||provider==='cos', 'RECOVERY_MEDIA_PROVIDER_INVALID',
         'restore-check 当前只支持 disabled/local 私有媒体提供方', 503);
 
     if (provider === 'local'||provider==='cos') {
         const root = env.MEDIA_ROOT;
-        if (!root) missingAssetIds.push(...expectedAssetIds);
+        if (!root) {invariant(!erasedPurges.length,'RECOVERY_MEDIA_PROVIDER_REQUIRED','缺少已擦除对象核对目录',503);missingAssetIds.push(...expectedAssetIds);}
         else {
             let local: LocalMediaProvider | null = null;
             try { local = await configuredMediaProvider(env,true); }
             catch { missingAssetIds.push(...expectedAssetIds); }
+            invariant(!!local||!erasedPurges.length,'RECOVERY_MEDIA_PROVIDER_REQUIRED','无法核对已擦除对象',503);
+            if(local)for(const p of erasedPurges){
+                for(const o of p.objects as Array<{part:'original'|'preview';bytes:number;hash:string}>)invariant(await local.statPurgeObject({...o,uploadId:p.uploadId,objectToken:p.objectToken},new AbortController().signal)==='MISSING','RECOVERY_PURGE_INTEGRITY','已擦除对象仍有物理文件',503);
+            }
             if (local) for (const asset of assets) {
                 try {
+                    const purge=await client.mediaPurgeIntent.findUnique({where:{assetId:asset.id}});
+                    if(purge&&['DELETE_PENDING','DELETE_UNKNOWN','DELETE_CONFIRMED'].includes(purge.state)){
+                        invariant(asset.usageState==='RETIRED'&&purge.objectToken===asset.objectToken,'RECOVERY_PURGE_INVALID','清理对象身份不符',503);
+                        for(const o of purge.objects as Array<{part:'original'|'preview';bytes:number;hash:string}>)await local.statPurgeObject({...o,uploadId:asset.uploadId,objectToken:asset.objectToken},new AbortController().signal);
+                        verifiedAssetIds.push(asset.id);continue;
+                    }
                     await local.verifyAsset({
                         id: asset.id, workspaceId: asset.workspaceId,
                         createdAt: asset.createdAt.toISOString(), updatedAt: asset.updatedAt.toISOString(),

@@ -23,7 +23,9 @@ export interface RouteDefinition {
     permission?: Permission;
     schema?: Schema<unknown>;
 }
-export const ROUTES: RouteDefinition[] = [...TALENT_AUTH_ROUTES,...TALENT_MAINTENANCE_ROUTES,
+export const ROUTES: RouteDefinition[] = [
+    {method:'GET',path:'/media-purge/status',operation:'mediaPurge.status',mode:'READ',permission:'members.manage'},
+    {method:'POST',path:'/media-purge/reconcile',operation:'mediaPurge.reconcile',mode:'COMMAND',permission:'members.manage',schema:Schemas.empty},...TALENT_AUTH_ROUTES,...TALENT_MAINTENANCE_ROUTES,
     {method:'POST',path:'/brands',operation:'brand.create',mode:'COMMAND',permission:'records.write',schema:PartySchemas.create},
     {method:'GET',path:'/brands',operation:'brand.list',mode:'READ',permission:'records.read'},
     {method:'PATCH',path:'/brands/{id}',operation:'brand.patch',mode:'COMMAND',permission:'records.write',schema:PartySchemas.patch},
@@ -57,6 +59,7 @@ export const ROUTES: RouteDefinition[] = [...TALENT_AUTH_ROUTES,...TALENT_MAINTE
     {method:'GET',path:'/directory/talents/{id}',operation:'directory.talent.get',mode:'READ',permission:'records.read'},
     {method:'POST',path:'/directory/talents',operation:'directory.talent.create',mode:'COMMAND',permission:'records.write',schema:TalentIntakeSchema},
     ...TD2_ROUTES,
+    { method:'GET',path:'/people/{id}/work-cases',operation:'work.personCases',mode:'READ',permission:'records.read' },
     { method: 'GET', path: '/works', operation: 'work.list', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/works', operation: 'work.create', mode: 'COMMAND', permission: 'records.write', schema: PS.workCreate },
     { method: 'GET', path: '/works/{id}', operation: 'work.get', mode: 'READ', permission: 'records.read' },
@@ -65,6 +68,7 @@ export const ROUTES: RouteDefinition[] = [...TALENT_AUTH_ROUTES,...TALENT_MAINTE
     { method: 'POST', path: '/works/{id}/assets/remove', operation: 'work.assetRemove', mode: 'COMMAND', permission: 'records.write', schema: PS.remove },
     { method: 'POST', path: '/works/{id}/assets/reorder', operation: 'work.reorder', mode: 'COMMAND', permission: 'records.write', schema: PS.order },
     { method: 'POST', path: '/works/{id}/credits', operation: 'work.creditAdd', mode: 'COMMAND', permission: 'records.write', schema: PS.credit },
+    {method:'POST',path:'/works/{id}/credits/upgrade',operation:'work.creditUpgrade',mode:'COMMAND',permission:'records.write',schema:PS.creditUpgrade},
     { method: 'POST', path: '/works/{id}/credits/remove', operation: 'work.creditRemove', mode: 'COMMAND', permission: 'records.write', schema: PS.remove },
     { method: 'GET', path: '/projects', operation: 'project.list', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/projects', operation: 'project.create', mode: 'COMMAND', permission: 'records.write', schema: PS.projectCreate },
@@ -85,6 +89,8 @@ export const ROUTES: RouteDefinition[] = [...TALENT_AUTH_ROUTES,...TALENT_MAINTE
     { method: 'POST', path: '/uploads/{id}/cancel', operation: 'upload.cancel', mode: 'COMMAND', permission: 'records.read', schema: MediaSchemas.revision },
     { method: 'GET', path: '/assets', operation: 'asset.list', mode: 'READ', permission: 'assets.read' },
     { method: 'GET', path: '/assets/{id}', operation: 'asset.get', mode: 'READ', permission: 'assets.read' },
+    { method: 'GET', path: '/assets/{id}/playback', operation: 'asset.playback', mode: 'BINARY', permission: 'assets.read' },
+    {method:'GET',path:'/assets/{id}/attachment',operation:'asset.attachment',mode:'BINARY',permission:'assets.read'},
     { method: 'GET', path: '/assets/{id}/preview', operation: 'asset.preview', mode: 'BINARY', permission: 'assets.read' },
     { method: 'POST', path: '/assets/{id}/quarantine', operation: 'asset.quarantine', mode: 'COMMAND', permission: 'sources.review', schema: MediaSchemas.revision },
     { method: 'GET', path: '/auth/csrf', operation: 'auth.csrf', mode: 'AUTH' },

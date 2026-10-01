@@ -1,3 +1,4 @@
+import {irreversiblePurge} from './media-purge-model.ts';
 import {authorizePartyCleanup} from './project-parties.ts';
 import {eraseAi,validateAiErasure} from './ai-maintenance.ts';
 import {eraseLocale,validateLocaleErasurePlan} from './locale-maintenance.ts';
@@ -104,8 +105,17 @@ export class DeletionCleanup {
         return next;
     }
 
+    private async pendingPurge(tx:Tx,request:DeletionRequest){
+        for(const p of await tx.find('mediaPurgeIntents',{workspaceId:request.workspaceId})){
+            if(!irreversiblePurge(p.state)||p.state==='ERASED')continue;
+            const a=await tx.get('assets',p.assetId);if(!a)continue;
+            if(request.targetKind==='ASSET'&&request.targetId===a.id||request.targetKind==='PERSON'&&request.targetId===a.personId||request.targetKind==='SOURCE'&&request.targetId===a.sourceId)return true;
+            if((await tx.find('deletionItems',{workspaceId:request.workspaceId,requestId:request.id})).some(i=>i.resourceId===a.id))return true;
+        }return false;
+    }
     private async owned(tx: Tx, claim: DeletionRequest) {
         const row = await workspaceRow(tx, 'deletionRequests', claim.id, claim.workspaceId);
+        invariant(!row||!await this.pendingPurge(tx,row),'MEDIA_PURGE_IN_PROGRESS','须先核对暂存清理结果',409);
         invariant(row && row.state === 'CLEANING' && row.cleanupLeaseToken === claim.cleanupLeaseToken
             && !!row.cleanupLeaseUntil && Date.parse(row.cleanupLeaseUntil) > this.clock.now().getTime(),
             'LEASE_LOST', '清理任务租约已失效', 409);
@@ -120,6 +130,7 @@ export class DeletionCleanup {
             const rows = (await tx.find('deletionRequests')).filter(row => row.state === 'CLEANING' && !row.dependencyCleanupCompletedAt)
                 .sort((a,b)=>a.createdAt.localeCompare(b.createdAt)||a.id.localeCompare(b.id));
             for (const row of rows) {
+                if(await this.pendingPurge(tx,row))continue;
                 await this.enabled(tx, row.workspaceId);
                 if (row.cleanupLeaseUntil && Date.parse(row.cleanupLeaseUntil) > now) continue;
                 const items = await tx.find('deletionItems', { workspaceId: row.workspaceId, requestId: row.id });

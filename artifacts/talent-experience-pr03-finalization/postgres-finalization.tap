@@ -1,0 +1,17 @@
+TAP version 13
+# {"checks":["ready-staged-cannot-enter-formal-collection","typed-staged-collection-draft-saved","server-draft-order-cover-tags-roundtrip","duplicate-asset-and-foreign-cover-rejected","submitted-collection-frozen","collection-cannot-adopt-without-staged-dependencies","audit-failure-rolls-back-adoption-and-collection","review-atomic-and-same-key-replayed","formal-same-assets-order-cover-tags","formal-self-read-and-cross-account-denied","cross-submission-adopted-reference-no-file-copy-one-current-version","collection-cover-never-mutates-person-cover","remove-link-clears-cover-without-retiring-original","collection-type-identity-portal-internal-generic-conflict-new-type-allowed","employee-formal-media-and-collection-explicit-grant-exposure-current-account-only","explicit-exposure-revocation-immediately-denies-formal-original","exposure-audit-failure-rolls-back-grant-and-receipt-original-key-replays","simulated-future-agent-formal-source-needs-new-explicit-exposure-no-uploader-rewrite-or-machine-entry","source-revocation-invalidates-explicit-grant-exposure","generic-tag-create-and-patch-advance-parent-saved-draft-review-conflicts","archived-tag-reenabled-with-current-approval-source-history-preserved","suspended-old-current-can-be-retired-with-new-valid-review-basis","hidden-old-current-scope-fails-closed"]}
+# Subtest: tests/postgres/media-collections.test.ts
+ok 1 - tests/postgres/media-collections.test.ts
+  ---
+  duration_ms: 3450.696042
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3456.041375

@@ -1,0 +1,1 @@
+{"checks":["enroll-no-fake-person-work","enroll-existing-asset-rejected","enroll-audit-failure-full-rollback","enroll-atomic-person-role-work-credit-media-source-grant"]}

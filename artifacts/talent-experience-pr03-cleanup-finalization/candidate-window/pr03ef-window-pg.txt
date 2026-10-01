@@ -1,0 +1,17 @@
+TAP version 13
+# {"checks":["32-explicit-owned-due-assets-excluded-before-bounded-window","independent-ENROLL-asset-remains-claimable-without-owned-intents","PG unique-asset FK state-check lease-pair-check JSON-null-reject immutable-object-plan"],"variant":"owned-window"}
+# Subtest: tests/postgres/media-purge.test.ts
+ok 1 - tests/postgres/media-purge.test.ts
+  ---
+  duration_ms: 23939.419666
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 23946.504709

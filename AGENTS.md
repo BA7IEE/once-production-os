@@ -1,3 +1,41 @@
+# 当前切片：PR-03E finalization
+
+基线7016c4d，A–D冻结，E暂不冻结。本轮只修显式删除与TTL物理删除权竞争、显式finalizer续租、上传尊重配置保留期。迁移1–68不改，PR #31保持Draft、未合并、未部署；完整回归和精确head CI后交回复核。
+
+# 当前切片：PR-03E 暂存回收与最终收口
+
+用户已冻结 A–D，基线 ff6e10f。当前授权实现独立 purge、UNKNOWN 核对、容量归还、竞争/恢复安全及 PR-03 总回归。迁移1–66冻结，只允许前向增量。保持 PR #31 Draft、未合并未部署；不进入 PR-04 或其他后续业务。以下旧切片禁止进入E的文字是历史边界。
+
+# 当前切片：PR-03D finalization
+
+基线280568c，主体复核通过但未冻结。本轮仅LINK共享事实/素材不写入、独立Work Consent、exact Credit接手及legacy内部升级。迁移1–66不改，无67；PR #31继续Draft、未合并未部署，完成后等待复核，不进入PR-03E。当前实测证据以PR描述及新finalization目录为准。
+
+# 2026-10-01 当前切片：PR-03D Work / 作品案例
+
+用户已冻结 PR-03A/B/C，基线7909fa2。当前仅复用 Work/WorkCredit/WorkAsset，实现本人案例提交、精确职业署名、来源/授权和生命周期。迁移1–63冻结；本轮前向64–66，已实跑的64/65不改写。PR #31保持Draft、未合并、未部署，完成后等待代码复核，不进入PR-03E或其他延期模块。下方禁止进入Work为历史切片范围。
+
+# 2026-10-01 当前切片：PR-03C finalization
+
+主体复核通过但未冻结。本轮仅修 Grant-bound selfExposureManifest、Tag 当前来源和父集合版本、失效旧来源 current 切换、集合类型 identity。迁移1–63均保持原样；PR #31保持Draft、未合并、未部署。不进入PR-03D Work、客户分享、官网或Agent摄取。新增/完整实测证据见 docs/release/TALENT_EXPERIENCE_PR03.md，最终head CI以PR描述及本轮回复为准。
+
+# 2026-10-01 当前切片：PR-03C 媒体集合
+
+用户已复核冻结 PR-03A/03B（head 2c29e6819b3a1bcced4bd172777050415230c684）。当前继续 PR #31 Draft、未合并未部署，只做复用 MediaCollection/Item/Tag 的模卡、素颜照、Portfolio、Showreel、介绍视频和本人集合提交审核。下方禁止进入集合是历史范围，由本次用户授权替代。迁移1–62冻结，本轮增量63；先读 docs/release/TALENT_EXPERIENCE_PR03.md。完成后停下来复核，不进入 PR-03D Work、客户分享、官网或 Agent 摄取。Provider/COS/真实手机验证继续 NOT_RUN。
+
+# 2026-10-01 当前切片：ADOPTED 正式媒体授权修正
+
+只修正式媒体对原intake范围的依赖；STAGED审核接收范围保持严格。正式读统一PersonMedia Person/Role/Source及当前用途/删除保护。迁移1–62冻结、无新增迁移；PR #31继续Draft、未合并未部署。最终Core/PG/全部浏览器和精确head CI证据见PR-03交付说明及formal-auth证据目录。先交复核，不进入MediaCollection/模卡/素颜照/Portfolio/介绍视频。
+
+# 2026-10-01 当前切片：PR-03 媒体归属与暂存底座
+
+PR #31 保持 Draft，不合并、不部署。本轮仅 UploadContext、真实 uploader、STAGED/ADOPTED/RETIRED、Person/Role/Asset 多来源关系及本人/审核暂存读取、原子采纳和生命周期。当前迁移1–62已在隔离库应用，后续不得改写。先读 docs/release/TALENT_EXPERIENCE_PR03.md。本切片交付后等待复核，再进入 MediaCollection/模卡/素颜照/作品案例；不继续扩播放器、不进入客户分享、官网或PR-04。
+
+# 2026-10-01 当前授权：PR-02 已合并冻结，启动 PR-03
+
+PR #30 按用户指定 head 9fc2f9295068a16a16e6409b6df1c230bbe055ca 合并，main=1a297d86ecfeac5d7a3c748322a867c9852a20c9 的 CI 36815702669 九项通过。PR-02 已合并、开发冻结、未部署，PROVIDER_VERIFIED=NOT_RUN。下方禁止进入 PR-03、保持 PR #30 Draft 的内容属于历史范围，已由本次用户授权替代。
+
+当前独立分支 codex/talent-experience-pr03，按 spec/15 与 spec/16 推进模卡、照片、视频、作品案例及本人多来源媒体维护。先读 docs/release/TALENT_EXPERIENCE_PR03.md；不得新增客户分享/官网/支付/CRM。既有迁移1–61冻结，新实体必须同步权限、审计、导出重建、删除、合并与恢复。PR-03 未获合并/部署授权，开发PR保持Draft，真实供应商结果不得由Mock替代。
+
 # 2026-10-01 当前实现范围：PR-02b
 
 用户已复核冻结 PR-02a。继续当前 PR #30 分支实施定向 CLAIM、ENROLL、逐人 grant、同档认领、服务器文本草稿/Submission、批量审核、来源归因与 INTERNAL_DIRECTORY 同意。保持 Draft，不合并、不部署；PROVIDER_VERIFIED=NOT_RUN。下方 PR-02a 禁止进入02b为历史范围，已被本次用户授权替代。前57次迁移冻结，只追加58及后续。不得进入PR-03媒体或客户分享/官网。

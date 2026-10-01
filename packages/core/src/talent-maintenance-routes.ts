@@ -1,6 +1,29 @@
+import {WorkCaseSchemas} from './work-case-schema.ts';
+import {mediaExposureSchema} from './talent-media-exposure.ts';
+import {CollectionSchemas} from './media-collections.ts';
+import {TalentMediaSchemas,MediaSchemas} from './media-validation.ts';
 import type {RouteDefinition} from './routes.ts';
 import {MaintenanceSchemas as S} from './talent-maintenance-schema.ts';
 export const TALENT_MAINTENANCE_ROUTES:RouteDefinition[]=[
+ {method:'GET',path:'/portal/work-catalog',operation:'portal.work.catalog',mode:'READ'},
+ {method:'POST',path:'/portal/submissions/{id}/works',operation:'portal.submission.works',mode:'COMMAND',schema:WorkCaseSchemas.draft},
+ {method:'GET',path:'/portal/profiles/{id}/works',operation:'portal.work.list',mode:'READ'},
+ {method:'POST',path:'/talent-grants/{id}/media-exposure',operation:'talent.grant.mediaExposure',mode:'COMMAND',permission:'talent.review',schema:mediaExposureSchema},
+ {method:'GET',path:'/portal/accounts/{accountId}/assets/{id}/attachment',operation:'portal.asset.attachment',mode:'BINARY'},
+ {method:'GET',path:'/talent-staged-assets/{id}/attachment',operation:'talent.asset.attachment',mode:'BINARY',permission:'talent.review'},
+ {method:'POST',path:'/portal/submissions/{id}/collections',operation:'portal.submission.collections',mode:'COMMAND',schema:CollectionSchemas.draft},
+ {method:'GET',path:'/portal/profiles/{id}/collections',operation:'portal.collection.list',mode:'READ'},
+ {method:'POST',path:'/portal/submissions/{id}/media-consent',operation:'portal.submission.mediaConsent',mode:'COMMAND',schema:TalentMediaSchemas.consent},
+ {method:'POST',path:'/portal/uploads',operation:'portal.upload.create',mode:'COMMAND',schema:TalentMediaSchemas.create},
+ {method:'GET',path:'/portal/uploads/{id}',operation:'portal.upload.get',mode:'READ'},
+ {method:'POST',path:'/portal/uploads/{id}/complete',operation:'portal.upload.complete',mode:'COMMAND',schema:MediaSchemas.revision},
+ {method:'POST',path:'/portal/uploads/{id}/cancel',operation:'portal.upload.cancel',mode:'COMMAND',schema:MediaSchemas.revision},
+ {method:'POST',path:'/portal/assets/{id}/retire',operation:'portal.asset.retire',mode:'COMMAND',schema:MediaSchemas.revision},
+ {method:'PUT',path:'/portal/uploads/{id}/content',operation:'portal.upload.content',mode:'BINARY'},
+ {method:'GET',path:'/portal/accounts/{accountId}/assets/{id}/preview',operation:'portal.asset.preview',mode:'BINARY'},
+ {method:'GET',path:'/portal/accounts/{accountId}/assets/{id}/playback',operation:'portal.asset.playback',mode:'BINARY'},
+ {method:'GET',path:'/talent-staged-assets/{id}/preview',operation:'talent.asset.preview',mode:'BINARY',permission:'talent.review'},
+ {method:'GET',path:'/talent-staged-assets/{id}/playback',operation:'talent.asset.playback',mode:'BINARY',permission:'talent.review'},
  {method:'POST',path:'/talent-invitations',operation:'talent.invitation.create',mode:'COMMAND',permission:'talent.invite',schema:S.invitation},
  {method:'GET',path:'/talent-invitations',operation:'talent.invitation.list',mode:'READ',permission:'talent.invite'},
  {method:'POST',path:'/talent-invitations/{id}/issue',operation:'talent.invitation.issue',mode:'SECRET',permission:'talent.invite',schema:S.revision},

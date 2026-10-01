@@ -1,3 +1,6 @@
+import {MediaPurge} from './media-purge.ts';
+import {approveMediaExposure} from './talent-media-exposure.ts';
+import {saveInternalCollection} from './media-collections.ts';
 import {TalentMaintenance} from './talent-maintenance.ts';
 import {TalentPortal} from './talent-portal.ts';
 import {TalentAuth,isolateTalentAuth} from './talent-auth.ts';
@@ -76,6 +79,7 @@ function cookies(header: string): Record<string, string> {
     return out;
 }
 export class Application {
+    readonly mediaPurge:MediaPurge;
     portal: TalentPortal;
     store: Store;
     clock: Clock;
@@ -127,6 +131,7 @@ export class Application {
         this.deletionFinalization = new DeletionFinalization(store, clock, config);
         this.personMerges = new PersonMerges(clock, config);
         this.handoffs = new Handoffs(clock);
+        this.mediaPurge=new MediaPurge(store,clock,config);
         this.media = new Media(store, clock, config);
         this.commands = new Commands(clock);
         this.imports = new Imports(store, clock, config, this.talent);
@@ -316,12 +321,15 @@ export class Application {
                 }
                 const maintenance=new TalentMaintenance(this.clock,this.config);
                 switch (route.operation) {
+                    case 'mediaPurge.status':return this.mediaPurge.overview(tx,actor);
+                    case 'mediaPurge.reconcile':return command('mediaPurge',()=>this.mediaPurge.reconcile(tx,actor));
                     case 'talent.invitation.create':return command('talentInvitation',()=>maintenance.createInvitation(tx,actor,data));
                     case 'talent.invitation.list':return maintenance.internalList(tx,actor,'invitation');
                     case 'talent.invitation.issue':return maintenance.issue(tx,actor,id,data,meta);
                     case 'talent.invitation.revoke':return command('talentInvitation',()=>maintenance.revokeInvitation(tx,actor,id,data));
                     case 'talent.claim.list':return maintenance.internalList(tx,actor,'claim');
                     case 'talent.claim.decide':return command('talentClaim',()=>maintenance.decideClaim(tx,actor,id,data));
+                    case 'talent.grant.mediaExposure':return command('talentGrant',()=>approveMediaExposure(tx,actor,id,data,this.clock,this.config));
                     case 'talent.grant.revoke':return command('talentGrant',()=>maintenance.revokeGrant(tx,actor,id,data));
                     case 'talent.submission.list':return maintenance.internalList(tx,actor,'submission');
                     case 'talent.submission.get':return maintenance.submissionDto(tx,await maintenance.internalSubmission(tx,actor,id),actor);
@@ -383,6 +391,7 @@ export class Application {
                     case 'td2.credential.secret': return command('talentFact',()=>this.talentV2.credentialSecret(tx,actor,id,data));
                     case 'td2.adult.verify': return command('talentFact',()=>this.talentV2.adultVerify(tx,actor,id,data));
                     case 'td2.resolve': return this.talentV2.resolve(tx,actor,query);
+                    case 'td2.collection.save': return command('talentFact',()=>saveInternalCollection(tx,actor,id,data,this.clock,this.config));
                     case 'td2.collection.add': return command('talentFact',()=>this.talentV2.collectionMutation(tx,actor,id,data,'ADD'));
                     case 'td2.collection.remove': return command('talentFact',()=>this.talentV2.collectionMutation(tx,actor,id,data,'REMOVE'));
                     case 'td2.collection.order': return command('talentFact',()=>this.talentV2.collectionMutation(tx,actor,id,data,'ORDER'));
@@ -420,6 +429,7 @@ export class Application {
                     case 'locale.get': return this.localeTexts.get(tx,actor,id);
                     case 'locale.create': return command('localeText',()=>this.localeTexts.create(tx,actor,data));
                     case 'locale.update': return command('localeText',()=>this.localeTexts.update(tx,actor,id,data));
+                    case 'work.personCases':return this.portfolio.personCases(tx,actor,id);
                     case 'work.list': return this.portfolio.list(tx, actor, query);
                     case 'work.create': return command('work', () => this.portfolio.create(tx, actor, data));
                     case 'work.get': return this.portfolio.get(tx, actor, id);
@@ -428,6 +438,7 @@ export class Application {
                     case 'work.assetRemove': return command('work', () => this.portfolio.removeAsset(tx, actor, id, data));
                     case 'work.reorder': return command('work', () => this.portfolio.reorder(tx, actor, id, data));
                     case 'work.creditAdd': return command('work', () => this.portfolio.addCredit(tx, actor, id, data));
+                    case 'work.creditUpgrade': return command('work', () => this.portfolio.upgradeCredit(tx, actor, id, data));
                     case 'work.creditRemove': return command('work', () => this.portfolio.removeCredit(tx, actor, id, data));
                     case 'project.list': return this.projects.list(tx, actor, query);
                     case 'project.create': return command('project', () => this.projects.create(tx, actor, data));

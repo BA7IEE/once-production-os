@@ -1,8 +1,10 @@
+import {independentCollectionImage} from './collection-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {existsSync} from 'node:fs';
 import {join} from 'node:path';
 export async function verifySourcePersonChoices({owner,prisma,cmd,writeUI,source,keptAssetId,binary,queue,until,mediaBytes,mediaRoot}) {
+ keptAssetId=await independentCollectionImage({owner,prisma,cmd,binary,queue,until,mediaBytes},keptAssetId);
  const schemaVersion='once-talent-v2.0.0',sourceId=(await cmd(owner,'POST','/sources',source('合成人物原始来源整体删除'),201)).resourceId;
  let origin=await prisma.sourceRecord.findUniqueOrThrow({where:{id:sourceId}});if(origin.status!=='CONFIRMED'){await cmd(owner,'POST',`/sources/${sourceId}/review`,{expectedRevision:origin.revision,basisDescription:'合成人物原始来源核验',validUntil:origin.validUntil.toISOString()});origin=await prisma.sourceRecord.findUniqueOrThrow({where:{id:sourceId}});}
  const personId=(await cmd(owner,'POST','/td2/people',{schemaVersion,originSourceId:sourceId,sourceRevision:origin.revision,displayName:'合成待删除整份专业人物',createTalent:true},201)).resourceId;

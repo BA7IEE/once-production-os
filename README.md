@@ -1,12 +1,16 @@
+## PR-03E finalization（Draft、未合并、未部署）
+
+删除权竞争与配置保留期已修复；本轮完整回归、迁移不变与最终CI边界见 [交付记录](docs/release/PR03E_ACCEPTANCE.md)。A–D冻结，E待本轮复核；不进入后续工作包。
+
 # ONCE Production OS
 
-人才与制作资料系统，当前按 [Talent Experience v1.1](docs/spec/15_TALENT_EXPERIENCE_V1_1.md) 扩展；已合并统一快速建档；[PR-01b](docs/release/TALENT_EXPERIENCE_PR01B.md) 补业务字段、照片目录、统一筛选与主详情及新增事实生命周期。A/B/C仍未完成，外部入口尚未开放。
+人才与制作资料系统，当前按 [Talent Experience v1.1](docs/spec/15_TALENT_EXPERIENCE_V1_1.md) 扩展；已合并统一快速建档；[PR-01b](docs/release/TALENT_EXPERIENCE_PR01B.md) 补业务字段、照片目录、统一筛选与主详情及新增事实生命周期。PR-02已合并并开发冻结；[PR-03](docs/release/TALENT_EXPERIENCE_PR03.md)推进媒体维护：PR-03A受控播放、PR-03B暂存与正式授权已复核冻结，PR-03C媒体集合已复核冻结，PR-03D作品案例已复核冻结；本轮PR-03E完成独立回收、物理清理与恢复竞争保护，已完成[本地总验收](docs/release/PR03E_ACCEPTANCE.md)。PR-03是否满足开发冻结以本轮最终head完整CI及交付证据为准，未部署，Provider未验证，外部入口尚未开放。
 
 内部底座：当前开发分支已接通来源/权限、人才2.0、作品项目、专业检索、候选清单、受控合并/导出重建/删除、内部语言文本，以及四类文字AI辅助。
 
 模型连接由管理员填写URL、协议、模型名称和密钥，保存、测试后批准启用，无需独立网关。AI只提供待确认建议。
 
-媒体支持私有图片、PDF附件和精选MP4封面。**PDF不在系统内解析，内容处理交给外部Agent。** 本地开发使用Local Provider；COS使用私有专用桶与共享隔离目录，原件仍通过受控导出获取。存储配置见 `.env.example` 和下方交付说明。
+媒体支持私有图片、PDF附件和受控MP4播放。**PDF不在系统内解析，内容处理交给外部Agent。** 本地开发使用Local Provider；COS使用私有专用桶与共享隔离目录，原件仍通过受控导出获取。存储配置见 `.env.example` 和下方交付说明。
 
 当前不是完整一期验收或正式部署声明。真实供应商、性能/运维及生产接管待验；品牌、所属机构和项目客户／品牌关联已接通，当前提交的集中验收结果见 PR。
 

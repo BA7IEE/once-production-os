@@ -1,17 +1,24 @@
+import {mediaConsentVersion} from './media-validation.ts';
+import {talentFormalAsset} from './media-collections.ts';
+import type {CommandPrincipal, TalentActor} from './talent-auth-model.ts';
+import {ownsUpload,uploadContext,talentUploadContext,adoptedMediaFor} from './media-ownership.ts';
+import {syncMediaRetention} from './media-adoption.ts';
+import {TalentMaintenance} from './talent-maintenance.ts';
+import {mediaUsage,MEDIA_ADMISSION_DEFAULTS} from './media-model.ts';
 import {sourceAllowsInternalAuthoring} from './talent-maintenance-policy.ts';
 import { randomUUID } from 'node:crypto';
 import type { Actor, Clock, Config, RequestMeta } from './model.ts';
 import type { Store, Tx } from './store.ts';
 import { MEDIA_LIMITS as L, terminalUpload, mediaByteLimit } from './media-model.ts';
-import type { MediaUpload, MediaAsset, MediaResult } from './media-model.ts';
+import type { MediaUpload, MediaAsset, MediaResult, PersonMedia } from './media-model.ts';
 import { audit, base, cas, page, touch, workspaceRow } from './helpers.ts';
 import { AppError, invariant, missing } from './errors.ts';
 import { deletionBlocked, permissionsFor, personFor, requirePermission, requireScope, sourceFor } from './policy.ts';
 import { loadVisibility } from './visibility.ts';
-import { MediaSchemas } from './media-validation.ts';
-export async function uploadFor(tx: Tx, actor: Actor, id: string): Promise<MediaUpload> {
+import { TalentMediaSchemas,MEDIA_SUBMISSION_FILE_LIMIT, MediaSchemas } from './media-validation.ts';
+export async function uploadFor(tx: Tx, actor: CommandPrincipal, id: string): Promise<MediaUpload> {
     const u = await workspaceRow(tx, 'uploads', id, actor.workspaceId);
-    if (!u || u.actorId !== actor.membershipId)
+    if (!u || !ownsUpload(actor,u))
         missing();
     return u; // Own status only; not a grant to read bytes, sources or a current person.
 }
@@ -19,18 +26,16 @@ export async function assetFor(tx: Tx, actor: Actor, id: string, clock: Clock): 
     const a = await workspaceRow(tx, 'assets', id, actor.workspaceId);
     if (!a)
         missing();
-    await requireScope(tx, actor, a.scopeId);
-    if (await deletionBlocked(tx, actor.workspaceId, 'ASSET', a.id)) missing();
-    await sourceFor(tx, actor, a.sourceId, clock);
-    if (a.personId) {
+    await adoptedMediaFor(tx,actor,a,clock);
+    if (a.sourceId && a.personId && !(await tx.find('personMedia',{workspaceId:a.workspaceId,assetId:a.id,usageState:'ADOPTED'})).length) {
         const p = await personFor(tx, actor, a.personId, clock);
         if (p.sourceId !== a.sourceId)
             missing();
     }
     return a; // Deliberately never consumes H1 basic-profile delegation.
 }
-export function assetDto(a: MediaAsset) {
-    return { id: a.id, sourceId: a.sourceId, personId: a.personId, fileName: a.fileName, mime: a.mime,
+export function assetDto(a: MediaAsset, relation?:PersonMedia) {
+    return { id: a.id, sourceId: relation?.sourceId??a.sourceId, usageState:mediaUsage(a), personId: relation?.personId??a.personId, ...(relation?{originSourceId:a.sourceId,personRoleId:relation.personRoleId,relationId:relation.id}:{}), fileName: a.fileName, mime: a.mime,
         bytes: a.bytes, width: a.width, height: a.height, state: a.state, revision: a.revision, createdAt: a.createdAt };
 }
 export function uploadDto(u: MediaUpload) {
@@ -44,7 +49,19 @@ export class Media {
     config: Config;
     constructor(store: Store, clock: Clock, config: Config) { this.store = store; this.clock = clock; this.config = config; }
     enabled() { invariant(this.config.mediaEnabled === true, 'MEDIA_DISABLED', '私有媒体存储尚未启用', 503); }
-    async context(tx: Tx, actor: Actor, u: MediaUpload): Promise<void> {
+    async context(tx: Tx, actor: CommandPrincipal, u: MediaUpload): Promise<void> {
+        await this.maintenanceGuard(tx,u.workspaceId);
+        uploadContext(u);
+        invariant(!u.recoveryEpoch||u.recoveryEpoch===this.config.recoveryEpoch,'MEDIA_CONTEXT_CHANGED','恢复后旧上传不可继续',409);
+        const limits=this.config.mediaAdmission??MEDIA_ADMISSION_DEFAULTS,uploads=await tx.find('uploads',{workspaceId:u.workspaceId});
+        invariant(uploads.filter(r=>!r.purgedAt).reduce((n,r)=>n+r.expectedBytes,0)<=limits.workspaceBytes,'MEDIA_STORAGE_BUDGET','当前存储资格已变化',409);
+        if(actor.actorKind==='TALENT'){
+            await talentUploadContext(tx,actor,u,this.clock,this.config);
+            invariant(uploads.filter(r=>ownsUpload(actor,r)&&!r.purgedAt).reduce((n,r)=>n+r.expectedBytes,0)<=limits.talentBytes,'TALENT_MEDIA_BUDGET','本人存储资格已变化',409);
+            invariant(Date.parse(u.expiresAt)>this.clock.now().getTime(),'UPLOAD_EXPIRED','上传已过期',409);
+            return;
+        }
+        invariant(actor.actorKind!=='MACHINE'&&u.sourceId&&u.actorId,'MEDIA_CONTEXT_CHANGED','上传上下文不匹配',409);
         requirePermission(actor, 'assets.upload');
         invariant(u.actorId === actor.membershipId && u.actorEpoch === actor.userEpoch, 'MEDIA_CONTEXT_CHANGED', '上传人资格已经变化', 409);
         const m = await workspaceRow(tx, 'memberships', actor.membershipId, actor.workspaceId);
@@ -68,42 +85,98 @@ export class Media {
         invariant(d.expectedBytes<=mediaByteLimit(d.mime),'MEDIA_SIZE_INVALID','文件超过该类型大小限制',400);
         const p = d.personId ? await personFor(tx, actor, d.personId, this.clock) : null;
         invariant(!p || p.sourceId === s.id, 'MEDIA_SOURCE_MISMATCH', '本次文件必须使用所选人才的主来源', 422);
+        const limits=this.config.mediaAdmission??MEDIA_ADMISSION_DEFAULTS;
         const all = await tx.find('uploads', { workspaceId: actor.workspaceId });
-        invariant(all.length < L.records && all.filter(u => u.actorId === actor.membershipId && Date.parse(u.createdAt) > this.clock.now().getTime() - 3600000).length < L.actorHourly, 'UPLOAD_RATE_LIMIT', '上传创建次数已达到当前限制，请稍后再试', 429);
+        invariant(all.length < L.records && all.filter(u => u.actorId === actor.membershipId && Date.parse(u.createdAt) > this.clock.now().getTime() - 3600000).length < limits.actorHourly, 'UPLOAD_RATE_LIMIT', '上传创建次数已达到当前限制，请稍后再试', 429);
         const active = all.filter(u => !terminalUpload(u.state));
         // Expired but not cleaned uploads continue consuming capacity. Never pretend disk was freed.
-        invariant(active.filter(u => u.actorId === actor.membershipId).length < L.actorActive && active.length < L.workspaceActive, 'UPLOAD_LIMIT', '同时上传数量已满，请完成、取消或等待过期任务清理', 429);
-        invariant(active.reduce((n, u) => n + u.expectedBytes, 0) + d.expectedBytes <= L.activeBytes, 'UPLOAD_BUDGET', '暂存上传额度已满', 429);
-        invariant(all.filter(u => !u.purgedAt).reduce((n, u) => n + u.expectedBytes, 0) + d.expectedBytes <= L.retainedBytes, 'MEDIA_STORAGE_BUDGET', '当前存储准入额度已满，请联系维护人员', 429);
+        invariant(active.filter(u => u.actorId === actor.membershipId).length < limits.actorActive && active.length < limits.workspaceActive, 'UPLOAD_LIMIT', '同时上传数量已满，请完成、取消或等待过期任务清理', 429);
+        invariant(active.reduce((n, u) => n + u.expectedBytes, 0) + d.expectedBytes <= limits.workspaceActiveBytes, 'UPLOAD_BUDGET', '暂存上传额度已满', 429);
+        invariant(all.filter(u => !u.purgedAt).reduce((n, u) => n + u.expectedBytes, 0) + d.expectedBytes <= limits.workspaceBytes, 'MEDIA_STORAGE_BUDGET', '当前存储准入额度已满，请联系维护人员', 429);
         const m = (await tx.get('memberships', actor.membershipId))!, scope = (await tx.get('scopes', s.scopeId))!;
         const ps = p ? (await tx.get('scopes', p.scopeId))! : null;
-        const u: MediaUpload = { ...base(actor.workspaceId, this.clock), actorId: actor.membershipId, actorRevision: m.revision, actorEpoch: actor.userEpoch,
+        const u: MediaUpload = { ...base(actor.workspaceId, this.clock), actorId: actor.membershipId, contextKind:'INTERNAL_SOURCE', principalKind:'INTERNAL',talentAccountId:null,servicePrincipalId:null,submissionId:null,personRoleId:null,grantEpoch:null,recoveryEpoch:this.config.recoveryEpoch, actorRevision: m.revision, actorEpoch: actor.userEpoch,
             sourceId: s.id, sourceRevision: s.revision, sourceEpoch: s.protectionEpoch, scopeId: s.scopeId, scopeRevision: scope.revision,
             personId: p?.id ?? null, personEpoch: p?.protectionEpoch ?? null, personScopeId: p?.scopeId ?? null, personScopeRevision: ps?.revision ?? null,
             fileName: d.fileName, mime: d.mime, expectedBytes: d.expectedBytes, expectedHash: d.sha256, state: 'OPEN',
-            expiresAt: new Date(Math.min(this.clock.now().getTime() + L.uploadMs, Date.parse(s.validUntil))).toISOString(),
+            expiresAt: new Date(Math.min(this.clock.now().getTime() + L.uploadMs, s ? Date.parse(s.validUntil) : Infinity)).toISOString(),
             renewals: 0, attempts: 0, receiveToken: null, leaseToken: null, leaseUntil: null, errorCode: null, purgedAt: null };
         await tx.insert('uploads', u);
         return u;
     }
-    async get(tx: Tx, actor: Actor, id: string) { return uploadDto(await uploadFor(tx, actor, id)); }
+    async createTalent(tx:Tx,actor:TalentActor,input:unknown):Promise<MediaUpload>{
+        this.enabled();
+        const limits=this.config.mediaAdmission??MEDIA_ADMISSION_DEFAULTS;
+        const d=TalentMediaSchemas.create.parse(input),m=new TalentMaintenance(this.clock,this.config);
+        const s=await m.submissionAccess(tx,actor,d.context.submissionId,true);cas(s,d.expectedSubmissionRevision);
+        invariant(s.state==='DRAFT','SUBMISSION_IMMUTABLE','本批材料已冻结',409);
+        const consent=await tx.get('talentConsents',s.consentId);
+        invariant(consent?.state==='ACTIVE'&&mediaConsentVersion(consent.textVersion)&&consent.fieldScope.includes('media')&&Date.parse(consent.validUntil)>this.clock.now().getTime(),'MEDIA_CONSENT_REQUIRED','请先确认本次媒体内部使用同意',409);
+        invariant(d.expectedBytes<=mediaByteLimit(d.mime),'MEDIA_SIZE_INVALID','文件超过该类型大小限制',400);
+        const all=await tx.find('uploads',{workspaceId:actor.workspaceId}),own=all.filter(u=>ownsUpload(actor,u));
+        const retired=new Set((await tx.find('personMedia',{workspaceId:actor.workspaceId,submissionId:s.id,usageState:'RETIRED'})).map(r=>r.assetId));
+        invariant(all.filter(u=>u.submissionId===s.id&&!['FAILED','CANCELLED','ERASED'].includes(u.state)&&!retired.has(u.id)).length<MEDIA_SUBMISSION_FILE_LIMIT,'SUBMISSION_MEDIA_LIMIT','本批文件数量已达上限，请分批提交',429);
+        const active=all.filter(u=>!terminalUpload(u.state));
+        invariant(all.length<L.records&&own.filter(u=>Date.parse(u.createdAt)>this.clock.now().getTime()-3600000).length<limits.actorHourly,'UPLOAD_RATE_LIMIT','上传次数已达上限',429);
+        invariant(active.length<limits.workspaceActive&&active.filter(u=>ownsUpload(actor,u)).length<limits.actorActive,'UPLOAD_LIMIT','同时上传数量已满',429);
+        invariant(active.reduce((n,u)=>n+u.expectedBytes,0)+d.expectedBytes<=limits.workspaceActiveBytes,'UPLOAD_BUDGET','暂存上传额度已满',429);
+        invariant(all.filter(u=>!u.purgedAt).reduce((n,u)=>n+u.expectedBytes,0)+d.expectedBytes<=limits.workspaceBytes,'MEDIA_STORAGE_BUDGET','存储准入额度已满',429);
+        invariant(own.filter(u=>!u.purgedAt).reduce((n,u)=>n+u.expectedBytes,0)+d.expectedBytes<=limits.talentBytes,'TALENT_MEDIA_BUDGET','本人媒体额度已满',429);
+        const enrollSubmissions=await tx.find('talentSubmissions',{workspaceId:s.workspaceId,claimId:s.claimId});
+        if(!s.personId)invariant(all.filter(u=>enrollSubmissions.some(s=>s.id===u.submissionId)&&!u.purgedAt).reduce((n,u)=>n+u.expectedBytes,0)+d.expectedBytes<=limits.enrollBytes,'ENROLL_MEDIA_BUDGET','加入申请媒体额度已满',429);
+        const account=await m.account(tx,actor.workspaceId,actor.talentAccountId);
+        const grantContext=s.grantId?await tx.get('talentAccessGrants',s.grantId):null,intakeClaim=(await tx.get('talentClaims',(grantContext?.claimId??s.claimId)!))!,scope=(await tx.get('scopes',intakeClaim.scopeId))!;
+        const p=s.personId?await m.person(tx,s.workspaceId,s.personId):null,ps=p?await tx.get('scopes',p.scopeId):null,g=s.grantId?await m.grant(tx,s.workspaceId,actor.talentAccountId,s.grantId):null;
+        const u:MediaUpload={...base(actor.workspaceId,this.clock),actorId:null,principalKind:'TALENT',contextKind:'TALENT_SUBMISSION',talentAccountId:actor.talentAccountId,servicePrincipalId:null,submissionId:s.id,personRoleId:d.context.personRoleId??null,grantEpoch:g?.authorizationEpoch??null,recoveryEpoch:this.config.recoveryEpoch,actorRevision:account.revision,actorEpoch:account.sessionEpoch,
+            sourceId:null,sourceRevision:null,sourceEpoch:null,scopeId:scope.id,scopeRevision:scope.revision,personId:p?.id??null,personEpoch:p?.protectionEpoch??null,personScopeId:p?.scopeId??null,personScopeRevision:ps?.revision??null,
+            fileName:d.fileName,mime:d.mime,expectedBytes:d.expectedBytes,expectedHash:d.sha256,state:'OPEN',expiresAt:new Date(this.clock.now().getTime()+L.uploadMs).toISOString(),renewals:0,attempts:0,receiveToken:null,leaseToken:null,leaseUntil:null,errorCode:null,purgedAt:null};
+        await this.context(tx,actor,u);await tx.insert('uploads',u);
+        const next={...touch(s,this.clock),expiresAt:m.until(m.retention.draft)};await tx.replace('talentSubmissions',next);await syncMediaRetention(tx,next,this.clock);
+        return u;
+    }
+    async talentRead(tx:Tx,actor:TalentActor,id:string,meta?:RequestMeta):Promise<MediaAsset>{
+        await this.maintenanceGuard(tx,actor.workspaceId);const a=await workspaceRow(tx,'assets',id,actor.workspaceId);if(a&&mediaUsage(a)==='ADOPTED'){const result=await talentFormalAsset(tx,actor,id,this.clock,this.config);if(meta)await audit(tx,actor,actor.workspaceId,'asset.talent-formal-read','asset',id,[],meta,this.clock);return result.asset;}return this.staged(tx,actor,id,meta);
+    }
+    async staged(tx:Tx,actor:CommandPrincipal,id:string,meta?:RequestMeta):Promise<MediaAsset>{
+        await this.maintenanceGuard(tx,actor.workspaceId);
+        const a=await workspaceRow(tx,'assets',id,actor.workspaceId),u=await workspaceRow(tx,'uploads',id,actor.workspaceId);
+        if(!a||!u||a.state!=='READY'||mediaUsage(a)!=='STAGED'||u.principalKind!=='TALENT'||!u.submissionId)missing();
+        const owner:TalentActor={actorKind:'TALENT',workspaceId:u.workspaceId,talentAccountId:u.talentAccountId!,sessionEpoch:u.actorEpoch,sessionId:''};
+        if(actor.actorKind==='TALENT'){if(actor.talentAccountId!==owner.talentAccountId)missing();}
+        else {if(actor.actorKind==='MACHINE')missing();await requireScope(tx,actor,u.scopeId);await new TalentMaintenance(this.clock,this.config).internalSubmission(tx,actor,u.submissionId);requirePermission(actor,'assets.read');}
+        await talentUploadContext(tx,owner,u,this.clock,this.config,false);
+        const relation=(await tx.find('personMedia',{workspaceId:u.workspaceId,assetId:id,usageState:'STAGED',submissionId:u.submissionId}))[0];
+        if(!relation||relation.retiredAt)missing();
+        if(meta)await audit(tx,actor,actor.workspaceId,'asset.staged-read','asset',id,[],meta,this.clock);
+        return a;
+    }
+    async retireDraft(tx:Tx,actor:TalentActor,id:string,input:unknown){
+        const u=await uploadFor(tx,actor,id),s=await talentUploadContext(tx,actor,u,this.clock,this.config);
+        const d=MediaSchemas.revision.parse(input),a=await this.staged(tx,actor,id);cas(a,d.expectedRevision);
+        const r=(await tx.find('personMedia',{workspaceId:u.workspaceId,assetId:id}))[0]!;
+        await tx.replace('personMedia',{...touch(r,this.clock),usageState:'RETIRED',protectionEpoch:r.protectionEpoch+1,retiredAt:this.clock.now().toISOString(),retainUntil:new Date(this.clock.now().getTime()+(this.config.mediaRetention?.withdrawn??7)*86400000).toISOString()});
+        const next={...touch(a,this.clock),usageState:'RETIRED' as const,protectionEpoch:(a.protectionEpoch??1)+1};await tx.replace('assets',next);
+        for(const item of await tx.find('talentSubmissionItems',{workspaceId:u.workspaceId,submissionId:s.id,kind:'MEDIA',targetId:id}))await tx.remove('talentSubmissionItems',item.id);
+        await tx.replace('talentSubmissions',touch(s,this.clock));return next;
+    }
+    async get(tx: Tx, actor: CommandPrincipal, id: string) { return uploadDto(await uploadFor(tx, actor, id)); }
     async listUploads(tx: Tx, actor: Actor, query: Record<string, string>) {
         const rows = await tx.find('uploads', { workspaceId: actor.workspaceId, actorId: actor.membershipId });
         return page(rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id)).map(uploadDto), query);
     }
-    async renew(tx: Tx, actor: Actor, id: string, input: unknown) {
+    async renew(tx: Tx, actor: CommandPrincipal, id: string, input: unknown) {
         this.enabled();
         const d = MediaSchemas.revision.parse(input), u = await uploadFor(tx, actor, id);
         cas(u, d.expectedRevision);
         await this.context(tx, actor, u);
         invariant(u.state === 'OPEN' && u.renewals < L.renewals, 'UPLOAD_NOT_RENEWABLE', '只能延长未开始传输且未超过续期次数的上传', 409);
-        const s = (await tx.get('sources', u.sourceId))!;
+        const s = u.sourceId ? await tx.get('sources', u.sourceId) : null;
         const n: MediaUpload = { ...touch(u, this.clock), renewals: u.renewals + 1,
-            expiresAt: new Date(Math.min(this.clock.now().getTime() + L.uploadMs, Date.parse(s.validUntil))).toISOString() };
+            expiresAt: new Date(Math.min(this.clock.now().getTime() + L.uploadMs, s ? Date.parse(s.validUntil) : Infinity)).toISOString() };
         await tx.replace('uploads', n);
         return n;
     }
-    async beginReceive(tx: Tx, actor: Actor, id: string, bytes: number) {
+    async beginReceive(tx: Tx, actor: CommandPrincipal, id: string, bytes: number) {
         this.enabled();
         const u = await uploadFor(tx, actor, id);
         await this.context(tx, actor, u);
@@ -115,7 +188,7 @@ export class Media {
         await tx.replace('uploads', n);
         return n;
     }
-    async finishReceive(tx: Tx, actor: Actor, id: string, token: string, bytes: number, sha256: string) {
+    async finishReceive(tx: Tx, actor: CommandPrincipal, id: string, token: string, bytes: number, sha256: string) {
         const u = await uploadFor(tx, actor, id);
         await this.context(tx, actor, u);
         invariant(u.state === 'RECEIVING' && u.leaseToken === token && Date.parse(u.leaseUntil!) > this.clock.now().getTime(), 'UPLOAD_LEASE_LOST', '上传状态已经变化', 409);
@@ -131,20 +204,21 @@ export class Media {
                 await tx.replace('uploads', { ...touch(u, this.clock), state: 'FAILED', leaseToken: null, leaseUntil: null, errorCode: 'UPLOAD_INTERRUPTED' });
         });
     }
-    async complete(tx: Tx, actor: Actor, id: string, input: unknown) {
+    async complete(tx: Tx, actor: CommandPrincipal, id: string, input: unknown) {
         this.enabled();
         const d = MediaSchemas.revision.parse(input), u = await uploadFor(tx, actor, id);
         cas(u, d.expectedRevision);
         await this.context(tx, actor, u);
         invariant(u.state === 'UPLOADED', 'UPLOAD_NOT_RECEIVED', '文件尚未完整收到或已经提交处理', 409);
-        const s = (await tx.get('sources', u.sourceId))!;
+        const s = u.sourceId ? await tx.get('sources', u.sourceId) : null;
         const n: MediaUpload = { ...touch(u, this.clock), state: 'QUEUED',
-            expiresAt: new Date(Math.min(this.clock.now().getTime() + L.processingMs, Date.parse(s.validUntil))).toISOString() };
+            expiresAt: new Date(Math.min(this.clock.now().getTime() + L.processingMs, s ? Date.parse(s.validUntil) : Infinity)).toISOString() };
         await tx.replace('uploads', n);
         return n;
     }
-    async cancel(tx: Tx, actor: Actor, id: string, input: unknown) {
+    async cancel(tx: Tx, actor: CommandPrincipal, id: string, input: unknown) {
         const d = MediaSchemas.revision.parse(input), u = await uploadFor(tx, actor, id);
+        if(actor.actorKind==='TALENT')await this.context(tx,actor,u);
         cas(u, d.expectedRevision);
         invariant(!terminalUpload(u.state), 'UPLOAD_TERMINAL', '该上传已结束，不能再次取消', 409);
         const n: MediaUpload = { ...touch(u, this.clock), state: 'CANCELLED', leaseToken: null, leaseUntil: null };
@@ -154,14 +228,16 @@ export class Media {
     async listAssets(tx: Tx, actor: Actor, query: Record<string, string>) {
         requirePermission(actor, 'assets.read');
         const d = MediaSchemas.query.parse(Object.fromEntries(Object.entries(query).filter(([k]) => !['page', 'pageSize'].includes(k))));
-        const rows = await tx.find('assets', { workspaceId: actor.workspaceId, ...(d.personId ? { personId: d.personId } : {}), ...(d.sourceId ? { sourceId: d.sourceId } : {}) });
+        const relations=await tx.find('personMedia',{workspaceId:actor.workspaceId,usageState:'ADOPTED'});
+        const rows = (await tx.find('assets',{workspaceId:actor.workspaceId})).filter(a=>{const r=relations.find(r=>r.assetId===a.id);return (!d.personId||(r?.personId??a.personId)===d.personId)&&(!d.sourceId||(r?.sourceId??a.sourceId)===d.sourceId);});
         // Reuse the existing native-scope batch index; never multiply permission queries by image count.
         const visibleIndex = await loadVisibility(tx, actor, this.clock);
         const people = new Map((await tx.find('people', { workspaceId: actor.workspaceId })).map(p => [p.id, p]));
-        const visible = rows.filter(a => !visibleIndex.blocked('ASSET', a.id) && visibleIndex.scopeVisible(a.scopeId) && visibleIndex.sourceVisible(a.sourceId) && (!a.personId || (() => { const p = people.get(a.personId!); return !!p && p.sourceId === a.sourceId && visibleIndex.personVisible(p); })()));
-        return page(visible.sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id)).map(assetDto), query, ['personId', 'sourceId']);
+        const visible = rows.filter(a => !relations.some(r=>r.assetId===a.id) && mediaUsage(a)==='ADOPTED' && a.sourceId && !visibleIndex.blocked('ASSET', a.id) && visibleIndex.scopeVisible(a.scopeId) && visibleIndex.sourceVisible(a.sourceId) && (!a.personId || (() => { const p = people.get(a.personId!); return !!p && p.sourceId === a.sourceId && visibleIndex.personVisible(p); })()));
+        for(const a of rows.filter(a=>relations.some(r=>r.assetId===a.id)&&mediaUsage(a)==='ADOPTED')){try{await assetFor(tx,actor,a.id,this.clock);visible.push(a);}catch(e){if(!(e instanceof AppError)||e.status!==404)throw e;}}
+        return page(visible.sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id)).map(a=>assetDto(a,relations.find(r=>r.assetId===a.id))), query, ['personId', 'sourceId']);
     }
-    async getAsset(tx: Tx, actor: Actor, id: string) { requirePermission(actor, 'assets.read'); return assetDto(await assetFor(tx, actor, id, this.clock)); }
+    async getAsset(tx: Tx, actor: Actor, id: string) { requirePermission(actor, 'assets.read'); const a=await assetFor(tx, actor, id, this.clock);return assetDto(a,(await tx.find('personMedia',{workspaceId:actor.workspaceId,assetId:id,usageState:'ADOPTED'}))[0]); }
     async quarantine(tx: Tx, actor: Actor, id: string, input: unknown) {
         requirePermission(actor, 'sources.review');
         const d = MediaSchemas.revision.parse(input), a = await assetFor(tx, actor, id, this.clock);
@@ -179,12 +255,35 @@ export class Media {
         await audit(tx, actor, actor.workspaceId, 'asset.preview', 'asset', a.id, [], meta, this.clock);
         return a;
     }
+    async playback(tx: Tx, actor: Actor, id: string, meta?: RequestMeta): Promise<MediaAsset> {
+        this.enabled();
+        requirePermission(actor, 'assets.read');
+        const a = await assetFor(tx, actor, id, this.clock);
+        if (a.state !== 'READY' || a.mime !== 'video/mp4') missing();
+        if (meta) await audit(tx, actor, actor.workspaceId, 'asset.playback', 'asset', a.id, [], meta, this.clock);
+        return a;
+    }
+    /** Storage integrity response, only for the exact server-authorized object snapshot. */
+    async quarantineCorrupt(snapshot: MediaAsset, requestId: string): Promise<void> {
+        await this.store.transaction(async tx => {
+            await this.maintenanceGuard(tx, snapshot.workspaceId);
+            const current = await workspaceRow(tx, 'assets', snapshot.id, snapshot.workspaceId);
+            if (!current || current.state !== 'READY' || current.revision !== snapshot.revision || current.objectToken !== snapshot.objectToken) return;
+            await tx.replace('assets', {...touch(current, this.clock), state: 'QUARANTINED'});
+            await audit(tx, null, current.workspaceId, 'asset.integrity-quarantine', 'asset', current.id, ['state'], {requestId, ip: 'SYSTEM'}, this.clock);
+        });
+    }
     async maintenanceGuard(tx: Tx, workspaceId: string): Promise<void> {
         this.enabled();
         const w = await tx.get('workspaces', workspaceId);
         invariant(this.config.accessMode === 'INTERNAL' && w?.recoveryEpoch === this.config.recoveryEpoch, 'MAINTENANCE', '恢复隔离中', 503);
     }
-    private async workerActor(tx: Tx, u: MediaUpload): Promise<Actor> {
+    private async workerActor(tx: Tx, u: MediaUpload): Promise<CommandPrincipal> {
+        if(u.principalKind==='TALENT'){
+            const a=await new TalentMaintenance(this.clock,this.config).account(tx,u.workspaceId,u.talentAccountId!);
+            return {actorKind:'TALENT',workspaceId:u.workspaceId,talentAccountId:a.id,sessionId:'',sessionEpoch:a.sessionEpoch};
+        }
+        invariant((!u.principalKind||u.principalKind==='INTERNAL')&&u.actorId,'MEDIA_CONTEXT_CHANGED','机器媒体入口尚未开放',409);
         const w = await tx.get('workspaces', u.workspaceId), m = await workspaceRow(tx, 'memberships', u.actorId, u.workspaceId);
         const user = m ? await workspaceRow(tx, 'users', m.userId, u.workspaceId) : null;
         invariant(this.config.accessMode === 'INTERNAL' && w?.recoveryEpoch === this.config.recoveryEpoch, 'MAINTENANCE', '恢复隔离中', 503);
@@ -233,8 +332,14 @@ export class Media {
             invariant(r.bytes === u.expectedBytes && r.sha256 === u.expectedHash && r.mime === u.mime && Number.isInteger(r.width) && Number.isInteger(r.height)
                 && r.width > 0 && r.height > 0 && r.width * r.height <= L.pixels && Number.isInteger(r.previewBytes) && r.previewBytes > 0 && r.previewBytes <= L.previewBytes && /^[a-f0-9]{64}$/.test(r.previewHash), 'MEDIA_RESULT_INVALID', '图片检查未通过', 422);
             const a: MediaAsset = { ...base(u.workspaceId, this.clock), id: u.id, uploadId: u.id, sourceId: u.sourceId, scopeId: u.scopeId, personId: u.personId,
-                fileName: u.fileName, mime: u.mime, bytes: r.bytes, sha256: r.sha256, width: r.width, height: r.height, previewBytes: r.previewBytes, previewHash: r.previewHash, objectToken: u.leaseToken!, state: 'READY' };
+                fileName: u.fileName, mime: u.mime, bytes: r.bytes, sha256: r.sha256, width: r.width, height: r.height, previewBytes: r.previewBytes, previewHash: r.previewHash, objectToken: u.leaseToken!, state: 'READY', usageState:u.contextKind==='TALENT_SUBMISSION'?'STAGED':'ADOPTED',protectionEpoch:1 };
             await tx.insert('assets', a);
+            if(u.contextKind==='TALENT_SUBMISSION'){
+                const submission=(await tx.get('talentSubmissions',u.submissionId!))!;
+                await tx.insert('personMedia',{...base(u.workspaceId,this.clock),personId:u.personId,personRoleId:u.personRoleId??null,assetId:a.id,sourceId:null,submissionId:submission.id,purpose:'SUBMITTED_MATERIAL',usageState:'STAGED',protectionEpoch:1,retainUntil:submission.expiresAt,retiredAt:null,purgedAt:null});
+                await tx.insert('talentSubmissionItems',{...base(u.workspaceId,this.clock),submissionId:submission.id,clientItemKey:'media_'+a.id,kind:'MEDIA',targetId:a.id,values:{assetId:a.id,sha256:a.sha256},baseline:{},dependencyGroup:'media_'+a.id,dependsOn:[],state:'PENDING',appliedId:null});
+                await tx.replace('talentSubmissions',touch(submission,this.clock));
+            }
             await tx.replace('uploads', { ...touch(u, this.clock), state: 'READY', leaseToken: null, leaseUntil: null, errorCode: null });
             await audit(tx, null, u.workspaceId, 'asset.ready', 'asset', a.id, ['state'], { requestId: randomUUID(), ip: 'worker' }, this.clock);
         });

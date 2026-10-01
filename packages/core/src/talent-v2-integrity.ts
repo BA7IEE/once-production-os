@@ -11,7 +11,7 @@ import { touch } from './helpers.ts';
 /** All TD2 rows and their security-relevant endpoints participate in one recovery digest.
  * Do not return raw rows, encrypted identifiers or machine credential hashes in a report. */
 export const TD2_INTEGRITY_TABLES = [...TALENT_V2_TABLES, 'people', 'sources', 'scopes',
-    'memberships', 'assets', 'evidence', 'shortlistItems', 'personAliases', 'personMerges', 'mergeHistoryErasures'] as const;
+    'memberships', 'works','workCredits','workAssets','talentSubmissionItems', 'mediaPurgeIntents','personMedia','uploads','talentSubmissions','talentAccounts','assets', 'evidence', 'shortlistItemAssets', 'shortlistItems', 'personAliases', 'personMerges', 'mergeHistoryErasures'] as const;
 export type IntegrityTable = typeof TD2_INTEGRITY_TABLES[number];
 type Row = { id: string; workspaceId: string; [key: string]: unknown };
 export interface TalentIntegrityReport {
@@ -46,6 +46,11 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
         const target = maps[table].get(String(id));
         check(!!target && target.workspaceId === workspaceId && (!samePerson || target.personId === row.personId));
     };
+    for(const w of data.works){ref(w,'sourceId','sources',false,true);ref(w,'scopeId','scopes',false,true);if(w.coverEntryId){const e=maps.workAssets.get(String(w.coverEntryId)),a=e?maps.assets.get(String(e.assetId)):null;check(!!e&&e.workId===w.id&&!!a&&String(a.mime).startsWith('image/'));}}
+    const creditKeys=new Set<string>(),placementKeys=new Set<string>();
+    for(const c of data.workCredits){ref(c,'workId','works',false,true);ref(c,'personId','people',false,true);check(!!c.personRoleId===!!c.sourceId);if(c.personRoleId){ref(c,'personRoleId','personRoles',true,true);ref(c,'sourceId','sources',false,true);check(maps.personRoles.get(String(c.personRoleId))?.roleCode===c.roleCode);}const key=c.workId+':'+c.personId+':'+c.roleCode;check(!creditKeys.has(key));creditKeys.add(key);}
+    for(const e of data.workAssets){ref(e,'workId','works',false,true);ref(e,'assetId','assets',false,true);const key=e.workId+':'+e.assetId;check(!placementKeys.has(key));placementKeys.add(key);}
+    for(const item of data.talentSubmissionItems)ref(item,'submissionId','talentSubmissions',false,true);
     const owner = (row: Row) => {
         const keys = Object.keys(TALENT_OWNER_TABLES).filter(k => row[k] !== null && row[k] !== undefined);
         check(keys.length === 1);
@@ -59,6 +64,9 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
             check(!!def && Object.hasOwn(def.fields, String(row.fieldPath)));
         }
     };
+    for(const r of data.personMedia){ref(r,'personId','people');ref(r,'personRoleId','personRoles',true);ref(r,'assetId','assets',false,true);ref(r,'sourceId','sources');ref(r,'submissionId','talentSubmissions');const a=maps.assets.get(String(r.assetId));check(a?.usageState===r.usageState);if(r.usageState==='ADOPTED')check(!!r.sourceId&&!!r.personId&&r.retainUntil===null);}
+    for(const a of data.assets)if(a.sourceId===null)check(data.personMedia.some(r=>r.assetId===a.id&&r.usageState===a.usageState));
+    for(const u of data.uploads)if(u.principalKind==='TALENT'){ref(u,'talentAccountId','talentAccounts',false,true);ref(u,'submissionId','talentSubmissions',false,true);check(u.actorId===null&&u.sourceId===null&&maps.talentSubmissions.get(String(u.submissionId))?.talentAccountId===u.talentAccountId);}
     for(const e of data.mergeHistoryErasures){
         ref(e,'mergeDecisionId','personMerges',false,true);ref(e,'personId','people',false,true);ref(e,'sourceId','sources',false,true);ref(e,'actorId','memberships');
         const merge=maps.personMerges.get(String(e.mergeDecisionId));check(merge?.duplicatePersonId===e.personId);
@@ -96,7 +104,7 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
         ref(row, 'issuerOrganizationId', 'organizations');
         ref(row, 'evidenceAssetId', 'assets');
         ref(row, 'coverAssetId', 'assets');
-        if(table==='talentProfiles'){try{validateDemographics(row,{now:()=>new Date()});}catch{check(false);}if(row.coverAssetId)check(maps.assets.get(String(row.coverAssetId))?.personId===row.personId||!!row.supersededById);}
+        if(table==='talentProfiles'){try{validateDemographics(row,{now:()=>new Date()});}catch{check(false);}if(row.coverAssetId)check(maps.assets.get(String(row.coverAssetId))?.personId===row.personId||data.personMedia.some(r=>r.assetId===row.coverAssetId&&r.personId===row.personId&&r.usageState==='ADOPTED')||!!row.supersededById);}
         if(table==='measurementSets')check(row.reportedAt==null||Date.parse(String(row.reportedAt))>=Date.parse(String(row.createdAt))&&Date.parse(String(row.reportedAt))<=Date.parse(String(row.updatedAt)));
         if(table==='measurementSets')check(row.datePrecision==='UNKNOWN'?row.measuredOn===null:typeof row.measuredOn==='string');
         if (table === 'castingProfiles') ref(row, 'currentMeasurementSetId', 'measurementSets', true);
@@ -113,9 +121,11 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
         }
         if (table === 'castingProfiles' && !row.supersededById) check(row.retiredCurrentMeasurementSetId == null);
         if (table === 'measurementSets') ref(row, 'supersedesId', 'measurementSets', true);
+        if(table==='mediaCollections'){if(row.coverAssetId)check(data.mediaCollectionItems.some(i=>i.collectionId===row.id&&i.assetId===row.coverAssetId)&&String(maps.assets.get(String(row.coverAssetId))?.mime).startsWith('image/'));if(row.isCurrent)check(row.status==='ACTIVE'&&data.mediaCollections.filter(c=>c.personId===row.personId&&c.personRoleId===row.personRoleId&&c.collectionTypeCode===row.collectionTypeCode&&c.isCurrent).length===1);const items=data.mediaCollectionItems.filter(i=>i.collectionId===row.id).sort((a,b)=>Number(a.orderIndex)-Number(b.orderIndex));check(items.every((i,n)=>i.orderIndex===n)&&new Set(items.map(i=>i.assetId)).size===items.length);}
         if (table === 'mediaCollectionItems') {
             ref(row, 'assetId', 'assets', false, true);
             ref(row, 'collectionId', 'mediaCollections', true, true);
+            const relation=data.personMedia.find(r=>r.assetId===row.assetId),collection=maps.mediaCollections.get(String(row.collectionId));if(relation)check(relation.personId===row.personId&&relation.usageState==='ADOPTED'&&(!relation.personRoleId||relation.personRoleId===collection?.personRoleId));
         }
         if (table === 'servicePrincipals') ref(row, 'defaultMaintainerMembershipId', 'memberships', false, true);
         if (table === 'adultEligibilities') {
@@ -160,6 +170,16 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
     const activeMachineCount = data.servicePrincipals.filter(r => r.status === 'ACTIVE').length;
     const remainingMachineSecretCount = data.servicePrincipals.filter(r => r.credentialHash !== null).length;
     const pendingProposalCount = data.fieldProposals.filter(r => r.state === 'PENDING').length;
+    for(const p of data.mediaPurgeIntents){
+        const a=data.assets.find(a=>a.id===p.assetId),u=data.uploads.find(u=>u.id===p.uploadId),rs=data.personMedia.filter(r=>r.assetId===p.assetId);
+        check(!!a&&!!u&&p.assetId===p.uploadId);
+        check((p.state==='ERASED')===!!p.purgedAt);
+        check((p.leaseToken===null)===(p.leaseUntil===null));
+        if(a?.state==='ERASED'||u?.state==='ERASED')check(['SKIPPED','ERASED'].includes(String(p.state))&&!p.leaseToken&&!p.leaseUntil);
+        if(p.state==='ERASED')check(a?.state==='ERASED'&&u?.state==='ERASED'&&!!u?.purgedAt&&rs.every(r=>r.usageState==='RETIRED'&&!!r.purgedAt));
+        if(['DELETE_PENDING','DELETE_UNKNOWN','DELETE_CONFIRMED'].includes(String(p.state))){check(!u?.purgedAt&&Number(u?.expectedBytes)>0&&Number(a?.bytes)>0&&a?.usageState==='RETIRED');check(!rs.some(r=>r.usageState==='ADOPTED'));check(!a?.sourceId&&!rs.some(r=>r.sourceId));check(![...data.workAssets,...data.mediaCollectionItems,...data.shortlistItemAssets].some(r=>r.assetId===p.assetId));check(![...data.personCredentials,...data.adultEligibilities].some(r=>r.evidenceAssetId===p.assetId));check(![...data.talentProfiles,...data.mediaCollections].some(r=>r.coverAssetId===p.assetId));}
+    }
+    for(const r of data.personMedia){if(r.usageState==='STAGED')check(!!r.retainUntil);if(r.usageState==='ADOPTED')check(r.retainUntil===null&&!r.purgedAt);}
     const blockers = [
         ...(relationFailures ? ['TD2_RELATION_INVALID'] : []),
         ...(credentialDecryptFailures ? ['TD2_CREDENTIAL_KEY_MISMATCH'] : []),

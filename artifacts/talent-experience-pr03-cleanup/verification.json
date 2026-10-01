@@ -1,0 +1,195 @@
+{
+  "status": "LOCAL_ACCEPTANCE_PASSED",
+  "baseline": "ff6e10f951855831a9b5d0c966623be34b529442",
+  "pr": 31,
+  "draft": true,
+  "merged": false,
+  "deployed": false,
+  "migrations": {
+    "added": [
+      67,
+      68
+    ],
+    "frozen1to66Unchanged": true,
+    "freshInstall": "1->68 PASS",
+    "retainedUpgrade": "66->67:91 tables unchanged;67->68:92 tables unchanged"
+  },
+  "core": {
+    "tests": 677,
+    "pass": 677,
+    "fail": 0,
+    "log": "pr03e-verify-final4.txt"
+  },
+  "postgres": {
+    "localVersion": "14.19",
+    "programs": 70,
+    "tests": 160,
+    "pass": 160,
+    "fail": 0,
+    "log": "pr03e-fullpg4.txt",
+    "finalRecoveryGuardRecheck": "pr03e-restore68-guard.txt",
+    "ciVersion": "16; exact-head result bound in PR"
+  },
+  "browser": {
+    "existingGroups": 11,
+    "newCleanupGroup": 1,
+    "allPassed": true,
+    "groups": [
+      {
+        "group": "resume",
+        "exitCode": 0,
+        "seconds": 18
+      },
+      {
+        "group": "handoff",
+        "exitCode": 0,
+        "seconds": 9
+      },
+      {
+        "group": "media",
+        "exitCode": 0,
+        "seconds": 20
+      },
+      {
+        "group": "production",
+        "exitCode": 0,
+        "seconds": 130
+      },
+      {
+        "group": "talent-intake",
+        "exitCode": 0,
+        "seconds": 8
+      },
+      {
+        "group": "talent-directory",
+        "exitCode": 0,
+        "seconds": 17
+      },
+      {
+        "group": "talent-auth",
+        "exitCode": 0,
+        "seconds": 10
+      },
+      {
+        "group": "talent-maintenance",
+        "exitCode": 0,
+        "seconds": 31
+      },
+      {
+        "group": "media-staging",
+        "exitCode": 0,
+        "seconds": 53
+      },
+      {
+        "group": "media-collections",
+        "exitCode": 0,
+        "seconds": 79
+      },
+      {
+        "group": "work-cases",
+        "exitCode": 0,
+        "seconds": 91
+      },
+      {
+        "group": "media-purge",
+        "exitCode": 0,
+        "seconds": 95
+      }
+    ],
+    "finalMigration68CleanupRerun": "pr03e-browser68.txt",
+    "physicalMobile": "NOT_RUN"
+  },
+  "checkpoint": {
+    "tests": 17,
+    "pass": 17
+  },
+  "providerContract": {
+    "tests": 13,
+    "pass": 13,
+    "realCOS": "NOT_RUN"
+  },
+  "restore": {
+    "physicalPgDumpRestore": "PASS",
+    "unknownPartialObjectReconciliation": "PASS",
+    "oldLeaseAndOldConfigFenced": "PASS",
+    "productionRecovery": "NOT_RUN"
+  },
+  "finalJourney": "Anna invitation claim text photo H264 ModelCard Portfolio Work review own/internal detail second draft withdrawal physical purge original/preview missing quota released formal media unchanged",
+  "ciBinding": "Final exact-head run URL and SHA are recorded in PR description and delivery reply; not inherited from baseline. DEVELOPMENT FROZEN requires that run success.",
+  "productionGates": {
+    "PROVIDER_VERIFIED": "NOT_RUN",
+    "COS_PROVIDER_VERIFIED": "NOT_RUN",
+    "MOBILE_DEVICE_VERIFIED": "NOT_RUN",
+    "PRODUCTION_MIGRATION_VERIFIED": "NOT_RUN",
+    "DEPLOYED": false
+  },
+  "sourceSha256": {
+    ".github/workflows/acceptance.yml": "f2cedd76d82340fdbb6b12c3f5fab648d70475dac0f7f3c8c79e291b7fa341a9",
+    "apps/admin-web/src/generated/requests.ts": "09d87987db1f870d91a39b95d91d21ee850a8cde2d068bb7a26826f1b95dc010",
+    "apps/admin-web/src/main.tsx": "b21b09b02b1d07f9c9426f89c39b61b864a3447a59adb2c55088f7c5b37f7ecc",
+    "apps/admin-web/src/media-purge-status.tsx": "3999ad56b98c546c67cf317e9c97418d27106082e56c05e70231018f5add3a48",
+    "apps/admin-web/src/talent-maintenance-ui.tsx": "a3f4e75d70f40ed27b40ab37c2de46aba0c3e85a3ef6b4736d0e168ae9b7833b",
+    "apps/api/src/config.ts": "6bf5e59299a20acfc392c449b3b4cda54a70f54a368c0c47a1aa778f598b8ea9",
+    "apps/api/src/deletion/finalizer.ts": "94e93c884efc437cc23b60ec73ed2e6678814f165dbaae29f6677c640a3eebeb",
+    "apps/api/src/media/cos-provider.ts": "8968b09abeb540e43872cca00b2ad8d9276fdbf1eb6c8240949b00c92feb1e55",
+    "apps/api/src/media/local-provider.ts": "ac50b53efed608f5ef270f4cd680650d2f4560d6d6155f61530af348bd8d871f",
+    "apps/api/src/media/purge-provider.ts": "9d96acd5d326756bb30e7eb17380ed142af86e3ba0fbea74cc569ee063c5d31f",
+    "apps/api/src/media/purge-worker.ts": "78ecc3b174e978066607c2b993f3118239c5dce94e313b74170b007716b02551",
+    "apps/api/src/prisma-store.ts": "6f79ed8ae8c6390f6314e887efaaa55fbfcd984f39bab32c3e672ba9b32d865a",
+    "apps/api/src/recovery/backup-manifest.ts": "8a8646e7bbe9c656bb33fb7255889ae9ec966015d9cf49bc37bd7e71fd2cc174",
+    "apps/api/src/recovery/external-check.ts": "6ae9f7c6765b03dccb12e002de26bc85650641c4eb1ef621e2ff8cff60f750db",
+    "apps/api/src/recovery/media-backup.ts": "124b286e5ab5c2e98cf64bf6b341bc9ae2cd84446bb2983492439d12e2217cb5",
+    "apps/api/src/worker-main.ts": "99d1f793683371735907718132c1242d910202ef23827118146992d121038fb5",
+    "packages/core/src/api.ts": "af58cb2589d7bf841601deb4a49ac42969357316356d56aac2facda9803d1e7a",
+    "packages/core/src/deletion-cleanup.ts": "11c3da339f294dc304f46a8fa4027d5eef388e5dcaf369051fb693f69eacc998",
+    "packages/core/src/deletion-finalization.ts": "58ff94ce00b4a232786e7e280f1b7242084fcadaae11a70364693cc68cc4f4fc",
+    "packages/core/src/media-adoption.ts": "988930c671039f8c5bc1982590ada8a3b13520217ad85d6abf7c14a71e12ae53",
+    "packages/core/src/media-purge-model.ts": "d7325c0ca6259372104dcf5d7f6619b28e47a298f1a45f59c2be44711d03c8bd",
+    "packages/core/src/media-purge.ts": "1a2410ddb8b27ccdcc8e75e3a8845826250b1ce61f3cb5ade1b282a1aa666877",
+    "packages/core/src/media-retention.ts": "8a8895a3af82c8f54cf8960ae39d6da0fca8c65c3a92b746b3d135f698fb9131",
+    "packages/core/src/media.ts": "196b4f7976eb1225d26a08139f68b5c398ec145465dd48bd1d0c525ce7f5bc18",
+    "packages/core/src/model.ts": "0ef01aed82fac7ad7c4fb10be85b5dfdd6d03e633813e5033bf44d0ec93839a6",
+    "packages/core/src/recovery.ts": "e5ade0aab69008e3e5e15c845d611ccf8d062fc6223f86fe263e6fb1f92f20be",
+    "packages/core/src/replay-policy.ts": "0f2df2f2995e906c64710563829418096756069cd78bb76946606e55838372df",
+    "packages/core/src/routes.ts": "c6635b1786046bfd234b78ed6598e5354fe5deda27e4f51567927285b444e164",
+    "packages/core/src/store.ts": "dba8a32ffdb145e4d324843b7381f154b3ed840b8338b9d987809809b3099b1c",
+    "packages/core/src/talent-maintenance.ts": "3b04750769db8f53258c6b2322c2ff1b8fcfacdfeb46d085aba4c049e6d64f3a",
+    "packages/core/src/talent-v2-integrity.ts": "b9e1faa5c30b7b0124fd8a3773569d42d6b95627333645dbe73f136c279775cf",
+    "prisma/migrations/202610010012_media_purge/migration.sql": "2540ae407c8b1ec42bad278c2e17cb5c41691628cc538f3f419025a453afb33e",
+    "prisma/migrations/202610010013_media_purge_plan_guard/migration.sql": "d8daa7c44449890d66a2e70b133fce7e4cc8b133349c23fd01c95d8e84d39415",
+    "prisma/schema.prisma": "86d8e8a83e8ae5ac4294bb43a63839d5fc86f5a22be994ab43ab99a79273b648",
+    "scripts/verify-postgres.mjs": "c19940dd8bd843e984e8b5109a2cc33263f9366cd56f8f5bca6605851f61cf66",
+    "tests/acceptance/browser-media-collections.mjs": "1ac9686eee9fcc6399b7f32e992309dfb3a547e50216b6ee1ff633f908d8dc09",
+    "tests/acceptance/browser-media-purge.mjs": "046aad3340509b19f59539931717caa63cb43444e25a27ed9eac78f20d5e0e48",
+    "tests/acceptance/media-collections-restore.mjs": "f4c7092856e8e5a3acc893edc58b52d96e3e5e9997198305f05fdd22ea4ed78e",
+    "tests/acceptance/media-purge-clock-worker.mjs": "a11a527cd7595473bae213c755850659931a53578121de5d61c97bdaf33ad350",
+    "tests/acceptance/media-purge-journey.mjs": "59b2d29979a665eb8ad74eb5880c09e2ec03091e220d2a124c6cee90286aa9ab",
+    "tests/core/cos-media.test.ts": "2972e3ff63daeb56c1290bbbd0ef09df7276f6d14006a60f39179da8561b154b",
+    "tests/core/media-purge-provider.test.ts": "89fa02faf20e303a9ce7c44149e80a2180876d480b9cb9b86e08dbaedd2aa154",
+    "tests/core/media-purge.test.ts": "2d3324ab9d917d74010da7bca21872d52a57f98b3b28f4696dd423758880831c",
+    "tests/core/recovery-worker-intent.test.ts": "319b36e547ae678da6b7f97a916eadf28074559feb300296f06e79e22dc3fe42",
+    "tests/postgres/media-purge-restore.ts": "ed0d0dfe415866f8eabfabdc8b2ad06ddc04688c5e47f0ab429b15d0b8ec4472",
+    "tests/postgres/media-purge.test.ts": "13b5e2e43a810b09f9173eeb01844be0b4e098e143033e6574e9e0ef6dde8f90",
+    "tests/support/media-purge.ts": "33b3036c3bca61a5b5bb3d4b81591f832d6afb041aaad4dcc4f6e5ed91bb4948",
+    "tests/support/memory-store.ts": "edce937f2c523e47d3a74f27f85da35dd2909bbecbc810ebc19fc7ab0e0c2c3d",
+    "tests/media/local-images.test.mjs": "36ea3fc75dcf5edaf43d44f60b260d55c9372b3eec529282d4635dad159fc527"
+  },
+  "mediaLocalImages": {
+    "tests": 17,
+    "pass": 17,
+    "fail": 0
+  },
+  "surfacePolicy": {
+    "tests": 3,
+    "pass": 3
+  },
+  "ciAttempts": [
+    {
+      "head": "e6ee4b92af52fe67c2f105423df18aa6f60be0e1",
+      "run": 36879331682,
+      "failedJob": "browser-media",
+      "cause": "PDF backup test double missing mediaPurgeIntent delegate; real runtime code unchanged by correction",
+      "resolution": "mock interface completed; all original assertions retained; local 17/17"
+    }
+  ]
+}

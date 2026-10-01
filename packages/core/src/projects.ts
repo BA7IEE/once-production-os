@@ -1,3 +1,4 @@
+import {exactCreditCurrent} from './talent-work-cases.ts';
 import {sourceAllowsInternalAuthoring} from './talent-maintenance-policy.ts';
 import {ProjectParties} from './project-parties.ts';
 import type { Actor, Clock } from './model.ts';
@@ -122,7 +123,7 @@ export class Projects {
         uuid.parse(id);
         page([], query);
         await creditPerson(tx, actor, id, this.clock);
-        const credits = await tx.find('workCredits', { workspaceId: actor.workspaceId, personId: id }), participations = await tx.find('projectParticipants', { workspaceId: actor.workspaceId, personId: id });
+        const credits=[];for(const c of await tx.find('workCredits', { workspaceId: actor.workspaceId, personId: id }))if(await exactCreditCurrent(tx,c,this.clock)&&(!c.sourceId||await visibleOrNull(()=>sourceFor(tx,actor,c.sourceId!,this.clock))))credits.push(c);const participations = await tx.find('projectParticipants', { workspaceId: actor.workspaceId, personId: id });
         const works = [], projects = [];
         for (const workId of new Set(credits.map(e => e.workId))) {
             const w = await visibleOrNull(() => workFor(tx, actor, workId, this.clock));

@@ -1,0 +1,14 @@
+{
+  "scope": "PR03 startup: internal controlled video playback; full PR03 incomplete",
+  "corePassed": 607,
+  "coreFailed": 0,
+  "nativeMediaPassed": 17,
+  "focusedPlaybackAndCosPassed": 13,
+  "browser": "PASS: real Nest/Prisma/PostgreSQL14.19/Chrome; actual H264/AAC play/seek, Range bytes, audit failure, permission and quarantine",
+  "providerVerified": "NOT_RUN",
+  "cosProviderVerified": "NOT_RUN",
+  "realMobileDeviceVerified": "NOT_RUN",
+  "newMigrations": [],
+  "ci": "Final head CI recorded in PR description",
+  "deployed": false
+}

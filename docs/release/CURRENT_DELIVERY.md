@@ -1,3 +1,15 @@
+## 2026-10-01：PR-03D finalization（Draft，待复核）
+
+修复 LINK 不写共享 Work 媒体/事实，新增独立媒体+Work同意版本，支持已有 exact Credit 原样接手及 legacy 内部受控升级。无schema/迁移变化，1–66逐文件不变。当前证据见 [PR-03交付说明](TALENT_EXPERIENCE_PR03.md) 和 `artifacts/talent-experience-pr03-work-finalization/verification.json`。保持未合并、未部署，Provider未验证，不进入PR-03E。
+
+## 2026-10-01：PR-03D 作品案例（Draft，待复核）
+
+PR-03A/B/C 已冻结。本轮复用 Work/Credit/Asset，增加本人案例草稿、精确职业署名、人工新建/关联、Grant-bound 本人投影及人物主详情卡片；同步导出重建、删除/合并与恢复。新增前向迁移64–66，1–63不改。当前实测证据与明确边界见 [PR-03交付说明](TALENT_EXPERIENCE_PR03.md) 和 `artifacts/talent-experience-pr03-work-cases/verification.json`。保持 PR #31 Draft、未合并、未部署，Provider/COS/真实手机仍 NOT_RUN；完成本轮后不进入 PR-03E 或后续业务。
+
+## 2026-10-01：PR-03 媒体归属与暂存底座（Draft待复核）
+
+迁移62新增真实上传主体与PersonMedia关系，READY与STAGED/ADOPTED/RETIRED分离；本人/审核专用读、原子采纳及生命周期已接入。1–61冻结。真实Chrome手机宽度与异步worker/PG、实际私有文件备份恢复已验证；完整当前提交测试及CI绑定见[本轮交付说明](TALENT_EXPERIENCE_PR03.md)和`artifacts/talent-experience-pr03-staging/verification.json`。本分支未合并、未部署，Provider未验证，PR-03整体未完成；不进入集合/作品下一切片。
+
 ## 2026-10-01 PR-02a 开发状态
 
 PR-01 已合并冻结、未部署。PR #30 在独立分支实现 PR-02a 的人才账号/认证/真实主体与最小登录页，保持 Draft 待复核；[本包交付与证据](TALENT_EXPERIENCE_PR02.md)。默认外部入口关闭，PROVIDER_VERIFIED=NOT_RUN。PR-02b 及后续功能未开始，PR-02 整包未完成；本轮没有生产迁移或部署。

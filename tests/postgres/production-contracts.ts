@@ -77,7 +77,7 @@ export async function runProductionContracts(t: TestContext, c: Context) {
         await assert.rejects(a.$transaction(async (tx) => { await tx.workAsset.update({ where: { id: all[0]!.id }, data: { position: 0 } }); await tx.workAsset.update({ where: { id: all[1]!.id }, data: { position: 0 } }); }));
         assert.deepEqual((await a.workAsset.findMany({ where: { workId }, orderBy: { position: 'asc' } })).map(e => e.position), [0, 1]);
     });
-    await t.test('WP1 PG removal compacts order, changes cover, but preserves original media', async () => {
+    await t.test('WP1 PG removal compacts order, clears cover without guessing, and preserves original media', async () => {
         let w = await get('/works/' + workId);
         await modify('/works/' + workId, '', { status: 'ACTIVE' });
         const cover = w.items.find((e: any) => e.isCover);
@@ -85,7 +85,8 @@ export async function runProductionContracts(t: TestContext, c: Context) {
         w = await get('/works/' + workId);
         assert.equal(w.items.length, 1);
         assert.equal(w.items[0].position, 0);
-        assert.equal(w.items[0].isCover, true);
+        assert.equal(w.items[0].isCover, false);
+        assert.equal((await a.work.findUniqueOrThrow({where:{id:workId}})).coverEntryId,null);
         await modify('/works/' + workId, '/assets/remove', { entryId: w.items[0].id });
         w = await get('/works/' + workId);
         assert.equal(w.status, 'DRAFT');

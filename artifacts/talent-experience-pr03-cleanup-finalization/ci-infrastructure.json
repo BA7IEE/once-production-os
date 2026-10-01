@@ -1,0 +1,27 @@
+{
+  "run": 36889529259,
+  "head": "81d4b30d240333d7a4be07b401284300ec55ee1a",
+  "passedJobs": 12,
+  "job": "browser-media-staging",
+  "attempts": [
+    {
+      "attempt": 1,
+      "jobId": 110461319915,
+      "conclusion": "cancelled",
+      "annotation": "The job has exceeded the maximum execution time of 20m0s",
+      "browserExecuted": false,
+      "rawLogSha256": "3d4309ff18eb84642940d4bbdb23e938df047e687891666001234d539c0b6ba8",
+      "excerpt": "ci-attempt-1-download-timeout.txt"
+    },
+    {
+      "attempt": 2,
+      "jobId": 110470441931,
+      "conclusion": "cancelled",
+      "annotation": "The job has exceeded the maximum execution time of 20m0s",
+      "browserExecuted": false,
+      "rawLogSha256": "3adb35edb1749a309a193a15e192e32e3969a2429329f4793a4fbb78e8d3f7b4",
+      "excerpt": "ci-attempt-2-download-timeout.txt"
+    }
+  ],
+  "adjustment": "Only this job timeout 20 -> 30 minutes; all tests, steps and assertions unchanged; new exact-head full CI required"
+}

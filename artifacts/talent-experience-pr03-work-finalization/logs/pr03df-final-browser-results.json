@@ -1,0 +1,14 @@
+[
+  {
+    "group": "work-cases",
+    "exitCode": 0,
+    "seconds": 93.2,
+    "log": "/tmp/pr03df-final-browser-work-cases-final.txt"
+  },
+  {
+    "group": "production",
+    "exitCode": 0,
+    "seconds": 113.88,
+    "log": "/tmp/pr03df-final-browser-production-final.txt"
+  }
+]

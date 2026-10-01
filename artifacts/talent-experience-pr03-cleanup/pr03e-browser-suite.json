@@ -1,0 +1,62 @@
+[
+  {
+    "group": "resume",
+    "exitCode": 0,
+    "seconds": 18
+  },
+  {
+    "group": "handoff",
+    "exitCode": 0,
+    "seconds": 9
+  },
+  {
+    "group": "media",
+    "exitCode": 0,
+    "seconds": 20
+  },
+  {
+    "group": "production",
+    "exitCode": 0,
+    "seconds": 130
+  },
+  {
+    "group": "talent-intake",
+    "exitCode": 0,
+    "seconds": 8
+  },
+  {
+    "group": "talent-directory",
+    "exitCode": 0,
+    "seconds": 17
+  },
+  {
+    "group": "talent-auth",
+    "exitCode": 0,
+    "seconds": 10
+  },
+  {
+    "group": "talent-maintenance",
+    "exitCode": 0,
+    "seconds": 31
+  },
+  {
+    "group": "media-staging",
+    "exitCode": 0,
+    "seconds": 53
+  },
+  {
+    "group": "media-collections",
+    "exitCode": 0,
+    "seconds": 79
+  },
+  {
+    "group": "work-cases",
+    "exitCode": 0,
+    "seconds": 91
+  },
+  {
+    "group": "media-purge",
+    "exitCode": 0,
+    "seconds": 95
+  }
+]

@@ -1,0 +1,17 @@
+TAP version 13
+# {"checks":["READY-STAGED-denies-formal-B-without-intake","ADOPTED-direct-list-preview-TD2-use-formal-Person-Source-not-intake","current-person-scope-remains-required","current-formal-source-scope-revocation-denies-all-consumers"]}
+# Subtest: tests/postgres/media-staging.test.ts
+ok 1 - tests/postgres/media-staging.test.ts
+  ---
+  duration_ms: 2078.125875
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2082.435709

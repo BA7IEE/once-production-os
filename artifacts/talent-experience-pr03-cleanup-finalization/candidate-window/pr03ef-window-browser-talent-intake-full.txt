@@ -1,0 +1,5 @@
+PASS PostgreSQL same-key concurrency creates exactly one typed person and receipt
+PASS PostgreSQL audit fault rolls back all composed writes; original key retries
+PASS Browser name-only intake, multi-role and lost response replay keep one person
+PASS Browser contact branch creates no professional record; form fits 360/390/430/1280
+PASS Real viewer UI/API refuse creation and restricted person access

@@ -1,0 +1,118 @@
+TAP version 13
+# Subtest: PR03 bound talent staged media and atomic multi-source adoption
+ok 1 - PR03 bound talent staged media and atomic multi-source adoption
+  ---
+  duration_ms: 188.26825
+  type: 'test'
+  ...
+# Subtest: PR03 unbound ENROLL owns new media and adopts without fake membership/source
+ok 2 - PR03 unbound ENROLL owns new media and adopts without fake membership/source
+  ---
+  duration_ms: 146.808958
+  type: 'test'
+  ...
+# Subtest: PR03 review scope, rollback, source isolation and revoked worker
+ok 3 - PR03 review scope, rollback, source isolation and revoked worker
+  ---
+  duration_ms: 286.350083
+  type: 'test'
+  ...
+# Subtest: PR03 business JSON keeps adopted source/relation but never reconstructs external authorization
+ok 4 - PR03 business JSON keeps adopted source/relation but never reconstructs external authorization
+  ---
+  duration_ms: 315.489958
+  type: 'test'
+  ...
+# Subtest: PR03 media lifecycle merge
+ok 5 - PR03 media lifecycle merge
+  ---
+  duration_ms: 147.66125
+  type: 'test'
+  ...
+# Subtest: PR03 media lifecycle adopted-merge
+ok 6 - PR03 media lifecycle adopted-merge
+  ---
+  duration_ms: 143.355
+  type: 'test'
+  ...
+# Subtest: PR03 media lifecycle delete
+ok 7 - PR03 media lifecycle delete
+  ---
+  duration_ms: 141.114
+  type: 'test'
+  ...
+# Subtest: PR03 media lifecycle expiry
+ok 8 - PR03 media lifecycle expiry
+  ---
+  duration_ms: 132.596958
+  type: 'test'
+  ...
+# Subtest: PR03 worker revalidates grant
+ok 9 - PR03 worker revalidates grant
+  ---
+  duration_ms: 141.458
+  type: 'test'
+  ...
+# Subtest: PR03 worker revalidates withdraw
+ok 10 - PR03 worker revalidates withdraw
+  ---
+  duration_ms: 139.533042
+  type: 'test'
+  ...
+# Subtest: PR03 worker revalidates consent
+ok 11 - PR03 worker revalidates consent
+  ---
+  duration_ms: 135.835125
+  type: 'test'
+  ...
+# Subtest: PR03 worker revalidates recovery
+ok 12 - PR03 worker revalidates recovery
+  ---
+  duration_ms: 137.403917
+  type: 'test'
+  ...
+# Subtest: PR03 concurrent upload commands use stable principal and submission CAS
+ok 13 - PR03 concurrent upload commands use stable principal and submission CAS
+  ---
+  duration_ms: 132.02
+  type: 'test'
+  ...
+# Subtest: PR03 exact Role cannot borrow another person and pinned Role merge fails closed
+ok 14 - PR03 exact Role cannot borrow another person and pinned Role merge fails closed
+  ---
+  duration_ms: 136.308917
+  type: 'test'
+  ...
+# Subtest: PR03 retiring a draft file revokes read but never fakes failure or releases bytes
+ok 15 - PR03 retiring a draft file revokes read but never fakes failure or releases bytes
+  ---
+  duration_ms: 134.749583
+  type: 'test'
+  ...
+# Subtest: PR03 formal media authorization replaces historical intake bound
+ok 16 - PR03 formal media authorization replaces historical intake bound
+  ---
+  duration_ms: 455.399083
+  type: 'test'
+  ...
+# Subtest: PR03 formal media authorization replaces historical intake ENROLL
+ok 17 - PR03 formal media authorization replaces historical intake ENROLL
+  ---
+  duration_ms: 412.246416
+  type: 'test'
+  ...
+# Subtest: PR03 formal media requires the exact active Role after adoption
+ok 18 - PR03 formal media requires the exact active Role after adoption
+  ---
+  duration_ms: 469.679875
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4089.30375

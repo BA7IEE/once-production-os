@@ -1,3 +1,5 @@
+import {periodCurrent} from './talent-v2-graph.ts';
+import {exactCreditCurrent,validateCaseDate} from './talent-work-cases.ts';
 import {sourceAllowsInternalAuthoring} from './talent-maintenance-policy.ts';
 import type { Actor, Clock } from './model.ts';
 import type { Tx } from './store.ts';
@@ -27,12 +29,13 @@ export class Portfolio {
         const s = d.sourceId ? await sourceFor(tx, actor, d.sourceId, this.clock) : await this.talent.createSource(tx, actor, d.inlineSource);invariant(sourceAllowsInternalAuthoring(s),'TALENT_BASIS_SCOPED','本人文字来源不能作为新作品依据，请使用独立来源',409);
         await this.validateFacts(tx, actor.workspaceId, d);
         const w: Work = { ...base(actor.workspaceId, this.clock), sourceId: s.id, scopeId: s.scopeId, maintainerId: actor.membershipId,
-            title: d.title.trim(), description: d.description ?? '', industryCode: d.industryCode ?? null, workTypeCodes: d.workTypeCodes ?? [], origin: d.origin ?? 'UNKNOWN', originNote: d.originNote ?? '', status: 'DRAFT', coverEntryId: null };
+            caseDate:d.caseDate??null,datePrecision:d.datePrecision??'UNKNOWN',location:d.location??'',brandDisplayName:d.brandDisplayName??'',title: d.title.trim(), description: d.description ?? '', industryCode: d.industryCode ?? null, workTypeCodes: d.workTypeCodes ?? [], origin: d.origin ?? 'UNKNOWN', originNote: d.originNote ?? '', status: 'DRAFT', coverEntryId: null };
         this.checkHeader(w);
         await tx.insert('works', w);
         return w;
     }
     private checkHeader(w: Work) {
+        validateCaseDate({caseDate:w.caseDate??null,datePrecision:w.datePrecision??'UNKNOWN'});
         invariant(w.title.length > 0, 'TITLE_REQUIRED', '作品标题不能为空', 422);
         invariant(w.origin !== 'ONCE' || w.originNote.trim().length >= 4, 'ORIGIN_BASIS_REQUIRED', '标记 ONCE 制作需说明真实制作依据；不会自动核验', 422);
     }
@@ -50,12 +53,21 @@ export class Portfolio {
         if (n.status === 'ACTIVE') {
             requirePermission(actor, 'assets.read');
             const entries = await tx.find('workAssets', { workspaceId: actor.workspaceId, workId: id });
-            invariant(entries.length > 0 && entries.some(e => e.id === n.coverEntryId), 'WORK_INCOMPLETE', '使用中作品至少需要一张图片和有效封面', 422);
+            invariant(entries.length > 0 && (!n.coverEntryId||entries.some(e => e.id === n.coverEntryId)), 'WORK_INCOMPLETE', '使用中作品至少需要一项素材；封面必须属于当前作品', 422);if(n.coverEntryId){const cover=await readyAsset(tx,actor,entries.find(e=>e.id===n.coverEntryId)!.assetId,this.clock);invariant(cover.mime.startsWith('image/'),'COVER_INVALID','封面须为图片',422);}
             for (const e of entries)
                 await readyAsset(tx, actor, e.assetId, this.clock);
         }
         await tx.replace('works', n);
         return n;
+    }
+    async personCases(tx:Tx,actor:Actor,personId:string){
+        requirePermission(actor,'records.read');await creditPerson(tx,actor,personId,this.clock);const items=[];
+        for(const c of await tx.find('workCredits',{workspaceId:actor.workspaceId,personId})){
+            if(!await exactCreditCurrent(tx,c,this.clock))continue;
+            const w=await visibleOrNull(async()=>{if(c.sourceId)await sourceFor(tx,actor,c.sourceId,this.clock);return workFor(tx,actor,c.workId,this.clock);});if(!w||w.status!=='ACTIVE')continue;
+            const view=await this.get(tx,actor,w.id),media=view.items.filter(i=>i.asset);
+            items.push({...workHeader(w),description:w.description,credit:{roleCode:c.roleCode,personRoleId:c.personRoleId??null,note:c.note},coverAssetId:media.find(i=>i.id===w.coverEntryId&&i.asset?.mime.startsWith('image/'))?.asset?.id??null,items:media,sourceStatus:'当前可用'});
+        }return {items};
     }
     async list(tx: Tx, actor: Actor, query: Record<string, string>) {
         requirePermission(actor, 'records.read');
@@ -79,12 +91,12 @@ export class Portfolio {
         for (const e of (await tx.find('workAssets', { workspaceId: actor.workspaceId, workId: id })).sort((a, b) => a.position - b.position)) {
             const a = actor.permissions.includes('assets.read') ? await visibleOrNull(() => readyAsset(tx, actor, e.assetId, this.clock)) : null;
             items.push({ id: e.id, position: e.position, isCover: e.id === w.coverEntryId,
-                asset: a ? { id: a.id, fileName: a.fileName, width: a.width, height: a.height, revision: a.revision } : null });
+                asset: a ? { id: a.id, fileName: a.fileName, mime:a.mime, width: a.width, height: a.height, revision: a.revision } : null });
         }
         const credits = [];
         for (const c of await tx.find('workCredits', { workspaceId: actor.workspaceId, workId: id })) {
-            const person = await visibleOrNull(() => creditPerson(tx, actor, c.personId, this.clock));
-            credits.push({ id: c.id, person, roleCode: person ? c.roleCode : null, note: person ? c.note : null });
+            const person = await exactCreditCurrent(tx,c,this.clock) ? await visibleOrNull(async () => {if(c.sourceId)await sourceFor(tx,actor,c.sourceId,this.clock);return creditPerson(tx, actor, c.personId, this.clock);}) : null;
+            credits.push({ id: c.id, revision:person?c.revision:null, person, personRoleId:person?c.personRoleId??null:null, roleCode: person ? c.roleCode : null, note: person ? c.note : null });
         }
         const projects = [];
         for (const link of await tx.find('projectWorks', { workspaceId: actor.workspaceId, workId: id })) {
@@ -106,13 +118,13 @@ export class Portfolio {
     async addAsset(tx: Tx, actor: Actor, id: string, input: unknown) {
         const d = S.workAsset.parse(input), w = await this.edit(tx, actor, id, d.expectedRevision);
         requirePermission(actor, 'assets.read');
-        await readyAsset(tx, actor, d.assetId, this.clock);
+        const asset=await readyAsset(tx, actor, d.assetId, this.clock);
         const all = await tx.find('workAssets', { workspaceId: actor.workspaceId, workId: id });
         invariant(all.length < L.assets, 'WORK_ITEM_LIMIT', '单个作品最多30张图片', 422);
         invariant(!all.some(e => e.assetId === d.assetId), 'DUPLICATE_LINK', '这张图片已在作品中', 409);
         const e = { ...base(actor.workspaceId, this.clock), workId: id, assetId: d.assetId, position: all.length };
         await tx.insert('workAssets', e);
-        const n = { ...touch(w, this.clock), coverEntryId: w.coverEntryId ?? e.id };
+        const n = { ...touch(w, this.clock), coverEntryId: w.coverEntryId??(asset.mime.startsWith('image/')?e.id:null) };
         await tx.replace('works', n);
         return n;
     }
@@ -123,7 +135,7 @@ export class Portfolio {
             missing();
         const rest = (await tx.find('workAssets', { workspaceId: actor.workspaceId, workId: id })).filter(x => x.id !== e.id).sort((a, b) => a.position - b.position);
         // Cover is a deferred composite FK. Removing a local link never deletes the underlying Asset.
-        const n = { ...touch(w, this.clock), coverEntryId: w.coverEntryId === e.id ? rest[0]?.id ?? null : w.coverEntryId };
+        const n = { ...touch(w, this.clock), coverEntryId: w.coverEntryId === e.id ? null : w.coverEntryId };
         if (rest.length === 0 && n.status === 'ACTIVE')
             n.status = 'DRAFT';
         await tx.replace('works', n);
@@ -136,10 +148,10 @@ export class Portfolio {
         const d = S.order.parse(input), w = await this.edit(tx, actor, id, d.expectedRevision);
         const all = await tx.find('workAssets', { workspaceId: actor.workspaceId, workId: id });
         invariant(d.entryIds.length === all.length && new Set(d.entryIds).size === all.length && d.entryIds.every(x => all.some(e => e.id === x)), 'ORDER_MISMATCH', '排序必须完整包含本作品当前条目，请刷新', 409);
-        invariant(all.length === 0 ? d.coverEntryId === null : d.coverEntryId !== null && d.entryIds.includes(d.coverEntryId), 'COVER_INVALID', '封面必须属于本作品', 422);
+        invariant(d.coverEntryId === null || d.entryIds.includes(d.coverEntryId), 'COVER_INVALID', '封面必须属于本作品', 422);
         if (d.coverEntryId && d.coverEntryId !== w.coverEntryId) {
             requirePermission(actor, 'assets.read');
-            await readyAsset(tx, actor, all.find(e => e.id === d.coverEntryId)!.assetId, this.clock);
+            const cover=await readyAsset(tx, actor, all.find(e => e.id === d.coverEntryId)!.assetId, this.clock);invariant(cover.mime.startsWith('image/'),'COVER_INVALID','封面须为图片',422);
         }
         for (let i = 0; i < d.entryIds.length; i++) {
             const e = all.find(e => e.id === d.entryIds[i])!;
@@ -161,6 +173,15 @@ export class Portfolio {
         const n = touch(w, this.clock);
         await tx.replace('works', n);
         return n;
+    }
+    async upgradeCredit(tx:Tx,actor:Actor,id:string,input:unknown){
+        requirePermission(actor,'sources.review');invariant(actor.actorKind!=='MACHINE','HUMAN_REVIEW_REQUIRED','旧署名升级须内部人员核对',403);
+        const d=S.creditUpgrade.parse(input),w=await this.edit(tx,actor,id,d.expectedRevision),c=await workspaceRow(tx,'workCredits',d.creditId,actor.workspaceId);
+        if(!c||c.workId!==w.id)missing();cas(c,d.expectedCreditRevision);invariant(!c.personRoleId&&!c.sourceId,'WORK_CREDIT_ALREADY_EXACT','署名已经绑定精确职业，不可重复升级',409);
+        await creditPerson(tx,actor,c.personId,this.clock);const role=await workspaceRow(tx,'personRoles',d.personRoleId,actor.workspaceId);
+        if(!role||role.personId!==c.personId)missing();cas(role,d.expectedRoleRevision);invariant(role.roleCode===c.roleCode&&role.status==='ACTIVE'&&periodCurrent(role as unknown as Record<string,unknown>,this.clock),'WORK_ROLE_INVALID','请核对同一人物的当前署名职业',409);await checkRole(tx,actor,role.roleCode);await sourceFor(tx,actor,role.sourceId,this.clock);
+        const source=await sourceFor(tx,actor,d.sourceId,this.clock);cas(source,d.sourceRevision);invariant(sourceAllowsInternalAuthoring(source),'TALENT_BASIS_SCOPED','旧署名升级须使用独立内部来源',409);
+        await tx.replace('workCredits',{...touch(c,this.clock),personRoleId:role.id,sourceId:source.id});const next=touch(w,this.clock);await tx.replace('works',next);return next;
     }
     async removeCredit(tx: Tx, actor: Actor, id: string, input: unknown) {
         const d = S.remove.parse(input), w = await this.edit(tx, actor, id, d.expectedRevision), c = await workspaceRow(tx, 'workCredits', d.entryId, actor.workspaceId);

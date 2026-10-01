@@ -7,6 +7,10 @@ export interface AssetDto {
     id: string;
     sourceId: string;
     personId: string | null;
+    originSourceId?: string | null;
+    personRoleId?: string | null;
+    relationId?: string;
+    usageState: 'STAGED' | 'ADOPTED' | 'RETIRED';
     fileName: string;
     mime: string;
     bytes: number;
@@ -27,7 +31,7 @@ interface UploadDto {
     assetId: string | null;
 }
 const states: Record<string, string> = { OPEN: '等待文件', RECEIVING: '正在接收', UPLOADED: '文件已收到，待提交检查', QUEUED: '等待检查', PROCESSING: '检查与生成预览', READY: '可预览', FAILED: '失败', CANCELLED: '已取消', QUARANTINED: '已隔离' };
-const errors: Record<string, string> = { IMAGE_REJECTED: '文件损坏或超过处理限制；图片请另存为静态图，视频请缩短或降低分辨率后重传', MEDIA_TYPE_INVALID: '真实类型与声明不符', MEDIA_CONTEXT_CHANGED: '来源或权限发生变化，请重新核对', UPLOAD_EXPIRED: '上传已过期', UPLOAD_INTERRUPTED: '文件未完整接收', MEDIA_DIGEST_INVALID: '文件校验不一致', MEDIA_IO_FAILED: '存储操作未完成，请联系维护人员' };
+const errors: Record<string, string> = { IMAGE_REJECTED: '文件损坏、不支持的编码或超过处理限制；图片请导出JPEG，视频请导出H.264/AAC MP4后重传', MEDIA_TYPE_INVALID: '真实类型与声明不符', MEDIA_CONTEXT_CHANGED: '来源或权限发生变化，请重新核对', UPLOAD_EXPIRED: '上传已过期', UPLOAD_INTERRUPTED: '文件未完整接收', MEDIA_DIGEST_INVALID: '文件校验不一致', MEDIA_IO_FAILED: '存储操作未完成，请联系维护人员' };
 const terminal = (s: string) => ['READY', 'FAILED', 'CANCELLED'].includes(s);
 const uncertain = (e: unknown) => e instanceof ApiError && e.unknownOutcome;
 export function MediaPanel({ me, personId, source, compact = false, onReady }: {
@@ -132,7 +136,7 @@ export function MediaPanel({ me, personId, source, compact = false, onReady }: {
         setStatus(states[u.state] ?? u.state);
         setRefresh(x => x + 1);
     }
-    return <section className="media-panel">{!compact && <PageTitle overline="PRIVATE MEDIA" title="私有素材" description="图片和精选MP4封面生成私有预览。PDF只保存附件，解析交给外部Agent；原件通过受控导出下载。"/>}
+    return <section className="media-panel">{!compact && <PageTitle overline="PRIVATE MEDIA" title="私有素材" description="图片生成私有预览，支持H.264/AAC MP4受控播放。PDF只保存附件，解析交给外部Agent；原件通过受控导出下载。"/>}
         {compact && <h3>关联私有素材</h3>}<ErrorBox error={assets.error ?? sources.error ?? a.error ?? control.error}/>
         {me.mediaEnabled && me.permissions.includes('assets.upload') && <form className="panel padded" onSubmit={e => { e.preventDefault(); void a.run(proceed); }}>
             {!source && <Field label="文件资料来源"><select required disabled={freeze} value={selectedSource} onChange={e => { setSource(e.target.value); createInput.current = null; }}><option value="">选择当前有效来源</option>{sources.data?.items.filter(s => s.current).map(s => <option value={s.id} key={s.id}>{s.title}</option>)}</select></Field>}
@@ -144,7 +148,7 @@ export function MediaPanel({ me, personId, source, compact = false, onReady }: {
         </form>}
         <div className="button-row"><button onClick={() => setRefresh(x => x + 1)}>刷新素材与上传状态</button></div>
         <div className="media-grid">{assets.data?.items.map(item => <article className="panel padded" key={item.id} data-asset-id={item.id}>
-            {item.state === 'READY' && item.mime === 'application/pdf' ? <p>PDF附件 · 未解析，内容处理交给外部Agent</p> : item.state === 'READY' ? <img loading="lazy" className="private-preview" src={'/api/v1/assets/' + item.id + '/preview'} alt={'私有素材预览：' + item.fileName}/> : <p>已隔离，禁止读取预览</p>}
+            {item.state === 'READY' && item.mime === 'application/pdf' ? <p>PDF附件 · 未解析，内容处理交给外部Agent</p> : item.state === 'READY' && item.mime === 'video/mp4' ? <PrivateVideo id={item.id} name={item.fileName}/> : item.state === 'READY' ? <img loading="lazy" className="private-preview" src={'/api/v1/assets/' + item.id + '/preview'} alt={'私有素材预览：' + item.fileName}/> : <p>已隔离，禁止读取预览</p>}
             <strong>{item.fileName}</strong><small>{item.width} × {item.height} · {(item.bytes / 1000000).toFixed(2)}MB · {states[item.state]}</small>
             {me.permissions.includes('sources.review') && item.state === 'READY' && <button className="danger" disabled={control.busy} onClick={() => { if (confirm('隔离后此图片将停止预览；本批暂不提供解除隔离。确认？'))
             void control.run(async () => { await call('asset.quarantine', { expectedRevision: item.revision }, { id: item.id }); setRefresh(x => x + 1); }); }}>隔离图片</button>}
@@ -155,4 +159,11 @@ export function MediaPanel({ me, personId, source, compact = false, onReady }: {
             {!terminal(u.state) && <button disabled={control.busy} onClick={() => void control.run(async () => { await call('upload.cancel', { expectedRevision: u.revision }, { id: u.id }); setRefresh(x => x + 1); })}>取消上传</button>}
         </div></div>)}</section>}
     </section>;
+}
+
+function PrivateVideo({id, name}: {id: string; name: string}) {
+    const [error, setError] = useState(false);
+    return <div><video className="private-preview" controls playsInline preload="none" aria-label={'播放视频：' + name}
+        poster={'/api/v1/assets/' + id + '/preview'} src={'/api/v1/assets/' + id + '/playback'} onError={() => setError(true)}/>
+        {error && <p role="alert">视频暂时无法播放，请刷新核对权限；格式不支持时请重新提供 H.264/AAC MP4。</p>}</div>;
 }

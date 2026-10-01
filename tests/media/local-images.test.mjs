@@ -61,7 +61,7 @@ test('PDF is an opaque private attachment: original preserved, no content interp
   const {backupPrivateMedia,restorePrivateMedia}=await import('../../dist/apps/api/src/recovery/media-backup.js');
   const copyRoot=await mkdtemp(join(await realpath(tmpdir()),'once-pdf-backup-'));
   try{
-   const db={mediaAsset:{findMany:async()=>[{...a,createdAt:new Date(a.createdAt),updatedAt:new Date(a.updatedAt)}]}};
+   const db={mediaAsset:{findMany:async()=>[{...a,createdAt:new Date(a.createdAt),updatedAt:new Date(a.updatedAt)}]},mediaPurgeIntent:{findMany:async()=>[],findUnique:async()=>null}};
    const manifest=await backupPrivateMedia(db,'local',f.root,join(copyRoot,'bundle'));
    await restorePrivateMedia(manifest,join(copyRoot,'bundle'),join(copyRoot,'restored'));
    const restored=await LocalMediaProvider.openExisting(join(copyRoot,'restored'));await restored.verifyAsset(a);assert.deepEqual(await restored.readOriginal(a),bytes);
@@ -70,7 +70,7 @@ test('PDF is an opaque private attachment: original preserved, no content interp
 });
 test('selected MP4 produces a bounded private cover without modifying the original',async()=>{
  const root=await mkdtemp(join(await realpath(tmpdir()),'once-video-fixture-'));try{
-  const file=join(root,'sample.mp4');execFileSync('ffmpeg',['-v','error','-f','lavfi','-i','color=c=blue:s=64x48:d=1','-an','-c:v','mpeg4','-threads','1',file],{stdio:'ignore'});
+  const file=join(root,'sample.mp4');execFileSync('ffmpeg',['-v','error','-f','lavfi','-i','color=c=blue:s=64x48:d=1','-an','-c:v','libx264','-pix_fmt','yuv420p','-threads','1',file],{stdio:'ignore'});
   const bytes=await readFile(file),f=await setup('video/mp4',bytes);try{
    await f.worker.cycle(new AbortController().signal);const a=f.store.rows('assets')[0];assert.ok(a,JSON.stringify(f.store.rows('uploads')));
    assert.deepEqual(await f.provider.readOriginal(a),bytes);assert.equal((await sharp(await f.provider.readPreview(a)).metadata()).format,'jpeg');
@@ -78,3 +78,10 @@ test('selected MP4 produces a bounded private cover without modifying the origin
  }finally{await rm(root,{recursive:true,force:true});}
 });
 test('spoofed MP4 header fails actual probing',async()=>{const f=await setup('video/mp4',Buffer.from('0000ftypisom000000000000'));try{await f.worker.cycle(new AbortController().signal);assert.equal(f.store.rows('assets').length,0);assert.equal(f.store.rows('uploads')[0].state,'FAILED');}finally{await f.cleanup();}});
+
+test('new MP4 uploads reject MPEG-4 Part 2; require H.264 yuv420p with AAC or no audio',async()=>{
+ const root=await mkdtemp(join(await realpath(tmpdir()),'once-video-codec-'));try{
+  const file=join(root,'unsupported.mp4');execFileSync('ffmpeg',['-v','error','-f','lavfi','-i','color=c=blue:s=64x48:d=1','-an','-c:v','mpeg4','-threads','1',file],{stdio:'ignore'});
+  const f=await setup('video/mp4',await readFile(file));try{await f.worker.cycle(new AbortController().signal);assert.equal(f.store.rows('assets').length,0);assert.equal(f.store.rows('uploads')[0].state,'FAILED');}finally{await f.cleanup();}
+ }finally{await rm(root,{recursive:true,force:true});}
+});

@@ -1,0 +1,1 @@
+{"checks":["talent-cannot-browse-unexposed-existing-work","reviewer-explicit-link-preserves-all-shared-work-facts","own-credit-only-no-other-person-or-note-projection","shared-work-source-independent-from-new-credit-source","credit-source-revocation-preserves-shared-work-and-other-credit"]}

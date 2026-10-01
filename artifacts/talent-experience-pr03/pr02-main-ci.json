@@ -1,0 +1,1394 @@
+{
+  "conclusion": "success",
+  "headSha": "1a297d86ecfeac5d7a3c748322a867c9852a20c9",
+  "jobs": [
+    {
+      "completedAt": "2026-10-01T04:38:51Z",
+      "conclusion": "success",
+      "databaseId": 110220159535,
+      "name": "browser-handoff",
+      "startedAt": "2026-10-01T04:33:53Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-01T04:33:55Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-01T04:33:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:07Z",
+          "conclusion": "success",
+          "name": "Initialize containers",
+          "number": 2,
+          "startedAt": "2026-10-01T04:33:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:08Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v6",
+          "number": 3,
+          "startedAt": "2026-10-01T04:34:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:08Z",
+          "conclusion": "success",
+          "name": "Verify committed delivery fingerprints",
+          "number": 4,
+          "startedAt": "2026-10-01T04:34:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:13Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v6",
+          "number": 5,
+          "startedAt": "2026-10-01T04:34:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:16Z",
+          "conclusion": "success",
+          "name": "Run pnpm/action-setup@v6",
+          "number": 6,
+          "startedAt": "2026-10-01T04:34:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:16Z",
+          "conclusion": "success",
+          "name": "Set isolated database target",
+          "number": 7,
+          "startedAt": "2026-10-01T04:34:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:27Z",
+          "conclusion": "success",
+          "name": "Run pnpm install --frozen-lockfile",
+          "number": 8,
+          "startedAt": "2026-10-01T04:34:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:31Z",
+          "conclusion": "success",
+          "name": "Run pnpm exec prisma validate && pnpm db:generate",
+          "number": 9,
+          "startedAt": "2026-10-01T04:34:27Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:16Z",
+          "conclusion": "success",
+          "name": "Run pnpm verify && pnpm typecheck:transport",
+          "number": 10,
+          "startedAt": "2026-10-01T04:34:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:36Z",
+          "conclusion": "success",
+          "name": "Run pnpm exec playwright install --with-deps chromium",
+          "number": 11,
+          "startedAt": "2026-10-01T04:38:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:47Z",
+          "conclusion": "success",
+          "name": "Run node tests/acceptance/browser-handoff.mjs",
+          "number": 12,
+          "startedAt": "2026-10-01T04:38:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:47Z",
+          "conclusion": "success",
+          "name": "Post Run pnpm/action-setup@v6",
+          "number": 21,
+          "startedAt": "2026-10-01T04:38:47Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:47Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v6",
+          "number": 22,
+          "startedAt": "2026-10-01T04:38:47Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:48Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v6",
+          "number": 23,
+          "startedAt": "2026-10-01T04:38:47Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:49Z",
+          "conclusion": "success",
+          "name": "Stop containers",
+          "number": 24,
+          "startedAt": "2026-10-01T04:38:48Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:49Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 25,
+          "startedAt": "2026-10-01T04:38:49Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36815702669/job/110220159535"
+    },
+    {
+      "completedAt": "2026-10-01T04:39:07Z",
+      "conclusion": "success",
+      "databaseId": 110220159722,
+      "name": "browser-talent-directory",
+      "startedAt": "2026-10-01T04:33:53Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-01T04:33:55Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-01T04:33:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:08Z",
+          "conclusion": "success",
+          "name": "Initialize containers",
+          "number": 2,
+          "startedAt": "2026-10-01T04:33:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:10Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v6",
+          "number": 3,
+          "startedAt": "2026-10-01T04:34:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:10Z",
+          "conclusion": "success",
+          "name": "Verify committed delivery fingerprints",
+          "number": 4,
+          "startedAt": "2026-10-01T04:34:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:16Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v6",
+          "number": 5,
+          "startedAt": "2026-10-01T04:34:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:20Z",
+          "conclusion": "success",
+          "name": "Run pnpm/action-setup@v6",
+          "number": 6,
+          "startedAt": "2026-10-01T04:34:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:20Z",
+          "conclusion": "success",
+          "name": "Set isolated database target",
+          "number": 7,
+          "startedAt": "2026-10-01T04:34:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:31Z",
+          "conclusion": "success",
+          "name": "Run pnpm install --frozen-lockfile",
+          "number": 8,
+          "startedAt": "2026-10-01T04:34:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:36Z",
+          "conclusion": "success",
+          "name": "Run pnpm exec prisma validate && pnpm db:generate",
+          "number": 9,
+          "startedAt": "2026-10-01T04:34:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:13Z",
+          "conclusion": "success",
+          "name": "Run pnpm verify && pnpm typecheck:transport",
+          "number": 10,
+          "startedAt": "2026-10-01T04:34:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:36Z",
+          "conclusion": "success",
+          "name": "Run pnpm exec playwright install --with-deps chromium",
+          "number": 11,
+          "startedAt": "2026-10-01T04:38:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:36Z",
+          "conclusion": "success",
+          "name": "Run node --test tests/acceptance/talent-experience-surface-policy.test.mjs",
+          "number": 12,
+          "startedAt": "2026-10-01T04:38:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:39:02Z",
+          "conclusion": "success",
+          "name": "Run node tests/acceptance/browser-talent-directory.mjs",
+          "number": 13,
+          "startedAt": "2026-10-01T04:38:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:39:02Z",
+          "conclusion": "success",
+          "name": "Post Run pnpm/action-setup@v6",
+          "number": 23,
+          "startedAt": "2026-10-01T04:39:02Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:39:02Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v6",
+          "number": 24,
+          "startedAt": "2026-10-01T04:39:02Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:39:03Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v6",
+          "number": 25,
+          "startedAt": "2026-10-01T04:39:02Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:39:04Z",
+          "conclusion": "success",
+          "name": "Stop containers",
+          "number": 26,
+          "startedAt": "2026-10-01T04:39:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:39:04Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 27,
+          "startedAt": "2026-10-01T04:39:04Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36815702669/job/110220159722"
+    },
+    {
+      "completedAt": "2026-10-01T04:39:14Z",
+      "conclusion": "success",
+      "databaseId": 110220159723,
+      "name": "browser-talent-maintenance",
+      "startedAt": "2026-10-01T04:33:54Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-01T04:33:57Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-01T04:33:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:12Z",
+          "conclusion": "success",
+          "name": "Initialize containers",
+          "number": 2,
+          "startedAt": "2026-10-01T04:33:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:14Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v6",
+          "number": 3,
+          "startedAt": "2026-10-01T04:34:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:14Z",
+          "conclusion": "success",
+          "name": "Verify committed delivery fingerprints",
+          "number": 4,
+          "startedAt": "2026-10-01T04:34:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:19Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v6",
+          "number": 5,
+          "startedAt": "2026-10-01T04:34:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:22Z",
+          "conclusion": "success",
+          "name": "Run pnpm/action-setup@v6",
+          "number": 6,
+          "startedAt": "2026-10-01T04:34:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:22Z",
+          "conclusion": "success",
+          "name": "Set isolated database target",
+          "number": 7,
+          "startedAt": "2026-10-01T04:34:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:33Z",
+          "conclusion": "success",
+          "name": "Run pnpm install --frozen-lockfile",
+          "number": 8,
+          "startedAt": "2026-10-01T04:34:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:38Z",
+          "conclusion": "success",
+          "name": "Run pnpm exec prisma validate && pnpm db:generate",
+          "number": 9,
+          "startedAt": "2026-10-01T04:34:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:14Z",
+          "conclusion": "success",
+          "name": "Run pnpm verify && pnpm typecheck:transport",
+          "number": 10,
+          "startedAt": "2026-10-01T04:34:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:37Z",
+          "conclusion": "success",
+          "name": "Run pnpm exec playwright install --with-deps chromium",
+          "number": 11,
+          "startedAt": "2026-10-01T04:38:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:37Z",
+          "conclusion": "success",
+          "name": "Run node --test tests/acceptance/talent-experience-surface-policy.test.mjs",
+          "number": 12,
+          "startedAt": "2026-10-01T04:38:37Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:39:10Z",
+          "conclusion": "success",
+          "name": "Run node tests/acceptance/browser-talent-maintenance.mjs",
+          "number": 13,
+          "startedAt": "2026-10-01T04:38:37Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:39:10Z",
+          "conclusion": "success",
+          "name": "Post Run pnpm/action-setup@v6",
+          "number": 23,
+          "startedAt": "2026-10-01T04:39:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:39:10Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v6",
+          "number": 24,
+          "startedAt": "2026-10-01T04:39:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:39:10Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v6",
+          "number": 25,
+          "startedAt": "2026-10-01T04:39:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:39:12Z",
+          "conclusion": "success",
+          "name": "Stop containers",
+          "number": 26,
+          "startedAt": "2026-10-01T04:39:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:39:12Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 27,
+          "startedAt": "2026-10-01T04:39:12Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36815702669/job/110220159723"
+    },
+    {
+      "completedAt": "2026-10-01T04:38:59Z",
+      "conclusion": "success",
+      "databaseId": 110220159793,
+      "name": "browser-resume",
+      "startedAt": "2026-10-01T04:33:53Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-01T04:33:54Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-01T04:33:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:07Z",
+          "conclusion": "success",
+          "name": "Initialize containers",
+          "number": 2,
+          "startedAt": "2026-10-01T04:33:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:08Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v6",
+          "number": 3,
+          "startedAt": "2026-10-01T04:34:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:08Z",
+          "conclusion": "success",
+          "name": "Verify committed delivery fingerprints",
+          "number": 4,
+          "startedAt": "2026-10-01T04:34:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:13Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v6",
+          "number": 5,
+          "startedAt": "2026-10-01T04:34:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:17Z",
+          "conclusion": "success",
+          "name": "Run pnpm/action-setup@v6",
+          "number": 6,
+          "startedAt": "2026-10-01T04:34:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:17Z",
+          "conclusion": "success",
+          "name": "Set isolated database target",
+          "number": 7,
+          "startedAt": "2026-10-01T04:34:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:31Z",
+          "conclusion": "success",
+          "name": "Run pnpm install --frozen-lockfile",
+          "number": 8,
+          "startedAt": "2026-10-01T04:34:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:36Z",
+          "conclusion": "success",
+          "name": "Run pnpm exec prisma validate && pnpm db:generate",
+          "number": 9,
+          "startedAt": "2026-10-01T04:34:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:13Z",
+          "conclusion": "success",
+          "name": "Run pnpm verify && pnpm typecheck:transport",
+          "number": 10,
+          "startedAt": "2026-10-01T04:34:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:38Z",
+          "conclusion": "success",
+          "name": "Run pnpm exec playwright install --with-deps chromium",
+          "number": 11,
+          "startedAt": "2026-10-01T04:38:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:39Z",
+          "conclusion": "success",
+          "name": "Run node --test tests/acceptance/checkpoint.test.mjs",
+          "number": 12,
+          "startedAt": "2026-10-01T04:38:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:56Z",
+          "conclusion": "success",
+          "name": "Run pnpm verify:browser",
+          "number": 13,
+          "startedAt": "2026-10-01T04:38:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:56Z",
+          "conclusion": "success",
+          "name": "Post Run pnpm/action-setup@v6",
+          "number": 23,
+          "startedAt": "2026-10-01T04:38:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:56Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v6",
+          "number": 24,
+          "startedAt": "2026-10-01T04:38:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:57Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v6",
+          "number": 25,
+          "startedAt": "2026-10-01T04:38:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:58Z",
+          "conclusion": "success",
+          "name": "Stop containers",
+          "number": 26,
+          "startedAt": "2026-10-01T04:38:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:58Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 27,
+          "startedAt": "2026-10-01T04:38:58Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36815702669/job/110220159793"
+    },
+    {
+      "completedAt": "2026-10-01T04:41:27Z",
+      "conclusion": "success",
+      "databaseId": 110220159798,
+      "name": "browser-production",
+      "startedAt": "2026-10-01T04:33:53Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-01T04:33:55Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-01T04:33:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:09Z",
+          "conclusion": "success",
+          "name": "Initialize containers",
+          "number": 2,
+          "startedAt": "2026-10-01T04:33:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:11Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v6",
+          "number": 3,
+          "startedAt": "2026-10-01T04:34:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:11Z",
+          "conclusion": "success",
+          "name": "Verify committed delivery fingerprints",
+          "number": 4,
+          "startedAt": "2026-10-01T04:34:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:16Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v6",
+          "number": 5,
+          "startedAt": "2026-10-01T04:34:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:20Z",
+          "conclusion": "success",
+          "name": "Run pnpm/action-setup@v6",
+          "number": 6,
+          "startedAt": "2026-10-01T04:34:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:20Z",
+          "conclusion": "success",
+          "name": "Set isolated database target",
+          "number": 7,
+          "startedAt": "2026-10-01T04:34:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:35Z",
+          "conclusion": "success",
+          "name": "Run pnpm install --frozen-lockfile",
+          "number": 8,
+          "startedAt": "2026-10-01T04:34:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:41Z",
+          "conclusion": "success",
+          "name": "Run pnpm exec prisma validate && pnpm db:generate",
+          "number": 9,
+          "startedAt": "2026-10-01T04:34:35Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:15Z",
+          "conclusion": "success",
+          "name": "Run pnpm verify && pnpm typecheck:transport",
+          "number": 10,
+          "startedAt": "2026-10-01T04:34:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:37Z",
+          "conclusion": "success",
+          "name": "Run pnpm exec playwright install --with-deps chromium",
+          "number": 11,
+          "startedAt": "2026-10-01T04:38:15Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:40Z",
+          "conclusion": "success",
+          "name": "Native form labels and descriptions in a real browser",
+          "number": 12,
+          "startedAt": "2026-10-01T04:38:37Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:41:23Z",
+          "conclusion": "success",
+          "name": "Run node tests/acceptance/browser-production.mjs",
+          "number": 13,
+          "startedAt": "2026-10-01T04:38:40Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:41:23Z",
+          "conclusion": "success",
+          "name": "Post Run pnpm/action-setup@v6",
+          "number": 23,
+          "startedAt": "2026-10-01T04:41:23Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:41:23Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v6",
+          "number": 24,
+          "startedAt": "2026-10-01T04:41:23Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:41:24Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v6",
+          "number": 25,
+          "startedAt": "2026-10-01T04:41:23Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:41:24Z",
+          "conclusion": "success",
+          "name": "Stop containers",
+          "number": 26,
+          "startedAt": "2026-10-01T04:41:24Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:41:24Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 27,
+          "startedAt": "2026-10-01T04:41:24Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36815702669/job/110220159798"
+    },
+    {
+      "completedAt": "2026-10-01T04:37:38Z",
+      "conclusion": "success",
+      "databaseId": 110220159814,
+      "name": "browser-talent-auth",
+      "startedAt": "2026-10-01T04:33:53Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-01T04:33:55Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-01T04:33:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:12Z",
+          "conclusion": "success",
+          "name": "Initialize containers",
+          "number": 2,
+          "startedAt": "2026-10-01T04:33:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:14Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v6",
+          "number": 3,
+          "startedAt": "2026-10-01T04:34:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:14Z",
+          "conclusion": "success",
+          "name": "Verify committed delivery fingerprints",
+          "number": 4,
+          "startedAt": "2026-10-01T04:34:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:18Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v6",
+          "number": 5,
+          "startedAt": "2026-10-01T04:34:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:21Z",
+          "conclusion": "success",
+          "name": "Run pnpm/action-setup@v6",
+          "number": 6,
+          "startedAt": "2026-10-01T04:34:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:21Z",
+          "conclusion": "success",
+          "name": "Set isolated database target",
+          "number": 7,
+          "startedAt": "2026-10-01T04:34:21Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:34Z",
+          "conclusion": "success",
+          "name": "Run pnpm install --frozen-lockfile",
+          "number": 8,
+          "startedAt": "2026-10-01T04:34:21Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:37Z",
+          "conclusion": "success",
+          "name": "Run pnpm exec prisma validate && pnpm db:generate",
+          "number": 9,
+          "startedAt": "2026-10-01T04:34:34Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:36:56Z",
+          "conclusion": "success",
+          "name": "Run pnpm verify && pnpm typecheck:transport",
+          "number": 10,
+          "startedAt": "2026-10-01T04:34:37Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:37:19Z",
+          "conclusion": "success",
+          "name": "Run pnpm exec playwright install --with-deps chromium",
+          "number": 11,
+          "startedAt": "2026-10-01T04:36:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:37:19Z",
+          "conclusion": "success",
+          "name": "Run node --test tests/acceptance/talent-experience-surface-policy.test.mjs",
+          "number": 12,
+          "startedAt": "2026-10-01T04:37:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:37:31Z",
+          "conclusion": "success",
+          "name": "Run node tests/acceptance/browser-talent-auth.mjs",
+          "number": 13,
+          "startedAt": "2026-10-01T04:37:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:37:31Z",
+          "conclusion": "success",
+          "name": "Post Run pnpm/action-setup@v6",
+          "number": 23,
+          "startedAt": "2026-10-01T04:37:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:37:31Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v6",
+          "number": 24,
+          "startedAt": "2026-10-01T04:37:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:37:32Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v6",
+          "number": 25,
+          "startedAt": "2026-10-01T04:37:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:37:36Z",
+          "conclusion": "success",
+          "name": "Stop containers",
+          "number": 26,
+          "startedAt": "2026-10-01T04:37:32Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:37:36Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 27,
+          "startedAt": "2026-10-01T04:37:36Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36815702669/job/110220159814"
+    },
+    {
+      "completedAt": "2026-10-01T04:39:17Z",
+      "conclusion": "success",
+      "databaseId": 110220159819,
+      "name": "browser-media",
+      "startedAt": "2026-10-01T04:33:54Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-01T04:33:57Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-01T04:33:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:10Z",
+          "conclusion": "success",
+          "name": "Initialize containers",
+          "number": 2,
+          "startedAt": "2026-10-01T04:33:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:11Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v6",
+          "number": 3,
+          "startedAt": "2026-10-01T04:34:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:11Z",
+          "conclusion": "success",
+          "name": "Verify committed delivery fingerprints",
+          "number": 4,
+          "startedAt": "2026-10-01T04:34:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:16Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v6",
+          "number": 5,
+          "startedAt": "2026-10-01T04:34:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:20Z",
+          "conclusion": "success",
+          "name": "Run pnpm/action-setup@v6",
+          "number": 6,
+          "startedAt": "2026-10-01T04:34:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:20Z",
+          "conclusion": "success",
+          "name": "Set isolated database target",
+          "number": 7,
+          "startedAt": "2026-10-01T04:34:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:31Z",
+          "conclusion": "success",
+          "name": "Run pnpm install --frozen-lockfile",
+          "number": 8,
+          "startedAt": "2026-10-01T04:34:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:36Z",
+          "conclusion": "success",
+          "name": "Run pnpm exec prisma validate && pnpm db:generate",
+          "number": 9,
+          "startedAt": "2026-10-01T04:34:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:12Z",
+          "conclusion": "success",
+          "name": "Run pnpm verify && pnpm typecheck:transport",
+          "number": 10,
+          "startedAt": "2026-10-01T04:34:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:34Z",
+          "conclusion": "success",
+          "name": "Run pnpm exec playwright install --with-deps chromium",
+          "number": 11,
+          "startedAt": "2026-10-01T04:38:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:52Z",
+          "conclusion": "success",
+          "name": "Run sudo apt-get update && sudo apt-get install -y ffmpeg",
+          "number": 12,
+          "startedAt": "2026-10-01T04:38:34Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:56Z",
+          "conclusion": "success",
+          "name": "Run node --experimental-strip-types --test tests/media/local-images.test.mjs",
+          "number": 13,
+          "startedAt": "2026-10-01T04:38:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:39:13Z",
+          "conclusion": "success",
+          "name": "Run node tests/acceptance/browser-media.mjs",
+          "number": 14,
+          "startedAt": "2026-10-01T04:38:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:39:13Z",
+          "conclusion": "success",
+          "name": "Post Run pnpm/action-setup@v6",
+          "number": 25,
+          "startedAt": "2026-10-01T04:39:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:39:13Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v6",
+          "number": 26,
+          "startedAt": "2026-10-01T04:39:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:39:14Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v6",
+          "number": 27,
+          "startedAt": "2026-10-01T04:39:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:39:14Z",
+          "conclusion": "success",
+          "name": "Stop containers",
+          "number": 28,
+          "startedAt": "2026-10-01T04:39:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:39:14Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 29,
+          "startedAt": "2026-10-01T04:39:14Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36815702669/job/110220159819"
+    },
+    {
+      "completedAt": "2026-10-01T04:41:26Z",
+      "conclusion": "success",
+      "databaseId": 110220159847,
+      "name": "postgres-contract",
+      "startedAt": "2026-10-01T04:33:53Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-01T04:33:54Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-01T04:33:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:09Z",
+          "conclusion": "success",
+          "name": "Initialize containers",
+          "number": 2,
+          "startedAt": "2026-10-01T04:33:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:10Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v6",
+          "number": 3,
+          "startedAt": "2026-10-01T04:34:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:11Z",
+          "conclusion": "success",
+          "name": "Verify committed delivery fingerprints",
+          "number": 4,
+          "startedAt": "2026-10-01T04:34:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:15Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v6",
+          "number": 5,
+          "startedAt": "2026-10-01T04:34:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:19Z",
+          "conclusion": "success",
+          "name": "Run pnpm/action-setup@v6",
+          "number": 6,
+          "startedAt": "2026-10-01T04:34:15Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:19Z",
+          "conclusion": "success",
+          "name": "Set independent contract database target",
+          "number": 7,
+          "startedAt": "2026-10-01T04:34:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:31Z",
+          "conclusion": "success",
+          "name": "Run pnpm install --frozen-lockfile",
+          "number": 8,
+          "startedAt": "2026-10-01T04:34:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:36Z",
+          "conclusion": "success",
+          "name": "Run pnpm exec prisma validate && pnpm db:generate",
+          "number": 9,
+          "startedAt": "2026-10-01T04:34:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:38Z",
+          "conclusion": "success",
+          "name": "Apply migrations only to this fresh contract database",
+          "number": 10,
+          "startedAt": "2026-10-01T04:34:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:41:18Z",
+          "conclusion": "success",
+          "name": "PostgreSQL atomicity, constraints, leases and resume",
+          "number": 11,
+          "startedAt": "2026-10-01T04:34:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:41:24Z",
+          "conclusion": "success",
+          "name": "T29 isolated JSON rebuild CLI against fresh PostgreSQL",
+          "number": 12,
+          "startedAt": "2026-10-01T04:41:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:41:25Z",
+          "conclusion": "success",
+          "name": "Post Run pnpm/action-setup@v6",
+          "number": 21,
+          "startedAt": "2026-10-01T04:41:24Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:41:25Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v6",
+          "number": 22,
+          "startedAt": "2026-10-01T04:41:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:41:25Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v6",
+          "number": 23,
+          "startedAt": "2026-10-01T04:41:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:41:25Z",
+          "conclusion": "success",
+          "name": "Stop containers",
+          "number": 24,
+          "startedAt": "2026-10-01T04:41:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:41:25Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 25,
+          "startedAt": "2026-10-01T04:41:25Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36815702669/job/110220159847"
+    },
+    {
+      "completedAt": "2026-10-01T04:38:58Z",
+      "conclusion": "success",
+      "databaseId": 110220159848,
+      "name": "browser-talent-intake",
+      "startedAt": "2026-10-01T04:33:53Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-01T04:33:57Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-01T04:33:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:12Z",
+          "conclusion": "success",
+          "name": "Initialize containers",
+          "number": 2,
+          "startedAt": "2026-10-01T04:33:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:13Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v6",
+          "number": 3,
+          "startedAt": "2026-10-01T04:34:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:13Z",
+          "conclusion": "success",
+          "name": "Verify committed delivery fingerprints",
+          "number": 4,
+          "startedAt": "2026-10-01T04:34:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:18Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v6",
+          "number": 5,
+          "startedAt": "2026-10-01T04:34:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:22Z",
+          "conclusion": "success",
+          "name": "Run pnpm/action-setup@v6",
+          "number": 6,
+          "startedAt": "2026-10-01T04:34:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:22Z",
+          "conclusion": "success",
+          "name": "Set isolated database target",
+          "number": 7,
+          "startedAt": "2026-10-01T04:34:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:35Z",
+          "conclusion": "success",
+          "name": "Run pnpm install --frozen-lockfile",
+          "number": 8,
+          "startedAt": "2026-10-01T04:34:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:34:42Z",
+          "conclusion": "success",
+          "name": "Run pnpm exec prisma validate && pnpm db:generate",
+          "number": 9,
+          "startedAt": "2026-10-01T04:34:35Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:20Z",
+          "conclusion": "success",
+          "name": "Run pnpm verify && pnpm typecheck:transport",
+          "number": 10,
+          "startedAt": "2026-10-01T04:34:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:43Z",
+          "conclusion": "success",
+          "name": "Run pnpm exec playwright install --with-deps chromium",
+          "number": 11,
+          "startedAt": "2026-10-01T04:38:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:43Z",
+          "conclusion": "success",
+          "name": "Run node --test tests/acceptance/talent-experience-surface-policy.test.mjs",
+          "number": 12,
+          "startedAt": "2026-10-01T04:38:43Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:53Z",
+          "conclusion": "success",
+          "name": "Run pnpm verify:talent-intake",
+          "number": 13,
+          "startedAt": "2026-10-01T04:38:43Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:53Z",
+          "conclusion": "success",
+          "name": "Post Run pnpm/action-setup@v6",
+          "number": 23,
+          "startedAt": "2026-10-01T04:38:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:53Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v6",
+          "number": 24,
+          "startedAt": "2026-10-01T04:38:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:53Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v6",
+          "number": 25,
+          "startedAt": "2026-10-01T04:38:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:55Z",
+          "conclusion": "success",
+          "name": "Stop containers",
+          "number": 26,
+          "startedAt": "2026-10-01T04:38:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-01T04:38:55Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 27,
+          "startedAt": "2026-10-01T04:38:55Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36815702669/job/110220159848"
+    }
+  ],
+  "status": "completed"
+}

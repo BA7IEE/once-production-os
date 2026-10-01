@@ -8,12 +8,21 @@ export type MediaMime = typeof MEDIA_MIMES[number];
 export function mediaByteLimit(mime:string){return mime==='application/pdf'?MEDIA_LIMITS.pdfBytes:mime==='video/mp4'?MEDIA_LIMITS.videoBytes:MEDIA_LIMITS.imageBytes;}
 export type UploadState = 'OPEN' | 'RECEIVING' | 'UPLOADED' | 'QUEUED' | 'PROCESSING' | 'READY' | 'FAILED' | 'CANCELLED' | 'ERASED';
 export interface MediaUpload extends Base {
-    actorId: string;
+    /** Null for external principals; never an employee surrogate. */
+    actorId: string | null;
+    contextKind?: UploadContext['kind'];
+    principalKind?: 'INTERNAL' | 'TALENT' | 'MACHINE';
+    talentAccountId?: string | null;
+    servicePrincipalId?: string | null;
+    submissionId?: string | null;
+    personRoleId?: string | null;
+    grantEpoch?: number | null;
+    recoveryEpoch?: string | null;
     actorRevision: number;
     actorEpoch: number;
-    sourceId: string;
-    sourceRevision: number;
-    sourceEpoch: number;
+    sourceId: string | null;
+    sourceRevision: number | null;
+    sourceEpoch: number | null;
     scopeId: string;
     scopeRevision: number;
     personId: string | null;
@@ -36,7 +45,7 @@ export interface MediaUpload extends Base {
 }
 export interface MediaAsset extends Base {
     uploadId: string;
-    sourceId: string;
+    sourceId: string | null;
     scopeId: string;
     personId: string | null;
     fileName: string;
@@ -49,6 +58,8 @@ export interface MediaAsset extends Base {
     previewHash: string;
     objectToken: string;
     state: 'READY' | 'QUARANTINED' | 'ERASED';
+    usageState?: MediaUsageState;
+    protectionEpoch?: number;
 }
 export interface MediaResult {
     mime: MediaMime;
@@ -60,3 +71,28 @@ export interface MediaResult {
     previewHash: string;
 }
 export const terminalUpload = (state: UploadState) => ['READY', 'FAILED', 'CANCELLED', 'ERASED'].includes(state);
+
+export type UploadContext =
+    | {kind:'INTERNAL_SOURCE'; membershipId:string; sourceId:string; personId:string|null}
+    | {kind:'TALENT_SUBMISSION'; talentAccountId:string; submissionId:string; personId:string|null; personRoleId:string|null}
+    | {kind:'AGENT_SUBMISSION'; servicePrincipalId:string; submissionId:string; personId:string|null; personRoleId:string|null};
+export type MediaUsageState = 'STAGED' | 'ADOPTED' | 'RETIRED';
+/** Formal relation is separate from immutable upload/asset origin. */
+export interface PersonMedia extends Base {
+    personId:string|null;
+    personRoleId:string|null;
+    assetId:string;
+    sourceId:string|null;
+    submissionId:string|null;
+    usageState:MediaUsageState;
+    purpose:'SUBMITTED_MATERIAL';
+    importedOrigin?:Record<string,unknown>|null;
+    protectionEpoch:number;
+    retainUntil:string|null;
+    retiredAt:string|null;
+    purgedAt:string|null;
+}
+export const mediaUsage = (a:MediaAsset):MediaUsageState => a.usageState ?? 'ADOPTED';
+
+export const MEDIA_ADMISSION_DEFAULTS=Object.freeze({talentBytes:2000000000,enrollBytes:200000000,workspaceBytes:MEDIA_LIMITS.retainedBytes,workspaceActiveBytes:MEDIA_LIMITS.activeBytes,actorActive:MEDIA_LIMITS.actorActive,workspaceActive:MEDIA_LIMITS.workspaceActive,actorHourly:MEDIA_LIMITS.actorHourly});
+export type MediaAdmission={ -readonly [K in keyof typeof MEDIA_ADMISSION_DEFAULTS]:number };

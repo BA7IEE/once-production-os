@@ -683,19 +683,27 @@ model RecordHandoff {
 }
 
 model MediaUpload {
+  contextKind String @default("INTERNAL_SOURCE") @db.Text
+  principalKind String @default("INTERNAL") @db.Text
+  talentAccountId String? @db.Uuid
+  servicePrincipalId String? @db.Uuid
+  submissionId String? @db.Uuid
+  personRoleId String? @db.Uuid
+  grantEpoch Int?
+  recoveryEpoch String? @db.Text
   MediaAsset_uploadIdRef MediaAsset[] @relation("MediaAsset_uploadIdRef")
   id String @db.Uuid @id
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
   updatedAt DateTime @db.Timestamptz(3)
   revision Int 
-  actorId String @db.Uuid
-  sourceId String @db.Uuid
+  actorId String? @db.Uuid
+  sourceId String? @db.Uuid
   scopeId String @db.Uuid
   actorRevision Int 
   actorEpoch Int 
-  sourceRevision Int 
-  sourceEpoch Int 
+  sourceRevision Int?
+  sourceEpoch Int?
   scopeRevision Int 
   personId String? @db.Uuid
   personScopeId String? @db.Uuid
@@ -715,8 +723,8 @@ model MediaUpload {
   errorCode String? @db.Text
   purgedAt DateTime? @db.Timestamptz(3)
   workspace Workspace @relation("MediaUpload_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "uploads_workspace_fkey")
-  actorIdRef Membership @relation("MediaUpload_actorIdRef", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "uploads_actorIdRef_fkey")
-  sourceIdRef SourceRecord @relation("MediaUpload_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "uploads_sourceIdRef_fkey")
+  actorIdRef Membership? @relation("MediaUpload_actorIdRef", fields: [workspaceId, actorId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "uploads_actorIdRef_fkey")
+  sourceIdRef SourceRecord? @relation("MediaUpload_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "uploads_sourceIdRef_fkey")
   scopeIdRef AccessScope @relation("MediaUpload_scopeIdRef", fields: [workspaceId, scopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "uploads_scopeIdRef_fkey")
   personIdRef Person? @relation("MediaUpload_personIdRef", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "uploads_personIdRef_fkey")
   personScopeIdRef AccessScope? @relation("MediaUpload_personScopeIdRef", fields: [workspaceId, personScopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "uploads_personScopeIdRef_fkey")
@@ -726,6 +734,8 @@ model MediaUpload {
 }
 
 model MediaAsset {
+  usageState String @default("ADOPTED") @db.Text
+  protectionEpoch Int @default(1)
   AdultEligibility_evidenceAssetId_td2 AdultEligibility[] @relation("AdultEligibility_evidenceAssetId_td2")
   PersonCredential_evidenceAssetId_td2 PersonCredential[] @relation("PersonCredential_evidenceAssetId_td2")
   MediaCollectionItem_assetId_td2 MediaCollectionItem[] @relation("MediaCollectionItem_assetId_td2")
@@ -739,7 +749,7 @@ model MediaAsset {
   updatedAt DateTime @db.Timestamptz(3)
   revision Int 
   uploadId String @db.Uuid
-  sourceId String @db.Uuid
+  sourceId String? @db.Uuid
   scopeId String @db.Uuid
   objectToken String @db.Uuid
   personId String? @db.Uuid
@@ -754,7 +764,7 @@ model MediaAsset {
   previewBytes Int 
   workspace Workspace @relation("MediaAsset_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "assets_workspace_fkey")
   uploadIdRef MediaUpload @relation("MediaAsset_uploadIdRef", fields: [workspaceId, uploadId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "assets_uploadIdRef_fkey")
-  sourceIdRef SourceRecord @relation("MediaAsset_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "assets_sourceIdRef_fkey")
+  sourceIdRef SourceRecord? @relation("MediaAsset_sourceIdRef", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "assets_sourceIdRef_fkey")
   scopeIdRef AccessScope @relation("MediaAsset_scopeIdRef", fields: [workspaceId, scopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "assets_scopeIdRef_fkey")
   personIdRef Person? @relation("MediaAsset_personIdRef", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "assets_personIdRef_fkey")
   @@unique([workspaceId, id])
@@ -790,6 +800,10 @@ model Work {
   origin String @db.Text
   originNote String @db.Text
   status String @db.Text
+  caseDate String? @db.Text
+  datePrecision String @default("UNKNOWN") @db.Text
+  location String @default("") @db.Text
+  brandDisplayName String @default("") @db.Text
   coverEntryId String? @db.Uuid
   workspace Workspace @relation("Work_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "works_workspace_fkey")
   @@unique([workspaceId, id])
@@ -836,6 +850,8 @@ model WorkCredit {
   revision Int 
   workId String @db.Uuid
   personId String @db.Uuid
+  personRoleId String? @db.Uuid
+  sourceId String? @db.Uuid
   roleCode String @db.Text
   note String @db.Text
   workspace Workspace @relation("WorkCredit_workspace", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "workCredits_workspace_fkey")
@@ -1027,7 +1043,7 @@ model UsePermission {
   subjectPersonRef Person? @relation("UsePermission_subjectPersonRef", fields: [workspaceId, subjectPersonId, sourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_subjectPersonRef_fkey")
   subjectWorkRef Work? @relation("UsePermission_subjectWorkRef", fields: [workspaceId, subjectWorkId, sourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_subjectWorkRef_fkey")
   subjectProjectRef Project? @relation("UsePermission_subjectProjectRef", fields: [workspaceId, subjectProjectId, sourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_subjectProjectRef_fkey")
-  subjectAssetRef MediaAsset? @relation("UsePermission_subjectAssetRef", fields: [workspaceId, subjectAssetId, sourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_subjectAssetRef_fkey")
+  subjectAssetRef MediaAsset? @relation("UsePermission_subjectAssetRef", fields: [workspaceId, subjectAssetId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_subjectAssetRef_fkey")
   subjectSourceRef SourceRecord? @relation("UsePermission_subjectSourceRef", fields: [workspaceId, subjectSourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "usePermissions_subjectSourceRef_fkey")
   @@unique([workspaceId, id])
   @@unique([workspaceId, id, sourceId], map: "usePermissions_workspaceId_id_sourceId_key")
@@ -1095,7 +1111,7 @@ model ExportDependency {
   personRef Person? @relation("ExportDependency_personRef", fields: [workspaceId, personId, sourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "exportDependencies_personRef_fkey")
   workRef Work? @relation("ExportDependency_workRef", fields: [workspaceId, workId, sourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "exportDependencies_workRef_fkey")
   projectRef Project? @relation("ExportDependency_projectRef", fields: [workspaceId, projectId, sourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "exportDependencies_projectRef_fkey")
-  assetRef MediaAsset? @relation("ExportDependency_assetRef", fields: [workspaceId, assetId, sourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "exportDependencies_assetRef_fkey")
+  assetRef MediaAsset? @relation("ExportDependency_assetRef", fields: [workspaceId, assetId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "exportDependencies_assetRef_fkey")
   sourceSubjectRef SourceRecord? @relation("ExportDependency_sourceSubjectRef", fields: [workspaceId, sourceSubjectId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "exportDependencies_sourceSubjectRef_fkey")
   @@unique([workspaceId, id])
   @@unique([workspaceId, exportId, personId], map: "exportDependencies_export_person_key")
@@ -1155,7 +1171,7 @@ model DeletionRequest {
   targetPersonRef Person? @relation("DeletionRequest_targetPersonRef", fields: [workspaceId, targetPersonId, targetSourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_targetPersonRef_fkey")
   targetWorkRef Work? @relation("DeletionRequest_targetWorkRef", fields: [workspaceId, targetWorkId, targetSourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_targetWorkRef_fkey")
   targetProjectRef Project? @relation("DeletionRequest_targetProjectRef", fields: [workspaceId, targetProjectId, targetSourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_targetProjectRef_fkey")
-  targetAssetRef MediaAsset? @relation("DeletionRequest_targetAssetRef", fields: [workspaceId, targetAssetId, targetSourceId], references: [workspaceId, id, sourceId], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_targetAssetRef_fkey")
+  targetAssetRef MediaAsset? @relation("DeletionRequest_targetAssetRef", fields: [workspaceId, targetAssetId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_targetAssetRef_fkey")
   targetSourceSubjectRef SourceRecord? @relation("DeletionRequest_targetSourceSubjectRef", fields: [workspaceId, targetSourceSubjectId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_targetSourceSubjectRef_fkey")
   planFrozenByRef Membership? @relation("DeletionRequest_planFrozenByRef", fields: [workspaceId, planFrozenById], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_planFrozenByRef_fkey")
   cleanupStartedByRef Membership? @relation("DeletionRequest_cleanupStartedByRef", fields: [workspaceId, cleanupStartedById], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "deletionRequests_cleanupStartedByRef_fkey")
@@ -1751,6 +1767,8 @@ model MediaCollection {
   collectionTypeCode String @db.Text
   title String @db.Text
   status String @db.Text
+  coverAssetId String? @db.Uuid
+  isCurrent Boolean @default(false)
   workspaceIdTd2 Workspace @relation("MediaCollection_workspaceId_td2", fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mediaCollections_workspaceId_td2_fk")
   personIdTd2 Person @relation("MediaCollection_personId_td2", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "mediaCollections_personId_td2_fk")
   sourceIdTd2 SourceRecord @relation("MediaCollection_sourceId_td2", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: NoAction, onUpdate: NoAction, map: "mediaCollections_sourceId_td2_fk")
@@ -1766,6 +1784,7 @@ model MediaCollection {
 }
 
 model MediaCollectionTag {
+  status String @default("ACTIVE") @db.Text
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -2618,4 +2637,53 @@ model SourceUseBasis {
   @@unique([workspaceId, id])
   @@map("sourceUseBases")
   importedBasis Json?
+}
+
+// Composite foreign keys and immutable origin checks are declared in migration 62.
+model PersonMedia {
+  importedOrigin Json?
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String? @db.Uuid
+  personRoleId String? @db.Uuid
+  assetId String @db.Uuid
+  sourceId String? @db.Uuid
+  submissionId String? @db.Uuid
+  purpose String @db.Text
+  usageState String @db.Text
+  protectionEpoch Int
+  retainUntil DateTime? @db.Timestamptz(3)
+  retiredAt DateTime? @db.Timestamptz(3)
+  purgedAt DateTime? @db.Timestamptz(3)
+  @@unique([workspaceId,id])
+  @@unique([workspaceId,assetId])
+  @@index([workspaceId,personId,usageState])
+  @@map("personMedia")
+}
+
+// PR-03E: composite workspace/asset and upload FKs are enforced by migration 67.
+model MediaPurgeIntent {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ revision Int
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ assetId String @unique @db.Uuid
+ uploadId String @db.Uuid
+ objectToken String @db.Uuid
+ state String @db.Text
+ objects Json
+ leaseToken String? @db.Uuid
+ leaseUntil DateTime? @db.Timestamptz(3)
+ recoveryEpoch String @db.Text
+ attempts Int
+ nextAttemptAt DateTime @db.Timestamptz(3)
+ lastCode String? @db.Text
+ purgedAt DateTime? @db.Timestamptz(3)
+ @@unique([workspaceId,id])
+ @@index([state,nextAttemptAt,leaseUntil])
+ @@map("mediaPurgeIntents")
 }

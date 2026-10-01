@@ -83,7 +83,7 @@ export async function applyTalentAssetGraph(tx:Tx,actor:Actor,graph:Awaited<Retu
         const row = (await tx.get('mediaCollections', collection.id))!;
         const rest = (await tx.find('mediaCollectionItems', { workspaceId: actor.workspaceId, collectionId: row.id })).sort((a,b) => a.orderIndex-b.orderIndex || a.id.localeCompare(b.id));
         for (const [index, entry] of rest.entries()) if (entry.orderIndex !== index) await tx.replace('mediaCollectionItems', { ...touch(entry, clock), orderIndex: index });
-        await tx.replace('mediaCollections', touch(row, clock));
+        await tx.replace('mediaCollections', {...touch(row, clock),coverAssetId:rest.some(i=>i.assetId===row.coverAssetId)?row.coverAssetId:null});
     }
     // Preserve earlier reviewer/timestamps and append-only field evidence as history, never as current eligibility.
     for (const old of graph.adults) { const row = (await tx.get('adultEligibilities', old.id))!;

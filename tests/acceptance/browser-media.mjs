@@ -2,7 +2,7 @@
  * Never reads a .env target, resets a DB, or sends requests to a production host. */
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID, createHash } from 'node:crypto';
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, mkdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
@@ -117,6 +117,40 @@ try {
  assert.equal(pdfAsset.bytes,pdf.length);assert.equal(await getStatus(owner,'/assets/'+pdfAsset.id+'/preview'),404);
  assert.equal(await editor.locator('[data-asset-id="'+pdfAsset.id+'"] img').count(),0);
  console.log('PASS PDF attachment: actual upload/worker/DB and explicit unparsed page, no administrator scope bypass');
+
+ // PR-03 startup: actual H.264/AAC file, asynchronous worker, native video element and authorized ranges.
+ const videoPath=join(tmp,'playable.mp4');run('ffmpeg',['-v','error','-f','lavfi','-i','testsrc2=size=160x120:duration=3:rate=24','-f','lavfi','-i','sine=frequency=440:duration=3','-c:v','libx264','-pix_fmt','yuv420p','-c:a','aac','-threads','1','-movflags','+faststart','-shortest',videoPath]);
+ const videoBytes=readFileSync(videoPath);
+ await editor.getByRole('button',{name:'上传另一份',exact:true}).click();
+ await editor.locator('input[type=file]').setInputFiles({name:'playable.mp4',mimeType:'video/mp4',buffer:videoBytes});
+ await editor.getByRole('button',{name:'上传并检查',exact:true}).click();
+ const video=editor.getByLabel('播放视频：playable.mp4');await video.waitFor();
+ await video.evaluate(async element=>{element.muted=true;await element.play();});
+ await editor.waitForFunction(()=>{const v=document.querySelector('video');return v && v.currentTime>0.1 && v.videoWidth===160;});
+ await video.evaluate(element=>{element.pause();element.currentTime=2.7;});
+ await editor.waitForFunction(()=>{const v=document.querySelector('video');return v&&!v.seeking&&v.currentTime>=2.6;});
+ const videoAsset=await prisma.mediaAsset.findFirstOrThrow({where:{mime:'video/mp4'}}),playUrl=base+'/api/v1/assets/'+videoAsset.id+'/playback';
+ const auditBefore=await prisma.auditEvent.count({where:{action:'asset.playback'}});
+ await prisma.$executeRawUnsafe("CREATE FUNCTION once_playback_audit_fail() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.action='asset.playback' THEN RAISE EXCEPTION 'synthetic playback audit failure'; END IF; RETURN NEW; END; $$");
+ await prisma.$executeRawUnsafe('CREATE TRIGGER once_playback_audit_fail BEFORE INSERT ON audits FOR EACH ROW EXECUTE FUNCTION once_playback_audit_fail()');
+ try {const denied=await editor.context().request.get(playUrl);assert.equal(denied.status(),503);assert.match(denied.headers()['content-type'],/json/);assert.equal(await prisma.auditEvent.count({where:{action:'asset.playback'}}),auditBefore);}
+ finally {await prisma.$executeRawUnsafe('DROP TRIGGER once_playback_audit_fail ON audits');await prisma.$executeRawUnsafe('DROP FUNCTION once_playback_audit_fail()');}
+
+ for(const [range,start,end] of [['bytes=0-63',0,63],['bytes=-64',videoBytes.length-64,videoBytes.length-1],['bytes=64-',64,videoBytes.length-1]]){
+  const r=await editor.context().request.get(playUrl,{headers:{Range:range}});assert.equal(r.status(),206);assert.equal(r.headers()['content-range'],`bytes ${start}-${end}/${videoBytes.length}`);assert.deepEqual(await r.body(),videoBytes.subarray(start,end+1));
+ }
+ assert.equal((await editor.context().request.get(playUrl,{headers:{Range:'bytes=999999999-'}})).status(),416);
+ const multi=await editor.context().request.get(playUrl,{headers:{Range:'bytes=0-1,5-6'}});assert.equal(multi.status(),200);assert.deepEqual(await multi.body(),videoBytes);
+ assert.equal((await owner.context().request.get(playUrl)).status(),404);assert.equal((await fetch(playUrl)).status,401);
+ assert.equal((await editor.context().request.get(playUrl,{headers:{Authorization:'Bearer once_machine.synthetic'}})).status(),403);
+ mkdirSync('artifacts/talent-experience-pr03',{recursive:true});await editor.screenshot({path:'artifacts/talent-experience-pr03/video-playback.png',fullPage:true});
+ assert.equal((await cmd(editor,'POST','/assets/'+videoAsset.id+'/quarantine',{expectedRevision:videoAsset.revision},403)).error.code,'FORBIDDEN');
+ const memberId=(await json(editor,'/me')).membershipId,member=await prisma.membership.findUniqueOrThrow({where:{id:memberId}});
+ await cmd(owner,'PATCH','/memberships/'+memberId+'/permissions',{expectedRevision:member.revision,role:'REVIEWER',extraPermissions:[]});await login(editor,'m1_editor');
+ await cmd(editor,'POST','/assets/'+videoAsset.id+'/quarantine',{expectedRevision:videoAsset.revision});
+ await cmd(owner,'PATCH','/memberships/'+memberId+'/permissions',{expectedRevision:member.revision+1,role:'EDITOR',extraPermissions:[]});await login(editor,'m1_editor');
+ assert.equal((await editor.context().request.get(playUrl,{headers:{Range:'bytes=0-15'}})).status(),404);
+ console.log('PASS PR03 playback: real H264/AAC + worker + PostgreSQL + native play/seek + exact Range + private scope + next-request quarantine');
 
  // Queue malformed and cancelled files using real bounded binary API, not response mocks.
  const bad=Buffer.from('<html>not a png</html>'),b=await prepare(editor,person,bad,'invalid.png');assert.equal((await binary(editor,b.resourceId,bad)).status(),200);await queue(editor,b.resourceId);

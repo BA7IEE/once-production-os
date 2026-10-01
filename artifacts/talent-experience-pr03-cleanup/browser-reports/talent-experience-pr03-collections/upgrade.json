@@ -1,0 +1,11 @@
+{
+  "status": "PASSED",
+  "fromMigrations": 62,
+  "toMigrations": 68,
+  "checks": [
+    "existing-collection-items-order-captions-tags-unchanged-null-cover-no-invented-current-version",
+    "all-existing-upload-asset-columns-unchanged",
+    "legacy-internal-ready-maps-to-adopted-without-invented-submission",
+    "legacy-source-person-authorization-and-preview-still-work"
+  ]
+}

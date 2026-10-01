@@ -63,6 +63,7 @@ export async function scanTalentMerge(tx: Tx, actor: Actor, clock: Clock, canoni
                 (row.personId === duplicateId ? canonicalId : row.personId) === (row.agentPersonId === duplicateId ? canonicalId : row.agentPersonId))
                 blockers.add('TD2_MERGE_SELF_REPRESENTATION');
         }
+        if(table==='mediaCollections')for(const b of rows.filter(r=>r.personId===duplicateId&&r.isCurrent))if(rows.some(a=>a.personId===canonicalId&&a.isCurrent&&a.personRoleId===b.personRoleId&&a.collectionTypeCode===b.collectionTypeCode))blockers.add('COLLECTION_CURRENT_CONFLICT');
         if (table === 'personRoles' || table === 'personLanguages' || table === 'talentLocations') {
             const key = table === 'personRoles' ? 'roleCode' : table === 'personLanguages' ? 'languageCode' : 'relationCode';
             for (const a of rows.filter(r => r.personId === canonicalId && r.status === 'ACTIVE'))

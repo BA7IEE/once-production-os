@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: PR03C collection draft, adoption, cover, ordering, existing reference and rollback
+ok 1 - PR03C collection draft, adoption, cover, ordering, existing reference and rollback
+  ---
+  duration_ms: 309.48225
+  type: 'test'
+  ...
+# Subtest: PR03C current formal ownership, MIME, purpose, concurrency and revocation
+ok 2 - PR03C current formal ownership, MIME, purpose, concurrency and revocation
+  ---
+  duration_ms: 235.553958
+  type: 'test'
+  ...
+# Subtest: PR03C unbound ENROLL collection and actual Person deletion protection
+ok 3 - PR03C unbound ENROLL collection and actual Person deletion protection
+  ---
+  duration_ms: 154.983167
+  type: 'test'
+  ...
+# Subtest: PR03C actual JSON export worker preserves formal collections and excludes drafts
+ok 4 - PR03C actual JSON export worker preserves formal collections and excludes drafts
+  ---
+  duration_ms: 246.208875
+  type: 'test'
+  ...
+# Subtest: PR03C actual Person merge moves safe collections and blocks old talent authority
+ok 5 - PR03C actual Person merge moves safe collections and blocks old talent authority
+  ---
+  duration_ms: 222.017917
+  type: 'test'
+  ...
+# Subtest: PR03C JSON rebuild preserves collections with no external accounts/grants/drafts
+ok 6 - PR03C JSON rebuild preserves collections with no external accounts/grants/drafts
+  ---
+  duration_ms: 746.44075
+  type: 'test'
+  ...
+# Subtest: PR03C versioned tag catalog rejects inactive, unknown and duplicate authoring values
+ok 7 - PR03C versioned tag catalog rejects inactive, unknown and duplicate authoring values
+  ---
+  duration_ms: 0.388125
+  type: 'test'
+  ...
+# Subtest: PR03C finalization explicit grant exposure, tag provenance/CAS, stale current and type identity
+ok 8 - PR03C finalization explicit grant exposure, tag provenance/CAS, stale current and type identity
+  ---
+  duration_ms: 573.266042
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2707.164958

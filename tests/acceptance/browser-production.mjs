@@ -597,6 +597,10 @@ try {
  await verifyTalentWorkbench({owner,prisma,cmd,writeUI,source,assetId:tdUpload.resourceId,prepare,binary,queue,until,mediaBytes:tdBytes,login,password,json,mediaRoot:env.MEDIA_ROOT});
  const {verifyMergeHistoryErasure}=await import('./merge-history-erasure.mjs');await verifyMergeHistoryErasure({owner,prisma,cmd,writeUI,until,sourceId:tdSource,source});
  const {verifyLocaleBrowser}=await import('./locale-texts.mjs');await verifyLocaleBrowser({owner,prisma,cmd,writeUI,source,json,until});
+ // The real worker above also polls AI runs. Its media/export/deletion checks are
+ // complete; do not let it compete with the following test-only SDK adapter.
+ await stop(worker);assert.ok(worker.exitCode!==null||worker.signalCode!==null,'real worker must exit before controlled AI dispatch');
+ console.log('PASS worker isolation: real media/export/deletion worker exited before controlled AI adapter');
  const {verifyAiBrowser}=await import('./ai-business.mjs');await verifyAiBrowser({prisma,browser,env,password});
  assert.deepEqual(errors,[]);
 } catch(error) {

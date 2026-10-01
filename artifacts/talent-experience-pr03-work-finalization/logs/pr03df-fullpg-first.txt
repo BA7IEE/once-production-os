@@ -1,0 +1,38 @@
+
+> once-production-os@0.1.0-dev.1 verify:postgres /Users/dengwang/.codex/worktrees/talent-experience/once-production-os
+> node scripts/verify-postgres.mjs
+
+TAP version 13
+# Subtest: fresh disposable PostgreSQL: constraints, real transactions and independent workers
+not ok 1 - fresh disposable PostgreSQL: constraints, real transactions and independent workers
+  ---
+  duration_ms: 118.91025
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/postgres/integration.test.ts:29:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    
+    Invalid `prisma.workspace.count()` invocation:
+    
+    
+    The table `public.workspaces` does not exist in the current database.
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    ei.handleRequestError (/Users/dengwang/.codex/worktrees/talent-experience/once-production-os/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.8.3__typescript@5.8.3/node_modules/@prisma/client/runtime/library.js:121:7268)
+    ei.handleAndLogRequestError (/Users/dengwang/.codex/worktrees/talent-experience/once-production-os/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.8.3__typescript@5.8.3/node_modules/@prisma/client/runtime/library.js:121:6593)
+    ei.request (/Users/dengwang/.codex/worktrees/talent-experience/once-production-os/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.8.3__typescript@5.8.3/node_modules/@prisma/client/runtime/library.js:121:6300)
+    async a (/Users/dengwang/.codex/worktrees/talent-experience/once-production-os/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.8.3__typescript@5.8.3/node_modules/@prisma/client/runtime/library.js:130:9551)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/postgres/integration.test.ts:38:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 549.803166
+ ELIFECYCLE  Command failed with exit code 1.

@@ -1,5 +1,7 @@
 // Generated from packages/core/src/routes.ts and validation.ts. Do not edit.
 export interface Inputs {
+  "mediaPurge.status": undefined;
+  "mediaPurge.reconcile": {  };
   "portal.auth.context": { "purpose": "LOGIN" | "RECOVER" };
   "portal.auth.contextStatus": undefined;
   "portal.auth.challenge": { "contextId": string; "purpose": "LOGIN" | "RECOVER"; "kind": "EMAIL" | "PHONE"; "identity": string };
@@ -9,6 +11,25 @@ export interface Inputs {
   "portal.sessions.revoke": {  };
   "talent.account.disable": { "expectedRevision": number };
   "talent.account.erase": { "expectedRevision": number };
+  "portal.work.catalog": undefined;
+  "portal.submission.works": { "expectedRevision": number; "works": Array<{ "clientItemKey": string; "mode": "CREATE_EXTERNAL_WORK" | "LINK_EXISTING_WORK"; "targetWorkId": string | null; "expectedWorkRevision": number | null; "personRoleId": string | null; "declaredRoleCode": string | null; "title": string; "description": string; "caseDate": string | null; "datePrecision": "UNKNOWN" | "YEAR" | "MONTH" | "DAY" | "APPROXIMATE"; "location": string; "industryCode": string | null; "workTypeCodes": Array<string>; "brandDisplayName": string; "creditNote": string; "coverAssetId": string | null; "items": Array<{ "referenceKind": "SUBMISSION_STAGED_ASSET" | "EXISTING_ADOPTED_ASSET_REFERENCE"; "assetId": string }> }> };
+  "portal.work.list": undefined;
+  "talent.grant.mediaExposure": { "expectedRevision": number; "decision": "ALLOW" | "REVOKE"; "assets": Array<{ "id": string; "expectedRevision": number }>; "collections": Array<{ "id": string; "expectedRevision": number }>; "approvalBasis": string };
+  "portal.asset.attachment": undefined;
+  "talent.asset.attachment": undefined;
+  "portal.submission.collections": { "expectedRevision": number; "collections": Array<{ "clientItemKey": string; "targetCollectionId": string | null; "expectedCollectionRevision": number | null; "personRoleId": string | null; "collectionTypeCode": "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "title": string; "isCurrent": boolean; "coverAssetId": string | null; "tagCodes": Array<"FASHION" | "BEAUTY" | "COMMERCIAL" | "LINGERIE" | "RUNWAY" | "LIFESTYLE" | "INDUSTRIAL" | "PRODUCT">; "items": Array<{ "referenceKind": "SUBMISSION_STAGED_ASSET" | "EXISTING_ADOPTED_ASSET_REFERENCE"; "assetId": string; "caption": string; "featured": boolean }> }> };
+  "portal.collection.list": undefined;
+  "portal.submission.mediaConsent": { "expectedRevision": number; "textVersion": "internal-directory-media-2026-10-v1" | "internal-directory-media-work-2026-10-v1"; "accepted": boolean };
+  "portal.upload.create": { "context": { "kind": "TALENT_SUBMISSION"; "submissionId": string; "personRoleId"?: string }; "expectedSubmissionRevision": number; "fileName": string; "mime": "image/jpeg" | "image/png" | "image/webp" | "application/pdf" | "video/mp4"; "expectedBytes": number; "sha256": string };
+  "portal.upload.get": undefined;
+  "portal.upload.complete": { "expectedRevision": number };
+  "portal.upload.cancel": { "expectedRevision": number };
+  "portal.asset.retire": { "expectedRevision": number };
+  "portal.upload.content": undefined;
+  "portal.asset.preview": undefined;
+  "portal.asset.playback": undefined;
+  "talent.asset.preview": undefined;
+  "talent.asset.playback": undefined;
   "talent.invitation.create": { "purpose": "CLAIM" | "ENROLL"; "targetPersonId"?: string; "scopeId": string; "recipientKind"?: "EMAIL" | "PHONE"; "recipient"?: string; "maxUses"?: number; "exposureFields": Array<"displayName" | "aliases" | "intro"> };
   "talent.invitation.list": undefined;
   "talent.invitation.issue": { "expectedRevision": number };
@@ -18,7 +39,7 @@ export interface Inputs {
   "talent.grant.revoke": { "expectedRevision": number };
   "talent.submission.list": undefined;
   "talent.submission.get": undefined;
-  "talent.submission.decide": { "expectedRevision": number; "acceptedKeys": Array<string>; "publicReason": string; "targetPersonId"?: string; "createPerson"?: boolean; "ownershipBasis"?: string; "guardianConfirmed"?: boolean };
+  "talent.submission.decide": { "expectedRevision": number; "workDecisions"?: Array<{ "clientItemKey": string; "decision": "CREATE_NEW" | "LINK_EXISTING"; "targetWorkId": string | null; "expectedWorkRevision": number | null; "basis": string }>; "acceptedKeys": Array<string>; "publicReason": string; "targetPersonId"?: string; "createPerson"?: boolean; "ownershipBasis"?: string; "guardianConfirmed"?: boolean };
   "portal.invitation.exchange": { "invitationId": string; "token": string };
   "portal.invitation.inspect": undefined;
   "portal.claim.create": { "contextId": string; "relation": "SELF" | "GUARDIAN" | "AGENT"; "applicantKey": string; "adultDeclared": boolean };
@@ -66,6 +87,7 @@ export interface Inputs {
   "directory.talent.search": { "q"?: string; "mode"?: "ALL" | "TALENT" | "CONTACT"; "role"?: string | Array<string>; "gender"?: "FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | "UNKNOWN" | Array<"FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | "UNKNOWN">; "nationality"?: string | Array<string>; "market"?: "DOMESTIC" | "INTERNATIONAL" | "UNCLASSIFIED" | Array<"DOMESTIC" | "INTERNATIONAL" | "UNCLASSIFIED">; "experience"?: "AMATEUR" | "PROFESSIONAL" | "UNSPECIFIED" | Array<"AMATEUR" | "PROFESSIONAL" | "UNSPECIFIED">; "style"?: string | Array<string>; "service"?: string | Array<string>; "location"?: string | Array<string>; "language"?: string | Array<string>; "industryCode"?: string | Array<string>; "workTypeCode"?: string | Array<string>; "status"?: "DRAFT" | "ACTIVE" | "ARCHIVED"; "ageMin"?: number; "ageMax"?: number; "ageUnknown"?: boolean; "heightMin"?: number; "heightMax"?: number; "page"?: number; "pageSize"?: number };
   "directory.talent.get": undefined;
   "directory.talent.create": { "schemaVersion": "once-talent-experience-v1"; "displayName": string; "kind": "TALENT" | "CONTACT"; "roleCodes"?: Array<string>; "sourceId"?: string; "sourceRevision"?: number };
+  "td2.collection.save": { "schemaVersion": "once-talent-v2.1.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "collection": { "clientItemKey": string; "targetCollectionId": string | null; "expectedCollectionRevision": number | null; "personRoleId": string | null; "collectionTypeCode": "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "title": string; "isCurrent": boolean; "coverAssetId": string | null; "tagCodes": Array<"FASHION" | "BEAUTY" | "COMMERCIAL" | "LINGERIE" | "RUNWAY" | "LIFESTYLE" | "INDUSTRIAL" | "PRODUCT">; "items": Array<{ "referenceKind": "SUBMISSION_STAGED_ASSET" | "EXISTING_ADOPTED_ASSET_REFERENCE"; "assetId": string; "caption": string; "featured": boolean }> } };
   "td2.heightReview.list": undefined;
   "td2.heightReview.dismiss": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "sourceRevision": number; "resolution": "DO_NOT_USE_LEGACY_HEIGHT"; "acknowledge": boolean };
   "td2.credential.secret.clear": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "sourceRevision": number; "acknowledge": boolean };
@@ -126,18 +148,20 @@ export interface Inputs {
   "td2.fact.translatorLanguagePairs.patch": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "status"?: "ACTIVE" | "INACTIVE" } };
   "td2.fact.translatorServiceModes.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "personRoleId": string; "modeCode": "BUSINESS_MEETING" | "ON_SET" | "ESCORT" | "CONSECUTIVE" | "SIMULTANEOUS" | "WRITTEN"; "status"?: "ACTIVE" | "INACTIVE" } };
   "td2.fact.translatorServiceModes.patch": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "status"?: "ACTIVE" | "INACTIVE" } };
-  "td2.fact.mediaCollections.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "personRoleId"?: string | null; "collectionTypeCode": "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "title": string; "status"?: "ACTIVE" | "ARCHIVED" } };
-  "td2.fact.mediaCollections.patch": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "collectionTypeCode"?: "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "title"?: string; "status"?: "ACTIVE" | "ARCHIVED" } };
-  "td2.fact.mediaCollectionTags.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "collectionId": string; "tagCode": "FASHION" | "BEAUTY" | "COMMERCIAL" | "LINGERIE" | "RUNWAY" | "LIFESTYLE" | "INDUSTRIAL" | "PRODUCT" } };
-  "td2.fact.mediaCollectionTags.patch": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": {  } };
+  "td2.fact.mediaCollections.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "personRoleId"?: string | null; "collectionTypeCode": "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "coverAssetId"?: string | null; "isCurrent"?: boolean; "title": string; "status"?: "ACTIVE" | "ARCHIVED" } };
+  "td2.fact.mediaCollections.patch": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "collectionTypeCode"?: "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "coverAssetId"?: string | null; "isCurrent"?: boolean; "title"?: string; "status"?: "ACTIVE" | "ARCHIVED" } };
+  "td2.fact.mediaCollectionTags.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "collectionId": string; "tagCode": "FASHION" | "BEAUTY" | "COMMERCIAL" | "LINGERIE" | "RUNWAY" | "LIFESTYLE" | "INDUSTRIAL" | "PRODUCT"; "status"?: "ACTIVE" | "ARCHIVED" } };
+  "td2.fact.mediaCollectionTags.patch": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "status"?: "ACTIVE" | "ARCHIVED" } };
+  "work.personCases": undefined;
   "work.list": undefined;
-  "work.create": { "title": string; "sourceId"?: string; "inlineSource"?: { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string }; "description"?: string; "industryCode"?: string | null; "workTypeCodes"?: Array<string>; "origin"?: "ONCE" | "EXTERNAL" | "UNKNOWN"; "originNote"?: string };
+  "work.create": { "title": string; "sourceId"?: string; "inlineSource"?: { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string }; "caseDate"?: string | null; "datePrecision"?: "UNKNOWN" | "YEAR" | "MONTH" | "DAY" | "APPROXIMATE"; "location"?: string; "brandDisplayName"?: string; "description"?: string; "industryCode"?: string | null; "workTypeCodes"?: Array<string>; "origin"?: "ONCE" | "EXTERNAL" | "UNKNOWN"; "originNote"?: string };
   "work.get": undefined;
-  "work.update": { "expectedRevision": number; "title"?: string; "description"?: string; "industryCode"?: string | null; "workTypeCodes"?: Array<string>; "origin"?: "ONCE" | "EXTERNAL" | "UNKNOWN"; "originNote"?: string; "status"?: "DRAFT" | "ACTIVE" | "ARCHIVED" };
+  "work.update": { "expectedRevision": number; "caseDate"?: string | null; "datePrecision"?: "UNKNOWN" | "YEAR" | "MONTH" | "DAY" | "APPROXIMATE"; "location"?: string; "brandDisplayName"?: string; "title"?: string; "description"?: string; "industryCode"?: string | null; "workTypeCodes"?: Array<string>; "origin"?: "ONCE" | "EXTERNAL" | "UNKNOWN"; "originNote"?: string; "status"?: "DRAFT" | "ACTIVE" | "ARCHIVED" };
   "work.assetAdd": { "expectedRevision": number; "assetId": string };
   "work.assetRemove": { "expectedRevision": number; "entryId": string };
   "work.reorder": { "expectedRevision": number; "entryIds": Array<string>; "coverEntryId": string | null };
   "work.creditAdd": { "expectedRevision": number; "personId": string; "roleCode": string; "note": string };
+  "work.creditUpgrade": { "expectedRevision": number; "creditId": string; "expectedCreditRevision": number; "personRoleId": string; "expectedRoleRevision": number; "sourceId": string; "sourceRevision": number };
   "work.creditRemove": { "expectedRevision": number; "entryId": string };
   "project.list": undefined;
   "project.create": { "title": string; "sourceId"?: string; "inlineSource"?: { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string }; "brief"?: string; "locationNote"?: string; "dateNote"?: string };
@@ -149,7 +173,7 @@ export interface Inputs {
   "project.workLink": { "expectedRevision": number; "workId": string; "relation": "REFERENCE" | "DELIVERABLE" };
   "project.workRemove": { "expectedRevision": number; "entryId": string };
   "person.production": undefined;
-  "upload.create": { "sourceId": string; "expectedSourceRevision": number; "personId"?: string; "fileName": string; "mime": "image/jpeg" | "image/png" | "image/webp" | "application/pdf" | "video/mp4"; "expectedBytes": number; "sha256": string };
+  "upload.create": { "context"?: { "kind": "INTERNAL_SOURCE" }; "sourceId": string; "expectedSourceRevision": number; "personId"?: string; "fileName": string; "mime": "image/jpeg" | "image/png" | "image/webp" | "application/pdf" | "video/mp4"; "expectedBytes": number; "sha256": string };
   "upload.list": undefined;
   "upload.get": undefined;
   "upload.content": undefined;
@@ -158,6 +182,8 @@ export interface Inputs {
   "upload.cancel": { "expectedRevision": number };
   "asset.list": undefined;
   "asset.get": undefined;
+  "asset.playback": undefined;
+  "asset.attachment": undefined;
   "asset.preview": undefined;
   "asset.quarantine": { "expectedRevision": number };
   "auth.csrf": undefined;
@@ -219,10 +245,10 @@ export interface Inputs {
   "deletion.planFreeze": { "expectedRevision": number; "acknowledgePlan": boolean };
   "deletion.cleanupStart": { "expectedRevision": number; "planDigest": string; "acknowledgeIrreversible": boolean };
   "usePermission.list": undefined;
-  "usePermission.create": { "sourceId": string; "retentionBasisSourceId"?: string; "subjectKind": "SOURCE" | "PERSON" | "WORK" | "PROJECT" | "ASSET"; "subjectId": string; "fields": Array<"person.localeTexts" | "work.localeTexts" | "project.localeTexts" | "person.displayName" | "person.aliases" | "person.roles" | "person.cityCode" | "person.languageCodes" | "person.skillCodes" | "person.heightCm" | "person.intro" | "person.status" | "work.title" | "work.description" | "work.industryCode" | "work.workTypeCodes" | "work.origin" | "work.originNote" | "work.status" | "work.relations" | "project.parties" | "project.title" | "project.brief" | "project.locationNote" | "project.dateNote" | "project.reviewNote" | "project.status" | "project.relations" | "source.title" | "source.type" | "source.providerClaim" | "source.basisMode" | "source.basisDescription" | "source.validFrom" | "source.validUntil" | "source.status" | "person.td2.mergeHistory" | "person.identityEvidence" | "media.identity" | "media.originals" | "person.td2.talentProfiles" | "person.td2.personRoles" | "person.td2.personCapabilities" | "person.td2.representations" | "person.td2.personCredentials" | "person.td2.personExternalRefs" | "person.td2.personLanguages" | "person.td2.talentLocations" | "person.td2.measurementSets" | "person.td2.castingProfiles" | "person.td2.translatorLanguagePairs" | "person.td2.translatorServiceModes" | "person.td2.mediaCollections" | "person.td2.mediaCollectionTags" | "person.td2.adultEligibilities" | "person.td2.birthDate" | "person.td2.credentialIdentifiers" | "person.td2.fieldEvidence">; "validUntil": string; "evidenceNote": string };
+  "usePermission.create": { "sourceId": string; "retentionBasisSourceId"?: string; "subjectKind": "SOURCE" | "PERSON" | "WORK" | "PROJECT" | "ASSET"; "subjectId": string; "fields": Array<"person.localeTexts" | "work.localeTexts" | "project.localeTexts" | "person.displayName" | "person.aliases" | "person.roles" | "person.cityCode" | "person.languageCodes" | "person.skillCodes" | "person.heightCm" | "person.intro" | "person.status" | "work.caseDate" | "work.datePrecision" | "work.location" | "work.brandDisplayName" | "work.title" | "work.description" | "work.industryCode" | "work.workTypeCodes" | "work.origin" | "work.originNote" | "work.status" | "work.relations" | "project.parties" | "project.title" | "project.brief" | "project.locationNote" | "project.dateNote" | "project.reviewNote" | "project.status" | "project.relations" | "source.title" | "source.type" | "source.providerClaim" | "source.basisMode" | "source.basisDescription" | "source.validFrom" | "source.validUntil" | "source.status" | "person.td2.mergeHistory" | "person.identityEvidence" | "media.identity" | "media.originals" | "person.td2.talentProfiles" | "person.td2.personRoles" | "person.td2.personCapabilities" | "person.td2.representations" | "person.td2.personCredentials" | "person.td2.personExternalRefs" | "person.td2.personLanguages" | "person.td2.talentLocations" | "person.td2.measurementSets" | "person.td2.castingProfiles" | "person.td2.translatorLanguagePairs" | "person.td2.translatorServiceModes" | "person.td2.mediaCollections" | "person.td2.mediaCollectionTags" | "person.td2.adultEligibilities" | "person.td2.birthDate" | "person.td2.credentialIdentifiers" | "person.td2.fieldEvidence">; "validUntil": string; "evidenceNote": string };
   "usePermission.revoke": { "expectedRevision": number };
   "export.list": undefined;
-  "export.create": { "format": "JSON"; "selectedIds": { "people": Array<string>; "works": Array<string>; "projects": Array<string> }; "fields": Array<"person.localeTexts" | "work.localeTexts" | "project.localeTexts" | "person.displayName" | "person.aliases" | "person.roles" | "person.cityCode" | "person.languageCodes" | "person.skillCodes" | "person.heightCm" | "person.intro" | "person.status" | "work.title" | "work.description" | "work.industryCode" | "work.workTypeCodes" | "work.origin" | "work.originNote" | "work.status" | "work.relations" | "project.parties" | "project.title" | "project.brief" | "project.locationNote" | "project.dateNote" | "project.reviewNote" | "project.status" | "project.relations" | "source.title" | "source.type" | "source.providerClaim" | "source.basisMode" | "source.basisDescription" | "source.validFrom" | "source.validUntil" | "source.status" | "person.td2.mergeHistory" | "person.identityEvidence" | "media.identity" | "media.originals" | "person.td2.talentProfiles" | "person.td2.personRoles" | "person.td2.personCapabilities" | "person.td2.representations" | "person.td2.personCredentials" | "person.td2.personExternalRefs" | "person.td2.personLanguages" | "person.td2.talentLocations" | "person.td2.measurementSets" | "person.td2.castingProfiles" | "person.td2.translatorLanguagePairs" | "person.td2.translatorServiceModes" | "person.td2.mediaCollections" | "person.td2.mediaCollectionTags" | "person.td2.adultEligibilities" | "person.td2.birthDate" | "person.td2.credentialIdentifiers" | "person.td2.fieldEvidence">; "usePermissionRefs": Array<string> };
+  "export.create": { "format": "JSON"; "selectedIds": { "people": Array<string>; "works": Array<string>; "projects": Array<string> }; "fields": Array<"person.localeTexts" | "work.localeTexts" | "project.localeTexts" | "person.displayName" | "person.aliases" | "person.roles" | "person.cityCode" | "person.languageCodes" | "person.skillCodes" | "person.heightCm" | "person.intro" | "person.status" | "work.caseDate" | "work.datePrecision" | "work.location" | "work.brandDisplayName" | "work.title" | "work.description" | "work.industryCode" | "work.workTypeCodes" | "work.origin" | "work.originNote" | "work.status" | "work.relations" | "project.parties" | "project.title" | "project.brief" | "project.locationNote" | "project.dateNote" | "project.reviewNote" | "project.status" | "project.relations" | "source.title" | "source.type" | "source.providerClaim" | "source.basisMode" | "source.basisDescription" | "source.validFrom" | "source.validUntil" | "source.status" | "person.td2.mergeHistory" | "person.identityEvidence" | "media.identity" | "media.originals" | "person.td2.talentProfiles" | "person.td2.personRoles" | "person.td2.personCapabilities" | "person.td2.representations" | "person.td2.personCredentials" | "person.td2.personExternalRefs" | "person.td2.personLanguages" | "person.td2.talentLocations" | "person.td2.measurementSets" | "person.td2.castingProfiles" | "person.td2.translatorLanguagePairs" | "person.td2.translatorServiceModes" | "person.td2.mediaCollections" | "person.td2.mediaCollectionTags" | "person.td2.adultEligibilities" | "person.td2.birthDate" | "person.td2.credentialIdentifiers" | "person.td2.fieldEvidence">; "usePermissionRefs": Array<string> };
   "export.get": undefined;
   "export.mediaOriginal": undefined;
   "export.mediaPreview": undefined;
@@ -238,6 +264,16 @@ export interface Inputs {
   "shortlist.reorder": { "expectedRevision": number; "entryIds": Array<string> };
 }
 export const ENDPOINTS = {
+  "mediaPurge.status": {
+    "method": "GET",
+    "path": "/media-purge/status",
+    "mode": "READ"
+  },
+  "mediaPurge.reconcile": {
+    "method": "POST",
+    "path": "/media-purge/reconcile",
+    "mode": "COMMAND"
+  },
   "portal.auth.context": {
     "method": "POST",
     "path": "/portal/auth/context",
@@ -282,6 +318,101 @@ export const ENDPOINTS = {
     "method": "POST",
     "path": "/talent-accounts/{id}/erase",
     "mode": "COMMAND"
+  },
+  "portal.work.catalog": {
+    "method": "GET",
+    "path": "/portal/work-catalog",
+    "mode": "READ"
+  },
+  "portal.submission.works": {
+    "method": "POST",
+    "path": "/portal/submissions/{id}/works",
+    "mode": "COMMAND"
+  },
+  "portal.work.list": {
+    "method": "GET",
+    "path": "/portal/profiles/{id}/works",
+    "mode": "READ"
+  },
+  "talent.grant.mediaExposure": {
+    "method": "POST",
+    "path": "/talent-grants/{id}/media-exposure",
+    "mode": "COMMAND"
+  },
+  "portal.asset.attachment": {
+    "method": "GET",
+    "path": "/portal/accounts/{accountId}/assets/{id}/attachment",
+    "mode": "BINARY"
+  },
+  "talent.asset.attachment": {
+    "method": "GET",
+    "path": "/talent-staged-assets/{id}/attachment",
+    "mode": "BINARY"
+  },
+  "portal.submission.collections": {
+    "method": "POST",
+    "path": "/portal/submissions/{id}/collections",
+    "mode": "COMMAND"
+  },
+  "portal.collection.list": {
+    "method": "GET",
+    "path": "/portal/profiles/{id}/collections",
+    "mode": "READ"
+  },
+  "portal.submission.mediaConsent": {
+    "method": "POST",
+    "path": "/portal/submissions/{id}/media-consent",
+    "mode": "COMMAND"
+  },
+  "portal.upload.create": {
+    "method": "POST",
+    "path": "/portal/uploads",
+    "mode": "COMMAND"
+  },
+  "portal.upload.get": {
+    "method": "GET",
+    "path": "/portal/uploads/{id}",
+    "mode": "READ"
+  },
+  "portal.upload.complete": {
+    "method": "POST",
+    "path": "/portal/uploads/{id}/complete",
+    "mode": "COMMAND"
+  },
+  "portal.upload.cancel": {
+    "method": "POST",
+    "path": "/portal/uploads/{id}/cancel",
+    "mode": "COMMAND"
+  },
+  "portal.asset.retire": {
+    "method": "POST",
+    "path": "/portal/assets/{id}/retire",
+    "mode": "COMMAND"
+  },
+  "portal.upload.content": {
+    "method": "PUT",
+    "path": "/portal/uploads/{id}/content",
+    "mode": "BINARY"
+  },
+  "portal.asset.preview": {
+    "method": "GET",
+    "path": "/portal/accounts/{accountId}/assets/{id}/preview",
+    "mode": "BINARY"
+  },
+  "portal.asset.playback": {
+    "method": "GET",
+    "path": "/portal/accounts/{accountId}/assets/{id}/playback",
+    "mode": "BINARY"
+  },
+  "talent.asset.preview": {
+    "method": "GET",
+    "path": "/talent-staged-assets/{id}/preview",
+    "mode": "BINARY"
+  },
+  "talent.asset.playback": {
+    "method": "GET",
+    "path": "/talent-staged-assets/{id}/playback",
+    "mode": "BINARY"
   },
   "talent.invitation.create": {
     "method": "POST",
@@ -566,6 +697,11 @@ export const ENDPOINTS = {
   "directory.talent.create": {
     "method": "POST",
     "path": "/directory/talents",
+    "mode": "COMMAND"
+  },
+  "td2.collection.save": {
+    "method": "POST",
+    "path": "/td2/people/{id}/media-collections",
     "mode": "COMMAND"
   },
   "td2.heightReview.list": {
@@ -888,6 +1024,11 @@ export const ENDPOINTS = {
     "path": "/td2/collection-tags/{id}",
     "mode": "COMMAND"
   },
+  "work.personCases": {
+    "method": "GET",
+    "path": "/people/{id}/work-cases",
+    "mode": "READ"
+  },
   "work.list": {
     "method": "GET",
     "path": "/works",
@@ -926,6 +1067,11 @@ export const ENDPOINTS = {
   "work.creditAdd": {
     "method": "POST",
     "path": "/works/{id}/credits",
+    "mode": "COMMAND"
+  },
+  "work.creditUpgrade": {
+    "method": "POST",
+    "path": "/works/{id}/credits/upgrade",
     "mode": "COMMAND"
   },
   "work.creditRemove": {
@@ -1027,6 +1173,16 @@ export const ENDPOINTS = {
     "method": "GET",
     "path": "/assets/{id}",
     "mode": "READ"
+  },
+  "asset.playback": {
+    "method": "GET",
+    "path": "/assets/{id}/playback",
+    "mode": "BINARY"
+  },
+  "asset.attachment": {
+    "method": "GET",
+    "path": "/assets/{id}/attachment",
+    "mode": "BINARY"
   },
   "asset.preview": {
     "method": "GET",

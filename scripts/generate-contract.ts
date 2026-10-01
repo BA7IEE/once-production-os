@@ -34,6 +34,7 @@ for (const route of ROUTES) {
         params.push({ name: match[1], in: 'path', required: true, schema: { type: 'string', ...(match[1] === 'id' ? { format: 'uuid' } : { enum: ['person', 'source'] }) } });
     for (const name of queryFields[route.operation] ?? [])
         params.push({ name, in: 'query', required: false, schema: { type: 'string' } });
+    if (route.operation === 'asset.playback') params.push({name: 'Range', in: 'header', required: false, schema: {type: 'string'}, description: 'Single bytes range; multiple ranges are ignored with a full 200 response.'});
     const machineAllowed = ['td2.schema','td2.person.list','td2.person.get','td2.resolve','td2.organization.list','td2.person.create','td2.person.patch','td2.person.enroll','td2.proposal.create'].includes(route.operation)||route.operation.startsWith('td2.fact.');
     if (route.method !== 'GET')
         params.push({ name: 'Origin', in: 'header', required: !machineAllowed, schema: { type: 'string' } }, { name: 'X-CSRF-Token', in: 'header', required: !machineAllowed && route.operation!=='portal.auth.context', schema: { type: 'string' } });
@@ -46,7 +47,7 @@ for (const route of ROUTES) {
         'x-machine-boundary':machineAllowed?'Explicit principal permissions and scope; no cookie mixing; human verification routes excluded':null,
         ...(route.operation === 'upload.content' ? { requestBody: { required: true, content: { 'application/octet-stream': { schema: { type: 'string', format: 'binary' } } } } } : {}),
         ...(route.schema ? { requestBody: { required: true, content: { 'application/json': { schema: route.schema.json } } } } : {}),
-        responses: { [code]: { description: route.mode === 'COMMAND' ? 'Minimal command receipt; import commit/resume acknowledge enqueue only' : 'Allowlisted response DTO; see src/dto.ts' }, default: { description: 'Sanitized error with code, message, requestId' } },
+        responses: { ...(route.operation === 'asset.playback' ? {'206': {description: 'Authorized video/mp4 byte range with Content-Range, Content-Length and Accept-Ranges'}, '416': {description: 'Unsatisfiable range after authorization; Content-Range: bytes */size'}} : {}), [code]: { description: route.mode === 'COMMAND' ? 'Minimal command receipt; import commit/resume acknowledge enqueue only' : 'Allowlisted response DTO; see src/dto.ts' }, default: { description: 'Sanitized error with code, message, requestId' } },
         'x-permission': route.permission ?? null, 'x-mode': route.mode };
 }
 const spec = { openapi: '3.1.0', info: { title: 'ONCE Internal OS — development increment 1', version: '0.1.0-dev.1', description: 'Paths and strict request schemas are generated from runtime routes. Response shapes are currently TypeScript DTOs; this is not a complete response-schema validator.' }, paths, components: { securitySchemes: {talentPreCookie:{type:'apiKey',in:'cookie',name:'once_talent_pre'},talentSessionCookie:{type:'apiKey',in:'cookie',name:'once_talent_session'}, machineBearer:{type:'http',scheme:'bearer',bearerFormat:'once_machine.<id>.<keyVersion>.<secret>'},sessionCookie: { type: 'apiKey', in: 'cookie', name: 'once_session' } } } };

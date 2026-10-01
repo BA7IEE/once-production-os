@@ -1,0 +1,52 @@
+{
+  "database": [
+    {
+      "version": "PostgreSQL 14.19 (Homebrew) on aarch64-apple-darwin24.4.0, compiled by Apple clang version 17.0.0 (clang-1700.0.13.3), 64-bit"
+    }
+  ],
+  "checks": [
+    "directed-recipient-mismatch-denied",
+    "pending-claim-no-person-access",
+    "claim-replay-after-invitation-consumption",
+    "read-account-header-and-grant-person-ownership",
+    "draft-owner-read-write-isolation",
+    "server-draft-cas-and-submitted-immutable",
+    "dependency-group-atomic-rejection",
+    "same-person-adoption-source-provider-reviewer-and-minimal-receipt",
+    "consent-revocation-immediately-hides-self-fields",
+    "consent-revocation-new-old-directory-and-counts",
+    "enroll-reservation-business-deduplication",
+    "enroll-approval-person-grant-quota-atomic",
+    "concurrent-last-enroll-slot-one-reservation",
+    "expired-admission-retains-owned-draft-no-new-submit-after-relogin",
+    "postgres-real-audit-failure-rolls-back-source-evidence-adoption-and-receipt",
+    "approved-original-key-replays-new-key-same-or-different-decision-closed",
+    "partially_approved-original-key-replays-new-key-same-or-different-decision-closed",
+    "rejected-original-key-replays-new-key-same-or-different-decision-closed",
+    "review-replay-bound-to-principal-and-request-digest-no-extra-success-audit",
+    "self-submission-source-rejects-text-payload-including-empty-independent-source-allowed",
+    "rejected-followup-to-approved-enroll-keeps-existing-claim-and-grant",
+    "enroll-total-rejection-atomic-claim-decision-provenance-and-reservation-release",
+    "enroll-rejection-audit-failure-rolls-back-claim-quota-submission-and-receipt",
+    "enroll-rejection-without-optional-basis-records-linked-internal-decision",
+    "postgres-active-self-unique",
+    "postgres-quota-check",
+    "postgres-grant-person-fk",
+    "postgres-grant-claim-account-compound-fk",
+    "postgres-submission-consent-grant-account-compound-fk",
+    "postgres-submitted-item-immutable-trigger",
+    "postgres-attribution-submission-account-compound-fk",
+    "rejected-enroll-draft-and-decision-excluded-from-business-export",
+    "postgres-json-rebuild-keeps-purpose-and-original-attribution-without-auth-grants",
+    "postgres-physical-backup-all-nine-entities-and-real-recovery-prepare",
+    "physical-recovery-retains-rejected-enroll-decision-without-reopening-reservation",
+    "partial-independent-items-ignore-unrelated-person-revision",
+    "fork-only-unapplied-items",
+    "save-retains-original-field-baseline-and-stale-review-needs-rebase",
+    "unknown-age-no-self-grant-without-adult-declaration",
+    "known-minor-cannot-bypass-with-adult-checkbox",
+    "guardian-independent-proof-required",
+    "actual-person-merge-closes-grant-without-transferring-account",
+    "actual-person-deletion-clears-server-submission-mirrors"
+  ]
+}

@@ -1,0 +1,17 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.selectOption: Error: strict mode violation: getByLabel('审核案例动作') resolved to 2 elements:
+    1) <input checked type="checkbox"/> aka getByRole('checkbox', { name: '作品案例 · 组 work_6b68bbb7' })
+    2) <select>…</select> aka getByLabel('审核案例动作创建新案例绑定已有 Work，仅采纳本人署名', { exact: true })
+
+Call log:
+[2m  - waiting for getByLabel('审核案例动作')[22m
+
+    at Module.reviewWork (/Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/acceptance/work-case-journey.mjs:7:76)
+    at /Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/acceptance/browser-media-collections.mjs:89:257 {
+  log: [ "  - waiting for getByLabel('审核案例动作')" ]
+}
+
+Node.js v22.22.3
