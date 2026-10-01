@@ -39,6 +39,8 @@ export interface WorkItem {
 }
 export interface Credit {
     id: string;
+    revision?:number|null;
+    personRoleId?:string|null;
     person: PersonRef | null;
     roleCode: string | null;
     note: string | null;

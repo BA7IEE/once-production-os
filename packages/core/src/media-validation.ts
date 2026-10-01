@@ -1,3 +1,4 @@
+import {WORK_CONSENT_VERSION} from './work-consent.ts';
 import { v, uuid, revision, RevisionOnly } from './validation.ts';
 import { MEDIA_LIMITS } from './media-model.ts';
 export const MediaSchemas = {
@@ -13,5 +14,7 @@ export const MEDIA_CONSENT_VERSION='internal-directory-media-2026-10-v1';
 export const TalentMediaSchemas={
  create:v.object({context:v.object({kind:v.enum(['TALENT_SUBMISSION']),submissionId:uuid,personRoleId:v.optional(uuid)}),expectedSubmissionRevision:revision,
  fileName:v.string(160,1,/^[^\x00-\x1f\x7f/\\]+$/),mime:v.enum(['image/jpeg','image/png','image/webp','application/pdf','video/mp4']),expectedBytes:v.number(1,MEDIA_LIMITS.videoBytes),sha256:v.string(64,64,/^[a-f0-9]{64}$/)}),
- consent:v.object({expectedRevision:revision,textVersion:v.enum([MEDIA_CONSENT_VERSION]),accepted:v.boolean()}),
+ consent:v.object({expectedRevision:revision,textVersion:v.enum([MEDIA_CONSENT_VERSION,WORK_CONSENT_VERSION]),accepted:v.boolean()}),
 };
+
+export const mediaConsentVersion=(version:string)=>version===MEDIA_CONSENT_VERSION||version===WORK_CONSENT_VERSION;

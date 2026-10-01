@@ -1,10 +1,10 @@
+import {mediaConsentVersion} from './media-validation.ts';
 import {formalRelationReadable} from './formal-media-policy.ts';
 import {loadVisibility} from './visibility.ts';
 import type {Actor,Clock,Config} from './model.ts';
 import type {CommandPrincipal,TalentActor} from './talent-auth-model.ts';
 import type {MediaUpload,MediaAsset} from './media-model.ts';
 import type {Tx} from './store.ts';
-import {MEDIA_CONSENT_VERSION} from './media-validation.ts';
 import {mediaUsage} from './media-model.ts';
 import {TalentMaintenance} from './talent-maintenance.ts';
 import {workspaceRow} from './helpers.ts';
@@ -24,7 +24,7 @@ export async function talentUploadContext(tx:Tx,actor:TalentActor,u:MediaUpload,
  invariant(account.sessionEpoch===u.actorEpoch&&u.recoveryEpoch===config.recoveryEpoch,'MEDIA_CONTEXT_CHANGED','上传资格已变化',409);
  const s=await maintenance.submissionAccess(tx,actor,u.submissionId,true);
  const consent=await tx.get('talentConsents',s.consentId);
- invariant(consent?.talentAccountId===actor.talentAccountId&&consent.state==='ACTIVE'&&consent.textVersion===MEDIA_CONSENT_VERSION&&consent.fieldScope.includes('media')&&consent.validUntil>clock.now().toISOString(),'MEDIA_CONSENT_REQUIRED','媒体使用同意已失效',409);
+ invariant(consent?.talentAccountId===actor.talentAccountId&&consent.state==='ACTIVE'&&mediaConsentVersion(consent.textVersion)&&consent.fieldScope.includes('media')&&consent.validUntil>clock.now().toISOString(),'MEDIA_CONSENT_REQUIRED','媒体使用同意已失效',409);
  const grant=s.grantId?await tx.get('talentAccessGrants',s.grantId):null;const intakeClaim=await tx.get('talentClaims',(grant?.claimId??s.claimId)!);
  invariant(s.recoveryEpoch===config.recoveryEpoch&&(s.personId===u.personId||!processing&&!u.personId&&intakeClaim?.kind==='ENROLL'&&intakeClaim.state==='APPROVED'&&intakeClaim.targetPersonId===s.personId)&&intakeClaim?.scopeId===u.scopeId,'MEDIA_CONTEXT_CHANGED','提交保护范围已变化',409);
  if(processing)invariant(s.state==='DRAFT','SUBMISSION_IMMUTABLE','已提交内容不能新增或替换文件',409);

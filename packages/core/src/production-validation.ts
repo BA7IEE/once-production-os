@@ -12,6 +12,7 @@ export const ProductionSchemas = {
     workAsset: v.object({ expectedRevision: revision, assetId: uuid }),
     remove: v.object({ expectedRevision: revision, entryId: uuid }),
     order: v.object({ expectedRevision: revision, entryIds: v.array(uuid, L.assets), coverEntryId: v.nullable(uuid) }),
+    creditUpgrade:v.object({expectedRevision:revision,creditId:uuid,expectedCreditRevision:revision,personRoleId:uuid,expectedRoleRevision:revision,sourceId:uuid,sourceRevision:revision}),
     credit: v.object({ expectedRevision: revision, personId: uuid, roleCode: code, note: v.string(1000) }),
     projectCreate: v.object({ ...root, brief: v.optional(v.string(5000)), locationNote: v.optional(v.string(500)), dateNote: v.optional(v.string(500)) }),
     projectPatch: v.object({ expectedRevision: revision, title: v.optional(v.string(160, 1)), brief: v.optional(v.string(5000)), locationNote: v.optional(v.string(500)), dateNote: v.optional(v.string(500)), reviewNote: v.optional(v.string(5000)), status: v.optional(projectStatus) }),

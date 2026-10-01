@@ -1,0 +1,22 @@
+[
+  {
+    "variant": "shared",
+    "exitCode": 0,
+    "log": "/tmp/pr03df-final-pg-shared-final.txt"
+  },
+  {
+    "variant": "takeover",
+    "exitCode": 0,
+    "log": "/tmp/pr03df-final-pg-takeover-final.txt"
+  },
+  {
+    "variant": "legacy",
+    "exitCode": 0,
+    "log": "/tmp/pr03df-final-pg-legacy-final.txt"
+  },
+  {
+    "variant": "export",
+    "exitCode": 0,
+    "log": "/tmp/pr03df-final-pg-export-final.txt"
+  }
+]

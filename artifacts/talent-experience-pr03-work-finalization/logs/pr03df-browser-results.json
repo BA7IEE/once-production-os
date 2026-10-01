@@ -1,0 +1,68 @@
+[
+  {
+    "group": "resume",
+    "exitCode": 0,
+    "seconds": 19.47,
+    "log": "/tmp/pr03df-browser-resume-final.txt"
+  },
+  {
+    "group": "handoff",
+    "exitCode": 0,
+    "seconds": 10.33,
+    "log": "/tmp/pr03df-browser-handoff-final.txt"
+  },
+  {
+    "group": "media",
+    "exitCode": 0,
+    "seconds": 20.9,
+    "log": "/tmp/pr03df-browser-media-final.txt"
+  },
+  {
+    "group": "production",
+    "exitCode": 0,
+    "seconds": 164.67,
+    "log": "/tmp/pr03df-browser-production-final.txt"
+  },
+  {
+    "group": "talent-intake",
+    "exitCode": 0,
+    "seconds": 9.24,
+    "log": "/tmp/pr03df-browser-talent-intake-final.txt"
+  },
+  {
+    "group": "talent-directory",
+    "exitCode": 0,
+    "seconds": 21.99,
+    "log": "/tmp/pr03df-browser-talent-directory-final.txt"
+  },
+  {
+    "group": "talent-auth",
+    "exitCode": 0,
+    "seconds": 10.89,
+    "log": "/tmp/pr03df-browser-talent-auth-final.txt"
+  },
+  {
+    "group": "talent-maintenance",
+    "exitCode": 0,
+    "seconds": 33.55,
+    "log": "/tmp/pr03df-browser-talent-maintenance-final.txt"
+  },
+  {
+    "group": "media-staging",
+    "exitCode": 0,
+    "seconds": 62.08,
+    "log": "/tmp/pr03df-browser-media-staging-final.txt"
+  },
+  {
+    "group": "media-collections",
+    "exitCode": 0,
+    "seconds": 84.08,
+    "log": "/tmp/pr03df-browser-media-collections-final.txt"
+  },
+  {
+    "group": "work-cases",
+    "exitCode": 0,
+    "seconds": 92.02,
+    "log": "/tmp/pr03df-browser-work-cases-final.txt"
+  }
+]

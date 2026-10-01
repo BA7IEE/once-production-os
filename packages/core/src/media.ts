@@ -1,3 +1,4 @@
+import {mediaConsentVersion} from './media-validation.ts';
 import {talentFormalAsset} from './media-collections.ts';
 import type {CommandPrincipal, TalentActor} from './talent-auth-model.ts';
 import {ownsUpload,uploadContext,talentUploadContext,adoptedMediaFor} from './media-ownership.ts';
@@ -14,7 +15,7 @@ import { audit, base, cas, page, touch, workspaceRow } from './helpers.ts';
 import { AppError, invariant, missing } from './errors.ts';
 import { deletionBlocked, permissionsFor, personFor, requirePermission, requireScope, sourceFor } from './policy.ts';
 import { loadVisibility } from './visibility.ts';
-import { TalentMediaSchemas,MEDIA_CONSENT_VERSION,MEDIA_SUBMISSION_FILE_LIMIT, MediaSchemas } from './media-validation.ts';
+import { TalentMediaSchemas,MEDIA_SUBMISSION_FILE_LIMIT, MediaSchemas } from './media-validation.ts';
 export async function uploadFor(tx: Tx, actor: CommandPrincipal, id: string): Promise<MediaUpload> {
     const u = await workspaceRow(tx, 'uploads', id, actor.workspaceId);
     if (!u || !ownsUpload(actor,u))
@@ -110,7 +111,7 @@ export class Media {
         const s=await m.submissionAccess(tx,actor,d.context.submissionId,true);cas(s,d.expectedSubmissionRevision);
         invariant(s.state==='DRAFT','SUBMISSION_IMMUTABLE','本批材料已冻结',409);
         const consent=await tx.get('talentConsents',s.consentId);
-        invariant(consent?.state==='ACTIVE'&&consent.textVersion===MEDIA_CONSENT_VERSION&&consent.fieldScope.includes('media')&&Date.parse(consent.validUntil)>this.clock.now().getTime(),'MEDIA_CONSENT_REQUIRED','请先确认本次媒体内部使用同意',409);
+        invariant(consent?.state==='ACTIVE'&&mediaConsentVersion(consent.textVersion)&&consent.fieldScope.includes('media')&&Date.parse(consent.validUntil)>this.clock.now().getTime(),'MEDIA_CONSENT_REQUIRED','请先确认本次媒体内部使用同意',409);
         invariant(d.expectedBytes<=mediaByteLimit(d.mime),'MEDIA_SIZE_INVALID','文件超过该类型大小限制',400);
         const all=await tx.find('uploads',{workspaceId:actor.workspaceId}),own=all.filter(u=>ownsUpload(actor,u));
         const retired=new Set((await tx.find('personMedia',{workspaceId:actor.workspaceId,submissionId:s.id,usageState:'RETIRED'})).map(r=>r.assetId));

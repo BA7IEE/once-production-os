@@ -1,3 +1,4 @@
+import {periodCurrent} from './talent-v2-graph.ts';
 import {exactCreditCurrent,validateCaseDate} from './talent-work-cases.ts';
 import {sourceAllowsInternalAuthoring} from './talent-maintenance-policy.ts';
 import type { Actor, Clock } from './model.ts';
@@ -95,7 +96,7 @@ export class Portfolio {
         const credits = [];
         for (const c of await tx.find('workCredits', { workspaceId: actor.workspaceId, workId: id })) {
             const person = await exactCreditCurrent(tx,c,this.clock) ? await visibleOrNull(async () => {if(c.sourceId)await sourceFor(tx,actor,c.sourceId,this.clock);return creditPerson(tx, actor, c.personId, this.clock);}) : null;
-            credits.push({ id: c.id, person, personRoleId:person?c.personRoleId??null:null, roleCode: person ? c.roleCode : null, note: person ? c.note : null });
+            credits.push({ id: c.id, revision:person?c.revision:null, person, personRoleId:person?c.personRoleId??null:null, roleCode: person ? c.roleCode : null, note: person ? c.note : null });
         }
         const projects = [];
         for (const link of await tx.find('projectWorks', { workspaceId: actor.workspaceId, workId: id })) {
@@ -172,6 +173,15 @@ export class Portfolio {
         const n = touch(w, this.clock);
         await tx.replace('works', n);
         return n;
+    }
+    async upgradeCredit(tx:Tx,actor:Actor,id:string,input:unknown){
+        requirePermission(actor,'sources.review');invariant(actor.actorKind!=='MACHINE','HUMAN_REVIEW_REQUIRED','旧署名升级须内部人员核对',403);
+        const d=S.creditUpgrade.parse(input),w=await this.edit(tx,actor,id,d.expectedRevision),c=await workspaceRow(tx,'workCredits',d.creditId,actor.workspaceId);
+        if(!c||c.workId!==w.id)missing();cas(c,d.expectedCreditRevision);invariant(!c.personRoleId&&!c.sourceId,'WORK_CREDIT_ALREADY_EXACT','署名已经绑定精确职业，不可重复升级',409);
+        await creditPerson(tx,actor,c.personId,this.clock);const role=await workspaceRow(tx,'personRoles',d.personRoleId,actor.workspaceId);
+        if(!role||role.personId!==c.personId)missing();cas(role,d.expectedRoleRevision);invariant(role.roleCode===c.roleCode&&role.status==='ACTIVE'&&periodCurrent(role as unknown as Record<string,unknown>,this.clock),'WORK_ROLE_INVALID','请核对同一人物的当前署名职业',409);await checkRole(tx,actor,role.roleCode);await sourceFor(tx,actor,role.sourceId,this.clock);
+        const source=await sourceFor(tx,actor,d.sourceId,this.clock);cas(source,d.sourceRevision);invariant(sourceAllowsInternalAuthoring(source),'TALENT_BASIS_SCOPED','旧署名升级须使用独立内部来源',409);
+        await tx.replace('workCredits',{...touch(c,this.clock),personRoleId:role.id,sourceId:source.id});const next=touch(w,this.clock);await tx.replace('works',next);return next;
     }
     async removeCredit(tx: Tx, actor: Actor, id: string, input: unknown) {
         const d = S.remove.parse(input), w = await this.edit(tx, actor, id, d.expectedRevision), c = await workspaceRow(tx, 'workCredits', d.entryId, actor.workspaceId);

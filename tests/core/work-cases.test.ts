@@ -12,3 +12,6 @@ import {workCaseProtectionScenario} from '../support/work-cases.ts';
 for(const kind of ['PERSON','WORK','MERGE'] as const)test('PR03D '+kind+' case lifecycle protection',async()=>{await workCaseProtectionScenario(new MemoryStore(),kind);});
 import {workCaseSharedScenario} from '../support/work-cases.ts';
 test('PR03D internal explicit shared Work link adds only own Credit and keeps public facts',async()=>{await workCaseSharedScenario(new MemoryStore());});
+
+import {workFinalizationScenario} from '../support/work-case-finalization.ts';
+for(const legacy of [false,true])test('PR03D finalization consent and '+(legacy?'legacy upgrade':'exact takeover'),async()=>{await workFinalizationScenario(new MemoryStore(),legacy);});

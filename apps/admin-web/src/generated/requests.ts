@@ -17,7 +17,7 @@ export interface Inputs {
   "talent.asset.attachment": undefined;
   "portal.submission.collections": { "expectedRevision": number; "collections": Array<{ "clientItemKey": string; "targetCollectionId": string | null; "expectedCollectionRevision": number | null; "personRoleId": string | null; "collectionTypeCode": "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "title": string; "isCurrent": boolean; "coverAssetId": string | null; "tagCodes": Array<"FASHION" | "BEAUTY" | "COMMERCIAL" | "LINGERIE" | "RUNWAY" | "LIFESTYLE" | "INDUSTRIAL" | "PRODUCT">; "items": Array<{ "referenceKind": "SUBMISSION_STAGED_ASSET" | "EXISTING_ADOPTED_ASSET_REFERENCE"; "assetId": string; "caption": string; "featured": boolean }> }> };
   "portal.collection.list": undefined;
-  "portal.submission.mediaConsent": { "expectedRevision": number; "textVersion": "internal-directory-media-2026-10-v1"; "accepted": boolean };
+  "portal.submission.mediaConsent": { "expectedRevision": number; "textVersion": "internal-directory-media-2026-10-v1" | "internal-directory-media-work-2026-10-v1"; "accepted": boolean };
   "portal.upload.create": { "context": { "kind": "TALENT_SUBMISSION"; "submissionId": string; "personRoleId"?: string }; "expectedSubmissionRevision": number; "fileName": string; "mime": "image/jpeg" | "image/png" | "image/webp" | "application/pdf" | "video/mp4"; "expectedBytes": number; "sha256": string };
   "portal.upload.get": undefined;
   "portal.upload.complete": { "expectedRevision": number };
@@ -159,6 +159,7 @@ export interface Inputs {
   "work.assetRemove": { "expectedRevision": number; "entryId": string };
   "work.reorder": { "expectedRevision": number; "entryIds": Array<string>; "coverEntryId": string | null };
   "work.creditAdd": { "expectedRevision": number; "personId": string; "roleCode": string; "note": string };
+  "work.creditUpgrade": { "expectedRevision": number; "creditId": string; "expectedCreditRevision": number; "personRoleId": string; "expectedRoleRevision": number; "sourceId": string; "sourceRevision": number };
   "work.creditRemove": { "expectedRevision": number; "entryId": string };
   "project.list": undefined;
   "project.create": { "title": string; "sourceId"?: string; "inlineSource"?: { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string }; "brief"?: string; "locationNote"?: string; "dateNote"?: string };
@@ -1054,6 +1055,11 @@ export const ENDPOINTS = {
   "work.creditAdd": {
     "method": "POST",
     "path": "/works/{id}/credits",
+    "mode": "COMMAND"
+  },
+  "work.creditUpgrade": {
+    "method": "POST",
+    "path": "/works/{id}/credits/upgrade",
     "mode": "COMMAND"
   },
   "work.creditRemove": {

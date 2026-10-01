@@ -433,6 +433,7 @@ export class Application {
                     case 'work.assetRemove': return command('work', () => this.portfolio.removeAsset(tx, actor, id, data));
                     case 'work.reorder': return command('work', () => this.portfolio.reorder(tx, actor, id, data));
                     case 'work.creditAdd': return command('work', () => this.portfolio.addCredit(tx, actor, id, data));
+                    case 'work.creditUpgrade': return command('work', () => this.portfolio.upgradeCredit(tx, actor, id, data));
                     case 'work.creditRemove': return command('work', () => this.portfolio.removeCredit(tx, actor, id, data));
                     case 'project.list': return this.projects.list(tx, actor, query);
                     case 'project.create': return command('project', () => this.projects.create(tx, actor, data));

@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: PR03D exact-role external case, draft freeze, atomic review, replay and self projection
+ok 1 - PR03D exact-role external case, draft freeze, atomic review, replay and self projection
+  ---
+  duration_ms: 188.322667
+  type: 'test'
+  ...
+# Subtest: PR03D source separation, sharing, role history and dependent/nondependent CAS
+ok 2 - PR03D source separation, sharing, role history and dependent/nondependent CAS
+  ---
+  duration_ms: 198.798167
+  type: 'test'
+  ...
+# Subtest: PR03D ENROLL creates Person, Role, Work, Credit, media and Grant atomically
+ok 3 - PR03D ENROLL creates Person, Role, Work, Credit, media and Grant atomically
+  ---
+  duration_ms: 141.195042
+  type: 'test'
+  ...
+# Subtest: PR03D export worker and physical-original JSON rebuild preserve formal cases without external authority
+ok 4 - PR03D export worker and physical-original JSON rebuild preserve formal cases without external authority
+  ---
+  duration_ms: 485.33225
+  type: 'test'
+  ...
+# Subtest: PR03D PERSON case lifecycle protection
+ok 5 - PR03D PERSON case lifecycle protection
+  ---
+  duration_ms: 159.85
+  type: 'test'
+  ...
+# Subtest: PR03D WORK case lifecycle protection
+ok 6 - PR03D WORK case lifecycle protection
+  ---
+  duration_ms: 164.252542
+  type: 'test'
+  ...
+# Subtest: PR03D MERGE case lifecycle protection
+ok 7 - PR03D MERGE case lifecycle protection
+  ---
+  duration_ms: 218.962333
+  type: 'test'
+  ...
+# Subtest: PR03D internal explicit shared Work link adds only own Credit and keeps public facts
+ok 8 - PR03D internal explicit shared Work link adds only own Credit and keeps public facts
+  ---
+  duration_ms: 286.496833
+  type: 'test'
+  ...
+# Subtest: PR03D finalization consent and exact takeover
+ok 9 - PR03D finalization consent and exact takeover
+  ---
+  duration_ms: 287.346167
+  type: 'test'
+  ...
+# Subtest: PR03D finalization consent and legacy upgrade
+ok 10 - PR03D finalization consent and legacy upgrade
+  ---
+  duration_ms: 434.667167
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2821.505417

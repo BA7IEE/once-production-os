@@ -1,0 +1,208 @@
+TAP version 13
+# Subtest: PR03D exact-role external case, draft freeze, atomic review, replay and self projection
+not ok 1 - PR03D exact-role external case, draft freeze, atomic review, replay and self projection
+  ---
+  duration_ms: 253.517708
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/core/work-cases.test.ts:4:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"MEDIA_CONSENT_REQUIRED","message":"媒体使用同意不匹配","requestId":"079170b7-d06d-4c2e-8fe7-a727452d6dd1"}}
+    
+    409 !== 503
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 503
+  actual: 409
+  operator: 'strictEqual'
+  stack: |-
+    Object.expect (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/media-staging.ts:13:73)
+    async workCaseScenario (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/work-cases.ts:19:117)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/core/work-cases.test.ts:4:106)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: PR03D source separation, sharing, role history and dependent/nondependent CAS
+not ok 2 - PR03D source separation, sharing, role history and dependent/nondependent CAS
+  ---
+  duration_ms: 247.308167
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/core/work-cases.test.ts:6:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"MEDIA_CONSENT_REQUIRED","message":"媒体使用同意不匹配","requestId":"81e9152b-32eb-4014-8163-96fbe4cba39a"}}
+    
+    409 !== 503
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 503
+  actual: 409
+  operator: 'strictEqual'
+  stack: |-
+    Object.expect (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/media-staging.ts:13:73)
+    async workCaseScenario (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/work-cases.ts:19:117)
+    async workCaseLifecycleScenario (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/work-cases.ts:25:99)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/core/work-cases.test.ts:6:96)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PR03D ENROLL creates Person, Role, Work, Credit, media and Grant atomically
+not ok 3 - PR03D ENROLL creates Person, Role, Work, Credit, media and Grant atomically
+  ---
+  duration_ms: 224.902209
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/core/work-cases.test.ts:8:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"MEDIA_CONSENT_REQUIRED","message":"媒体使用同意不匹配","requestId":"106fad04-816c-4f40-b481-479696250948"}}
+    
+    409 !== 503
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 503
+  actual: 409
+  operator: 'strictEqual'
+  stack: |-
+    Object.expect (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/media-staging.ts:13:73)
+    async workCaseEnrollScenario (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/work-cases.ts:47:466)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/core/work-cases.test.ts:8:94)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PR03D export worker and physical-original JSON rebuild preserve formal cases without external authority
+not ok 4 - PR03D export worker and physical-original JSON rebuild preserve formal cases without external authority
+  ---
+  duration_ms: 188.17625
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/core/work-cases.test.ts:10:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"MEDIA_CONSENT_REQUIRED","message":"媒体使用同意不匹配","requestId":"5fe7d950-e998-4b23-b100-039392fb3861"}}
+    
+    409 !== 503
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 503
+  actual: 409
+  operator: 'strictEqual'
+  stack: |-
+    Object.expect (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/media-staging.ts:13:73)
+    async workCaseScenario (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/work-cases.ts:19:117)
+    async workCaseExportScenario (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/work-cases.ts:48:105)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/core/work-cases.test.ts:10:122)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PR03D PERSON case lifecycle protection
+not ok 5 - PR03D PERSON case lifecycle protection
+  ---
+  duration_ms: 182.661375
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/core/work-cases.test.ts:12:54'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"MEDIA_CONSENT_REQUIRED","message":"媒体使用同意不匹配","requestId":"a9f5b991-becb-42e1-aac2-4173c83835b8"}}
+    
+    409 !== 503
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 503
+  actual: 409
+  operator: 'strictEqual'
+  stack: |-
+    Object.expect (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/media-staging.ts:13:73)
+    async workCaseScenario (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/work-cases.ts:19:117)
+    async workCaseProtectionScenario (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/work-cases.ts:56:30)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/core/work-cases.test.ts:12:112)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PR03D WORK case lifecycle protection
+not ok 6 - PR03D WORK case lifecycle protection
+  ---
+  duration_ms: 167.864334
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/core/work-cases.test.ts:12:54'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"MEDIA_CONSENT_REQUIRED","message":"媒体使用同意不匹配","requestId":"450f7d58-e4f6-4651-b92b-55f3a9335a9d"}}
+    
+    409 !== 503
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 503
+  actual: 409
+  operator: 'strictEqual'
+  stack: |-
+    Object.expect (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/media-staging.ts:13:73)
+    async workCaseScenario (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/work-cases.ts:19:117)
+    async workCaseProtectionScenario (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/work-cases.ts:56:30)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/core/work-cases.test.ts:12:112)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PR03D MERGE case lifecycle protection
+not ok 7 - PR03D MERGE case lifecycle protection
+  ---
+  duration_ms: 151.584125
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/core/work-cases.test.ts:12:54'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"MEDIA_CONSENT_REQUIRED","message":"媒体使用同意不匹配","requestId":"a360005a-6059-4f2b-9c81-c1d415f8fc6f"}}
+    
+    409 !== 503
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 503
+  actual: 409
+  operator: 'strictEqual'
+  stack: |-
+    Object.expect (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/media-staging.ts:13:73)
+    async workCaseScenario (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/work-cases.ts:19:117)
+    async workCaseProtectionScenario (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/work-cases.ts:56:30)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/core/work-cases.test.ts:12:112)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PR03D internal explicit shared Work link adds only own Credit and keeps public facts
+not ok 8 - PR03D internal explicit shared Work link adds only own Credit and keeps public facts
+  ---
+  duration_ms: 150.10925
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/core/work-cases.test.ts:14:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"MEDIA_CONSENT_REQUIRED","message":"媒体使用同意不匹配","requestId":"728cbe88-c0a9-455d-b7b9-38ac9c1dcab4"}}
+    
+    409 !== 503
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 503
+  actual: 409
+  operator: 'strictEqual'
+  stack: |-
+    Object.expect (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/media-staging.ts:13:73)
+    async workCaseScenario (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/work-cases.ts:19:117)
+    async workCaseSharedScenario (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/work-cases.ts:60:84)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/core/work-cases.test.ts:14:103)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 0
+# fail 8
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1805.521291

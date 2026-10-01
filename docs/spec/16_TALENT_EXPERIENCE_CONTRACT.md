@@ -189,3 +189,11 @@ MODEL_CARD图片/PDF、POLAROIDS图片、PORTFOLIO/OTHER图片/MP4、SHOWREEL/IN
 - caseDate精度UNKNOWN/YEAR/MONTH/DAY/APPROXIMATE；未知为null。原Work字段不足以结构化表达时间、地点、展示品牌，新增四列，不建宽泛WorkMetadata。
 - WorkCredit personRoleId/sourceId为历史兼容可空，新人才案例同时非空；复合FK限定同workspace/person/roleCode。既有旧Credit继承Work来源。
 - 前向迁移64–66详见发布说明。导出四字段逐项许可，新原件依赖去重；验证过的原件才能重建WorkAsset/cover。
+
+### PR-03D finalization 合同修正
+
+- LINK_EXISTING 不写任何 WorkAsset、不改 cover/公共事实；新媒体可独立采纳，不能由LINK挂入目标Work。已有同Person+Role exact Credit完全保留，不以本次Note/Source覆盖。
+- `portal.submission.mediaConsent` 保持原请求形状，textVersion新增 `internal-directory-media-work-2026-10-v1`；旧媒体版本语义不变。新版本fieldScope明确含work，Work保存/提交/审核要求当前同意能力。
+- workCredit exposure新增服务端consentId绑定，旧无Work同意的exposure fail-closed，须明确新同意+审核；禁止按uploader、原Source归因或其他Consent自动补权。
+- `work.creditUpgrade`：POST /works/{id}/credits/upgrade；expectedRevision、creditId、expectedCreditRevision、personRoleId、expectedRoleRevision、sourceId、sourceRevision。INTERNAL + records.write + sources.review，精确同人同职业/来源/范围校验；已有exact拒绝；原ID/Note保留，升级不自动产生Talent exposure。
+- Work依据导出为talent-basis-v2，work scope只允许新Work同意文本。v1继续读，但不能借旧媒体版本获得Work capability。迁移1–66冻结，不新增67。

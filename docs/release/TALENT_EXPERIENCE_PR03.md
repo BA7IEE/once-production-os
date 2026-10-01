@@ -1,3 +1,21 @@
+## PR-03D finalization：LINK 边界、Work 同意与历史署名接手
+
+本轮本地验证：Core 643/643；PostgreSQL 60个测试程序、150项通过，关键反例另行复跑；11组真实Chrome通过，最终页面另复跑 Work/Production 两组。契约260路由、静态12项、checkpoint 17项通过。最终CI以交付回复和PR描述中绑定最终SHA的记录为准。
+
+基线 `280568c36cccf5a724515b1b57f32c1b0347b320`。主体复核通过，本轮仅修三项；PR #31 保持 **Draft、未合并、未部署**，PR-03D 尚未冻结，不进入 PR-03E。
+
+1. **LINK 不编辑共享案例。** LINK_EXISTING 分支在署名处理后直接返回，不进入 WorkAsset 写入、排序或封面逻辑。本批媒体可单独 ADOPTED，但不会挂入目标 Work。CREATE_NEW 仍按本批冻结计划建立素材关系。
+2. **独立 Work 同意版本。** 新增 `internal-directory-media-work-2026-10-v1`，明确覆盖媒体及案例标题、简介、时间、地点、行业/类型、品牌展示名、本人署名事实，fieldScope 含 `media` 和 `work`。旧 `internal-directory-media-2026-10-v1` 常量、文案和能力不变，不为历史行追补 work。普通媒体/Collection 接受两种媒体能力版本，Work 保存/提交/审核必须当前 Work capability。Portal 独立勾选并确认，未确认前禁用案例编辑；服务端仍是最终校验。
+3. **已有署名接手。** LINK 遇到当前 Person+Role 的 exact Credit 时，不修改 ID、revision、Source、Note，不新增重复署名，只在明确审核后生成当前 Grant 的 workCredit exposure。曝光记录绑定本次 consentId，读取时复查账号、人物、Grant、Consent、来源及删除/恢复保护。撤回新同意立即关闭该 Talent 自助投影，不撤销独立内部来源的旧事实。
+
+legacy Credit 保持 fail-closed：LINK 返回 `WORK_CREDIT_UPGRADE_REQUIRED`。新增内部 `POST /works/{id}/credits/upgrade` COMMAND 和后台“核对并升级旧署名”操作：requires records.write + sources.review，拒绝 MACHINE；明确 creditId、PersonRole、独立内部来源及各对象版本，同一人物/roleCode/当前职业/来源/范围全部核对。保留旧 Credit ID、Note，补 personRoleId/sourceId，推进 Credit/Work revision。原键重放和审计同事务；升级不自动开放本人权限，仍须后续 LINK 审核。已有 exact Credit 不允许重复升级或偷偷改来源。
+
+**无 schema 变化、无迁移67。迁移1–66逐文件保持原样。** 现有 Credit nullable 字段、Consent fieldScope、Grant JSON manifest 可以完整表达；不是省略数据库约束，现有复合 FK/唯一约束继续验证。新 command 沿用统一回执、审计、write-ahead、replay-policy。
+
+普通 JSON 的 Work 使用依据使用 `talent-basis-v2`，加入 work scope；旧 v1 仍可读取，但不能携 work scope 冒充 Work 同意。重建验证新文本版本，不生成 TalentAccount/Grant/Submission。已存在内部 Credit 被接手时，原 Credit Source/归因不改，本次审核与同意只作为新的 exposure 依据。备份恢复沿用既有 Grant 隔离。
+
+本轮 Core/真实PG/11组Browser、页面截图、失败记录及冻结迁移指纹在 `artifacts/talent-experience-pr03-work-finalization/verification.json`。最终 SHA/CI 绑定 PR 描述和交付回复，不沿用基线通过结果。Provider/COS/物理手机/部署仍 NOT_RUN。
+
 ## PR-03D Work / 作品案例（Draft，待代码级复核）
 
 PR-03A/B/C 已由用户冻结，基线 `7909fa204de15224ae7f1f7bb43b88a285d37dc9`。本轮只实现作品案例；未合并、未部署，Provider/COS/真实手机验证仍 `NOT_RUN`。不进入 PR-03E 自动回收或 PR-04 Agent 摄取。

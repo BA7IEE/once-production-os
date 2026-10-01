@@ -1,8 +1,8 @@
+import {mediaConsentVersion} from './media-validation.ts';
 import type {Tx} from './store.ts';
 import type {Actor,Clock,Config,Person,Source} from './model.ts';
 import type {TalentSubmission,TalentSubmissionItem} from './talent-maintenance-model.ts';
 import {mediaUsage} from './media-model.ts';
-import {MEDIA_CONSENT_VERSION} from './media-validation.ts';
 import {sourceFor} from './policy.ts';
 import {touch} from './helpers.ts';
 import {invariant} from './errors.ts';
@@ -15,7 +15,7 @@ export async function checkSubmissionMedia(tx:Tx,s:TalentSubmission,clock:Clock,
 export async function adoptSubmissionMedia(tx:Tx,actor:Actor,s:TalentSubmission,p:Person,source:Source,items:TalentSubmissionItem[],clock:Clock,config:Config){
  if(!items.length)return;
  const consent=await tx.get('talentConsents',s.consentId);
- invariant(consent?.textVersion===MEDIA_CONSENT_VERSION&&consent.state==='ACTIVE'&&consent.fieldScope.includes('media'),'MEDIA_CONSENT_REQUIRED','媒体使用同意不匹配',409);
+ invariant(consent&&mediaConsentVersion(consent.textVersion)&&consent.state==='ACTIVE'&&consent.fieldScope.includes('media'),'MEDIA_CONSENT_REQUIRED','媒体使用同意不匹配',409);
  for(const item of items){
   const a=await tx.get('assets',String(item.values.assetId)),u=a?await tx.get('uploads',a.uploadId):null;
   invariant(a&&u&&a.state==='READY'&&mediaUsage(a)==='STAGED'&&a.sha256===item.values.sha256&&u.submissionId===s.id&&u.talentAccountId===s.talentAccountId,'MEDIA_NOT_ADOPTABLE','素材未就绪或归属不匹配',409);

@@ -1,3 +1,9 @@
+## 2026-10-01：PR-03D finalization（Draft，待复核）
+
+本轮本地验证：Core 643/643；PostgreSQL 60个测试程序、150项通过，关键反例另行复跑；11组真实Chrome通过，最终页面另复跑 Work/Production 两组。契约260路由、静态12项、checkpoint 17项通过。最终CI以交付回复和PR描述中绑定最终SHA的记录为准。
+
+修复 LINK 不写共享 Work 媒体/事实，新增独立媒体+Work同意版本，支持已有 exact Credit 原样接手及 legacy 内部受控升级。无schema/迁移变化，1–66逐文件不变。当前证据见 [PR-03交付说明](TALENT_EXPERIENCE_PR03.md) 和 `artifacts/talent-experience-pr03-work-finalization/verification.json`。保持未合并、未部署，Provider未验证，不进入PR-03E。
+
 ## 2026-10-01：PR-03D 作品案例（Draft，待复核）
 
 PR-03A/B/C 已冻结。本轮复用 Work/Credit/Asset，增加本人案例草稿、精确职业署名、人工新建/关联、Grant-bound 本人投影及人物主详情卡片；同步导出重建、删除/合并与恢复。新增前向迁移64–66，1–63不改。当前实测证据与明确边界见 [PR-03交付说明](TALENT_EXPERIENCE_PR03.md) 和 `artifacts/talent-experience-pr03-work-cases/verification.json`。保持 PR #31 Draft、未合并、未部署，Provider/COS/真实手机仍 NOT_RUN；完成本轮后不进入 PR-03E 或后续业务。

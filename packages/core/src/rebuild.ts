@@ -1,3 +1,4 @@
+import {WORK_CONSENT_VERSION} from './work-consent.ts';
 import {validateCaseDate} from './talent-work-cases.ts';
 import {mediaByteLimit} from './media-model.ts';
 import {validateParties,applyParties} from './project-parties.ts';
@@ -261,6 +262,7 @@ export class JsonRebuild {
                 protectionEpoch: row.protectionEpoch + 1,
                 reviewedBy: actor.membershipId, reviewedAt: at
             };
+            if(row.talentBasis?.fieldScope.includes('work'))invariant(row.talentBasis.version==='talent-basis-v2'&&row.talentBasis.textVersion===WORK_CONSENT_VERSION,'WORK_CONSENT_REQUIRED','案例重建须携带明确 Work 使用依据',422);
             if(row.talentBasis)invariant(Date.parse(row.talentBasis.validUntil)>this.clock.now().getTime()&&Date.parse(row.data.validUntil)<=Date.parse(row.talentBasis.validUntil),'CONSENT_UNAVAILABLE','重建不能延长本人使用依据',422);
             await tx.insert('sources', source);
             if(row.talentBasis){await tx.insert('sourceUseBases',{...base(actor.workspaceId,this.clock),sourceId:source.id,consentId:null,consentRevision:row.talentBasis.consentRevision,purpose:'INTERNAL_DIRECTORY',fieldScope:row.talentBasis.fieldScope,state:'ACTIVE',validUntil:row.talentBasis.validUntil,importedBasis:row.talentBasis});await tx.insert('sourceAttributions',{...base(actor.workspaceId,this.clock),sourceId:source.id,submissionId:null,talentAccountId:null,consentId:null,reviewerId:actor.membershipId,materialDescription:'受控业务JSON重建，原提供者/提交/同意见不可冒充的原始归因引用',importedBasis:row.talentBasis});}

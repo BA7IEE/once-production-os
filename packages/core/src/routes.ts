@@ -66,6 +66,7 @@ export const ROUTES: RouteDefinition[] = [...TALENT_AUTH_ROUTES,...TALENT_MAINTE
     { method: 'POST', path: '/works/{id}/assets/remove', operation: 'work.assetRemove', mode: 'COMMAND', permission: 'records.write', schema: PS.remove },
     { method: 'POST', path: '/works/{id}/assets/reorder', operation: 'work.reorder', mode: 'COMMAND', permission: 'records.write', schema: PS.order },
     { method: 'POST', path: '/works/{id}/credits', operation: 'work.creditAdd', mode: 'COMMAND', permission: 'records.write', schema: PS.credit },
+    {method:'POST',path:'/works/{id}/credits/upgrade',operation:'work.creditUpgrade',mode:'COMMAND',permission:'records.write',schema:PS.creditUpgrade},
     { method: 'POST', path: '/works/{id}/credits/remove', operation: 'work.creditRemove', mode: 'COMMAND', permission: 'records.write', schema: PS.remove },
     { method: 'GET', path: '/projects', operation: 'project.list', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/projects', operation: 'project.create', mode: 'COMMAND', permission: 'records.write', schema: PS.projectCreate },

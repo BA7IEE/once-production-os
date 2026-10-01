@@ -1,0 +1,5 @@
+PASS M1 browser: upload/unknown-complete replay/worker/decoded preview; metadata stripped and private scope enforced
+PASS PDF attachment: actual upload/worker/DB and explicit unparsed page, no administrator scope bypass
+PASS PR03 playback: real H264/AAC + worker + PostgreSQL + native play/seek + exact Range + private scope + next-request quarantine
+PASS M1 API/worker: disguised HTML and cancelled upload produce no accessible asset
+PASS M1 API: quarantine and current source suspension deny subsequent preview requests

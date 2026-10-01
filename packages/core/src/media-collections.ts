@@ -1,3 +1,4 @@
+import {mediaConsentVersion} from './media-validation.ts';
 import {requireMediaExposure} from './talent-media-exposure.ts';
 import {syncMediaRetention} from './media-adoption.ts';
 import type {Actor,Clock,Config,Person,Source} from './model.ts';
@@ -48,7 +49,7 @@ export async function talentFormalAsset(tx:Tx,actor:TalentActor,id:string,clock:
 }
 
 export async function validateCollectionDraft(tx:Tx,s:TalentSubmission,plan:CollectionPlan,clock:Clock,config:Config){
- shape(plan);const consent=await tx.get('talentConsents',s.consentId);invariant(consent?.state==='ACTIVE'&&consent.textVersion==='internal-directory-media-2026-10-v1'&&consent.fieldScope.includes('media')&&consent.validUntil>clock.now().toISOString(),'MEDIA_CONSENT_REQUIRED','请先明确同意本批媒体内部使用',409);const actor:TalentActor={actorKind:'TALENT',workspaceId:s.workspaceId,talentAccountId:s.talentAccountId,sessionId:'',sessionEpoch:0};
+ shape(plan);const consent=await tx.get('talentConsents',s.consentId);invariant(consent?.state==='ACTIVE'&&mediaConsentVersion(consent.textVersion)&&consent.fieldScope.includes('media')&&consent.validUntil>clock.now().toISOString(),'MEDIA_CONSENT_REQUIRED','请先明确同意本批媒体内部使用',409);const actor:TalentActor={actorKind:'TALENT',workspaceId:s.workspaceId,talentAccountId:s.talentAccountId,sessionId:'',sessionEpoch:0};
  await new TalentMaintenance(clock,config).submissionAccess(tx,actor,s.id,true);
  if(plan.personRoleId){const role=await workspaceRow(tx,'personRoles',plan.personRoleId,s.workspaceId);if(!s.personId||!role||role.personId!==s.personId||role.status!=='ACTIVE'||!periodCurrent(role as unknown as Record<string,unknown>,clock))missing();await currentSource(tx,s.workspaceId,role.sourceId,clock);}
  if(plan.targetCollectionId){const c=await workspaceRow(tx,'mediaCollections',plan.targetCollectionId,s.workspaceId);if(!c||c.personId!==s.personId||c.personRoleId!==plan.personRoleId)missing();cas(c,plan.expectedCollectionRevision!);invariant(c.collectionTypeCode===plan.collectionTypeCode,'COLLECTION_IDENTITY_CONFLICT','集合类型不能修改，请新建集合',409);await requireMediaExposure(tx,actor,c.personId,'mediaCollection',c.id,clock,config);}
