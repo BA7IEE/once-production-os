@@ -103,6 +103,34 @@
     "tests/core/media-purge.test.ts": "c273d14b7a6b594cf635eed7a8a6f2ccf9a8c0abee4df056ce6555c4ce083355",
     "tests/core/recovery-worker-intent.test.ts": "26192d2a7efd42cf9b0e54c259bb7cce37f90244b4c4f667267c85a969fa34b1",
     "tests/postgres/media-purge.test.ts": "ab8297a9e8c7eabcd0a152081e3c5f4e710367d57eb655fab480f4804f04a6a7",
-    "tests/support/media-purge.ts": "cbb0e7d8c8ccbe96a029248b549ccebb35dc6a6dedab4b6b8cb1e042432bc226"
+    "tests/support/media-purge.ts": "cbb0e7d8c8ccbe96a029248b549ccebb35dc6a6dedab4b6b8cb1e042432bc226",
+    ".github/workflows/acceptance.yml": "3e0371f3d3d5330f42da5413c371012d4f0a27d2c948a61d48ebe2433265d9e1"
+  },
+  "ciInfrastructure": {
+    "run": 36889529259,
+    "head": "81d4b30d240333d7a4be07b401284300ec55ee1a",
+    "passedJobs": 12,
+    "job": "browser-media-staging",
+    "attempts": [
+      {
+        "attempt": 1,
+        "jobId": 110461319915,
+        "conclusion": "cancelled",
+        "annotation": "The job has exceeded the maximum execution time of 20m0s",
+        "browserExecuted": false,
+        "rawLogSha256": "3d4309ff18eb84642940d4bbdb23e938df047e687891666001234d539c0b6ba8",
+        "excerpt": "ci-attempt-1-download-timeout.txt"
+      },
+      {
+        "attempt": 2,
+        "jobId": 110470441931,
+        "conclusion": "cancelled",
+        "annotation": "The job has exceeded the maximum execution time of 20m0s",
+        "browserExecuted": false,
+        "rawLogSha256": "3adb35edb1749a309a193a15e192e32e3969a2429329f4793a4fbb78e8d3f7b4",
+        "excerpt": "ci-attempt-2-download-timeout.txt"
+      }
+    ],
+    "adjustment": "Only this job timeout 20 -> 30 minutes; all tests, steps and assertions unchanged; new exact-head full CI required"
   }
 }
