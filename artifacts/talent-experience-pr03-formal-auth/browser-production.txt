@@ -34,4 +34,5 @@ PASS merged history browser: scoped old identity entry, explicit decisions and c
 PASS locale merge browser: explicit language choice, original text history, draft review state
 PASS internal locale v3 browser: explicit three owner grants and source grant -> real JSON download preserves typed dependencies and original review; source-only grant revocation blocks old download
 PASS internal locale browser: person/work/project real editor, explicit source and review, persisted text, uncertain committed response freezes form and replays identical key/body
+PASS worker isolation: real media/export/deletion worker exited before controlled AI adapter
 PASS AI browser (real PostgreSQL): confirmed input, restricted search, selected proposal fields and unknown response replay; configuration approval, human reconciliation and unfreeze; encrypted connection save/replay, fixed-input SDK test and enable; simulated provider only

@@ -17,6 +17,8 @@ Core/真实 PostgreSQL 共用三组：已绑定、未绑定 ENROLL、精确 Role
 
 本地完整 Core **625/625**、PG **43个TAP程序/133项**、最终新增共享场景 **3/3**、全部 **9组Chrome流程** 通过；typecheck/core/transport、248路由合同、静态检查及构建通过。实际备份恢复 **6个文件、46744字节**。最终结果、命令与统计见 `artifacts/talent-experience-pr03-formal-auth/verification.json`；截图、PG/Core/browser日志在同目录。最终 head 对应 CI run 回填 PR #31 描述，不引用旧 head 的通过记录。下文622项等数字是已复核底座历史证据，不能代替本轮结果。
 
+首次CI `36831884657`（`6b60681`）的媒体、PG及其余浏览器通过，但生产流程末段AI用例的受控发送次数为0：同库真实worker仍在轮询AI任务，与受控SDK worker竞争。验收脚本现于真实媒体/导出/删除检查全部结束后等待后台worker退出，再运行受控AI用例；不修改业务AI、不取消断言、不增加重试或超时。单独保留首次失败证据，并以新head的完整CI作为最终结果。
+
 **Provider 未验证**：`PROVIDER_VERIFIED=NOT_RUN`、`COS_PROVIDER_VERIFIED=NOT_RUN`、`MOBILE_DEVICE_VERIFIED=NOT_RUN`。MediaCollection/模卡/素颜照/Portfolio/介绍视频、完整暂存回收调度仍未开始，等待此修正复核。
 
 ## 已复核底座：媒体归属与暂存（87ec471）
