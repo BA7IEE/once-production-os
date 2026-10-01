@@ -1,3 +1,9 @@
+## 2026-10-01：PR-03C finalization（Draft待复核，尚未冻结）
+
+本轮最终本地实测：**Core 633/633；真实 PostgreSQL 50组/140项，另6组受影响场景复跑；10组真实Chrome；255条路由合同、类型检查、静态、构建、17项checkpoint通过。** 实际恢复13个文件/92602字节，旧Grant/session及exposure拒绝复活。
+
+本轮完成当前 Grant-bound exposure、Tag 新来源/父集合版本、失效来源退出 current、Collection 类型 identity 五项修正。没有 schema/迁移变化，1–63不改。本人明确获准后可使用内部正式素材，不借 uploader 或开放人物全部内部媒体；新增正式读与既有删除/合并/恢复保护一致。完整实测、反例、失败定位及最终head CI绑定见 [PR-03交付说明](TALENT_EXPERIENCE_PR03.md) 和 `artifacts/talent-experience-pr03-finalization/verification.json`。保持 Draft、未合并、未部署；不进入 PR-03D，Provider/COS/真实手机仍 NOT_RUN。下方内容为历史主体阶段结果。
+
 ## 2026-10-01：PR-03C 媒体集合（Draft待复核）
 
 最终本地实测：Core 632/632；真实PG14.19 49组/139项；真实Chrome 10组含360/390/430px；254条合同、类型检查、静态与构建通过。详情与失败修正证据见本轮证据目录。PG16以最终head CI为准。

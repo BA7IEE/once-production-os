@@ -9,6 +9,7 @@ export interface Inputs {
   "portal.sessions.revoke": {  };
   "talent.account.disable": { "expectedRevision": number };
   "talent.account.erase": { "expectedRevision": number };
+  "talent.grant.mediaExposure": { "expectedRevision": number; "decision": "ALLOW" | "REVOKE"; "assets": Array<{ "id": string; "expectedRevision": number }>; "collections": Array<{ "id": string; "expectedRevision": number }>; "approvalBasis": string };
   "portal.asset.attachment": undefined;
   "talent.asset.attachment": undefined;
   "portal.submission.collections": { "expectedRevision": number; "collections": Array<{ "clientItemKey": string; "targetCollectionId": string | null; "expectedCollectionRevision": number | null; "personRoleId": string | null; "collectionTypeCode": "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "title": string; "isCurrent": boolean; "coverAssetId": string | null; "tagCodes": Array<"FASHION" | "BEAUTY" | "COMMERCIAL" | "LINGERIE" | "RUNWAY" | "LIFESTYLE" | "INDUSTRIAL" | "PRODUCT">; "items": Array<{ "referenceKind": "SUBMISSION_STAGED_ASSET" | "EXISTING_ADOPTED_ASSET_REFERENCE"; "assetId": string; "caption": string; "featured": boolean }> }> };
@@ -299,6 +300,11 @@ export const ENDPOINTS = {
   "talent.account.erase": {
     "method": "POST",
     "path": "/talent-accounts/{id}/erase",
+    "mode": "COMMAND"
+  },
+  "talent.grant.mediaExposure": {
+    "method": "POST",
+    "path": "/talent-grants/{id}/media-exposure",
     "mode": "COMMAND"
   },
   "portal.asset.attachment": {

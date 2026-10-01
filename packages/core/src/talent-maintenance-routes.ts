@@ -1,8 +1,10 @@
+import {mediaExposureSchema} from './talent-media-exposure.ts';
 import {CollectionSchemas} from './media-collections.ts';
 import {TalentMediaSchemas,MediaSchemas} from './media-validation.ts';
 import type {RouteDefinition} from './routes.ts';
 import {MaintenanceSchemas as S} from './talent-maintenance-schema.ts';
 export const TALENT_MAINTENANCE_ROUTES:RouteDefinition[]=[
+ {method:'POST',path:'/talent-grants/{id}/media-exposure',operation:'talent.grant.mediaExposure',mode:'COMMAND',permission:'talent.review',schema:mediaExposureSchema},
  {method:'GET',path:'/portal/accounts/{accountId}/assets/{id}/attachment',operation:'portal.asset.attachment',mode:'BINARY'},
  {method:'GET',path:'/talent-staged-assets/{id}/attachment',operation:'talent.asset.attachment',mode:'BINARY',permission:'talent.review'},
  {method:'POST',path:'/portal/submissions/{id}/collections',operation:'portal.submission.collections',mode:'COMMAND',schema:CollectionSchemas.draft},

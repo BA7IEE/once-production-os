@@ -114,7 +114,7 @@ export interface SourceUseBasis extends Base {
  validUntil:string;
  importedBasis?:Record<string,unknown>|null;
 }
-export interface Exposure {kind:string;targetId:string;field:string;valueDigest:string;sourceId:string;sourceRevision:number;}
+export interface Exposure {kind:string;targetId:string;field:string;valueDigest:string;sourceId:string;sourceRevision:number;approvedById?:string;approvedAt?:string;approvalBasis?:string;}
 export interface TalentMaintenanceTables {
 talentInvitations:TalentInvitation;
 talentInvitationContexts:TalentInvitationContext;

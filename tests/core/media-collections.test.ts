@@ -19,3 +19,6 @@ test('PR03C versioned tag catalog rejects inactive, unknown and duplicate author
  assert.doesNotThrow(()=>assertCollectionTags(['FASHION'],catalog));
  for(const codes of [['BEAUTY'],['invented'],['FASHION','FASHION']])assert.throws(()=>assertCollectionTags(codes,catalog),{code:'COLLECTION_TAG_INVALID'});
 });
+
+import {collectionFinalizationScenario} from '../support/media-collections-finalization.ts';
+test('PR03C finalization explicit grant exposure, tag provenance/CAS, stale current and type identity',async()=>{await collectionFinalizationScenario(new MemoryStore());});

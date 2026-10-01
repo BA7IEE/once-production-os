@@ -97,9 +97,10 @@ test('TD2-T11 collections separate type and content tag; reused assets are never
     const f=await setup(),role=ok(await add(f,'personRoles',{roleCode:'model'})),a=await asset(f);
     const c1=ok(await add(f,'mediaCollections',{personRoleId:role.resourceId,collectionTypeCode:'PORTFOLIO',title:'合成作品集'})),c2=ok(await add(f,'mediaCollections',{collectionTypeCode:'MODEL_CARD',title:'合成模卡'}));
     ok(await add(f,'mediaCollectionTags',{collectionId:c1.resourceId,tagCode:'FASHION'}));
-    for(const c of [c1,c2])ok(await f.owner.cmd('POST',`/td2/collections/${c.resourceId}/items`,{schemaVersion,expectedRevision:1,expectedPersonRevision:pRev(f),assetId:a.id}),200);
+    assert.equal(f.store.rows('mediaCollections').find(c=>c.id===c1.resourceId)!.revision,2,'tag creation advances collection revision');
+    for(const c of [c1,c2])ok(await f.owner.cmd('POST',`/td2/collections/${c.resourceId}/items`,{schemaVersion,expectedRevision:f.store.rows('mediaCollections').find(row=>row.id===c.resourceId)!.revision,expectedPersonRevision:pRev(f),assetId:a.id}),200);
     const item=f.store.rows('mediaCollectionItems').find(i=>i.collectionId===c1.resourceId)!;
-    ok(await f.owner.cmd('POST',`/td2/collections/${c1.resourceId}/items/remove`,{schemaVersion,expectedRevision:2,expectedPersonRevision:pRev(f),itemId:item.id}),200);
+    ok(await f.owner.cmd('POST',`/td2/collections/${c1.resourceId}/items/remove`,{schemaVersion,expectedRevision:3,expectedPersonRevision:pRev(f),itemId:item.id}),200);
     assert.equal(f.store.rows('assets').length,1);assert.equal(f.store.rows('mediaCollectionItems').length,1);
     assert.equal((await add(f,'mediaCollections',{collectionTypeCode:'LINGERIE',title:'错误类别'})).status,400);
 });

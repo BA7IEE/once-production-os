@@ -1,3 +1,7 @@
+# 2026-10-01 当前切片：PR-03C finalization
+
+主体复核通过但未冻结。本轮仅修 Grant-bound selfExposureManifest、Tag 当前来源和父集合版本、失效旧来源 current 切换、集合类型 identity。迁移1–63均保持原样；PR #31保持Draft、未合并、未部署。不进入PR-03D Work、客户分享、官网或Agent摄取。新增/完整实测证据见 docs/release/TALENT_EXPERIENCE_PR03.md，最终head CI以PR描述及本轮回复为准。
+
 # 2026-10-01 当前切片：PR-03C 媒体集合
 
 用户已复核冻结 PR-03A/03B（head 2c29e6819b3a1bcced4bd172777050415230c684）。当前继续 PR #31 Draft、未合并未部署，只做复用 MediaCollection/Item/Tag 的模卡、素颜照、Portfolio、Showreel、介绍视频和本人集合提交审核。下方禁止进入集合是历史范围，由本次用户授权替代。迁移1–62冻结，本轮增量63；先读 docs/release/TALENT_EXPERIENCE_PR03.md。完成后停下来复核，不进入 PR-03D Work、客户分享、官网或 Agent 摄取。Provider/COS/真实手机验证继续 NOT_RUN。

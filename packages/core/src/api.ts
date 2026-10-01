@@ -1,3 +1,4 @@
+import {approveMediaExposure} from './talent-media-exposure.ts';
 import {saveInternalCollection} from './media-collections.ts';
 import {TalentMaintenance} from './talent-maintenance.ts';
 import {TalentPortal} from './talent-portal.ts';
@@ -323,6 +324,7 @@ export class Application {
                     case 'talent.invitation.revoke':return command('talentInvitation',()=>maintenance.revokeInvitation(tx,actor,id,data));
                     case 'talent.claim.list':return maintenance.internalList(tx,actor,'claim');
                     case 'talent.claim.decide':return command('talentClaim',()=>maintenance.decideClaim(tx,actor,id,data));
+                    case 'talent.grant.mediaExposure':return command('talentGrant',()=>approveMediaExposure(tx,actor,id,data,this.clock,this.config));
                     case 'talent.grant.revoke':return command('talentGrant',()=>maintenance.revokeGrant(tx,actor,id,data));
                     case 'talent.submission.list':return maintenance.internalList(tx,actor,'submission');
                     case 'talent.submission.get':return maintenance.submissionDto(tx,await maintenance.internalSubmission(tx,actor,id),actor);

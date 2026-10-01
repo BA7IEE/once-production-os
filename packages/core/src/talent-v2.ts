@@ -156,23 +156,25 @@ export class TalentV2 {
             await tx.insert('evidence',evidence as FieldEvidence);
         }
     }
+    async bumpCollectionForTag(tx:Tx,row:Record<string,unknown>){const c=await tx.get('mediaCollections',String(row.collectionId));if(!c)missing();await tx.replace('mediaCollections',touch(c,this.clock));}
     async createFact(tx:Tx,actor:Actor,table:FactTable,personId:string,input:unknown){
         talentWrite(actor);const d=FACT_SCHEMAS[table].create.parse(input);legacyFields(d.schemaVersion,table,Object.keys(d.values));if(table==='measurementSets'&&d.schemaVersion==='once-talent-v2.0.0')invariant(d.values.datePrecision!=='UNKNOWN'&&d.values.measuredOn!==null,'TD2_SCHEMA_UPGRADE_REQUIRED','未知量尺日期须使用2.1合同',422);if(table==='talentProfiles'&&d.values.birthDate!=null)requirePermission(actor,'sensitive.write');const p=await this.parent(tx,actor,personId,d.expectedPersonRevision);
         await this.source(tx,actor,d.sourceId,d.sourceRevision);
         const row:FactRow={...base(actor.workspaceId,this.clock),personId,sourceId:d.sourceId,...rowDefaults(table),...d.values};
         if(table==='measurementSets')row.reportedAt=row.createdAt;
         await this.validate(tx,actor,table,row);await insertFact(tx,table,row);
+        if(table==='mediaCollectionTags')await this.bumpCollectionForTag(tx,row);
         await this.evidenceFor(tx,actor,table,row,Object.keys(d.values),d.sourceId,d.sourceRevision);
         await this.bump(tx,p);return row;
     }
     async patchFact(tx:Tx,actor:Actor,table:FactTable,id:string,input:unknown){
         talentWrite(actor);const d=FACT_SCHEMAS[table].patch.parse(input);legacyFields(d.schemaVersion,table,Object.keys(d.values));if(table==='measurementSets'&&d.schemaVersion==='once-talent-v2.0.0')invariant(d.values.datePrecision!=='UNKNOWN'&&d.values.measuredOn!==null,'TD2_SCHEMA_UPGRADE_REQUIRED','未知量尺日期须使用2.1合同',422);if(table==='talentProfiles'&&Object.hasOwn(d.values,'birthDate'))requirePermission(actor,'sensitive.write');const row=await rawFact(tx,actor,table,id),p=await this.parent(tx,actor,row.personId,d.expectedPersonRevision);
-        cas(row,d.expectedRevision!);await this.source(tx,actor,d.sourceId,d.sourceRevision);
+        cas(row,d.expectedRevision!);if(table==='mediaCollections'&&d.values.collectionTypeCode!==undefined)invariant(d.values.collectionTypeCode===row.collectionTypeCode,'COLLECTION_IDENTITY_CONFLICT','集合类型不能修改，请新建集合',409);await this.source(tx,actor,d.sourceId,d.sourceRevision);
         invariant(Object.keys(d.values).length>0,'EMPTY_UPDATE','没有需要保存的修改',400);
         const graph=await loadTalentGraph(tx,actor,this.clock);invariant(graph.readable(table,row),'FACT_UNAVAILABLE','目标资料不可用',404);
         if(table==='measurementSets')invariant(row.status==='DRAFT','MEASUREMENT_IMMUTABLE','已确认量尺只能新增版本，不能覆盖历史',409);
         invariant(row.sourceId===d.sourceId,'FACT_SOURCE_CONFLICT','不同来源的修改必须先提交字段建议',409);
-        const next={...touch(row,this.clock),...d.values};await this.validate(tx,actor,table,next);await replaceFact(tx,table,next);
+        const next={...touch(row,this.clock),...d.values};await this.validate(tx,actor,table,next);await replaceFact(tx,table,next);if(table==='mediaCollectionTags')await this.bumpCollectionForTag(tx,next);
         await this.evidenceFor(tx,actor,table,next,Object.keys(d.values),d.sourceId,d.sourceRevision);await this.bump(tx,p);return next;
     }
     async get(tx:Tx,actor:Actor,id:string){requirePermission(actor,'records.read');return (await loadTalentGraph(tx,actor,this.clock)).get(id);}
@@ -206,7 +208,7 @@ export class TalentV2 {
             invariant(!!allowed[key],'FIELD_UNREGISTERED','人物字段未注册',422);return allowed[key]!;
         }
         const def=TD2_FACTS[kind as FactTable];invariant(!!def && Object.hasOwn(def.fields,key),'FIELD_UNREGISTERED','字段未在当前资料类型登记',422);
-        invariant(!patch||!(def.immutable as readonly string[]).includes(key),'FIELD_IMMUTABLE','该关联或代码不能通过字段建议改写',422);
+        invariant(!patch||(!(def.immutable as readonly string[]).includes(key)&&!(kind==='mediaCollections'&&key==='collectionTypeCode')),'FIELD_IMMUTABLE','该关联或代码不能通过字段建议改写',422);
         return fieldSchema((def.fields as Record<string,string>)[key]!,key);
     }
     async evidenceHistory(tx: Tx, actor: Actor, query: Record<string,string>) {
@@ -264,7 +266,7 @@ export class TalentV2 {
                 const p=touch(owner.person,this.clock);Object.assign(p,{[row.fieldPath]:value});await tx.replace('people',p);await this.evidenceFor(tx,actor,'person',asRow(p),[row.fieldPath],source.id,source.revision,true);
             }else{
                 if(owner.table==='measurementSets')invariant(owner.row.status==='DRAFT','MEASUREMENT_IMMUTABLE','已确认量尺不能由建议改写',409);
-                const next={...touch(owner.row as FactRow,this.clock),[row.fieldPath]:value};await this.validate(tx,actor,owner.table,next);await replaceFact(tx,owner.table,next);await this.evidenceFor(tx,actor,pair[0],next,[row.fieldPath],source.id,source.revision,true);await this.bump(tx,owner.person);
+                const next={...touch(owner.row as FactRow,this.clock),[row.fieldPath]:value};await this.validate(tx,actor,owner.table,next);await replaceFact(tx,owner.table,next);if(owner.table==='mediaCollectionTags')await this.bumpCollectionForTag(tx,next);await this.evidenceFor(tx,actor,pair[0],next,[row.fieldPath],source.id,source.revision,true);await this.bump(tx,owner.person);
             }
         }
         const next={...touch(row,this.clock),state,decidedAt:this.clock.now().toISOString(),decidedById:actor.membershipId};await tx.replace('fieldProposals',next);return next;

@@ -153,10 +153,23 @@ STAGED本人/审核路径保持既有账号、Submission/Upload intake scope和G
 增量63复用现有Collection/Item/Tag，只增加独立coverAssetId、isCurrent和Tag ACTIVE/ARCHIVED。原workspace/Person/Role/Item FK保留，cover必须指本集合Item，current按Person+可空Role+类型唯一。1–62不改。
 
 - `POST /td2/people/{id}/media-collections`：内部 `records.write` + `assets.read`，完整 ordered items、Person CAS、目标 Collection CAS、独立当前内部 Source CAS；禁止以本人期限来源承接新的员工材料。只接受 EXISTING_ADOPTED_ASSET_REFERENCE。
-- `POST /portal/submissions/{id}/collections`：当前TalentAccount+Claim/Grant/Person+DRAFT+媒体使用同意，Submission CAS；替换本批COLLECTION方案，最多10个集合，每集合200项/8标签。unknown-fields reject保留；明确旧集合版本、职业、类型、封面、current、tag、ordered items。新文件只接受本批SUBMISSION_STAGED_ASSET，自有正式文件可用EXISTING_ADOPTED_ASSET_REFERENCE跨提交复用；不复制文件，不改上传归因。
-- `GET /portal/profiles/{id}/collections`：仅当前有效Grant的本人账号、自有上传且当前正式用途有效的素材/自有来源集合摘要；不开放全库搜索或Person内部资料。
+- `POST /portal/submissions/{id}/collections`：当前TalentAccount+Claim/Grant/Person+DRAFT+媒体使用同意，Submission CAS；替换本批COLLECTION方案，最多10个集合，每集合200项/8标签。unknown-fields reject保留；明确旧集合版本、职业、类型、封面、current、tag、ordered items。新文件只接受本批SUBMISSION_STAGED_ASSET，明确开放的正式文件可用EXISTING_ADOPTED_ASSET_REFERENCE跨提交复用；不复制文件，不改上传归因。
+- `GET /portal/profiles/{id}/collections`：仅当前TalentAccount与有效Grant绑定的selfExposureManifest明确开放、版本摘要匹配且当前正式用途有效的素材/集合摘要；不开放全库搜索或Person内部资料。
 - 受控PDF附件：内部`/assets/{id}/attachment`、审核`/talent-staged-assets/{id}/attachment`、本人`/portal/accounts/{accountId}/assets/{id}/attachment`，分别检查正式/暂存/当前账号授权；事务外读私有原件，返回前复查并写审计，不解析PDF、不生成公开URL。
 
 MODEL_CARD图片/PDF、POLAROIDS图片、PORTFOLIO/OTHER图片/MP4、SHOWREEL/INTRO_VIDEO MP4。封面只能选本集合图片，与人物总封面独立。通用Person素材可放精确Role集合，精确Role素材不能借给另一Role或通用集合。审批准同事务采纳依赖媒体、正式来源/归因/同意依据、完整集合和审核回执；SUBMITTED不改写。Sources各自控制每个Item，集合本身Source失效才禁用整个集合。移出Item不删文件；旧内部来源原件的字节所有权不因新集合关系改变。完整JSON包仍要求所有必需证据可读，草稿永不入普通导出。
 
 内容标签采用collection-tags-v1固定原8个code与ACTIVE状态目录；未知、停用或重复值拒绝新增；移除关系转ARCHIVED保留历史。本轮无标签管理或新业务菜单。PR03A/03B冻结，PR03C待复核；PR03D及后续未开始，三项外部验证保持NOT_RUN。
+
+
+## PR-03C finalization 合同（2026-10-01，Draft待复核）
+
+不新增或修改数据库结构，迁移1–63保持原样。以下修正取代“上传人即正式本人授权”的旧实现描述；STAGED接收范围不变。
+
+- `POST /talent-grants/{id}/media-exposure`，`talent.grant.mediaExposure`，INTERNAL COMMAND，talent.review，并复查正式 Person/Source/Role 的当前范围与 assets.read。严格请求为 expectedRevision、decision=ALLOW/REVOKE、assets[{id,expectedRevision}]（最多200）、collections[{id,expectedRevision}]（最多50）、approvalBasis（4–2000字）；拒绝空选择、重复和未知字段。返回既有最小回执，复用 Commands、审计、write-ahead 与 talentGrant 回执重放策略。
+- ALLOW 在当前 Grant 的 selfExposureManifest 写具体 mediaAsset/mediaCollection 版本、源版本、摘要及内部批准人/时间/依据。摘要绑定 grantId、account、Person/protection、authorizationEpoch 和正式实体内容。Collection 开放不自动开放全部 Item，素材分别批准。REVOKE 移除指定开放项；未批准、变更、过期或撤回立即拒绝当前本人读取和引用。
+- 本人 Submission 的 MEDIA/COLLECTION 审核批准时，在同一事务为该账号当前 Grant 自动生成相应 exposure。归因仍保留原 uploader，不以 uploader 或 SourceAttribution 代替当前授权。内部和未来已采纳 Agent 来源使用相同开放合同；机器上传仍由迁移62约束拒绝，不开放 PR-04。
+- Portal 原件/预览/MP4 Range、集合列表、已有素材引用、修改已有集合均使用该规则。新版本未获开放不能借旧草稿镜像读正式内容。JSON业务导出/重建不带 Grant/manifest；物理恢复保留证据后隔离清空 exposure、撤销旧 Grant，不能恢复旧开放权限。
+- `collectionTypeCode` 与 personRoleId 一样属于稳定 identity。已有集合换类型返回 `409 COLLECTION_IDENTITY_CONFLICT`（Portal draft、内部 save、generic patch）；字段建议也拒绝改类型。需要另一类型时新建集合。
+- 每次 Collection 审核/保存的有效 Tag 都使用本次正式 Source，包含重新启用和再次确认。ARCHIVED 历史及 FieldEvidence 保留。generic Tag create/patch 和字段建议落地均推进父 Collection revision，因此旧 expectedCollectionRevision 必须冲突。
+- 审核新的 current 时，只对旧 current 的取消检查旧来源 scope/删除保护，不要求旧 Source 仍 current；false 的 FieldEvidence 使用本次合法 Source。新 current 的来源仍须当前有效；不可见旧范围全事务拒绝。

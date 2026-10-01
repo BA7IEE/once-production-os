@@ -1,3 +1,29 @@
+# PR-03C finalization：本人开放权限与集合一致性（Draft，待复核）
+
+基线 `d8e59f7ab70fdb5f55ea0aead0a2f54cef020579`。主体复核已通过，但本轮尚未冻结。PR #31 继续 **Draft、未合并、未部署**，不进入 PR-03D Work。
+
+本轮五项修正：
+
+1. 正式本人媒体与集合统一核对当前 TalentAccount、Claim/Grant/Person、selfExposureManifest 的具体版本/来源摘要，以及当前 Source/Role/用途、删除与恢复保护。本人投稿审核在同事务生成 exposure；内部来源须通过 `talent.grant.mediaExposure` 明确批准。该内部 COMMAND 采用既有最小回执、审计、write-ahead、CAS、原键重放，审计失败整个授权回滚。集合开放不隐含开放全部 Item；归因不再充当权限。模拟未来 Agent 来源只模拟已采纳正式关系，保留真实上传人，不开放机器上传。
+2. 已归档标签重新启用、现有标签再次确认，均使用本次正式 Source；追加 FieldEvidence，保留此前来源证据。
+3. generic Tag create/patch 及字段建议落地推进父 Collection revision。本人保存并提交后，内部 Tag 改动使旧审核返回版本冲突，不覆盖后台修改。
+4. 新 current 审核可将过期/SUSPENDED 旧来源的集合退出 current；仍检查旧 scope/删除保护，false 使用本次有效审核依据。隐藏旧 scope 全事务拒绝。
+5. Collection type 与 Role 同为 identity。Portal draft、内部 save、generic patch 原地换类型统一 `409 COLLECTION_IDENTITY_CONFLICT`，字段建议也拒绝。页面锁定已有类型，换类型新建集合。
+
+浏览器额外定位并修复同页并行编辑竞态：命令回执到达后继续锁定其他编辑区，直到服务器最新版本读回，避免媒体同意更新与集合保存之间使用旧版本。受控阻塞刷新请求的反例验证按钮保持禁用，然后正常保存；不靠延时或自动重试。
+
+**没有 schema 变更、没有新增迁移；迁移1–63逐文件不变。** 既有 JSONB manifest 支持本次严格版本化 exposure。正式素材来源 B 的开放与 Person 主来源 A 分开检查，A 撤回不误杀仍合法的 B。
+
+本轮最终本地实测：**Core 633/633；真实 PostgreSQL 50组/140项，另6组受影响场景复跑；10组真实Chrome；255条路由合同、类型检查、静态、构建、17项checkpoint通过。** 实际恢复13个文件/92602字节，旧Grant/session及exposure拒绝复活。
+
+本轮真实结果和原始日志见 [实测汇总](../../artifacts/talent-experience-pr03-finalization/verification.json)、[验收映射](../../artifacts/talent-experience-pr03-finalization/acceptance-matrix.md)。CI 必须绑定最终 head，链接回填 PR #31 描述及交付回复，不借用基线 head 的通过记录。
+
+生命周期沿用现有 Grant 清理：撤权、停用、合并、人物删除、恢复隔离均拒绝旧 exposure。来源撤回后本人原件/预览/每次 MP4 Range 立即重查；业务 JSON 导出/重建不包含账号/Grant/manifest；真实 pg_dump/restore + 私有字节恢复检查 manifest 清空、Grant/session 失效。
+
+`PROVIDER_VERIFIED=NOT_RUN`、`COS_PROVIDER_VERIFIED=NOT_RUN`、`MOBILE_DEVICE_VERIFIED=NOT_RUN`。本轮没有 Work、客户分享、官网、机器摄取或完整暂存回收调度。下面保留主体阶段与更早切片的历史证据，不以其数字替代本轮实测。
+
+---
+
 # PR-03C：媒体集合（Draft，待复核）
 
 PR-03A/03B 已由用户复核冻结，基线 `2c29e6819b3a1bcced4bd172777050415230c684`。本轮复用现有 MediaCollection / MediaCollectionItem / MediaCollectionTag，PR #31 继续 **Draft、未合并、未部署**；PR-03整体未完成。不进入 PR-03D Work。
@@ -12,11 +38,11 @@ MODEL_CARD 接受照片/PDF；PDF 为受控私有附件，不解析/OCR/生成�
 
 ## 本人草稿、审核与正式读取
 
-`TalentSubmissionItem.kind=COLLECTION` 保存服务器集合方案：目标集合与 expectedCollectionRevision、Role、类型、名称、current、cover、tags、完整顺序/caption/featured。引用明确区分 `SUBMISSION_STAGED_ASSET` 与 `EXISTING_ADOPTED_ASSET_REFERENCE`。前者只允许本次 Submission 新文件；后者必须当前本人 uploader + 活跃 Grant/Claim + 同 Person/兼容 Role + 正式 Source/用途有效，跨 Submission 复用同一 Asset ID/hash，不重新上传。未绑定 ENROLL 仍只能选择自己本次新素材。
+`TalentSubmissionItem.kind=COLLECTION` 保存服务器集合方案：目标集合与 expectedCollectionRevision、Role、类型、名称、current、cover、tags、完整顺序/caption/featured。引用明确区分 `SUBMISSION_STAGED_ASSET` 与 `EXISTING_ADOPTED_ASSET_REFERENCE`。前者只允许本次 Submission 新文件；后者必须当前 TalentAccount + 活跃 Grant/Claim + grant-bound selfExposureManifest 的明确版本 + 同 Person/兼容 Role + 正式 Source/用途有效，跨 Submission 复用同一 Asset ID/hash，不重新上传。未绑定 ENROLL 仍只能选择自己本次新素材。
 
 DRAFT 可修改，SUBMITTED 冻结；集合依赖的新媒体条目必须一起批准。批准事务写正式来源/归因/用途依据，采纳媒体、集合、排序、标签、封面、当前版本和审核回执。任何审计或业务失败全部回滚。审核页显示文件名、新增/移出、旧新顺序、封面和标签差异，非 JSON diff。本人无正式集合直接写入口。
 
-后台人才主详情提供媒体集合画廊和整理入口；Portal 支持保存、刷新继续、选择已有自有原件、调整顺序/封面/标签、提交和看正式结果。所有 Portal Person 读取继续核对当前账号和 Grant/Claim；切换账号后拒绝旧页读写。
+后台人才主详情提供媒体集合画廊和整理入口；Portal 支持保存、刷新继续、选择已明确开放的正式原件、调整顺序/封面/标签、提交和看正式结果。所有 Portal Person 读取继续核对当前账号和 Grant/Claim；切换账号后拒绝旧页读写。
 
 集合投影逐 Item 复查正式授权：素材 Source A 撤回只隐藏 A，独立 Source B 素材仍保留；集合自身 Source 失效才使整集合不可用。封面失效返回空，不自动认定第一张为封面。
 
