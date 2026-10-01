@@ -26,7 +26,7 @@ Submission 冻结 ServicePrincipal ID / authorizationEpoch / recoveryEpoch / int
 
 NEW：submit 前不生成 Person；reviewer 明确 CREATE_NEW + 自己可访问的 formalScopeId。最小建档采纳姓名、别名、简介和一个职业，相关条目按依赖组整组处理。
 
-EXISTING：submit 冻结精确 Person、revision、protectionEpoch、scope/revision、merge/delete 和相关 Role/Profile/Casting/Measurement/Source 基线。reviewer 只能明确 LINK_EXISTING 同一目标，不跟随 alias/canonical；基线、来源可用性或删除/合并变化返回 TARGET_REBASE_REQUIRED。由原机器在当前合法权限下显式 fork、新外部键、重新提交；不能在旧提交上改目标。恢复隔离和已清理草稿不能借 fork 复活。
+EXISTING：submit 冻结精确 Person、revision、protectionEpoch、scope/revision、merge/delete 和相关 Role/Profile/Casting/Measurement、FieldEvidence及全部支持Source基线。reviewer 只能明确 LINK_EXISTING 同一目标，不跟随 alias/canonical；基线、来源可用性或删除/合并变化返回 TARGET_REBASE_REQUIRED。由原机器在当前合法权限下显式 fork、新外部键、重新提交；不能在旧提交上改目标。恢复隔离和已清理草稿不能借 fork 复活。
 
 LINK reviewer 同时有 intake 与目标 formal scope；CREATE_NEW 正式 scope 由 reviewer 选择，Agent 输入该字段被 strict schema 拒绝。正式 Source 与 Person/事实使用 formal scope，Submission 保留 intake provenance。正式投影使用当前 Person/Source/Evidence，不额外要求历史 intake scope；授权变化阻断旧摄取操作，不把已采纳事实伪装成仍属于 Agent 的写权限。
 
@@ -69,10 +69,14 @@ MACHINE 只用真实 Bearer，Cookie 不回退，Bearer+Cookie 拒绝。A 不可
 | PostgreSQL 全量 | 79 个测试程序，169 项，0 失败；本地 PostgreSQL 14.19，不标记为 PG16 |
 | 新 PG 专项 | 真实并发外部键、FK/XOR/不可变/epoch、审计故障、原键重放/新键 closed、Source撤回、JSON重建、pg_dump/restore、恢复隔离、原文单向清理；见 [postgres.json](../../artifacts/agent-ingestion-pr04a/postgres.json) |
 | 68→71 保留库 | 原 TALENT 账号/claim/grant/submission/item/consent/attribution/basis 和旧 TD2 principal 的旧列逐项不变，epoch 仅回填1；见 [upgrade.json](../../artifacts/agent-ingestion-pr04a/upgrade.json) |
-| 本地 Browser | 新 Nest + 真 Bearer + 内部 Chrome 完整审核旅程通过；原 TalentMaintenance（360/390/430）及 TalentDirectory 回归通过 |
+| 本地 Browser | 新 Nest + 真 Bearer + 内部 Chrome 完整审核旅程通过；原 TalentMaintenance（360/390/430）、TalentDirectory、media / media-staging / media-purge 回归通过 |
 | CI | 新增独立 ingestion 浏览器 job；完整 14 jobs，含 PostgreSQL 16、原12组 Browser + 新 ingestion。最终结论只认本 PR 最终 head 的 Actions，不沿用 PR31 冻结 CI |
 
 对应冻结设计：I01身份、I02旧新权限边界、I03 scope/owner、I04幂等并发、I05未知事实、I07依赖审核的文字部分；I13 proposed目标未绑定、I14 merge/delete/revision rebase、I15真实INTERNAL_REVIEW、I16假Consent拒绝、I17 rotate继续、I18授权变化失效、I21机器不可指定正式scope、I22新Person明确正式scope。I19/I20媒体正式授权及I06/I08/I09/I10媒体/Collection/Work本人接手留在后续包，不将文字路径冒称完整媒体验收。
+
+补充反例：字段证据来自 Source B、事实本身仍主来源 A；B 撤回而 Person/事实 revision 不变时，审核仍必须 TARGET_REBASE_REQUIRED。初始实现漏掉这条支持来源，Core 真实复现为错误 200；已补冻结字段证据及其来源，Core/PG均拒绝 409，无新迁移。
+
+首 head a79edae 的 CI36919823171有13项通过，media-purge因依赖安装触及30分钟job上限取消，Browser未执行；本地该旅程实跑通过。仅把该job预算改为45分钟，测试命令、断言及测试自身超时不变。最终新head仍完整重跑14项，不沿用旧head结果。
 
 本地测试记录汇总及源码摘要见 [verification.json](../../artifacts/agent-ingestion-pr04a/verification.json)。最终 SHA / exact-head CI run 回填对应 Draft PR 描述和交付回复，避免把本地记录作为远端最终检查。
 

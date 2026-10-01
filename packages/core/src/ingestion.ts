@@ -11,7 +11,7 @@ import {requirePermission,requireScope,scopeVisible,sourceFor,sourceCurrent,dele
 import {appendSourceHistory} from './source-history.ts';
 import {TalentV2} from './talent-v2.ts';
 import {td2PersonFor,loadTalentGraph,asRow,periodCurrent,insertFact,replaceFact} from './talent-v2-graph.ts';
-import {TD2_FACTS,rowDefaults,type FactTable,type FactRow} from './talent-v2-schema.ts';
+import {TD2_FACTS,OWNER_KEYS,rowDefaults,type FactTable,type FactRow} from './talent-v2-schema.ts';
 import {PROFILE_DEFAULTS,ROLE_DEFAULTS,validateDemographics} from './talent-demographics.ts';
 const TEXT=['displayName','aliases','intro'];
 const open=new Set(['DRAFT','SUBMITTED']);
@@ -38,8 +38,8 @@ export class Ingestion {
  async targetBaseline(tx:Tx,workspaceId:string,id:string){
   const p=await workspaceRow(tx,'people',id,workspaceId);invariant(p&&p.status!=='ERASED'&&p.status!=='ARCHIVED'&&!await personAliasFor(tx,workspaceId,id)&&!await deletionBlocked(tx,workspaceId,'PERSON',id),'TARGET_REBASE_REQUIRED','建议目标已合并、删除或不可用于本次关联',409);
   const scope=await workspaceRow(tx,'scopes',p.scopeId,workspaceId);invariant(scope,'TARGET_REBASE_REQUIRED','建议目标范围已失效',409);
-  const facts=[],sourceIds=new Set([p.sourceId]);for(const t of ['personRoles','talentProfiles','castingProfiles','measurementSets'] as const)for(const f of await tx.find(t,{workspaceId,personId:id})){facts.push({table:t,id:f.id,revision:f.revision});sourceIds.add(f.sourceId);}facts.sort((a,b)=>a.id.localeCompare(b.id));const sources=[];for(const id of [...sourceIds].sort()){const src=await workspaceRow(tx,'sources',id,workspaceId),scope=src?await workspaceRow(tx,'scopes',src.scopeId,workspaceId):null;sources.push({id,revision:src?.revision??null,protectionEpoch:src?.protectionEpoch??null,scopeId:src?.scopeId??null,scopeRevision:scope?.revision??null,current:!!src&&sourceCurrent(src,this.clock)});}
-  return {personId:p.id,revision:p.revision,protectionEpoch:p.protectionEpoch,status:p.status,scopeId:p.scopeId,scopeRevision:scope.revision,facts,sources};
+  const facts=[],sourceIds=new Set([p.sourceId]);for(const t of ['personRoles','talentProfiles','castingProfiles','measurementSets'] as const)for(const f of await tx.find(t,{workspaceId,personId:id})){facts.push({table:t,id:f.id,revision:f.revision});sourceIds.add(f.sourceId);}facts.sort((a,b)=>a.id.localeCompare(b.id));const evidence=[];for(const owner of [{table:'person',id:p.id},...facts])for(const e of await tx.find('evidence',{workspaceId,[OWNER_KEYS[owner.table]!]:owner.id})){evidence.push({id:e.id,revision:e.revision,sourceId:e.sourceId,sourceRevision:e.sourceRevision,fieldPath:e.fieldPath,valueDigest:e.valueDigest});sourceIds.add(e.sourceId);}evidence.sort((a,b)=>a.id.localeCompare(b.id));const sources=[];for(const id of [...sourceIds].sort()){const src=await workspaceRow(tx,'sources',id,workspaceId),scope=src?await workspaceRow(tx,'scopes',src.scopeId,workspaceId):null;sources.push({id,revision:src?.revision??null,protectionEpoch:src?.protectionEpoch??null,scopeId:src?.scopeId??null,scopeRevision:scope?.revision??null,current:!!src&&sourceCurrent(src,this.clock)});}
+  return {personId:p.id,revision:p.revision,protectionEpoch:p.protectionEpoch,status:p.status,scopeId:p.scopeId,scopeRevision:scope.revision,facts,evidence,sources};
  }
  async checkTarget(tx:Tx,s:MachineSubmission){if(s.proposedPersonId)invariant(digest(await this.targetBaseline(tx,s.workspaceId,s.proposedPersonId))===digest(s.proposedTargetBaseline),'TARGET_REBASE_REQUIRED','建议目标已变化；须 fork 并重新冻结，不能静默改绑',409);}
  async create(tx:Tx,actor:Actor,input:unknown){const d=S.create.parse(input);invariant(d.sourceDeclaration.title.trim().length>0&&d.sourceDeclaration.providerClaim.trim().length>0&&d.sourceDeclaration.materialDescription.trim().length>=4,'SOURCE_DECLARATION_REQUIRED','请提供明确来源声明',422);const p=await this.principal(tx,actor),scope=(await this.currentPrincipal(tx,p.id,p.workspaceId)).scope;

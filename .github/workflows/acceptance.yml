@@ -524,9 +524,10 @@ jobs:
       - run: node tests/acceptance/browser-work-cases.mjs
 
 
+  # First PR04A run spent 22 minutes installing ffmpeg; preserve all browser assertions.
   browser-media-purge:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     services:
       postgres:
         image: postgres:16

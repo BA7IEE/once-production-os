@@ -1,0 +1,15 @@
+{
+  "run": 36919823171,
+  "headSha": "a79edae6e94af5d0947b85cac5f017945f52fd75",
+  "conclusion": "cancelled",
+  "successJobs": 13,
+  "cancelledJob": "browser-media-purge",
+  "ffmpegInstallStartedAt": "2026-10-01T20:16:50Z",
+  "ffmpegInstallCompletedAt": "2026-10-01T20:38:32Z",
+  "browserDependenciesStartedAt": "2026-10-01T20:38:32Z",
+  "cancelledAt": "2026-10-01T20:42:18Z",
+  "browserTest": "NOT_RUN",
+  "localSameBrowserJourney": "PASS",
+  "budgetOnlyChange": "media-purge job 30→45 minutes; all commands/assertions/test timeouts preserved",
+  "finalHeadPolicy": "new target-evidence fix requires full14 exact-head run"
+}

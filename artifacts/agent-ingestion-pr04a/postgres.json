@@ -17,6 +17,7 @@
     "receipt-audit-writeahead-real-machine-attribution",
     "existing-person-null-before-review-stale-target-conflict-explicit-fork-rebase-exact-link-no-duplicate",
     "review-requires-both-intake-and-formal-formal-read-independent-of-intake",
+    "independent-field-evidence-source-withdrawal-invalidates-target-with-unchanged-person-and-fact-revisions",
     "actual-person-merge-stale-target-fail-closed-no-canonical-following",
     "actual-person-deletion-block-stale-target-rebase-required",
     "permission-scope-maintainer-disable-and-revoke-invalidate-old-drafts",
