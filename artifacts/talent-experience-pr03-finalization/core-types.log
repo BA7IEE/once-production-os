@@ -1,0 +1,4 @@
+
+> once-production-os@0.1.0-dev.1 typecheck:core /Users/dengwang/.codex/worktrees/talent-experience/once-production-os
+> tsc -p packages/core/tsconfig.json
+

@@ -1,0 +1,17 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.waitFor: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('region', { name: '整理本人媒体集合' }).getByRole('status').filter({ hasText: '集合草稿已保存在服务器' }) to be visible[22m
+
+    at collectionExposureJourney (/Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/acceptance/collection-exposure.mjs:27:370)
+    at async file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/acceptance/browser-media-collections.mjs:96:95 {
+  log: [
+    "  - waiting for getByRole('region', { name: '整理本人媒体集合' }).getByRole('status').filter({ hasText: '集合草稿已保存在服务器' }) to be visible"
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.22.3
