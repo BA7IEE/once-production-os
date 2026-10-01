@@ -1,0 +1,17 @@
+{
+  "status": "BROWSER_TESTED",
+  "browser": "154.0.8037.59",
+  "database": [
+    {
+      "version": "PostgreSQL 14.19 (Homebrew) on aarch64-apple-darwin24.4.0, compiled by Apple clang version 17.0.0 (clang-1700.0.13.3), 64-bit"
+    }
+  ],
+  "checks": [
+    "real Nest machine schema/dictionaries; internal Cookie and Portal/review crossings denied",
+    "real Bearer client submits frozen text/role/unknown-date facts without precreating Person",
+    "Chrome internal reviewer explicitly chooses formal scope; PostgreSQL atomically stores Person/Source/Role/basis without Consent",
+    "same formal directory/main detail shows adopted text/role/height and unknown date",
+    "refresh does not resubmit candidate or duplicate adopted Person"
+  ],
+  "errors": []
+}

@@ -1,3 +1,7 @@
+# 当前授权：PR-04A 主体与文字摄取
+
+用户已批准基于PR-03冻结aeaf49da的stacked开发，设计7017d5ef为冻结依据。当前codex/external-agent-ingestion-pr04a仅实现真实MACHINE Submission、schema/字典、文字/职业/基础事实、内部审核、typed basis和scope转换。从69前向迁移，1–68不改。PR #31 head不变、不合并部署；新业务PR保持Draft。不得进入媒体摄取、Collection/Work、本人接手闭环、MCP/Skill、抓取/OCR/自动merge或商业模块。完成真实Core/PG/Nest/Chrome和精确head CI后停止交复核。下方DESIGN_ONLY为历史阶段，已由本次用户明确启动授权替代。
+
 # 2026-10-02 当前状态：PR-03 冻结，PR-04 仅设计
 
 用户正式确认 PR-03 DEVELOPMENT FROZEN；A–E均FROZEN，代码SHA aeaf49da7d5346785adac6df4e2d34321f9d92d2，CI36901766784为13/13 SUCCESS。PR #31 Ready for Review、未合并、未部署。业务代码、迁移1–68和验收合同不改写；供应商/COS/物理手机/生产迁移继续NOT_RUN，DEPLOYED=false。权威状态见 docs/release/PR03_DEVELOPMENT_FREEZE.md。

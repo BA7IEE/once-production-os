@@ -21,7 +21,8 @@ import type { RecoveryRun } from './recovery-model.ts';
 export type Role = 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'VIEWER';
 export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write', 'data.export', 'data.delete', 'data.merge', 'ai.use', 'talent.invite', 'talent.review'] as const;
 export type ExtraPermission = typeof EXTRA_PERMISSIONS[number];
-export type Permission = 'records.read' | 'records.write' | 'sources.read' | 'sources.write' | 'sources.review' | 'catalog.manage' | 'members.manage' | 'audit.read' | 'assets.read' | 'assets.upload' | 'talent.propose' | 'talent.fact.write' | ExtraPermission;
+export type IngestionPermission = 'ingestion.schema.read'|'ingestion.submit'|'ingestion.read.own'|'ingestion.withdraw.own';
+export type Permission = IngestionPermission | 'records.read' | 'records.write' | 'sources.read' | 'sources.write' | 'sources.review' | 'catalog.manage' | 'members.manage' | 'audit.read' | 'assets.read' | 'assets.upload' | 'talent.propose' | 'talent.fact.write' | ExtraPermission;
 export interface Base {
     id: string;
     workspaceId: string;
@@ -309,6 +310,7 @@ export interface Clock {
     now(): Date;
 }
 export interface Config {
+    ingestionEnabled?:boolean;
     talentAuth?: TalentAuthConfig;
     ai?: AiLedgerConfig;
     mediaRetention?: import('./media-retention.ts').MediaRetention;

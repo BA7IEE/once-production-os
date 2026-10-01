@@ -1,8 +1,8 @@
 # PR-04：External Agent Ingestion / 外部 Agent 受控建档摄取
 
-日期：2026-10-02。状态：**DESIGN_ONLY / 整稿待复核，未编码；本次四项设计决策 FROZEN**。依据冻结的 [spec/15 §11、PR-04](../spec/15_TALENT_EXPERIENCE_V1_1.md)、[spec/16 ADR](../spec/16_TALENT_EXPERIENCE_CONTRACT.md) 和 [PR-03冻结记录](../release/PR03_DEVELOPMENT_FREEZE.md)。代码核对基线：`aeaf49da7d5346785adac6df4e2d34321f9d92d2`，PR #31 Ready、未合并、未部署。
+日期：2026-10-02。状态：**DESIGN FROZEN；PR-04A 已获实施授权，当前实现待代码级复核**。依据冻结的 [spec/15 §11、PR-04](../spec/15_TALENT_EXPERIENCE_V1_1.md)、[spec/16 ADR](../spec/16_TALENT_EXPERIENCE_CONTRACT.md) 和 [PR-03冻结记录](../release/PR03_DEVELOPMENT_FREEZE.md)。PR-03基线 `aeaf49da7d5346785adac6df4e2d34321f9d92d2`，PR #31 Ready、未合并、未部署；本设计冻结提交 `7017d5ef9583b0fd6f7a19521a7faa0f43ce7252`。
 
-本文细化已确定的摄取范围，供开发前复核。以下实体增量、权限名、API路径和错误码均为**拟实现合同**；不是已运行接口，不回写PR-03业务代码或验收合同。本次按用户要求冻结§4.3–4.6的四项模型及§10.2的验收约束；冻结的是设计决策，不表示PR-04开发冻结、运行测试通过或已获编码授权。设计通过后仍须另获开发授权；若PR #31尚未合并，不把PR-04代码追加到它的冻结分支。
+用户本轮仅授权 PR-04A 的主体与文字摄取，独立 stacked 分支不改变 PR #31 head。本文冻结模型和验收合同保持原文；A的实际接口、迁移69–71、证据和边界见 [PR-04A交付说明](../release/PR04_AGENT_INGESTION_A.md)。B/C/D、媒体、MCP/Skill仍为后续合同，不表示已实施。设计冻结不等于PR-04开发冻结、生产可用或已部署。
 
 ## 1. 第一性原理：接收材料，不授予材料提供者裁决权
 

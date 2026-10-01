@@ -38,6 +38,8 @@ export function loadConfig(): Config {
     if (!['true', 'false'].includes(secure))
         throw new Error('COOKIE_SECURE invalid');
     required('DATABASE_URL');
+    const ingestion=process.env.AGENT_INGESTION_ENABLED??'false';
+    if(!['true','false'].includes(ingestion))throw new Error('AGENT_INGESTION_ENABLED invalid');
     const media = process.env.MEDIA_PROVIDER ?? 'disabled';
     if (!['disabled', 'local', 'cos'].includes(media))
         throw new Error('MEDIA_PROVIDER not supported');
@@ -52,6 +54,6 @@ export function loadConfig(): Config {
     const recoveryEpoch = readFileSync(required('RECOVERY_EPOCH_FILE'), 'utf8').trim();
     if (!/^[A-Za-z0-9_-]{32,128}$/.test(recoveryEpoch))
         throw new Error('RECOVERY_EPOCH_FILE must contain a 32-128 character base64url-style epoch');
-    return { mediaRetention:loadMediaRetention(process.env), mediaAdmission:loadMediaAdmission(process.env), mediaPlayback:loadPlaybackLimits(process.env), talentAuth:loadTalentAuthConfig(environment), mediaEnabled: media !== 'disabled', origin: required('APP_ORIGIN'), secureCookies: secure === 'true', environment: environment as Config['environment'], accessMode: accessMode as Config['accessMode'], dataEgressMode: egress as Config['dataEgressMode'], dataCleanupMode: cleanup as Config['dataCleanupMode'], dataMergeMode: merge as Config['dataMergeMode'],
+    return { ingestionEnabled:ingestion==='true', mediaRetention:loadMediaRetention(process.env), mediaAdmission:loadMediaAdmission(process.env), mediaPlayback:loadPlaybackLimits(process.env), talentAuth:loadTalentAuthConfig(environment), mediaEnabled: media !== 'disabled', origin: required('APP_ORIGIN'), secureCookies: secure === 'true', environment: environment as Config['environment'], accessMode: accessMode as Config['accessMode'], dataEgressMode: egress as Config['dataEgressMode'], dataCleanupMode: cleanup as Config['dataCleanupMode'], dataMergeMode: merge as Config['dataMergeMode'],
         contactKey: key('CONTACT_KEY_FILE'), csrfKey: key('CSRF_KEY_FILE'), recoveryEpoch };
 }

@@ -2,6 +2,7 @@ import {CollectionSchemas} from './media-collections.ts';
 import type { RouteDefinition } from './routes.ts';
 import { TD2Schemas as S, TD2_TABLES, TD2_FACTS, FACT_SCHEMAS } from './talent-v2-schema.ts';
 export const TD2_ROUTES:RouteDefinition[]=[
+    {method:'POST',path:'/td2/principals/{id}/authorization',operation:'td2.principal.authorization',mode:'COMMAND',permission:'members.manage',schema:S.principalAuthorization},
     {method:'POST',path:'/td2/people/{id}/media-collections',operation:'td2.collection.save',mode:'COMMAND',permission:'records.write',schema:CollectionSchemas.save},
     {method:'GET',path:'/td2/people/{id}/height-reviews',operation:'td2.heightReview.list',mode:'READ',permission:'sources.review'},
     {method:'POST',path:'/td2/height-reviews/{id}/dismiss',operation:'td2.heightReview.dismiss',mode:'COMMAND',permission:'sources.review',schema:S.heightReviewDismiss},

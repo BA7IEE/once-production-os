@@ -1,3 +1,11 @@
+## 2026-10-02：PR-04A 主体与文字摄取（Draft，待代码复核）
+
+用户已正式启动 PR-04A，原 DESIGN_ONLY 为历史阶段。基于冻结 PR03 aeaf49da / 设计7017d5ef的独立 stacked 分支实现真实 MACHINE Submission、窄权限与 authorizationEpoch、文字/Role/基础事实、明确 NEW/EXISTING审核、typed INTERNAL_REVIEW及intake→formal转换。迁移69–71前向追加，1–68字节不变；PR #31 head不变、未合并未部署。
+
+本地 Core685/685、PG79个程序/169项及新Nest/Bearer/Chrome审核旅程通过；旧本人文字维护及目录浏览器回归通过。PG16和原12组Browser+新ingestion共14项最终CI以该 Draft PR 最终head为准，不能借用PR31结果。完整实现、生命周期、证据及未验边界见 [PR04_AGENT_INGESTION_A.md](PR04_AGENT_INGESTION_A.md)。PR-04未冻结，B/C/D未开始；供应商/COS/物理手机/生产迁移均NOT_RUN，DEPLOYED=false。
+
+以下保留历史记录。
+
 ## 2026-10-02：PR-04 四项设计决策冻结，仍 DESIGN_ONLY
 
 本次文档一致性检查通过：四项冻结模型、I13–I23共11条设计反例及变更文档本地链接均已检查，代码/迁移/冻结规格路径diff为空；MANIFEST按最终文档更新并逐项核对。本次未运行Core、PG、Browser或新增CI，不将设计反例标为已验收。

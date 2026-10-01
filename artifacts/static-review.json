@@ -1,16 +1,16 @@
 {
-  "generatedAt": "2026-09-29T06:22:01.616Z",
+  "generatedAt": "2026-10-01T20:06:22.471Z",
   "node": "v22.22.3",
   "typescript": "5.8.3",
   "scope": "static-source-and-contract",
-  "pass": 11,
+  "pass": 12,
   "fail": 0,
   "checks": [
     {
       "name": "typescript-syntax-transpile",
       "passed": true,
       "detail": {
-        "files": 157,
+        "files": 213,
         "diagnostics": [],
         "note": "Syntax emit only. Not dependency resolution, full typecheck, Nest/Vite build, or browser execution."
       }
@@ -32,7 +32,7 @@
       "name": "unique-route-operation-identities",
       "passed": true,
       "detail": {
-        "routes": 198
+        "routes": 275
       }
     },
     {
@@ -46,9 +46,19 @@
       "detail": null
     },
     {
-      "name": "no-deferred-http-surfaces",
+      "name": "reviewed-experience-http-surfaces",
       "passed": true,
-      "detail": null
+      "detail": {
+        "unsupported": [],
+        "note": "PR-01 directory and PR-02a authentication and PR-02b text maintenance admit exact reviewed paths only; route presence is not release acceptance."
+      }
+    },
+    {
+      "name": "no-non-goal-http-surfaces",
+      "passed": true,
+      "detail": {
+        "nonGoals": []
+      }
     },
     {
       "name": "candidate-migration-typed-tables",

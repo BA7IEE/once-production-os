@@ -1,3 +1,5 @@
+import {normalizedMachineAuthorization} from '../../packages/core/src/machine-authorization.ts';
+import type {ServicePrincipal} from '../../packages/core/src/talent-v2-model.ts';
 import {normalizePrincipalRow} from '../../packages/core/src/principal.ts';
 import { AppError } from '../../packages/core/src/errors.ts';
 import type { Store, Tx } from '../../packages/core/src/store.ts';
@@ -30,6 +32,7 @@ export class MemoryStore implements Store {
                 return structuredClone(rows.filter(row => Object.entries(where).every(([key, value]) => JSON.stringify((row as unknown as Record<string, unknown>)[key]) === JSON.stringify(value))));
             },
             insert: async <K extends Table>(table: K, row: TableMap[K]): Promise<void> => {
+                if(table==='servicePrincipals')row=normalizedMachineAuthorization(row as ServicePrincipal) as TableMap[K];
                 if(table==='receipts'||table==='audits')row=normalizePrincipalRow(row,table==='audits');
                 if (table === 'audits' && this.failNextAudit) {
                     this.failNextAudit = false;
@@ -45,6 +48,7 @@ export class MemoryStore implements Store {
                     throw new AppError(409, 'HISTORY_IMMUTABLE', '来源历史只允许追加');
                 if ((table === 'talentProfiles' || table === 'castingProfiles') && draft[table].get(row.id)?.supersededById)
                     throw new AppError(409, 'MERGE_HISTORY_IMMUTABLE', '合并保留的专业档案只读');
+                if(table==='servicePrincipals')row=normalizedMachineAuthorization(row as ServicePrincipal,draft.servicePrincipals.get(row.id)) as TableMap[K];
                 if (!draft[table].has(row.id))
                     throw new Error('missing row');
                 (draft[table] as Map<string, TableMap[K]>).set(row.id, structuredClone(row));

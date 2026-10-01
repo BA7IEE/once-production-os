@@ -190,6 +190,7 @@ export interface MediaCollectionItem extends Base {
     featured: boolean;
 }
 export interface ServicePrincipal extends Base {
+    authorizationEpoch?:number;
     displayName: string;
     scopeId: string;
     permissionCodes: string[];

@@ -45,7 +45,9 @@ const projectData = v.object({
     status: v.enum(['DRAFT', 'ACTIVE', 'COMPLETED', 'ARCHIVED'])
 });
 
-export const TalentBasisTransferSchema=v.object({version:v.enum(['talent-basis-v1','talent-basis-v2']),providerAccountId:uuid,submissionId:uuid,consentId:uuid,consentRevision:revision,textVersion:v.string(100,1),purpose:v.enum(['INTERNAL_DIRECTORY']),fieldScope:v.array(v.enum(['displayName','aliases','intro','media','work']),5,1),validUntil:dateIso,reviewerId:uuid});
+const ConsentBasisTransferSchema=v.object({version:v.enum(['talent-basis-v1','talent-basis-v2']),providerAccountId:uuid,submissionId:uuid,consentId:uuid,consentRevision:revision,textVersion:v.string(100,1),purpose:v.enum(['INTERNAL_DIRECTORY']),fieldScope:v.array(v.enum(['displayName','aliases','intro','media','work']),5,1),validUntil:dateIso,reviewerId:uuid});
+const ReviewBasisTransferSchema=v.object({version:v.enum(['internal-review-basis-v1']),basisKind:v.enum(['INTERNAL_REVIEW']),providerServicePrincipalId:uuid,submissionId:uuid,sourceAttributionId:uuid,reviewerId:uuid,reviewBasisDigest:v.string(64,64,/^[a-f0-9]{64}$/),purpose:v.enum(['INTERNAL_DIRECTORY']),fieldScope:v.array(v.string(120,1),50,1),validUntil:dateIso});
+export const TalentBasisTransferSchema={json:{oneOf:[ConsentBasisTransferSchema.json,ReviewBasisTransferSchema.json]},parse(value:unknown){return value&&typeof value==='object'&&'version' in value&&value.version==='internal-review-basis-v1'?ReviewBasisTransferSchema.parse(value):ConsentBasisTransferSchema.parse(value);}};
 const source = v.object({ id: uuid, revision, protectionEpoch: revision, data: sourceData,talentBasis:v.optional(TalentBasisTransferSchema) });
 const person = v.object({ id: uuid, sourceId: uuid, revision, data: personData });
 const work = v.object({ id: uuid, sourceId: uuid, revision, data: workData });
