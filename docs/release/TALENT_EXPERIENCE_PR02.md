@@ -1,3 +1,21 @@
+## 2026-10-01：PR-02b finalization（三项复核修正，Draft 待复核）
+
+主体复核通过，但PR-02b尚未冻结。本轮只修正终态审核、ENROLL全拒绝决定及本人来源原文保护，PR #30继续Draft、未合并未部署；PROVIDER_VERIFIED=NOT_RUN，不进入PR-03。
+
+1. `TalentMaintenance.review()` 对 APPROVED / PARTIALLY_APPROVED / REJECTED 先返回 `409 SUBMISSION_CLOSED`，不会因新键再次生成成功回执或审核审计。原键重放只由 Commands 查找相同 workspace/principal/operation/commandKey 后校验 requestDigest，并再次执行现有回执读取鉴权；同键不同请求仍为 `IDEMPOTENCY_KEY_CONFLICT`。
+2. 未绑定ENROLL提交全部拒绝时，在同一事务将 Claim 终结为 REJECTED，释放reservation，记录 decidedAt / decidedById / ownershipBasis。优先保存已提供的内部依据；未提供时记录关联本次Submission的整批拒绝决定。审核审计失败时，Claim、名额、Submission和回执一起回滚。已经批准ENROLL后复制出的后续维护提交若被拒绝，保留原APPROVED Claim和ACTIVE Grant，不改写既有归属决定。
+3. `source.update` 对 `internalUseUntil != null` 的本人Submission来源拒绝任何 `textPayload` 写入，包括空字符串；返回 `409 TALENT_BASIS_SCOPED`，不追加历史/审计/回执。内部材料另建独立Source，普通来源原文编辑和现有敏感权限保持原语义。
+
+本轮无schema变化、无新增迁移；迁移1–61逐文件冻结。共享Core/真实PG专项覆盖三个终态的原键重放、新键同内容拒绝、新键不同决定拒绝、不同审核人同键拒绝及同键摘要冲突；验证所有拒绝无业务副作用、无额外成功审核审计/回执。另验ENROLL全拒绝的完整内部决定、审计回滚、名额再次使用、后续维护退回不撤销既有归属、本人口径Source保护和独立来源可编辑。
+
+生命周期证据：普通业务JSON不含被拒ENROLL的草稿、Claim/Submission编号或内部拒绝依据；JSON重建不创建相应Claim/Submission；实际pg_dump/restore及恢复prepare保留原REJECTED决定人/时间/依据，不复活申请或reservation。
+
+本轮实测：`pnpm verify` 通过，Core **598/598**、零失败/跳过；完整PostgreSQL回归退出0，PR-02b专项 **43项**（本地PG14.19，含实际备份恢复）；全部 **8组真实浏览器套件**通过。类型、transport、236路由合同、静态/存储门禁及构建通过。浏览器首跑暴露审核提交与Portal刷新之间的测试时序竞争；修正为等待该Claim批准的200回执及列表刷新，再于新空库复测通过，没有增加超时或放宽断言。初次失败和成功复测日志均保留。
+
+本轮结果与日志见 `artifacts/talent-experience-pr02b-finalization/`；最终提交与绑定该head的完整CI结果在PR #30描述回填。下方保留主体交付时的历史结果，不将其测试总数或CI套用于本次修改。
+
+---
+
 ## 2026-10-01：PR-02b 实现与验收（Draft 待复核）
 
 PR-02a 已经用户复核冻结。本轮在 PR #30 原分支上实现 PR-02b；**保持 Draft，未合并、未部署，PROVIDER_VERIFIED=NOT_RUN**。下方 PR-02a 和启动记录是历史状态，其“未进入 PR-02b”不覆盖本节。PR-03 多来源媒体、客户分享和官网发布未启动。

@@ -113,8 +113,10 @@ export class Talent {
         cas(source, data.expectedRevision);
         invariant(Object.keys(data).length > 1, 'EMPTY_UPDATE', '没有需要保存的修改', 400);
         // Raw source content is treated like restricted source material, not as a contacts bypass.
-        if (data.textPayload !== undefined)
+        if (data.textPayload !== undefined) {
             requirePermission(actor, 'sensitive.write');
+            invariant(source.internalUseUntil == null, 'TALENT_BASIS_SCOPED', '本人提交来源不能追加或替换原文；内部新增材料须另建独立来源', 409);
+        }
         const { expectedRevision: _, ...patch } = data;
         const next = patchDefined(touch(source, this.clock), patch);
         await tx.replace('sources', next);

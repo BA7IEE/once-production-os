@@ -111,3 +111,12 @@ INTERNAL_SOURCE、TALENT_SUBMISSION、AGENT_SUBMISSION 显式上下文；真实 
 - `/talent/*`与内部同源仅凭证分流，不声称浏览器脚本隔离。文本使用React转义，本地二维码、无第三方脚本或跟踪；沿用CSP、浏览器存储静态门禁。正式开放仍须真实Provider验证及单独上线审批。
 
 当前状态：PR-02b IMPLEMENTED，交付证据与最终提交CI绑定PR #30；保持Draft待复核，未合并未部署，PROVIDER_VERIFIED=NOT_RUN。
+
+
+## PR-02b finalization 审核终态与来源保护（2026-10-01）
+
+终态APPROVED/PARTIALLY_APPROVED/REJECTED的审核命令，新键返回409 SUBMISSION_CLOSED；原键只能由原Commands层按principal/operation/commandKey/requestDigest重放，并保留当前资源读取鉴权，不在领域review中伪造幂等成功。相同键不同内容仍返回IDEMPOTENCY_KEY_CONFLICT。
+
+未绑定ENROLL Submission全拒绝，同事务终结Claim、释放名额并记录内部决定人、时间及依据；无显式ownershipBasis时以本次Submission编号关联完整拒绝决定。已完成ENROLL之后的维护fork拒绝不改写原已批准Claim/Grant。普通JSON不携带被拒草稿或内部拒绝依据；实际恢复保留终态决定，不能复活reservation。
+
+对于internalUseUntil非空的本人来源，普通source.update禁止携带textPayload（含空字符串），返回409 TALENT_BASIS_SCOPED；独立内部材料另建Source。请求schema及236条路由不变，迁移1–61不变，无新增数据库字段。本轮继续Draft待复核，未合并未部署。

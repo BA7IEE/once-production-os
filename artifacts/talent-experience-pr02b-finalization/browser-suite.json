@@ -1,0 +1,47 @@
+{
+  "status": "PASS",
+  "runners": [
+    {
+      "runner": "resume",
+      "exitCode": 0,
+      "durationSeconds": 15.36
+    },
+    {
+      "runner": "handoff",
+      "exitCode": 0,
+      "durationSeconds": 8.91
+    },
+    {
+      "runner": "media",
+      "exitCode": 0,
+      "durationSeconds": 15.79
+    },
+    {
+      "runner": "production",
+      "exitCode": 0,
+      "durationSeconds": 113.75
+    },
+    {
+      "runner": "talent-intake",
+      "exitCode": 0,
+      "durationSeconds": 8.14
+    },
+    {
+      "runner": "talent-directory",
+      "exitCode": 0,
+      "durationSeconds": 16.59
+    },
+    {
+      "runner": "talent-auth",
+      "exitCode": 0,
+      "durationSeconds": 9.21
+    },
+    {
+      "runner": "talent-maintenance",
+      "exitCode": 0,
+      "initialExitCode": 1,
+      "correction": "Wait for exact claim approval HTTP 200 receipt and pending-list refresh before reloading Portal; affected suite rerun in a new empty database."
+    }
+  ],
+  "providerVerified": "NOT_RUN"
+}

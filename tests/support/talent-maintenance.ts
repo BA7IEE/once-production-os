@@ -49,8 +49,8 @@ export async function exportMaintenance(f:Awaited<ReturnType<typeof maintenanceF
 
 import {mergePreview,mergeInput} from './talent-v2-merge.ts';
 import {DeletionCleanup} from '../../packages/core/src/deletion-cleanup.ts';
-export async function maintenanceMergeDelete(f:Awaited<ReturnType<typeof maintenanceFixture>>){
- await f.owner.login();const b=await loginTalent(f,'Other@example.com'),headers={'x-once-talent-account':b.accountId};
+export async function maintenanceMergeDelete(f:Awaited<ReturnType<typeof maintenanceFixture>>,existing?:Awaited<ReturnType<typeof loginTalent>>){
+ await f.owner.login();const b=existing??await loginTalent(f,'Other@example.com'),headers={'x-once-talent-account':b.accountId};
  const grant=(await f.store.transaction(tx=>tx.find('talentAccessGrants',{talentAccountId:b.accountId,state:'ACTIVE'})))[0]!;
  const source=result(await f.owner.cmd('POST','/sources',{...sourceInput(),scopeId:f.scopeId})).resourceId;
  const duplicate=result(await f.owner.cmd('POST','/td2/people',{schemaVersion:'once-talent-v2.1.0',originSourceId:source,sourceRevision:1,displayName:'合成待合并身份'})).resourceId;
