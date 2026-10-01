@@ -5,13 +5,13 @@
   "merged": false,
   "deployed": false,
   "core": {
-    "tests": 683,
-    "pass": 683,
+    "tests": 684,
+    "pass": 684,
     "fail": 0
   },
   "postgres": {
-    "programs": 76,
-    "tests": 166,
+    "programs": 77,
+    "tests": 167,
     "fail": 0,
     "version": "14.19 local; CI16",
     "physicalPgDumpRestore": "PASS"
@@ -20,62 +20,62 @@
     {
       "group": "resume",
       "exitCode": 0,
-      "seconds": 18
+      "seconds": 31
     },
     {
       "group": "handoff",
       "exitCode": 0,
-      "seconds": 12
+      "seconds": 22
     },
     {
       "group": "media",
       "exitCode": 0,
-      "seconds": 24
+      "seconds": 39
     },
     {
       "group": "production",
       "exitCode": 0,
-      "seconds": 179
+      "seconds": 206
     },
     {
       "group": "talent-intake",
       "exitCode": 0,
-      "seconds": 10
+      "seconds": 12
     },
     {
       "group": "talent-directory",
       "exitCode": 0,
-      "seconds": 23
+      "seconds": 36
     },
     {
       "group": "talent-auth",
       "exitCode": 0,
-      "seconds": 10
+      "seconds": 21
     },
     {
       "group": "talent-maintenance",
       "exitCode": 0,
-      "seconds": 40
+      "seconds": 64
     },
     {
       "group": "media-staging",
       "exitCode": 0,
-      "seconds": 74
+      "seconds": 109
     },
     {
       "group": "media-collections",
       "exitCode": 0,
-      "seconds": 85
+      "seconds": 177
     },
     {
       "group": "work-cases",
       "exitCode": 0,
-      "seconds": 88
+      "seconds": 147
     },
     {
       "group": "media-purge",
       "exitCode": 0,
-      "seconds": 95
+      "seconds": 122
     }
   ],
   "migrations": {
@@ -99,12 +99,14 @@
     "packages/core/src/media-purge.ts": "56502aabe43d3c71b1b5bb766260104b54b3a613a0f5d7ddb7b3c0f83f772fce",
     "packages/core/src/media.ts": "9b83020aa4f85c2dd9149f079c93808b26908c399a4100ad15e72df025c3aab4",
     "packages/core/src/talent-v2-integrity.ts": "bc807808db1fa7080b806bb1b11b13221e5ebf94b314d9903e61abb1912fc471",
-    "scripts/verify-postgres.mjs": "6f98d2580efeee9649712af6fea82835d8926f747ecc9eeed1a4cee4ffe8484b",
-    "tests/core/media-purge.test.ts": "c273d14b7a6b594cf635eed7a8a6f2ccf9a8c0abee4df056ce6555c4ce083355",
+    "scripts/verify-postgres.mjs": "ae1834db9c8fe10965e00492716dc2a558db780a6defe7f21a97be0cecc86ae9",
+    "tests/core/media-purge.test.ts": "8661a448aab1f7a4eb136121a5265e105786099289dd6b3362852dd7d81e8843",
     "tests/core/recovery-worker-intent.test.ts": "26192d2a7efd42cf9b0e54c259bb7cce37f90244b4c4f667267c85a969fa34b1",
-    "tests/postgres/media-purge.test.ts": "ab8297a9e8c7eabcd0a152081e3c5f4e710367d57eb655fab480f4804f04a6a7",
-    "tests/support/media-purge.ts": "cbb0e7d8c8ccbe96a029248b549ccebb35dc6a6dedab4b6b8cb1e042432bc226",
-    ".github/workflows/acceptance.yml": "19de1d05295bd2d5b88c72c6fcfe5013bc9c2be48cb819133c4ca32e7d4ac7e9"
+    "tests/postgres/media-purge.test.ts": "b9e73b7602cf447418f2fcd8ad63f9710e4e93cf6dab82450b683b88d0aee232",
+    "tests/support/media-purge.ts": "5efabab64cccea44cd57a90b9d8ca5ad8c96159832e948c7c66f1ccb36c2add8",
+    ".github/workflows/acceptance.yml": "19de1d05295bd2d5b88c72c6fcfe5013bc9c2be48cb819133c4ca32e7d4ac7e9",
+    "apps/api/src/prisma-store.ts": "a2ee2e3a3a244dfe06583e5b96bd90d2a66fd59a508c675b9cc40c0e81edfc7c",
+    "tests/support/memory-store.ts": "2ac6589cbf4475b6a65935a47313424e362e1433059e997e5bd860fc4d862f75"
   },
   "ciInfrastructure": {
     "run": 36889529259,
@@ -143,5 +145,94 @@
     "browserStarted": true,
     "rawLogSha256": "b548c63280da01fe1236c4eeb21f86cc2c46b510a8e0e4bb8ddb6bec16b5a812",
     "adjustment": "All 12 browser jobs now have 30-minute total setup+test budget; PostgreSQL budget, browser per-step assertions and every test command unchanged; new exact-head complete CI required"
+  },
+  "priorLocalAcceptance": {
+    "core": {
+      "tests": 683,
+      "pass": 683,
+      "fail": 0
+    },
+    "postgres": {
+      "programs": 76,
+      "tests": 166,
+      "fail": 0,
+      "version": "14.19 local; CI16",
+      "physicalPgDumpRestore": "PASS"
+    },
+    "browser": [
+      {
+        "group": "resume",
+        "exitCode": 0,
+        "seconds": 18
+      },
+      {
+        "group": "handoff",
+        "exitCode": 0,
+        "seconds": 12
+      },
+      {
+        "group": "media",
+        "exitCode": 0,
+        "seconds": 24
+      },
+      {
+        "group": "production",
+        "exitCode": 0,
+        "seconds": 179
+      },
+      {
+        "group": "talent-intake",
+        "exitCode": 0,
+        "seconds": 10
+      },
+      {
+        "group": "talent-directory",
+        "exitCode": 0,
+        "seconds": 23
+      },
+      {
+        "group": "talent-auth",
+        "exitCode": 0,
+        "seconds": 10
+      },
+      {
+        "group": "talent-maintenance",
+        "exitCode": 0,
+        "seconds": 40
+      },
+      {
+        "group": "media-staging",
+        "exitCode": 0,
+        "seconds": 74
+      },
+      {
+        "group": "media-collections",
+        "exitCode": 0,
+        "seconds": 85
+      },
+      {
+        "group": "work-cases",
+        "exitCode": 0,
+        "seconds": 88
+      },
+      {
+        "group": "media-purge",
+        "exitCode": 0,
+        "seconds": 95
+      }
+    ]
+  },
+  "candidateWindow": {
+    "core": "PASS",
+    "postgres": "PASS",
+    "case": "32 due assets owned by explicit deletion excluded before LIMIT32; separate ENROLL media remains claimable",
+    "evidence": "candidate-window"
+  },
+  "ciBudgetValidation": {
+    "run": 36897678953,
+    "head": "53df873967e39da38dc971c7b3ace6cede8a77de",
+    "passedJobs": 13,
+    "conclusion": "success",
+    "boundary": "Candidate-window change requires its own final exact-head complete CI"
   }
 }

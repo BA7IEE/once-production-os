@@ -38,3 +38,6 @@ test('PR03E write-ahead failure never starts DELETE or claims confirmation',asyn
 import {uploadRetentionScenario} from '../support/media-purge.ts';
 for(const days of [1,30])test('PR03E upload respects configured draft days '+days,async()=>{await uploadRetentionScenario(new MemoryStore(),days);});
 for(const mode of ['eligible','claimed','live','slow'])test('PR03E explicit finalizer ownership '+mode,async()=>{await purgeDeletionScenario(new MemoryStore(),false,mode);});
+
+import {purgeOwnedWindowScenario} from '../support/media-purge.ts';
+test('PR03E explicit ownership does not starve bounded candidate window',async()=>{await purgeOwnedWindowScenario(new MemoryStore());});

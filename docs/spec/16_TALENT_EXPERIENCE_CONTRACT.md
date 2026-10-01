@@ -1,6 +1,6 @@
 ## PR-03E finalization：删除权与保留配置
 
-显式删除取得finalization lease与接管可撤销MediaPurgeIntent在同一事务：有效TTL lease及DELETE_PENDING/UNKNOWN/CONFIRMED必须等待；无有效lease的ELIGIBLE/CLAIMED终结为SKIPPED，原因EXPLICIT_DELETION_TAKEOVER。TTL在创建计划前检查显式删除归属，ERASED不允许可重试计划；恢复完整性检查同步检查。显式finalizer每10秒续租30秒lease，物理I/O前后核对租约，续租失败不得确认或继续下一个对象。原件物理调用仍在事务外。
+显式删除取得finalization lease与接管可撤销MediaPurgeIntent在同一事务：有效TTL lease及DELETE_PENDING/UNKNOWN/CONFIRMED必须等待；无有效lease的ELIGIBLE/CLAIMED终结为SKIPPED，原因EXPLICIT_DELETION_TAKEOVER。TTL在候选LIMIT32之前由SQL/Memory统一排除显式删除占用且无intent的素材，避免窗口饥饿；创建计划前仍在当前事务检查显式删除归属，ERASED不允许可重试计划；恢复完整性检查同步检查。显式finalizer每10秒续租30秒lease，物理I/O前后核对租约，续租失败不得确认或继续下一个对象。原件物理调用仍在事务外。
 
 本人上传沿用统一mediaRetention.draft配置续期并同步PersonMedia，不使用固定90天。迁移1–68冻结，本次无schema/迁移变化。
 

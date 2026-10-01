@@ -113,3 +113,28 @@ export async function uploadRetentionScenario(store:Store,days:number){
  assert.equal(Date.parse((await store.transaction(tx=>tx.find('personMedia',{assetId:id})))[0]!.retainUntil!),deadline);
  return {f,id,checks:['configured-draft-'+days+'-days-preserved-through-portal-upload-and-READY']};
 }
+
+import {MEDIA_CONSENT_VERSION} from '../../packages/core/src/media-validation.ts';
+export async function purgeOwnedWindowScenario(store:Store){
+ const f=await stagingFixture(store);f.app.config.dataCleanupMode='INTERNAL_APPROVED';
+ for(let n=0;n<32;n++)await unitReady(f);
+ const invite=await f.expect(f.owner.cmd('POST','/talent-invitations',{purpose:'ENROLL',scopeId:f.scopeId,exposureFields:[]}));
+ const issued=await f.expect(f.owner.raw('POST','/talent-invitations/'+invite.resourceId+'/issue',{expectedRevision:1}));
+ const ctx=await f.expect(f.b.client.raw('POST','/portal/invitations/exchange',{invitationId:invite.resourceId,token:new URLSearchParams(new URL(issued.url).hash.slice(1)).get('t')},{'x-once-portal':'1'}));
+ const headers=()=>({'x-once-talent-account':f.b.accountId,'idempotency-key':crypto.randomUUID()});
+ const claim=await f.expect(f.b.client.raw('POST','/portal/claims',{contextId:ctx.contextId,relation:'SELF',applicantKey:'SELF',adultDeclared:true},headers()));
+ const draft=await f.expect(f.b.client.raw('POST','/portal/submissions',{schemaVersion:'once-talent-text-v1',claimId:claim.resourceId,consentTextVersion:'internal-directory-2026-10-v1',consentAccepted:true,items:[{clientItemKey:'name',field:'displayName',text:'Independent purge',dependencyGroup:'identity',dependsOn:[]}]},headers()));
+ await f.expect(f.b.client.raw('POST','/portal/submissions/'+draft.resourceId+'/media-consent',{expectedRevision:1,textVersion:MEDIA_CONSENT_VERSION,accepted:true},headers()));
+ const revision=async()=>(await store.transaction(tx=>tx.get('talentSubmissions',draft.resourceId)))!.revision;
+ const own={...f,a:f.b,actor:{...f.actor,talentAccountId:f.b.accountId},submissionId:draft.resourceId,headers,revision,create:async(extra={})=>f.expect(f.b.client.raw('POST','/portal/uploads',{context:{kind:'TALENT_SUBMISSION',submissionId:draft.resourceId},expectedSubmissionRevision:await revision(),fileName:'independent.jpg',mime:'image/jpeg',expectedBytes:100,sha256:'a'.repeat(64),...extra},headers()))};
+ const id=await unitReady(own);
+ const person=(await store.transaction(tx=>tx.get('people',f.personId)))!,input={targetKind:'PERSON',targetId:person.id,expectedRevision:person.revision};
+ const preview=await f.expect(f.owner.raw('POST','/deletion-requests/preview',input));assert.equal(preview.complete,true);
+ const request=await f.expect(f.owner.cmd('POST','/deletion-requests',{...input,previewDigest:preview.previewDigest,reason:'合成显式删除占用整个候选窗口'}),201);
+ await f.expect(f.owner.cmd('POST','/deletion-requests/'+request.resourceId+'/block',{expectedRevision:1,previewDigest:preview.previewDigest,acknowledgeBlock:true}));
+ f.clock.advance(91*86400000);
+ const candidates=await store.transaction(tx=>tx.mediaPurgeCandidates(f.clock.now().toISOString(),32));assert.deepEqual(candidates,[id]);
+ const c=await f.app.mediaPurge.claim();assert.equal(c?.assetId,id);
+ assert.equal((await store.transaction(tx=>tx.find('mediaPurgeIntents'))).length,1);
+ return {f,id,checks:['32-explicit-owned-due-assets-excluded-before-bounded-window','independent-ENROLL-asset-remains-claimable-without-owned-intents']};
+}
