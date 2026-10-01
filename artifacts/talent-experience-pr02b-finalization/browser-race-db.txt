@@ -1,0 +1,6 @@
+ claim_state | grant_state |     actions     |         decidedAt          |  displayName
+-------------+-------------+-----------------+----------------------------+---------------
+ APPROVED    | ACTIVE      | {TEXT_MAINTAIN} | 2026-10-01 11:52:02.992+08 | Anna 本人 360
+ APPROVED    | ACTIVE      | {TEXT_MAINTAIN} | 2026-10-01 11:52:09.469+08 | Anna 本人 390
+ APPROVED    | ACTIVE      | {TEXT_MAINTAIN} | 2026-10-01 11:52:16.38+08  | Anna-430
+(3 rows)

@@ -1,3 +1,4 @@
+import {sourceAllowsInternalAuthoring} from './talent-maintenance-policy.ts';
 import type { Actor, Clock } from './model.ts';
 import type { Tx } from './store.ts';
 import type { Work } from './production-model.ts';
@@ -23,7 +24,7 @@ export class Portfolio {
         requirePermission(actor, 'records.write');
         const d = S.workCreate.parse(input);
         invariant(!!d.sourceId !== !!d.inlineSource, 'SOURCE_REQUIRED', '请选择来源或填写内联来源，不能同时提供', 400);
-        const s = d.sourceId ? await sourceFor(tx, actor, d.sourceId, this.clock) : await this.talent.createSource(tx, actor, d.inlineSource);
+        const s = d.sourceId ? await sourceFor(tx, actor, d.sourceId, this.clock) : await this.talent.createSource(tx, actor, d.inlineSource);invariant(sourceAllowsInternalAuthoring(s),'TALENT_BASIS_SCOPED','本人文字来源不能作为新作品依据，请使用独立来源',409);
         await this.validateFacts(tx, actor.workspaceId, d);
         const w: Work = { ...base(actor.workspaceId, this.clock), sourceId: s.id, scopeId: s.scopeId, maintainerId: actor.membershipId,
             title: d.title.trim(), description: d.description ?? '', industryCode: d.industryCode ?? null, workTypeCodes: d.workTypeCodes ?? [], origin: d.origin ?? 'UNKNOWN', originNote: d.originNote ?? '', status: 'DRAFT', coverEntryId: null };

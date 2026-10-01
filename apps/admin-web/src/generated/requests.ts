@@ -1,5 +1,39 @@
 // Generated from packages/core/src/routes.ts and validation.ts. Do not edit.
 export interface Inputs {
+  "portal.auth.context": { "purpose": "LOGIN" | "RECOVER" };
+  "portal.auth.contextStatus": undefined;
+  "portal.auth.challenge": { "contextId": string; "purpose": "LOGIN" | "RECOVER"; "kind": "EMAIL" | "PHONE"; "identity": string };
+  "portal.auth.verify": { "contextId": string; "challengeId": string; "purpose": "LOGIN" | "RECOVER"; "code": string };
+  "portal.me": undefined;
+  "portal.auth.logout": {  };
+  "portal.sessions.revoke": {  };
+  "talent.account.disable": { "expectedRevision": number };
+  "talent.account.erase": { "expectedRevision": number };
+  "talent.invitation.create": { "purpose": "CLAIM" | "ENROLL"; "targetPersonId"?: string; "scopeId": string; "recipientKind"?: "EMAIL" | "PHONE"; "recipient"?: string; "maxUses"?: number; "exposureFields": Array<"displayName" | "aliases" | "intro"> };
+  "talent.invitation.list": undefined;
+  "talent.invitation.issue": { "expectedRevision": number };
+  "talent.invitation.revoke": { "expectedRevision": number };
+  "talent.claim.list": undefined;
+  "talent.claim.decide": { "expectedRevision": number; "decision": "APPROVE" | "REJECT"; "ownershipBasis": string; "guardianConfirmed": boolean };
+  "talent.grant.revoke": { "expectedRevision": number };
+  "talent.submission.list": undefined;
+  "talent.submission.get": undefined;
+  "talent.submission.decide": { "expectedRevision": number; "acceptedKeys": Array<string>; "publicReason": string; "targetPersonId"?: string; "createPerson"?: boolean; "ownershipBasis"?: string; "guardianConfirmed"?: boolean };
+  "portal.invitation.exchange": { "invitationId": string; "token": string };
+  "portal.invitation.inspect": undefined;
+  "portal.claim.create": { "contextId": string; "relation": "SELF" | "GUARDIAN" | "AGENT"; "applicantKey": string; "adultDeclared": boolean };
+  "portal.claim.list": undefined;
+  "portal.claim.renew": { "expectedRevision": number; "contextId": string };
+  "portal.profile.list": undefined;
+  "portal.profile.get": undefined;
+  "portal.submission.create": { "schemaVersion": "once-talent-text-v1"; "claimId"?: string; "grantId"?: string; "consentTextVersion": "internal-directory-2026-10-v1"; "consentAccepted": boolean; "items": Array<{ "clientItemKey": string; "field": "displayName" | "aliases" | "intro"; "text"?: string; "aliases"?: Array<string>; "dependencyGroup": string; "dependsOn": Array<string> }> };
+  "portal.submission.list": undefined;
+  "portal.submission.get": undefined;
+  "portal.submission.save": { "expectedRevision": number; "items": Array<{ "clientItemKey": string; "field": "displayName" | "aliases" | "intro"; "text"?: string; "aliases"?: Array<string>; "dependencyGroup": string; "dependsOn": Array<string> }> };
+  "portal.submission.submit": { "expectedRevision": number };
+  "portal.submission.withdraw": { "expectedRevision": number };
+  "portal.submission.fork": { "expectedRevision": number };
+  "portal.consent.revoke": { "expectedRevision": number };
   "brand.create": { "sourceId": string; "sourceRevision": number; "name": string; "organizationId": string | null };
   "brand.list": undefined;
   "brand.patch": { "expectedRevision": number; "name"?: string; "organizationId"?: string | null; "status"?: "ACTIVE" | "ARCHIVED" };
@@ -137,9 +171,9 @@ export interface Inputs {
   "catalog.create": { "namespace": "role" | "city" | "language" | "skill" | "industry" | "workType" | "nationality" | "roleStyle" | "roleService"; "code": string; "labelZh": string; "labelEn": string };
   "catalog.update": { "expectedRevision": number; "labelZh"?: string; "labelEn"?: string; "status"?: "ACTIVE" | "INACTIVE" };
   "member.list": undefined;
-  "member.create": { "loginName": string; "displayName": string; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write" | "data.export" | "data.delete" | "data.merge" | "ai.use"> };
+  "member.create": { "loginName": string; "displayName": string; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write" | "data.export" | "data.delete" | "data.merge" | "ai.use" | "talent.invite" | "talent.review"> };
   "member.disable": { "expectedRevision": number };
-  "member.permissions": { "expectedRevision": number; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write" | "data.export" | "data.delete" | "data.merge" | "ai.use"> };
+  "member.permissions": { "expectedRevision": number; "role": "ADMIN" | "EDITOR" | "REVIEWER" | "VIEWER"; "extraPermissions": Array<"sensitive.read" | "sensitive.write" | "data.export" | "data.delete" | "data.merge" | "ai.use" | "talent.invite" | "talent.review"> };
   "member.resetAccess": { "expectedRevision": number };
   "scope.list": undefined;
   "scope.create": { "name": string; "membershipIds": Array<string> };
@@ -204,6 +238,176 @@ export interface Inputs {
   "shortlist.reorder": { "expectedRevision": number; "entryIds": Array<string> };
 }
 export const ENDPOINTS = {
+  "portal.auth.context": {
+    "method": "POST",
+    "path": "/portal/auth/context",
+    "mode": "AUTH"
+  },
+  "portal.auth.contextStatus": {
+    "method": "GET",
+    "path": "/portal/auth/contexts/{id}",
+    "mode": "AUTH"
+  },
+  "portal.auth.challenge": {
+    "method": "POST",
+    "path": "/portal/auth/challenges",
+    "mode": "AUTH"
+  },
+  "portal.auth.verify": {
+    "method": "POST",
+    "path": "/portal/auth/verify",
+    "mode": "AUTH"
+  },
+  "portal.me": {
+    "method": "GET",
+    "path": "/portal/me",
+    "mode": "READ"
+  },
+  "portal.auth.logout": {
+    "method": "POST",
+    "path": "/portal/auth/logout",
+    "mode": "AUTH"
+  },
+  "portal.sessions.revoke": {
+    "method": "POST",
+    "path": "/portal/auth/revoke-other-sessions",
+    "mode": "COMMAND"
+  },
+  "talent.account.disable": {
+    "method": "POST",
+    "path": "/talent-accounts/{id}/disable",
+    "mode": "COMMAND"
+  },
+  "talent.account.erase": {
+    "method": "POST",
+    "path": "/talent-accounts/{id}/erase",
+    "mode": "COMMAND"
+  },
+  "talent.invitation.create": {
+    "method": "POST",
+    "path": "/talent-invitations",
+    "mode": "COMMAND"
+  },
+  "talent.invitation.list": {
+    "method": "GET",
+    "path": "/talent-invitations",
+    "mode": "READ"
+  },
+  "talent.invitation.issue": {
+    "method": "POST",
+    "path": "/talent-invitations/{id}/issue",
+    "mode": "SECRET"
+  },
+  "talent.invitation.revoke": {
+    "method": "POST",
+    "path": "/talent-invitations/{id}/revoke",
+    "mode": "COMMAND"
+  },
+  "talent.claim.list": {
+    "method": "GET",
+    "path": "/talent-claims",
+    "mode": "READ"
+  },
+  "talent.claim.decide": {
+    "method": "POST",
+    "path": "/talent-claims/{id}/decide",
+    "mode": "COMMAND"
+  },
+  "talent.grant.revoke": {
+    "method": "POST",
+    "path": "/talent-grants/{id}/revoke",
+    "mode": "COMMAND"
+  },
+  "talent.submission.list": {
+    "method": "GET",
+    "path": "/talent-submissions",
+    "mode": "READ"
+  },
+  "talent.submission.get": {
+    "method": "GET",
+    "path": "/talent-submissions/{id}",
+    "mode": "READ"
+  },
+  "talent.submission.decide": {
+    "method": "POST",
+    "path": "/talent-submissions/{id}/decide",
+    "mode": "COMMAND"
+  },
+  "portal.invitation.exchange": {
+    "method": "POST",
+    "path": "/portal/invitations/exchange",
+    "mode": "AUTH"
+  },
+  "portal.invitation.inspect": {
+    "method": "GET",
+    "path": "/portal/invitations/{id}",
+    "mode": "READ"
+  },
+  "portal.claim.create": {
+    "method": "POST",
+    "path": "/portal/claims",
+    "mode": "COMMAND"
+  },
+  "portal.claim.list": {
+    "method": "GET",
+    "path": "/portal/claims",
+    "mode": "READ"
+  },
+  "portal.claim.renew": {
+    "method": "POST",
+    "path": "/portal/claims/{id}/renew-admission",
+    "mode": "COMMAND"
+  },
+  "portal.profile.list": {
+    "method": "GET",
+    "path": "/portal/profiles",
+    "mode": "READ"
+  },
+  "portal.profile.get": {
+    "method": "GET",
+    "path": "/portal/profiles/{id}",
+    "mode": "READ"
+  },
+  "portal.submission.create": {
+    "method": "POST",
+    "path": "/portal/submissions",
+    "mode": "COMMAND"
+  },
+  "portal.submission.list": {
+    "method": "GET",
+    "path": "/portal/submissions",
+    "mode": "READ"
+  },
+  "portal.submission.get": {
+    "method": "GET",
+    "path": "/portal/submissions/{id}",
+    "mode": "READ"
+  },
+  "portal.submission.save": {
+    "method": "PATCH",
+    "path": "/portal/submissions/{id}",
+    "mode": "COMMAND"
+  },
+  "portal.submission.submit": {
+    "method": "POST",
+    "path": "/portal/submissions/{id}/submit",
+    "mode": "COMMAND"
+  },
+  "portal.submission.withdraw": {
+    "method": "POST",
+    "path": "/portal/submissions/{id}/withdraw",
+    "mode": "COMMAND"
+  },
+  "portal.submission.fork": {
+    "method": "POST",
+    "path": "/portal/submissions/{id}/fork",
+    "mode": "COMMAND"
+  },
+  "portal.consent.revoke": {
+    "method": "POST",
+    "path": "/portal/consents/{id}/revoke",
+    "mode": "COMMAND"
+  },
   "brand.create": {
     "method": "POST",
     "path": "/brands",

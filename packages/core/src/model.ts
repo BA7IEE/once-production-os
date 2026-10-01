@@ -1,3 +1,5 @@
+import type {TalentMaintenanceTables} from './talent-maintenance-model.ts';
+import type {TalentAuthTables,TalentAuthConfig} from './talent-auth-model.ts';
 import type {Brand,ProjectParty} from './project-parties.ts';
 import type {AiResponseMetadata} from './ai-dispatch.ts';
 import type {AiConnection} from './ai-connection.ts';
@@ -16,7 +18,7 @@ import type { DeletionRequest, DeletionItem } from './deletion-model.ts';
 import type { PersonMergeDecision, PersonAlias } from './merge-model.ts';
 import type { RecoveryRun } from './recovery-model.ts';
 export type Role = 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'VIEWER';
-export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write', 'data.export', 'data.delete', 'data.merge', 'ai.use'] as const;
+export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write', 'data.export', 'data.delete', 'data.merge', 'ai.use', 'talent.invite', 'talent.review'] as const;
 export type ExtraPermission = typeof EXTRA_PERMISSIONS[number];
 export type Permission = 'records.read' | 'records.write' | 'sources.read' | 'sources.write' | 'sources.review' | 'catalog.manage' | 'members.manage' | 'audit.read' | 'assets.read' | 'assets.upload' | 'talent.propose' | 'talent.fact.write' | ExtraPermission;
 export interface Base {
@@ -69,6 +71,7 @@ export interface ScopeMember extends Base {
     membershipId: string;
 }
 export interface Source extends Base {
+    internalUseUntil?:string|null;
     scopeId: string;
     maintainerId: string;
     title: string;
@@ -140,12 +143,14 @@ export interface DictionaryItem extends Base {
     status: 'ACTIVE' | 'INACTIVE';
 }
 export interface CommandReceipt extends Base {
+    principalKind?: 'INTERNAL'|'MACHINE'|'TALENT';
+    talentAccountId?:string|null;
     servicePrincipalId?: string | null;
     actorId: string | null;
     operation: string;
     commandKey: string;
     requestDigest: string;
-    resourceKind: 'brand' | 'aiConnectionTest' | 'aiConnection' | 'aiApproval' | 'aiAttempt' | 'aiBudget' | 'aiTask' | 'aiGrant' | 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
+    resourceKind: 'talentInvitation' | 'talentClaim' | 'talentGrant' | 'talentSubmission' | 'talentConsent' | 'talentAccount' | 'brand' | 'aiConnectionTest' | 'aiConnection' | 'aiApproval' | 'aiAttempt' | 'aiBudget' | 'aiTask' | 'aiGrant' | 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
     resourceId: string;
     result: ReceiptResult;
 }
@@ -157,6 +162,8 @@ export interface ReceiptResult {
     replayed?: boolean;
 }
 export interface AuditEvent extends Base {
+    principalKind?: 'INTERNAL'|'MACHINE'|'TALENT'|'SYSTEM';
+    talentAccountId?:string|null;
     servicePrincipalId?: string | null;
     actorId: string | null;
     action: string;
@@ -222,7 +229,7 @@ export interface RecordHandoff extends Base {
     closedAt: string | null;
     closedById: string | null;
 }
-export interface TableMap extends TalentV2Tables {
+export interface TableMap extends TalentV2Tables, TalentAuthTables, TalentMaintenanceTables {
     brands:Brand;projectParties:ProjectParty;
     aiResponseMetadata: AiResponseMetadata;
     aiConnections: AiConnection;
@@ -299,6 +306,7 @@ export interface Clock {
     now(): Date;
 }
 export interface Config {
+    talentAuth?: TalentAuthConfig;
     ai?: AiLedgerConfig;
     mediaEnabled?: boolean;
     origin: string;

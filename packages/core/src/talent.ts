@@ -1,3 +1,4 @@
+import {sourceAllowsInternalAuthoring} from './talent-maintenance-policy.ts';
 import type { Actor, Clock, Config, Person, RequestMeta, Source } from './model.ts';
 import { LIMITS } from './model.ts';
 import type { Tx } from './store.ts';
@@ -112,8 +113,10 @@ export class Talent {
         cas(source, data.expectedRevision);
         invariant(Object.keys(data).length > 1, 'EMPTY_UPDATE', '没有需要保存的修改', 400);
         // Raw source content is treated like restricted source material, not as a contacts bypass.
-        if (data.textPayload !== undefined)
+        if (data.textPayload !== undefined) {
             requirePermission(actor, 'sensitive.write');
+            invariant(source.internalUseUntil == null, 'TALENT_BASIS_SCOPED', '本人提交来源不能追加或替换原文；内部新增材料须另建独立来源', 409);
+        }
         const { expectedRevision: _, ...patch } = data;
         const next = patchDefined(touch(source, this.clock), patch);
         await tx.replace('sources', next);
@@ -171,6 +174,7 @@ export class Talent {
         const data = PersonInput.parse(input);
         invariant((!!data.sourceId) !== (!!data.inlineSource), 'SOURCE_REQUIRED', '请选择现有来源，或填写一份新来源；不能同时提供', 400);
         const source = data.sourceId ? await sourceFor(tx, actor, data.sourceId, this.clock) : await this.createSource(tx, actor, data.inlineSource);
+        invariant(sourceAllowsInternalAuthoring(source),'TALENT_BASIS_SCOPED','本人文字来源仅支持已批准的本次内容；新增内部资料须使用独立来源',409);
         await this.validateProfile(tx, actor.workspaceId, data);
         const person: Person = { ...base(actor.workspaceId, this.clock), displayName: data.displayName, roles: data.roles, sourceId: source.id,
             scopeId: source.scopeId, maintainerId: actor.membershipId, aliases: unique(data.aliases ?? []), cityCode: data.cityCode ?? null,
@@ -183,7 +187,7 @@ export class Talent {
         requirePermission(actor, 'records.write');
         const data = PersonPatch.parse(input);
         const access = await profileAccess(tx, actor, id, this.clock, 'edit');
-        const person = access.person;
+        const person = access.person;const origin=await tx.get('sources',person.sourceId);if(origin&&['displayName','aliases','intro'].some(k=>Object.hasOwn(data,k)))invariant(sourceAllowsInternalAuthoring(origin),'TALENT_BASIS_SCOPED','本人文字来源仅支持已批准的本次内容；新增内部资料须使用独立来源',409);
         if(LEGACY_PROFESSIONAL_FIELDS.some(key=>Object.hasOwn(data,key))) invariant(!professionallyManaged(person,await loadTalentGraph(tx,actor,this.clock)),'TD2_TYPED_WRITE_REQUIRED','专业资料请在专业工作台逐项维护，旧字段不能再修改',409);
         invariant((await tx.get('sources',person.sourceId))?.status!=='ERASED','TD2_IDENTITY_PROPOSAL_REQUIRED','最初来源已删除，请通过独立来源的字段建议修改身份资料',409);
         invariant(access.native || data.status === undefined, 'HANDOFF_FIELD_FORBIDDEN', '交接不能归档或改变档案生命周期', 403);

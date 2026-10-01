@@ -1,3 +1,9 @@
+## 2026-10-01 PR-02b finalization
+
+终态review不再返回可产生新成功回执的领域结果；新键一律409 SUBMISSION_CLOSED。未绑定ENROLL全拒绝同事务记录决定人/时间/内部依据并释放名额；已批准归属下的后续维护退回不撤销原Claim/Grant。本人来源textPayload在source.update被阻止，内部材料使用独立来源。
+
+详情及本轮证据见 [PR-02交付说明](TALENT_EXPERIENCE_PR02.md)。
+
 ## 2026-09-30 Talent Experience 首轮增量
 
 快速建档复用现有来源、Person/专业档案/职业和真实操作者，不复制人才主库；原键回执先查再鉴权，来源过期/撤回拒重放，审计失败整笔回滚。静态门只放行精确内部路径，外部身份与供应商尚未实现；54次迁移与schema均未改。完成范围是PR-00 + PR-01a，完整PR-01和A/B/C仍未完成。

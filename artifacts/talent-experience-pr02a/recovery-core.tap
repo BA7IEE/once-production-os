@@ -1,0 +1,178 @@
+TAP version 13
+# Subtest: DEV-09E aborted intent resolves as NO_COMMIT and covers every post-backup journal row
+ok 1 - DEV-09E aborted intent resolves as NO_COMMIT and covers every post-backup journal row
+  ---
+  duration_ms: 96.277542
+  type: 'test'
+  ...
+# Subtest: DEV-09E committed prepare-contained delta plus delayed audit is fully resolved
+ok 2 - DEV-09E committed prepare-contained delta plus delayed audit is fully resolved
+  ---
+  duration_ms: 44.245125
+  type: 'test'
+  ...
+# Subtest: DEV-09E committed non-contained mutation remains blocker
+ok 3 - DEV-09E committed non-contained mutation remains blocker
+  ---
+  duration_ms: 60.507333
+  type: 'test'
+  ...
+# Subtest: DEV-09E missing completion marker and missing write-ahead intent are blockers
+ok 4 - DEV-09E missing completion marker and missing write-ahead intent are blockers
+  ---
+  duration_ms: 19.340541
+  type: 'test'
+  ...
+# Subtest: DEV-09E pre-backup intent with post-backup contained commit is resolved
+ok 5 - DEV-09E pre-backup intent with post-backup contained commit is resolved
+  ---
+  duration_ms: 15.7335
+  type: 'test'
+  ...
+# Subtest: DEV-09E delayed audit after pre-backup commit is supplemental, not a false delta
+ok 6 - DEV-09E delayed audit after pre-backup commit is supplemental, not a false delta
+  ---
+  duration_ms: 24.9245
+  type: 'test'
+  ...
+# Subtest: DEV-09E completion marker cannot precede its write-ahead intent
+ok 7 - DEV-09E completion marker cannot precede its write-ahead intent
+  ---
+  duration_ms: 17.803958
+  type: 'test'
+  ...
+# Subtest: DEV-09E unmatched audit and contradictory commit+abort markers are rejected conservatively
+ok 8 - DEV-09E unmatched audit and contradictory commit+abort markers are rejected conservatively
+  ---
+  duration_ms: 27.936125
+  type: 'test'
+  ...
+# Subtest: DEV-09A recovery preview is zero-write and requires a rotated deployment epoch
+ok 9 - DEV-09A recovery preview is zero-write and requires a rotated deployment epoch
+  ---
+  duration_ms: 346.909958
+  type: 'test'
+  ...
+# Subtest: DEV-09A prepare revokes old capabilities but deliberately does not approve workspace epoch
+ok 10 - DEV-09A prepare revokes old capabilities but deliberately does not approve workspace epoch
+  ---
+  duration_ms: 272.573625
+  type: 'test'
+  ...
+# Subtest: DEV-09A wrong source epoch digest and open execution gates fail before writes
+ok 11 - DEV-09A wrong source epoch digest and open execution gates fail before writes
+  ---
+  duration_ms: 262.924292
+  type: 'test'
+  ...
+# Subtest: DEV-09A audit failure rolls every recovery quarantine write back
+ok 12 - DEV-09A audit failure rolls every recovery quarantine write back
+  ---
+  duration_ms: 260.370958
+  type: 'test'
+  ...
+# Subtest: DEV-09B restore check is zero-write; record persists an allowlisted INSPECTED report
+ok 13 - DEV-09B restore check is zero-write; record persists an allowlisted INSPECTED report
+  ---
+  duration_ms: 288.251167
+  type: 'test'
+  ...
+# Subtest: DEV-09B wrong contact key and media/migration gaps become explicit blockers
+ok 14 - DEV-09B wrong contact key and media/migration gaps become explicit blockers
+  ---
+  duration_ms: 260.603708
+  type: 'test'
+  ...
+# Subtest: DEV-09B stale media evidence is rejected and DB safety changes produce a new blocker/digest
+ok 15 - DEV-09B stale media evidence is rejected and DB safety changes produce a new blocker/digest
+  ---
+  duration_ms: 266.11625
+  type: 'test'
+  ...
+# Subtest: DEV-09C zero-delta approval changes only recovery epoch and preserves conservative quarantines
+ok 16 - DEV-09C zero-delta approval changes only recovery epoch and preserves conservative quarantines
+  ---
+  duration_ms: 260.425375
+  type: 'test'
+  ...
+# Subtest: DEV-09E unresolved post-backup safety journal entry blocks approval
+ok 17 - DEV-09E unresolved post-backup safety journal entry blocks approval
+  ---
+  duration_ms: 250.886666
+  type: 'test'
+  ...
+# Subtest: DEV-09E non-zero but fully prepare-contained delta may approve
+ok 18 - DEV-09E non-zero but fully prepare-contained delta may approve
+  ---
+  duration_ms: 285.486458
+  type: 'test'
+  ...
+# Subtest: DEV-09E incomplete or forged delta resolution is rejected before epoch approval
+ok 19 - DEV-09E incomplete or forged delta resolution is rejected before epoch approval
+  ---
+  duration_ms: 263.38625
+  type: 'test'
+  ...
+# Subtest: DEV-09C stale inspection or mismatched backup evidence cannot approve
+ok 20 - DEV-09C stale inspection or mismatched backup evidence cannot approve
+  ---
+  duration_ms: 253.330834
+  type: 'test'
+  ...
+# Subtest: DEV-09C approval audit failure rolls workspace epoch and approval evidence back
+ok 21 - DEV-09C approval audit failure rolls workspace epoch and approval evidence back
+  ---
+  duration_ms: 259.031833
+  type: 'test'
+  ...
+# Subtest: HTTP notification gateway distinguishes accepted, delivered and unknown without retry
+ok 22 - HTTP notification gateway distinguishes accepted, delivered and unknown without retry
+  ---
+  duration_ms: 122.11425
+  type: 'test'
+  ...
+# Subtest: identity rate cumulative across explicit challenges; workspace and IP ceilings
+ok 23 - identity rate cumulative across explicit challenges; workspace and IP ceilings
+  ---
+  duration_ms: 176.68475
+  type: 'test'
+  ...
+# Subtest: expired challenge cleanup removes queued ciphertext and never sends
+ok 24 - expired challenge cleanup removes queued ciphertext and never sends
+  ---
+  duration_ms: 151.517875
+  type: 'test'
+  ...
+# Subtest: account erasure retains only minimal identity tombstone and revokes sessions
+ok 25 - account erasure retains only minimal identity tombstone and revokes sessions
+  ---
+  duration_ms: 137.95075
+  type: 'test'
+  ...
+# Subtest: changed identity lookup key fails closed rather than creating a duplicate account
+ok 26 - changed identity lookup key fails closed rather than creating a duplicate account
+  ---
+  duration_ms: 129.832292
+  type: 'test'
+  ...
+# Subtest: PR02a authentication, isolation, stable principal, uncertainty and recovery
+ok 27 - PR02a authentication, isolation, stable principal, uncertainty and recovery
+  ---
+  duration_ms: 231.498667
+  type: 'test'
+  ...
+# Subtest: PR02a Talent command rolls back on audit failure
+ok 28 - PR02a Talent command rolls back on audit failure
+  ---
+  duration_ms: 154.186291
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 28
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3776.994834

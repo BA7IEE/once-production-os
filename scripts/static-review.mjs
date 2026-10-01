@@ -17,7 +17,7 @@ record('unique-route-operation-identities',new Set(routes.map(r=>r.operationId))
 record('strict-request-object-schemas',routes.filter(r=>r.requestBody?.content['application/json']).every(r=>r.requestBody.content['application/json'].schema.additionalProperties===false),null);
 record('command-key-header-required',routes.filter(r=>r['x-mode']==='COMMAND').every(r=>r.parameters.some(p=>p.name==='Idempotency-Key'&&p.required)),null);
 const paths=Object.keys(artifacts.paths),unsupported=unsupportedExperienceSurfaces(paths),nonGoals=forbiddenNonGoalSurfaces(paths);
-record('reviewed-experience-http-surfaces',unsupported.length===0,{unsupported,note:'PR-00/01a admits only the internal intake command. Later reviewed work packages must extend exact paths; route presence is not release acceptance.'});
+record('reviewed-experience-http-surfaces',unsupported.length===0,{unsupported,note:'PR-01 directory and PR-02a authentication and PR-02b text maintenance admit exact reviewed paths only; route presence is not release acceptance.'});
 record('no-non-goal-http-surfaces',nonGoals.length===0,{nonGoals});
 const migration=fs.readFileSync('prisma/migrations/202609220001_initial/migration.sql','utf8');
 record('candidate-migration-typed-tables',(migration.match(/CREATE TABLE/g)||[]).length===17,{tables:17,note:'Text inspection only, not PostgreSQL execution.'});

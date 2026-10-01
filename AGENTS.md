@@ -1,3 +1,17 @@
+# 2026-10-01 当前实现范围：PR-02b
+
+用户已复核冻结 PR-02a。继续当前 PR #30 分支实施定向 CLAIM、ENROLL、逐人 grant、同档认领、服务器文本草稿/Submission、批量审核、来源归因与 INTERNAL_DIRECTORY 同意。保持 Draft，不合并、不部署；PROVIDER_VERIFIED=NOT_RUN。下方 PR-02a 禁止进入02b为历史范围，已被本次用户授权替代。前57次迁移冻结，只追加58及后续。不得进入PR-03媒体或客户分享/官网。
+
+# 2026-10-01 当前实现范围：PR-02a
+
+PR #30 本轮仅独立人才账号、认证、真实 TALENT 主体的统一回执/审计/writeAhead、最小 Portal 和生命周期。保持 Draft，先复核；不进入 PR-02b 认领/投稿审核，不创建 Invitation/Claim/Grant/Submission/Consent，不进入 PR-03 或客户分享/官网。详情以 docs/release/TALENT_EXPERIENCE_PR02.md 最上方为准。默认 Portal 关闭，PROVIDER_VERIFIED=NOT_RUN；本地测试服务不能视为真实供应商通过。第56/57次迁移仅追加，已有迁移不可改写，未部署。
+
+# 2026-10-01 当前授权：PR-01 冻结，启动 PR-02
+
+PR #29 已按指定 head b74cb79702b517ee1a1ed2125587a9a107ec2801 合并；main=79e064980fda7df9f90ea6a2fef13d3b3eeccb9f 的 CI 36755091719 七项 SUCCESS。PR-01 正式冻结、未部署。下方“保持 Draft、不进入 PR-02”为历史范围，已由本次用户授权替代。
+
+PR-02 使用独立分支 codex/talent-experience-pr02，先读 docs/release/TALENT_EXPERIENCE_PR02.md，沿用 spec/15 冻结规范与 spec/16 ADR，不重开产品规划。范围仅人才账号、邀请、同档认领和本人文本维护。禁止顺带多来源媒体、客户分享、官网发布或占位菜单；前55次迁移不可改写。新增实体必须同步权限、回执、导出重建、删除、合并与恢复。PR-02 未获合并或生产部署授权。
+
 # 2026-10-01 PR-01b finalization
 
 仅继续 PR #29 的同维度多选 OR、完整 11 维 facet、版本化年龄预设、安全刷新恢复和 Person+Role 候选选择。保持 Draft，不进入 PR-02；55 次迁移均冻结，本轮无新增 schema。查询与导航合同见 docs/spec/16_TALENT_EXPERIENCE_CONTRACT.md 末节，实际证据见 docs/release/TALENT_EXPERIENCE_PR01B.md。本轮最终 head 的 CI 才能证明本轮完成。

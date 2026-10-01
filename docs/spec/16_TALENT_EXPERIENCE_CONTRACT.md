@@ -89,3 +89,34 @@ INTERNAL_SOURCE、TALENT_SUBMISSION、AGENT_SUBMISSION 显式上下文；真实 
 候选保存 `{personId,personRoleId}`。普通联系人明确 null；仅一个有效职业可直接绑定，多职业必须显式选择，查询只允许满足当前职业/业务/作品条件的 matchingRoleIds。两个职业可分别选择同一人，进入既有 Shortlist 时复查当前职业版本和署名作品，不建立第二套候选模型。
 
 本轮无数据库 schema 变化或新迁移，既有第 55 次迁移冻结。PR #29 保持 Draft；PR-02 及邀请、认领、门户、多来源上传、分享、官网发布未启动。
+
+## PR-02a 已实现合同（2026-10-01，Draft 待复核）
+
+本轮仅 INTERNAL/MACHINE/TALENT 三个 COMMAND 主体；CASTING 尚未实现，不预建外部分享入口。SYSTEM 仅审计。既有 Actor 保留，TalentActor 不含 membershipId/userId；统一 CommandPrincipal 只用于回执、审计及写前归因，人才认证由独立 Portal 处理器执行。实际路由、身份规范化、发送状态、配置及生命周期详见 [PR-02a 交付](../release/TALENT_EXPERIENCE_PR02.md)。
+
+身份规则固定 `talent-identity-v1`：邮箱仅 domain IDNA/lowercase，local-part 保留大小写/点号/加号；PHONE 显式 E.164，不推断区号。HMAC 独立key并绑定workspace/渠道；身份检索key与账号摘要不符时拒绝，不能恢复错key后复制账号。LOGIN 已开放实现，RECOVER 无恢复权限捷径。认证表不进入普通业务 JSON，实际备份恢复在 prepare/检查阶段阻断旧凭证。默认 Portal 关闭，真实Provider未验不等于生产可用。
+
+新增第56/57次前向迁移，前55次不变。仅基础认证，不建立 Invitation/Claim/Grant/Submission/Consent，也无任何本人媒体、客户或公开接口。详细证据绑定 PR #30 最终提交，不以 PR-01 main CI 代替。
+
+## PR-02b 已实现合同（2026-10-01，Draft 待复核）
+
+本节接续已冻结 PR-02a。邀请/认领/grant、文本草稿/Submission、审核、来源和同意实际实现详见 [PR-02b 交付](../release/TALENT_EXPERIENCE_PR02.md) 顶部。前57次迁移冻结，新增58–61；保留原 Person/来源/媒体/作品/候选及机器接口语义，不实现PR-03。
+
+- `once-talent-text-v1`：displayName、aliases、intro三个字段，最多3条；稳定 clientItemKey、依赖组和DAG、服务端字段摘要基线。保存不暗自更新基线，提交摘要冻结，整批一次决定，部分采纳后只fork未采纳项。UI将姓名/别名作为一组，简介为独立组。首次ENROLL明确采纳三项（后两项可为空），避免从旧隐藏档案复制补全。
+- CLAIM7天/1次，ENROLL30天/默认100次，admission7天；产品常量集中 `TALENT_MAINTENANCE_LIMITS`，没有散落未校验env。草稿90天、已提交180天、已处理30天、撤回7天；活动文字草稿/提交每账号最多100个，创建和fork同门禁。过期镜像清理不擦除已采纳正式事实及合法依据。
+- 所有绑定经过内部人工归属审核，指定identity匹配不能替代年龄/监护核实。批准前CLAIM无Person读权，ENROLL无Person占位；后续读取依赖当前账号+APPROVED Claim+ACTIVE Grant+Person，而非有效邀请。每个新增Portal业务GET与COMMAND均对照账号header，所有写入继续Origin/CSRF；身份失败不回退内部或机器主体。
+- `selfExposureManifest`只保存字段、当前值摘要、来源及版本；返回前重新检查当前值/依据、用途期限和删除/合并保护。内部备注、来源原文、联系方式、报价及敏感生日不进入本人预填。自己提交的未到期草稿只能按本人查询用途查看。
+- `internal-directory-2026-10-v1`明确365天、三个文字字段、内部目录/候选/受控业务导出；客户、公开和媒体均不包括。SourceUseBasis/SourceAttribution分离用途依据、本人材料提供者和实际审核员工。Source.internalUseUntil是数据库强约束的同事务用途投影，旧来源为null且保留原依据；撤回即时生效。匹配当前本人事实的FieldEvidence失效后不能退回旧来源冒充新值依据。
+- 导出只传已采纳事实和必要历史依据；JSON重建的 importedBasis 不产生外部身份/账号/授权。物理恢复关闭旧grant及邀请，停用/删除/合并即时阻断旧关系；不把旧Grant自动挂到合并主档。所有新表进入原生命周期和恢复检查摘要。
+- `/talent/*`与内部同源仅凭证分流，不声称浏览器脚本隔离。文本使用React转义，本地二维码、无第三方脚本或跟踪；沿用CSP、浏览器存储静态门禁。正式开放仍须真实Provider验证及单独上线审批。
+
+当前状态：PR-02b IMPLEMENTED，交付证据与最终提交CI绑定PR #30；保持Draft待复核，未合并未部署，PROVIDER_VERIFIED=NOT_RUN。
+
+
+## PR-02b finalization 审核终态与来源保护（2026-10-01）
+
+终态APPROVED/PARTIALLY_APPROVED/REJECTED的审核命令，新键返回409 SUBMISSION_CLOSED；原键只能由原Commands层按principal/operation/commandKey/requestDigest重放，并保留当前资源读取鉴权，不在领域review中伪造幂等成功。相同键不同内容仍返回IDEMPOTENCY_KEY_CONFLICT。
+
+未绑定ENROLL Submission全拒绝，同事务终结Claim、释放名额并记录内部决定人、时间及依据；无显式ownershipBasis时以本次Submission编号关联完整拒绝决定。已完成ENROLL之后的维护fork拒绝不改写原已批准Claim/Grant。普通JSON不携带被拒草稿或内部拒绝依据；实际恢复保留终态决定，不能复活reservation。
+
+对于internalUseUntil非空的本人来源，普通source.update禁止携带textPayload（含空字符串），返回409 TALENT_BASIS_SCOPED；独立内部材料另建Source。请求schema及236条路由不变，迁移1–61不变，无新增数据库字段。本轮继续Draft待复核，未合并未部署。

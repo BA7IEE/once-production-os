@@ -5,6 +5,7 @@ export type PersonMergeCollisionChoice = 'KEEP_CANONICAL' | 'KEEP_DUPLICATE';
 
 export type ProfessionalConflictChoice = NonNullable<Inputs['person.merge']['professionalConflicts']>[number]['choice'];
 export interface PersonMergePreview {
+    externalAccessRevocations?:number;
     canonical: { id: string; displayName: string; sourceId: string; scopeId: string; revision: number };
     duplicate: { id: string; displayName: string; sourceId: string; scopeId: string; revision: number };
     fieldConflicts: Array<{

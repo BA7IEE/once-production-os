@@ -1,3 +1,6 @@
+import {TalentMaintenance} from './talent-maintenance.ts';
+import type {CommandPrincipal} from './talent-auth-model.ts';
+import {invariant} from './errors.ts';
 import {brandFor} from './project-parties.ts';
 import {aiOperator} from './ai-operations.ts';
 import {AiBusiness} from './ai-business.ts';
@@ -17,9 +20,24 @@ import { workspaceRow } from './helpers.ts';
 import { missing } from './errors.ts';
 import { personFor, sourceFor, sourceCurrent, requireScope, requirePermission } from './policy.ts';
 /** Domain authorization for returning minimal command receipts. Not part of the generic receipt engine. */
-export async function authorizeReceipt(tx: Tx, actor: Actor, receipt: CommandReceipt, clock: Clock, config?: Config): Promise<void> {
+export async function authorizeReceipt(tx: Tx, actor: CommandPrincipal, receipt: CommandReceipt, clock: Clock, config?: Config): Promise<void> {
+    if(actor.actorKind==='TALENT'){
+        const account=await tx.get('talentAccounts',actor.talentAccountId);
+        invariant(receipt.principalKind==='TALENT'&&receipt.talentAccountId===actor.talentAccountId&&receipt.workspaceId===actor.workspaceId&&account?.status==='ACTIVE'&&account.sessionEpoch===actor.sessionEpoch,'REPLAY_FORBIDDEN','当前账号不能读取此回执',403);
+        if(receipt.resourceKind==='talentAccount'){invariant(receipt.resourceId===actor.talentAccountId,'REPLAY_FORBIDDEN','不可访问',403);return;}
+        if(!config)missing();const m=new TalentMaintenance(clock,config);
+        if(receipt.resourceKind==='talentSubmission'){await m.submissionAccess(tx,actor,receipt.resourceId);return;}
+        if(receipt.resourceKind==='talentClaim'){const c=await m.ownClaim(tx,actor,receipt.resourceId);if(c.state==='APPROVED'){const g=(await tx.find('talentAccessGrants',{workspaceId:actor.workspaceId,claimId:c.id}))[0];if(!g)missing();await m.grant(tx,actor.workspaceId,actor.talentAccountId,g.id);}return;}
+        if(receipt.resourceKind==='talentConsent'){const c=await workspaceRow(tx,'talentConsents',receipt.resourceId,actor.workspaceId);if(!c||c.talentAccountId!==actor.talentAccountId)missing();return;}missing();
+    }
     const id = receipt.resourceId;
     switch (receipt.resourceKind) {
+        case 'talentInvitation':if(!config)missing();await new TalentMaintenance(clock,config).invitation(tx,actor,id);return;
+        case 'talentSubmission':if(!config)missing();await new TalentMaintenance(clock,config).internalSubmission(tx,actor,id);return;
+        case 'talentClaim':{requirePermission(actor,'talent.review');const c=await workspaceRow(tx,'talentClaims',id,actor.workspaceId);if(!c)missing();await requireScope(tx,actor,c.scopeId);if(c.targetPersonId)await td2PersonFor(tx,actor,c.targetPersonId);return;}
+        case 'talentGrant':{requirePermission(actor,'talent.review');const g=await workspaceRow(tx,'talentAccessGrants',id,actor.workspaceId);if(!g)missing();await td2PersonFor(tx,actor,g.personId);return;}
+        case 'talentConsent':missing();
+        case 'talentAccount': requirePermission(actor,'members.manage');if(!await workspaceRow(tx,'talentAccounts',id,actor.workspaceId))missing();return;
         case 'brand': await brandFor(tx,actor,id,clock);return;
         case 'aiConnectionTest': case 'aiConnection': case 'aiApproval': case 'aiAttempt': case 'aiBudget': {
             aiOperator(actor);const table=receipt.resourceKind==='aiConnectionTest'?'aiRuns':receipt.resourceKind==='aiConnection'?'aiConnections':receipt.resourceKind==='aiApproval'?'aiApprovals':receipt.resourceKind==='aiAttempt'?'aiAttempts':'aiBudgets';

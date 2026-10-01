@@ -1,0 +1,44 @@
+import {spawnSync} from 'node:child_process';
+import {mkdtempSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {randomBytes} from 'node:crypto';
+import {RecoveryOps} from '../../packages/core/src/recovery.ts';
+import {hashSecret} from '../../packages/core/src/crypto.ts';
+import {Application} from '../../packages/core/src/api.ts';
+import {Client} from '../support/fixtures.ts';
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {PrismaClient} from '@prisma/client';
+import {PrismaStore} from '../../apps/api/src/prisma-store.ts';
+import {authFixture,verifyTalentAuth,loginTalent} from '../support/talent-auth.ts';
+import {mkdirSync,writeFileSync} from 'node:fs';
+test('PR02a real PostgreSQL authentication, principal FK/XOR, rollback and unique constraints',async()=>{
+ assert.equal(process.env.ALLOW_TALENT_AUTH_DB_TESTS,'yes');const raw=process.env.DATABASE_URL_TALENT_AUTH_TEST;assert.ok(raw);const url=new URL(raw);assert.ok(['127.0.0.1','localhost','[::1]'].includes(url.hostname));assert.match(url.pathname,/^\/once_test_[a-z0-9_]+$/);assert.ok(url.username&&url.password&&!url.search&&!url.hash);
+ const store=new PrismaStore(new PrismaClient({datasources:{db:{url:raw}},log:[]}));try{assert.equal(await store.client.workspace.count(),0);const f=await authFixture(store);const checks=await verifyTalentAuth(f);f.clock.advance(60001);const a=await loginTalent(f,'pg-rollback@example.com');
+ const identity=(await store.client.talentIdentity.findFirst({where:{talentAccountId:a.accountId}}))!;
+ await assert.rejects(()=>store.client.talentIdentity.create({data:{...identity,id:randomUUID()}}));
+ const receipt=(await store.client.commandReceipt.findFirst({where:{principalKind:'TALENT'}}))!;
+ const member=await store.client.membership.findFirst();assert.ok(member);
+ await assert.rejects(()=>store.client.commandReceipt.create({data:{...receipt,id:randomUUID(),commandKey:randomUUID(),actorId:member.id} as never}));
+ await assert.rejects(()=>store.client.commandReceipt.create({data:{...receipt,id:randomUUID(),commandKey:randomUUID(),talentAccountId:randomUUID()} as never}));
+ await assert.rejects(()=>store.client.commandReceipt.create({data:{...receipt,id:randomUUID(),commandKey:randomUUID(),principalKind:'SYSTEM',talentAccountId:null} as never}));
+ await assert.rejects(()=>store.client.commandReceipt.create({data:{...receipt,id:randomUUID()} as never}));checks.push('database-identity-unique-principal-xor-fk-and-receipt-unique');
+ await store.client.$executeRawUnsafe(`CREATE FUNCTION once_auth_fail_audit() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW."action"='portal.sessions.revoke' THEN RAISE EXCEPTION 'synthetic audit failure'; END IF; RETURN NEW; END; $$`);
+ await store.client.$executeRawUnsafe('CREATE TRIGGER once_auth_fail_audit BEFORE INSERT ON "audits" FOR EACH ROW EXECUTE FUNCTION once_auth_fail_audit()');
+ const key=randomUUID(),headers={'idempotency-key':key,'x-once-talent-account':a.accountId},before=await store.client.talentAccount.findUnique({where:{id:a.accountId}});
+ const fault=await a.client.raw('POST','/portal/auth/revoke-other-sessions',{},headers);assert.ok([500,503].includes(fault.status));assert.deepEqual(await store.client.talentAccount.findUnique({where:{id:a.accountId}}),before);assert.equal(await store.client.commandReceipt.count({where:{commandKey:key}}),0);
+ await store.client.$executeRawUnsafe('DROP TRIGGER once_auth_fail_audit ON "audits"');await store.client.$executeRawUnsafe('DROP FUNCTION once_auth_fail_audit()');
+ const pair=await Promise.all([a.client.raw('POST','/portal/auth/revoke-other-sessions',{},headers),a.client.raw('POST','/portal/auth/revoke-other-sessions',{},headers)]);assert.ok(pair.every(r=>r.status===200));assert.equal((pair[0]!.body as any).operationId,(pair[1]!.body as any).operationId);assert.equal(await store.client.commandReceipt.count({where:{commandKey:key}}),1);checks.push('real-audit-rollback-and-concurrent-same-key-replay');
+ const restoreRaw=process.env.DATABASE_URL_TALENT_AUTH_RESTORE_TEST;assert.ok(restoreRaw);const restoreUrl=new URL(restoreRaw);assert.ok(['127.0.0.1','localhost'].includes(restoreUrl.hostname));assert.match(restoreUrl.pathname,/^\/once_restore_[a-z0-9_]+$/);assert.ok(restoreUrl.username&&restoreUrl.password&&!restoreUrl.search&&!restoreUrl.hash);assert.notEqual(restoreRaw,raw);
+ const restored=new PrismaStore(new PrismaClient({datasources:{db:{url:restoreRaw}},log:[]})),root=mkdtempSync(join(tmpdir(),'once-auth-restore-'));
+ try{assert.equal((await restored.client.$queryRawUnsafe<any[]>("SELECT tablename FROM pg_tables WHERE schemaname='public'")).length,0);const env=(u:URL)=>({...process.env,PGHOST:u.hostname,PGPORT:u.port,PGUSER:decodeURIComponent(u.username),PGPASSWORD:decodeURIComponent(u.password),PGDATABASE:u.pathname.slice(1)}),file=join(root,'backup.dump');let r=spawnSync('pg_dump',['--format=custom','--file',file],{env:env(url),encoding:'utf8',timeout:120000});assert.equal(r.status,0,r.stderr);r=spawnSync('pg_restore',['--no-owner','--no-acl','--dbname',restoreUrl.pathname.slice(1),file],{env:env(restoreUrl),encoding:'utf8',timeout:120000});assert.equal(r.status,0,r.stderr);
+ for(const table of ['talentAccounts','talentIdentities','talentSessions','talentAuthContexts','talentAuthChallenges','talentAuthDeliveries','receipts','audits'] as const)assert.deepEqual(await restored.transaction(tx=>tx.find(table)),await store.transaction(tx=>tx.find(table)),table+' physical backup');
+ const config={...f.app.config,accessMode:'MAINTENANCE' as const,dataEgressMode:'DISABLED' as const,dataCleanupMode:'DISABLED' as const,dataMergeMode:'DISABLED' as const,recoveryEpoch:randomBytes(24).toString('hex')},ops=new RecoveryOps(f.clock,config);await restored.transaction(async tx=>{const actor=await ops.actorFromRestoredTarget(tx,'owner');await ops.prepare(tx,actor,hashSecret(f.app.config.recoveryEpoch),{requestId:randomUUID(),ip:'test'});});
+ assert.equal(await restored.client.talentSession.count({where:{revokedAt:null}}),0);assert.equal(await restored.client.talentAuthChallenge.count({where:{codeHash:{not:null}}}),0);assert.equal(await restored.client.talentAuthDelivery.count({where:{encryptedPayload:{not:null}}}),0);
+ const app=new Application(restored,config,f.clock),oldClient=new Client(app);oldClient.jar={...a.client.jar};assert.equal((await oldClient.raw('GET','/portal/me')).status,503);checks.push('actual-pg-dump-restore-all-auth-entities-real-recovery-prepare-quarantines');
+ }finally{await restored.close();rmSync(root,{recursive:true,force:true});}
+ mkdirSync('artifacts/talent-experience-pr02a',{recursive:true});writeFileSync('artifacts/talent-experience-pr02a/postgres.json',JSON.stringify({checks,status:'PASSED',database:await store.client.$queryRawUnsafe('SELECT version()')},null,2)+'\n');
+ }finally{await store.close();}
+});

@@ -120,7 +120,7 @@ export interface Membership {
     displayName: string;
     loginName: string;
     role: Me['role'];
-    extraPermissions: Array<'sensitive.read' | 'sensitive.write' | 'data.export' | 'data.delete' | 'data.merge' | 'ai.use'>;
+    extraPermissions: Array<'sensitive.read' | 'sensitive.write' | 'data.export' | 'data.delete' | 'data.merge' | 'ai.use' | 'talent.invite' | 'talent.review'>;
     status: string;
     revision: number;
 }
@@ -160,6 +160,8 @@ export interface ImportBatch {
     } | null;
 }
 export interface Audit {
+    principalKind?:'INTERNAL'|'MACHINE'|'TALENT'|'SYSTEM';
+    talentAccountId?:string|null;
     id: string;
     actorId: string | null;
     action: string;
@@ -199,3 +201,6 @@ export interface HandoffRecipient {
     membershipId: string;
     displayName: string;
 }
+
+/** Account-only portal projection: no Person, contacts, authentication hashes or source data. */
+export interface TalentAccountMe {talentAccountId:string;status:'ACTIVE';revision:number;csrfToken:string;}

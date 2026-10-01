@@ -36,6 +36,17 @@ if(mainStatus!==0){process.exitCode=mainStatus;}else{
  try{
   await admin.$connect();
   let status=0;
+  const maintenance=await fresh('once_test_maint_','Talent maintenance');
+  const maintenanceRebuild=await fresh('once_test_maint_rebuild_','Talent maintenance JSON rebuild');const maintenanceRestore=await fresh('once_test_maint_restore_','Talent maintenance physical restore',false);
+  status=runNode('tests/postgres/talent-maintenance.test.ts',{...process.env,DATABASE_URL_TALENT_MAINTENANCE_TEST:maintenance,DATABASE_URL_TALENT_MAINTENANCE_REBUILD_TEST:maintenanceRebuild,DATABASE_URL_TALENT_MAINTENANCE_RESTORE_TEST:maintenanceRestore,ALLOW_TALENT_MAINTENANCE_DB_TESTS:'yes'},180000);
+  if(status!==0)throw new Error('Talent maintenance PostgreSQL verification failed');
+  const auth=await fresh('once_test_auth_','Talent auth principals');
+  const authRestore=await fresh('once_restore_auth_','Talent auth physical restore',false);
+  status=runNode('tests/postgres/talent-auth.test.ts',{...process.env,DATABASE_URL_TALENT_AUTH_TEST:auth,DATABASE_URL_TALENT_AUTH_RESTORE_TEST:authRestore,ALLOW_TALENT_AUTH_DB_TESTS:'yes'},180000);
+  if(status!==0)throw new Error('Talent auth PostgreSQL verification failed');
+  const authUpgrade=await fresh('once_test_auth_upgrade_','Talent auth migration 55 upgrade',false);
+  status=runNode('tests/postgres/talent-auth-upgrade.test.ts',{...process.env,DATABASE_URL_TALENT_AUTH_UPGRADE_TEST:authUpgrade,ALLOW_TALENT_AUTH_DB_TESTS:'yes'},180000);
+  if(status!==0)throw new Error('Talent auth upgrade verification failed');
   const rebuild=await fresh('once_rebuild_','T29 rebuild');
   status=runNode('tests/postgres/rebuild.test.ts',{...process.env,DATABASE_URL_REBUILD_TEST:rebuild,ALLOW_REBUILD_TESTS:'yes'},180000);
   if(status===0){

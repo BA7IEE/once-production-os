@@ -1,3 +1,4 @@
+import {cleanupTalentAuth} from '../../../packages/core/src/talent-auth.ts';
 import {installedModelClient} from './ai/installed-client.ts';
 import {AiWorker} from './ai/worker.ts';
 import { SafetyJournalWriter } from './recovery/safety-journal.ts';
@@ -31,6 +32,7 @@ async function run() {
     try {
         while (!stopping) {
             try {
+                await store.transaction(tx=>cleanupTalentAuth(tx,core.clock));
                 const claim = await core.imports.claim();
                 if (claim)
                     await core.imports.process(claim);

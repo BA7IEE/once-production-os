@@ -1,10 +1,11 @@
+import {canUseEvidenceForPurpose,currentIdentity} from './talent-maintenance-policy.ts';
 import {identitySupported} from './talent-identity-retention.ts';
 import type { Actor, Clock, Membership, Permission, Person, Role, Source } from './model.ts';
 import type { Tx } from './store.ts';
 import { fail, invariant, missing } from './errors.ts';
 import { workspaceRow } from './helpers.ts';
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
-    ADMIN: ['assets.read', 'assets.upload', 'records.read', 'records.write', 'sources.read', 'sources.write', 'sources.review', 'members.manage', 'catalog.manage', 'audit.read', 'data.export', 'data.delete', 'data.merge'],
+    ADMIN: ['talent.invite','talent.review','assets.read', 'assets.upload', 'records.read', 'records.write', 'sources.read', 'sources.write', 'sources.review', 'members.manage', 'catalog.manage', 'audit.read', 'data.export', 'data.delete', 'data.merge'],
     EDITOR: ['assets.read', 'assets.upload', 'records.read', 'records.write', 'sources.read', 'sources.write'],
     REVIEWER: ['assets.read', 'records.read', 'sources.read', 'sources.review'], VIEWER: ['assets.read', 'records.read']
 };
@@ -34,7 +35,7 @@ export async function requireScope(tx: Tx, actor: Actor, scopeId: string): Promi
 }
 export function sourceCurrent(source: Source, clock: Clock): boolean {
     const now = clock.now().getTime();
-    return !['SUSPENDED','ERASED'].includes(source.status) && Date.parse(source.validFrom) <= now && now < Date.parse(source.validUntil)
+    return canUseEvidenceForPurpose(source,clock) && !['SUSPENDED','ERASED'].includes(source.status) && Date.parse(source.validFrom) <= now && now < Date.parse(source.validUntil)
         && (source.basisMode === 'TEMP_ORGANIZE' || source.status === 'CONFIRMED');
 }
 export async function sourceVisible(tx: Tx, actor: Actor, source: Source, clock: Clock): Promise<boolean> {
@@ -62,8 +63,9 @@ export async function personVisible(tx: Tx, actor: Actor, person: Person, clock:
     if (await personAliasFor(tx, actor.workspaceId, person.id)) return false;
     if (person.status==='ERASED' || person.workspaceId !== actor.workspaceId || await deletionBlocked(tx, actor.workspaceId, 'PERSON', person.id) || !(await scopeVisible(tx, actor, person.scopeId)))
         return false;
-    const source = await workspaceRow(tx, 'sources', person.sourceId, actor.workspaceId);
-    return !!source && (await sourceVisible(tx, actor, source, clock)||source.status==='ERASED'&&await scopeVisible(tx,actor,source.scopeId)&&await retainedPersonVisible(tx,actor,person,clock));
+    const evidence=await tx.find('evidence',{workspaceId:actor.workspaceId,personId:person.id});
+    const all=await tx.find('sources',{workspaceId:actor.workspaceId}),sources=new Map<string,Source>();for(const source of all)if(await sourceVisible(tx,actor,source,clock))sources.set(source.id,source);
+    return currentIdentity(person,evidence,id=>sources.get(id),id=>all.find(s=>s.id===id));
 }
 export async function personFor(tx: Tx, actor: Actor, id: string, clock: Clock, activeSource = true): Promise<Person> {
     const person = await workspaceRow(tx, 'people', id, actor.workspaceId);
@@ -74,9 +76,8 @@ export async function personFor(tx: Tx, actor: Actor, id: string, clock: Clock, 
     const alias = await personAliasFor(tx, actor.workspaceId, id);
     invariant(!alias, 'MERGED_ID_READ_ONLY', '该人才ID已合并，只允许通过详情只读解析到主档案', 409);
     if (await deletionBlocked(tx, actor.workspaceId, 'PERSON', person.id)) missing();
-    const origin=await workspaceRow(tx,'sources',person.sourceId,actor.workspaceId);
-    if(origin?.status==='ERASED'){await requireScope(tx,actor,origin.scopeId);if(!await retainedPersonVisible(tx,actor,person,clock))missing();}
-    else await sourceFor(tx, actor, person.sourceId, clock, activeSource);
+    if(activeSource){if(!await personVisible(tx,actor,person,clock))missing();}
+    else await sourceFor(tx,actor,person.sourceId,clock,false);
     return person;
 }
 export async function validateScopeMembers(tx: Tx, actor: Actor, ids: string[]): Promise<void> {

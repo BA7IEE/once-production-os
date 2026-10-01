@@ -11,7 +11,7 @@ export function sourceSnapshot(source: Source): Source {
         maintainerId: source.maintainerId, title: source.title, type: source.type,
         providerClaim: source.providerClaim, textPayload: source.textPayload,
         basisMode: source.basisMode, basisDescription: source.basisDescription,
-        validFrom: source.validFrom, validUntil: source.validUntil, status: source.status,
+        validFrom: source.validFrom, validUntil: source.validUntil,...(source.internalUseUntil?{internalUseUntil:source.internalUseUntil}:{}), status: source.status,
         protectionEpoch: source.protectionEpoch, reviewedBy: source.reviewedBy, reviewedAt: source.reviewedAt };
 }
 export async function appendSourceHistory(tx: Tx, actor: Actor, source: Source,

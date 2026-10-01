@@ -322,8 +322,12 @@ export class Exports {
                 if (!requiredSourceFields.length) continue;
                 const permission = this.choosePermission(permissions, used, 'SOURCE', source.id, source.id, requiredSourceFields);
                 dependencies.push(this.dependency(actor.workspaceId, job.id, 'SOURCE', source.id, requiredSourceFields, source, source.revision, source.protectionEpoch, permission, initialExpiry));
+                const basis=(await tx.find('sourceUseBases',{workspaceId:actor.workspaceId,sourceId:source.id}))[0];
+                const attribution=(await tx.find('sourceAttributions',{workspaceId:actor.workspaceId,sourceId:source.id}))[0];
+                let talentBasis:unknown=undefined;
+                if(basis&&attribution){if(basis.importedBasis)talentBasis=basis.importedBasis;else{const consent=basis.consentId?await tx.get('talentConsents',basis.consentId):null;invariant(consent?.state==='ACTIVE'&&basis.state==='ACTIVE','CONSENT_UNAVAILABLE','本人使用依据已失效',409);talentBasis={version:'talent-basis-v1',providerAccountId:attribution.talentAccountId,submissionId:attribution.submissionId,consentId:consent.id,consentRevision:consent.revision,textVersion:consent.textVersion,purpose:'INTERNAL_DIRECTORY',fieldScope:basis.fieldScope,validUntil:basis.validUntil,reviewerId:attribution.reviewerId};}}
                 if (sourceFields.length) manifestSources.push({ id: source.id, revision: source.revision, protectionEpoch: source.protectionEpoch,
-                    data: dataFields('source.', sourceFields, source as unknown as Record<string, unknown>) });
+                    ...(talentBasis?{talentBasis}:{}),data: dataFields('source.', sourceFields, source as unknown as Record<string, unknown>) });
             }
         }
         invariant(used.size === d.usePermissionRefs.length, 'EXPORT_PERMISSION_UNUSED', '提交了未被本次导出使用的许可，请移除后重试', 422);

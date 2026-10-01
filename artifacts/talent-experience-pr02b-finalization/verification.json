@@ -1,0 +1,25 @@
+{
+  "status": "LOCAL_TESTED",
+  "core": {
+    "passed": 598,
+    "failed": 0,
+    "skipped": 0
+  },
+  "postgres": {
+    "fullSuiteExitCode": 0,
+    "maintenanceChecks": 43,
+    "version": "14.19"
+  },
+  "browser": {
+    "suitesPassed": 8,
+    "engine": "real Chrome over HTTPS with Nest and Prisma"
+  },
+  "schemaChanged": false,
+  "newMigrations": [],
+  "frozenMigrations": 61,
+  "providerVerified": "NOT_RUN",
+  "prStatus": "DRAFT",
+  "merged": false,
+  "deployed": false,
+  "ci": "Final head run recorded in PR #30 after push"
+}
