@@ -1,3 +1,7 @@
+# 当前授权：PR-04D 同档接手与生命周期总收口
+
+用户批准基于冻结 PR-04C 4e7593c9 的独立 stacked 分支，实现同一 Person 的 CLAIM / SELF Grant 与显式 exposure、本人后续维护和 A–D 生命周期验收。复用既有模型；迁移1–74冻结，优先无75。新 PR35 保持 Draft、未合并未部署；PR31–34 head 不改。全量验收与 exact-head CI 后停止，等待复核，不进入 MCP / Skill。下方为历史授权。
+
 # 当前授权：PR-04C WORK appliedId finalization
 
 本轮以665ea7b为基线，只将MACHINE WORK item appliedId统一为Work.id，补CREATE/LINK及exact/new Credit和既有类型/Talent回归。无新字段、模型或迁移；1–74及PR31/32/33 head不改。PR34继续Draft，完整Core/PG/Browser与新head16项CI通过后交最终复核，不自行冻结、不进入PR-04D。下方为历史授权。

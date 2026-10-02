@@ -1,0 +1,11 @@
+{
+  "status": "POSTGRES_TESTED",
+  "migrationCount": [
+    {
+      "count": 74
+    }
+  ],
+  "checks": [
+    "two-accounts-concurrent-same-Person-approval-one-SELF-Grant"
+  ]
+}

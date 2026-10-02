@@ -1,0 +1,202 @@
+TAP version 13
+# Subtest: MACHINE Collection/Work atomic adoption, explicit update, shared Work LINK and exact Credit reuse
+ok 1 - MACHINE Collection/Work atomic adoption, explicit update, shared Work LINK and exact Credit reuse
+  ---
+  duration_ms: 291.235833
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed asset-id
+ok 2 - MACHINE Collection/Work fail-closed asset-id
+  ---
+  duration_ms: 131.947708
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed role-id
+ok 3 - MACHINE Collection/Work fail-closed role-id
+  ---
+  duration_ms: 141.81525
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed source-id
+ok 4 - MACHINE Collection/Work fail-closed source-id
+  ---
+  duration_ms: 149.9385
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed collection-id
+ok 5 - MACHINE Collection/Work fail-closed collection-id
+  ---
+  duration_ms: 134.386875
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed work-id
+ok 6 - MACHINE Collection/Work fail-closed work-id
+  ---
+  duration_ms: 135.246417
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed scope-id
+ok 7 - MACHINE Collection/Work fail-closed scope-id
+  ---
+  duration_ms: 133.173417
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed missing-media
+ok 8 - MACHINE Collection/Work fail-closed missing-media
+  ---
+  duration_ms: 133.120167
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed not-ready
+ok 9 - MACHINE Collection/Work fail-closed not-ready
+  ---
+  duration_ms: 134.9975
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed type
+ok 10 - MACHINE Collection/Work fail-closed type
+  ---
+  duration_ms: 135.446542
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed mime
+ok 11 - MACHINE Collection/Work fail-closed mime
+  ---
+  duration_ms: 131.587041
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed role-key
+ok 12 - MACHINE Collection/Work fail-closed role-key
+  ---
+  duration_ms: 139.078541
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed graph
+ok 13 - MACHINE Collection/Work fail-closed graph
+  ---
+  duration_ms: 133.562625
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed partial
+ok 14 - MACHINE Collection/Work fail-closed partial
+  ---
+  duration_ms: 137.396209
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed decision
+ok 15 - MACHINE Collection/Work fail-closed decision
+  ---
+  duration_ms: 139.006709
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed duplicate
+ok 16 - MACHINE Collection/Work fail-closed duplicate
+  ---
+  duration_ms: 153.226375
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed role
+ok 17 - MACHINE Collection/Work fail-closed role
+  ---
+  duration_ms: 164.491625
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed tag
+ok 18 - MACHINE Collection/Work fail-closed tag
+  ---
+  duration_ms: 158.660875
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed order
+ok 19 - MACHINE Collection/Work fail-closed order
+  ---
+  duration_ms: 152.913417
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed collection-cover
+ok 20 - MACHINE Collection/Work fail-closed collection-cover
+  ---
+  duration_ms: 156.508375
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed cover
+ok 21 - MACHINE Collection/Work fail-closed cover
+  ---
+  duration_ms: 155.43775
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed work-facts
+ok 22 - MACHINE Collection/Work fail-closed work-facts
+  ---
+  duration_ms: 155.682625
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed work-assets
+ok 23 - MACHINE Collection/Work fail-closed work-assets
+  ---
+  duration_ms: 155.829125
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed credit
+ok 24 - MACHINE Collection/Work fail-closed credit
+  ---
+  duration_ms: 161.275458
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed source
+ok 25 - MACHINE Collection/Work fail-closed source
+  ---
+  duration_ms: 157.571708
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed legacy
+ok 26 - MACHINE Collection/Work fail-closed legacy
+  ---
+  duration_ms: 179.221959
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work actual business JSON export and verified rebuild preserve provenance without rebuilding auth
+ok 27 - MACHINE Collection/Work actual business JSON export and verified rebuild preserve provenance without rebuilding auth
+  ---
+  duration_ms: 486.642917
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work lifecycle PERSON
+ok 28 - MACHINE Collection/Work lifecycle PERSON
+  ---
+  duration_ms: 188.072875
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work lifecycle MERGE
+ok 29 - MACHINE Collection/Work lifecycle MERGE
+  ---
+  duration_ms: 181.461542
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work valid closed partial approval and cross-Agent isolation
+ok 30 - MACHINE Collection/Work valid closed partial approval and cross-Agent isolation
+  ---
+  duration_ms: 143.2655
+  type: 'test'
+  ...
+# Subtest: MACHINE INTERNAL_REVIEW basis revoke invalidates formal projections
+ok 31 - MACHINE INTERNAL_REVIEW basis revoke invalidates formal projections
+  ---
+  duration_ms: 146.6415
+  type: 'test'
+  ...
+# Subtest: MACHINE full-length batch and Work review bases remain complete and export/rebuild compatible
+ok 32 - MACHINE full-length batch and Work review bases remain complete and export/rebuild compatible
+  ---
+  duration_ms: 383.97625
+  type: 'test'
+  ...
+1..32
+# tests 32
+# suites 0
+# pass 32
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5694.310625

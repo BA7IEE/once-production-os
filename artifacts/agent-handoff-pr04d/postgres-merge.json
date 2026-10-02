@@ -1,0 +1,12 @@
+{
+  "status": "POSTGRES_TESTED",
+  "migrationCount": [
+    {
+      "count": 74
+    }
+  ],
+  "checks": [
+    "exact-role-merge-fail-closed-SELF-not-remapped",
+    "actual-merge-closes-old-Grant-pending-Agent-target-rebase-no-silent-alias-transfer"
+  ]
+}

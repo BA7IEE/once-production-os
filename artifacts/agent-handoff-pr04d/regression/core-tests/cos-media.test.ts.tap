@@ -1,0 +1,34 @@
+TAP version 13
+# Subtest: COS stores private objects, verifies retries and round-trips original and preview
+ok 1 - COS stores private objects, verifies retries and round-trips original and preview
+  ---
+  duration_ms: 13.4745
+  type: 'test'
+  ...
+# Subtest: COS refuses public or versioned buckets and detects changed or oversized objects
+ok 2 - COS refuses public or versioned buckets and detects changed or oversized objects
+  ---
+  duration_ms: 5.103667
+  type: 'test'
+  ...
+# Subtest: COS failed purge stays incomplete and never leaks SDK errors
+ok 3 - COS failed purge stays incomplete and never leaks SDK errors
+  ---
+  duration_ms: 3.864291
+  type: 'test'
+  ...
+# Subtest: COS purge blocks on an uncertain publication and prevents later publishing
+ok 4 - COS purge blocks on an uncertain publication and prevents later publishing
+  ---
+  duration_ms: 3.374333
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 216.586

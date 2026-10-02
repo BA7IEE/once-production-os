@@ -1,0 +1,1578 @@
+
+> once-production-os@0.1.0-dev.1 verify /Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os
+> pnpm contract:check && pnpm typecheck && pnpm test:core && pnpm review:static && pnpm build
+
+
+> once-production-os@0.1.0-dev.1 contract:check /Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os
+> node --experimental-strip-types scripts/generate-contract.ts --check
+
+Contract verified: 286 routes; request schemas only
+
+> once-production-os@0.1.0-dev.1 typecheck /Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os
+> tsc -p tsconfig.server.json --noEmit && tsc -p apps/admin-web/tsconfig.json
+
+
+> once-production-os@0.1.0-dev.1 test:core /Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os
+> node scripts/run-core-tests.mjs
+
+{"file":"adult-transfer.test.ts","exitCode":0,"error":null,"durationMs":3309,"tests":5,"pass":5,"fail":0,"skipped":0}
+{"file":"agent-handoff.test.ts","exitCode":1,"error":null,"durationMs":1683,"tests":9,"pass":8,"fail":1,"skipped":0}
+--- failing TAP: agent-handoff.test.ts ---
+TAP version 13
+# Subtest: same Person MACHINE → CLAIM → explicit exposure → true Talent maintenance independent provenance
+not ok 1 - same Person MACHINE → CLAIM → explicit exposure → true Talent maintenance independent provenance
+  ---
+  duration_ms: 216.598917
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/agent-handoff.test.ts:4:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok((await f.store.transaction(tx=>tx.find('sourceUseBases'))).some(b=>b.basisKind==='TALENT_CONSENT'&&b.consentRevision >0))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    handoffScenario (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/agent-handoff.ts:37:613)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/agent-handoff.test.ts:4:115)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: same Person handoff counterexample rollback
+ok 2 - same Person handoff counterexample rollback
+  ---
+  duration_ms: 154.319458
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample revoke
+ok 3 - same Person handoff counterexample revoke
+  ---
+  duration_ms: 151.5445
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample basis
+ok 4 - same Person handoff counterexample basis
+  ---
+  duration_ms: 147.857083
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample revision
+ok 5 - same Person handoff counterexample revision
+  ---
+  duration_ms: 150.293167
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample delete
+ok 6 - same Person handoff counterexample delete
+  ---
+  duration_ms: 174.979333
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample machine-revoke
+ok 7 - same Person handoff counterexample machine-revoke
+  ---
+  duration_ms: 150.853041
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample integrity
+ok 8 - same Person handoff counterexample integrity
+  ---
+  duration_ms: 152.065584
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample claim-race
+ok 9 - same Person handoff counterexample claim-race
+  ---
+  duration_ms: 148.6765
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 8
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1645.953292
+
+{"file":"agent-media.test.ts","exitCode":0,"error":null,"durationMs":3436,"tests":22,"pass":22,"fail":0,"skipped":0}
+{"file":"agent-structures.test.ts","exitCode":0,"error":null,"durationMs":6061,"tests":32,"pass":32,"fail":0,"skipped":0}
+{"file":"ai-business.test.ts","exitCode":0,"error":null,"durationMs":2121,"tests":12,"pass":12,"fail":0,"skipped":0}
+{"file":"ai-connections.test.ts","exitCode":0,"error":null,"durationMs":1045,"tests":4,"pass":4,"fail":0,"skipped":0}
+{"file":"ai-ledger.test.ts","exitCode":0,"error":null,"durationMs":1982,"tests":12,"pass":12,"fail":0,"skipped":0}
+{"file":"ai-model-client.test.ts","exitCode":0,"error":null,"durationMs":251,"tests":7,"pass":7,"fail":0,"skipped":0}
+{"file":"ai-model-wire.test.ts","exitCode":0,"error":null,"durationMs":2244,"tests":6,"pass":6,"fail":0,"skipped":0}
+{"file":"ai-operations.test.ts","exitCode":0,"error":null,"durationMs":1682,"tests":9,"pass":9,"fail":0,"skipped":0}
+{"file":"backup-manifest.test.ts","exitCode":0,"error":null,"durationMs":130,"tests":2,"pass":2,"fail":0,"skipped":0}
+{"file":"browser-storage-policy.test.ts","exitCode":0,"error":null,"durationMs":351,"tests":1,"pass":1,"fail":0,"skipped":0}
+{"file":"client-transport.test.ts","exitCode":0,"error":null,"durationMs":1224,"tests":20,"pass":20,"fail":0,"skipped":0}
+{"file":"collection-transfer.test.ts","exitCode":0,"error":null,"durationMs":2506,"tests":4,"pass":4,"fail":0,"skipped":0}
+{"file":"commands-imports.test.ts","exitCode":0,"error":null,"durationMs":3571,"tests":22,"pass":22,"fail":0,"skipped":0}
+{"file":"cos-media.test.ts","exitCode":0,"error":null,"durationMs":282,"tests":4,"pass":4,"fail":0,"skipped":0}
+{"file":"credential-media-transfer.test.ts","exitCode":0,"error":null,"durationMs":2230,"tests":4,"pass":4,"fail":0,"skipped":0}
+{"file":"deletions.test.ts","exitCode":0,"error":null,"durationMs":4439,"tests":23,"pass":23,"fail":0,"skipped":0}
+{"file":"exports.test.ts","exitCode":0,"error":null,"durationMs":1628,"tests":7,"pass":7,"fail":0,"skipped":0}
+{"file":"handoffs.test.ts","exitCode":0,"error":null,"durationMs":12967,"tests":27,"pass":27,"fail":0,"skipped":0}
+{"file":"http-contract.test.ts","exitCode":0,"error":null,"durationMs":557,"tests":1,"pass":1,"fail":0,"skipped":0}
+{"file":"identity-origin-transfer.test.ts","exitCode":0,"error":null,"durationMs":2208,"tests":4,"pass":4,"fail":0,"skipped":0}
+{"file":"identity-transfer.test.ts","exitCode":0,"error":null,"durationMs":2904,"tests":6,"pass":6,"fail":0,"skipped":0}
+{"file":"identity.test.ts","exitCode":0,"error":null,"durationMs":5901,"tests":25,"pass":25,"fail":0,"skipped":0}
+{"file":"imported-review-basis.test.ts","exitCode":0,"error":null,"durationMs":211,"tests":1,"pass":1,"fail":0,"skipped":0}
+{"file":"ingestion.test.ts","exitCode":0,"error":null,"durationMs":1224,"tests":1,"pass":1,"fail":0,"skipped":0}
+{"file":"json-validation.test.ts","exitCode":0,"error":null,"durationMs":572,"tests":27,"pass":27,"fail":0,"skipped":0}
+{"file":"local-config.test.ts","exitCode":0,"error":null,"durationMs":478,"tests":6,"pass":6,"fail":0,"skipped":0}
+{"file":"locale-merge.test.ts","exitCode":0,"error":null,"durationMs":1286,"tests":6,"pass":6,"fail":0,"skipped":0}
+{"file":"locale-texts.test.ts","exitCode":0,"error":null,"durationMs":1339,"tests":7,"pass":7,"fail":0,"skipped":0}
+{"file":"locale-transfer.test.ts","exitCode":0,"error":null,"durationMs":1770,"tests":5,"pass":5,"fail":0,"skipped":0}
+{"file":"media-byte-stream.test.ts","exitCode":0,"error":null,"durationMs":244,"tests":2,"pass":2,"fail":0,"skipped":0}
+{"file":"media-collections.test.ts","exitCode":1,"error":null,"durationMs":1298,"tests":8,"pass":1,"fail":7,"skipped":0}
+--- failing TAP: media-collections.test.ts ---
+TAP version 13
+# Subtest: PR03C collection draft, adoption, cover, ordering, existing reference and rollback
+not ok 1 - PR03C collection draft, adoption, cover, ordering, existing reference and rollback
+  ---
+  duration_ms: 183.746875
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/media-collections.test.ts:4:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"NOT_FOUND","message":"记录不存在或你没有访问权限","requestId":"3bc749ba-6d5c-4f7f-9c14-d519d3ad2039"}}
+    
+    404 !== 503
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 503
+  actual: 404
+  operator: 'strictEqual'
+  stack: |-
+    Object.expect (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-staging.ts:13:73)
+    async collectionScenario (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-collections.ts:19:127)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/media-collections.test.ts:4:101)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: PR03C current formal ownership, MIME, purpose, concurrency and revocation
+not ok 2 - PR03C current formal ownership, MIME, purpose, concurrency and revocation
+  ---
+  duration_ms: 150.795792
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/media-collections.test.ts:6:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"NOT_FOUND","message":"记录不存在或你没有访问权限","requestId":"be4d6df0-6df3-4382-ad0d-0b8a445ecd5f"}}
+    
+    404 !== 503
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 503
+  actual: 404
+  operator: 'strictEqual'
+  stack: |-
+    Object.expect (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-staging.ts:13:73)
+    async collectionScenario (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-collections.ts:19:127)
+    async collectionSecurityScenario (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-collections.ts:32:43)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/media-collections.test.ts:6:92)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PR03C unbound ENROLL collection and actual Person deletion protection
+not ok 3 - PR03C unbound ENROLL collection and actual Person deletion protection
+  ---
+  duration_ms: 138.726584
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/media-collections.test.ts:8:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"NOT_FOUND","message":"记录不存在或你没有访问权限","requestId":"3d4c53d7-6e72-4c8b-b907-a89d0ad66394"}}
+    
+    404 !== 200
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 200
+  actual: 404
+  operator: 'strictEqual'
+  stack: |-
+    Object.expect (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-staging.ts:13:73)
+    async collectionEnrollScenario (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-collections.ts:69:139)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/media-collections.test.ts:8:88)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PR03C actual JSON export worker preserves formal collections and excludes drafts
+not ok 4 - PR03C actual JSON export worker preserves formal collections and excludes drafts
+  ---
+  duration_ms: 147.031625
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/media-collections.test.ts:10:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"NOT_FOUND","message":"记录不存在或你没有访问权限","requestId":"6f4e4455-122e-418d-a36b-1f0a4d1e2dd1"}}
+    
+    404 !== 503
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 503
+  actual: 404
+  operator: 'strictEqual'
+  stack: |-
+    Object.expect (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-staging.ts:13:73)
+    async collectionScenario (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-collections.ts:19:127)
+    async collectionExportScenario (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-collections.ts:74:43)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/media-collections.test.ts:10:99)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PR03C actual Person merge moves safe collections and blocks old talent authority
+not ok 5 - PR03C actual Person merge moves safe collections and blocks old talent authority
+  ---
+  duration_ms: 157.066375
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/media-collections.test.ts:11:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"NOT_FOUND","message":"记录不存在或你没有访问权限","requestId":"64ef746a-63df-447e-bfde-d84a3c3301b8"}}
+    
+    404 !== 503
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 503
+  actual: 404
+  operator: 'strictEqual'
+  stack: |-
+    Object.expect (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-staging.ts:13:73)
+    async collectionScenario (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-collections.ts:19:127)
+    async collectionMergeScenario (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-collections.ts:84:36)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/media-collections.test.ts:11:99)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PR03C JSON rebuild preserves collections with no external accounts/grants/drafts
+not ok 6 - PR03C JSON rebuild preserves collections with no external accounts/grants/drafts
+  ---
+  duration_ms: 153.844417
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/media-collections.test.ts:13:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"NOT_FOUND","message":"记录不存在或你没有访问权限","requestId":"efc81b1c-a987-46c3-9724-141654c50822"}}
+    
+    404 !== 503
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 503
+  actual: 404
+  operator: 'strictEqual'
+  stack: |-
+    Object.expect (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-staging.ts:13:73)
+    async collectionScenario (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-collections.ts:19:127)
+    async collectionExportScenario (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-collections.ts:74:43)
+    async collectionRebuildScenario (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-collections.ts:89:44)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/media-collections.test.ts:13:99)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PR03C versioned tag catalog rejects inactive, unknown and duplicate authoring values
+ok 7 - PR03C versioned tag catalog rejects inactive, unknown and duplicate authoring values
+  ---
+  duration_ms: 0.48575
+  type: 'test'
+  ...
+# Subtest: PR03C finalization explicit grant exposure, tag provenance/CAS, stale current and type identity
+not ok 8 - PR03C finalization explicit grant exposure, tag provenance/CAS, stale current and type identity
+  ---
+  duration_ms: 146.062708
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/media-collections.test.ts:24:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"NOT_FOUND","message":"记录不存在或你没有访问权限","requestId":"f0cd00b7-0177-4c19-a32d-f205d1a37e74"}}
+    
+    404 !== 503
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 503
+  actual: 404
+  operator: 'strictEqual'
+  stack: |-
+    Object.expect (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-staging.ts:13:73)
+    async collectionScenario (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-collections.ts:19:127)
+    async collectionFinalizationScenario (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-collections-finalization.ts:10:36)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/media-collections.test.ts:24:114)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 1
+# fail 7
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1265.926875
+
+{"file":"media-playback.test.ts","exitCode":0,"error":null,"durationMs":1378,"tests":7,"pass":7,"fail":0,"skipped":0}
+{"file":"media-purge-provider.test.ts","exitCode":0,"error":null,"durationMs":354,"tests":9,"pass":9,"fail":0,"skipped":0}
+{"file":"media-purge.test.ts","exitCode":1,"error":null,"durationMs":40599,"tests":32,"pass":30,"fail":2,"skipped":0}
+--- failing TAP: media-purge.test.ts ---
+TAP version 13
+# Subtest: PR03E exact deadline, independent READY lifecycle and physical confirmation quota
+ok 1 - PR03E exact deadline, independent READY lifecycle and physical confirmation quota
+  ---
+  duration_ms: 167.979375
+  type: 'test'
+  ...
+# Subtest: PR03E two owners, crash lease fencing and UNKNOWN reconciliation
+ok 2 - PR03E two owners, crash lease fencing and UNKNOWN reconciliation
+  ---
+  duration_ms: 140.158708
+  type: 'test'
+  ...
+# Subtest: PR03E confirmed deletion with audit rollback stays unreadable and retains quota until retry
+ok 3 - PR03E confirmed deletion with audit rollback stays unreadable and retains quota until retry
+  ---
+  duration_ms: 135.5695
+  type: 'test'
+  ...
+# Subtest: PR03E DELETE timeout preserves UNKNOWN and backoff; next HEAD missing finalizes
+ok 4 - PR03E DELETE timeout preserves UNKNOWN and backoff; next HEAD missing finalizes
+  ---
+  duration_ms: 151.077875
+  type: 'test'
+  ...
+# Subtest: PR03E real review command vs purge true
+ok 5 - PR03E real review command vs purge true
+  ---
+  duration_ms: 147.513833
+  type: 'test'
+  ...
+# Subtest: PR03E real review command vs purge false
+not ok 6 - PR03E real review command vs purge false
+  ---
+  duration_ms: 135.242583
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/media-purge.test.ts:14:33'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"NOT_FOUND","message":"记录不存在或你没有访问权限","requestId":"5efad814-6332-485d-a72a-d9ceda33bbca"}}
+    
+    404 !== 200
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 200
+  actual: 404
+  operator: 'strictEqual'
+  stack: |-
+    purgeRaceScenario (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-purge.ts:16:15)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/media-purge.test.ts:14:92)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PR03E full withdrawal lifecycle
+ok 7 - PR03E full withdrawal lifecycle
+  ---
+  duration_ms: 143.056125
+  type: 'test'
+  ...
+# Subtest: PR03E retention config can only tighten
+ok 8 - PR03E retention config can only tighten
+  ---
+  duration_ms: 0.231125
+  type: 'test'
+  ...
+# Subtest: PR03E retention DRAFT
+ok 9 - PR03E retention DRAFT
+  ---
+  duration_ms: 133.993292
+  type: 'test'
+  ...
+# Subtest: PR03E retention SUBMITTED
+ok 10 - PR03E retention SUBMITTED
+  ---
+  duration_ms: 136.976375
+  type: 'test'
+  ...
+# Subtest: PR03E retention REJECTED
+ok 11 - PR03E retention REJECTED
+  ---
+  duration_ms: 144.250417
+  type: 'test'
+  ...
+# Subtest: PR03E retention PARTIALLY_APPROVED
+ok 12 - PR03E retention PARTIALLY_APPROVED
+  ---
+  duration_ms: 145.277458
+  type: 'test'
+  ...
+# Subtest: PR03E retention APPROVED
+ok 13 - PR03E retention APPROVED
+  ---
+  duration_ms: 158.034667
+  type: 'test'
+  ...
+# Subtest: PR03E retention WITHDRAWN
+ok 14 - PR03E retention WITHDRAWN
+  ---
+  duration_ms: 178.157625
+  type: 'test'
+  ...
+# Subtest: PR03E retention EXPIRED
+ok 15 - PR03E retention EXPIRED
+  ---
+  duration_ms: 134.005291
+  type: 'test'
+  ...
+# Subtest: PR03E formal source or any placement prevents purge even after usage retirement
+ok 16 - PR03E formal source or any placement prevents purge even after usage retirement
+  ---
+  duration_ms: 138.197875
+  type: 'test'
+  ...
+# Subtest: PR03E cleanup fence, recovery epoch and data gates
+ok 17 - PR03E cleanup fence, recovery epoch and data gates
+  ---
+  duration_ms: 132.809667
+  type: 'test'
+  ...
+# Subtest: PR03E maintenance status and reconciliation require internal maintenance permission
+ok 18 - PR03E maintenance status and reconciliation require internal maintenance permission
+  ---
+  duration_ms: 138.255625
+  type: 'test'
+  ...
+# Subtest: PR03E final-audit-fault recovery contract
+ok 19 - PR03E final-audit-fault recovery contract
+  ---
+  duration_ms: 140.298875
+  type: 'test'
+  ...
+# Subtest: PR03E explicit deletion competition true
+ok 20 - PR03E explicit deletion competition true
+  ---
+  duration_ms: 156.12275
+  type: 'test'
+  ...
+# Subtest: PR03E explicit deletion competition false
+ok 21 - PR03E explicit deletion competition false
+  ---
+  duration_ms: 250.141417
+  type: 'test'
+  ...
+# Subtest: PR03E bounded scheduler with transient dependencies
+ok 22 - PR03E bounded scheduler with transient dependencies
+  ---
+  duration_ms: 583.5635
+  type: 'test'
+  ...
+# Subtest: PR03E actual decision retention true
+not ok 23 - PR03E actual decision retention true
+  ---
+  duration_ms: 137.292041
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/media-purge.test.ts:35:35'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"NOT_FOUND","message":"记录不存在或你没有访问权限","requestId":"150cd94f-f185-44de-a5cb-5b33550a4f18"}}
+    
+    404 !== 200
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 200
+  actual: 404
+  operator: 'strictEqual'
+  stack: |-
+    Object.expect (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-staging.ts:13:73)
+    async purgeDecisionScenario (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/media-purge.ts:99:2)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/media-purge.test.ts:35:93)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PR03E actual decision retention false
+ok 24 - PR03E actual decision retention false
+  ---
+  duration_ms: 143.995375
+  type: 'test'
+  ...
+# Subtest: PR03E write-ahead failure never starts DELETE or claims confirmation
+ok 25 - PR03E write-ahead failure never starts DELETE or claims confirmation
+  ---
+  duration_ms: 135.617333
+  type: 'test'
+  ...
+# Subtest: PR03E upload respects configured draft days 1
+ok 26 - PR03E upload respects configured draft days 1
+  ---
+  duration_ms: 134.617709
+  type: 'test'
+  ...
+# Subtest: PR03E upload respects configured draft days 30
+ok 27 - PR03E upload respects configured draft days 30
+  ---
+  duration_ms: 134.399625
+  type: 'test'
+  ...
+# Subtest: PR03E explicit finalizer ownership eligible
+ok 28 - PR03E explicit finalizer ownership eligible
+  ---
+  duration_ms: 162.728125
+  type: 'test'
+  ...
+# Subtest: PR03E explicit finalizer ownership claimed
+ok 29 - PR03E explicit finalizer ownership claimed
+  ---
+  duration_ms: 159.151042
+  type: 'test'
+  ...
+# Subtest: PR03E explicit finalizer ownership live
+ok 30 - PR03E explicit finalizer ownership live
+  ---
+  duration_ms: 165.497417
+  type: 'test'
+  ...
+# Subtest: PR03E explicit finalizer ownership slow
+ok 31 - PR03E explicit finalizer ownership slow
+  ---
+  duration_ms: 35184.242417
+  type: 'test'
+  ...
+# Subtest: PR03E explicit ownership does not starve bounded candidate window
+ok 32 - PR03E explicit ownership does not starve bounded candidate window
+  ---
+  duration_ms: 408.984791
+  type: 'test'
+  ...
+1..32
+# tests 32
+# suites 0
+# pass 30
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 40562.557042
+
+{"file":"media-staging.test.ts","exitCode":0,"error":null,"durationMs":4711,"tests":18,"pass":18,"fail":0,"skipped":0}
+{"file":"media.test.ts","exitCode":0,"error":null,"durationMs":4224,"tests":24,"pass":24,"fail":0,"skipped":0}
+{"file":"merge-erasure-transfer.test.ts","exitCode":0,"error":null,"durationMs":1642,"tests":3,"pass":3,"fail":0,"skipped":0}
+{"file":"merge-history-erasure.test.ts","exitCode":0,"error":null,"durationMs":1927,"tests":5,"pass":5,"fail":0,"skipped":0}
+{"file":"merge-history-transfer.test.ts","exitCode":0,"error":null,"durationMs":1073,"tests":3,"pass":3,"fail":0,"skipped":0}
+{"file":"person-merges.test.ts","exitCode":0,"error":null,"durationMs":1909,"tests":10,"pass":10,"fail":0,"skipped":0}
+{"file":"prelaunch-runtime.test.ts","exitCode":0,"error":null,"durationMs":2642,"tests":3,"pass":3,"fail":0,"skipped":0}
+{"file":"production.test.ts","exitCode":0,"error":null,"durationMs":4842,"tests":31,"pass":31,"fail":0,"skipped":0}
+{"file":"project-parties.test.ts","exitCode":0,"error":null,"durationMs":1736,"tests":7,"pass":7,"fail":0,"skipped":0}
+{"file":"rebuild.test.ts","exitCode":0,"error":null,"durationMs":3465,"tests":11,"pass":11,"fail":0,"skipped":0}
+{"file":"recovery-delta-adversarial.test.ts","exitCode":0,"error":null,"durationMs":408,"tests":12,"pass":12,"fail":0,"skipped":0}
+{"file":"recovery-delta.test.ts","exitCode":0,"error":null,"durationMs":223,"tests":8,"pass":8,"fail":0,"skipped":0}
+{"file":"recovery-worker-intent.test.ts","exitCode":0,"error":null,"durationMs":110,"tests":2,"pass":2,"fail":0,"skipped":0}
+{"file":"recovery.test.ts","exitCode":0,"error":null,"durationMs":6558,"tests":13,"pass":13,"fail":0,"skipped":0}
+{"file":"retained-origin-transfer.test.ts","exitCode":0,"error":null,"durationMs":2881,"tests":4,"pass":4,"fail":0,"skipped":0}
+{"file":"review-r1.test.ts","exitCode":0,"error":null,"durationMs":6268,"tests":23,"pass":23,"fail":0,"skipped":0}
+{"file":"safety-intent.test.ts","exitCode":0,"error":null,"durationMs":821,"tests":5,"pass":5,"fail":0,"skipped":0}
+{"file":"safety-journal.test.ts","exitCode":0,"error":null,"durationMs":304,"tests":5,"pass":5,"fail":0,"skipped":0}
+{"file":"secret-leak.test.ts","exitCode":0,"error":null,"durationMs":107,"tests":3,"pass":3,"fail":0,"skipped":0}
+{"file":"shortlists.test.ts","exitCode":0,"error":null,"durationMs":1676,"tests":7,"pass":7,"fail":0,"skipped":0}
+{"file":"source-history-clearance.test.ts","exitCode":0,"error":null,"durationMs":1498,"tests":2,"pass":2,"fail":0,"skipped":0}
+{"file":"talent-asset-erasure.test.ts","exitCode":0,"error":null,"durationMs":1229,"tests":3,"pass":3,"fail":0,"skipped":0}
+{"file":"talent-auth-config.test.ts","exitCode":0,"error":null,"durationMs":109,"tests":1,"pass":1,"fail":0,"skipped":0}
+{"file":"talent-auth-provider.test.ts","exitCode":0,"error":null,"durationMs":1225,"tests":7,"pass":7,"fail":0,"skipped":0}
+{"file":"talent-auth.test.ts","exitCode":0,"error":null,"durationMs":665,"tests":2,"pass":2,"fail":0,"skipped":0}
+{"file":"talent-candidate-context.test.ts","exitCode":0,"error":null,"durationMs":1437,"tests":4,"pass":4,"fail":0,"skipped":0}
+{"file":"talent-candidate-merge.test.ts","exitCode":0,"error":null,"durationMs":2643,"tests":5,"pass":5,"fail":0,"skipped":0}
+{"file":"talent-credential-retention.test.ts","exitCode":0,"error":null,"durationMs":446,"tests":1,"pass":1,"fail":0,"skipped":0}
+{"file":"talent-credential-transfer.test.ts","exitCode":0,"error":null,"durationMs":3145,"tests":7,"pass":7,"fail":0,"skipped":0}
+{"file":"talent-directory-finalization.test.ts","exitCode":0,"error":null,"durationMs":758,"tests":1,"pass":1,"fail":0,"skipped":0}
+{"file":"talent-directory-lifecycle.test.ts","exitCode":0,"error":null,"durationMs":1267,"tests":1,"pass":1,"fail":0,"skipped":0}
+{"file":"talent-directory-state.test.ts","exitCode":0,"error":null,"durationMs":109,"tests":2,"pass":2,"fail":0,"skipped":0}
+{"file":"talent-directory.test.ts","exitCode":0,"error":null,"durationMs":1894,"tests":7,"pass":7,"fail":0,"skipped":0}
+{"file":"talent-evidence-history.test.ts","exitCode":0,"error":null,"durationMs":947,"tests":2,"pass":2,"fail":0,"skipped":0}
+{"file":"talent-evidence-transfer.test.ts","exitCode":0,"error":null,"durationMs":2364,"tests":5,"pass":5,"fail":0,"skipped":0}
+{"file":"talent-external-transfer.test.ts","exitCode":0,"error":null,"durationMs":1997,"tests":4,"pass":4,"fail":0,"skipped":0}
+{"file":"talent-height-review.test.ts","exitCode":0,"error":null,"durationMs":407,"tests":1,"pass":1,"fail":0,"skipped":0}
+{"file":"talent-identity-retention.test.ts","exitCode":0,"error":null,"durationMs":837,"tests":3,"pass":3,"fail":0,"skipped":0}
+{"file":"talent-intake.test.ts","exitCode":0,"error":null,"durationMs":1406,"tests":6,"pass":6,"fail":0,"skipped":0}
+{"file":"talent-legacy-projection.test.ts","exitCode":0,"error":null,"durationMs":687,"tests":2,"pass":2,"fail":0,"skipped":0}
+{"file":"talent-maintenance-finalization.test.ts","exitCode":0,"error":null,"durationMs":1109,"tests":1,"pass":1,"fail":0,"skipped":0}
+{"file":"talent-maintenance.test.ts","exitCode":0,"error":null,"durationMs":2322,"tests":7,"pass":7,"fail":0,"skipped":0}
+{"file":"talent-manual-maintenance.test.ts","exitCode":0,"error":null,"durationMs":545,"tests":1,"pass":1,"fail":0,"skipped":0}
+{"file":"talent-representation-transfer.test.ts","exitCode":0,"error":null,"durationMs":2803,"tests":4,"pass":4,"fail":0,"skipped":0}
+{"file":"talent-source-asset-erasure.test.ts","exitCode":0,"error":null,"durationMs":2117,"tests":2,"pass":2,"fail":0,"skipped":0}
+{"file":"talent-source-combined-erasure.test.ts","exitCode":0,"error":null,"durationMs":1365,"tests":2,"pass":2,"fail":0,"skipped":0}
+{"file":"talent-source-erasure.test.ts","exitCode":0,"error":null,"durationMs":1094,"tests":4,"pass":4,"fail":0,"skipped":0}
+{"file":"talent-source-fact-erasure.test.ts","exitCode":0,"error":null,"durationMs":1005,"tests":3,"pass":3,"fail":0,"skipped":0}
+{"file":"talent-source-identity-evidence.test.ts","exitCode":0,"error":null,"durationMs":1993,"tests":4,"pass":4,"fail":0,"skipped":0}
+{"file":"talent-source-person-erasure.test.ts","exitCode":0,"error":null,"durationMs":1182,"tests":1,"pass":1,"fail":0,"skipped":0}
+{"file":"talent-structured-compatibility.test.ts","exitCode":0,"error":null,"durationMs":446,"tests":1,"pass":1,"fail":0,"skipped":0}
+{"file":"talent-transfer.test.ts","exitCode":0,"error":null,"durationMs":3295,"tests":9,"pass":9,"fail":0,"skipped":0}
+{"file":"talent-v2-maintenance.test.ts","exitCode":0,"error":null,"durationMs":1170,"tests":5,"pass":5,"fail":0,"skipped":0}
+{"file":"talent-v2-merge.test.ts","exitCode":0,"error":null,"durationMs":2774,"tests":10,"pass":10,"fail":0,"skipped":0}
+{"file":"talent-v2-search.test.ts","exitCode":0,"error":null,"durationMs":1106,"tests":4,"pass":4,"fail":0,"skipped":0}
+{"file":"talent-v2.test.ts","exitCode":0,"error":null,"durationMs":2463,"tests":16,"pass":16,"fail":0,"skipped":0}
+{"file":"talent.test.ts","exitCode":0,"error":null,"durationMs":5645,"tests":26,"pass":26,"fail":0,"skipped":0}
+{"file":"work-cases.test.ts","exitCode":0,"error":null,"durationMs":2950,"tests":10,"pass":10,"fail":0,"skipped":0}
+{
+  "generatedAt": "2026-10-02T13:16:36.725Z",
+  "node": "v22.22.3",
+  "adapter": "tests/support/MemoryStore (NOT PostgreSQL)",
+  "results": [
+    {
+      "file": "adult-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 3309,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "agent-handoff.test.ts",
+      "exitCode": 1,
+      "error": null,
+      "durationMs": 1683,
+      "tests": 9,
+      "pass": 8,
+      "fail": 1,
+      "skipped": 0
+    },
+    {
+      "file": "agent-media.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 3436,
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "agent-structures.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 6061,
+      "tests": 32,
+      "pass": 32,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "ai-business.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2121,
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "ai-connections.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1045,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "ai-ledger.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1982,
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "ai-model-client.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 251,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "ai-model-wire.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2244,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "ai-operations.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1682,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "backup-manifest.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 130,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "browser-storage-policy.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 351,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "client-transport.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1224,
+      "tests": 20,
+      "pass": 20,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "collection-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2506,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "commands-imports.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 3571,
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "cos-media.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 282,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "credential-media-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2230,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "deletions.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 4439,
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "exports.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1628,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "handoffs.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 12967,
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "http-contract.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 557,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "identity-origin-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2208,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "identity-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2904,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "identity.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 5901,
+      "tests": 25,
+      "pass": 25,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "imported-review-basis.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 211,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "ingestion.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1224,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "json-validation.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 572,
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "local-config.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 478,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "locale-merge.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1286,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "locale-texts.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1339,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "locale-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1770,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "media-byte-stream.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 244,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "media-collections.test.ts",
+      "exitCode": 1,
+      "error": null,
+      "durationMs": 1298,
+      "tests": 8,
+      "pass": 1,
+      "fail": 7,
+      "skipped": 0
+    },
+    {
+      "file": "media-playback.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1378,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "media-purge-provider.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 354,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "media-purge.test.ts",
+      "exitCode": 1,
+      "error": null,
+      "durationMs": 40599,
+      "tests": 32,
+      "pass": 30,
+      "fail": 2,
+      "skipped": 0
+    },
+    {
+      "file": "media-staging.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 4711,
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "media.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 4224,
+      "tests": 24,
+      "pass": 24,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "merge-erasure-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1642,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "merge-history-erasure.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1927,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "merge-history-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1073,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "person-merges.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1909,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "prelaunch-runtime.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2642,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "production.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 4842,
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "project-parties.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1736,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "rebuild.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 3465,
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "recovery-delta-adversarial.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 408,
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "recovery-delta.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 223,
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "recovery-worker-intent.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 110,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "recovery.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 6558,
+      "tests": 13,
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "retained-origin-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2881,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "review-r1.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 6268,
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "safety-intent.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 821,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "safety-journal.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 304,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "secret-leak.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 107,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "shortlists.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1676,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "source-history-clearance.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1498,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-asset-erasure.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1229,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-auth-config.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 109,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-auth-provider.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1225,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-auth.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 665,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-candidate-context.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1437,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-candidate-merge.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2643,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-credential-retention.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 446,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-credential-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 3145,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-directory-finalization.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 758,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-directory-lifecycle.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1267,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-directory-state.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 109,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-directory.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1894,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-evidence-history.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 947,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-evidence-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2364,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-external-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1997,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-height-review.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 407,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-identity-retention.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 837,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-intake.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1406,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-legacy-projection.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 687,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-maintenance-finalization.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1109,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-maintenance.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2322,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-manual-maintenance.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 545,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-representation-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2803,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-source-asset-erasure.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2117,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-source-combined-erasure.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1365,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-source-erasure.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1094,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-source-fact-erasure.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1005,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-source-identity-evidence.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1993,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-source-person-erasure.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1182,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-structured-compatibility.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 446,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 3295,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-v2-maintenance.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1170,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-v2-merge.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2774,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-v2-search.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1106,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-v2.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2463,
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 5645,
+      "tests": 26,
+      "pass": 26,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "work-cases.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2950,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    }
+  ],
+  "tests": 752,
+  "pass": 742,
+  "fail": 10,
+  "allPassed": false
+}
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.

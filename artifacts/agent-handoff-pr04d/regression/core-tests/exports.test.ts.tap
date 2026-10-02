@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: DEV-07A export needs explicit action permission and deployment egress gate
+ok 1 - DEV-07A export needs explicit action permission and deployment egress gate
+  ---
+  duration_ms: 255.7425
+  type: 'test'
+  ...
+# Subtest: DEV-07A export-only member can read minimal permission summaries without gaining source-read access
+ok 2 - DEV-07A export-only member can read minimal permission summaries without gaining source-read access
+  ---
+  duration_ms: 249.594208
+  type: 'test'
+  ...
+# Subtest: DEV-07A TEMP_ORGANIZE never becomes INTERNAL_EXPORT permission
+ok 3 - DEV-07A TEMP_ORGANIZE never becomes INTERNAL_EXPORT permission
+  ---
+  duration_ms: 127.77575
+  type: 'test'
+  ...
+# Subtest: DEV-07A frozen JSON excludes unselected/sensitive fields and survives ordinary content edits
+ok 4 - DEV-07A frozen JSON excludes unselected/sensitive fields and survives ordinary content edits
+  ---
+  duration_ms: 132.536292
+  type: 'test'
+  ...
+# Subtest: DEV-07A source suspension invalidates the entire old export download
+ok 5 - DEV-07A source suspension invalidates the entire old export download
+  ---
+  duration_ms: 126.539041
+  type: 'test'
+  ...
+# Subtest: DEV-07A permission revocation invalidates old export and same-key create replay cannot bypass it
+ok 6 - DEV-07A permission revocation invalidates old export and same-key create replay cannot bypass it
+  ---
+  duration_ms: 127.542833
+  type: 'test'
+  ...
+# Subtest: DEV-07A relations export only when both selected endpoints are explicitly included
+ok 7 - DEV-07A relations export only when both selected endpoints are explicitly included
+  ---
+  duration_ms: 132.23075
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1340.083791

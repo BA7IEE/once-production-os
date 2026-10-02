@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: same Person MACHINE → CLAIM → explicit exposure → true Talent maintenance independent provenance
+ok 1 - same Person MACHINE → CLAIM → explicit exposure → true Talent maintenance independent provenance
+  ---
+  duration_ms: 227.369583
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample rollback
+ok 2 - same Person handoff counterexample rollback
+  ---
+  duration_ms: 157.551917
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample revoke
+ok 3 - same Person handoff counterexample revoke
+  ---
+  duration_ms: 157.69175
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample basis
+ok 4 - same Person handoff counterexample basis
+  ---
+  duration_ms: 147.522166
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample revision
+ok 5 - same Person handoff counterexample revision
+  ---
+  duration_ms: 158.291
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample delete
+ok 6 - same Person handoff counterexample delete
+  ---
+  duration_ms: 163.138875
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample machine-revoke
+ok 7 - same Person handoff counterexample machine-revoke
+  ---
+  duration_ms: 150.498292
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample integrity
+ok 8 - same Person handoff counterexample integrity
+  ---
+  duration_ms: 168.790041
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample claim-race
+ok 9 - same Person handoff counterexample claim-race
+  ---
+  duration_ms: 160.055708
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample merge
+ok 10 - same Person handoff counterexample merge
+  ---
+  duration_ms: 335.287583
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample scope
+ok 11 - same Person handoff counterexample scope
+  ---
+  duration_ms: 304.847
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample other-credit
+ok 12 - same Person handoff counterexample other-credit
+  ---
+  duration_ms: 676.030333
+  type: 'test'
+  ...
+# Subtest: same Person mixed provenance business JSON export/rebuild no authorization recreated
+ok 13 - same Person mixed provenance business JSON export/rebuild no authorization recreated
+  ---
+  duration_ms: 579.725958
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3620.886125

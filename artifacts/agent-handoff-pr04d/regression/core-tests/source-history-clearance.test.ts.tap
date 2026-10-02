@@ -1,0 +1,25 @@
+TAP version 13
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# Subtest: TD2 source cleanup still blocks unreviewed merged payload and requires merge permission after separate historical cleanup
+ok 1 - TD2 source cleanup still blocks unreviewed merged payload and requires merge permission after separate historical cleanup
+  ---
+  duration_ms: 580.432292
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# PASS source after separately reviewed old identity erasure: exact prior aliases/decisions/markers preserved, remaining source facts removed atomically with audit rollback/retry, canonical identity remains readable
+# Subtest: TD2 source freeze rechecks separately cleared old identity scopes and its exact prior history
+ok 2 - TD2 source freeze rechecks separately cleared old identity scopes and its exact prior history
+  ---
+  duration_ms: 484.652875
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1246.305083

@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: DEV-07G merge preview is zero-write and same-name people remain distinct until explicit execution
+ok 1 - DEV-07G merge preview is zero-write and same-name people remain distinct until explicit execution
+  ---
+  duration_ms: 152.173917
+  type: 'test'
+  ...
+# Subtest: DEV-07G merge preview needs data.merge and never exposes restricted contact plaintext
+ok 2 - DEV-07G merge preview needs data.merge and never exposes restricted contact plaintext
+  ---
+  duration_ms: 381.44125
+  type: 'test'
+  ...
+# Subtest: DEV-07G explicit merge creates one decision, hides duplicate from lists and resolves old id read-only
+ok 3 - DEV-07G explicit merge creates one decision, hides duplicate from lists and resolves old id read-only
+  ---
+  duration_ms: 135.61775
+  type: 'test'
+  ...
+# Subtest: DEV-07G same-source merge may explicitly adopt duplicate values or union arrays without losing provenance
+ok 4 - DEV-07G same-source merge may explicitly adopt duplicate values or union arrays without losing provenance
+  ---
+  duration_ms: 127.511541
+  type: 'test'
+  ...
+# Subtest: DEV-07G preview digest becomes stale when a relation appears after preview
+ok 5 - DEV-07G preview digest becomes stale when a relation appears after preview
+  ---
+  duration_ms: 130.803584
+  type: 'test'
+  ...
+# Subtest: DEV-07G merge audit failure rolls the entire merge back and exact retry succeeds
+ok 6 - DEV-07G merge audit failure rolls the entire merge back and exact retry succeeds
+  ---
+  duration_ms: 126.894333
+  type: 'test'
+  ...
+# Subtest: DEV-07G active purpose permission is revoked, never transferred to the canonical identity
+ok 7 - DEV-07G active purpose permission is revoked, never transferred to the canonical identity
+  ---
+  duration_ms: 127.913791
+  type: 'test'
+  ...
+# Subtest: DEV-07G scope mismatch blocks execution and keeps both identities intact
+ok 8 - DEV-07G scope mismatch blocks execution and keeps both identities intact
+  ---
+  duration_ms: 128.792791
+  type: 'test'
+  ...
+# Subtest: DEV-07G shortlist rebind uses canonical pre-merge baseline so identity change is never reported as unchanged
+ok 9 - DEV-07G shortlist rebind uses canonical pre-merge baseline so identity change is never reported as unchanged
+  ---
+  duration_ms: 128.6675
+  type: 'test'
+  ...
+# Subtest: DEV-07G merged-id resolution does not reveal an alias outside the old identity scope
+ok 10 - DEV-07G merged-id resolution does not reveal an alias outside the old identity scope
+  ---
+  duration_ms: 247.903333
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1865.594041

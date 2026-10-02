@@ -1,0 +1,30 @@
+{
+  "checks": [
+    "identity-v1-domain-only-case-folding-preserves-local-dots-plus-and-case",
+    "cookie-bearer-and-person-boundary",
+    "coexisting-cookies-select-correct-identity",
+    "same-verified-identity-one-account",
+    "talent-command-stable-receipt-and-other-sessions-revoked",
+    "new-session-same-account-receipt-and-write-ahead",
+    "cross-account-header-rejected-and-key-isolated",
+    "wrong-attempts-commit-and-lock-challenge",
+    "expired-code-rejected",
+    "purpose-binding-and-unknown-fields",
+    "context-browser-binding",
+    "unknown-never-resends-new-explicit-challenge-invalidates-old",
+    "concurrent-verify-consumes-once",
+    "disable-invalidates-session-and-challenge",
+    "no-secrets-in-receipts-audits-terminal-deliveries",
+    "actual-business-json-export-excludes-auth-entities-and-secrets",
+    "recovery-epoch-rejects-before-and-after-isolation",
+    "database-identity-unique-principal-xor-fk-and-receipt-unique",
+    "real-audit-rollback-and-concurrent-same-key-replay",
+    "actual-pg-dump-restore-all-auth-entities-real-recovery-prepare-quarantines"
+  ],
+  "status": "PASSED",
+  "database": [
+    {
+      "version": "PostgreSQL 16.15 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{"suite": "handoff", "exitCode": 0, "durationSeconds": 12.99, "log": "artifacts/agent-handoff-pr04d/regression/browser-handoff.log"}
+{"suite": "resume", "exitCode": 0, "durationSeconds": 17.39, "log": "artifacts/agent-handoff-pr04d/regression/browser-resume.log"}
+{"suite": "media", "exitCode": 0, "durationSeconds": 26.08, "log": "artifacts/agent-handoff-pr04d/regression/browser-media.log"}
+{"suite": "talent-intake", "exitCode": 0, "durationSeconds": 20.01, "log": "artifacts/agent-handoff-pr04d/regression/browser-talent-intake.log"}
+{"suite": "talent-directory", "exitCode": 0, "durationSeconds": 49.6, "log": "artifacts/agent-handoff-pr04d/regression/browser-talent-directory.log"}
+{"suite": "talent-auth", "exitCode": 0, "durationSeconds": 15.54, "log": "artifacts/agent-handoff-pr04d/regression/browser-talent-auth.log"}
+{"suite": "talent-maintenance", "exitCode": 0, "durationSeconds": 35.56, "log": "artifacts/agent-handoff-pr04d/regression/browser-talent-maintenance.log"}
+{"suite": "production", "exitCode": 0, "durationSeconds": 192.94, "log": "artifacts/agent-handoff-pr04d/regression/browser-production.log"}
+{"suite": "media-staging", "exitCode": 0, "durationSeconds": 60.5, "log": "artifacts/agent-handoff-pr04d/regression/browser-media-staging.log"}
+{"suite": "media-collections", "exitCode": 0, "durationSeconds": 105.54, "log": "artifacts/agent-handoff-pr04d/regression/browser-media-collections.log"}
+{"suite": "work-cases", "exitCode": 0, "durationSeconds": 119.25, "log": "artifacts/agent-handoff-pr04d/regression/browser-work-cases.log"}
+{"suite": "agent-ingestion", "exitCode": 0, "durationSeconds": 8.13, "log": "artifacts/agent-handoff-pr04d/regression/browser-agent-ingestion.log"}
+{"suite": "agent-media", "exitCode": 0, "durationSeconds": 25.35, "log": "artifacts/agent-handoff-pr04d/regression/browser-agent-media.log"}
+{"suite": "agent-structures", "exitCode": 0, "durationSeconds": 23.37, "log": "artifacts/agent-handoff-pr04d/regression/browser-agent-structures.log"}
+{"suite": "agent-handoff", "exitCode": 0, "durationSeconds": 25.42, "log": "artifacts/agent-handoff-pr04d/regression/browser-agent-handoff.log"}
+{"suite": "media-purge", "exitCode": 0, "durationSeconds": 108.64, "log": "artifacts/agent-handoff-pr04d/regression/browser-media-purge.log"}

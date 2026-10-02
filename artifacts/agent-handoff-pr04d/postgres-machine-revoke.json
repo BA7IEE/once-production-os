@@ -1,0 +1,11 @@
+{
+  "status": "POSTGRES_TESTED",
+  "migrationCount": [
+    {
+      "count": 74
+    }
+  ],
+  "checks": [
+    "Agent-revoke-does-not-revoke-adopted-formal-basis-or-Talent-exposure"
+  ]
+}

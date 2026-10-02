@@ -1,0 +1,196 @@
+TAP version 13
+# Subtest: WP1 works creates source/root/receipt atomically without files or commercial objects
+ok 1 - WP1 works creates source/root/receipt atomically without files or commercial objects
+  ---
+  duration_ms: 138.431583
+  type: 'test'
+  ...
+# Subtest: WP1 works private source does not grant administrator or colleagues access, counts or audit identities
+ok 2 - WP1 works private source does not grant administrator or colleagues access, counts or audit identities
+  ---
+  duration_ms: 259.632917
+  type: 'test'
+  ...
+# Subtest: WP1 works expiry and suspended source block fresh reads and same-key replay
+ok 3 - WP1 works expiry and suspended source block fresh reads and same-key replay
+  ---
+  duration_ms: 132.1855
+  type: 'test'
+  ...
+# Subtest: WP1 works rejects forged owner/scope, invalid root and cross-workspace source
+ok 4 - WP1 works rejects forged owner/scope, invalid root and cross-workspace source
+  ---
+  duration_ms: 128.742125
+  type: 'test'
+  ...
+# Subtest: WP1 works archives are readable but require separate unarchive before editing
+ok 5 - WP1 works archives are readable but require separate unarchive before editing
+  ---
+  duration_ms: 128.596166
+  type: 'test'
+  ...
+# Subtest: WP1 works audit failure rolls back inline source, root and receipt
+ok 6 - WP1 works audit failure rolls back inline source, root and receipt
+  ---
+  duration_ms: 123.505834
+  type: 'test'
+  ...
+# Subtest: WP1 projects creates source/root/receipt atomically without files or commercial objects
+ok 7 - WP1 projects creates source/root/receipt atomically without files or commercial objects
+  ---
+  duration_ms: 125.519542
+  type: 'test'
+  ...
+# Subtest: WP1 projects private source does not grant administrator or colleagues access, counts or audit identities
+ok 8 - WP1 projects private source does not grant administrator or colleagues access, counts or audit identities
+  ---
+  duration_ms: 257.464584
+  type: 'test'
+  ...
+# Subtest: WP1 projects expiry and suspended source block fresh reads and same-key replay
+ok 9 - WP1 projects expiry and suspended source block fresh reads and same-key replay
+  ---
+  duration_ms: 126.913375
+  type: 'test'
+  ...
+# Subtest: WP1 projects rejects forged owner/scope, invalid root and cross-workspace source
+ok 10 - WP1 projects rejects forged owner/scope, invalid root and cross-workspace source
+  ---
+  duration_ms: 124.023541
+  type: 'test'
+  ...
+# Subtest: WP1 projects archives are readable but require separate unarchive before editing
+ok 11 - WP1 projects archives are readable but require separate unarchive before editing
+  ---
+  duration_ms: 132.781875
+  type: 'test'
+  ...
+# Subtest: WP1 projects audit failure rolls back inline source, root and receipt
+ok 12 - WP1 projects audit failure rolls back inline source, root and receipt
+  ---
+  duration_ms: 124.548042
+  type: 'test'
+  ...
+# Subtest: DEV-06 work facts use stable catalogs; inactive values remain historical but cannot be newly assigned
+ok 13 - DEV-06 work facts use stable catalogs; inactive values remain historical but cannot be newly assigned
+  ---
+  duration_ms: 133.933625
+  type: 'test'
+  ...
+# Subtest: WP1 ONCE attribution requires explicit basis; uploader never becomes a credit
+ok 14 - WP1 ONCE attribution requires explicit basis; uploader never becomes a credit
+  ---
+  duration_ms: 137.026291
+  type: 'test'
+  ...
+# Subtest: WP1 order/cover updates are whole-work CAS, same-key replay and exact permutations
+ok 15 - WP1 order/cover updates are whole-work CAS, same-key replay and exact permutations
+  ---
+  duration_ms: 152.611292
+  type: 'test'
+  ...
+# Subtest: WP1 cover and child IDs from another work cannot be used, removed or reordered
+ok 16 - WP1 cover and child IDs from another work cannot be used, removed or reordered
+  ---
+  duration_ms: 131.913334
+  type: 'test'
+  ...
+# Subtest: WP1 active work requires usable image; removal clears last cover without deleting asset
+ok 17 - WP1 active work requires usable image; removal clears last cover without deleting asset
+  ---
+  duration_ms: 129.501291
+  type: 'test'
+  ...
+# Subtest: WP1 disabled/missing/foreign assets fail linking without changing the parent
+ok 18 - WP1 disabled/missing/foreign assets fail linking without changing the parent
+  ---
+  duration_ms: 128.753084
+  type: 'test'
+  ...
+# Subtest: WP1 source suspension redacts asset identity while local reference can be removed
+ok 19 - WP1 source suspension redacts asset identity while local reference can be removed
+  ---
+  duration_ms: 131.69525
+  type: 'test'
+  ...
+# Subtest: WP1 multi-role credits have one person, no duplicate pair, no generated participation
+ok 20 - WP1 multi-role credits have one person, no duplicate pair, no generated participation
+  ---
+  duration_ms: 128.039375
+  type: 'test'
+  ...
+# Subtest: WP1 credit source loss redacts person, role and note; other credentials do not bypass it
+ok 21 - WP1 credit source loss redacts person, role and note; other credentials do not bypass it
+  ---
+  duration_ms: 126.524
+  type: 'test'
+  ...
+# Subtest: WP1 H1 acceptance does not confer credit, project participation or production-history access
+ok 22 - WP1 H1 acceptance does not confer credit, project participation or production-history access
+  ---
+  duration_ms: 387.540458
+  type: 'test'
+  ...
+# Subtest: WP1 only ACTUAL contributes to distinct visible project count, with correctable facts
+ok 23 - WP1 only ACTUAL contributes to distinct visible project count, with correctable facts
+  ---
+  duration_ms: 141.787583
+  type: 'test'
+  ...
+# Subtest: WP1 ACTUAL needs evidence note; participant updates reject wrong parent, stale CAS and spoofed IDs
+ok 24 - WP1 ACTUAL needs evidence note; participant updates reject wrong parent, stale CAS and spoofed IDs
+  ---
+  duration_ms: 133.2355
+  type: 'test'
+  ...
+# Subtest: WP1 EXTERNAL delivery/reference changes do not rewrite ownership, attribution or personnel
+ok 25 - WP1 EXTERNAL delivery/reference changes do not rewrite ownership, attribution or personnel
+  ---
+  duration_ms: 129.852167
+  type: 'test'
+  ...
+# Subtest: WP1 hidden linked works and participants reveal neither identity nor note and can be detached
+ok 26 - WP1 hidden linked works and participants reveal neither identity nor note and can be detached
+  ---
+  duration_ms: 141.722583
+  type: 'test'
+  ...
+# Subtest: WP1 inactive dictionary role remains visible but new credit/participant is denied
+ok 27 - WP1 inactive dictionary role remains visible but new credit/participant is denied
+  ---
+  duration_ms: 132.422458
+  type: 'test'
+  ...
+# Subtest: WP1 root/child/audit/receipt rollback together on failed credit command then same key succeeds
+ok 28 - WP1 root/child/audit/receipt rollback together on failed credit command then same key succeeds
+  ---
+  duration_ms: 124.538208
+  type: 'test'
+  ...
+# Subtest: WP1 viewer cannot mutate visible root, and current permissions apply before replay
+ok 29 - WP1 viewer cannot mutate visible root, and current permissions apply before replay
+  ---
+  duration_ms: 256.010917
+  type: 'test'
+  ...
+# Subtest: WP1 stable pagination, explicit filters, hidden projects excluded from production count
+ok 30 - WP1 stable pagination, explicit filters, hidden projects excluded from production count
+  ---
+  duration_ms: 255.306875
+  type: 'test'
+  ...
+# Subtest: WP1 storage failures must not masquerade as redacted dependencies
+ok 31 - WP1 storage failures must not masquerade as redacted dependencies
+  ---
+  duration_ms: 0.341833
+  type: 'test'
+  ...
+1..31
+# tests 31
+# suites 0
+# pass 31
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4891.7175

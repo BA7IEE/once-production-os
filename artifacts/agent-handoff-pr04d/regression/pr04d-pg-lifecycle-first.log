@@ -1,0 +1,20 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: {"operationId":"fe799838-3896-48c4-8908-af79158c0115","resourceId":"970658b8-db13-43ef-bb54-abc88102e746","revision":1,"state":"SUCCEEDED","replayed":false}
+
+200 !== 201
+
+    at Object.expect (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/agent-media.ts:17:73)
+    at async lifecycle (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/postgres/agent-handoff.test.ts:26:448)
+    at async file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/postgres/agent-handoff.test.ts:17:158 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 200,
+  expected: 201,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.3

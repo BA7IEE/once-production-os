@@ -1,3 +1,4 @@
+import {handoffExposureSchema} from './talent-handoff.ts';
 import {WorkCaseSchemas} from './work-case-schema.ts';
 import {mediaExposureSchema} from './talent-media-exposure.ts';
 import {CollectionSchemas} from './media-collections.ts';
@@ -5,6 +6,8 @@ import {TalentMediaSchemas,MediaSchemas} from './media-validation.ts';
 import type {RouteDefinition} from './routes.ts';
 import {MaintenanceSchemas as S} from './talent-maintenance-schema.ts';
 export const TALENT_MAINTENANCE_ROUTES:RouteDefinition[]=[
+ {method:'GET',path:'/talent-handoff/people/{id}',operation:'talent.handoff.get',mode:'READ',permission:'talent.review'},
+ {method:'POST',path:'/talent-grants/{id}/exposure',operation:'talent.grant.exposure',mode:'COMMAND',permission:'talent.review',schema:handoffExposureSchema},
  {method:'GET',path:'/portal/work-catalog',operation:'portal.work.catalog',mode:'READ'},
  {method:'POST',path:'/portal/submissions/{id}/works',operation:'portal.submission.works',mode:'COMMAND',schema:WorkCaseSchemas.draft},
  {method:'GET',path:'/portal/profiles/{id}/works',operation:'portal.work.list',mode:'READ'},

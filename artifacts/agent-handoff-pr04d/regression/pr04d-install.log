@@ -1,0 +1,40 @@
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +267
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 267, reused 265, downloaded 0, added 47
+Progress: resolved 267, reused 267, downloaded 0, added 265
+Progress: resolved 267, reused 267, downloaded 0, added 267, done
+
+dependencies:
++ @ai-sdk/anthropic 4.0.65
++ @ai-sdk/openai 4.0.78
++ @ai-sdk/openai-compatible 3.0.57
++ @nestjs/common 11.2.5
++ @nestjs/core 11.2.5
++ @nestjs/platform-express 11.2.5
++ @prisma/client 6.19.3
++ ai 7.0.118
++ cos-nodejs-sdk-v5 3.0.0
++ express 5.1.0
++ fs-ext 2.1.1
++ qrcode 1.5.4
++ react 19.1.1
++ react-dom 19.1.1
++ reflect-metadata 0.2.2
++ rxjs 7.8.2
++ sharp 0.35.4
+
+devDependencies:
++ @types/express 5.0.3
++ @types/fs-ext 2.0.3
++ @types/node 22.15.30
++ @types/qrcode 1.5.5
++ @types/react 19.1.10
++ @types/react-dom 19.1.9
++ playwright 1.63.0
++ prisma 6.19.3
++ typescript 5.8.3
++ vite 6.4.1
+
+Done in 3.5s using pnpm v10.14.0

@@ -1,3 +1,9 @@
+import {mediaExposure} from './talent-media-exposure.ts';
+import {currentWorkExposure} from './talent-work-cases.ts';
+import {requireExposureBasis} from './talent-exposure-basis.ts';
+import {AppError} from './errors.ts';
+import type {Config} from './model.ts';
+import type {Exposure,TalentAccessGrant} from './talent-maintenance-model.ts';
 import { validateDemographics } from './talent-demographics.ts';
 import type { Actor, Clock, Table, TableMap } from './model.ts';
 import type { Tx } from './store.ts';
@@ -6,12 +12,13 @@ import { TD2_FACTS, type FactTable } from './talent-v2-schema.ts';
 import { decryptContact } from './crypto.ts';
 import { digest } from './json.ts';
 import { invariant } from './errors.ts';
+import {sourceCurrent} from './policy.ts';
 import { touch } from './helpers.ts';
 
 /** All TD2 rows and their security-relevant endpoints participate in one recovery digest.
  * Do not return raw rows, encrypted identifiers or machine credential hashes in a report. */
 export const TD2_INTEGRITY_TABLES = [...TALENT_V2_TABLES, 'people', 'sources', 'scopes',
-    'memberships', 'works','workCredits','workAssets','talentSubmissionItems', 'mediaPurgeIntents','personMedia','uploads','talentSubmissions','sourceAttributions','sourceUseBases','talentConsents','talentAccounts','assets', 'evidence', 'shortlistItemAssets', 'shortlistItems', 'personAliases', 'personMerges', 'mergeHistoryErasures'] as const;
+    'memberships', 'works','workCredits','workAssets','talentSubmissionItems', 'mediaPurgeIntents','personMedia','uploads','talentSubmissions','sourceAttributions','sourceUseBases','talentConsents','talentAccounts','talentClaims','talentAccessGrants','talentInvitations','talentInvitationContexts','assets', 'evidence', 'shortlistItemAssets', 'shortlistItems', 'personAliases', 'personMerges', 'mergeHistoryErasures'] as const;
 export type IntegrityTable = typeof TD2_INTEGRITY_TABLES[number];
 type Row = { id: string; workspaceId: string; [key: string]: unknown };
 export interface TalentIntegrityReport {
@@ -19,6 +26,7 @@ export interface TalentIntegrityReport {
     graphDigest: string;
     tableCounts: Record<string, number>;
     relationFailures: number;
+    exposureRecheckRequiredCount: number;
     credentialCount: number;
     credentialDecryptFailures: number;
     activeMachineCount: number;
@@ -35,10 +43,10 @@ export async function talentSnapshot(tx: Tx, workspaceId: string) {
     }
     return data;
 }
-export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contactKey: Buffer): Promise<TalentIntegrityReport> {
+export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contactKey: Buffer, clock:Clock={now:()=>new Date()}): Promise<TalentIntegrityReport> {
     const data = await talentSnapshot(tx, workspaceId);
     const maps = Object.fromEntries(TD2_INTEGRITY_TABLES.map(t => [t, new Map(data[t].map(r => [r.id, r]))])) as Record<IntegrityTable, Map<string, Row>>;
-    let relationFailures = 0;
+    let relationFailures = 0, exposureRecheckRequiredCount=0;
     const check = (condition: boolean) => { if (!condition) relationFailures++; };
     const ref = (row: Row, field: string, table: IntegrityTable, samePerson = false, required = false) => {
         const id = row[field];
@@ -49,8 +57,24 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
     for(const w of data.works){ref(w,'sourceId','sources',false,true);ref(w,'scopeId','scopes',false,true);if(w.coverEntryId){const e=maps.workAssets.get(String(w.coverEntryId)),a=e?maps.assets.get(String(e.assetId)):null;check(!!e&&e.workId===w.id&&!!a&&String(a.mime).startsWith('image/'));}}
     const creditKeys=new Set<string>(),placementKeys=new Set<string>();
     for(const c of data.workCredits){ref(c,'workId','works',false,true);ref(c,'personId','people',false,true);check(!!c.personRoleId===!!c.sourceId);if(c.personRoleId){ref(c,'personRoleId','personRoles',true,true);ref(c,'sourceId','sources',false,true);check(maps.personRoles.get(String(c.personRoleId))?.roleCode===c.roleCode);}const key=c.workId+':'+c.personId+':'+c.roleCode;check(!creditKeys.has(key));creditKeys.add(key);}
-    for(const e of data.workAssets){ref(e,'workId','works',false,true);ref(e,'assetId','assets',false,true);const key=e.workId+':'+e.assetId;check(!placementKeys.has(key));placementKeys.add(key);}
+    for(const e of data.workAssets){ref(e,'workId','works',false,true);ref(e,'assetId','assets',false,true);check(maps.assets.get(String(e.assetId))?.usageState!=='STAGED');const key=e.workId+':'+e.assetId;check(!placementKeys.has(key));placementKeys.add(key);}
     for(const root of data.talentSubmissions){ref(root,'scopeId','scopes',false,true);ref(root,'personId','people');ref(root,'proposedPersonId','people');if(root.principalKind==='MACHINE'){ref(root,'servicePrincipalId','servicePrincipals',false,true);ref(root,'maintainerId','memberships',false,true);check(root.talentAccountId===null&&root.consentId===null&&root.grantId===null&&root.claimId===null&&Number(root.servicePrincipalAuthorizationEpoch)>=1&&Number(root.intakeScopeRevision)>=1);check(root.personId===null||['APPROVED','PARTIALLY_APPROVED'].includes(String(root.state))&&!!root.decidedById);}else{ref(root,'talentAccountId','talentAccounts',false,true);ref(root,'consentId','talentConsents',false,true);check(root.servicePrincipalId==null);}}
+    for(const i of data.talentInvitations){ref(i,'targetPersonId','people');ref(i,'scopeId','scopes',false,true);ref(i,'maintainerId','memberships',false,true);check(i.purpose!=='CLAIM'||!!i.targetPersonId&&i.maxUses===1);}
+    for(const c of data.talentInvitationContexts)ref(c,'invitationId','talentInvitations',false,true);
+    for(const c of data.talentClaims){ref(c,'invitationId','talentInvitations',false,true);ref(c,'talentAccountId','talentAccounts',false,true);ref(c,'targetPersonId','people');ref(c,'scopeId','scopes',false,true);ref(c,'decidedById','memberships');if(c.state==='APPROVED')check(!!c.targetPersonId&&!!c.decidedById&&!!c.decidedAt&&!c.reserved);}
+    for(const g of data.talentAccessGrants){ref(g,'personId','people',false,true);ref(g,'talentAccountId','talentAccounts',false,true);ref(g,'claimId','talentClaims',false,true);ref(g,'approvedById','memberships',false,true);const claim=maps.talentClaims.get(String(g.claimId));check(claim?.targetPersonId===g.personId&&claim?.talentAccountId===g.talentAccountId&&claim?.relation===g.relation);if(g.state==='ACTIVE')check(claim?.state==='APPROVED');const seen=new Set<string>();for(const e of (g.selfExposureManifest??[]) as Array<Record<string,unknown>>){const key=e.kind+':'+e.targetId+':'+e.field;check(!seen.has(key));seen.add(key);const source=maps.sources.get(String(e.sourceId));check(!!source&&Number(e.sourceRevision)>0&&typeof e.valueDigest==='string'&&/^[a-f0-9]{64}$/.test(e.valueDigest));if(e.kind==='person')check(e.targetId===g.personId&&['displayName','aliases','intro'].includes(String(e.field)));else if(e.kind==='mediaAsset'){const a=maps.assets.get(String(e.targetId));check(!!a&&a.usageState!=='STAGED'&&(a.personId===g.personId||data.personMedia.some(r=>r.assetId===e.targetId&&r.personId===g.personId&&r.usageState==='ADOPTED')));}else if(e.kind==='mediaCollection')check(maps.mediaCollections.get(String(e.targetId))?.personId===g.personId);else if(e.kind==='workCredit'){const c=maps.workCredits.get(String(e.targetId));check(c?.personId===g.personId&&!!c?.personRoleId&&!!c?.sourceId);if(e.consentId)ref(e as Row,'consentId','talentConsents',false,true);else check(!!e.approvedById&&!!e.approvedAt&&typeof e.approvalBasis==='string'&&!!e.approvalBasis.trim());}else check(false);}}
+    // Reuse the Portal's actual current exposure calculations. Invalid permission references
+    // remain historical evidence, but are flagged for recheck and never become readable.
+    const workspace=await tx.get('workspaces',workspaceId),inspectionConfig:Config={origin:'https://integrity.invalid',secureCookies:true,contactKey,csrfKey:Buffer.alloc(32),recoveryEpoch:workspace?.recoveryEpoch??'',accessMode:'INTERNAL',environment:'test',dataEgressMode:'DISABLED',dataCleanupMode:'DISABLED',dataMergeMode:'DISABLED'};
+    for(const g of data.talentAccessGrants.filter(g=>g.state==='ACTIVE'))for(const raw of (g.selfExposureManifest??[]) as Exposure[]){try{
+        const source=await tx.get('sources',raw.sourceId);if(!source||source.workspaceId!==workspaceId||!sourceCurrent(source,clock)||source.revision!==raw.sourceRevision)throw new AppError(404,'NOT_FOUND','Exposure unavailable');
+        await requireExposureBasis(tx,source,clock,raw.kind==='person'?[raw.field]:undefined);
+        let current:Exposure|null=null;
+        if(raw.kind==='mediaAsset'||raw.kind==='mediaCollection')current=await mediaExposure(tx,g as unknown as TalentAccessGrant,raw.kind,raw.targetId,clock,inspectionConfig);
+        else if(raw.kind==='workCredit')current=await currentWorkExposure(tx,g as unknown as TalentAccessGrant,raw,clock,inspectionConfig);
+        else if(raw.kind==='person'){const person=maps.people.get(String(g.personId));if(!person||digest(person[raw.field])!==raw.valueDigest)throw new AppError(404,'NOT_FOUND','Exposure unavailable');}
+        if(current&&(current.valueDigest!==raw.valueDigest||current.sourceId!==raw.sourceId||current.sourceRevision!==raw.sourceRevision))throw new AppError(404,'NOT_FOUND','Exposure unavailable');
+    }catch(error){if(!(error instanceof AppError&&[403,404,409].includes(error.status)))throw error;exposureRecheckRequiredCount++;}}
     for(const a of data.sourceAttributions){ref(a,'sourceId','sources',false,true);ref(a,'reviewerId','memberships',false,true);if(!a.importedBasis){ref(a,'submissionId','talentSubmissions',false,true);if(a.principalKind==='MACHINE'){ref(a,'servicePrincipalId','servicePrincipals',false,true);check(maps.talentSubmissions.get(String(a.submissionId))?.servicePrincipalId===a.servicePrincipalId&&a.talentAccountId===null&&a.consentId===null);}}}
     for(const b of data.sourceUseBases){ref(b,'sourceId','sources',false,true);if(b.basisKind==='INTERNAL_REVIEW'){check(b.consentId===null&&b.consentRevision===null);if(!b.importedBasis){ref(b,'submissionId','talentSubmissions',false,true);ref(b,'sourceAttributionId','sourceAttributions',false,true);ref(b,'servicePrincipalId','servicePrincipals',false,true);ref(b,'reviewerId','memberships',false,true);const root=maps.talentSubmissions.get(String(b.submissionId)),attr=maps.sourceAttributions.get(String(b.sourceAttributionId));check(!!root&&['APPROVED','PARTIALLY_APPROVED'].includes(String(root.state))&&root.decidedById===b.reviewerId&&!!attr&&attr.sourceId===b.sourceId&&attr.servicePrincipalId===b.servicePrincipalId&&typeof b.reviewBasis==='string'&&b.reviewBasis.trim().length>0);}}else check(Number(b.consentRevision)>0&&!!b.consentId!==!!b.importedBasis);}
     for(const item of data.talentSubmissionItems)ref(item,'submissionId','talentSubmissions',false,true);
@@ -185,13 +209,14 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
     }
     for(const r of data.personMedia){if(r.usageState==='STAGED')check(!!r.retainUntil);if(r.usageState==='ADOPTED')check(r.retainUntil===null&&!r.purgedAt);}
     const blockers = [
+        ...(exposureRecheckRequiredCount ? ['EXPOSURE_RECHECK_REQUIRED'] : []),
         ...(relationFailures ? ['TD2_RELATION_INVALID'] : []),
         ...(credentialDecryptFailures ? ['TD2_CREDENTIAL_KEY_MISMATCH'] : []),
         ...(activeMachineCount || remainingMachineSecretCount ? ['TD2_MACHINE_NOT_REVOKED'] : []),
         ...(pendingProposalCount ? ['TD2_PROPOSAL_NOT_INVALIDATED'] : [])
     ];
     return { schemaVersion: 'once-talent-integrity-v1', graphDigest: digest(data),
-        tableCounts: Object.fromEntries([...TALENT_V2_TABLES,'mergeHistoryErasures' as const].map(t => [t, data[t].length])), relationFailures,
+        tableCounts: Object.fromEntries(TD2_INTEGRITY_TABLES.map(t => [t, data[t].length])), relationFailures, exposureRecheckRequiredCount,
         credentialCount, credentialDecryptFailures, activeMachineCount, remainingMachineSecretCount,
         pendingProposalCount, blockers };
 }

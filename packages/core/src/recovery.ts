@@ -208,7 +208,7 @@ export class RecoveryOps {
             try{connectionKey(row,this.config as Config);}catch{ai.blockers.push('AI_CONNECTION_KEY_INVALID');}
         }
         const talentAuth=await inspectTalentAuth(tx,actor.workspaceId);
-        const talent = await inspectTalentIntegrity(tx, actor.workspaceId, this.config.contactKey);
+        const talent = await inspectTalentIntegrity(tx, actor.workspaceId, this.config.contactKey,this.clock);
         const currentAssets = state.assets.filter(x => x.state !== 'ERASED');
         const expectedAssetIds = currentAssets.map(x => x.id).sort();
         const currentMediaIdentityDigest = digest(currentAssets.map(x => ({

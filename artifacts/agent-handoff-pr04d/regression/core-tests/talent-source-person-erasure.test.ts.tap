@@ -1,0 +1,17 @@
+TAP version 13
+# PASS TD2 source identity: full professional and identity evidence graph rollback/retry, external representation cleanup, hidden-owner finalization rollback/retry, source-owned original purge, independent people and original files retained
+# Subtest: TD2 source-owned identities and complete professional graphs erase atomically, preserving independent people and original files
+ok 1 - TD2 source-owned identities and complete professional graphs erase atomically, preserving independent people and original files
+  ---
+  duration_ms: 482.882375
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 709.262166

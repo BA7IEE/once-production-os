@@ -1,0 +1,5 @@
+PASS browser: two-row import shows partial completion after only row 1 commits
+PASS browser: lost response replays one receipt, then only row 2 is added
+PASS browser/API: suspend blocks resume; job, rows, people and receipts unchanged
+PASS browser/API: revision blocks resume; job, rows, people and receipts unchanged
+PASS browser/API: revoked session gets 401; fresh viewer gets 403; checkpoints and receipts unchanged

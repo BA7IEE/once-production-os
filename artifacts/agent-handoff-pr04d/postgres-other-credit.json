@@ -1,0 +1,11 @@
+{
+  "status": "POSTGRES_TESTED",
+  "migrationCount": [
+    {
+      "count": 74
+    }
+  ],
+  "checks": [
+    "explicit-exact-own-Credit-only-other-participant-id-name-note-absent"
+  ]
+}

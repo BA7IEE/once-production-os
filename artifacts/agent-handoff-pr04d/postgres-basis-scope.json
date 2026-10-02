@@ -1,0 +1,11 @@
+{
+  "status": "POSTGRES_TESTED",
+  "migrationCount": [
+    {
+      "count": 74
+    }
+  ],
+  "checks": [
+    "current-basis-without-media-collection-work-fieldScope-cannot-open-or-read-through-stale-exposure"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "status": "PASSED",
+  "providerVerified": "NOT_RUN",
+  "provider": "controlled local HTTP gateway",
+  "checks": [
+    "360px-login-refresh-no-resend-cookie-isolation-logout",
+    "390px-login-refresh-no-resend-cookie-isolation-logout",
+    "430px-login-refresh-no-resend-cookie-isolation-logout",
+    "two-tabs-independent-contexts-and-stale-account-write-rejected",
+    "structured-secret-leak-guard-OTP-receipt-audit-log-and-provider-secrets",
+    "no-person-or-membership-created-no-secret-in-server-log-audit-receipt"
+  ],
+  "errors": []
+}

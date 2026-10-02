@@ -1,3 +1,4 @@
+import {handoffOverview,approveHandoffExposure} from './talent-handoff.ts';
 import {Ingestion} from './ingestion.ts';
 import {authorizeAgentReceive} from './agent-media.ts';
 import {MediaPurge} from './media-purge.ts';
@@ -359,6 +360,8 @@ export class Application {
                     case 'talent.invitation.revoke':return command('talentInvitation',()=>maintenance.revokeInvitation(tx,actor,id,data));
                     case 'talent.claim.list':return maintenance.internalList(tx,actor,'claim');
                     case 'talent.claim.decide':return command('talentClaim',()=>maintenance.decideClaim(tx,actor,id,data));
+                    case 'talent.handoff.get':return handoffOverview(tx,actor,id,this.clock,this.config);
+                    case 'talent.grant.exposure':return command('talentGrant',()=>approveHandoffExposure(tx,actor,id,data,this.clock,this.config));
                     case 'talent.grant.mediaExposure':return command('talentGrant',()=>approveMediaExposure(tx,actor,id,data,this.clock,this.config));
                     case 'talent.grant.revoke':return command('talentGrant',()=>maintenance.revokeGrant(tx,actor,id,data));
                     case 'talent.submission.list':return maintenance.internalList(tx,actor,'submission');
