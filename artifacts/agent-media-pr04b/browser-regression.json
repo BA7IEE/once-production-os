@@ -1,0 +1,82 @@
+{
+  "status": "BROWSER_TESTED",
+  "firstRun": {
+    "status": "FAILED",
+    "results": [
+      {
+        "suite": "resume",
+        "exitCode": 0,
+        "durationSeconds": 44.6
+      },
+      {
+        "suite": "handoff",
+        "exitCode": 0,
+        "durationSeconds": 37.2
+      },
+      {
+        "suite": "media",
+        "exitCode": 0,
+        "durationSeconds": 36.3
+      },
+      {
+        "suite": "production",
+        "exitCode": 0,
+        "durationSeconds": 322.3
+      },
+      {
+        "suite": "talent-intake",
+        "exitCode": 0,
+        "durationSeconds": 7.6
+      },
+      {
+        "suite": "talent-directory",
+        "exitCode": 0,
+        "durationSeconds": 38.9
+      },
+      {
+        "suite": "talent-auth",
+        "exitCode": 0,
+        "durationSeconds": 23.8
+      },
+      {
+        "suite": "talent-maintenance",
+        "exitCode": 0,
+        "durationSeconds": 61.9
+      },
+      {
+        "suite": "media-staging",
+        "exitCode": 0,
+        "durationSeconds": 124.4
+      },
+      {
+        "suite": "media-collections",
+        "exitCode": 0,
+        "durationSeconds": 240.8
+      },
+      {
+        "suite": "work-cases",
+        "exitCode": 1,
+        "durationSeconds": 211.2
+      },
+      {
+        "suite": "media-purge",
+        "exitCode": 0,
+        "durationSeconds": 132.3
+      },
+      {
+        "suite": "agent-ingestion",
+        "exitCode": 0,
+        "durationSeconds": 9.4
+      }
+    ]
+  },
+  "reruns": [
+    {
+      "suite": "work-cases",
+      "exitCode": 0,
+      "reason": "first run ECONNRESET; independent new database full journey rerun passed",
+      "log": "private local /tmp/pr04b-browser-work-retry.log"
+    }
+  ],
+  "finalSuitesPassed": 13
+}

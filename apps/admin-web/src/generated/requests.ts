@@ -2,6 +2,15 @@
 export interface Inputs {
   "mediaPurge.status": undefined;
   "mediaPurge.reconcile": {  };
+  "ingestion.upload.create": { "context": { "kind": "AGENT_SUBMISSION"; "submissionId": string }; "expectedSubmissionRevision": number; "clientItemKey": string; "roleCandidateKey"?: string; "fileName": string; "mime": "image/jpeg" | "image/png" | "image/webp" | "application/pdf" | "video/mp4"; "expectedBytes": number; "sha256": string };
+  "ingestion.upload.authorize": { "expectedRevision": number };
+  "ingestion.upload.content": undefined;
+  "ingestion.upload.complete": { "expectedRevision": number };
+  "ingestion.upload.cancel": { "expectedRevision": number };
+  "ingestion.upload.status": undefined;
+  "ingestion.asset.preview": undefined;
+  "ingestion.asset.playback": undefined;
+  "ingestion.asset.attachment": undefined;
   "ingestion.schema": undefined;
   "ingestion.dictionaries": undefined;
   "ingestion.create": { "schemaVersion": "once-talent-experience-v1"; "externalSubmissionKey": string; "proposedPersonId": string | null; "sourceDeclaration": { "title": string; "providerClaim": string; "materialDescription": string } };
@@ -99,7 +108,7 @@ export interface Inputs {
   "directory.talent.search": { "q"?: string; "mode"?: "ALL" | "TALENT" | "CONTACT"; "role"?: string | Array<string>; "gender"?: "FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | "UNKNOWN" | Array<"FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | "UNKNOWN">; "nationality"?: string | Array<string>; "market"?: "DOMESTIC" | "INTERNATIONAL" | "UNCLASSIFIED" | Array<"DOMESTIC" | "INTERNATIONAL" | "UNCLASSIFIED">; "experience"?: "AMATEUR" | "PROFESSIONAL" | "UNSPECIFIED" | Array<"AMATEUR" | "PROFESSIONAL" | "UNSPECIFIED">; "style"?: string | Array<string>; "service"?: string | Array<string>; "location"?: string | Array<string>; "language"?: string | Array<string>; "industryCode"?: string | Array<string>; "workTypeCode"?: string | Array<string>; "status"?: "DRAFT" | "ACTIVE" | "ARCHIVED"; "ageMin"?: number; "ageMax"?: number; "ageUnknown"?: boolean; "heightMin"?: number; "heightMax"?: number; "page"?: number; "pageSize"?: number };
   "directory.talent.get": undefined;
   "directory.talent.create": { "schemaVersion": "once-talent-experience-v1"; "displayName": string; "kind": "TALENT" | "CONTACT"; "roleCodes"?: Array<string>; "sourceId"?: string; "sourceRevision"?: number };
-  "td2.principal.authorization": { "expectedRevision": number; "scopeId": string; "defaultMaintainerMembershipId": string; "permissionCodes": Array<"records.read" | "sources.read" | "talent.propose" | "talent.fact.write" | "ingestion.schema.read" | "ingestion.submit" | "ingestion.read.own" | "ingestion.withdraw.own"> };
+  "td2.principal.authorization": { "expectedRevision": number; "scopeId": string; "defaultMaintainerMembershipId": string; "permissionCodes": Array<"records.read" | "sources.read" | "talent.propose" | "talent.fact.write" | "ingestion.schema.read" | "ingestion.submit" | "ingestion.read.own" | "ingestion.withdraw.own" | "ingestion.media.upload"> };
   "td2.collection.save": { "schemaVersion": "once-talent-v2.1.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "collection": { "clientItemKey": string; "targetCollectionId": string | null; "expectedCollectionRevision": number | null; "personRoleId": string | null; "collectionTypeCode": "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "title": string; "isCurrent": boolean; "coverAssetId": string | null; "tagCodes": Array<"FASHION" | "BEAUTY" | "COMMERCIAL" | "LINGERIE" | "RUNWAY" | "LIFESTYLE" | "INDUSTRIAL" | "PRODUCT">; "items": Array<{ "referenceKind": "SUBMISSION_STAGED_ASSET" | "EXISTING_ADOPTED_ASSET_REFERENCE"; "assetId": string; "caption": string; "featured": boolean }> } };
   "td2.heightReview.list": undefined;
   "td2.heightReview.dismiss": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "sourceRevision": number; "resolution": "DO_NOT_USE_LEGACY_HEIGHT"; "acknowledge": boolean };
@@ -132,7 +141,7 @@ export interface Inputs {
   "td2.collection.remove": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "itemId": string };
   "td2.collection.order": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "itemIds": Array<string> };
   "td2.principal.list": undefined;
-  "td2.principal.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "displayName": string; "scopeId": string; "defaultMaintainerMembershipId": string; "permissionCodes": Array<"records.read" | "sources.read" | "talent.propose" | "talent.fact.write" | "ingestion.schema.read" | "ingestion.submit" | "ingestion.read.own" | "ingestion.withdraw.own">; "expiresAt": string };
+  "td2.principal.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "displayName": string; "scopeId": string; "defaultMaintainerMembershipId": string; "permissionCodes": Array<"records.read" | "sources.read" | "talent.propose" | "talent.fact.write" | "ingestion.schema.read" | "ingestion.submit" | "ingestion.read.own" | "ingestion.withdraw.own" | "ingestion.media.upload">; "expiresAt": string };
   "td2.principal.rotate": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedRevision": number };
   "td2.principal.revoke": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedRevision": number };
   "td2.fact.talentProfiles.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "internalSummary"?: string; "status"?: "ACTIVE" | "ARCHIVED"; "genderCode"?: "FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | null; "birthPrecision"?: "UNKNOWN" | "EXACT_DATE" | "YEAR_ONLY" | "DECLARED_RANGE"; "birthDate"?: string | null; "birthYear"?: number | null; "minAgeYears"?: number | null; "maxAgeYears"?: number | null; "ageAsOfDate"?: string | null; "nationalityCodes"?: Array<string>; "coverAssetId"?: string | null } };
@@ -286,6 +295,51 @@ export const ENDPOINTS = {
     "method": "POST",
     "path": "/media-purge/reconcile",
     "mode": "COMMAND"
+  },
+  "ingestion.upload.create": {
+    "method": "POST",
+    "path": "/ingestion/uploads",
+    "mode": "COMMAND"
+  },
+  "ingestion.upload.authorize": {
+    "method": "POST",
+    "path": "/ingestion/uploads/{id}/receive-authorizations",
+    "mode": "SECRET"
+  },
+  "ingestion.upload.content": {
+    "method": "PUT",
+    "path": "/ingestion/uploads/{id}/content",
+    "mode": "BINARY"
+  },
+  "ingestion.upload.complete": {
+    "method": "POST",
+    "path": "/ingestion/uploads/{id}/complete",
+    "mode": "COMMAND"
+  },
+  "ingestion.upload.cancel": {
+    "method": "POST",
+    "path": "/ingestion/uploads/{id}/cancel",
+    "mode": "COMMAND"
+  },
+  "ingestion.upload.status": {
+    "method": "GET",
+    "path": "/ingestion/uploads/{id}/status",
+    "mode": "READ"
+  },
+  "ingestion.asset.preview": {
+    "method": "GET",
+    "path": "/ingestion/submissions/{id}/assets/{asset}/preview",
+    "mode": "BINARY"
+  },
+  "ingestion.asset.playback": {
+    "method": "GET",
+    "path": "/ingestion/submissions/{id}/assets/{asset}/playback",
+    "mode": "BINARY"
+  },
+  "ingestion.asset.attachment": {
+    "method": "GET",
+    "path": "/ingestion/submissions/{id}/assets/{asset}/attachment",
+    "mode": "BINARY"
   },
   "ingestion.schema": {
     "method": "GET",

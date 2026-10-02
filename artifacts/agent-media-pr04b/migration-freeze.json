@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "baseline": "67f45a57801cdef9e419803139775e15dd329839",
+  "frozenMigrations": 72,
+  "unchanged": 72,
+  "newMigrations": [
+    {
+      "number": 73,
+      "path": "prisma/migrations/202610020005_agent_media_ingestion/migration.sql",
+      "sha256": "fafa9861f798fd97709efb67548f30ac7c4f1a823c9052eb6b54d756f242f3e2"
+    },
+    {
+      "number": 74,
+      "path": "prisma/migrations/202610020006_person_media_role_merge/migration.sql",
+      "sha256": "147dff90b71affee8792d5c090fef243fe18dd04a3b8f52e7c9e06c826c63ee2"
+    }
+  ]
+}

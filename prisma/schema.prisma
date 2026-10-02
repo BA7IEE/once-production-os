@@ -683,6 +683,11 @@ model RecordHandoff {
 }
 
 model MediaUpload {
+  servicePrincipalAuthorizationEpoch Int?
+  clientItemKey String? @db.Text
+  roleCandidateKey String? @db.Text
+  receiveAuthorizationHash String? @db.Text
+  receiveAuthorizationUntil DateTime? @db.Timestamptz(3)
   contextKind String @default("INTERNAL_SOURCE") @db.Text
   principalKind String @default("INTERNAL") @db.Text
   talentAccountId String? @db.Uuid

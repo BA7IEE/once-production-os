@@ -1,0 +1,55 @@
+{
+  "policy": "First failures retained as secret-free metadata; private raw diagnostics are not published. No secret contents in errors.",
+  "failures": [
+    {
+      "phase": "PG16 Docker invocation",
+      "kind": "tool/network",
+      "resolution": "Docker tool path and intermittent daemon/TCP availability; isolated native PG16 used; existing PG14 unchanged"
+    },
+    {
+      "phase": "Browser local root",
+      "kind": "configuration",
+      "resolution": "/tmp symlink rejected by storage root guard; canonical /private/tmp used without weakening guard"
+    },
+    {
+      "phase": "Browser binary",
+      "kind": "environment",
+      "resolution": "Playwright bundled browser absent; installed real Google Chrome explicitly selected"
+    },
+    {
+      "phase": "MIME negative expectation",
+      "kind": "test phase",
+      "resolution": "initial assertion expected receive-time failure; sniff/decoder runs in asynchronous worker; now asserts FAILED and no Asset"
+    },
+    {
+      "phase": "Quota concurrency",
+      "kind": "revision ordering",
+      "resolution": "same-draft concurrent requests first hit revision CAS 409; independent drafts prove shared principal atomic quota 201/429"
+    },
+    {
+      "phase": "Real review measurement",
+      "kind": "business defect",
+      "resolution": "separate report timestamp exceeded row updatedAt; one createdAt report timestamp, measuredOn remains UNKNOWN/null"
+    },
+    {
+      "phase": "Work browser regression",
+      "kind": "ECONNRESET",
+      "resolution": "first full journey failed due to connection reset; original diagnostic redacted because Playwright included test Cookie; independent fresh full journey passed"
+    },
+    {
+      "phase": "Exact-role media merge",
+      "kind": "database defect",
+      "resolution": "immediate composite FK rejected atomic Role/PersonMedia move; migration74 defers same FK to commit; invalid exact Role still rejected"
+    },
+    {
+      "phase": "Final PG invocation",
+      "kind": "runner setup",
+      "resolution": "integration launched before deploying its fresh database; deployed 1–74 then ran full suite"
+    },
+    {
+      "phase": "Deletion test driver",
+      "kind": "test syntax",
+      "resolution": "initial non-async callback with await corrected; Core22 and real PG deletion path passed"
+    }
+  ]
+}

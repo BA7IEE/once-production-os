@@ -21,7 +21,7 @@ import type { RecoveryRun } from './recovery-model.ts';
 export type Role = 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'VIEWER';
 export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write', 'data.export', 'data.delete', 'data.merge', 'ai.use', 'talent.invite', 'talent.review'] as const;
 export type ExtraPermission = typeof EXTRA_PERMISSIONS[number];
-export type IngestionPermission = 'ingestion.schema.read'|'ingestion.submit'|'ingestion.read.own'|'ingestion.withdraw.own';
+export type IngestionPermission = 'ingestion.schema.read'|'ingestion.submit'|'ingestion.read.own'|'ingestion.withdraw.own'|'ingestion.media.upload';
 export type Permission = IngestionPermission | 'records.read' | 'records.write' | 'sources.read' | 'sources.write' | 'sources.review' | 'catalog.manage' | 'members.manage' | 'audit.read' | 'assets.read' | 'assets.upload' | 'talent.propose' | 'talent.fact.write' | ExtraPermission;
 export interface Base {
     id: string;
@@ -311,6 +311,8 @@ export interface Clock {
 }
 export interface Config {
     ingestionEnabled?:boolean;
+    agentMediaEnabled?:boolean;
+    agentMediaAdmission?: import('./agent-media.ts').AgentMediaAdmission;
     talentAuth?: TalentAuthConfig;
     ai?: AiLedgerConfig;
     mediaRetention?: import('./media-retention.ts').MediaRetention;

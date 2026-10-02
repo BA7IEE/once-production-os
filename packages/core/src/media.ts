@@ -1,4 +1,7 @@
 import {mediaConsentVersion} from './media-validation.ts';
+import {createAgentUpload,machineUploadContext,checkAgentReceive} from './agent-media.ts';
+import {Ingestion} from './ingestion.ts';
+import {MachineIdentity} from './talent-v2-machine.ts';
 import {talentFormalAsset} from './media-collections.ts';
 import type {CommandPrincipal, TalentActor} from './talent-auth-model.ts';
 import {ownsUpload,uploadContext,talentUploadContext,adoptedMediaFor} from './media-ownership.ts';
@@ -55,13 +58,17 @@ export class Media {
         invariant(!u.recoveryEpoch||u.recoveryEpoch===this.config.recoveryEpoch,'MEDIA_CONTEXT_CHANGED','恢复后旧上传不可继续',409);
         const limits=this.config.mediaAdmission??MEDIA_ADMISSION_DEFAULTS,uploads=await tx.find('uploads',{workspaceId:u.workspaceId});
         invariant(uploads.filter(r=>!r.purgedAt).reduce((n,r)=>n+r.expectedBytes,0)<=limits.workspaceBytes,'MEDIA_STORAGE_BUDGET','当前存储资格已变化',409);
+        if(actor.actorKind==='MACHINE'){
+            invariant(ownsUpload(actor,u),'MEDIA_CONTEXT_CHANGED','机器上传归属不匹配',409);
+            await machineUploadContext(tx,u,this.clock,this.config);return;
+        }
         if(actor.actorKind==='TALENT'){
             await talentUploadContext(tx,actor,u,this.clock,this.config);
             invariant(uploads.filter(r=>ownsUpload(actor,r)&&!r.purgedAt).reduce((n,r)=>n+r.expectedBytes,0)<=limits.talentBytes,'TALENT_MEDIA_BUDGET','本人存储资格已变化',409);
             invariant(Date.parse(u.expiresAt)>this.clock.now().getTime(),'UPLOAD_EXPIRED','上传已过期',409);
             return;
         }
-        invariant(actor.actorKind!=='MACHINE'&&u.sourceId&&u.actorId,'MEDIA_CONTEXT_CHANGED','上传上下文不匹配',409);
+        invariant(u.sourceId&&u.actorId,'MEDIA_CONTEXT_CHANGED','上传上下文不匹配',409);
         requirePermission(actor, 'assets.upload');
         invariant(u.actorId === actor.membershipId && u.actorEpoch === actor.userEpoch, 'MEDIA_CONTEXT_CHANGED', '上传人资格已经变化', 409);
         const m = await workspaceRow(tx, 'memberships', actor.membershipId, actor.workspaceId);
@@ -134,13 +141,23 @@ export class Media {
         const next={...touch(s,this.clock),expiresAt:m.until(m.retention.draft)};await tx.replace('talentSubmissions',next);await syncMediaRetention(tx,next,this.clock);
         return u;
     }
+    async createAgent(tx:Tx,actor:Actor,input:unknown){return createAgentUpload(tx,actor,input,this.clock,this.config);}
     async talentRead(tx:Tx,actor:TalentActor,id:string,meta?:RequestMeta):Promise<MediaAsset>{
         await this.maintenanceGuard(tx,actor.workspaceId);const a=await workspaceRow(tx,'assets',id,actor.workspaceId);if(a&&mediaUsage(a)==='ADOPTED'){const result=await talentFormalAsset(tx,actor,id,this.clock,this.config);if(meta)await audit(tx,actor,actor.workspaceId,'asset.talent-formal-read','asset',id,[],meta,this.clock);return result.asset;}return this.staged(tx,actor,id,meta);
     }
     async staged(tx:Tx,actor:CommandPrincipal,id:string,meta?:RequestMeta):Promise<MediaAsset>{
         await this.maintenanceGuard(tx,actor.workspaceId);
         const a=await workspaceRow(tx,'assets',id,actor.workspaceId),u=await workspaceRow(tx,'uploads',id,actor.workspaceId);
-        if(!a||!u||a.state!=='READY'||mediaUsage(a)!=='STAGED'||u.principalKind!=='TALENT'||!u.submissionId)missing();
+        if(!a||!u||a.state!=='READY'||mediaUsage(a)!=='STAGED'||!['TALENT','MACHINE'].includes(u.principalKind??'')||!u.submissionId)missing();
+        if(u.principalKind==='MACHINE'){
+            if(actor.actorKind==='TALENT'||actor.actorKind==='MACHINE'&&!ownsUpload(actor,u))missing();
+            if(actor.actorKind!=='MACHINE'){await new Ingestion(this.clock,this.config).access(tx,actor,u.submissionId,true);requirePermission(actor,'assets.read');}
+            await machineUploadContext(tx,u,this.clock,this.config,false);
+            const r=(await tx.find('personMedia',{workspaceId:u.workspaceId,assetId:id,submissionId:u.submissionId,usageState:'STAGED'}))[0];
+            if(!r||r.retiredAt||r.purgedAt||r.personId||r.personRoleId||r.sourceId||!r.retainUntil||r.retainUntil<=this.clock.now().toISOString())missing();
+            if(meta)await audit(tx,actor,actor.workspaceId,'asset.machine-staged-read','asset',id,[],meta,this.clock);
+            return a;
+        }
         const owner:TalentActor={actorKind:'TALENT',workspaceId:u.workspaceId,talentAccountId:u.talentAccountId!,sessionEpoch:u.actorEpoch,sessionId:''};
         if(actor.actorKind==='TALENT'){if(actor.talentAccountId!==owner.talentAccountId)missing();}
         else {if(actor.actorKind==='MACHINE')missing();await requireScope(tx,actor,u.scopeId);await new TalentMaintenance(this.clock,this.config).internalSubmission(tx,actor,u.submissionId);requirePermission(actor,'assets.read');}
@@ -159,7 +176,7 @@ export class Media {
         for(const item of await tx.find('talentSubmissionItems',{workspaceId:u.workspaceId,submissionId:s.id,kind:'MEDIA',targetId:id}))await tx.remove('talentSubmissionItems',item.id);
         await tx.replace('talentSubmissions',touch(s,this.clock));return next;
     }
-    async get(tx: Tx, actor: CommandPrincipal, id: string) { return uploadDto(await uploadFor(tx, actor, id)); }
+    async get(tx: Tx, actor: CommandPrincipal, id: string) { const u=await uploadFor(tx,actor,id);if(actor.actorKind==='MACHINE')await machineUploadContext(tx,u,this.clock,this.config,false);return uploadDto(u); }
     async listUploads(tx: Tx, actor: Actor, query: Record<string, string>) {
         const rows = await tx.find('uploads', { workspaceId: actor.workspaceId, actorId: actor.membershipId });
         return page(rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id)).map(uploadDto), query);
@@ -176,14 +193,16 @@ export class Media {
         await tx.replace('uploads', n);
         return n;
     }
-    async beginReceive(tx: Tx, actor: CommandPrincipal, id: string, bytes: number) {
+    async beginReceive(tx: Tx, actor: CommandPrincipal, id: string, bytes: number, authorization?:string) {
         this.enabled();
         const u = await uploadFor(tx, actor, id);
         await this.context(tx, actor, u);
+        if(actor.actorKind==='MACHINE')checkAgentReceive(u,authorization,this.clock,this.config);
         invariant(u.state === 'OPEN', 'UPLOAD_NOT_OPEN', '请核对上传状态；不能覆盖已经收到的文件', 409);
         invariant(bytes === u.expectedBytes, 'UPLOAD_SIZE_MISMATCH', '请求长度与声明大小不一致', 422);
         const token = randomUUID();
         const n: MediaUpload = { ...touch(u, this.clock), state: 'RECEIVING', receiveToken: token,
+            ...(actor.actorKind==='MACHINE'?{receiveAuthorizationHash:null,receiveAuthorizationUntil:null}:{}),
             leaseToken: token, leaseUntil: new Date(this.clock.now().getTime() + L.receiveLeaseMs).toISOString() };
         await tx.replace('uploads', n);
         return n;
@@ -218,7 +237,7 @@ export class Media {
     }
     async cancel(tx: Tx, actor: CommandPrincipal, id: string, input: unknown) {
         const d = MediaSchemas.revision.parse(input), u = await uploadFor(tx, actor, id);
-        if(actor.actorKind==='TALENT')await this.context(tx,actor,u);
+        if(actor.actorKind==='TALENT'||actor.actorKind==='MACHINE')await this.context(tx,actor,u);
         cas(u, d.expectedRevision);
         invariant(!terminalUpload(u.state), 'UPLOAD_TERMINAL', '该上传已结束，不能再次取消', 409);
         const n: MediaUpload = { ...touch(u, this.clock), state: 'CANCELLED', leaseToken: null, leaseUntil: null };
@@ -279,6 +298,11 @@ export class Media {
         invariant(this.config.accessMode === 'INTERNAL' && w?.recoveryEpoch === this.config.recoveryEpoch, 'MAINTENANCE', '恢复隔离中', 503);
     }
     private async workerActor(tx: Tx, u: MediaUpload): Promise<CommandPrincipal> {
+        if(u.principalKind==='MACHINE'){
+            const p=(await new Ingestion(this.clock,this.config).currentPrincipal(tx,u.servicePrincipalId!,u.workspaceId)).p;
+            const maintainer=await new MachineIdentity(this.clock,this.config).validateMaintainer(tx,u.workspaceId,p.defaultMaintainerMembershipId,p.scopeId,p.permissionCodes as Actor['permissions']);
+            return {...maintainer,actorKind:'MACHINE',servicePrincipalId:p.id,machineScopeId:p.scopeId,permissions:p.permissionCodes as Actor['permissions'],displayName:p.displayName,sessionId:''};
+        }
         if(u.principalKind==='TALENT'){
             const a=await new TalentMaintenance(this.clock,this.config).account(tx,u.workspaceId,u.talentAccountId!);
             return {actorKind:'TALENT',workspaceId:u.workspaceId,talentAccountId:a.id,sessionId:'',sessionEpoch:a.sessionEpoch};
@@ -332,12 +356,13 @@ export class Media {
             invariant(r.bytes === u.expectedBytes && r.sha256 === u.expectedHash && r.mime === u.mime && Number.isInteger(r.width) && Number.isInteger(r.height)
                 && r.width > 0 && r.height > 0 && r.width * r.height <= L.pixels && Number.isInteger(r.previewBytes) && r.previewBytes > 0 && r.previewBytes <= L.previewBytes && /^[a-f0-9]{64}$/.test(r.previewHash), 'MEDIA_RESULT_INVALID', '图片检查未通过', 422);
             const a: MediaAsset = { ...base(u.workspaceId, this.clock), id: u.id, uploadId: u.id, sourceId: u.sourceId, scopeId: u.scopeId, personId: u.personId,
-                fileName: u.fileName, mime: u.mime, bytes: r.bytes, sha256: r.sha256, width: r.width, height: r.height, previewBytes: r.previewBytes, previewHash: r.previewHash, objectToken: u.leaseToken!, state: 'READY', usageState:u.contextKind==='TALENT_SUBMISSION'?'STAGED':'ADOPTED',protectionEpoch:1 };
+                fileName: u.fileName, mime: u.mime, bytes: r.bytes, sha256: r.sha256, width: r.width, height: r.height, previewBytes: r.previewBytes, previewHash: r.previewHash, objectToken: u.leaseToken!, state: 'READY', usageState:u.contextKind==='TALENT_SUBMISSION'||u.contextKind==='AGENT_SUBMISSION'?'STAGED':'ADOPTED',protectionEpoch:1 };
             await tx.insert('assets', a);
-            if(u.contextKind==='TALENT_SUBMISSION'){
+            if(u.contextKind==='TALENT_SUBMISSION'||u.contextKind==='AGENT_SUBMISSION'){
                 const submission=(await tx.get('talentSubmissions',u.submissionId!))!;
                 await tx.insert('personMedia',{...base(u.workspaceId,this.clock),personId:u.personId,personRoleId:u.personRoleId??null,assetId:a.id,sourceId:null,submissionId:submission.id,purpose:'SUBMITTED_MATERIAL',usageState:'STAGED',protectionEpoch:1,retainUntil:submission.expiresAt,retiredAt:null,purgedAt:null});
-                await tx.insert('talentSubmissionItems',{...base(u.workspaceId,this.clock),submissionId:submission.id,clientItemKey:'media_'+a.id,kind:'MEDIA',targetId:a.id,values:{assetId:a.id,sha256:a.sha256},baseline:{},dependencyGroup:'media_'+a.id,dependsOn:[],state:'PENDING',appliedId:null});
+                const key=u.contextKind==='AGENT_SUBMISSION'?u.clientItemKey!:'media_'+a.id;
+                await tx.insert('talentSubmissionItems',{...base(u.workspaceId,this.clock),submissionId:submission.id,clientItemKey:key,kind:'MEDIA',targetId:a.id,values:{assetId:a.id,sha256:a.sha256,...(u.contextKind==='AGENT_SUBMISSION'?{roleCandidateKey:u.roleCandidateKey??null}:{})},baseline:{},dependencyGroup:key,dependsOn:u.roleCandidateKey?[u.roleCandidateKey]:[],state:'PENDING',appliedId:null});
                 await tx.replace('talentSubmissions',touch(submission,this.clock));
             }
             await tx.replace('uploads', { ...touch(u, this.clock), state: 'READY', leaseToken: null, leaseUntil: null, errorCode: null });

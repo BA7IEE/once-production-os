@@ -8,11 +8,12 @@ import { invariant, missing } from './errors.ts';
 import { equalSecret, hashSecret, randomSecret } from './crypto.ts';
 import { permissionsFor, requirePermission, requireScope, scopeVisible } from './policy.ts';
 
-export const INGESTION_PERMISSIONS:readonly Permission[]=['ingestion.schema.read','ingestion.submit','ingestion.read.own','ingestion.withdraw.own'];
+export const INGESTION_PERMISSIONS:readonly Permission[]=['ingestion.schema.read','ingestion.submit','ingestion.read.own','ingestion.withdraw.own','ingestion.media.upload'];
 export const MACHINE_PERMISSIONS:readonly Permission[]=['records.read','sources.read','talent.propose','talent.fact.write',...INGESTION_PERMISSIONS];
 export function machineOwnerPermissions(permissions:Permission[]):Permission[]{
     const allowed=[...permissions];
-    if(permissions.includes('records.write'))allowed.push('talent.fact.write','talent.propose',...INGESTION_PERMISSIONS);
+    if(permissions.includes('records.write'))allowed.push('talent.fact.write','talent.propose',...INGESTION_PERMISSIONS.filter(p=>p!=='ingestion.media.upload'));
+    if(permissions.includes('records.write')&&permissions.includes('assets.upload'))allowed.push('ingestion.media.upload');
     if(permissions.includes('sources.review'))allowed.push('talent.propose');
     return [...new Set(allowed)];
 }

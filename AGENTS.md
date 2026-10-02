@@ -1,3 +1,7 @@
+# 当前授权：PR-04B 真实机器媒体摄取
+
+PR-04A 已由用户冻结，基线67f45a57801cdef9e419803139775e15dd329839。当前独立stacked分支只接通AGENT_SUBMISSION真实字节、MACHINE独立额度、全阶段authorizationEpoch fencing、READY/STAGED专用读及文字/媒体原子审核、正式授权和生命周期。迁移1–72冻结，从73前向追加；PR31/32 head不改，不合并部署，新的PR保持Draft。完成Core/PG16/Browser/升级恢复与最终head CI后停止，不进入Collection/Work摄取PR-04C。下方阶段范围为历史，当前范围由本次用户授权替代。
+
 # 当前授权：PR-04A finalization
 
 基线d1e4936，仅完整imported INTERNAL_REVIEW JSON DB CHECK和结构化secret leak检测。前向72，1–71不修改；保留首次失败记录，不削弱正文/凭据泄漏检查。Core/PG/原12组Browser+ingestion以及最终14项CI完成后交冻结复核。PR #32保持Draft、未合并未部署，PR #31不修改；不进入PR-04B。当前证据见docs/release/PR04A_FINALIZATION.md。下方范围为历史阶段。
