@@ -965,11 +965,244 @@
                             "IDENTITY_TEXT",
                             "ROLE",
                             "PROFILE",
-                            "MEASUREMENT"
+                            "MEASUREMENT",
+                            "COLLECTION",
+                            "WORK"
                           ]
                         },
                         "values": {
                           "oneOf": [
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "roleCandidateKey": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 100,
+                                  "pattern": "^[a-zA-Z0-9_-]+$"
+                                },
+                                "collectionTypeCode": {
+                                  "type": "string",
+                                  "enum": [
+                                    "MODEL_CARD",
+                                    "POLAROIDS",
+                                    "PORTFOLIO",
+                                    "SHOWREEL",
+                                    "INTRO_VIDEO",
+                                    "OTHER"
+                                  ]
+                                },
+                                "title": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                "isCurrent": {
+                                  "type": "boolean"
+                                },
+                                "coverMediaCandidateKey": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 100,
+                                      "pattern": "^[a-zA-Z0-9_-]+$"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "tagCodes": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "enum": [
+                                      "FASHION",
+                                      "BEAUTY",
+                                      "COMMERCIAL",
+                                      "LINGERIE",
+                                      "RUNWAY",
+                                      "LIFESTYLE",
+                                      "INDUSTRIAL",
+                                      "PRODUCT"
+                                    ]
+                                  },
+                                  "minItems": 0,
+                                  "maxItems": 8
+                                },
+                                "items": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "mediaCandidateKey": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 100,
+                                        "pattern": "^[a-zA-Z0-9_-]+$"
+                                      },
+                                      "caption": {
+                                        "type": "string",
+                                        "minLength": 0,
+                                        "maxLength": 1000
+                                      },
+                                      "featured": {
+                                        "type": "boolean"
+                                      }
+                                    },
+                                    "required": [
+                                      "mediaCandidateKey",
+                                      "caption",
+                                      "featured"
+                                    ]
+                                  },
+                                  "minItems": 0,
+                                  "maxItems": 200
+                                }
+                              },
+                              "required": [
+                                "roleCandidateKey",
+                                "collectionTypeCode",
+                                "title",
+                                "isCurrent",
+                                "coverMediaCandidateKey",
+                                "tagCodes",
+                                "items"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "roleCandidateKey": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 100,
+                                  "pattern": "^[a-zA-Z0-9_-]+$"
+                                },
+                                "title": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 160
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "minLength": 0,
+                                  "maxLength": 5000
+                                },
+                                "caseDate": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 100
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "datePrecision": {
+                                  "type": "string",
+                                  "enum": [
+                                    "UNKNOWN",
+                                    "YEAR",
+                                    "MONTH",
+                                    "DAY",
+                                    "APPROXIMATE"
+                                  ]
+                                },
+                                "location": {
+                                  "type": "string",
+                                  "minLength": 0,
+                                  "maxLength": 500
+                                },
+                                "brandDisplayName": {
+                                  "type": "string",
+                                  "minLength": 0,
+                                  "maxLength": 200
+                                },
+                                "industryCode": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 60,
+                                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "workTypeCodes": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 60,
+                                    "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                  },
+                                  "minItems": 0,
+                                  "maxItems": 10
+                                },
+                                "creditNote": {
+                                  "type": "string",
+                                  "minLength": 0,
+                                  "maxLength": 1000
+                                },
+                                "coverMediaCandidateKey": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 100,
+                                      "pattern": "^[a-zA-Z0-9_-]+$"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "items": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "mediaCandidateKey": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 100,
+                                        "pattern": "^[a-zA-Z0-9_-]+$"
+                                      }
+                                    },
+                                    "required": [
+                                      "mediaCandidateKey"
+                                    ]
+                                  },
+                                  "minItems": 0,
+                                  "maxItems": 30
+                                }
+                              },
+                              "required": [
+                                "roleCandidateKey",
+                                "title",
+                                "description",
+                                "caseDate",
+                                "datePrecision",
+                                "location",
+                                "brandDisplayName",
+                                "industryCode",
+                                "workTypeCodes",
+                                "creditNote",
+                                "coverMediaCandidateKey",
+                                "items"
+                              ]
+                            },
                             {
                               "type": "object",
                               "additionalProperties": false,
@@ -1740,6 +1973,114 @@
                 "type": "object",
                 "additionalProperties": false,
                 "properties": {
+                  "collectionDecisions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "clientItemKey": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100,
+                          "pattern": "^[a-zA-Z0-9_-]+$"
+                        },
+                        "targetCollectionId": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 36,
+                              "maxLength": 36,
+                              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "expectedCollectionRevision": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "clientItemKey",
+                        "targetCollectionId",
+                        "expectedCollectionRevision"
+                      ]
+                    },
+                    "minItems": 0,
+                    "maxItems": 50
+                  },
+                  "workDecisions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "clientItemKey": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100,
+                          "pattern": "^[a-zA-Z0-9_-]+$"
+                        },
+                        "decision": {
+                          "type": "string",
+                          "enum": [
+                            "CREATE_EXTERNAL_WORK",
+                            "LINK_EXISTING_WORK"
+                          ]
+                        },
+                        "targetWorkId": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 36,
+                              "maxLength": 36,
+                              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "expectedWorkRevision": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "basis": {
+                          "type": "string",
+                          "minLength": 4,
+                          "maxLength": 2000
+                        }
+                      },
+                      "required": [
+                        "clientItemKey",
+                        "decision",
+                        "targetWorkId",
+                        "expectedWorkRevision",
+                        "basis"
+                      ]
+                    },
+                    "minItems": 0,
+                    "maxItems": 50
+                  },
                   "expectedRevision": {
                     "type": "integer",
                     "minimum": 1,

@@ -15,14 +15,14 @@ export interface Inputs {
   "ingestion.dictionaries": undefined;
   "ingestion.create": { "schemaVersion": "once-talent-experience-v1"; "externalSubmissionKey": string; "proposedPersonId": string | null; "sourceDeclaration": { "title": string; "providerClaim": string; "materialDescription": string } };
   "ingestion.get": undefined;
-  "ingestion.items": { "expectedRevision": number; "items": Array<{ "clientItemKey": string; "kind": "IDENTITY_TEXT" | "ROLE" | "PROFILE" | "MEASUREMENT"; "values": unknown; "dependencyGroup": string; "dependsOn": Array<string> }> };
+  "ingestion.items": { "expectedRevision": number; "items": Array<{ "clientItemKey": string; "kind": "IDENTITY_TEXT" | "ROLE" | "PROFILE" | "MEASUREMENT" | "COLLECTION" | "WORK"; "values": unknown; "dependencyGroup": string; "dependsOn": Array<string> }> };
   "ingestion.validate": { "expectedRevision": number };
   "ingestion.submit": { "expectedRevision": number };
   "ingestion.withdraw": { "expectedRevision": number };
   "ingestion.fork": { "expectedRevision": number; "externalSubmissionKey": string };
   "ingestionReview.list": undefined;
   "ingestionReview.get": undefined;
-  "ingestionReview.review": { "expectedRevision": number; "acceptedKeys": Array<string>; "decision": "CREATE_NEW" | "LINK_EXISTING" | "REJECT"; "targetPersonId"?: string; "formalScopeId"?: string; "reviewBasis": string; "validUntil": string; "publicReason": string };
+  "ingestionReview.review": { "collectionDecisions"?: Array<{ "clientItemKey": string; "targetCollectionId": string | null; "expectedCollectionRevision": number | null }>; "workDecisions"?: Array<{ "clientItemKey": string; "decision": "CREATE_EXTERNAL_WORK" | "LINK_EXISTING_WORK"; "targetWorkId": string | null; "expectedWorkRevision": number | null; "basis": string }>; "expectedRevision": number; "acceptedKeys": Array<string>; "decision": "CREATE_NEW" | "LINK_EXISTING" | "REJECT"; "targetPersonId"?: string; "formalScopeId"?: string; "reviewBasis": string; "validUntil": string; "publicReason": string };
   "portal.auth.context": { "purpose": "LOGIN" | "RECOVER" };
   "portal.auth.contextStatus": undefined;
   "portal.auth.challenge": { "contextId": string; "purpose": "LOGIN" | "RECOVER"; "kind": "EMAIL" | "PHONE"; "identity": string };

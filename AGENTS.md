@@ -1,3 +1,7 @@
+# 当前授权：PR-04C Agent Collection / Work 摄取
+
+用户批准从 PR-04B frozen 379d06dbea9295d47dd7f998a90f76d5d885169a 建独立 stacked 分支。本轮仅同批 stable key Collection/Work 候选、完整依赖基线、内部明确 CREATE/LINK、精确 Credit 与原子采纳及生命周期；复用既有业务表。迁移1–74不改，若需新增从75前向追加。PR31/32/33 head 不改；新PR34保持 Draft、未合并、未部署。完成全量 Core/PG16/Browser、恢复升级和 exact-head CI 后停止，不进入PR-04D。下方授权和阶段状态保留为历史。
+
 # 当前授权：PR-04B 真实机器媒体摄取
 
 PR-04A 已由用户冻结，基线67f45a57801cdef9e419803139775e15dd329839。当前独立stacked分支只接通AGENT_SUBMISSION真实字节、MACHINE独立额度、全阶段authorizationEpoch fencing、READY/STAGED专用读及文字/媒体原子审核、正式授权和生命周期。迁移1–72冻结，从73前向追加；PR31/32 head不改，不合并部署，新的PR保持Draft。完成Core/PG16/Browser/升级恢复与最终head CI后停止，不进入Collection/Work摄取PR-04C。下方阶段范围为历史，当前范围由本次用户授权替代。

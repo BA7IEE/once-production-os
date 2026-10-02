@@ -1,0 +1,10 @@
+{
+  "status": "POSTGRES_TESTED",
+  "fromMigrations": 68,
+  "toMigrations": 74,
+  "checks": [
+    "retained-talent-account-claim-grant-submission-items-consent-attribution-basis-old-columns-identical",
+    "old-machine-key-version-credential-scope-permission-identity-unchanged-epoch-initialized-one",
+    "no-fabricated-machine-submission-or-internal-review-basis"
+  ]
+}

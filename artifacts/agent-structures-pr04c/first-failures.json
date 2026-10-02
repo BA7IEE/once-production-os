@@ -1,0 +1,50 @@
+{
+  "status": "FIRST_FAILURES_RETAINED",
+  "failures": [
+    {
+      "layer": "typecheck",
+      "cause": "incorrect placement sourceId assumption and duplicate clientItemKey in adapter",
+      "resolution": "use actual CollectionItem shape and decision key once"
+    },
+    {
+      "layer": "core-lifecycle",
+      "cause": "test used wrong talent.tables path and historic scoped Source for new internal Person",
+      "resolution": "use documented export shape and independent Source"
+    },
+    {
+      "layer": "core-rebuild",
+      "cause": "Work reconstruction rejected genuine INTERNAL_REVIEW as missing TalentConsent",
+      "resolution": "typed INTERNAL_REVIEW branch; Talent WorkConsent gate preserved"
+    },
+    {
+      "layer": "core-rebuild-assertion",
+      "cause": "test assumed rebuilt relation retained old Credit ID",
+      "resolution": "assert frozen existing rebuild contract exact Person/Role/Work/Source/Note"
+    },
+    {
+      "layer": "postgres-startup",
+      "cause": "dedicated test cluster restarted without its explicit port",
+      "resolution": "restart owned synthetic cluster with -p56534; no other database changed"
+    },
+    {
+      "layer": "browser",
+      "cause": "new harness used incorrect Prisma workRecord delegate after successful Chrome review",
+      "resolution": "actual Prisma Work delegate"
+    },
+    {
+      "layer": "browser-regression-media-collections",
+      "cause": "concurrent local verify/build replaced dist/web/index.html during final Portal reload (ENOENT); PG ENROLL already APPROVED with correct Grant",
+      "resolution": "run the unchanged full suite on a fresh isolated DB after build completes; preserve failure screenshots"
+    },
+    {
+      "layer": "typecheck-review-options",
+      "cause": "early denied read branch widened empty array inference",
+      "resolution": "explicit typed scoped review option arrays; no authorization relaxation"
+    },
+    {
+      "layer": "cli-runner",
+      "cause": "manually supplied non-existing synthetic test database name",
+      "resolution": "run unmodified CLI acceptance against existing dedicated disposable database; pass"
+    }
+  ]
+}
