@@ -1,3 +1,11 @@
+## 2026-10-02：PR-04A finalization（Draft，待最终冻结复核）
+
+本轮仅收口 imported INTERNAL_REVIEW 的完整DB形状约束与结构化secret leak检测。前向迁移72，1–71字节不变；真实历史引用不建立假FK。rebuild与DB校验对齐，TALENT_CONSENT原合同回归通过。原OTP浏览器和Agent摄取复用统一helper；合法UUID/hash/时间/计数不因OTP子串碰撞失败，正文和真实Bearer/receive token、authorization及签名URL仍严格检查，失败不输出秘密。
+
+本地Core689/689，PG80个程序/170项/0失败（14.19），空库1→72、保留71→72及真实pg_dump/restore通过；原12组Browser+新ingestion13/13，真实receive token接入后4条媒体旅程复跑通过。最终PG16/14项CI仅认本轮最终head，回填PR描述和交付回复；首次36926840575 attempt1及旧交付说明保留。详见 [finalization说明](PR04A_FINALIZATION.md)。待本轮代码级复核后正式确认PR-04A FROZEN；PR #32 Draft、未合并、未部署，PR #31不修改，不进入PR-04B。所有生产门NOT_RUN，DEPLOYED=false。
+
+以下保留上一轮交付与历史状态。
+
 # PR-04A：外部 Agent 主体与文字摄取
 
 日期：2026-10-02。状态：**IMPLEMENTED + CORE_MEMORY_TESTED + POSTGRES_TESTED + BROWSER_TESTED；Draft、未合并、未部署，待代码级复核**。开发分支 `codex/external-agent-ingestion-pr04a`，stacked base 为 PR #31 的 `codex/talent-experience-pr03`。冻结 PR-03 SHA `aeaf49da7d5346785adac6df4e2d34321f9d92d2`、冻结设计 SHA `7017d5ef9583b0fd6f7a19521a7faa0f43ce7252`。本轮不改变 PR #31 head，不宣称 PR-04 开发冻结。

@@ -1,3 +1,7 @@
+# 当前授权：PR-04A finalization
+
+基线d1e4936，仅完整imported INTERNAL_REVIEW JSON DB CHECK和结构化secret leak检测。前向72，1–71不修改；保留首次失败记录，不削弱正文/凭据泄漏检查。Core/PG/原12组Browser+ingestion以及最终14项CI完成后交冻结复核。PR #32保持Draft、未合并未部署，PR #31不修改；不进入PR-04B。当前证据见docs/release/PR04A_FINALIZATION.md。下方范围为历史阶段。
+
 # 当前授权：PR-04A 主体与文字摄取
 
 用户已批准基于PR-03冻结aeaf49da的stacked开发，设计7017d5ef为冻结依据。当前codex/external-agent-ingestion-pr04a仅实现真实MACHINE Submission、schema/字典、文字/职业/基础事实、内部审核、typed basis和scope转换。从69前向迁移，1–68不改。PR #31 head不变、不合并部署；新业务PR保持Draft。不得进入媒体摄取、Collection/Work、本人接手闭环、MCP/Skill、抓取/OCR/自动merge或商业模块。完成真实Core/PG/Nest/Chrome和精确head CI后停止交复核。下方DESIGN_ONLY为历史阶段，已由本次用户明确启动授权替代。

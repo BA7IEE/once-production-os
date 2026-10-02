@@ -1,0 +1,95 @@
+{
+  "status": "BROWSER_TESTED",
+  "originalPlusIngestion": [
+    {
+      "name": "browser-talent-auth",
+      "exitCode": 0,
+      "durationSeconds": 13.1
+    },
+    {
+      "name": "browser-talent-maintenance",
+      "exitCode": 0,
+      "durationSeconds": 30.7
+    },
+    {
+      "name": "browser-media-staging",
+      "exitCode": 0,
+      "durationSeconds": 57.6
+    },
+    {
+      "name": "browser-media-collections",
+      "exitCode": 0,
+      "durationSeconds": 91.6
+    },
+    {
+      "name": "browser-work-cases",
+      "exitCode": 0,
+      "durationSeconds": 96.9
+    },
+    {
+      "name": "browser-media-purge",
+      "exitCode": 0,
+      "durationSeconds": 101.1
+    },
+    {
+      "name": "browser-agent-ingestion",
+      "exitCode": 0,
+      "durationSeconds": 6.9
+    },
+    {
+      "name": "browser-talent-directory",
+      "exitCode": 0,
+      "durationSeconds": 17.3
+    },
+    {
+      "name": "browser-talent-intake",
+      "exitCode": 0,
+      "durationSeconds": 8.3
+    },
+    {
+      "name": "browser-media",
+      "exitCode": 0,
+      "durationSeconds": 19.8
+    },
+    {
+      "name": "browser-resume",
+      "exitCode": 0,
+      "durationSeconds": 14.4
+    },
+    {
+      "name": "browser-handoff",
+      "exitCode": 0,
+      "durationSeconds": 9.9
+    },
+    {
+      "name": "browser-production",
+      "exitCode": 0,
+      "durationSeconds": 120.6
+    }
+  ],
+  "receiveTokenGuardRetested": [
+    {
+      "name": "browser-media-staging",
+      "exitCode": 0,
+      "durationSeconds": 55.4
+    },
+    {
+      "name": "browser-media-collections",
+      "exitCode": 0,
+      "durationSeconds": 81.3
+    },
+    {
+      "name": "browser-work-cases",
+      "exitCode": 0,
+      "durationSeconds": 90.8
+    },
+    {
+      "name": "browser-media-purge",
+      "exitCode": 0,
+      "durationSeconds": 97.2
+    }
+  ],
+  "providerVerified": "NOT_RUN",
+  "cosVerified": "NOT_RUN",
+  "mobileDeviceVerified": "NOT_RUN"
+}
