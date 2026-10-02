@@ -1,8 +1,8 @@
-当前 PR-04B 进度见 [真实媒体摄取交付说明](docs/release/PR04_AGENT_INGESTION_B.md)，Draft、未合并、未部署；PR-04A/PR-03与迁移1–72保持冻结。
+当前 PR-04C 进度见 [Collection / Work 摄取交付说明](docs/release/PR04_AGENT_INGESTION_C.md)，独立 stacked Draft、未合并、未部署；PR-04A/B与迁移1–74保持冻结。 本轮仅统一WORK appliedId=Work.id并完整回归，待最终冻结复核。
 
 # ONCE Production OS
 
-人才与制作资料系统，当前按 [Talent Experience v1.1](docs/spec/15_TALENT_EXPERIENCE_V1_1.md) 扩展。PR-01、PR-02已合并并开发冻结；PR-03 A–E全部开发冻结，PR #31已转Ready for Review，未合并、未部署。冻结SHA、精确head CI和实测边界见 [PR-03冻结记录](docs/release/PR03_DEVELOPMENT_FREEZE.md)。外部Agent摄取的 PR-04A 已由用户冻结，PR #32保持Draft；PR-04B在独立stacked分支接通真实媒体，等待本轮复核，[交付与实测边界](docs/release/PR04_AGENT_INGESTION_B.md)明确迁移、真实页面和最终head CI。PR-04C/D尚未开始。真实供应商、COS、物理手机及生产迁移继续NOT_RUN。
+人才与制作资料系统，当前按 [Talent Experience v1.1](docs/spec/15_TALENT_EXPERIENCE_V1_1.md) 扩展。PR-01、PR-02已合并并开发冻结；PR-03 A–E全部开发冻结，PR #31已转Ready for Review，未合并、未部署。冻结SHA、精确head CI和实测边界见 [PR-03冻结记录](docs/release/PR03_DEVELOPMENT_FREEZE.md)。外部Agent摄取的 PR-04A 已由用户冻结，PR #32保持Draft；PR-04B 已由用户冻结，PR #33保持Draft；PR-04C在独立stacked分支接通同批 Collection / Work 候选与原子审核，等待代码级复核，[交付与实测边界](docs/release/PR04_AGENT_INGESTION_C.md)明确无新迁移、真实页面和最终head CI。PR-04D尚未开始。真实供应商、COS、物理手机及生产迁移继续NOT_RUN。
 
 内部底座：当前开发分支已接通来源/权限、人才2.0、作品项目、专业检索、候选清单、受控合并/导出重建/删除、内部语言文本，以及四类文字AI辅助。
 

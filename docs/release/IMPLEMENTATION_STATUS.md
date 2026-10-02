@@ -1,3 +1,19 @@
+## 2026-10-02：PR-04C WORK appliedId finalization（Draft，待最终复核）
+
+以665ea7b20a1d0e16d47406f8fd7e814340d37098为基线，只修正 `applyStructures` 将MACHINE WORK `appliedId` 从Credit.id改为Work.id；TALENT既有流程原本即Work.id，保持不变。无新增映射字段/模型、无Work/Credit重构、无迁移75；1–74和PR31/32/33 head不改。
+
+CREATE、LINK exact Credit复用及LINK新Credit均查库确认Work.id，Credit原ID/Source/Note不变，共享Work facts/cover/placements不变；Collection/MEDIA/ROLE映射不变。旧代码新增断言先复现1项失败，修正后专项42/42；全量Core743/743、PG16共131程序221项、原14组加新增Agent Structures共15组真实Browser通过。真实业务JSON重建、CLI、pg_dump/restore、恢复后WORK item、fresh1→74和retained74无改写通过。证据见 `artifacts/agent-structures-pr04c/applied-id-finalization/verification.json`；完整说明见 [PR-04C交付说明](PR04_AGENT_INGESTION_C.md)。
+
+最终SHA及新的exact-head 16项CI结果回填PR34描述和交付回复，不复用665ea7b的36987562732。继续Draft、未合并、未部署；待最终代码级复核确认冻结，停止推进PR-04D。四项生产验证NOT_RUN，DEPLOYED=false。以下保留历史记录。
+
+## 2026-10-02：PR-04C Collection / Work 摄取（独立 Draft，待代码级复核）
+
+基于 PR-04B frozen `379d06dbea9295d47dd7f998a90f76d5d885169a`；PR31/32/33不修改。Agent仅用同批Role/Media stable key提交集合和案例，submit冻结完整依赖；内部明确Collection新建/更新、Work CREATE/LINK，在原有模型和Commands事务内采纳。LINK不改共享Work facts/cover/placements，exact Credit原ID/Source/Note复用；typed INTERNAL_REVIEW重建不伪造TalentConsent。无新数据库字段/迁移，1–74字节不变。
+
+本地Core743/743；PG16全量126程序216项通过，随后最终32个结构专项全部通过，去重覆盖131程序221项；空库1→74、保留74→74无改写、真实pg_dump/restore与实际业务JSON重建/CLI通过。原14组及新增390px Agent Collection/Work真实Chrome旅程通过（真实异步worker与H264），首次失败保留。最终完整16项CI绑定Draft PR #34最终head并回填PR描述，不沿用旧head结果。详见 [PR-04C交付说明](PR04_AGENT_INGESTION_C.md) 与 `artifacts/agent-structures-pr04c/verification.json`。
+
+保持Draft、未合并、未部署，交付后停止等待代码级复核，不进入PR-04D。PROVIDER_VERIFIED / COS_PROVIDER_VERIFIED / MOBILE_DEVICE_VERIFIED / PRODUCTION_MIGRATION_VERIFIED 均为NOT_RUN，DEPLOYED=false。以下为历史记录，不替代本轮证据。
+
 ## 2026-10-02：PR-04B 真实媒体摄取（Draft，待代码级复核）
 
 用户正式启动 PR-04B。PR-04A 冻结67f45a57、PR-03冻结aeaf49da及迁移1–72保持不变；独立stacked分支追加迁移73–74，接通MACHINE真实上传/异步worker/STAGED/私有预览与MP4 Range/内部文字媒体原子审核/正式授权转换。七项机器额度显式配置，缺失拒绝；沿用保留、清理、导出与恢复隔离。本地Core711/711、PG16共99个程序/189项、原13组及新增媒体共14组真实Browser通过；空库1→74、保留72→74、实际pg_dump/restore及JSON重建通过，首次失败保留。最终15项CI以Draft PR #33最终head为准。详见 [PR-04B交付说明](PR04_AGENT_INGESTION_B.md)。Draft、未合并、未部署，不进入PR-04C；四项生产验证NOT_RUN，DEPLOYED=false。

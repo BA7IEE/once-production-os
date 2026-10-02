@@ -1,0 +1,162 @@
+{
+  "status": "POSTGRES_TESTED",
+  "results": [
+    {
+      "variant": "base",
+      "exitCode": 0,
+      "durationSeconds": 3.6
+    },
+    {
+      "variant": "lifecycle",
+      "exitCode": 0,
+      "durationSeconds": 7.0
+    },
+    {
+      "variant": "partial-valid",
+      "exitCode": 0,
+      "durationSeconds": 2.9
+    },
+    {
+      "variant": "formal-basis",
+      "exitCode": 0,
+      "durationSeconds": 3.5
+    },
+    {
+      "variant": "PERSON",
+      "exitCode": 0,
+      "durationSeconds": 3.5
+    },
+    {
+      "variant": "MERGE",
+      "exitCode": 0,
+      "durationSeconds": 3.1
+    },
+    {
+      "variant": "asset-id",
+      "exitCode": 0,
+      "durationSeconds": 2.1
+    },
+    {
+      "variant": "role-id",
+      "exitCode": 0,
+      "durationSeconds": 2.0
+    },
+    {
+      "variant": "source-id",
+      "exitCode": 0,
+      "durationSeconds": 4.8
+    },
+    {
+      "variant": "collection-id",
+      "exitCode": 0,
+      "durationSeconds": 4.1
+    },
+    {
+      "variant": "work-id",
+      "exitCode": 0,
+      "durationSeconds": 3.1
+    },
+    {
+      "variant": "scope-id",
+      "exitCode": 0,
+      "durationSeconds": 3.1
+    },
+    {
+      "variant": "missing-media",
+      "exitCode": 0,
+      "durationSeconds": 3.0
+    },
+    {
+      "variant": "not-ready",
+      "exitCode": 0,
+      "durationSeconds": 7.8
+    },
+    {
+      "variant": "type",
+      "exitCode": 0,
+      "durationSeconds": 4.6
+    },
+    {
+      "variant": "mime",
+      "exitCode": 0,
+      "durationSeconds": 4.7
+    },
+    {
+      "variant": "role-key",
+      "exitCode": 0,
+      "durationSeconds": 2.8
+    },
+    {
+      "variant": "graph",
+      "exitCode": 0,
+      "durationSeconds": 2.4
+    },
+    {
+      "variant": "partial",
+      "exitCode": 0,
+      "durationSeconds": 7.8
+    },
+    {
+      "variant": "decision",
+      "exitCode": 0,
+      "durationSeconds": 4.4
+    },
+    {
+      "variant": "duplicate",
+      "exitCode": 0,
+      "durationSeconds": 7.2
+    },
+    {
+      "variant": "role",
+      "exitCode": 0,
+      "durationSeconds": 4.1
+    },
+    {
+      "variant": "tag",
+      "exitCode": 0,
+      "durationSeconds": 2.5
+    },
+    {
+      "variant": "order",
+      "exitCode": 0,
+      "durationSeconds": 2.5
+    },
+    {
+      "variant": "collection-cover",
+      "exitCode": 0,
+      "durationSeconds": 6.7
+    },
+    {
+      "variant": "cover",
+      "exitCode": 0,
+      "durationSeconds": 9.0
+    },
+    {
+      "variant": "work-facts",
+      "exitCode": 0,
+      "durationSeconds": 5.7
+    },
+    {
+      "variant": "work-assets",
+      "exitCode": 0,
+      "durationSeconds": 5.1
+    },
+    {
+      "variant": "credit",
+      "exitCode": 0,
+      "durationSeconds": 2.8
+    },
+    {
+      "variant": "source",
+      "exitCode": 0,
+      "durationSeconds": 2.3
+    },
+    {
+      "variant": "legacy",
+      "exitCode": 0,
+      "durationSeconds": 2.7
+    }
+  ],
+  "variants": 32,
+  "longBasis": "POSTGRES_TESTED; see postgres-long-basis.json"
+}

@@ -3,7 +3,7 @@ name: ONCE acceptance
 on:
   pull_request:
     # Stacked feature PRs can validate before the already-tested A1 PR is merged.
-    branches: [main, codex/external-agent-ingestion-pr04a, codex/talent-experience-pr03, acceptance/browser-resume-ci, feat/controlled-handoff, feat/private-media, feat/works-projects, feat/search-shortlists, feat/search-facts-sql, feat/export-dependencies, feat/deletion-impact-preview, feat/deletion-blocking, feat/deletion-retention-plan, feat/deletion-cleaning, feat/deletion-finalization, feat/person-merge, feat/json-rebuild, feat/restore-drill, feat/restore-check, feat/recovery-approval, feat/recovery-writeahead-media]
+    branches: [main, codex/external-agent-media-ingestion-pr04b, codex/external-agent-ingestion-pr04a, codex/talent-experience-pr03, acceptance/browser-resume-ci, feat/controlled-handoff, feat/private-media, feat/works-projects, feat/search-shortlists, feat/search-facts-sql, feat/export-dependencies, feat/deletion-impact-preview, feat/deletion-blocking, feat/deletion-retention-plan, feat/deletion-cleaning, feat/deletion-finalization, feat/person-merge, feat/json-rebuild, feat/restore-drill, feat/restore-check, feat/recovery-approval, feat/recovery-writeahead-media]
   push:
     branches: [main]
 
@@ -664,3 +664,52 @@ jobs:
         with:
           name: agent-media-pr04b-${{ github.sha }}
           path: artifacts/agent-media-pr04b
+
+  browser-agent-structures:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: once_ci
+          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
+          POSTGRES_DB: once_test_agent_structures
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U once_ci -d once_test_agent_structures"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verify committed delivery fingerprints
+        run: sha256sum -c MANIFEST.sha256
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v6
+      - name: Set isolated database target
+        env:
+          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
+        run: |
+          echo "::add-mask::$CI_DB_PASSWORD"
+          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_agent_structures" >> "$GITHUB_ENV"
+          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_agent_structures" >> "$GITHUB_ENV"
+          echo "ALLOW_BROWSER_TESTS=yes" >> "$GITHUB_ENV"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: pnpm verify && pnpm typecheck:transport
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: node --test tests/acceptance/talent-experience-surface-policy.test.mjs
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: node tests/acceptance/browser-agent-structures.mjs
+
+      - name: Preserve real ingestion browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-structures-pr04c-${{ github.sha }}
+          path: artifacts/agent-structures-pr04c
