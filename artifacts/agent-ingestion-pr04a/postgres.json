@@ -1,0 +1,35 @@
+{
+  "status": "POSTGRES_TESTED",
+  "database": [
+    {
+      "version": "PostgreSQL 14.19 (Homebrew) on aarch64-apple-darwin24.4.0, compiled by Apple clang version 17.0.0 (clang-1700.0.13.3), 64-bit"
+    }
+  ],
+  "checks": [
+    "real-machine-bearer-cookie-portal-review-and-formal-write-boundaries",
+    "concurrent-external-key-one-root-original-key-replay-digest-conflict-owner-isolation",
+    "independent-command-keys-concurrent-root-unique-and-cross-machine-write-denied",
+    "strict-unknown-fields-no-agent-formal-scope-no-precreated-person",
+    "rotate-token-keeps-authorization-epoch-and-existing-draft-valid",
+    "review-audit-fault-rolls-back-person-source-basis-facts-and-receipt",
+    "same-principal-key-digest-review-replays-new-key-terminal-closed",
+    "create-new-formal-scope-typed-internal-review-no-consent-preserves-unknown-measurement-and-adulthood",
+    "applied-item-targets-reference-exact-person-role-profile-and-measurement-records",
+    "receipt-audit-writeahead-real-machine-attribution",
+    "existing-person-null-before-review-stale-target-conflict-explicit-fork-rebase-exact-link-no-duplicate",
+    "review-requires-both-intake-and-formal-formal-read-independent-of-intake",
+    "independent-field-evidence-source-withdrawal-invalidates-target-with-unchanged-person-and-fact-revisions",
+    "actual-person-merge-stale-target-fail-closed-no-canonical-following",
+    "actual-person-deletion-block-stale-target-rebase-required",
+    "permission-scope-maintainer-disable-and-revoke-invalidate-old-drafts",
+    "postgres-principal-xor-composite-fk-immutable-owner-unique-external-key-null-zero-and-prebinding-rejected",
+    "postgres-typed-basis-no-fake-consent-zero-no-missing-reviewer-or-basis-no-unjustified-epoch",
+    "postgres-real-business-json-rebuild-imported-internal-basis-no-principal-account-or-submission",
+    "actual-pg-dump-restore-preserves-machine-provenance-recovery-revokes-principals-and-expires-drafts-without-reviving-auth",
+    "typed-basis-real-export-and-json-rebuild-preserve-safe-provenance-no-runtime-auth",
+    "formal-independent-measurement-binding-survives-original-source-withdrawal-without-relabeling-old-appearance",
+    "integrity-includes-machine-principal-root-typed-basis-and-evidence",
+    "erasure-covers-machine-items-and-recovery-expires-pending-machine-roots",
+    "postgres-terminal-declaration-erasure-one-way-no-revival"
+  ]
+}

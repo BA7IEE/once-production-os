@@ -1832,6 +1832,7 @@ model MediaCollectionItem {
 }
 
 model ServicePrincipal {
+  authorizationEpoch Int @default(1)
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -2558,16 +2559,27 @@ model TalentConsent {
 }
 
 model TalentSubmission {
+  principalKind String @default("TALENT")
+  servicePrincipalId String? @db.Uuid
+  externalSubmissionKey String?
+  proposedPersonId String? @db.Uuid
+  proposedTargetBaseline Json?
+  servicePrincipalAuthorizationEpoch Int?
+  intakeScopeRevision Int?
+  maintainerId String? @db.Uuid
+  sourceDeclaration Json?
+  reviewTargetDecision String?
+
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
   updatedAt DateTime @db.Timestamptz(3)
   revision Int
-  talentAccountId String @db.Uuid
+  talentAccountId String? @db.Uuid
   personId String? @db.Uuid
   claimId String? @db.Uuid
   grantId String? @db.Uuid
-  consentId String @db.Uuid
+  consentId String? @db.Uuid
   scopeId String @db.Uuid
   schemaVersion String
   state String
@@ -2581,6 +2593,7 @@ model TalentSubmission {
   protectionEpoch Int
   recoveryEpoch String
   @@unique([workspaceId, id])
+  @@unique([workspaceId,servicePrincipalId,externalSubmissionKey])
   @@map("talentSubmissions")
 }
 
@@ -2605,6 +2618,8 @@ model TalentSubmissionItem {
 }
 
 model SourceAttribution {
+  principalKind String @default("TALENT")
+  servicePrincipalId String? @db.Uuid
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -2622,6 +2637,13 @@ model SourceAttribution {
 }
 
 model SourceUseBasis {
+  basisKind String @default("TALENT_CONSENT")
+  submissionId String? @db.Uuid
+  sourceAttributionId String? @db.Uuid
+  servicePrincipalId String? @db.Uuid
+  reviewerId String? @db.Uuid
+  reviewBasis String?
+
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -2629,7 +2651,7 @@ model SourceUseBasis {
   revision Int
   sourceId String @db.Uuid
   consentId String? @db.Uuid
-  consentRevision Int
+  consentRevision Int?
   purpose String
   fieldScope String[]
   state String

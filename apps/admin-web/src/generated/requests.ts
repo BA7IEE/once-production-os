@@ -2,6 +2,18 @@
 export interface Inputs {
   "mediaPurge.status": undefined;
   "mediaPurge.reconcile": {  };
+  "ingestion.schema": undefined;
+  "ingestion.dictionaries": undefined;
+  "ingestion.create": { "schemaVersion": "once-talent-experience-v1"; "externalSubmissionKey": string; "proposedPersonId": string | null; "sourceDeclaration": { "title": string; "providerClaim": string; "materialDescription": string } };
+  "ingestion.get": undefined;
+  "ingestion.items": { "expectedRevision": number; "items": Array<{ "clientItemKey": string; "kind": "IDENTITY_TEXT" | "ROLE" | "PROFILE" | "MEASUREMENT"; "values": unknown; "dependencyGroup": string; "dependsOn": Array<string> }> };
+  "ingestion.validate": { "expectedRevision": number };
+  "ingestion.submit": { "expectedRevision": number };
+  "ingestion.withdraw": { "expectedRevision": number };
+  "ingestion.fork": { "expectedRevision": number; "externalSubmissionKey": string };
+  "ingestionReview.list": undefined;
+  "ingestionReview.get": undefined;
+  "ingestionReview.review": { "expectedRevision": number; "acceptedKeys": Array<string>; "decision": "CREATE_NEW" | "LINK_EXISTING" | "REJECT"; "targetPersonId"?: string; "formalScopeId"?: string; "reviewBasis": string; "validUntil": string; "publicReason": string };
   "portal.auth.context": { "purpose": "LOGIN" | "RECOVER" };
   "portal.auth.contextStatus": undefined;
   "portal.auth.challenge": { "contextId": string; "purpose": "LOGIN" | "RECOVER"; "kind": "EMAIL" | "PHONE"; "identity": string };
@@ -87,6 +99,7 @@ export interface Inputs {
   "directory.talent.search": { "q"?: string; "mode"?: "ALL" | "TALENT" | "CONTACT"; "role"?: string | Array<string>; "gender"?: "FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | "UNKNOWN" | Array<"FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | "UNKNOWN">; "nationality"?: string | Array<string>; "market"?: "DOMESTIC" | "INTERNATIONAL" | "UNCLASSIFIED" | Array<"DOMESTIC" | "INTERNATIONAL" | "UNCLASSIFIED">; "experience"?: "AMATEUR" | "PROFESSIONAL" | "UNSPECIFIED" | Array<"AMATEUR" | "PROFESSIONAL" | "UNSPECIFIED">; "style"?: string | Array<string>; "service"?: string | Array<string>; "location"?: string | Array<string>; "language"?: string | Array<string>; "industryCode"?: string | Array<string>; "workTypeCode"?: string | Array<string>; "status"?: "DRAFT" | "ACTIVE" | "ARCHIVED"; "ageMin"?: number; "ageMax"?: number; "ageUnknown"?: boolean; "heightMin"?: number; "heightMax"?: number; "page"?: number; "pageSize"?: number };
   "directory.talent.get": undefined;
   "directory.talent.create": { "schemaVersion": "once-talent-experience-v1"; "displayName": string; "kind": "TALENT" | "CONTACT"; "roleCodes"?: Array<string>; "sourceId"?: string; "sourceRevision"?: number };
+  "td2.principal.authorization": { "expectedRevision": number; "scopeId": string; "defaultMaintainerMembershipId": string; "permissionCodes": Array<"records.read" | "sources.read" | "talent.propose" | "talent.fact.write" | "ingestion.schema.read" | "ingestion.submit" | "ingestion.read.own" | "ingestion.withdraw.own"> };
   "td2.collection.save": { "schemaVersion": "once-talent-v2.1.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "collection": { "clientItemKey": string; "targetCollectionId": string | null; "expectedCollectionRevision": number | null; "personRoleId": string | null; "collectionTypeCode": "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "title": string; "isCurrent": boolean; "coverAssetId": string | null; "tagCodes": Array<"FASHION" | "BEAUTY" | "COMMERCIAL" | "LINGERIE" | "RUNWAY" | "LIFESTYLE" | "INDUSTRIAL" | "PRODUCT">; "items": Array<{ "referenceKind": "SUBMISSION_STAGED_ASSET" | "EXISTING_ADOPTED_ASSET_REFERENCE"; "assetId": string; "caption": string; "featured": boolean }> } };
   "td2.heightReview.list": undefined;
   "td2.heightReview.dismiss": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "sourceRevision": number; "resolution": "DO_NOT_USE_LEGACY_HEIGHT"; "acknowledge": boolean };
@@ -119,7 +132,7 @@ export interface Inputs {
   "td2.collection.remove": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "itemId": string };
   "td2.collection.order": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedRevision": number; "expectedPersonRevision": number; "itemIds": Array<string> };
   "td2.principal.list": undefined;
-  "td2.principal.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "displayName": string; "scopeId": string; "defaultMaintainerMembershipId": string; "permissionCodes": Array<"records.read" | "sources.read" | "talent.propose" | "talent.fact.write">; "expiresAt": string };
+  "td2.principal.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "displayName": string; "scopeId": string; "defaultMaintainerMembershipId": string; "permissionCodes": Array<"records.read" | "sources.read" | "talent.propose" | "talent.fact.write" | "ingestion.schema.read" | "ingestion.submit" | "ingestion.read.own" | "ingestion.withdraw.own">; "expiresAt": string };
   "td2.principal.rotate": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedRevision": number };
   "td2.principal.revoke": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedRevision": number };
   "td2.fact.talentProfiles.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "internalSummary"?: string; "status"?: "ACTIVE" | "ARCHIVED"; "genderCode"?: "FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | null; "birthPrecision"?: "UNKNOWN" | "EXACT_DATE" | "YEAR_ONLY" | "DECLARED_RANGE"; "birthDate"?: string | null; "birthYear"?: number | null; "minAgeYears"?: number | null; "maxAgeYears"?: number | null; "ageAsOfDate"?: string | null; "nationalityCodes"?: Array<string>; "coverAssetId"?: string | null } };
@@ -272,6 +285,66 @@ export const ENDPOINTS = {
   "mediaPurge.reconcile": {
     "method": "POST",
     "path": "/media-purge/reconcile",
+    "mode": "COMMAND"
+  },
+  "ingestion.schema": {
+    "method": "GET",
+    "path": "/ingestion/schema",
+    "mode": "READ"
+  },
+  "ingestion.dictionaries": {
+    "method": "GET",
+    "path": "/ingestion/dictionaries",
+    "mode": "READ"
+  },
+  "ingestion.create": {
+    "method": "POST",
+    "path": "/ingestion/submissions",
+    "mode": "COMMAND"
+  },
+  "ingestion.get": {
+    "method": "GET",
+    "path": "/ingestion/submissions/{id}",
+    "mode": "READ"
+  },
+  "ingestion.items": {
+    "method": "POST",
+    "path": "/ingestion/submissions/{id}/items",
+    "mode": "COMMAND"
+  },
+  "ingestion.validate": {
+    "method": "POST",
+    "path": "/ingestion/submissions/{id}/validate",
+    "mode": "READ"
+  },
+  "ingestion.submit": {
+    "method": "POST",
+    "path": "/ingestion/submissions/{id}/submit",
+    "mode": "COMMAND"
+  },
+  "ingestion.withdraw": {
+    "method": "POST",
+    "path": "/ingestion/submissions/{id}/withdraw",
+    "mode": "COMMAND"
+  },
+  "ingestion.fork": {
+    "method": "POST",
+    "path": "/ingestion/submissions/{id}/fork",
+    "mode": "COMMAND"
+  },
+  "ingestionReview.list": {
+    "method": "GET",
+    "path": "/ingestion-review/submissions",
+    "mode": "READ"
+  },
+  "ingestionReview.get": {
+    "method": "GET",
+    "path": "/ingestion-review/submissions/{id}",
+    "mode": "READ"
+  },
+  "ingestionReview.review": {
+    "method": "POST",
+    "path": "/ingestion-review/submissions/{id}/review",
     "mode": "COMMAND"
   },
   "portal.auth.context": {
@@ -697,6 +770,11 @@ export const ENDPOINTS = {
   "directory.talent.create": {
     "method": "POST",
     "path": "/directory/talents",
+    "mode": "COMMAND"
+  },
+  "td2.principal.authorization": {
+    "method": "POST",
+    "path": "/td2/principals/{id}/authorization",
     "mode": "COMMAND"
   },
   "td2.collection.save": {

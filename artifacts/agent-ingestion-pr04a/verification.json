@@ -1,0 +1,93 @@
+{
+  "recordedAt": "2026-10-01T21:08:49.789500+00:00",
+  "status": "IMPLEMENTED_PENDING_CODE_REVIEW",
+  "baseFrozenSha": "aeaf49da7d5346785adac6df4e2d34321f9d92d2",
+  "designFrozenSha": "7017d5ef9583b0fd6f7a19521a7faa0f43ce7252",
+  "adapter": "Core MemoryStore + real local PostgreSQL14.19 + real Nest/Bearer/Chrome",
+  "core": {
+    "tests": 685,
+    "pass": 685,
+    "fail": 0,
+    "allPassed": true
+  },
+  "postgres": {
+    "programs": 79,
+    "tests": 169,
+    "fail": 0,
+    "latestIngestionRetested": true
+  },
+  "migration": {
+    "fromRetained": 68,
+    "to": 71,
+    "old1to68ByteIdentical": true,
+    "freshInstall": true,
+    "retainedUpgrade": true,
+    "realPgDumpRestore": true
+  },
+  "localBrowser": [
+    "agent-ingestion",
+    "talent-maintenance-360-390-430",
+    "talent-directory",
+    "media",
+    "media-staging",
+    "media-purge"
+  ],
+  "finalCi": "Exact-head ONCE acceptance14 jobs tracked on Draft PR; no previous-head result reused",
+  "featureFlag": "AGENT_INGESTION_ENABLED defaults false; explicitly enabled in isolated acceptance only",
+  "gates": {
+    "PROVIDER_VERIFIED": "NOT_RUN",
+    "COS_PROVIDER_VERIFIED": "NOT_RUN",
+    "MOBILE_DEVICE_VERIFIED": "NOT_RUN",
+    "PRODUCTION_MIGRATION_VERIFIED": "NOT_RUN",
+    "DEPLOYED": false
+  },
+  "sourceSha256": {
+    "apps/admin-web/src/dto.ts": "efed98555c2ec3ca154411e326d2d13280e804bb5b718a7ef0287100a08fc588",
+    "apps/admin-web/src/generated/requests.ts": "a2b4249b441732a54314dd67b55142e601c3f01431c99eceb5281bed72e337cb",
+    "apps/admin-web/src/ingestion-review-ui.tsx": "1b06f4c852be6fa2aeb585808d07b110d74ee011601859df05588162f6bc7009",
+    "apps/admin-web/src/talent-review-ui.tsx": "501af87bc466dc79f8decae05f1b17fac5a860432372f41793a0ba3915683873",
+    "apps/api/src/config.ts": "700d184957b5b86c1111af59d5bd5c3459f9d9373764fc2eae96d80605aaa898",
+    "apps/api/src/prisma-store.ts": "6444b2119ef2b4276dbd46175989a2f94556aa7d5eb89d6c0ea1772a2451c7ef",
+    "packages/core/src/api.ts": "2c0b8f41fe889bc56874a571b0e2bcb13cb3eb93b1980f6bd551d3a8dde98550",
+    "packages/core/src/exports.ts": "48d85c6078da7d2638b7eac7e70e5773a94a24d8a08b0ed7d5e45118e36600f6",
+    "packages/core/src/ingestion-routes.ts": "9198a293a42050cf33bd75c78b6ae142e78fbc98aff08ebd3b33fd66624afa49",
+    "packages/core/src/ingestion-schema.ts": "cc54e5075f8cbbcf7f0c94b01108ed178ba81cb6d833b6ef752cc5c4fc38dfc4",
+    "packages/core/src/ingestion.ts": "1b565878406527334301b278d64749ff8665bf62f79af866c4ec3b966d33016e",
+    "packages/core/src/machine-authorization.ts": "432625b2019e817fb7e49fa5fdf947093ddf4487ff9ce7e1061af2cfe79ae45f",
+    "packages/core/src/model.ts": "0dea94f6f8d97430b3605ba7a71e066d161bfbab379cd6b832f61c7328de25ff",
+    "packages/core/src/rebuild-validation.ts": "3f458d7d64f79a211460fddb733dbbf7dfbdd32d1216d59e40670dfed030eebd",
+    "packages/core/src/rebuild.ts": "2ec6f619dd634247d089730b87e715945bcc652a822f2a2193ac9de6ea27a59b",
+    "packages/core/src/replay-policy.ts": "eaf3e0dba2f1678f3b8e77da16f93a37e669ccd8ecfd31e599ba185150a0ea0e",
+    "packages/core/src/routes.ts": "c42c96fec86cb221da3a4c6bb0e2cda820c3f218ff2432d87d522f798f83d166",
+    "packages/core/src/talent-maintenance-lifecycle.ts": "e246cd815dbd0f2887ff8583831df793f3bc70f60f98ac70a979cf916e982e1c",
+    "packages/core/src/talent-maintenance-model.ts": "c85df0d7adc546b923d2d0ddff1b1af2bd05b98f00b22fd7e8a118336d64974b",
+    "packages/core/src/talent-maintenance.ts": "683fb53039da27175feef7b0fbb08edc09f8907b9e506a2cdd486c1403661381",
+    "packages/core/src/talent-v2-access.ts": "76435c279aac4b0a2c91e7a6eb75095a2cfafff68979d1dc11c8de7970c4d447",
+    "packages/core/src/talent-v2-integrity.ts": "2b3cb325f9cde9f35438367bcccfb0a54faea9d725ccb91f0fcd0a7b1adf1e48",
+    "packages/core/src/talent-v2-machine.ts": "b60927856bce4ea096b4c3969103f574b31453aef8883e3a235deea250d4880c",
+    "packages/core/src/talent-v2-model.ts": "5e593cbd1390d5c0ea156337add255934d06b8b4a8e7bbd47eabb7987670c20f",
+    "packages/core/src/talent-v2-routes.ts": "9e69703dee652ccac1a25125c0499cd45a1088094ef2c9a87b7739cff6d9ffe3",
+    "packages/core/src/talent-v2-schema.ts": "017bd4e0197a907a90e88a6fd28c0a8b4e29ef24266e40a5bb30e64cf380b0d7",
+    "prisma/migrations/202610020001_agent_ingestion/migration.sql": "af23382b57a522fccb11b71c9728a43efb8092e2f2c11dad04692d16347e1811",
+    "prisma/migrations/202610020002_ingestion_permission_boundary/migration.sql": "57e3ee2fa72847dd76792eb7da6becb66d2727be8613fe03895ab60b56c4761b",
+    "prisma/migrations/202610020003_ingestion_declaration_retention/migration.sql": "7f1db5c67fcb7e14dc7e8d3042eb89d4ac6070a7807634c8975b33e86906a318",
+    "prisma/schema.prisma": "d79e1e17ae80e0f0ed3abc4a1043164a0b13481c23e834bf0016a851fc4931e2",
+    "scripts/verify-postgres.mjs": "96c825051242b8fd321cb4cdd1edc4cea2c0978127e830872994371aa7ec0313",
+    "tests/acceptance/browser-agent-ingestion.mjs": "88a46bafeaa30699e35b39f1cea72842348f83a23e5d170156e7d75af738efbd",
+    "tests/core/ingestion.test.ts": "e5d688b628ac6360a36fadced5edae78f7d714f8f0aa6c3970a1e34365bfddcd",
+    "tests/postgres/ingestion-upgrade.test.ts": "ef3ea39027e1d97a532f8aa6ecb05c94cf0cbb11113778c2ed9f2415203220c6",
+    "tests/postgres/ingestion.test.ts": "345584abd4e4833bc63ed4c801ff4663669091eb367c5833371f72b326690a74",
+    "tests/support/ingestion-lifecycle.ts": "b95c9b2595ac91595db6e2b513f197213e2c1065e8915bc40f339a0ebd520fb6",
+    "tests/support/ingestion.ts": "49efc08b022af3e963899a948aa49f613acde42cf4d204657bf219eba78c05c4",
+    "tests/support/memory-store.ts": "915ca98ccde882e419ba57d330a8a54c60567a334d9dcd324bc66e66773aca94"
+  },
+  "targetBaselineAdditionalRegression": "SourceB field evidence withdrawn while Person/fact revisions unchanged now409 TARGET_REBASE_REQUIRED; Core+PG",
+  "priorHeadCi": {
+    "headSha": "a79edae6e94af5d0947b85cac5f017945f52fd75",
+    "run": 36919823171,
+    "successJobs": 13,
+    "cancelledJob": "browser-media-purge dependency installation timeout",
+    "finalHeadEvidence": false
+  },
+  "appliedTargetRegression": "Identity→Person; Role→PersonRole; Profile→TalentProfile; Measurement→MeasurementSet exact adopted record IDs; Core/PG/Nest-Chrome assertions"
+}

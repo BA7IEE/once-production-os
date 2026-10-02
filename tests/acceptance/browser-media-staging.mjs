@@ -1,5 +1,6 @@
 /** PR03 staging: real Nest/Prisma/PostgreSQL/Chrome, controlled HTTP notification gateway. */
 import assert from 'node:assert/strict';
+import {assertStoredSecretsAbsent,secretMatcher} from '../support/secret-leak.mjs';
 import {randomBytes} from 'node:crypto';
 import {mkdtempSync,writeFileSync,mkdirSync,rmSync,readFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -87,7 +88,7 @@ try{
  const withheld=(await cmd('/scopes',{name:'收紧正式媒体来源',membershipIds:[me.membershipId]})).resourceId;
  for(const target of [withheld,formalScope]){const current=await prisma.sourceRecord.findUniqueOrThrow({where:{id:videoBinding.sourceId}});await cmd('/records/source/'+current.id+'/scope',{expectedRevision:current.revision,scopeId:target},'PATCH');await formalRead(formal,adoptedVideo.id,target===formalScope,true);}
  checks.push('current-formal-source-scope-change-rechecked-on-image-preview-and-every-MP4-Range');
- assert.deepEqual(errors,[]);assert.equal(await prisma.person.count(),4);assert.equal(await prisma.talentAccessGrant.count({where:{state:'ACTIVE'}}),4);assert.equal(await prisma.sourceAttribution.count(),4);assert.equal(await prisma.user.count(),3);assert.equal(await prisma.membership.count(),3);const recorded=logs.join('')+JSON.stringify(await prisma.commandReceipt.findMany())+JSON.stringify(await prisma.auditEvent.findMany());for(const message of sent)assert.ok(!recorded.includes(message.code));checks.push('real-https-origin-cookies-current-account-read-header-and-command-replay');await internal.close();
+ assert.deepEqual(errors,[]);assert.equal(await prisma.person.count(),4);assert.equal(await prisma.talentAccessGrant.count({where:{state:'ACTIVE'}}),4);assert.equal(await prisma.sourceAttribution.count(),4);assert.equal(await prisma.user.count(),3);assert.equal(await prisma.membership.count(),3);await assertStoredSecretsAbsent(prisma,logs,[...sent.map(message=>secretMatcher('OTP',message.code)),...['TALENT_CODE_KEY_FILE','TALENT_AUTH_CREDENTIAL_FILE'].map(key=>secretMatcher('AUTH_SECRET',readFileSync(env[key],'utf8')))]);checks.push('structured-secret-leak-guard-OTP-receipt-audit-log-and-provider-secrets');checks.push('real-https-origin-cookies-current-account-read-header-and-command-replay');await internal.close();
  await stop(worker);await stop(api);const {restoreStaging}=await import('./media-staging-restore.mjs');const restored=await restoreStaging({prisma,env,tmp,oldToken,stagedId});checks.push(...restored.checks);writeFileSync(join(evidence,'restore.json'),JSON.stringify({status:'PASSED',...restored},null,2)+'\n');
  writeFileSync(join(evidence,'browser.json'),JSON.stringify({status:'PASSED',providerVerified:'NOT_RUN',provider:'controlled local HTTP gateway',checks,errors},null,2)+'\n');console.log('PASS '+checks.join('; '));
 }finally{await browser?.close();await stop(worker);await stop(api);if(proxy)await new Promise(r=>proxy.close(r));await prisma.$disconnect();await new Promise(r=>gateway.close(r));rmSync(tmp,{recursive:true,force:true});}

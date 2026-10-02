@@ -1,3 +1,4 @@
+import {Ingestion} from './ingestion.ts';
 import {MediaPurge} from './media-purge.ts';
 import {approveMediaExposure} from './talent-media-exposure.ts';
 import {saveInternalCollection} from './media-collections.ts';
@@ -225,12 +226,13 @@ export class Application {
             const machineRequest=bearerHeader!==undefined;
             if(machineRequest){
                 invariant(!!bearerHeader && /^Bearer once_machine\./.test(bearerHeader),'MACHINE_UNAUTHENTICATED','机器认证头无效',401);
-                invariant(route.operation.startsWith('td2.'),'MACHINE_OPERATION_FORBIDDEN','机器账号只能调用人才2.0的受限接口',403);
+                invariant((route.operation.startsWith('td2.')||route.operation.startsWith('ingestion.')),'MACHINE_OPERATION_FORBIDDEN','机器账号只能调用人才2.0的受限接口',403);
                 invariant(!request.headers.cookie,'MIXED_AUTH_FORBIDDEN','不能混用会话与机器凭证',400);
                 invariant(!request.headers.origin||request.headers.origin===this.config.origin,'ORIGIN_DENIED','请求来源不被允许',403);
             }
             if (request.method !== 'GET' && !machineRequest)
                 invariant(request.headers.origin === this.config.origin, 'ORIGIN_DENIED', '请求来源不被允许', 403);
+            if(route.operation.startsWith('ingestion.'))invariant(machineRequest,'MACHINE_REQUIRED','摄取入口仅接受机器 Bearer',401);
             const jar = cookies(request.headers.cookie ?? '');
             const token = jar[sessionName] ?? '';
             const authenticate = async (tx:Tx) => {
@@ -244,6 +246,7 @@ export class Application {
                 invariant(!Object.hasOwn(query, key), 'QUERY_INVALID', '筛选字段不能重复', 400);
                 query[key] = value;
             }
+            if(route.operation.startsWith('ingestion.'))invariant(Object.keys(query).length===0,'QUERY_INVALID','摄取接口不接受额外查询字段',400);
             let data: unknown = {};
             if (route.schema) {
                 invariant(request.headers['content-type']?.split(';')[0]?.trim() === 'application/json', 'JSON_REQUIRED', '请求必须使用 application/json', 415);
@@ -320,7 +323,20 @@ export class Application {
                     return command('talentFact',()=>action==='create'?this.talentV2.createFact(tx,actor,table as FactTable,id,data):this.talentV2.patchFact(tx,actor,table as FactTable,id,data));
                 }
                 const maintenance=new TalentMaintenance(this.clock,this.config);
+                const ingestion=new Ingestion(this.clock,this.config);
                 switch (route.operation) {
+                    case 'ingestion.schema':return ingestion.schema(tx,actor);
+                    case 'ingestion.dictionaries':return ingestion.dictionaries(tx,actor);
+                    case 'ingestion.create':return command('talentSubmission',()=>ingestion.create(tx,actor,data));
+                    case 'ingestion.get':return ingestion.dto(tx,await ingestion.access(tx,actor,id));
+                    case 'ingestion.items':return command('talentSubmission',()=>ingestion.save(tx,actor,id,data));
+                    case 'ingestion.validate':return ingestion.validate(tx,actor,id,data);
+                    case 'ingestion.submit':return command('talentSubmission',()=>ingestion.submit(tx,actor,id,data));
+                    case 'ingestion.withdraw':return command('talentSubmission',()=>ingestion.withdraw(tx,actor,id,data));
+                    case 'ingestion.fork':return command('talentSubmission',()=>ingestion.fork(tx,actor,id,data));
+                    case 'ingestionReview.list':return ingestion.list(tx,actor,query);
+                    case 'ingestionReview.get':return ingestion.dto(tx,await ingestion.access(tx,actor,id,true),actor);
+                    case 'ingestionReview.review':return command('talentSubmission',()=>ingestion.review(tx,actor,id,data));
                     case 'mediaPurge.status':return this.mediaPurge.overview(tx,actor);
                     case 'mediaPurge.reconcile':return command('mediaPurge',()=>this.mediaPurge.reconcile(tx,actor));
                     case 'talent.invitation.create':return command('talentInvitation',()=>maintenance.createInvitation(tx,actor,data));
@@ -398,6 +414,7 @@ export class Application {
                     case 'td2.principal.list': return this.machine.list(tx,actor,query);
                     case 'td2.principal.create': return this.machine.create(tx,actor,data,meta);
                     case 'td2.principal.rotate': return this.machine.rotate(tx,actor,id,data,meta);
+                    case 'td2.principal.authorization':return command('servicePrincipal',()=>this.machine.authorization(tx,actor,id,data));
                     case 'td2.principal.revoke': return command('servicePrincipal',()=>this.machine.revoke(tx,actor,id,data));
 
                     case 'deletion.preview': return this.deletions.preview(tx, actor, data);
@@ -459,7 +476,7 @@ export class Application {
                     case 'asset.list': return this.media.listAssets(tx, actor, query);
                     case 'asset.get': return this.media.getAsset(tx, actor, id);
                     case 'asset.quarantine': return command('asset', () => this.media.quarantine(tx, actor, id, data));
-                    case 'identity.me': return { directoryStateScope: digest({purpose:'directory-state-v1',sessionId:actor.sessionId}), membershipId: actor.membershipId, displayName: actor.displayName, role: actor.role, permissions: actor.permissions, mediaEnabled: this.config.mediaEnabled === true, workspaceName: (await tx.get('workspaces', actor.workspaceId))?.name ?? 'ONCE', csrfToken: csrfFor(token, this.config.csrfKey), version: '0.1.0-dev.1' };
+                    case 'identity.me': return { directoryStateScope: digest({purpose:'directory-state-v1',sessionId:actor.sessionId}), membershipId: actor.membershipId, displayName: actor.displayName, role: actor.role, permissions: actor.permissions, mediaEnabled: this.config.mediaEnabled === true, ingestionEnabled:this.config.ingestionEnabled===true, workspaceName: (await tx.get('workspaces', actor.workspaceId))?.name ?? 'ONCE', csrfToken: csrfFor(token, this.config.csrfKey), version: '0.1.0-dev.1' };
                     case 'dashboard.get': return this.dashboard(tx, actor);
                     case 'member.list': return this.identity.listMembers(tx, actor, query);
                     case 'member.create': return this.identity.createMember(tx, actor, data, meta);

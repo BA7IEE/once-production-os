@@ -1,0 +1,107 @@
+{
+  "checkedAt": "2026-10-01T18:34:21.823014+00:00",
+  "pr": {
+    "headRefOid": "aeaf49da7d5346785adac6df4e2d34321f9d92d2",
+    "isDraft": false,
+    "mergedAt": null,
+    "state": "OPEN",
+    "url": "https://github.com/BA7IEE/once-production-os/pull/31"
+  },
+  "ci": {
+    "conclusion": "success",
+    "headSha": "aeaf49da7d5346785adac6df4e2d34321f9d92d2",
+    "status": "completed",
+    "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36901766784",
+    "jobs": [
+      {
+        "name": "browser-resume",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36901766784/job/110502387604"
+      },
+      {
+        "name": "browser-production",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36901766784/job/110502387775"
+      },
+      {
+        "name": "browser-handoff",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36901766784/job/110502387800"
+      },
+      {
+        "name": "browser-talent-intake",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36901766784/job/110502387901"
+      },
+      {
+        "name": "browser-talent-auth",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36901766784/job/110502388098"
+      },
+      {
+        "name": "browser-media-staging",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36901766784/job/110502388099"
+      },
+      {
+        "name": "browser-media-purge",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36901766784/job/110502388134"
+      },
+      {
+        "name": "browser-talent-maintenance",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36901766784/job/110502388148"
+      },
+      {
+        "name": "browser-media-collections",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36901766784/job/110502388156"
+      },
+      {
+        "name": "browser-media",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36901766784/job/110502388210"
+      },
+      {
+        "name": "browser-talent-directory",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36901766784/job/110502388223"
+      },
+      {
+        "name": "postgres-contract",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36901766784/job/110502388229"
+      },
+      {
+        "name": "browser-work-cases",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/BA7IEE/once-production-os/actions/runs/36901766784/job/110502388311"
+      }
+    ]
+  },
+  "freezeApprovedBy": "user",
+  "frozenHead": "aeaf49da7d5346785adac6df4e2d34321f9d92d2",
+  "documentationBranch": "docs/pr03-freeze-pr04-design",
+  "businessCodeChanged": false,
+  "migrationsChanged": false,
+  "acceptanceContractsChanged": false,
+  "PROVIDER_VERIFIED": "NOT_RUN",
+  "COS_PROVIDER_VERIFIED": "NOT_RUN",
+  "MOBILE_DEVICE_VERIFIED": "NOT_RUN",
+  "PRODUCTION_MIGRATION_VERIFIED": "NOT_RUN",
+  "DEPLOYED": false
+}

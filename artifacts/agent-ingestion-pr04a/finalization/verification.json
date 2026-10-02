@@ -1,0 +1,68 @@
+{
+  "status": "IMPLEMENTED_READY_FOR_FREEZE_REVIEW",
+  "recordedAt": "2026-10-02T12:07:05.206558+08:00",
+  "baselineHead": "d1e493622e29990455d5999d0113cfca8118f2ae",
+  "core": {
+    "tests": 689,
+    "pass": 689,
+    "fail": 0,
+    "allPassed": true
+  },
+  "postgres": {
+    "version": "14.19",
+    "programs": 80,
+    "tests": 170,
+    "fail": 0
+  },
+  "migration": {
+    "to": 72,
+    "frozen1to71ByteIdentical": true,
+    "fresh1to72": true,
+    "retained71to72": true,
+    "physicalDumpRestore": true
+  },
+  "browser": {
+    "groups": 13,
+    "pass": 13,
+    "receiveTokenGuardRetested": 4
+  },
+  "secretLeak": {
+    "stableCollisionRejectedByOldStrategy": true,
+    "structuredCollisionPassed": true,
+    "bodyLeakRejected": true,
+    "types": [
+      "OTP",
+      "BEARER_TOKEN",
+      "RECEIVE_TOKEN",
+      "SIGNED_URL",
+      "AUTHORIZATION_HEADER",
+      "AUTH_SECRET"
+    ],
+    "duplicateUnicodeChunkAndUntrustedFieldDiagnosticsTested": true,
+    "realReceiveTokensReadOnlyMemoryMatched": true
+  },
+  "historicalFailure": "36926840575 attempt1 preserved; exact prior collision field was not retained",
+  "finalCi": "Must bind final pushed head; previous-head success not reused",
+  "gates": {
+    "PROVIDER_VERIFIED": "NOT_RUN",
+    "COS_PROVIDER_VERIFIED": "NOT_RUN",
+    "MOBILE_DEVICE_VERIFIED": "NOT_RUN",
+    "PRODUCTION_MIGRATION_VERIFIED": "NOT_RUN",
+    "DEPLOYED": false
+  },
+  "sourceSha256": {
+    "packages/core/src/rebuild-validation.ts": "5be991136634e8ea192c712cf4e8fe6191207b3fc7db55ad2d33c531942959c9",
+    "scripts/verify-postgres.mjs": "89cb26ff2fd124a1a25c840728ab705f00e54d4036772ffd8a28af679fae47da",
+    "prisma/migrations/202610020004_imported_review_basis_shape/migration.sql": "9b70c425491f5d916fe0e851168fe20184c4128339b6c61ee35b6dd977653bd4",
+    "tests/support/secret-leak.mjs": "1977d082b707a920006abb7a72f581eafd170f72cfe824723d19713a17186ab9",
+    "tests/support/imported-review-basis.ts": "5bcfaa92d1a95aa7f6da1499a56bfccc502d38766b9af3db8d882f284733d428",
+    "tests/core/imported-review-basis.test.ts": "605285837872515bb3ce425e8e568fd444bfbd9fc53b120405460afbd943f5a8",
+    "tests/core/secret-leak.test.ts": "64c62703e4a9a3b9edda20a632201337b786a4eccf57847705695717d3c254bd",
+    "tests/postgres/imported-review-basis.test.ts": "d509aa2b5cddc7723b2e934468e1e929a2faae70580ad616a07eb9307255492a",
+    "tests/acceptance/browser-agent-ingestion.mjs": "d9c7d294badd6329a9ba0bad2ad9e68b537c398550f72cfd8f44f2c5e39ada2f",
+    "tests/acceptance/browser-talent-auth.mjs": "67374562333dd2efa39b1e7589e48d779f612a9c29a49ebec63383cbfd3351d7",
+    "tests/acceptance/browser-talent-maintenance.mjs": "e9c05f07ec6c5e69ceac98ed36734859cb5f7875f42ea372e44b6515dfe6f028",
+    "tests/acceptance/browser-media-staging.mjs": "e21c407b313d2bb07d91856120a4a3181c8632bcf49d9f3468c694ca99d19cb0",
+    "tests/acceptance/browser-media-collections.mjs": "83dba68a6f156c7c3b700375183db011b6546cad0726448abe4daba416b21867"
+  }
+}

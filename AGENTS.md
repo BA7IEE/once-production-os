@@ -1,3 +1,17 @@
+# 当前授权：PR-04A finalization
+
+基线d1e4936，仅完整imported INTERNAL_REVIEW JSON DB CHECK和结构化secret leak检测。前向72，1–71不修改；保留首次失败记录，不削弱正文/凭据泄漏检查。Core/PG/原12组Browser+ingestion以及最终14项CI完成后交冻结复核。PR #32保持Draft、未合并未部署，PR #31不修改；不进入PR-04B。当前证据见docs/release/PR04A_FINALIZATION.md。下方范围为历史阶段。
+
+# 当前授权：PR-04A 主体与文字摄取
+
+用户已批准基于PR-03冻结aeaf49da的stacked开发，设计7017d5ef为冻结依据。当前codex/external-agent-ingestion-pr04a仅实现真实MACHINE Submission、schema/字典、文字/职业/基础事实、内部审核、typed basis和scope转换。从69前向迁移，1–68不改。PR #31 head不变、不合并部署；新业务PR保持Draft。不得进入媒体摄取、Collection/Work、本人接手闭环、MCP/Skill、抓取/OCR/自动merge或商业模块。完成真实Core/PG/Nest/Chrome和精确head CI后停止交复核。下方DESIGN_ONLY为历史阶段，已由本次用户明确启动授权替代。
+
+# 2026-10-02 当前状态：PR-03 冻结，PR-04 仅设计
+
+用户正式确认 PR-03 DEVELOPMENT FROZEN；A–E均FROZEN，代码SHA aeaf49da7d5346785adac6df4e2d34321f9d92d2，CI36901766784为13/13 SUCCESS。PR #31 Ready for Review、未合并、未部署。业务代码、迁移1–68和验收合同不改写；供应商/COS/物理手机/生产迁移继续NOT_RUN，DEPLOYED=false。权威状态见 docs/release/PR03_DEVELOPMENT_FREEZE.md。
+
+本次独立 docs/pr03-freeze-pr04-design 分支仅收口冻结文档、完成 docs/design/PR04_EXTERNAL_AGENT_INGESTION.md。PR-04主题为External Agent Ingestion；当前已按用户要求冻结设计§4.3–4.6的候选/绑定分离、typed SourceUseBasis、独立authorizationEpoch、双scope转换及§10.2反例，仍DESIGN_ONLY，整稿待复核、尚未获编码授权，设计提交后停止等待复核。不加功能、不合并、不部署。下方切片限制和Draft状态保留为历史记录；仍适用的身份、来源、权限、回执、秘密和迁移安全约束继续执行。
+
 # 当前切片：PR-03E finalization
 
 基线7016c4d，A–D冻结，E暂不冻结。本轮只修显式删除与TTL物理删除权竞争、显式finalizer续租、上传尊重配置保留期。迁移1–68不改，PR #31保持Draft、未合并、未部署；完整回归和精确head CI后交回复核。

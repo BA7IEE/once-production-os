@@ -16,7 +16,7 @@ interface Delegate {
     update(input: unknown): Promise<unknown>;
     delete(input: unknown): Promise<unknown>;
 }
-function data(row: object): Record<string, unknown> { return Object.fromEntries(Object.entries(row).map(([key, value]) => [key, key === 'proposedValue' && value === null ? Prisma.JsonNull : (key === 'importedOrigin' || key === 'importedBasis' || key === 'mergeHistory') && value === null ? Prisma.DbNull : DATES.has(key) && typeof value === 'string' ? new Date(value) : value])); }
+function data(row: object): Record<string, unknown> { return Object.fromEntries(Object.entries(row).map(([key, value]) => [key, key === 'proposedValue' && value === null ? Prisma.JsonNull : (key === 'proposedTargetBaseline' || key === 'sourceDeclaration' || key === 'importedOrigin' || key === 'importedBasis' || key === 'mergeHistory') && value === null ? Prisma.DbNull : DATES.has(key) && typeof value === 'string' ? new Date(value) : value])); }
 function plain(value: unknown): unknown {
     if (value instanceof Date)
         return value.toISOString();

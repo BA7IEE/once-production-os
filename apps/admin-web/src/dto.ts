@@ -1,6 +1,7 @@
 // Explicit presentation DTOs. Never import Prisma models into the browser.
 export interface Me {
     mediaEnabled?: boolean;
+    ingestionEnabled?: boolean;
     directoryStateScope?: string; // Noncredential identity-session namespace for safe navigation state.
     membershipId: string;
     displayName: string;
