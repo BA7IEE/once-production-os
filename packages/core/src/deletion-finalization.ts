@@ -124,7 +124,7 @@ export class DeletionFinalization {
     private erasedUpload(row: any) {
         return { ...touch(row, this.clock), fileName: '[ERASED]', expectedHash: ZERO_HASH, expectedBytes: 0,
             state: 'ERASED' as const, personRoleId:null, personId: null, personScopeId: null, personEpoch: null, personScopeRevision: null,
-            receiveToken: null, leaseToken: null, leaseUntil: null, errorCode: 'ERASED_BY_DELETION',
+            receiveToken: null, receiveAuthorizationHash:null,receiveAuthorizationUntil:null, leaseToken: null, leaseUntil: null, errorCode: 'ERASED_BY_DELETION',
             purgedAt: row.purgedAt ?? this.clock.now().toISOString() };
     }
     private erasedAsset(row: any) {

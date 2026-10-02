@@ -1,0 +1,26 @@
+{
+  "status": "BROWSER_TESTED",
+  "browser": "154.0.8037.93",
+  "database": [
+    {
+      "version": "PostgreSQL 16.15 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit"
+    }
+  ],
+  "checks": [
+    "real Nest machine schema/dictionaries; internal Cookie and Portal/review crossings denied",
+    "real byte SHA mismatch rejects without Asset",
+    "actual content length differs from declaration rejected before bytes",
+    "mime sniff mismatch rejects without Asset",
+    "actual MPEG4 MP4 rejected by asynchronous decoder",
+    "real JPEG PNG WebP PDF H264 bytes worker READY/STAGED; own preview and Range200/206/416; cross-principal denied",
+    "real Bearer client submits frozen text/role/unknown-date facts without precreating Person",
+    "Chrome internal reviewer explicitly chooses formal scope; PostgreSQL atomically stores Person/Source/Role/basis without Consent",
+    "390px formal Person photo/video; intake-only fails; formal-only without intake reads image and MP4 Range",
+    "actual Agent preview/Range denied before bytes after revoke; independent formal ADOPTED image/video survives",
+    "formal Source withdrawal immediately denies image and MP4 Range",
+    "same formal directory/main detail shows adopted text/role/height and unknown date",
+    "refresh does not resubmit candidate or duplicate adopted Person",
+    "structured Bearer/authorization/receipt/audit/log leakage guard"
+  ],
+  "errors": []
+}

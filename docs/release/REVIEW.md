@@ -1,3 +1,9 @@
+## 2026-10-02：PR-04B 真实媒体摄取（Draft，待代码级复核）
+
+用户正式启动 PR-04B。PR-04A 冻结67f45a57、PR-03冻结aeaf49da及迁移1–72保持不变；独立stacked分支追加迁移73–74，接通MACHINE真实上传/异步worker/STAGED/私有预览与MP4 Range/内部文字媒体原子审核/正式授权转换。七项机器额度显式配置，缺失拒绝；沿用保留、清理、导出与恢复隔离。本地Core711/711、PG16共99个程序/189项、原13组及新增媒体共14组真实Browser通过；空库1→74、保留72→74、实际pg_dump/restore及JSON重建通过，首次失败保留。最终15项CI以Draft PR #33最终head为准。详见 [PR-04B交付说明](PR04_AGENT_INGESTION_B.md)。Draft、未合并、未部署，不进入PR-04C；四项生产验证NOT_RUN，DEPLOYED=false。
+
+以下保留历史记录。
+
 ## 2026-10-02：PR-04A finalization（Draft，待最终冻结复核）
 
 本轮仅收口 imported INTERNAL_REVIEW 的完整DB形状约束与结构化secret leak检测。前向迁移72，1–71字节不变；真实历史引用不建立假FK。rebuild与DB校验对齐，TALENT_CONSENT原合同回归通过。原OTP浏览器和Agent摄取复用统一helper；合法UUID/hash/时间/计数不因OTP子串碰撞失败，正文和真实Bearer/receive token、authorization及签名URL仍严格检查，失败不输出秘密。

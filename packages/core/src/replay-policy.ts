@@ -22,6 +22,7 @@ import { missing } from './errors.ts';
 import { personFor, sourceFor, sourceCurrent, requireScope, requirePermission } from './policy.ts';
 /** Domain authorization for returning minimal command receipts. Not part of the generic receipt engine. */
 export async function authorizeReceipt(tx: Tx, actor: CommandPrincipal, receipt: CommandReceipt, clock: Clock, config?: Config): Promise<void> {
+    if(actor.actorKind==='MACHINE'&&['upload','asset'].includes(receipt.resourceKind)){if(!config)missing();const u=await uploadFor(tx,actor,receipt.resourceId);if(!u.submissionId)missing();await new Ingestion(clock,config).access(tx,actor,u.submissionId);return;}
     if(actor.actorKind==='TALENT'){
         const account=await tx.get('talentAccounts',actor.talentAccountId);
         invariant(receipt.principalKind==='TALENT'&&receipt.talentAccountId===actor.talentAccountId&&receipt.workspaceId===actor.workspaceId&&account?.status==='ACTIVE'&&account.sessionEpoch===actor.sessionEpoch,'REPLAY_FORBIDDEN','当前账号不能读取此回执',403);

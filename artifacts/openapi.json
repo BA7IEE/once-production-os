@@ -90,16 +90,619 @@
         "x-mode": "COMMAND"
       }
     },
+    "/api/v1/ingestion/uploads": {
+      "post": {
+        "operationId": "ingestion.upload.create",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "machineBearer": []
+          }
+        ],
+        "x-machine-boundary": "Explicit principal permissions and scope; no cookie mixing; human verification routes excluded",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "context": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "AGENT_SUBMISSION"
+                        ]
+                      },
+                      "submissionId": {
+                        "type": "string",
+                        "minLength": 36,
+                        "maxLength": 36,
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "submissionId"
+                    ]
+                  },
+                  "expectedSubmissionRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "clientItemKey": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "pattern": "^[a-zA-Z0-9_-]+$"
+                  },
+                  "roleCandidateKey": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "pattern": "^[a-zA-Z0-9_-]+$"
+                  },
+                  "fileName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 160,
+                    "pattern": "^[^\\x00-\\x1f\\x7f/\\\\]+$"
+                  },
+                  "mime": {
+                    "type": "string",
+                    "enum": [
+                      "image/jpeg",
+                      "image/png",
+                      "image/webp",
+                      "application/pdf",
+                      "video/mp4"
+                    ]
+                  },
+                  "expectedBytes": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 200000000
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "minLength": 64,
+                    "maxLength": 64,
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                },
+                "required": [
+                  "context",
+                  "expectedSubmissionRevision",
+                  "clientItemKey",
+                  "fileName",
+                  "mime",
+                  "expectedBytes",
+                  "sha256"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "ingestion.media.upload",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/ingestion/uploads/{id}/receive-authorizations": {
+      "post": {
+        "operationId": "ingestion.upload.authorize",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "machineBearer": []
+          }
+        ],
+        "x-machine-boundary": "Explicit principal permissions and scope; no cookie mixing; human verification routes excluded",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "expectedRevision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "ingestion.media.upload",
+        "x-mode": "SECRET"
+      }
+    },
+    "/api/v1/ingestion/uploads/{id}/content": {
+      "put": {
+        "operationId": "ingestion.upload.content",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-ONCE-Receive-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 43,
+              "maxLength": 43
+            }
+          }
+        ],
+        "security": [
+          {
+            "machineBearer": []
+          }
+        ],
+        "x-machine-boundary": "Explicit principal permissions and scope; no cookie mixing; human verification routes excluded",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "ingestion.media.upload",
+        "x-mode": "BINARY"
+      }
+    },
+    "/api/v1/ingestion/uploads/{id}/complete": {
+      "post": {
+        "operationId": "ingestion.upload.complete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "machineBearer": []
+          }
+        ],
+        "x-machine-boundary": "Explicit principal permissions and scope; no cookie mixing; human verification routes excluded",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "expectedRevision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "ingestion.media.upload",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/ingestion/uploads/{id}/cancel": {
+      "post": {
+        "operationId": "ingestion.upload.cancel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "machineBearer": []
+          }
+        ],
+        "x-machine-boundary": "Explicit principal permissions and scope; no cookie mixing; human verification routes excluded",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "expectedRevision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "ingestion.media.upload",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/ingestion/uploads/{id}/status": {
+      "get": {
+        "operationId": "ingestion.upload.status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "machineBearer": []
+          }
+        ],
+        "x-machine-boundary": "Explicit principal permissions and scope; no cookie mixing; human verification routes excluded",
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "ingestion.read.own",
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/ingestion/submissions/{id}/assets/{asset}/preview": {
+      "get": {
+        "operationId": "ingestion.asset.preview",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "asset",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "machineBearer": []
+          }
+        ],
+        "x-machine-boundary": "Explicit principal permissions and scope; no cookie mixing; human verification routes excluded",
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "ingestion.read.own",
+        "x-mode": "BINARY"
+      }
+    },
+    "/api/v1/ingestion/submissions/{id}/assets/{asset}/playback": {
+      "get": {
+        "operationId": "ingestion.asset.playback",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "asset",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Range",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Single bytes range; multiple ranges are ignored with a full 200 response."
+          }
+        ],
+        "security": [
+          {
+            "machineBearer": []
+          }
+        ],
+        "x-machine-boundary": "Explicit principal permissions and scope; no cookie mixing; human verification routes excluded",
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "206": {
+            "description": "Authorized video/mp4 byte range with Content-Range, Content-Length and Accept-Ranges"
+          },
+          "416": {
+            "description": "Unsatisfiable range after authorization; Content-Range: bytes */size"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "ingestion.read.own",
+        "x-mode": "BINARY"
+      }
+    },
+    "/api/v1/ingestion/submissions/{id}/assets/{asset}/attachment": {
+      "get": {
+        "operationId": "ingestion.asset.attachment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "asset",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "machineBearer": []
+          }
+        ],
+        "x-machine-boundary": "Explicit principal permissions and scope; no cookie mixing; human verification routes excluded",
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "ingestion.read.own",
+        "x-mode": "BINARY"
+      }
+    },
     "/api/v1/ingestion/schema": {
       "get": {
         "operationId": "ingestion.schema",
         "parameters": [],
         "security": [
           {
-            "sessionCookie": []
+            "machineBearer": []
           }
         ],
-        "x-machine-boundary": null,
+        "x-machine-boundary": "Explicit principal permissions and scope; no cookie mixing; human verification routes excluded",
         "responses": {
           "200": {
             "description": "Allowlisted response DTO; see src/dto.ts"
@@ -118,10 +721,10 @@
         "parameters": [],
         "security": [
           {
-            "sessionCookie": []
+            "machineBearer": []
           }
         ],
-        "x-machine-boundary": null,
+        "x-machine-boundary": "Explicit principal permissions and scope; no cookie mixing; human verification routes excluded",
         "responses": {
           "200": {
             "description": "Allowlisted response DTO; see src/dto.ts"
@@ -141,7 +744,7 @@
           {
             "name": "Origin",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -149,7 +752,7 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -167,10 +770,10 @@
         ],
         "security": [
           {
-            "sessionCookie": []
+            "machineBearer": []
           }
         ],
-        "x-machine-boundary": null,
+        "x-machine-boundary": "Explicit principal permissions and scope; no cookie mixing; human verification routes excluded",
         "requestBody": {
           "required": true,
           "content": {
@@ -269,10 +872,10 @@
         ],
         "security": [
           {
-            "sessionCookie": []
+            "machineBearer": []
           }
         ],
-        "x-machine-boundary": null,
+        "x-machine-boundary": "Explicit principal permissions and scope; no cookie mixing; human verification routes excluded",
         "responses": {
           "200": {
             "description": "Allowlisted response DTO; see src/dto.ts"
@@ -301,7 +904,7 @@
           {
             "name": "Origin",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -309,7 +912,7 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -327,10 +930,10 @@
         ],
         "security": [
           {
-            "sessionCookie": []
+            "machineBearer": []
           }
         ],
-        "x-machine-boundary": null,
+        "x-machine-boundary": "Explicit principal permissions and scope; no cookie mixing; human verification routes excluded",
         "requestBody": {
           "required": true,
           "content": {
@@ -732,7 +1335,7 @@
           {
             "name": "Origin",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -740,7 +1343,7 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -748,10 +1351,10 @@
         ],
         "security": [
           {
-            "sessionCookie": []
+            "machineBearer": []
           }
         ],
-        "x-machine-boundary": null,
+        "x-machine-boundary": "Explicit principal permissions and scope; no cookie mixing; human verification routes excluded",
         "requestBody": {
           "required": true,
           "content": {
@@ -801,7 +1404,7 @@
           {
             "name": "Origin",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -809,7 +1412,7 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -827,10 +1430,10 @@
         ],
         "security": [
           {
-            "sessionCookie": []
+            "machineBearer": []
           }
         ],
-        "x-machine-boundary": null,
+        "x-machine-boundary": "Explicit principal permissions and scope; no cookie mixing; human verification routes excluded",
         "requestBody": {
           "required": true,
           "content": {
@@ -880,7 +1483,7 @@
           {
             "name": "Origin",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -888,7 +1491,7 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -906,10 +1509,10 @@
         ],
         "security": [
           {
-            "sessionCookie": []
+            "machineBearer": []
           }
         ],
-        "x-machine-boundary": null,
+        "x-machine-boundary": "Explicit principal permissions and scope; no cookie mixing; human verification routes excluded",
         "requestBody": {
           "required": true,
           "content": {
@@ -959,7 +1562,7 @@
           {
             "name": "Origin",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -967,7 +1570,7 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -985,10 +1588,10 @@
         ],
         "security": [
           {
-            "sessionCookie": []
+            "machineBearer": []
           }
         ],
-        "x-machine-boundary": null,
+        "x-machine-boundary": "Explicit principal permissions and scope; no cookie mixing; human verification routes excluded",
         "requestBody": {
           "required": true,
           "content": {
@@ -8195,11 +8798,12 @@
                         "ingestion.schema.read",
                         "ingestion.submit",
                         "ingestion.read.own",
-                        "ingestion.withdraw.own"
+                        "ingestion.withdraw.own",
+                        "ingestion.media.upload"
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 8
+                    "maxItems": 9
                   }
                 },
                 "required": [
@@ -11470,11 +12074,12 @@
                         "ingestion.schema.read",
                         "ingestion.submit",
                         "ingestion.read.own",
-                        "ingestion.withdraw.own"
+                        "ingestion.withdraw.own",
+                        "ingestion.media.upload"
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 8
+                    "maxItems": 9
                   },
                   "expiresAt": {
                     "type": "string",

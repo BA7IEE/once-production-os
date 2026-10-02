@@ -1,4 +1,5 @@
 import {Ingestion} from './ingestion.ts';
+import {authorizeAgentReceive} from './agent-media.ts';
 import {MediaPurge} from './media-purge.ts';
 import {approveMediaExposure} from './talent-media-exposure.ts';
 import {saveInternalCollection} from './media-collections.ts';
@@ -214,6 +215,14 @@ export class Application {
         }
         return this.store.transaction(async (tx) => { const actor = await this.identity.authenticate(tx, token); requirePermission(actor, permission); return work(tx, actor); });
     }
+    /** Bearer-only media transport; never chooses an employee/Talent cookie. */
+    async ingestionAuthenticated<T>(request:ApiRequest,permission:Permission,work:(tx:Tx,actor:Actor)=>Promise<T>):Promise<T>{
+        invariant(!request.headers.cookie,'MIXED_AUTH_FORBIDDEN','机器入口不能混用会话',400);
+        const header=request.headers.authorization;invariant(header&&/^Bearer once_machine\./.test(header),'MACHINE_UNAUTHENTICATED','此入口要求机器 Bearer',401);
+        invariant(!request.headers.origin||request.headers.origin===this.config.origin,'ORIGIN_DENIED','请求来源不被允许',403);
+        return this.store.transaction(async tx=>{const actor=await this.machine.authenticate(tx,header.slice(7));requirePermission(actor,permission);await new Ingestion(this.clock,this.config).principal(tx,actor);return work(tx,actor);});
+    }
+    async ingestionReceiveIntent(request:ApiRequest,id:string,requestId:string){const actor=await this.ingestionAuthenticated(request,'ingestion.media.upload',async(tx,actor)=>{await uploadFor(tx,actor,id);return actor;});return this.writeAhead(actor,'ingestion.upload.content',requestId,id);}
     async handle(request: ApiRequest): Promise<ApiResponse> {
         const meta: RequestMeta = { requestId: randomUUID(), ip: request.ip };
         const response: ApiResponse = { status: 200, body: null, headers: { 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff', 'X-Request-Id': meta.requestId }, cookies: [] };
@@ -316,7 +325,7 @@ export class Application {
                 const command = (kind: CommandReceipt['resourceKind'], execute: () => Promise<{
                     id: string;
                     revision: number;
-                }>, target = id || null) => this.commands.execute(tx, actor, route.operation, request.headers['idempotency-key'] ?? '', target, data, kind, meta, execute, receipt => authorizeReceipt(tx, actor, receipt, this.clock, this.config), ['ai.create', 'import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation) ? 'ACCEPTED' : 'SUCCEEDED');
+                }>, target = id || null) => this.commands.execute(tx, actor, route.operation, request.headers['idempotency-key'] ?? '', target, data, kind, meta, execute, receipt => authorizeReceipt(tx, actor, receipt, this.clock, this.config), ['ai.create', 'import.commit', 'job.resume', 'upload.complete', 'ingestion.upload.complete', 'export.create'].includes(route.operation) ? 'ACCEPTED' : 'SUCCEEDED');
                 if(route.operation.startsWith('td2.fact.')){
                     const [, ,table,action]=route.operation.split('.');
                     invariant(TD2_TABLES.includes(table as FactTable),'NOT_FOUND','资料类型不存在',404);
@@ -325,6 +334,11 @@ export class Application {
                 const maintenance=new TalentMaintenance(this.clock,this.config);
                 const ingestion=new Ingestion(this.clock,this.config);
                 switch (route.operation) {
+                    case 'ingestion.upload.create':return command('upload',()=>this.media.createAgent(tx,actor,data));
+                    case 'ingestion.upload.authorize':return authorizeAgentReceive(tx,actor,await uploadFor(tx,actor,id),data,this.clock,this.config,meta);
+                    case 'ingestion.upload.complete':return command('upload',()=>this.media.complete(tx,actor,id,data));
+                    case 'ingestion.upload.cancel':return command('upload',()=>this.media.cancel(tx,actor,id,data));
+                    case 'ingestion.upload.status':return this.media.get(tx,actor,id);
                     case 'ingestion.schema':return ingestion.schema(tx,actor);
                     case 'ingestion.dictionaries':return ingestion.dictionaries(tx,actor);
                     case 'ingestion.create':return command('talentSubmission',()=>ingestion.create(tx,actor,data));
@@ -538,10 +552,10 @@ export class Application {
             }
             await this.markCommitted(safetyIntent,
                 this.resultResourceId(response.body, params.id ?? safetyIntent?.resourceId ?? meta.requestId));
-            if (['ai.create', 'import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation))
+            if (['ai.create', 'import.commit', 'job.resume', 'upload.complete', 'ingestion.upload.complete', 'export.create'].includes(route.operation))
                 response.status = 202;
             else if (route.operation==='directory.talent.create' || route.operation.startsWith('td2.') && route.operation.endsWith('.create')) response.status = 201;
-            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['brand.create', 'ai.grant', 'locale.create', 'deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
+            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['brand.create', 'ai.grant', 'locale.create', 'deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create', 'ingestion.upload.create'].includes(route.operation)))
                 response.status = 201;
             return response;
         }

@@ -1,3 +1,7 @@
+## 2026-10-02：PR-04B 独立 stacked Draft
+
+PR-04A 已由用户冻结，PR #32 head不改；当前真实媒体摄取范围与实测见 [PR-04B交付说明](PR04_AGENT_INGESTION_B.md)。迁移1–72不变，只追加73–74；不合并部署，不进入PR-04C。历史阶段记录保留如下。
+
 ## 2026-10-02：PR-04A finalization（Draft，待最终冻结复核）
 
 本轮仅收口 imported INTERNAL_REVIEW 的完整DB形状约束与结构化secret leak检测。前向迁移72，1–71字节不变；真实历史引用不建立假FK。rebuild与DB校验对齐，TALENT_CONSENT原合同回归通过。原OTP浏览器和Agent摄取复用统一helper；合法UUID/hash/时间/计数不因OTP子串碰撞失败，正文和真实Bearer/receive token、authorization及签名URL仍严格检查，失败不输出秘密。

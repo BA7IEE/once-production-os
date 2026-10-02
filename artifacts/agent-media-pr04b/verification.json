@@ -1,0 +1,49 @@
+{
+  "status": "CORE_MEMORY_TESTED + POSTGRES_TESTED + BROWSER_TESTED",
+  "generatedAt": "2026-10-02T06:23:44.861759+00:00",
+  "base": "67f45a57801cdef9e419803139775e15dd329839",
+  "core": {
+    "tests": 711,
+    "pass": 711,
+    "newAgentMediaTests": 22,
+    "verifyExitCode": 0,
+    "typecheckTransportExitCode": 0,
+    "surfacePolicyTests": 4
+  },
+  "postgres": {
+    "version": "16.15",
+    "fullSuitePrograms": 98,
+    "fullSuiteTests": 188,
+    "additionalDeletionPrograms": 1,
+    "additionalDeletionTests": 1,
+    "totalPrograms": 99,
+    "totalTests": 189,
+    "failed": 0,
+    "jsonRebuildCli": "PASS",
+    "freshMigrations": "1–74 PASS",
+    "retainedUpgrade": "72–74 PASS",
+    "pgDumpRestore": "PASS"
+  },
+  "browser": {
+    "priorSuites": 13,
+    "newAgentMediaSuite": 1,
+    "totalSuites": 14,
+    "browser": "real installed Google Chrome 154",
+    "newJourneyViewport": 390,
+    "priorWorkFirstFailure": "ECONNRESET retained; independent fresh full rerun PASS"
+  },
+  "logSha256": {
+    "pr04b-final-pg2.log": "4b114cc1f43e4625e4398068ff91bb6bb5bde64492308e5137ce62b2d64a58c9",
+    "pr04b-delete-pg2.log": "a2fc2adf7139f2121b3a93721fd20c8e301d36bb81e8d69ecfb3b48e5adf197d",
+    "pr04b-verify-final.log": "e470473c68242969207de858c16aec35d12099af92cfcf244023a82ff1ec8d7e",
+    "pr04b-final-browser.log": "c490e7b5da0227725d852ac255d8fb7d4ee872765ead79f41c35d33256fcd03c",
+    "pr04b-rebuild-cli.log": "83ded6c28f2e57b820050a096934e908793c60b54597c472ae186626463b46ad"
+  },
+  "providerVerified": "NOT_RUN",
+  "cosProviderVerified": "NOT_RUN",
+  "mobileDeviceVerified": "NOT_RUN",
+  "productionMigrationVerified": "NOT_RUN",
+  "deployed": false,
+  "reviewStatus": "WAITING_CODE_REVIEW",
+  "exactHeadCi": "See final Draft PR #33 description; do not reuse base CI"
+}

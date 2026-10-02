@@ -25,7 +25,7 @@ function fail(res: Response, e: unknown) {
 }
 export function registerPlaybackHttp(server: Express, core: Application, provider: LocalMediaProvider | null) {
     const limits = core.config.mediaPlayback ?? MEDIA_PLAYBACK_DEFAULTS, budget = new PlaybackBudget(limits);
-    const surfaces:Array<[string,MediaReadSurface]>=[['/api/v1/assets/:id/playback','internal'],['/api/v1/talent-staged-assets/:id/playback','review'],['/api/v1/portal/accounts/:accountId/assets/:id/playback','talent']];
+    const surfaces:Array<[string,MediaReadSurface]>=[['/api/v1/assets/:id/playback','internal'],['/api/v1/talent-staged-assets/:id/playback','review'],['/api/v1/portal/accounts/:accountId/assets/:id/playback','talent'],['/api/v1/ingestion/submissions/:submissionId/assets/:id/playback','agent']];
     for(const [path,surface] of surfaces)server.get(path, async (req, res) => {
         res.set({'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'Cross-Origin-Resource-Policy': 'same-origin'});
         const controller = new AbortController(), abort = () => controller.abort();
@@ -36,10 +36,11 @@ export function registerPlaybackHttp(server: Express, core: Application, provide
         try {
             invariant(provider, 'MEDIA_DISABLED', '私有媒体存储尚未启用', 503);
             invariant(req.method === 'GET', 'METHOD_NOT_ALLOWED', '该播放入口仅接受GET', 405);
-            invariant(!req.headers.authorization, 'MACHINE_OPERATION_FORBIDDEN', '该播放入口只接受内部会话', 403);
+            if(surface!=='agent')invariant(!req.headers.authorization, 'MACHINE_OPERATION_FORBIDDEN', '该播放入口只接受会话', 403);
             invariant(!req.url.includes('?'), 'QUERY_INVALID', '播放地址不接受额外参数', 400);
             invariant(!req.headers.origin || req.headers.origin === core.config.origin, 'ORIGIN_DENIED', '播放来源不被允许', 403);
             const id = uuid.parse(req.params.id), r = request(req);
+            if(surface==='agent')r.headers['x-once-ingestion-submission']=uuid.parse(req.params.submissionId);
             if(surface==='talent')r.headers['x-once-talent-account']=uuid.parse(req.params.accountId);
             const initial=await mediaRead(core,r,id,surface);
             const a=initial.asset;invariant(a.mime==='video/mp4','NOT_FOUND','素材不可播放',404);integrityAsset=a;

@@ -14,6 +14,11 @@ export interface MediaUpload extends Base {
     principalKind?: 'INTERNAL' | 'TALENT' | 'MACHINE';
     talentAccountId?: string | null;
     servicePrincipalId?: string | null;
+    servicePrincipalAuthorizationEpoch?: number | null;
+    clientItemKey?: string | null;
+    roleCandidateKey?: string | null;
+    receiveAuthorizationHash?: string | null;
+    receiveAuthorizationUntil?: string | null;
     submissionId?: string | null;
     personRoleId?: string | null;
     grantEpoch?: number | null;

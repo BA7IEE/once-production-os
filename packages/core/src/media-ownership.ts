@@ -14,7 +14,7 @@ import {periodCurrent} from './talent-v2-graph.ts';
 
 export function ownsUpload(actor:CommandPrincipal,u:MediaUpload){
  return actor.actorKind==='TALENT'?u.principalKind==='TALENT'&&u.talentAccountId===actor.talentAccountId:
- actor.actorKind==='MACHINE'?false:(!u.principalKind||u.principalKind==='INTERNAL')&&u.actorId===actor.membershipId;
+ actor.actorKind==='MACHINE'?u.principalKind==='MACHINE'&&u.servicePrincipalId===actor.servicePrincipalId:(!u.principalKind||u.principalKind==='INTERNAL')&&u.actorId===actor.membershipId;
 }
 export function uploaderKey(u:MediaUpload){return `${u.principalKind??'INTERNAL'}:${u.talentAccountId??u.servicePrincipalId??u.actorId}`;}
 /** Re-evaluated at every receive/worker stage. A frozen batch can finish no additional file. */
