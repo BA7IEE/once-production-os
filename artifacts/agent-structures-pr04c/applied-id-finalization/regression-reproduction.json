@@ -1,0 +1,19 @@
+{
+  "baseline": "665ea7b20a1d0e16d47406f8fd7e814340d37098",
+  "red": {
+    "tests": 32,
+    "pass": 31,
+    "fail": 1,
+    "intentionalReproduction": "CREATE WORK appliedId points to Credit rather than Work"
+  },
+  "afterFixFocused": {
+    "tests": 42,
+    "pass": 42,
+    "fail": 0,
+    "includes": "MACHINE CREATE/LINK exact and new Credit + original TALENT Work flow"
+  },
+  "codeChange": "applyStructures: outcome.credit.id → outcome.work.id",
+  "newModel": false,
+  "newField": false,
+  "newMigration": false
+}

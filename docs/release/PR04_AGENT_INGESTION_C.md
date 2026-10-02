@@ -1,5 +1,15 @@
 # PR-04C：External Agent Collection / Work Ingestion
 
+## 本轮 finalization：WORK appliedId 统一
+
+当前基线665ea7b。本轮业务代码只修改 `packages/core/src/ingestion-structures.ts` 的 `applyStructures`：`outcome.credit.id` → `outcome.work.id`。统一TALENT/MACHINE WORK item appliedId=Work.id；Credit继续按Work/Person/exactRole/Source/roleCode/note追溯，无第二字段或映射。Collection→Collection.id、MEDIA→Asset.id、ROLE及其他既有语义不变。
+
+Core/PG的原完整结构场景增加CREATE、LINK复用exact Credit、LINK另一Person新Credit的直接断言，原Credit全行不变，共享Work/WorkAssets前后完全一致。旧Talent Work场景增加CREATE/LINK映射断言。真实Chrome新增查库断言；真实PG物理恢复及recovery isolation后WORK item仍为Work.id。业务JSON/verified bytes rebuild及真实CLI保持通过。
+
+本地Core743/743、结构和旧Talent Work专项42/42、PG16全量131程序/221项、原14组+Agent Structures真实Browser15/15通过。fresh1→74、retained74无改写、dump/restore通过。无新增schema或migration75，迁移1–74不改。新增失败复现保留在 `applied-id-finalization/red-665ea7b-work-id.tap`，说明见 `regression-reproduction.json`；当前证据独立保存，前轮首次失败与历史证据不覆盖。
+
+PR34保持Draft、未合并、未部署。新最终SHA/16项exact-head CI绑定PR描述，不沿用665ea7b的旧CI；等待用户最终复核确认PR-04C FROZEN，不进入PR-04D。四项生产门继续NOT_RUN、DEPLOYED=false。以下为原主体交付记录。
+
 独立 stacked 分支 `codex/external-agent-collection-work-pr04c`，base `codex/external-agent-media-ingestion-pr04b`。PR-04A frozen `67f45a57801cdef9e419803139775e15dd329839`，PR-04B frozen `379d06dbea9295d47dd7f998a90f76d5d885169a`；PR31/32/33 head 不修改。本轮完成后保持 Draft、未合并、未部署，等待代码级复核；不进入 PR-04D。
 
 当前实测结果及最终提交/CI 由下文证据和 Draft PR #34 描述绑定。历史 A/B 首次失败及测试资料保留，不用其通过记录替代本轮结果。

@@ -1,0 +1,16 @@
+{
+  "status": "POSTGRES_TESTED",
+  "database": [
+    {
+      "version": "PostgreSQL 16.15 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit"
+    }
+  ],
+  "checks": [
+    "business-export-adopted-collection-work-exact-credit-only-private-baseline-staged-absent",
+    "verified-byte-json-rebuild-preserves-formal-collection-work-credit-machine-provenance-no-live-principal-submission-grant",
+    "staged-and-formal-integrity-clean",
+    "fresh1-through74-and-retained74-no-op-byte-frozen-rows-preserved",
+    "physical-restore-and-recovery-preserve-WORK-appliedId-as-Work-id-not-Credit",
+    "actual-pg16-dump-restore-collections-cover-work-credits-staged-adopted-preserved-old-authorization-dead"
+  ]
+}

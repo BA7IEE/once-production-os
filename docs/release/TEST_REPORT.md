@@ -1,3 +1,11 @@
+## 2026-10-02：PR-04C WORK appliedId finalization（Draft，待最终复核）
+
+以665ea7b20a1d0e16d47406f8fd7e814340d37098为基线，只修正 `applyStructures` 将MACHINE WORK `appliedId` 从Credit.id改为Work.id；TALENT既有流程原本即Work.id，保持不变。无新增映射字段/模型、无Work/Credit重构、无迁移75；1–74和PR31/32/33 head不改。
+
+CREATE、LINK exact Credit复用及LINK新Credit均查库确认Work.id，Credit原ID/Source/Note不变，共享Work facts/cover/placements不变；Collection/MEDIA/ROLE映射不变。旧代码新增断言先复现1项失败，修正后专项42/42；全量Core743/743、PG16共131程序221项、原14组加新增Agent Structures共15组真实Browser通过。真实业务JSON重建、CLI、pg_dump/restore、恢复后WORK item、fresh1→74和retained74无改写通过。证据见 `artifacts/agent-structures-pr04c/applied-id-finalization/verification.json`；完整说明见 [PR-04C交付说明](PR04_AGENT_INGESTION_C.md)。
+
+最终SHA及新的exact-head 16项CI结果回填PR34描述和交付回复，不复用665ea7b的36987562732。继续Draft、未合并、未部署；待最终代码级复核确认冻结，停止推进PR-04D。四项生产验证NOT_RUN，DEPLOYED=false。以下保留历史记录。
+
 ## 2026-10-02：PR-04C Collection / Work 摄取（独立 Draft，待代码级复核）
 
 基于 PR-04B frozen `379d06dbea9295d47dd7f998a90f76d5d885169a`；PR31/32/33不修改。Agent仅用同批Role/Media stable key提交集合和案例，submit冻结完整依赖；内部明确Collection新建/更新、Work CREATE/LINK，在原有模型和Commands事务内采纳。LINK不改共享Work facts/cover/placements，exact Credit原ID/Source/Note复用；typed INTERNAL_REVIEW重建不伪造TalentConsent。无新数据库字段/迁移，1–74字节不变。

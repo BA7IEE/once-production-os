@@ -1,0 +1,46 @@
+{
+  "status": "IMPLEMENTED_PENDING_FINAL_REVIEW",
+  "baseline": "665ea7b20a1d0e16d47406f8fd7e814340d37098",
+  "contract": {
+    "TALENT_WORK": "Work.id",
+    "MACHINE_WORK": "Work.id",
+    "COLLECTION": "MediaCollection.id",
+    "MEDIA": "MediaAsset.id",
+    "ROLE": "unchanged PersonRole.id"
+  },
+  "core": {
+    "tests": 743,
+    "pass": 743,
+    "fail": 0,
+    "focusedAgentAndTalentWork": 42
+  },
+  "postgres": {
+    "engine": "PostgreSQL16.15",
+    "programs": 131,
+    "tests": 221,
+    "fail": 0,
+    "structuresVariants": 32,
+    "talentWorkVariants": 10,
+    "businessJsonRebuild": "PASS",
+    "physicalDumpRestore": "PASS",
+    "recoveryPreservesWorkItem": "PASS",
+    "realRebuildCLI": "PASS",
+    "fresh1Through74": "PASS",
+    "retained74NoOp": "PASS"
+  },
+  "browser": {
+    "originalSuites": 14,
+    "agentStructures": 1,
+    "status": "BROWSER_TESTED",
+    "checksIncludingWorkAppliedId": 16
+  },
+  "newSchema": false,
+  "newMigration": false,
+  "frozenMigration1Through74": "UNCHANGED",
+  "exactHeadCI": "bound to final commit in PR34 description after push; not historical CI",
+  "PROVIDER_VERIFIED": "NOT_RUN",
+  "COS_PROVIDER_VERIFIED": "NOT_RUN",
+  "MOBILE_DEVICE_VERIFIED": "NOT_RUN",
+  "PRODUCTION_MIGRATION_VERIFIED": "NOT_RUN",
+  "DEPLOYED": false
+}

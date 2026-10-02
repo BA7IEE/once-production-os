@@ -1,4 +1,4 @@
-当前 PR-04C 进度见 [Collection / Work 摄取交付说明](docs/release/PR04_AGENT_INGESTION_C.md)，独立 stacked Draft、未合并、未部署；PR-04A/B与迁移1–74保持冻结。
+当前 PR-04C 进度见 [Collection / Work 摄取交付说明](docs/release/PR04_AGENT_INGESTION_C.md)，独立 stacked Draft、未合并、未部署；PR-04A/B与迁移1–74保持冻结。 本轮仅统一WORK appliedId=Work.id并完整回归，待最终冻结复核。
 
 # ONCE Production OS
 

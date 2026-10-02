@@ -1,0 +1,75 @@
+{
+  "status": "BROWSER_TESTED",
+  "results": [
+    {
+      "suite": "resume",
+      "exitCode": 0,
+      "durationSeconds": 31.8
+    },
+    {
+      "suite": "handoff",
+      "exitCode": 0,
+      "durationSeconds": 29.6
+    },
+    {
+      "suite": "media",
+      "exitCode": 0,
+      "durationSeconds": 34.2
+    },
+    {
+      "suite": "production",
+      "exitCode": 0,
+      "durationSeconds": 263.2
+    },
+    {
+      "suite": "talent-intake",
+      "exitCode": 0,
+      "durationSeconds": 22.8
+    },
+    {
+      "suite": "talent-directory",
+      "exitCode": 0,
+      "durationSeconds": 28.8
+    },
+    {
+      "suite": "talent-auth",
+      "exitCode": 0,
+      "durationSeconds": 13.1
+    },
+    {
+      "suite": "talent-maintenance",
+      "exitCode": 0,
+      "durationSeconds": 59.2
+    },
+    {
+      "suite": "media-staging",
+      "exitCode": 0,
+      "durationSeconds": 106.0
+    },
+    {
+      "suite": "media-collections",
+      "exitCode": 0,
+      "durationSeconds": 109.9
+    },
+    {
+      "suite": "work-cases",
+      "exitCode": 0,
+      "durationSeconds": 127.7
+    },
+    {
+      "suite": "media-purge",
+      "exitCode": 0,
+      "durationSeconds": 136.7
+    },
+    {
+      "suite": "agent-ingestion",
+      "exitCode": 0,
+      "durationSeconds": 12.4
+    },
+    {
+      "suite": "agent-media",
+      "exitCode": 0,
+      "durationSeconds": 38.3
+    }
+  ]
+}

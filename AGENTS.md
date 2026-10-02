@@ -1,3 +1,7 @@
+# 当前授权：PR-04C WORK appliedId finalization
+
+本轮以665ea7b为基线，只将MACHINE WORK item appliedId统一为Work.id，补CREATE/LINK及exact/new Credit和既有类型/Talent回归。无新字段、模型或迁移；1–74及PR31/32/33 head不改。PR34继续Draft，完整Core/PG/Browser与新head16项CI通过后交最终复核，不自行冻结、不进入PR-04D。下方为历史授权。
+
 # 当前授权：PR-04C Agent Collection / Work 摄取
 
 用户批准从 PR-04B frozen 379d06dbea9295d47dd7f998a90f76d5d885169a 建独立 stacked 分支。本轮仅同批 stable key Collection/Work 候选、完整依赖基线、内部明确 CREATE/LINK、精确 Credit 与原子采纳及生命周期；复用既有业务表。迁移1–74不改，若需新增从75前向追加。PR31/32/33 head 不改；新PR34保持 Draft、未合并、未部署。完成全量 Core/PG16/Browser、恢复升级和 exact-head CI 后停止，不进入PR-04D。下方授权和阶段状态保留为历史。
