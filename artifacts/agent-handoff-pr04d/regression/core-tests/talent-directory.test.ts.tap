@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: PR01b composed maintenance persists attributes and shared filters, without nationality inference or fabricated measurement date
+ok 1 - PR01b composed maintenance persists attributes and shared filters, without nationality inference or fabricated measurement date
+  ---
+  duration_ms: 163.096959
+  type: 'test'
+  ...
+# Subtest: PR01b rejects contradictory birth branches, fake unknown dates, non-model labels and stale atomic commands
+ok 2 - PR01b rejects contradictory birth branches, fake unknown dates, non-model labels and stale atomic commands
+  ---
+  duration_ms: 134.4555
+  type: 'test'
+  ...
+# Subtest: PR01b complete birth date needs separate grants, safe derived ages remain available and hidden source cannot match
+ok 3 - PR01b complete birth date needs separate grants, safe derived ages remain available and hidden source cannot match
+  ---
+  duration_ms: 503.341584
+  type: 'test'
+  ...
+# Subtest: PR01b unknown and declared ages keep precision through time and v14 imports gain unknown defaults
+ok 4 - PR01b unknown and declared ages keep precision through time and v14 imports gain unknown defaults
+  ---
+  duration_ms: 0.32525
+  type: 'test'
+  ...
+# Subtest: PR01b POST query is strict, authenticated and read-only: no key, receipt or business audit
+ok 5 - PR01b POST query is strict, authenticated and read-only: no key, receipt or business audit
+  ---
+  duration_ms: 125.535958
+  type: 'test'
+  ...
+# Subtest: PR01b server receipt time cannot be forged and legacy writes refuse new fields
+ok 6 - PR01b server receipt time cannot be forged and legacy writes refuse new fields
+  ---
+  duration_ms: 126.607625
+  type: 'test'
+  ...
+# Subtest: PR01b birthday proposals stay restricted and export requires new exact grants on both person and source
+ok 7 - PR01b birthday proposals stay restricted and export requires new exact grants on both person and source
+  ---
+  duration_ms: 457.283417
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1692.240416

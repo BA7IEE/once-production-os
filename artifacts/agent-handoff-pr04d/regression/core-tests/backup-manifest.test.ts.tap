@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: DEV-09D backup manifest binds dump, recovery/key/migration and journal anchor
+ok 1 - DEV-09D backup manifest binds dump, recovery/key/migration and journal anchor
+  ---
+  duration_ms: 57.589916
+  type: 'test'
+  ...
+# Subtest: DEV-09D backup manifest detects JSON tampering and unsafe permissions
+ok 2 - DEV-09D backup manifest detects JSON tampering and unsafe permissions
+  ---
+  duration_ms: 20.343666
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 151.034208

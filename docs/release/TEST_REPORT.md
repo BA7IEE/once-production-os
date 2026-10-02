@@ -1,3 +1,11 @@
+## 2026-10-02：PR-04D 同档接手与生命周期总收口（Draft，待代码级复核）
+
+用户已冻结 A–C，C基线 `4e7593c9dbd06ef4355e2a928ebec0c8a1c72efb`。本轮独立 stacked Draft PR35，复用既有 CLAIM / TalentAccount / SELF Grant；Agent正式人物由本人认领后保持同一 Person ID，默认不开放历史资料。人物详情新增逐项 exposure 管理；历史 exact WorkCredit 可经内部明确批准只读，不伪造 Consent，后续 Work维护仍需真实本人 WorkConsent。当前 Source/typed basis/fieldScope、Role、Grant、删除/恢复保护和版本均重新核对。原 MACHINE INTERNAL_REVIEW 保持，新本人维护创建独立 TALENT_CONSENT，不洗来源。
+
+本地全量 Core757/757、PostgreSQL16 145个程序/235项/0失败，原15组+新增D共16/16真实Chrome通过；空库1→74、保留74→74 no-op、混合业务JSON/真实重建CLI、实际pg_dump/restore、完整性、结构化secret guard及既有删除/合并/TTL竞争回归通过。无schema/迁移75，1–74逐字节不变，PR31–34 head不改。证据见 `artifacts/agent-handoff-pr04d/verification.json`；完整交付见 [PR-04D说明](PR04_AGENT_INGESTION_D.md)。首次失败和修正保留。
+
+新 Draft PR35最终SHA与17项exact-head CI另绑定PR描述和交付回复，全部成功后才声明PR-04 A–D DEVELOPMENT COMPLETE；不借用C的CI。继续Draft、未合并、未部署，D待代码级复核冻结，完成后停止，不进入MCP/Skill。PROVIDER_VERIFIED / COS_PROVIDER_VERIFIED / MOBILE_DEVICE_VERIFIED / PRODUCTION_MIGRATION_VERIFIED 全部NOT_RUN，DEPLOYED=false。以下保留历史状态及其原证据。
+
 ## 2026-10-02：PR-04C WORK appliedId finalization（Draft，待最终复核）
 
 以665ea7b20a1d0e16d47406f8fd7e814340d37098为基线，只修正 `applyStructures` 将MACHINE WORK `appliedId` 从Credit.id改为Work.id；TALENT既有流程原本即Work.id，保持不变。无新增映射字段/模型、无Work/Credit重构、无迁移75；1–74和PR31/32/33 head不改。

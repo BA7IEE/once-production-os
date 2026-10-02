@@ -1,0 +1,4 @@
+
+> once-production-os@0.1.0-dev.1 typecheck /Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os
+> tsc -p tsconfig.server.json --noEmit && tsc -p apps/admin-web/tsconfig.json
+

@@ -1,0 +1,11 @@
+{
+  "status": "POSTGRES_TESTED",
+  "migrationCount": [
+    {
+      "count": 74
+    }
+  ],
+  "checks": [
+    "integrity-current-Claim-Grant-explicit-exposure-orphan-fail-closed"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "status": "POSTGRES_TESTED",
+  "migrationCount": [
+    {
+      "count": 74
+    }
+  ],
+  "checks": [
+    "exact-Credit-revision-stale-exposure-recheck-and-old-approval-CAS-conflict"
+  ]
+}

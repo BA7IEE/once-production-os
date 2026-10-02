@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: PR02b invitation, grant, account-bound reads, draft, batch review and consent
+ok 1 - PR02b invitation, grant, account-bound reads, draft, batch review and consent
+  ---
+  duration_ms: 198.821708
+  type: 'test'
+  ...
+# Subtest: PR02b review audit rollback, source expiry, revocation and recovery isolation
+ok 2 - PR02b review audit rollback, source expiry, revocation and recovery isolation
+  ---
+  duration_ms: 238.757459
+  type: 'test'
+  ...
+# Subtest: PR02b lifecycle erases server mirrors and revokes both merge roots without transferring accounts
+ok 3 - PR02b lifecycle erases server mirrors and revokes both merge roots without transferring accounts
+  ---
+  duration_ms: 165.709625
+  type: 'test'
+  ...
+# Subtest: PR02b real business export and JSON rebuild preserve purpose provenance without restoring accounts or grants
+ok 4 - PR02b real business export and JSON rebuild preserve purpose provenance without restoring accounts or grants
+  ---
+  duration_ms: 368.562875
+  type: 'test'
+  ...
+# Subtest: PR02b actual Person merge and deletion include external grants and server mirrors
+ok 5 - PR02b actual Person merge and deletion include external grants and server mirrors
+  ---
+  duration_ms: 272.071375
+  type: 'test'
+  ...
+# Subtest: PR02b per-field conflict, partial batch and fork preserve approved facts
+ok 6 - PR02b per-field conflict, partial batch and fork preserve approved facts
+  ---
+  duration_ms: 246.405542
+  type: 'test'
+  ...
+# Subtest: PR02b unknown age and known minors require explicit relationship review
+ok 7 - PR02b unknown age and known minors require explicit relationship review
+  ---
+  duration_ms: 241.698291
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1928.994292

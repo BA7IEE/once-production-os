@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: DEV-09E a different request cannot borrow a same-resource commit marker
+ok 1 - DEV-09E a different request cannot borrow a same-resource commit marker
+  ---
+  duration_ms: 60.082917
+  type: 'test'
+  ...
+# Subtest: DEV-09E an audit cannot borrow another workspace commit marker
+ok 2 - DEV-09E an audit cannot borrow another workspace commit marker
+  ---
+  duration_ms: 14.69125
+  type: 'test'
+  ...
+# Subtest: DEV-09E a commit marker can account for only one distinct audit event
+ok 3 - DEV-09E a commit marker can account for only one distinct audit event
+  ---
+  duration_ms: 14.975125
+  type: 'test'
+  ...
+# Subtest: DEV-09E an orphan abort is not evidence of NO_COMMIT
+ok 4 - DEV-09E an orphan abort is not evidence of NO_COMMIT
+  ---
+  duration_ms: 13.417375
+  type: 'test'
+  ...
+# Subtest: DEV-09E a pre-backup orphan commit cannot explain a delayed audit
+ok 5 - DEV-09E a pre-backup orphan commit cannot explain a delayed audit
+  ---
+  duration_ms: 22.27325
+  type: 'test'
+  ...
+# Subtest: DEV-09E contradictory pre-backup markers are still validated before using delayed evidence
+ok 6 - DEV-09E contradictory pre-backup markers are still validated before using delayed evidence
+  ---
+  duration_ms: 21.119
+  type: 'test'
+  ...
+# Subtest: DEV-09E contained commit must identify the resource named by its write-ahead intent
+ok 7 - DEV-09E contained commit must identify the resource named by its write-ahead intent
+  ---
+  duration_ms: 9.755292
+  type: 'test'
+  ...
+# Subtest: DEV-09E aborted multi-transaction worker is not proven side-effect free
+ok 8 - DEV-09E aborted multi-transaction worker is not proven side-effect free
+  ---
+  duration_ms: 8.477583
+  type: 'test'
+  ...
+# Subtest: DEV-09E same request and valid marker pair still resolves a delayed audit
+ok 9 - DEV-09E same request and valid marker pair still resolves a delayed audit
+  ---
+  duration_ms: 12.031542
+  type: 'test'
+  ...
+# Subtest: DEV-09E legacy v1 journal stays readable but cannot invent request correlation
+ok 10 - DEV-09E legacy v1 journal stays readable but cannot invent request correlation
+  ---
+  duration_ms: 27.074666
+  type: 'test'
+  ...
+# Subtest: DEV-09E legacy abort markers are not proof that a transaction never started
+ok 11 - DEV-09E legacy abort markers are not proof that a transaction never started
+  ---
+  duration_ms: 12.609
+  type: 'test'
+  ...
+# Subtest: DEV-09E unproven abort and malformed v2 request identity cannot be appended as evidence
+ok 12 - DEV-09E unproven abort and malformed v2 request identity cannot be appended as evidence
+  ---
+  duration_ms: 7.082083
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 313.225166

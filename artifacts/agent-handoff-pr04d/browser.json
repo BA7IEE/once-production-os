@@ -1,0 +1,165 @@
+{
+  "status": "BROWSER_TESTED",
+  "viewport": {
+    "width": 390,
+    "height": 860
+  },
+  "browser": "154.0.8037.93",
+  "database": [
+    {
+      "version": "PostgreSQL 16.15 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit"
+    }
+  ],
+  "personIdStable": true,
+  "databaseEvidence": {
+    "personId": "6fe5459d-5b59-4507-9f14-a36bbe187b43",
+    "machineSubmissionPersonId": "6fe5459d-5b59-4507-9f14-a36bbe187b43",
+    "grantPersonId": "6fe5459d-5b59-4507-9f14-a36bbe187b43",
+    "talentSubmissionPersonId": "6fe5459d-5b59-4507-9f14-a36bbe187b43",
+    "personCount": 1,
+    "attributions": [
+      {
+        "id": "fdac40ab-d0b1-4e11-96c1-927bdb57f8d9",
+        "sourceId": "429f9ad6-9a7f-469b-85b6-49ff987053f8",
+        "principalKind": "MACHINE",
+        "submissionId": "dfd696c2-86fb-41bd-9d41-6f14f0344862",
+        "servicePrincipalId": "987bfb61-489f-4591-927a-8260e5ebe403",
+        "talentAccountId": null,
+        "consentId": null
+      },
+      {
+        "id": "df6348a0-46c9-46ed-9c0d-9824e899fe0e",
+        "sourceId": "80df1786-f9ea-4e52-af7f-80a9f6261f60",
+        "principalKind": "TALENT",
+        "submissionId": "77425899-7f17-47ef-ae63-0001a48adc36",
+        "servicePrincipalId": null,
+        "talentAccountId": "0ed9bf79-62ba-45e4-92c0-2ac4be73157c",
+        "consentId": "9b470e84-05c0-4ac2-9c16-b137e3d66eab"
+      }
+    ],
+    "bases": [
+      {
+        "sourceId": "429f9ad6-9a7f-469b-85b6-49ff987053f8",
+        "basisKind": "INTERNAL_REVIEW",
+        "consentId": null,
+        "consentRevision": null,
+        "fieldScope": [
+          "aliases",
+          "media",
+          "work",
+          "intro",
+          "displayName",
+          "collection",
+          "role.roleCode"
+        ],
+        "state": "ACTIVE"
+      },
+      {
+        "sourceId": "80df1786-f9ea-4e52-af7f-80a9f6261f60",
+        "basisKind": "TALENT_CONSENT",
+        "consentId": "9b470e84-05c0-4ac2-9c16-b137e3d66eab",
+        "consentRevision": 1,
+        "fieldScope": [
+          "aliases",
+          "media",
+          "intro",
+          "displayName",
+          "work"
+        ],
+        "state": "ACTIVE"
+      }
+    ],
+    "media": [
+      {
+        "id": "2e60498b-e5b5-4c7e-b268-0ccf01ca935e",
+        "sha256": "b0d3493337433497f1a99348ca25ec791713c1458900f3bd2febcbd80be28adb",
+        "state": "READY",
+        "usageState": "ADOPTED"
+      },
+      {
+        "id": "351fd405-64d5-4ec8-8a5b-888db5271f70",
+        "sha256": "c3e78cd8d8e30a077e293d776330daeefb84aa55e25490c636cb27dfe579b2a9",
+        "state": "READY",
+        "usageState": "ADOPTED"
+      },
+      {
+        "id": "ff56436a-2826-4878-a755-e39a235563cd",
+        "sha256": "f3d1623adf2aa4ca1c5d0a4baaebe0ad8bb1340181cce2b6654781cc7130a73b",
+        "state": "READY",
+        "usageState": "ADOPTED"
+      },
+      {
+        "id": "5386337c-0fd4-4c3f-8634-a8b551a83acf",
+        "sha256": "c3e78cd8d8e30a077e293d776330daeefb84aa55e25490c636cb27dfe579b2a9",
+        "state": "READY",
+        "usageState": "ADOPTED"
+      }
+    ],
+    "relations": [
+      {
+        "assetId": "2e60498b-e5b5-4c7e-b268-0ccf01ca935e",
+        "personId": "6fe5459d-5b59-4507-9f14-a36bbe187b43",
+        "personRoleId": "f5d91e27-ac0d-4440-bf77-c453be5d884a",
+        "sourceId": "429f9ad6-9a7f-469b-85b6-49ff987053f8",
+        "usageState": "ADOPTED"
+      },
+      {
+        "assetId": "351fd405-64d5-4ec8-8a5b-888db5271f70",
+        "personId": "6fe5459d-5b59-4507-9f14-a36bbe187b43",
+        "personRoleId": "f5d91e27-ac0d-4440-bf77-c453be5d884a",
+        "sourceId": "429f9ad6-9a7f-469b-85b6-49ff987053f8",
+        "usageState": "ADOPTED"
+      },
+      {
+        "assetId": "ff56436a-2826-4878-a755-e39a235563cd",
+        "personId": "6fe5459d-5b59-4507-9f14-a36bbe187b43",
+        "personRoleId": "f5d91e27-ac0d-4440-bf77-c453be5d884a",
+        "sourceId": "429f9ad6-9a7f-469b-85b6-49ff987053f8",
+        "usageState": "ADOPTED"
+      },
+      {
+        "assetId": "5386337c-0fd4-4c3f-8634-a8b551a83acf",
+        "personId": "6fe5459d-5b59-4507-9f14-a36bbe187b43",
+        "personRoleId": null,
+        "sourceId": "80df1786-f9ea-4e52-af7f-80a9f6261f60",
+        "usageState": "ADOPTED"
+      }
+    ],
+    "credits": [
+      {
+        "id": "abd14801-ab91-43ce-8f74-5db802922b66",
+        "workId": "decacb63-5fc3-4a18-948d-9fccf7ad4c87",
+        "personId": "6fe5459d-5b59-4507-9f14-a36bbe187b43",
+        "personRoleId": "f5d91e27-ac0d-4440-bf77-c453be5d884a",
+        "sourceId": "429f9ad6-9a7f-469b-85b6-49ff987053f8",
+        "roleCode": "model"
+      },
+      {
+        "id": "9bd780d1-1c23-4f34-b4e2-dae2cd38377f",
+        "workId": "205dc170-806b-46ac-9e39-a1736166182e",
+        "personId": "6fe5459d-5b59-4507-9f14-a36bbe187b43",
+        "personRoleId": "f5d91e27-ac0d-4440-bf77-c453be5d884a",
+        "sourceId": "80df1786-f9ea-4e52-af7f-80a9f6261f60",
+        "roleCode": "model"
+      }
+    ]
+  },
+  "checks": [
+    "real MACHINE text Role JPEG MP4 PDF asynchronous worker READY/STAGED structure candidates",
+    "Chrome review adopts same formal Person exact Role Media Collection Work no Talent Consent",
+    "employee exact Person CLAIM invitation one use default no exposure",
+    "real OTP independent account CLAIM SELF exact same Person no duplication unexposed media Collection Work hidden",
+    "390px employee labelled exposure UI atomic Person Media Collection exact WorkCredit permission references refresh no repeat",
+    "exposed original Person image decoded MP4 played Range206 PDF bytes Collection own exact WorkCase no fake Consent",
+    "real same Person Talent text true Work Consent upload async READY Collection Work server drafts submitted",
+    "Talent review same Person own independent Source TALENT_CONSENT unchanged MACHINE INTERNAL_REVIEW attribution",
+    "Agent revoke keeps adopted formal exposure and Talent authority independent",
+    "Grant revoke terminates Portal permission only formal Person Media Work Collection retained",
+    "structured OTP session invitation Bearer receiveToken guard no plaintext logs receipts audits"
+  ],
+  "errors": [],
+  "PROVIDER_VERIFIED": "NOT_RUN",
+  "COS_PROVIDER_VERIFIED": "NOT_RUN",
+  "MOBILE_DEVICE_VERIFIED": "NOT_RUN",
+  "DEPLOYED": false
+}

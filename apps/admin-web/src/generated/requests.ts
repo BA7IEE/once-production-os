@@ -32,6 +32,8 @@ export interface Inputs {
   "portal.sessions.revoke": {  };
   "talent.account.disable": { "expectedRevision": number };
   "talent.account.erase": { "expectedRevision": number };
+  "talent.handoff.get": undefined;
+  "talent.grant.exposure": { "expectedRevision": number; "decision": "ALLOW" | "REVOKE"; "fields": Array<{ "field": "displayName" | "aliases" | "intro"; "expectedValueDigest": string }>; "assets": Array<{ "id": string; "expectedRevision": number }>; "collections": Array<{ "id": string; "expectedRevision": number }>; "credits": Array<{ "id": string; "expectedRevision": number }>; "approvalBasis": string };
   "portal.work.catalog": undefined;
   "portal.submission.works": { "expectedRevision": number; "works": Array<{ "clientItemKey": string; "mode": "CREATE_EXTERNAL_WORK" | "LINK_EXISTING_WORK"; "targetWorkId": string | null; "expectedWorkRevision": number | null; "personRoleId": string | null; "declaredRoleCode": string | null; "title": string; "description": string; "caseDate": string | null; "datePrecision": "UNKNOWN" | "YEAR" | "MONTH" | "DAY" | "APPROXIMATE"; "location": string; "industryCode": string | null; "workTypeCodes": Array<string>; "brandDisplayName": string; "creditNote": string; "coverAssetId": string | null; "items": Array<{ "referenceKind": "SUBMISSION_STAGED_ASSET" | "EXISTING_ADOPTED_ASSET_REFERENCE"; "assetId": string }> }> };
   "portal.work.list": undefined;
@@ -444,6 +446,16 @@ export const ENDPOINTS = {
   "talent.account.erase": {
     "method": "POST",
     "path": "/talent-accounts/{id}/erase",
+    "mode": "COMMAND"
+  },
+  "talent.handoff.get": {
+    "method": "GET",
+    "path": "/talent-handoff/people/{id}",
+    "mode": "READ"
+  },
+  "talent.grant.exposure": {
+    "method": "POST",
+    "path": "/talent-grants/{id}/exposure",
     "mode": "COMMAND"
   },
   "portal.work.catalog": {

@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: MACHINE upload ownership, atomic adoption and formal authorization transition
+ok 1 - MACHINE upload ownership, atomic adoption and formal authorization transition
+  ---
+  duration_ms: 480.844209
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing quota
+ok 2 - MACHINE upload fencing quota
+  ---
+  duration_ms: 129.914791
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing missing
+ok 3 - MACHINE upload fencing missing
+  ---
+  duration_ms: 128.934792
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing permission
+ok 4 - MACHINE upload fencing permission
+  ---
+  duration_ms: 131.036709
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing scope
+ok 5 - MACHINE upload fencing scope
+  ---
+  duration_ms: 130.438667
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing scopeRevision
+ok 6 - MACHINE upload fencing scopeRevision
+  ---
+  duration_ms: 129.39775
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing revoke
+ok 7 - MACHINE upload fencing revoke
+  ---
+  duration_ms: 127.85475
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing maintainer
+ok 8 - MACHINE upload fencing maintainer
+  ---
+  duration_ms: 196.460125
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing disable
+ok 9 - MACHINE upload fencing disable
+  ---
+  duration_ms: 129.210958
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing recovery
+ok 10 - MACHINE upload fencing recovery
+  ---
+  duration_ms: 129.283334
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing withdraw
+ok 11 - MACHINE upload fencing withdraw
+  ---
+  duration_ms: 130.276333
+  type: 'test'
+  ...
+# Subtest: MACHINE retention/purge draft1
+ok 12 - MACHINE retention/purge draft1
+  ---
+  duration_ms: 132.288208
+  type: 'test'
+  ...
+# Subtest: MACHINE retention/purge draft30
+ok 13 - MACHINE retention/purge draft30
+  ---
+  duration_ms: 133.332042
+  type: 'test'
+  ...
+# Subtest: MACHINE retention/purge withdraw
+ok 14 - MACHINE retention/purge withdraw
+  ---
+  duration_ms: 130.872875
+  type: 'test'
+  ...
+# Subtest: MACHINE retention/purge reject
+ok 15 - MACHINE retention/purge reject
+  ---
+  duration_ms: 132.671583
+  type: 'test'
+  ...
+# Subtest: MACHINE retention/purge partial
+ok 16 - MACHINE retention/purge partial
+  ---
+  duration_ms: 134.609875
+  type: 'test'
+  ...
+# Subtest: MACHINE retention/purge adopted
+ok 17 - MACHINE retention/purge adopted
+  ---
+  duration_ms: 139.497458
+  type: 'test'
+  ...
+# Subtest: MACHINE quota env is complete, independently bounded and never implicit
+ok 18 - MACHINE quota env is complete, independently bounded and never implicit
+  ---
+  duration_ms: 0.319166
+  type: 'test'
+  ...
+# Subtest: MACHINE receive authorization is one-time, expiring and bytes-bound
+ok 19 - MACHINE receive authorization is one-time, expiring and bytes-bound
+  ---
+  duration_ms: 137.2275
+  type: 'test'
+  ...
+# Subtest: MACHINE text+media review uses one measurement report timestamp on an advancing real clock
+ok 20 - MACHINE text+media review uses one measurement report timestamp on an advancing real clock
+  ---
+  duration_ms: 131.563083
+  type: 'test'
+  ...
+# Subtest: MACHINE media actual merge keeps STAGED unbound and moves only formal relationships
+ok 21 - MACHINE media actual merge keeps STAGED unbound and moves only formal relationships
+  ---
+  duration_ms: 161.217833
+  type: 'test'
+  ...
+# Subtest: MACHINE media Person deletion blocks staged and formal bytes without premature capacity release
+ok 22 - MACHINE media Person deletion blocks staged and formal bytes without premature capacity release
+  ---
+  duration_ms: 159.759958
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3440.426791

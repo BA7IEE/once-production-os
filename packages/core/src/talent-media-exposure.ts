@@ -1,3 +1,4 @@
+import {requireExposureBasis} from './talent-exposure-basis.ts';
 import type {Actor,Clock,Config} from './model.ts';
 import type {TalentActor} from './talent-auth-model.ts';
 import type {Exposure,TalentAccessGrant} from './talent-maintenance-model.ts';
@@ -14,7 +15,7 @@ import {v,uuid,revision} from './validation.ts';
 export type MediaExposureKind='mediaAsset'|'mediaCollection';
 const reference=v.object({id:uuid,expectedRevision:revision});
 export const mediaExposureSchema=v.object({expectedRevision:revision,decision:v.enum(['ALLOW','REVOKE']),assets:v.array(reference,200),collections:v.array(reference,50),approvalBasis:v.string(2000,4)});
-async function currentSource(tx:Tx,workspaceId:string,id:string,clock:Clock){const s=await workspaceRow(tx,'sources',id,workspaceId);if(!s||!sourceCurrent(s,clock)||await deletionBlocked(tx,workspaceId,'SOURCE',id))missing();return s;}
+async function currentSource(tx:Tx,workspaceId:string,id:string,clock:Clock){const s=await workspaceRow(tx,'sources',id,workspaceId);if(!s||!sourceCurrent(s,clock)||await deletionBlocked(tx,workspaceId,'SOURCE',id))missing();await requireExposureBasis(tx,s,clock);return s;}
 /** Explicit, version-bound exposure. Upload provenance is deliberately not an authorization input. */
 export async function mediaExposure(tx:Tx,g:TalentAccessGrant,kind:MediaExposureKind,id:string,clock:Clock,config:Config):Promise<Exposure>{
  const m=new TalentMaintenance(clock,config);await m.grant(tx,g.workspaceId,g.talentAccountId,g.id);const p=await m.person(tx,g.workspaceId,g.personId);
@@ -29,7 +30,7 @@ export async function mediaExposure(tx:Tx,g:TalentAccessGrant,kind:MediaExposure
   sourceId=c.sourceId;personRoleId=c.personRoleId;value=c;
  }
  if(personRoleId){const r=await workspaceRow(tx,'personRoles',personRoleId,g.workspaceId);if(!r||r.personId!==p.id||r.status!=='ACTIVE'||!periodCurrent(r as unknown as Record<string,unknown>,clock))missing();await currentSource(tx,g.workspaceId,r.sourceId,clock);}
- const s=await currentSource(tx,g.workspaceId,sourceId,clock);
+ const s=await currentSource(tx,g.workspaceId,sourceId,clock);await requireExposureBasis(tx,s,clock,kind==='mediaAsset'?['media']:['collection','media']);
  return {kind,targetId:id,field:'COLLECTION_MAINTAIN',valueDigest:digest({grantId:g.id,talentAccountId:g.talentAccountId,personId:p.id,authorizationEpoch:g.authorizationEpoch,protectionEpoch:p.protectionEpoch,value}),sourceId:s.id,sourceRevision:s.revision};
 }
 export async function requireMediaExposure(tx:Tx,actor:TalentActor,personId:string,kind:MediaExposureKind,id:string,clock:Clock,config:Config){

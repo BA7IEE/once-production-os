@@ -1,0 +1,18 @@
+{
+  "status": "POSTGRES_TESTED",
+  "migrationCount": [
+    {
+      "count": 74
+    }
+  ],
+  "checks": [
+    "same-Person-dual-MACHINE-INTERNAL_REVIEW-and-TALENT-CONSENT-business-export",
+    "verified-media-hash-exact-Person-Role-Collection-Work-Credit-rebuilt-without-account-session-Claim-Grant-Invitation-Submission-SP",
+    "no-STAGED-or-secret-or-authorizationEpoch-in-business-JSON",
+    "imported-INTERNAL_REVIEW-remains-non-Consent-and-TALENT-basis-remains-true-provenance",
+    "real-pnpm-rebuild-CLI-check-and-apply-mixed-machine-and-talent-provenance-no-auth-recreated",
+    "fresh1-to74-and-populated74-no-op-preserve-frozen-checksums-Grant",
+    "real-PG16-dump-restore-isolation-old-machine-talent-session-claim-invitation-Grant-draft-upload-worker-lease-do-not-revive",
+    "physical-restore-retains-ADOPTED-STAGED-and-independent-typed-provenance-without-restoring-current-authority"
+  ]
+}

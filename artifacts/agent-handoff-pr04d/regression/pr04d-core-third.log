@@ -1,0 +1,99 @@
+TAP version 13
+# Subtest: same Person MACHINE → CLAIM → explicit exposure → true Talent maintenance independent provenance
+not ok 1 - same Person MACHINE → CLAIM → explicit exposure → true Talent maintenance independent provenance
+  ---
+  duration_ms: 232.925833
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/agent-handoff.test.ts:4:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    handoffScenario (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/agent-handoff.ts:37:477)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/agent-handoff.test.ts:4:115)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: same Person handoff counterexample rollback
+ok 2 - same Person handoff counterexample rollback
+  ---
+  duration_ms: 167.936625
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample revoke
+ok 3 - same Person handoff counterexample revoke
+  ---
+  duration_ms: 174.402666
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample basis
+ok 4 - same Person handoff counterexample basis
+  ---
+  duration_ms: 154.046125
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample revision
+ok 5 - same Person handoff counterexample revision
+  ---
+  duration_ms: 161.473417
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample delete
+ok 6 - same Person handoff counterexample delete
+  ---
+  duration_ms: 168.827875
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample machine-revoke
+not ok 7 - same Person handoff counterexample machine-revoke
+  ---
+  duration_ms: 340.573042
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/agent-handoff.test.ts:5:32'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"VALIDATION_FAILED","message":"请求包含未知字段","requestId":"ee84b647-c611-4678-9acb-dc1644330bc0"}}
+    
+    400 !== 200
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 200
+  actual: 400
+  operator: 'strictEqual'
+  stack: |-
+    Object.expect (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/agent-media.ts:17:73)
+    async handoffCounterexample (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/support/agent-handoff.ts:50:127)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/core/agent-handoff.test.ts:5:87)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: same Person handoff counterexample integrity
+ok 8 - same Person handoff counterexample integrity
+  ---
+  duration_ms: 175.20125
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample claim-race
+ok 9 - same Person handoff counterexample claim-race
+  ---
+  duration_ms: 163.250083
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 7
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1975.534334
