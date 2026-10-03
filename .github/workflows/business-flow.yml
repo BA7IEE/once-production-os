@@ -25,8 +25,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Generate the real Prisma client
         run: pnpm db:generate
-      - name: Full types and core regression
-        run: node scripts/heavy-task.mjs pnpm typecheck && node scripts/heavy-task.mjs pnpm test:core
       - name: Contract and static checks
         run: pnpm contract:check && pnpm review:static
       - name: Build API and web
@@ -41,6 +39,8 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Real business pages and portal maintenance regression
         run: pnpm test:postgres:owned --business-flow-browser
+      - name: Full types and core regression
+        run: node scripts/heavy-task.mjs pnpm typecheck && node scripts/heavy-task.mjs pnpm test:core
       - name: Preserve this run's evidence even on failure
         if: always()
         uses: actions/upload-artifact@v7

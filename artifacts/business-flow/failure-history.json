@@ -86,5 +86,14 @@
     "cause": "21 aliases failed request shape validation before reaching a business 422",
     "resolution": "use whitespace-only name to reach real NAME_REQUIRED 422, assert no draft persisted, keep correction/new-key assertion",
     "evidence": "ci-input-first-failure.log"
+  },
+  {
+    "stage": "seventh CI lost portal draft response fixture",
+    "run": 37135234041,
+    "head": "d03d24b0a3c55ec1dc4a14a84102101a187507ec",
+    "result": "internal browser chains, real 422 correction and known-write refresh recovery passed; fixture expected 201 from portal command",
+    "cause": "portal command returns 200 with receipt; fixture copied internal resource creation status",
+    "resolution": "bind only the POST, require contract status 200 plus SUCCEEDED receipt and persisted DRAFT, drop its real response, and assert reload sends no second write",
+    "evidence": "ci-portal-recovery-failure.log"
   }
 ]

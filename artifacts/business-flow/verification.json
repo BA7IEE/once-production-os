@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-03T15:59:49.661121+00:00",
+  "at": "2026-10-03T16:11:40.228340+00:00",
   "base": "1dae5e729b3be3a01d8149e4f02bd64bc9436d61",
   "branch": "codex/business-flow-fixes",
   "status": "IMPLEMENTED_CI_RERUN_PENDING",
@@ -65,7 +65,7 @@
     "upgrade": "74->75",
     "fresh": "1->75"
   },
-  "browser": "INTERNAL_SIX_FLOWS_BROWSERT_TESTED_PREVIOUS_HEAD_PORTAL_PENDING",
+  "browser": "INTERNAL_SIX_FLOWS_BROWSER_TESTED_PREVIOUS_HEAD_PORTAL_RELOAD_PENDING",
   "ci": {
     "status": "SECOND_RUN_FAILED_BROWSER_SETUP_FIX_PENDING",
     "run": 37131423480,
@@ -95,6 +95,11 @@
       "head": "1c1acbb3a3fa7e0e2c5db9150c980dbabb2c20f7",
       "status": "FAIL_PORTAL_REJECTION_FIXTURE",
       "internalBrowserChecks": 6
+    },
+    "seventhRun": {
+      "run": 37135234041,
+      "head": "d03d24b0a3c55ec1dc4a14a84102101a187507ec",
+      "status": "FAIL_PORTAL_DRAFT_STATUS_FIXTURE"
     }
   },
   "providerVerified": "NOT_RUN",
@@ -107,7 +112,7 @@
     "requiredPressureLevel": 1
   },
   "sourceSha256": {
-    ".github/workflows/business-flow.yml": "aac83ae6b45258a3959ab511650d8989229f2b315ef2e02555866791c74df5cc",
+    ".github/workflows/business-flow.yml": "6a05148c4b1d816d7a2bf1153a7370e81bc02efa4c327f45a5efea68aa951cfc",
     "apps/admin-web/src/business-flow-ui.tsx": "a093b709a1ef66feef870542e50d3fd594c6a475a48027d524c336620a085f6a",
     "apps/admin-web/src/dto.ts": "174dc46da45ae1db9e1bb73ac5000c615c511953d0ab496dc6eda5c0fff185ac",
     "apps/admin-web/src/generated/requests.ts": "124583a4ffc68321ad57ec04960d0b87be696c8f85fbe993695e80d01d2ac4a0",
@@ -155,7 +160,7 @@
     "tests/support/memory-store.ts": "7aeb1295987dac3eea67fe27f0d60b90d520c27321538df874c3026ccf49e7a9",
     "scripts/registered-browser.mjs": "9f342e3fc6947dd427452087f68ddb8e7b45dc9428433b30ab3a173199478fa2",
     "tests/acceptance/browser-business-flow.mjs": "a5829decea09794cbd1b7d7824dab3d40086fc5169b0734d120987e131a2dd7e",
-    "tests/acceptance/browser-talent-maintenance.mjs": "10a7996ba420061345c1933dbd3f26cf3f5a2e434c042220cdb25ba2d5942fc7",
+    "tests/acceptance/browser-talent-maintenance.mjs": "5d5d7421375197dd161166b7fedf141e330a26eec95a380c03063778d39e7a68",
     "packages/core/src/rebuild-model.ts": "de6c8f4daebcf6739fd13b9631d55b53f5152fa52009d256a4c2752b671a62ce",
     "tests/lifecycle/registered-browser.test.mjs": "c244cea5482396bf8ae71f2a438b32951c15a069b523a55d25328c7c79fd1ced"
   },
