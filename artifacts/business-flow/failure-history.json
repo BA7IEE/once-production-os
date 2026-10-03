@@ -51,5 +51,14 @@
     "cause": "browser response waiter matched the in-flight reset ALL query rather than the subsequent CONTACT query",
     "resolution": "bind the response to CONTACT mode and the exact submitted search text; keep the one-contact and no-role assertions",
     "evidence": "ci-page-first-failure.log"
+  },
+  {
+    "stage": "fourth CI synthetic AI operator",
+    "run": 37132731222,
+    "head": "e76f5d5aadaa6046bdb398bf3b67994c34686378",
+    "result": "private review, raw source and typed import passed; AI input entry absent",
+    "cause": "bootstrap ADMIN intentionally does not receive ai.use by default",
+    "resolution": "explicitly grant ai.use to the synthetic operator through the existing membership API; preserve production defaults",
+    "evidence": "ci-portal-first-failure.log"
   }
 ]

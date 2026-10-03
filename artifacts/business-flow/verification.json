@@ -79,6 +79,11 @@
       "run": 37132022597,
       "head": "612082d4e7a24407a309be7e304762cdaa43d290",
       "status": "FAIL_BROWSER_RESPONSE_WAITER"
+    },
+    "fourthRun": {
+      "run": 37132731222,
+      "head": "e76f5d5aadaa6046bdb398bf3b67994c34686378",
+      "status": "FAIL_AI_OPERATOR_FIX_PENDING"
     }
   },
   "providerVerified": "NOT_RUN",
@@ -135,11 +140,11 @@
     "tests/lifecycle/preflight.test.mjs": "cf397185d5adcebc9a4ebebe693f880abaac102bace59a43ced1b1e6374d5eed",
     "tests/lifecycle/registered-temp.test.mjs": "39132f7a770134442c4b25077ebc471d1509d7c594a29dc961184a25c3322730",
     "tests/lifecycle/supervisor.test.mjs": "f5a49fa11b84acbbf12e51c245e37aecdc37ac0571c61a2841f3bb3256ad98f3",
-    "tests/postgres/business-flow.test.ts": "7c269ca2b9ee6f8d29fe3be2a9899e62919758706b7a445b374532e4e5848a97",
+    "tests/postgres/business-flow.test.ts": "fe930be705e023a2b60636b84a7706ce8cb2b8dc872a1a374644914aa424ae46",
     "tests/support/memory-store.ts": "7aeb1295987dac3eea67fe27f0d60b90d520c27321538df874c3026ccf49e7a9",
     "scripts/registered-browser.mjs": "e744a296e74f4c6f4f9dcf2b03d33548287c859ca74ec5c879dec6d126ca5360",
-    "tests/acceptance/browser-business-flow.mjs": "706f8c338946adf553602b98fee2dac8cc2c88f0b7a9600415bbd6d0353f88f1",
-    "tests/acceptance/browser-talent-maintenance.mjs": "de58877fbe3ffefb404bca15103ececa2262c6fb566c121cc986721cfd877fbb",
+    "tests/acceptance/browser-business-flow.mjs": "2bd152f33f8d132bd1a2738a2d530efd33b0fd99e5d05a4194a51c30cc24be0b",
+    "tests/acceptance/browser-talent-maintenance.mjs": "91495508686f5f0aebb2391e7e88c93eb5b65d20d63fa1d3cc3a8abcc35e0137",
     "packages/core/src/rebuild-model.ts": "de6c8f4daebcf6739fd13b9631d55b53f5152fa52009d256a4c2752b671a62ce"
   },
   "closingChecks": {

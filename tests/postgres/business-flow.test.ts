@@ -40,7 +40,8 @@ test('business flow on PostgreSQL: populated 74 migration upgrade or new empty i
   const modern=ok(await f.owner.cmd('POST','/imports/preview',{schemaVersion:'once-talent-import-v2',sourceId,rows:[{displayName:'合成新批次模特',roles:['model'],cityCode:'shenzhen'},{displayName:'合成普通联系人',roles:[],kind:'CONTACT'}]}),201).resourceId;
   // Simulate an old binary checkpointing a new-format row without typed facts.
   const legacyOnly=ok(await f.owner.cmd('POST','/people',{displayName:'合成旧进程未建职业',roles:['model'],sourceId}),201).resourceId;
-  await assert.rejects(db.$executeRawUnsafe(`UPDATE imports SET rows=jsonb_set(jsonb_set(rows,'{0,state}','"IMPORTED"'),'{0,personId}',to_jsonb($1::text)) WHERE id=$2::uuid`,legacyOnly,modern));
+  await assert.rejects(db.$executeRawUnsafe(`UPDATE imports SET rows=jsonb_set(jsonb_set(rows,'{0,state}','"IMPORTED"'),'{0,personId}',to_jsonb($1::text)) WHERE id=$2::uuid`,legacyOnly,modern),(error:any)=>error.code==='P2010'&&error.meta?.code==='23514'&&String(error.meta?.message).includes('IMPORT_V2_PROFILE_REQUIRED'));
+  assert.equal((await db.importBatch.findUniqueOrThrow({where:{id:modern}})).rows[0].state,'VALID');
   ok(await f.owner.cmd('POST',`/imports/${modern}/commit`,{expectedRevision:1,selectedRows:[0,1]}),202);await app.imports.process((await app.imports.claim())!);
   assert.equal(ok(await f.owner.raw('POST','/directory/talents/search',{mode:'TALENT',role:'model',location:'shenzhen'}),200).total,2);assert.equal(ok(await f.owner.raw('POST','/directory/talents/search',{mode:'CONTACT'}),200).items.filter((p:any)=>p.displayName==='合成普通联系人').length,1);
   const make=async(name:string,role:string)=>{const member=ok(await f.owner.raw('POST','/memberships',{loginName:name,displayName:'合成 '+name,role,extraPermissions:[]}),201),client=new Client(app);ok(await client.activate(member.activationToken),200);ok(await client.login(name),200);return {id:member.membershipId,client};};
