@@ -95,5 +95,14 @@
     "cause": "portal command returns 200 with receipt; fixture copied internal resource creation status",
     "resolution": "bind only the POST, require contract status 200 plus SUCCEEDED receipt and persisted DRAFT, drop its real response, and assert reload sends no second write",
     "evidence": "ci-portal-recovery-failure.log"
+  },
+  {
+    "stage": "eighth CI reload before draft fault completed",
+    "run": 37135977942,
+    "head": "0a32e49bd6cb9724f6056fcc4359b8f19d97b93f",
+    "result": "draft was committed; fixture reloaded while the response-drop handler was still running",
+    "cause": "pending button appears when a write begins; visibility does not prove the write response was lost",
+    "resolution": "wait for the actual client network-unknown alert before removing the fault handler and reloading; keep zero-second-write and same-draft assertions",
+    "evidence": "ci-portal-reload-failure.log"
   }
 ]

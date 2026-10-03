@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-03T16:11:40.228340+00:00",
+  "at": "2026-10-03T16:18:13.694500+00:00",
   "base": "1dae5e729b3be3a01d8149e4f02bd64bc9436d61",
   "branch": "codex/business-flow-fixes",
   "status": "IMPLEMENTED_CI_RERUN_PENDING",
@@ -100,6 +100,11 @@
       "run": 37135234041,
       "head": "d03d24b0a3c55ec1dc4a14a84102101a187507ec",
       "status": "FAIL_PORTAL_DRAFT_STATUS_FIXTURE"
+    },
+    "eighthRun": {
+      "run": 37135977942,
+      "head": "0a32e49bd6cb9724f6056fcc4359b8f19d97b93f",
+      "status": "FAIL_FIXTURE_RELOAD_BEFORE_FAULT_COMPLETION"
     }
   },
   "providerVerified": "NOT_RUN",
@@ -160,7 +165,7 @@
     "tests/support/memory-store.ts": "7aeb1295987dac3eea67fe27f0d60b90d520c27321538df874c3026ccf49e7a9",
     "scripts/registered-browser.mjs": "9f342e3fc6947dd427452087f68ddb8e7b45dc9428433b30ab3a173199478fa2",
     "tests/acceptance/browser-business-flow.mjs": "a5829decea09794cbd1b7d7824dab3d40086fc5169b0734d120987e131a2dd7e",
-    "tests/acceptance/browser-talent-maintenance.mjs": "5d5d7421375197dd161166b7fedf141e330a26eec95a380c03063778d39e7a68",
+    "tests/acceptance/browser-talent-maintenance.mjs": "36787d16ffda47c446985c9f0f062c005ec98a45e2c6e54515cb115e3cfef3dc",
     "packages/core/src/rebuild-model.ts": "de6c8f4daebcf6739fd13b9631d55b53f5152fa52009d256a4c2752b671a62ce",
     "tests/lifecycle/registered-browser.test.mjs": "c244cea5482396bf8ae71f2a438b32951c15a069b523a55d25328c7c79fd1ced"
   },
