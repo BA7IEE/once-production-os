@@ -58,6 +58,10 @@ export class ResourceRun {
       const [, group, state] = line.trim().split(/\s+/); return groups.includes(Number(group)) && state && !state.startsWith('Z');
     }).length : 0; } catch { failed=true; live='UNKNOWN'; }
     if (live) failed = true;
+    const browserRecords=readdirSync(this.directory).filter(n=>/^browser-[a-f0-9-]+\.json$/.test(n));
+    const unresolvedBrowserLaunches=browserRecords.filter(name=>JSON.parse(readFileSync(join(this.directory,name),'utf8')).status!=='CLOSED').length;
+    // Launch can fail before Playwright exposes a PID. An unresolved intent cannot prove absence.
+    if(unresolvedBrowserLaunches)failed=true;
     let directories=0;const temporaryRecords=readdirSync(this.directory).filter(n=>/^temporary-[a-f0-9-]+\.json$/.test(n));
     for(const name of temporaryRecords){
       const item=JSON.parse(readFileSync(join(this.directory,name),'utf8'));
@@ -66,7 +70,7 @@ export class ResourceRun {
     }
     this.record.status = failed ? 'CLEANUP_FAILED' : 'ZERO_RESIDUE';
     if(failed)this.record.outcome='CLEANUP_FAILED';
-    this.record.remaining = { containers: failed ? 'UNKNOWN' : 0, processes: live, networks: 0, temporaryVolumes: 0, ...(temporaryRecords.length?{temporaryDirectories:directories}:{}) };
+    this.record.remaining = { containers: failed ? 'UNKNOWN' : 0, processes: live, networks: 0, temporaryVolumes: 0, ...(temporaryRecords.length?{temporaryDirectories:directories}:{}), ...(browserRecords.length?{unresolvedBrowserLaunches}:{}) };
     this.record.finished = new Date().toISOString(); this.save();
     process.off('SIGINT', this.interrupt); process.off('SIGTERM', this.interrupt);
     if (failed) throw new Error('RESOURCE_LEAK: cleanup could not verify zero residue; retain lock and journal.');

@@ -77,5 +77,14 @@
     "resolution": "retire only already-invalid grants and create the new request atomically with minimal audit; audit failure rolls both changes back",
     "before": "review-renewal-before-fix.tap",
     "after": "review-renewal-after-fix.tap"
+  },
+  {
+    "stage": "sixth CI portal rejection fixture",
+    "run": 37134524123,
+    "head": "1c1acbb3a3fa7e0e2c5db9150c980dbabb2c20f7",
+    "result": "all six internal browser chains passed; portal structural overflow returned 400",
+    "cause": "21 aliases failed request shape validation before reaching a business 422",
+    "resolution": "use whitespace-only name to reach real NAME_REQUIRED 422, assert no draft persisted, keep correction/new-key assertion",
+    "evidence": "ci-input-first-failure.log"
   }
 ]

@@ -14,5 +14,5 @@ export async function registeredBrowser(type,options={}){
   writeFileSync(path,JSON.stringify(record),{mode:0o600});
   browser=await type.connect(server.wsEndpoint());
   return {browser,async close(){try{await browser.close();}finally{await server.close();writeFileSync(path,JSON.stringify({...record,status:'KILL_SENT'}),{mode:0o600});writeFileSync(intent,JSON.stringify({status:'CLOSED'}),{mode:0o600});}}};
- }catch(error){await server.close();throw error;}
+ }catch(error){await server.close();writeFileSync(intent,JSON.stringify({status:'CLOSED'}),{mode:0o600});throw error;}
 }

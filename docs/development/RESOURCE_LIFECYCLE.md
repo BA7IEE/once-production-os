@@ -40,7 +40,7 @@ API/Vite/Worker 只在需要时以前台方式运行，结束用 Ctrl-C。API �
 
 第二阶段移除 preflight 的全机容器数量统计；仍保留本地 Docker 目标校验、Swap ≤4GiB 和正常内存压力门槛，以及共享锁、上一轮本项目临时标签检查。不因验收需要放宽门槛。`verify:postgres` 只允许受控入口继承的登记环境调用，手动外部空库验证入口已关闭；不要继续按旧 LOCAL_RUN 第5节新建并保留更多库。
 
-当前项目没有临时 Compose 或浏览器测试创建路径。本轮只使用单一 disposable PG 容器，不创建临时 API/Worker/Browser。今后临时 API/Worker 必须使用同一 ResourceRun.command；浏览器对象必须 finally close；临时 Compose 必须先登记独立 project 与配置，finally down，清理只允许本轮资源。持久 Compose 禁止 down -v。
+业务流修复新增两个受控浏览器入口，由 `test:postgres:owned --business-flow-browser` 串行各自创建一个空的 disposable PG。API/Worker 继承同一 ResourceRun 的受监督进程组；Chromium 在启动前登记 intent，启动后登记 BrowserServer 的进程组，finally 关闭后再核对本轮进程、容器和临时目录零残留。临时目录在创建前登记，退出时统一回收。没有临时 Compose 路径；若今后引入，必须先登记独立 project 与配置，finally down，只清理本轮资源。持久 Compose 禁止 down -v。
 
 重启后的最小真实验收：先确认保护门槛允许，再串行执行：
 
