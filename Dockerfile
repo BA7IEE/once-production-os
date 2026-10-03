@@ -13,7 +13,7 @@ COPY packages ./packages
 COPY apps ./apps
 COPY scripts ./scripts
 COPY artifacts/openapi.json ./artifacts/openapi.json
-RUN pnpm contract:check && pnpm typecheck && pnpm build
+RUN pnpm contract:check && pnpm typecheck && pnpm build:sequential
 
 FROM postgres:16-bookworm@sha256:efedf3595f1d6f415c08568ba171029bf54052e754cc9f030e3f2412b21f3d67 AS ops
 WORKDIR /app

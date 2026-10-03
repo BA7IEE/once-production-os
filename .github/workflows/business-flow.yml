@@ -1,0 +1,46 @@
+name: ONCE business flow acceptance
+on:
+  pull_request:
+    branches: [codex/external-agent-claim-handoff-pr04d]
+permissions:
+  contents: read
+concurrency:
+  group: once-business-flow-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verify delivery fingerprints
+        run: sha256sum -c MANIFEST.sha256
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v6
+      - run: pnpm install --frozen-lockfile
+      - name: Generate the real Prisma client
+        run: pnpm db:generate
+      - name: Full types and core regression
+        run: node scripts/heavy-task.mjs pnpm typecheck && node scripts/heavy-task.mjs pnpm test:core
+      - name: Contract and static checks
+        run: pnpm contract:check && pnpm review:static
+      - name: Build API and web
+        run: pnpm build
+      - name: Process supervision and resource guards
+        run: pnpm test:lifecycle
+      - name: Fetch the test image on this isolated runner
+        run: docker pull postgres:16-bookworm
+      - name: Owned PG16 upgrade 74 to 75 and fresh install 1 to 75
+        run: pnpm test:postgres:owned --business-flow
+      - name: Preserve this run's evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: business-flow-${{ github.sha }}
+          path: |
+            artifacts/business-flow/
+            data/local-resource-runs/
+          if-no-files-found: error

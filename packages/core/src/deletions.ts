@@ -147,6 +147,7 @@ export class Deletions {
                     if (!(await scopeVisible(tx, actor, row.scopeId))) { miss('HIDDEN_UPLOAD_DEPENDENCY'); continue; }
                     add({ resourceKind: 'upload', resourceId: row.id, dependencyKind: 'SOURCE_UPLOAD', proposedAction: 'ERASE_PAYLOAD', evidenceState: 'PROVEN', detailCode: 'UPLOAD_METADATA_AND_STAGING' });
                 }
+                for(const row of await tx.find('sourceReviews',{workspaceId:actor.workspaceId,sourceId}))add({resourceKind:'sourceReview',resourceId:row.id,dependencyKind:'SOURCE_REVIEW',proposedAction:'RETAIN_MINIMAL_HEADER',evidenceState:'REVIEW_REQUIRED',detailCode:'SOURCE_REVIEW_SECURITY_HISTORY'});
                 for (const row of await tx.find('handoffs', { workspaceId: actor.workspaceId, sourceId })) {
                     if (!(await scopeVisible(tx, actor, row.personScopeId)) || !(await scopeVisible(tx, actor, row.sourceScopeId))) { miss('HIDDEN_HANDOFF_DEPENDENCY'); continue; }
                     add({ resourceKind: 'handoff', resourceId: row.id, dependencyKind: 'SOURCE_HANDOFF', proposedAction: 'RETAIN_MINIMAL_HEADER', evidenceState: 'REVIEW_REQUIRED', detailCode: 'HANDOFF_SECURITY_HISTORY' });
@@ -187,6 +188,7 @@ export class Deletions {
                 }
                 else miss('HIDDEN_SHORTLIST_DEPENDENCY');
             }
+            for(const row of await tx.find('sourceReviews',{workspaceId:actor.workspaceId,personId}))add({resourceKind:'sourceReview',resourceId:row.id,dependencyKind:'PERSON_SOURCE_REVIEW',proposedAction:'RETAIN_MINIMAL_HEADER',evidenceState:'REVIEW_REQUIRED',detailCode:'SOURCE_REVIEW_SECURITY_HISTORY'});
             for (const row of await tx.find('handoffs', { workspaceId: actor.workspaceId, personId }))
                 add({ resourceKind: 'handoff', resourceId: row.id, dependencyKind: 'PERSON_HANDOFF', proposedAction: 'RETAIN_MINIMAL_HEADER', evidenceState: 'REVIEW_REQUIRED', detailCode: 'HANDOFF_SECURITY_HISTORY' });
         }

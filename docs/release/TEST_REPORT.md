@@ -1,3 +1,11 @@
+## 2026-10-03：业务流修复（独立工作树，尚未完整验收）
+
+基于 `1dae5e729b3be3a01d8149e4f02bd64bc9436d61`，本轮修复来源核验与团队共享、版本化人才导入及旧记录补齐、本人端拒绝与未知结果恢复、多来源核心资料保存、来源原文页面录入。完整边界、权限矩阵及迁移顺序见 [业务流修复交付](BUSINESS_FLOW_FIXES.md)。新增迁移75，旧1–74未改；迁移75尚未在真实数据库执行，未合并、未部署。
+
+本轮受影响回归 **146/146 CORE_MEMORY_TESTED**，资源生命周期 **24/24 PASS**（Docker故障用例为模拟，不能算真实Docker验收）；核心类型及六个前端入口的局部类型检查、Prisma模型校验、真实客户端生成、299路契约及静态检查通过。完整前端类型检查触及256 MiB堆上限，保留失败；完整后端typecheck、构建、真实PG、浏览器、CI、PROVIDER_VERIFIED及生产迁移均NOT_RUN。共享Mac最后观测Swap7814.06 MiB、内存压力等级2，超过重型验证门槛。当前测试所登记进程已核对ZERO_RESIDUE，不代表历史资源被清理。
+
+证据在 `artifacts/business-flow/core.json`、`checks.json`、`verification.json`；首次失败与修正说明保留。以下是旧版本历史证据，不自动适用于本轮。
+
 ## 2026-10-02：PR-04D 同档接手与生命周期总收口（Draft，待代码级复核）
 
 用户已冻结 A–C，C基线 `4e7593c9dbd06ef4355e2a928ebec0c8a1c72efb`。本轮独立 stacked Draft PR35，复用既有 CLAIM / TalentAccount / SELF Grant；Agent正式人物由本人认领后保持同一 Person ID，默认不开放历史资料。人物详情新增逐项 exposure 管理；历史 exact WorkCredit 可经内部明确批准只读，不伪造 Consent，后续 Work维护仍需真实本人 WorkConsent。当前 Source/typed basis/fieldScope、Role、Grant、删除/恢复保护和版本均重新核对。原 MACHINE INTERNAL_REVIEW 保持，新本人维护创建独立 TALENT_CONSENT，不洗来源。
@@ -218,7 +226,7 @@ AI发送、任务预留和启用状态现检查INTERNAL及INTERNAL_APPROVED；�
 
 旧身高人工复核与受限资质编号清除已接通：明确不采用不生成量尺且保留旧值；清除编号只移除密文/尾号，保留核验状态和证明关系。463/463 CORE_MEMORY_TESTED，170条契约及类型/静态/构建/transport PASS；完整 PostgreSQL 链、领域/兼容22/22 DB_TESTED；完整 Chromium BROWSER_TESTED。新增操作均有人工作业确认、当前权限/来源版本复查、审计回滚和原键重试。42次迁移冻结。证据见 `docs/release/TD2_MANUAL_MAINTENANCE.md`、`docs/release/TD2_GATE_MATRIX.md` 与 `artifacts/td2-manual-maintenance-20260928/`。前批 `51a62af` / Actions36360806914 已确认5/5；本批head另验。AI与整期交付未完成，未合并、未部署。
 
-旧候选工作台的结构化检索已接入当前专业事实、同作品/对应职业匹配、当前核验与全结果分类计数；纯旧库维持SQL路径，100/1000人实测均20次查询，未放宽既有上限。鞋码等不含身高的量尺确认不再关闭旧身高复核；明确身高确认与审计失败回滚/原键重试一致。462/462 CORE_MEMORY_TESTED，最终受影响11/11；完整 PostgreSQL 链及领域/兼容21/21 DB_TESTED；完整 Chromium BROWSER_TESTED；类型/契约/静态/构建/transport PASS。42次迁移冻结，本批无迁移。见 `docs/release/TD2_STRUCTURED_COMPATIBILITY.md` 和 `artifacts/td2-structured-compatibility-20260928/`。前批 `9abdebd` / Actions36359984803 已确认5/5，本批head另验；人工迁移复核界面和受限编号清除路径继续，未合并、未部署。
+旧候选工作台的结构化检索已接入当前专业事实、同作品/对应职业匹配、当前核验与全结果分类计数；纯旧库维持SQL路径，100/1000人实测均20次查询，未放宽既有上限。鞋码等不含身高的量尺确认不再关闭旧身高复核；明确身高确认与审计失败回滚/原键重试一致。462/462 CORE_MEMORY_TESTED，最终受影响11/11；完整 PostgreSQL 链及领域/兼容24/24 DB_TESTED；完整 Chromium BROWSER_TESTED；类型/契约/静态/构建/transport PASS。42次迁移冻结，本批无迁移。见 `docs/release/TD2_STRUCTURED_COMPATIBILITY.md` 和 `artifacts/td2-structured-compatibility-20260928/`。前批 `9abdebd` / Actions36359984803 已确认5/5，本批head另验；人工迁移复核界面和受限编号清除路径继续，未合并、未部署。
 
 升级档案的旧列表/详情已改读当前专业事实；停用或来源不可用不回退显示历史列，旧专业字段写入/核验由服务端阻断，旧编辑页仅维护基本身份。460/460 CORE_MEMORY_TESTED，专项2/2；完整 PostgreSQL 链及领域/兼容19/19 DB_TESTED；真实 Chromium 编辑请求与原关系保留 BROWSER_TESTED；类型/契约/静态检查/构建/transport PASS。无迁移，42次冻结。见 `docs/release/TD2_LEGACY_PROJECTION.md`、`artifacts/td2-legacy-projection-20260928/`。前批 `9e00b53` / Actions36359307865 已确认5/5；本批head另验。旧结构化检索、身高复核及完整迁移收口继续；未合并、未部署。
 

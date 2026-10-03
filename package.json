@@ -14,7 +14,7 @@
     "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p apps/admin-web/tsconfig.json",
     "build:api": "tsc -p tsconfig.server.json",
     "build:web": "vite build --config apps/admin-web/vite.config.ts",
-    "build": "pnpm build:api && pnpm build:web",
+    "build": "node scripts/heavy-task.mjs pnpm build:sequential",
     "dev:api": "node --env-file=.env dist/apps/api/src/main.js",
     "dev:web": "vite --config apps/admin-web/vite.config.ts",
     "start": "node dist/apps/api/src/main.js",
@@ -39,7 +39,11 @@
     "recovery:backup": "node --experimental-strip-types scripts/recovery-backup.ts",
     "recovery:approve": "node --experimental-strip-types scripts/recovery-approve.ts",
     "recovery:restore-media": "node --experimental-strip-types scripts/recovery-restore-media.ts",
-    "verify:talent-intake": "node tests/acceptance/browser-talent-intake.mjs"
+    "verify:talent-intake": "node tests/acceptance/browser-talent-intake.mjs",
+    "build:sequential": "pnpm build:api && pnpm build:web",
+    "test:postgres:owned": "node scripts/test-postgres-owned.mjs",
+    "test:lifecycle": "node --test --test-concurrency=1 tests/lifecycle/*.test.mjs",
+    "test:business-flow": "node scripts/test-business-flow.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "4.0.65",

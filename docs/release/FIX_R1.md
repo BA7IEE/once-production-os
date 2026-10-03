@@ -1,3 +1,5 @@
+> 2026-10-03 当前修复工作见 [业务流修复交付](BUSINESS_FLOW_FIXES.md)。本次有新迁移75，真实PG和页面验收尚未运行；以下R1实测只保留作历史证据。
+
 # Review R1 修复增量
 
 - 目标基线：`BA7IEE/once-production-os@44aac4d93f23bb1f4c69e960a4c82d01b8b0d9dc`。

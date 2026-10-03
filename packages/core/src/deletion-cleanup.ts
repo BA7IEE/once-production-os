@@ -254,6 +254,7 @@ export class DeletionCleanup {
             throw new AppError(409, 'CLEANUP_ACTION_UNSUPPORTED', '派生物清理类型尚未注册');
         }
         if (action === 'RETAIN_MINIMAL_HEADER') {
+            if(item.resourceKind==='sourceReview'){const row=await tx.get('sourceReviews',item.resourceId);if(row&&row.state!=='REVOKED')await tx.replace('sourceReviews',{...touch(row,this.clock),state:'REVOKED'});return {outcome:'DONE'};}
             invariant(item.resourceKind === 'handoff', 'CLEANUP_ACTION_UNSUPPORTED', '最小头保留类型尚未注册', 409);
             const row = await tx.get('handoffs', item.resourceId);
             if (row && row.state !== 'REVOKED') await tx.replace('handoffs', { ...touch(row, this.clock), state: 'REVOKED',

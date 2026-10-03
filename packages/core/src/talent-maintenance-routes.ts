@@ -6,6 +6,7 @@ import {TalentMediaSchemas,MediaSchemas} from './media-validation.ts';
 import type {RouteDefinition} from './routes.ts';
 import {MaintenanceSchemas as S} from './talent-maintenance-schema.ts';
 export const TALENT_MAINTENANCE_ROUTES:RouteDefinition[]=[
+ {method:'GET',path:'/portal/commands/{id}',operation:'portal.command.get',mode:'READ'},
  {method:'GET',path:'/talent-handoff/people/{id}',operation:'talent.handoff.get',mode:'READ',permission:'talent.review'},
  {method:'POST',path:'/talent-grants/{id}/exposure',operation:'talent.grant.exposure',mode:'COMMAND',permission:'talent.review',schema:handoffExposureSchema},
  {method:'GET',path:'/portal/work-catalog',operation:'portal.work.catalog',mode:'READ'},

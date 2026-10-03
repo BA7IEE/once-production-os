@@ -453,6 +453,7 @@ export class RecoveryOps {
             if (row.id !== actor.membershipId && row.status !== 'DISABLED')
                 await tx.replace('memberships', { ...touch(row, this.clock), status: 'DISABLED' });
 
+        for(const row of await tx.find('sourceReviews',{workspaceId:actor.workspaceId}))if(['PENDING','ACCEPTED','REVIEWED'].includes(row.state))await tx.replace('sourceReviews',{...touch(row,this.clock),state:'REVOKED'});
         for (const row of await tx.find('handoffs', { workspaceId: actor.workspaceId }))
             if (row.state === 'PENDING' || row.state === 'ACCEPTED')
                 await tx.replace('handoffs', { ...touch(row, this.clock), state: 'REVOKED',

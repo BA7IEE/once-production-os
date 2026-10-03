@@ -44,6 +44,7 @@ import { Talent } from './talent.ts';
 import { Commands } from './commands.ts';
 import { authorizeReceipt } from './replay-policy.ts';
 import { readSourceHistory } from './source-history.ts';
+import {SourceReviews,sourceReviewParticipant} from './source-review.ts';
 import { Handoffs, handoffParticipant } from './handoffs.ts';
 import { Imports } from './imports.ts';
 import { csrfFor, equalSecret, randomSecret } from './crypto.ts';
@@ -92,6 +93,7 @@ export class Application {
     commands: Commands;
     imports: Imports;
     handoffs: Handoffs;
+    sourceReviews: SourceReviews;
     media: Media;
     portfolio: Portfolio;
     ai: AiBusiness;
@@ -134,6 +136,7 @@ export class Application {
         this.deletionFinalization = new DeletionFinalization(store, clock, config);
         this.personMerges = new PersonMerges(clock, config);
         this.handoffs = new Handoffs(clock);
+        this.sourceReviews=new SourceReviews(clock,config);
         this.mediaPurge=new MediaPurge(store,clock,config);
         this.media = new Media(store, clock, config);
         this.commands = new Commands(clock);
@@ -517,6 +520,16 @@ export class Application {
                     case 'source.update': return command('source', () => this.talent.updateSource(tx, actor, id, data));
                     case 'source.review': return command('source', () => this.talent.reviewSource(tx, actor, id, data));
                     case 'source.suspend': return command('source', () => this.talent.suspendSource(tx, actor, id, data));
+                    case 'sourceReview.candidates':return this.sourceReviews.candidates(tx,actor,query);
+                    case 'sourceReview.list':return this.sourceReviews.list(tx,actor,query);
+                    case 'sourceReview.options':return this.sourceReviews.options(tx,actor,id);
+                    case 'sourceReview.get':return this.sourceReviews.get(tx,actor,id,meta);
+                    case 'sourceReview.create':return command('sourceReview',()=>this.sourceReviews.create(tx,actor,id,data));
+                    case 'sourceReview.review':return command('sourceReview',()=>this.sourceReviews.review(tx,actor,id,data));
+                    case 'sourceReview.publish':return command('sourceReview',()=>this.sourceReviews.publish(tx,actor,id,data));
+                    case 'sourceReview.accept':return command('sourceReview',()=>this.sourceReviews.act(tx,actor,id,data,'accept'));
+                    case 'sourceReview.decline':return command('sourceReview',()=>this.sourceReviews.act(tx,actor,id,data,'decline'));
+                    case 'sourceReview.revoke':return command('sourceReview',()=>this.sourceReviews.act(tx,actor,id,data,'revoke'));
                     case 'handoff.recipients': return this.handoffs.recipients(tx, actor, id, query);
                     case 'handoff.list': return this.handoffs.list(tx, actor, query);
                     case 'handoff.get': return this.handoffs.get(tx, actor, id);
@@ -538,6 +551,8 @@ export class Application {
                     case 'contact.get': return this.talent.contacts(tx, actor, id, meta);
                     case 'contact.replace': return command('person', () => this.talent.replaceContacts(tx, actor, id, data));
                     case 'evidence.confirm': return command('person', () => this.talent.confirmEvidence(tx, actor, data));
+                    case 'import.upgradePreview':return this.imports.upgradePreview(tx,actor,id);
+                    case 'import.upgrade':return command('import',()=>this.imports.upgrade(tx,actor,id,data));
                     case 'import.preview': return command('import', () => this.imports.preview(tx, actor, data));
                     case 'import.get': return this.imports.get(tx, actor, id);
                     case 'import.commit': return command('job', () => this.imports.commit(tx, actor, id, data));
@@ -558,7 +573,7 @@ export class Application {
             if (['ai.create', 'import.commit', 'job.resume', 'upload.complete', 'ingestion.upload.complete', 'export.create'].includes(route.operation))
                 response.status = 202;
             else if (route.operation==='directory.talent.create' || route.operation.startsWith('td2.') && route.operation.endsWith('.create')) response.status = 201;
-            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['brand.create', 'ai.grant', 'locale.create', 'deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create', 'ingestion.upload.create'].includes(route.operation)))
+            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['sourceReview.create','brand.create', 'ai.grant', 'locale.create', 'deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create', 'ingestion.upload.create'].includes(route.operation)))
                 response.status = 201;
             return response;
         }
@@ -601,6 +616,7 @@ export class Application {
                     await uploadFor(tx, actor, row.resourceId);
                 if (row.resourceKind === 'asset')
                     await assetFor(tx, actor, row.resourceId, this.clock);
+                if(row.resourceKind==='sourceReview')await sourceReviewParticipant(tx,actor,row.resourceId);
                 if (row.resourceKind === 'handoff')
                     await handoffParticipant(tx, actor, row.resourceId);
                 if (row.resourceKind === 'deletion')

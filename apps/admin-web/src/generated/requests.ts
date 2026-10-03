@@ -32,6 +32,7 @@ export interface Inputs {
   "portal.sessions.revoke": {  };
   "talent.account.disable": { "expectedRevision": number };
   "talent.account.erase": { "expectedRevision": number };
+  "portal.command.get": undefined;
   "talent.handoff.get": undefined;
   "talent.grant.exposure": { "expectedRevision": number; "decision": "ALLOW" | "REVOKE"; "fields": Array<{ "field": "displayName" | "aliases" | "intro"; "expectedValueDigest": string }>; "assets": Array<{ "id": string; "expectedRevision": number }>; "collections": Array<{ "id": string; "expectedRevision": number }>; "credits": Array<{ "id": string; "expectedRevision": number }>; "approvalBasis": string };
   "portal.work.catalog": undefined;
@@ -106,7 +107,7 @@ export interface Inputs {
   "locale.get": undefined;
   "locale.create": { "subjectKind": "PERSON" | "WORK" | "PROJECT"; "subjectId": string; "locale": "zh" | "en"; "text": string; "sourceRefs": Array<{ "id": string; "expectedRevision": number }>; "expectedSubjectRevision": number; "confirmCurrentBasis": boolean };
   "locale.update": { "expectedRevision": number; "text": string; "sourceRefs": Array<{ "id": string; "expectedRevision": number }>; "expectedSubjectRevision": number; "confirmCurrentBasis": boolean };
-  "directory.talent.update": { "schemaVersion": "once-talent-experience-v1"; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "profile"?: { "internalSummary"?: string; "status"?: "ACTIVE" | "ARCHIVED"; "genderCode"?: "FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | null; "birthPrecision"?: "UNKNOWN" | "EXACT_DATE" | "YEAR_ONLY" | "DECLARED_RANGE"; "birthDate"?: string | null; "birthYear"?: number | null; "minAgeYears"?: number | null; "maxAgeYears"?: number | null; "ageAsOfDate"?: string | null; "nationalityCodes"?: Array<string>; "coverAssetId"?: string | null }; "model"?: { "validFrom"?: string | null; "validUntil"?: string | null; "status"?: "ACTIVE" | "INACTIVE"; "castingMarketCode"?: "UNCLASSIFIED" | "DOMESTIC" | "INTERNATIONAL"; "experienceCode"?: "UNSPECIFIED" | "AMATEUR" | "PROFESSIONAL"; "styleCodes"?: Array<string>; "serviceCodes"?: Array<string> }; "locationCode"?: string | null; "measurement"?: { "measuredOn": string | null; "datePrecision": "EXACT_DAY" | "APPROXIMATE" | "UNKNOWN"; "heightCm"?: number | null; "bustCm"?: number | null; "waistCm"?: number | null; "hipsCm"?: number | null; "shoeSizeValue"?: string | null; "shoeSizeSystem"?: "EU" | "US" | "UK" | "CN" | null; "clothingSizeValue"?: string | null; "clothingSizeSystem"?: "INTL" | "EU" | "US" | "UK" | "CN" | null; "supersedesId"?: string | null }; "confirmMeasurement"?: boolean };
+  "directory.talent.update": { "schemaVersion": "once-talent-experience-v1"; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "bases"?: { "profile"?: { "sourceId": string; "sourceRevision": number; "recordId"?: string; "expectedRevision"?: number }; "model"?: { "sourceId": string; "sourceRevision": number; "recordId"?: string; "expectedRevision"?: number }; "location"?: { "sourceId": string; "sourceRevision": number; "recordId"?: string; "expectedRevision"?: number }; "measurement"?: { "sourceId": string; "sourceRevision": number; "recordId"?: string; "expectedRevision"?: number } }; "profile"?: { "internalSummary"?: string; "status"?: "ACTIVE" | "ARCHIVED"; "genderCode"?: "FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | null; "birthPrecision"?: "UNKNOWN" | "EXACT_DATE" | "YEAR_ONLY" | "DECLARED_RANGE"; "birthDate"?: string | null; "birthYear"?: number | null; "minAgeYears"?: number | null; "maxAgeYears"?: number | null; "ageAsOfDate"?: string | null; "nationalityCodes"?: Array<string>; "coverAssetId"?: string | null }; "model"?: { "validFrom"?: string | null; "validUntil"?: string | null; "status"?: "ACTIVE" | "INACTIVE"; "castingMarketCode"?: "UNCLASSIFIED" | "DOMESTIC" | "INTERNATIONAL"; "experienceCode"?: "UNSPECIFIED" | "AMATEUR" | "PROFESSIONAL"; "styleCodes"?: Array<string>; "serviceCodes"?: Array<string> }; "locationCode"?: string | null; "measurement"?: { "measuredOn": string | null; "datePrecision": "EXACT_DAY" | "APPROXIMATE" | "UNKNOWN"; "heightCm"?: number | null; "bustCm"?: number | null; "waistCm"?: number | null; "hipsCm"?: number | null; "shoeSizeValue"?: string | null; "shoeSizeSystem"?: "EU" | "US" | "UK" | "CN" | null; "clothingSizeValue"?: string | null; "clothingSizeSystem"?: "INTL" | "EU" | "US" | "UK" | "CN" | null; "supersedesId"?: string | null }; "confirmMeasurement"?: boolean };
   "directory.talent.search": { "q"?: string; "mode"?: "ALL" | "TALENT" | "CONTACT"; "role"?: string | Array<string>; "gender"?: "FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | "UNKNOWN" | Array<"FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | "UNKNOWN">; "nationality"?: string | Array<string>; "market"?: "DOMESTIC" | "INTERNATIONAL" | "UNCLASSIFIED" | Array<"DOMESTIC" | "INTERNATIONAL" | "UNCLASSIFIED">; "experience"?: "AMATEUR" | "PROFESSIONAL" | "UNSPECIFIED" | Array<"AMATEUR" | "PROFESSIONAL" | "UNSPECIFIED">; "style"?: string | Array<string>; "service"?: string | Array<string>; "location"?: string | Array<string>; "language"?: string | Array<string>; "industryCode"?: string | Array<string>; "workTypeCode"?: string | Array<string>; "status"?: "DRAFT" | "ACTIVE" | "ARCHIVED"; "ageMin"?: number; "ageMax"?: number; "ageUnknown"?: boolean; "heightMin"?: number; "heightMax"?: number; "page"?: number; "pageSize"?: number };
   "directory.talent.get": undefined;
   "directory.talent.create": { "schemaVersion": "once-talent-experience-v1"; "displayName": string; "kind": "TALENT" | "CONTACT"; "roleCodes"?: Array<string>; "sourceId"?: string; "sourceRevision"?: number };
@@ -235,6 +236,16 @@ export interface Inputs {
   "source.update": { "expectedRevision": number; "title"?: string; "textPayload"?: string; "providerClaim"?: string };
   "source.review": { "expectedRevision": number; "basisDescription": string; "validUntil": string };
   "source.suspend": { "expectedRevision": number; "reason": string };
+  "sourceReview.candidates": undefined;
+  "sourceReview.options": undefined;
+  "sourceReview.create": { "expectedRevision": number; "expectedSourceRevision": number; "reviewerId": string; "publisherId": string; "targetScopeId": string; "expiresAt": string; "acknowledgeLimitedAccess": boolean };
+  "sourceReview.list": undefined;
+  "sourceReview.get": undefined;
+  "sourceReview.accept": { "expectedRevision": number };
+  "sourceReview.decline": { "expectedRevision": number };
+  "sourceReview.revoke": { "expectedRevision": number };
+  "sourceReview.review": { "expectedRevision": number; "basisDescription": string; "validUntil": string };
+  "sourceReview.publish": { "expectedRevision": number; "confirmScope": boolean };
   "handoff.recipients": undefined;
   "handoff.create": { "expectedRevision": number; "expectedSourceRevision": number; "recipientId": string; "purpose": "EDIT" | "REVIEW"; "expiresAt": string; "acknowledgeLimitedAccess": boolean };
   "handoff.list": undefined;
@@ -252,7 +263,9 @@ export interface Inputs {
   "contact.get": undefined;
   "contact.replace": { "expectedRevision": number; "contacts": Array<{ "kind": "PHONE" | "WECHAT" | "EMAIL" | "OTHER"; "value": string; "sourceId": string }> };
   "evidence.confirm": { "personId": string; "expectedRevision": number; "fieldPath": "displayName" | "aliases" | "roles" | "cityCode" | "languageCodes" | "skillCodes" | "heightCm" | "intro"; "sourceId": string; "sourceRevision": number };
-  "import.preview": { "sourceId": string; "rows": Array<unknown> };
+  "import.upgradePreview": undefined;
+  "import.upgrade": { "expectedRevision": number; "confirm": boolean; "entries": Array<{ "index": number; "personId": string; "expectedPersonRevision": number; "sourceRevision": number }> };
+  "import.preview": { "schemaVersion"?: "once-talent-import-v2"; "sourceId": string; "rows": Array<unknown> };
   "import.get": undefined;
   "import.commit": { "expectedRevision": number; "selectedRows": Array<number> };
   "job.list": undefined;
@@ -447,6 +460,11 @@ export const ENDPOINTS = {
     "method": "POST",
     "path": "/talent-accounts/{id}/erase",
     "mode": "COMMAND"
+  },
+  "portal.command.get": {
+    "method": "GET",
+    "path": "/portal/commands/{id}",
+    "mode": "READ"
   },
   "talent.handoff.get": {
     "method": "GET",
@@ -1463,6 +1481,56 @@ export const ENDPOINTS = {
     "path": "/sources/{id}/suspend",
     "mode": "COMMAND"
   },
+  "sourceReview.candidates": {
+    "method": "GET",
+    "path": "/source-reviews/candidates",
+    "mode": "READ"
+  },
+  "sourceReview.options": {
+    "method": "GET",
+    "path": "/people/{id}/source-review-options",
+    "mode": "READ"
+  },
+  "sourceReview.create": {
+    "method": "POST",
+    "path": "/people/{id}/source-reviews",
+    "mode": "COMMAND"
+  },
+  "sourceReview.list": {
+    "method": "GET",
+    "path": "/source-reviews",
+    "mode": "READ"
+  },
+  "sourceReview.get": {
+    "method": "GET",
+    "path": "/source-reviews/{id}",
+    "mode": "READ"
+  },
+  "sourceReview.accept": {
+    "method": "POST",
+    "path": "/source-reviews/{id}/accept",
+    "mode": "COMMAND"
+  },
+  "sourceReview.decline": {
+    "method": "POST",
+    "path": "/source-reviews/{id}/decline",
+    "mode": "COMMAND"
+  },
+  "sourceReview.revoke": {
+    "method": "POST",
+    "path": "/source-reviews/{id}/revoke",
+    "mode": "COMMAND"
+  },
+  "sourceReview.review": {
+    "method": "POST",
+    "path": "/source-reviews/{id}/review",
+    "mode": "COMMAND"
+  },
+  "sourceReview.publish": {
+    "method": "POST",
+    "path": "/source-reviews/{id}/publish",
+    "mode": "COMMAND"
+  },
   "handoff.recipients": {
     "method": "GET",
     "path": "/people/{id}/handoff-recipients",
@@ -1546,6 +1614,16 @@ export const ENDPOINTS = {
   "evidence.confirm": {
     "method": "POST",
     "path": "/field-evidence",
+    "mode": "COMMAND"
+  },
+  "import.upgradePreview": {
+    "method": "GET",
+    "path": "/imports/{id}/upgrade-preview",
+    "mode": "READ"
+  },
+  "import.upgrade": {
+    "method": "POST",
+    "path": "/imports/{id}/upgrade",
     "mode": "COMMAND"
   },
   "import.preview": {

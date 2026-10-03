@@ -1,3 +1,11 @@
+## 2026-10-03：业务流修复（独立工作树，尚未完整验收）
+
+基于 `1dae5e729b3be3a01d8149e4f02bd64bc9436d61`，本轮修复来源核验与团队共享、版本化人才导入及旧记录补齐、本人端拒绝与未知结果恢复、多来源核心资料保存、来源原文页面录入。完整边界、权限矩阵及迁移顺序见 [业务流修复交付](BUSINESS_FLOW_FIXES.md)。新增迁移75，旧1–74未改；迁移75尚未在真实数据库执行，未合并、未部署。
+
+本轮受影响回归 **146/146 CORE_MEMORY_TESTED**，资源生命周期 **24/24 PASS**（Docker故障用例为模拟，不能算真实Docker验收）；核心类型及六个前端入口的局部类型检查、Prisma模型校验、真实客户端生成、299路契约及静态检查通过。完整前端类型检查触及256 MiB堆上限，保留失败；完整后端typecheck、构建、真实PG、浏览器、CI、PROVIDER_VERIFIED及生产迁移均NOT_RUN。共享Mac最后观测Swap7814.06 MiB、内存压力等级2，超过重型验证门槛。当前测试所登记进程已核对ZERO_RESIDUE，不代表历史资源被清理。
+
+证据在 `artifacts/business-flow/core.json`、`checks.json`、`verification.json`；首次失败与修正说明保留。以下是旧版本历史证据，不自动适用于本轮。
+
 ## 2026-10-02：PR-04D 同档接手与生命周期总收口（Draft，待代码级复核）
 
 用户已冻结 A–C，C基线 `4e7593c9dbd06ef4355e2a928ebec0c8a1c72efb`。本轮独立 stacked Draft PR35，复用既有 CLAIM / TalentAccount / SELF Grant；Agent正式人物由本人认领后保持同一 Person ID，默认不开放历史资料。人物详情新增逐项 exposure 管理；历史 exact WorkCredit 可经内部明确批准只读，不伪造 Consent，后续 Work维护仍需真实本人 WorkConsent。当前 Source/typed basis/fieldScope、Role、Grant、删除/恢复保护和版本均重新核对。原 MACHINE INTERNAL_REVIEW 保持，新本人维护创建独立 TALENT_CONSENT，不洗来源。

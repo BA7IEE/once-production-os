@@ -141,6 +141,7 @@ export interface Job {
     resumeBlockedReason: string | null;
 }
 export interface ImportRow {
+    kind?:'TALENT'|'CONTACT';
     index: number;
     displayName: string;
     roles: string[];
@@ -150,6 +151,7 @@ export interface ImportRow {
     personId: string | null;
 }
 export interface ImportBatch {
+    formatVersion:1|2;
     id: string;
     sourceId: string;
     revision: number;

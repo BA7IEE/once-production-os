@@ -93,6 +93,7 @@ export const PersonPatch = v.object({ expectedRevision: revision,
     cityCode: v.optional(v.nullable(code)), languageCodes: v.optional(v.array(code, 20)), skillCodes: v.optional(v.array(code, 30)),
     heightCm: v.optional(v.nullable(v.number(50, 250, false))), intro: v.optional(v.string(5000)), status: v.optional(v.enum(['DRAFT', 'ACTIVE', 'ARCHIVED'])) });
 export const RevisionOnly = v.object({ expectedRevision: revision });
+export const PersonImportV2Row = v.object({displayName:v.string(120,1),kind:v.optional(v.enum(['TALENT','CONTACT'])),roles:v.array(code,20),cityCode:v.optional(v.nullable(code))});
 export const PersonImportRow = v.object({ displayName: v.string(120, 1), roles: v.array(code, 10, 1), cityCode: v.optional(v.nullable(code)) });
 export const Schemas = {
     handoffCreate: v.object({ expectedRevision: revision, expectedSourceRevision: revision,
@@ -115,6 +116,7 @@ export const Schemas = {
     evidence: v.object({ personId: uuid, expectedRevision: revision, fieldPath: v.enum(['displayName', 'aliases', 'roles', 'cityCode', 'languageCodes', 'skillCodes', 'heightCm', 'intro']), sourceId: uuid, sourceRevision: revision }),
     dictionaryCreate: v.object({ namespace: v.enum(['role', 'city', 'language', 'skill', 'industry', 'workType', 'nationality', 'roleStyle', 'roleService']), code:v.string(60,1,/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/), labelZh: v.string(120, 1), labelEn: v.string(120) }),
     dictionaryPatch: v.object({ expectedRevision: revision, labelZh: v.optional(v.string(120, 1)), labelEn: v.optional(v.string(120)), status: v.optional(v.enum(['ACTIVE', 'INACTIVE'])) }),
-    importPreview: v.object({ sourceId: uuid, rows: v.array(v.unknown(), 100, 1) }),
+    importPreview: v.object({ schemaVersion:v.optional(v.enum(['once-talent-import-v2'])), sourceId: uuid, rows: v.array(v.unknown(), 100, 1) }),
+    importUpgrade: v.object({expectedRevision:revision,confirm:v.boolean(),entries:v.array(v.object({index:v.number(0,99),personId:uuid,expectedPersonRevision:revision,sourceRevision:revision}),20,1)}),
     importCommit: v.object({ expectedRevision: revision, selectedRows: v.array(v.number(0, 99), 100, 1) })
 };

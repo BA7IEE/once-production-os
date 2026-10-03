@@ -1,0 +1,172 @@
+TAP version 13
+# Subtest: H1 pending invitations reveal no profile; acceptance grants only the exact basic profile
+ok 1 - H1 pending invitations reveal no profile; acceptance grants only the exact basic profile
+  ---
+  duration_ms: 381.987
+  type: 'test'
+  ...
+# Subtest: H1 delegated edit changes basic fields, not ownership, status or private permissions
+ok 2 - H1 delegated edit changes basic fields, not ownership, status or private permissions
+  ---
+  duration_ms: 365.36775
+  type: 'test'
+  ...
+# Subtest: H1 grant of one record never reveals sibling people from the same source
+ok 3 - H1 grant of one record never reveals sibling people from the same source
+  ---
+  duration_ms: 362.246083
+  type: 'test'
+  ...
+# Subtest: H1 even a sensitive ADMIN recipient gains no contacts, raw source, history or scope authority
+ok 4 - H1 even a sensitive ADMIN recipient gains no contacts, raw source, history or scope authority
+  ---
+  duration_ms: 365.120458
+  type: 'test'
+  ...
+# Subtest: H1 received access cannot be delegated again or used to import extra people from the source
+ok 5 - H1 received access cannot be delegated again or used to import extra people from the source
+  ---
+  duration_ms: 362.028625
+  type: 'test'
+  ...
+# Subtest: H1 unscoped ADMIN cannot offer or accept someone else's private handoff
+ok 6 - H1 unscoped ADMIN cannot offer or accept someone else's private handoff
+  ---
+  duration_ms: 366.034292
+  type: 'test'
+  ...
+# Subtest: H1 only the joint person/source maintainer may offer; native scope alone is insufficient
+ok 7 - H1 only the joint person/source maintainer may offer; native scope alone is insufficient
+  ---
+  duration_ms: 357.769709
+  type: 'test'
+  ...
+# Subtest: H1 REVIEW access cannot write basic profile even when target globally has records.write
+ok 8 - H1 REVIEW access cannot write basic profile even when target globally has records.write
+  ---
+  duration_ms: 351.918375
+  type: 'test'
+  ...
+# Subtest: H1 field review still needs an independently readable evidence source; no raw-source shortcut
+ok 9 - H1 field review still needs an independently readable evidence source; no raw-source shortcut
+  ---
+  duration_ms: 358.961375
+  type: 'test'
+  ...
+# Subtest: H1 EDIT does not confer field review when target has reviewer permission by another role
+ok 10 - H1 EDIT does not confer field review when target has reviewer permission by another role
+  ---
+  duration_ms: 347.217583
+  type: 'test'
+  ...
+# Subtest: H1 revoke removes access on next read/write/list, but retains minimal participant receipt
+ok 11 - H1 revoke removes access on next read/write/list, but retains minimal participant receipt
+  ---
+  duration_ms: 355.184917
+  type: 'test'
+  ...
+# Subtest: H1 recipient can decline pending or release accepted access without changing original records
+ok 12 - H1 recipient can decline pending or release accepted access without changing original records
+  ---
+  duration_ms: 373.937792
+  type: 'test'
+  ...
+# Subtest: H1 immutable invite identity: malformed, self, excessive expiry and missing acknowledgment rejected
+ok 13 - H1 immutable invite identity: malformed, self, excessive expiry and missing acknowledgment rejected
+  ---
+  duration_ms: 360.821125
+  type: 'test'
+  ...
+# Subtest: H1 directory is scoped to an owned record and reveals only eligible active member labels
+ok 14 - H1 directory is scoped to an owned record and reveals only eligible active member labels
+  ---
+  duration_ms: 486.587375
+  type: 'test'
+  ...
+# Subtest: H1 same-key creation/accept replays; different-key duplicate and stale accept fail
+ok 15 - H1 same-key creation/accept replays; different-key duplicate and stale accept fail
+  ---
+  duration_ms: 361.99325
+  type: 'test'
+  ...
+# Subtest: H1 current facts invalidate access: person-before-accept
+ok 16 - H1 current facts invalidate access: person-before-accept
+  ---
+  duration_ms: 353.81275
+  type: 'test'
+  ...
+# Subtest: H1 current facts invalidate access: source-before-accept
+ok 17 - H1 current facts invalidate access: source-before-accept
+  ---
+  duration_ms: 355.339625
+  type: 'test'
+  ...
+# Subtest: H1 current facts invalidate access: source-after-accept
+ok 18 - H1 current facts invalidate access: source-after-accept
+  ---
+  duration_ms: 353.476791
+  type: 'test'
+  ...
+# Subtest: H1 current facts invalidate access: scope-after-accept
+ok 19 - H1 current facts invalidate access: scope-after-accept
+  ---
+  duration_ms: 357.1675
+  type: 'test'
+  ...
+# Subtest: H1 current facts invalidate access: archive-after-accept
+ok 20 - H1 current facts invalidate access: archive-after-accept
+  ---
+  duration_ms: 359.502292
+  type: 'test'
+  ...
+# Subtest: H1 current facts invalidate access: recipient-role
+ok 21 - H1 current facts invalidate access: recipient-role
+  ---
+  duration_ms: 414.170375
+  type: 'test'
+  ...
+# Subtest: H1 current facts invalidate access: sender-role
+ok 22 - H1 current facts invalidate access: sender-role
+  ---
+  duration_ms: 353.314416
+  type: 'test'
+  ...
+# Subtest: H1 current facts invalidate access: expiry
+ok 23 - H1 current facts invalidate access: expiry
+  ---
+  duration_ms: 418.156083
+  type: 'test'
+  ...
+# Subtest: H1 roles restored later do not resurrect a previously invalidated grant
+ok 24 - H1 roles restored later do not resurrect a previously invalidated grant
+  ---
+  duration_ms: 416.582
+  type: 'test'
+  ...
+# Subtest: H1 grant never reduces independently held native access after revocation
+ok 25 - H1 grant never reduces independently held native access after revocation
+  ---
+  duration_ms: 358.463542
+  type: 'test'
+  ...
+# Subtest: H1 handoff insert/audit/receipt faults roll back completely; same key then succeeds
+ok 26 - H1 handoff insert/audit/receipt faults roll back completely; same key then succeeds
+  ---
+  duration_ms: 361.784625
+  type: 'test'
+  ...
+# Subtest: H1 sender and recipient concurrent close/accept cannot both apply stale revisions
+ok 27 - H1 sender and recipient concurrent close/accept cannot both apply stale revisions
+  ---
+  duration_ms: 362.036208
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10219.191542

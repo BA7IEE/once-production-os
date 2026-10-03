@@ -1,0 +1,130 @@
+TAP version 13
+# Subtest: client preserves exact key after network uncertainty and replays only original payload
+ok 1 - client preserves exact key after network uncertainty and replays only original payload
+  ---
+  duration_ms: 23.4195
+  type: 'test'
+  ...
+# Subtest: HTTP 500 followed by 409 retains the original unresolved key
+ok 2 - HTTP 500 followed by 409 retains the original unresolved key
+  ---
+  duration_ms: 0.880167
+  type: 'test'
+  ...
+# Subtest: unknown activation issuance is not silently repeated
+ok 3 - unknown activation issuance is not silently repeated
+  ---
+  duration_ms: 0.818458
+  type: 'test'
+  ...
+# Subtest: transport uses same-origin cookies, no cache and rejects redirects
+ok 4 - transport uses same-origin cookies, no cache and rejects redirects
+  ---
+  duration_ms: 1.048667
+  type: 'test'
+  ...
+# Subtest: malformed success response keeps command unresolved
+ok 5 - malformed success response keeps command unresolved
+  ---
+  duration_ms: 0.356208
+  type: 'test'
+  ...
+# Subtest: server session failure notifies UI and never exposes server secrets
+ok 6 - server session failure notifies UI and never exposes server secrets
+  ---
+  duration_ms: 0.408584
+  type: 'test'
+  ...
+# Subtest: job.resume retains the exact job revision and key across unknown response
+ok 7 - job.resume retains the exact job revision and key across unknown response
+  ---
+  duration_ms: 0.952125
+  type: 'test'
+  ...
+# Subtest: lost committed response then 401 retains original key and one domain write
+ok 8 - lost committed response then 401 retains original key and one domain write
+  ---
+  duration_ms: 229.851208
+  type: 'test'
+  ...
+# Subtest: lost committed response then 403 retains original key and one domain write
+ok 9 - lost committed response then 403 retains original key and one domain write
+  ---
+  duration_ms: 123.168584
+  type: 'test'
+  ...
+# Subtest: lost committed response then 404 retains original key and one domain write
+ok 10 - lost committed response then 404 retains original key and one domain write
+  ---
+  duration_ms: 120.190041
+  type: 'test'
+  ...
+# Subtest: lost committed response then 409 retains original key and one domain write
+ok 11 - lost committed response then 409 retains original key and one domain write
+  ---
+  duration_ms: 119.422667
+  type: 'test'
+  ...
+# Subtest: lost committed response then 429 retains original key and one domain write
+ok 12 - lost committed response then 429 retains original key and one domain write
+  ---
+  duration_ms: 120.526167
+  type: 'test'
+  ...
+# Subtest: parseable invalid command receipt remains unknown: {}
+ok 13 - parseable invalid command receipt remains unknown: {}
+  ---
+  duration_ms: 0.289292
+  type: 'test'
+  ...
+# Subtest: parseable invalid command receipt remains unknown: null
+ok 14 - parseable invalid command receipt remains unknown: null
+  ---
+  duration_ms: 0.188041
+  type: 'test'
+  ...
+# Subtest: parseable invalid command receipt remains unknown: {"operationId":"12345678-1234-4234-8234-123456789abc","resourceId":"12345678-1234-4234-8234-123456789abc","revision":"1","state":"SUCCEEDED"}
+ok 15 - parseable invalid command receipt remains unknown: {"operationId":"12345678-1234-4234-8234-123456789abc","resourceId":"12345678-1234-4234-8234-123456789abc","revision":"1","state":"SUCCEEDED"}
+  ---
+  duration_ms: 0.134541
+  type: 'test'
+  ...
+# Subtest: parseable invalid command receipt remains unknown: {"operationId":"12345678-1234-4234-8234-123456789abc","resourceId":"12345678-1234-4234-8234-123456789abc","revision":1,"state":"FAILED"}
+ok 16 - parseable invalid command receipt remains unknown: {"operationId":"12345678-1234-4234-8234-123456789abc","resourceId":"12345678-1234-4234-8234-123456789abc","revision":1,"state":"FAILED"}
+  ---
+  duration_ms: 0.124875
+  type: 'test'
+  ...
+# Subtest: another membership cannot replay the original request; original membership can recover after logout
+ok 17 - another membership cannot replay the original request; original membership can recover after logout
+  ---
+  duration_ms: 0.319542
+  type: 'test'
+  ...
+# Subtest: first definitive rejection permits a corrected new command
+ok 18 - first definitive rejection permits a corrected new command
+  ---
+  duration_ms: 0.142292
+  type: 'test'
+  ...
+# Subtest: server rejects stale membership binding after another tab switches identity
+ok 19 - server rejects stale membership binding after another tab switches identity
+  ---
+  duration_ms: 239.656583
+  type: 'test'
+  ...
+# Subtest: reload stores only a pending marker and requires explicit inspection before new commands
+ok 20 - reload stores only a pending marker and requires explicit inspection before new commands
+  ---
+  duration_ms: 1.875459
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1077.931917

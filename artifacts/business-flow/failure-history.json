@@ -1,0 +1,28 @@
+[
+  {
+    "stage": "initial source-review test",
+    "result": "5 of 6 passed",
+    "cause": "typed evidence belongs to a fact owner, not necessarily direct personId",
+    "resolution": "resolve whitelisted typed owner before source exclusivity checks"
+  },
+  {
+    "stage": "two added test fixtures",
+    "result": "143 of 145 passed",
+    "cause": "old session retained its recovery epoch; location dates require full UTC timestamps",
+    "resolution": "assert old-session isolation, reauthenticate then assert task invalidation; use valid UTC fixture dates",
+    "evidence": "core-before-fixture-corrections.json"
+  },
+  {
+    "stage": "static route registration",
+    "result": "11 of 12 passed",
+    "cause": "OpenAPI path includes /api/v1 while route registry uses relative paths",
+    "resolution": "match exact registered route after removing API prefix",
+    "evidence": "static-before-route-registration.log"
+  },
+  {
+    "stage": "full frontend typecheck",
+    "result": "FAILED_HEAP_LIMIT_256_MIB",
+    "cause": "heap exhausted under the bounded memory setting",
+    "resolution": "NOT CLOSED; six entry files pass targeted real-dependency typecheck; full check waits for resource gate"
+  }
+]

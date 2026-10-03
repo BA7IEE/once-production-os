@@ -1,0 +1,116 @@
+{
+  "at": "2026-10-03T14:01:50.014Z",
+  "adapter": "MemoryStore / isolated frontend transport",
+  "status": "CORE_MEMORY_TESTED",
+  "results": [
+    {
+      "file": "tests/core/business-flow.test.ts",
+      "exitCode": 0,
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0,
+      "durationMs": 3783
+    },
+    {
+      "file": "tests/core/portal-command.test.ts",
+      "exitCode": 0,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0,
+      "durationMs": 136,
+      "verifiedAt": "2026-10-03T14:36:54.839Z"
+    },
+    {
+      "file": "tests/core/browser-storage-policy.test.ts",
+      "exitCode": 0,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0,
+      "durationMs": 362
+    },
+    {
+      "file": "tests/core/commands-imports.test.ts",
+      "exitCode": 0,
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "skipped": 0,
+      "durationMs": 3375
+    },
+    {
+      "file": "tests/core/handoffs.test.ts",
+      "exitCode": 0,
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "skipped": 0,
+      "durationMs": 10261
+    },
+    {
+      "file": "tests/core/talent-intake.test.ts",
+      "exitCode": 0,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0,
+      "durationMs": 1268
+    },
+    {
+      "file": "tests/core/talent-directory.test.ts",
+      "exitCode": 0,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0,
+      "durationMs": 1687
+    },
+    {
+      "file": "tests/core/talent-maintenance.test.ts",
+      "exitCode": 0,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0,
+      "durationMs": 1887
+    },
+    {
+      "file": "tests/core/client-transport.test.ts",
+      "exitCode": 0,
+      "tests": 20,
+      "pass": 20,
+      "fail": 0,
+      "skipped": 0,
+      "durationMs": 1119
+    },
+    {
+      "file": "tests/core/deletions.test.ts",
+      "exitCode": 0,
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0,
+      "durationMs": 3841
+    },
+    {
+      "file": "tests/core/recovery.test.ts",
+      "exitCode": 0,
+      "tests": 13,
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0,
+      "durationMs": 3402
+    }
+  ],
+  "resourceRun": "22002a74576919e8a83cd5d8",
+  "cleanup": "ZERO_RESIDUE",
+  "remaining": {
+    "containers": 0,
+    "processes": 0,
+    "networks": 0,
+    "temporaryVolumes": 0
+  },
+  "lastUpdated": "2026-10-03T14:36:54.839Z"
+}

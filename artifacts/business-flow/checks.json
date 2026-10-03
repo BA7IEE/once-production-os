@@ -1,0 +1,54 @@
+{
+  "at": "2026-10-03T14:04:50.100Z",
+  "results": [
+    {
+      "name": "contract",
+      "status": "PASS",
+      "exitCode": 0
+    },
+    {
+      "name": "core-typecheck",
+      "status": "PASS",
+      "exitCode": 0
+    },
+    {
+      "name": "frontend-targeted-typecheck",
+      "status": "PASS",
+      "exitCode": 0
+    },
+    {
+      "name": "prisma-schema",
+      "status": "PASS",
+      "exitCode": 0
+    },
+    {
+      "name": "static",
+      "status": "PASS",
+      "exitCode": 0
+    },
+    {
+      "name": "lifecycle",
+      "status": "PASS",
+      "exitCode": 0
+    },
+    {
+      "name": "postgres-test-syntax",
+      "status": "PASS",
+      "exitCode": 0
+    }
+  ],
+  "fullFrontendTypecheck": "FAILED_HEAP_LIMIT_256_MIB",
+  "fullBackendTypecheck": "NOT_RUN",
+  "build": "NOT_RUN",
+  "postgres": "NOT_RUN",
+  "browser": "NOT_RUN",
+  "ci": "NOT_RUN",
+  "resourceRun": "06fa726f98eebbba6830669e",
+  "cleanup": "ZERO_RESIDUE",
+  "remaining": {
+    "containers": 0,
+    "processes": 0,
+    "networks": 0,
+    "temporaryVolumes": 0
+  }
+}
