@@ -37,7 +37,8 @@ export async function ownedPostgres({ scope = new ResourceRun(), guard = preflig
     if (!/^127\.0\.0\.1:\d+$/.test(endpoint)) throw new Error('Unexpected Docker port.');
     const url = `postgresql://once_test:${password}@${endpoint}/once_test_${scope.id}`;
     const env = { ...process.env,DATABASE_URL:url,DATABASE_URL_TEST:url,ALLOW_DB_TESTS:'yes' };
-    if(suite==='business-flow')await scope.command(process.execPath,['--experimental-strip-types','--test','--test-concurrency=1','tests/postgres/business-flow.test.ts'],{env:{...env,BUSINESS_FLOW_BASELINE:baseline},timeout:180000});
+    if(suite==='browser-flow')await scope.command(process.execPath,[`tests/acceptance/browser-${baseline}.mjs`],{env:{...env,ALLOW_BROWSER_TESTS:'yes'},timeout:180000});
+    else if(suite==='business-flow')await scope.command(process.execPath,['--experimental-strip-types','--test','--test-concurrency=1','tests/postgres/business-flow.test.ts'],{env:{...env,BUSINESS_FLOW_BASELINE:baseline},timeout:180000});
     else {await scope.command('pnpm', ['db:deploy'], {env});await scope.command(process.execPath, ['scripts/verify-postgres.mjs'], {env});}
     scope.record.outcome='VERIFIED_PENDING_CLEANUP';
   } catch (error) {
@@ -51,6 +52,6 @@ export async function ownedPostgres({ scope = new ResourceRun(), guard = preflig
   scope.record.outcome='PASS';scope.save();return scope.record;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  (async()=>{if(process.argv.includes('--business-flow')){for(const baseline of ['74','empty']){const record=await ownedPostgres({suite:'business-flow',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else console.log(JSON.stringify((await ownedPostgres()).remaining));})()
+  (async()=>{if(process.argv.includes('--business-flow-browser')){for(const baseline of ['business-flow','talent-maintenance']){const record=await ownedPostgres({suite:'browser-flow',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else if(process.argv.includes('--business-flow')){for(const baseline of ['74','empty']){const record=await ownedPostgres({suite:'business-flow',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else console.log(JSON.stringify((await ownedPostgres()).remaining));})()
     .catch(() => { console.error('Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.'); process.exitCode=1; });
 }

@@ -31,7 +31,8 @@ test('business flow on PostgreSQL: populated 74 migration upgrade or new empty i
    for(const row of f.store.rows(table)){const data=Object.fromEntries(Object.entries(row).filter(([k])=>allowed.has(k)));await db.$executeRawUnsafe(`INSERT INTO "${table}" SELECT * FROM jsonb_populate_record(NULL::"${table}",$1::jsonb)`,JSON.stringify(data));}
   }
   const before=await db.$queryRawUnsafe<any[]>('SELECT * FROM imports ORDER BY id'),jobsBefore=await db.$queryRawUnsafe<any[]>('SELECT * FROM jobs ORDER BY id');
-  if(upgrade)await deploy(resolve('prisma/schema.prisma'));
+  // Deployment restarts the client after schema changes; old SELECT * prepared plans are invalid.
+  if(upgrade){await db.$disconnect();await deploy(resolve('prisma/schema.prisma'));await db.$connect();}
   const after=await db.$queryRawUnsafe<any[]>('SELECT * FROM imports ORDER BY id');for(let i=0;i<before.length;i++)for(const [key,value] of Object.entries(before[i]!))assert.deepEqual(after[i]![key],value,key);assert.equal(after[0].formatVersion,1);assert.deepEqual(await db.$queryRawUnsafe('SELECT * FROM jobs ORDER BY id'),jobsBefore);
   const store=new PrismaStore(db),app=new Application(store,f.app.config,f.clock);f.owner.app=app;
   const preview=ok(await f.owner.raw('GET',`/imports/${batchId}/upgrade-preview`),200),r=preview.rows[0];assert.equal(r.state,'READY');

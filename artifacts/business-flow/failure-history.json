@@ -24,5 +24,14 @@
     "result": "FAILED_HEAP_LIMIT_256_MIB",
     "cause": "heap exhausted under the bounded memory setting",
     "resolution": "NOT CLOSED; six entry files pass targeted real-dependency typecheck; full check waits for resource gate"
+  },
+  {
+    "stage": "first business-flow CI PG upgrade",
+    "run": 37130475284,
+    "head": "3fea0d3cebd7975436175b45ca43e7bae9a73d2a",
+    "result": "FAIL after migration75 on prepared old SELECT *",
+    "cause": "Prisma test client kept a prepared result shape across ALTER TABLE adding formatVersion",
+    "resolution": "disconnect the old test connection before deploy and reconnect afterwards, matching API/client restart; retain all preservation assertions",
+    "evidence": "ci-first-failure.log"
   }
 ]

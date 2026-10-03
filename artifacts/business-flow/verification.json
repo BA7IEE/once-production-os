@@ -55,12 +55,20 @@
     "appliedHere": false,
     "oldMigrationsUnmodified": true
   },
-  "fullFrontendTypecheck": "FAILED_HEAP_LIMIT_256_MIB",
-  "fullBackendTypecheck": "NOT_RUN",
-  "build": "NOT_RUN",
+  "fullFrontendTypecheck": "PASS_CI_3fea0d3_PREVIOUS_LOCAL_HEAP_FAILURE_RETAINED",
+  "fullBackendTypecheck": "PASS_CI_3fea0d3",
+  "build": "PASS_CI_3fea0d3",
   "postgres": "NOT_RUN",
   "browser": "NOT_RUN",
-  "ci": "NOT_RUN",
+  "ci": {
+    "status": "FIRST_RUN_FAILED_PG_FIX_PENDING",
+    "run": 37130475284,
+    "head": "3fea0d3cebd7975436175b45ca43e7bae9a73d2a",
+    "fullTypes": "PASS",
+    "fullCore": "PASS",
+    "build": "PASS",
+    "postgres": "FAIL"
+  },
   "providerVerified": "NOT_RUN",
   "productionMigration": "NOT_RUN",
   "deployed": false,
@@ -71,11 +79,11 @@
     "requiredPressureLevel": 1
   },
   "sourceSha256": {
-    ".github/workflows/business-flow.yml": "90b667ddd3606c1c55f24be60dcf41d6edfd8d0539f2e8e99b1556d8dd5bc157",
+    ".github/workflows/business-flow.yml": "6c08bc553fa0c411297b60ad135ab9995f8bc316d6604b255a36227aa87a26f0",
     "apps/admin-web/src/business-flow-ui.tsx": "a093b709a1ef66feef870542e50d3fd594c6a475a48027d524c336620a085f6a",
     "apps/admin-web/src/dto.ts": "174dc46da45ae1db9e1bb73ac5000c615c511953d0ab496dc6eda5c0fff185ac",
     "apps/admin-web/src/generated/requests.ts": "124583a4ffc68321ad57ec04960d0b87be696c8f85fbe993695e80d01d2ac4a0",
-    "apps/admin-web/src/main.tsx": "b56e29e7971a40ad97cfa77eb6eadff48a801545c455566b45087669d8900917",
+    "apps/admin-web/src/main.tsx": "4c62181c2e093c8dfba27175cc042cce68fbd23b16521ff846b3f8a22f233e12",
     "apps/admin-web/src/portal-command.ts": "db9e22175ca9b2022e8a88a795362635535c78ab516b4de233e4a014e3259924",
     "apps/admin-web/src/portal-pending-marker.ts": "d56b4e7255c4b9c57eb698dc76e6eed221b8380b371ae84d13766bf9c74046d4",
     "apps/admin-web/src/source-review-ui.tsx": "f1edc1e05e797aa054802f54fbb168f97e32018ca7d26410740060eb136318e6",
@@ -106,7 +114,7 @@
     "scripts/resource-run.mjs": "ecbee63e7635d3ddc34fa03492d21048d0bf0750c1b2f942d7c46980d09119ea",
     "scripts/talent-experience-surface-policy.mjs": "bf792fab148d84e2735309bc2c83a25ca2585e445c751c34a555ce7beb1126b2",
     "scripts/test-business-flow.mjs": "d4e1f311afb4d2532e3d63b71bda18edf4a3a47e7fc3e79ea9b164c61928ccf6",
-    "scripts/test-postgres-owned.mjs": "06abf5035d6a638e0ef975991029448b4a0bbdb2e3aaba49f7291e3a0edea1f8",
+    "scripts/test-postgres-owned.mjs": "5260849545698c6f07f8ffdf16c1ecd30b34210bc88adddec9a03a2922d5849c",
     "scripts/verify-postgres.mjs": "0b6dc7d5ff4c4018f1de7400887b380cc073ecc29a344caa9c65607e640841a3",
     "tests/core/browser-storage-policy.test.ts": "a5105ae118a40ffd6b5b8d39769869c392e90c163b2468cf0b2209cd8971e92c",
     "tests/core/business-flow.test.ts": "b730338514d2ddf8b6a261e56cdb8ad1e370f28763fadf9499d3ba6dc6c8a5ed",
@@ -115,8 +123,11 @@
     "tests/lifecycle/preflight.test.mjs": "cf397185d5adcebc9a4ebebe693f880abaac102bace59a43ced1b1e6374d5eed",
     "tests/lifecycle/registered-temp.test.mjs": "39132f7a770134442c4b25077ebc471d1509d7c594a29dc961184a25c3322730",
     "tests/lifecycle/supervisor.test.mjs": "f5a49fa11b84acbbf12e51c245e37aecdc37ac0571c61a2841f3bb3256ad98f3",
-    "tests/postgres/business-flow.test.ts": "ffd67c959135dbeb461f15bcc24dd3ee5abd7f7e0ac57fe1436bac9c61e60324",
-    "tests/support/memory-store.ts": "7aeb1295987dac3eea67fe27f0d60b90d520c27321538df874c3026ccf49e7a9"
+    "tests/postgres/business-flow.test.ts": "7c269ca2b9ee6f8d29fe3be2a9899e62919758706b7a445b374532e4e5848a97",
+    "tests/support/memory-store.ts": "7aeb1295987dac3eea67fe27f0d60b90d520c27321538df874c3026ccf49e7a9",
+    "scripts/registered-browser.mjs": "b8ee556643dc3d6b2f4fae0686186d5e51f40a01f27163306f15566149ddc575",
+    "tests/acceptance/browser-business-flow.mjs": "a39cf9824def3e4be61294209e663e6c992eb5bcd10c834134997e4ad462bea3",
+    "tests/acceptance/browser-talent-maintenance.mjs": "0d72aca5680aced2e1ebf14a2962cf18ec418af2541ffe9fedd41ccbe4171961"
   },
   "closingChecks": {
     "portalRegression": 7,
