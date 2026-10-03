@@ -1,0 +1,41 @@
+acceptance	Real business pages and portal maintenance regression	﻿2026-10-03T15:54:33.8800967Z ##[group]Run pnpm test:postgres:owned --business-flow-browser
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:54:33.8801453Z ^[[36;1mpnpm test:postgres:owned --business-flow-browser^[[0m
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:54:33.8866322Z shell: /usr/bin/bash -e {0}
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:54:33.8866807Z env:
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:54:33.8867075Z   PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:54:33.8867393Z ##[endgroup]
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:54:34.1579674Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:54:34.1580885Z > once-production-os@0.1.0-dev.1 test:postgres:owned /home/runner/work/once-production-os/once-production-os
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:54:34.1581844Z > node scripts/test-postgres-owned.mjs --business-flow-browser
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:54:34.1582212Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:54:50.3782168Z PASS default EDITOR private intake -> accepted limited review -> explicit administrator publication -> team directory
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:54:51.3796651Z PASS restricted raw text created and edited through the real source page; no AI call implied
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:54:53.3833386Z PASS V2 import real Worker checkpoint -> model/Shenzhen filters and ordinary contact without professional roles
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:54:55.3488040Z PASS page-authored raw source -> separately approved grant -> real minimized AI input preview; zero AI task/run
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:54:56.4558123Z PASS legacy checkpoint retained; real upgrade preview and explicit typed repair
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:54:57.7743338Z PASS single real core save carries each fact source; both fields persist with original provenance
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:54:58.8802643Z {"baseline":"business-flow","containers":0,"processes":0,"networks":0,"temporaryVolumes":0,"temporaryDirectories":0}
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7461292Z node:internal/modules/run_main:123
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7462359Z     triggerUncaughtException(
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7463517Z     ^
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7463701Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7464197Z AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7464777Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7464870Z 400 !== 422
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7464999Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7465491Z     at file:///home/runner/work/once-production-os/once-production-os/tests/acceptance/browser-talent-maintenance.mjs:41:306
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7466497Z     at runNextTicks (node:internal/process/task_queues:64:5)
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7467527Z     at process.processImmediate (node:internal/timers:452:9)
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7468311Z     at process.callbackTrampoline (node:internal/async_hooks:130:17) {
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7468765Z   generatedMessage: true,
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7469133Z   code: 'ERR_ASSERTION',
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7469416Z   actual: 400,
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7469620Z   expected: 422,
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7469835Z   operator: 'strictEqual',
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7470065Z   diff: 'simple'
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7470288Z }
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7470392Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:08.7470476Z Node.js v22.22.3
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:09.0510260Z Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:09.0663636Z  ELIFECYCLE  Command failed with exit code 1.
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:55:09.0846545Z ##[error]Process completed with exit code 1.

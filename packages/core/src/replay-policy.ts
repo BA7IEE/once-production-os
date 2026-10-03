@@ -15,6 +15,7 @@ import { workFor, projectFor } from './production-policy.ts';
 import { uploadFor, assetFor } from './media.ts';
 import type { Actor, Clock, CommandReceipt, Config } from './model.ts';
 import { profileAccess } from './handoff-policy.ts';
+import {sourceReviewParticipant} from './source-review.ts';
 import { handoffParticipant } from './handoffs.ts';
 import type { Tx } from './store.ts';
 import { workspaceRow } from './helpers.ts';
@@ -99,6 +100,8 @@ export async function authorizeReceipt(tx: Tx, actor: CommandPrincipal, receipt:
         case 'asset':
             await assetFor(tx, actor, id, clock);
             return;
+        case 'sourceReview':
+            await sourceReviewParticipant(tx,actor,id);return;
         case 'handoff':
             await handoffParticipant(tx, actor, id);
             return;
@@ -132,7 +135,7 @@ export async function authorizeReceipt(tx: Tx, actor: CommandPrincipal, receipt:
             return;
         case 'import': {
             const batch = await workspaceRow(tx, 'imports', id, actor.workspaceId);
-            if (!batch || batch.actorId !== actor.membershipId || Date.parse(batch.expiresAt) <= clock.now().getTime())
+            if (!batch || batch.actorId !== actor.membershipId || receipt.operation!=='import.upgrade'&&Date.parse(batch.expiresAt) <= clock.now().getTime())
                 missing();
             await sourceFor(tx, actor, batch.sourceId, clock);
             return;

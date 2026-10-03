@@ -1,3 +1,17 @@
+## 2026-10-04：业务流修复收尾（Draft PR #36）
+
+基于 1dae5e729b3be3a01d8149e4f02bd64bc9436d61，本轮接通来源核验与团队共享、版本化人才导入及旧记录补齐、本人端拒绝与未知结果恢复、多来源核心资料原子保存、受限来源原文录入。完整权限、迁移和回退边界见 [业务流修复交付](BUSINESS_FLOW_FIXES.md)。新增迁移75，旧1–74逐字节不变；未合并、未部署。
+
+实现代码 b071fa58bdccdee6ec0252e27643e3c6824cbc40 的 [CI 37136370653](https://github.com/BA7IEE/once-production-os/actions/runs/37136370653) 全部通过：完整前后端类型、构建、契约与静态、**778/778 CORE_MEMORY_TESTED**（受影响147/147）、**25/25 生命周期 PASS**、隔离PG16的保留74→75及空库1→75 **DB_TESTED**，以及内部6项和本人端10项真实页面 **BROWSER_TESTED**。两组浏览器使用实际Nest/Worker/Prisma/PG；本人认证供应商是受控合成网关。四轮owned PG/浏览器运行的退出输出均已回读并核对零残留，Docker故障矩阵只做模拟。
+
+本轮五类原业务断点及失效核验重新送审已完成开发验收；仍等待人工业务验收和上线流程。
+
+AI只验收原文、独立许可和最小输入预览，AI Task/Run均为0；真实供应商、COS、物理手机、正式迁移、正式镜像、部署、本轮恢复演练、旧版其他完整PG/浏览器组及真实Docker故障矩阵仍NOT_RUN。M0/M1/M2/M3不据此关闭。共享Mac未绕过Swap门槛。
+
+GitHub原始产物包未取得本地副本（下载多次超时）；本地证据来自本轮完整CI日志和精确head元数据，报告注明CI_STEP_LOG_READBACK，原始报告、截图与完整ResourceRun登记仍在CI产物。权威证据为 artifacts/business-flow/verification.json；首次失败和修正记录保留。文档收尾提交与验收代码用源文件指纹绑定，PR最新head的CI状态另在PR描述及交付回复确认。
+
+以下保留旧版本历史证据。
+
 ## 2026-10-02：PR-04D 同档接手与生命周期总收口（Draft，待代码级复核）
 
 用户已冻结 A–C，C基线 `4e7593c9dbd06ef4355e2a928ebec0c8a1c72efb`。本轮独立 stacked Draft PR35，复用既有 CLAIM / TalentAccount / SELF Grant；Agent正式人物由本人认领后保持同一 Person ID，默认不开放历史资料。人物详情新增逐项 exposure 管理；历史 exact WorkCredit 可经内部明确批准只读，不伪造 Consent，后续 Work维护仍需真实本人 WorkConsent。当前 Source/typed basis/fieldScope、Role、Grant、删除/恢复保护和版本均重新核对。原 MACHINE INTERNAL_REVIEW 保持，新本人维护创建独立 TALENT_CONSENT，不洗来源。

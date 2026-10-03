@@ -9,6 +9,7 @@ datasource db {
 }
 
 model Workspace {
+  SourceReviewRequest_workspaceId SourceReviewRequest[] @relation("SourceReviewRequest_workspaceId")
   talentAuthDeliveries TalentAuthDelivery[]
   talentAuthChallenges TalentAuthChallenge[]
   talentAuthContexts TalentAuthContext[]
@@ -118,6 +119,9 @@ model User {
 }
 
 model Membership {
+  SourceReviewRequest_publisherId SourceReviewRequest[] @relation("SourceReviewRequest_publisherId")
+  SourceReviewRequest_reviewerId SourceReviewRequest[] @relation("SourceReviewRequest_reviewerId")
+  SourceReviewRequest_senderId SourceReviewRequest[] @relation("SourceReviewRequest_senderId")
  aiReconciliations AiReconciliation[]
   aiBudgetReleases AiBudgetRelease[]
   aiApprovals AiApproval[]
@@ -216,6 +220,9 @@ model Activation {
 }
 
 model AccessScope {
+  SourceReviewRequest_sourceScopeId SourceReviewRequest[] @relation("SourceReviewRequest_sourceScopeId")
+  SourceReviewRequest_personScopeId SourceReviewRequest[] @relation("SourceReviewRequest_personScopeId")
+  SourceReviewRequest_targetScopeId SourceReviewRequest[] @relation("SourceReviewRequest_targetScopeId")
   brands Brand[] @relation("BrandScope")
 
   AiGrant_scopeId AiGrant[] @relation("AiGrant_scopeId")
@@ -269,6 +276,7 @@ model ScopeMember {
 }
 
 model SourceRecord {
+  SourceReviewRequest_sourceId SourceReviewRequest[] @relation("SourceReviewRequest_sourceId")
   internalUseUntil DateTime? @db.Timestamptz(3)
   brands Brand[] @relation("BrandSource")
 
@@ -346,6 +354,7 @@ model SourceRecord {
 }
 
 model Person {
+  SourceReviewRequest_personId SourceReviewRequest[] @relation("SourceReviewRequest_personId")
   AiTask_personId AiTask[] @relation("AiTask_personId")
   LocaleDependency_person_locale LocaleDependency[] @relation("LocaleDependency_person_locale")
   LocaleText_person_locale LocaleText[] @relation("LocaleText_person_locale")
@@ -570,6 +579,7 @@ model RateBucket {
 }
 
 model ImportBatch {
+  formatVersion Int @default(1)
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -2713,4 +2723,46 @@ model MediaPurgeIntent {
  @@unique([workspaceId,id])
  @@index([state,nextAttemptAt,leaseUntil])
  @@map("mediaPurgeIntents")
+}
+
+model SourceReviewRequest {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  sourceId String @db.Uuid
+  senderId String @db.Uuid
+  reviewerId String @db.Uuid
+  publisherId String @db.Uuid
+  targetScopeId String @db.Uuid
+  personScopeId String @db.Uuid
+  sourceScopeId String @db.Uuid
+  senderRevision Int
+  reviewerRevision Int
+  publisherRevision Int
+  targetScopeRevision Int
+  personRevision Int
+  sourceRevision Int
+  personEpoch Int
+  sourceEpoch Int
+  personScopeRevision Int
+  sourceScopeRevision Int
+  recoveryEpoch String @db.Text
+  expiresAt DateTime @db.Timestamptz(3)
+  state String @db.Text
+  workspaceIdRef Workspace @relation("SourceReviewRequest_workspaceId", fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "sourceReviews_workspaceId_fkey")
+  personIdRef Person @relation("SourceReviewRequest_personId", fields: [workspaceId, personId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "sourceReviews_personId_fkey")
+  sourceIdRef SourceRecord @relation("SourceReviewRequest_sourceId", fields: [workspaceId, sourceId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "sourceReviews_sourceId_fkey")
+  senderIdRef Membership @relation("SourceReviewRequest_senderId", fields: [workspaceId, senderId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "sourceReviews_senderId_fkey")
+  reviewerIdRef Membership @relation("SourceReviewRequest_reviewerId", fields: [workspaceId, reviewerId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "sourceReviews_reviewerId_fkey")
+  publisherIdRef Membership @relation("SourceReviewRequest_publisherId", fields: [workspaceId, publisherId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "sourceReviews_publisherId_fkey")
+  targetScopeIdRef AccessScope @relation("SourceReviewRequest_targetScopeId", fields: [workspaceId, targetScopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "sourceReviews_targetScopeId_fkey")
+  personScopeIdRef AccessScope @relation("SourceReviewRequest_personScopeId", fields: [workspaceId, personScopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "sourceReviews_personScopeId_fkey")
+  sourceScopeIdRef AccessScope @relation("SourceReviewRequest_sourceScopeId", fields: [workspaceId, sourceScopeId], references: [workspaceId, id], onDelete: Restrict, onUpdate: Cascade, map: "sourceReviews_sourceScopeId_fkey")
+  @@unique([workspaceId,id])
+  @@index([workspaceId,reviewerId,state])
+  @@index([workspaceId,senderId,createdAt])
+  @@map("sourceReviews")
 }

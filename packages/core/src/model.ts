@@ -152,7 +152,7 @@ export interface CommandReceipt extends Base {
     operation: string;
     commandKey: string;
     requestDigest: string;
-    resourceKind: 'mediaPurge' | 'talentInvitation' | 'talentClaim' | 'talentGrant' | 'talentSubmission' | 'talentConsent' | 'talentAccount' | 'brand' | 'aiConnectionTest' | 'aiConnection' | 'aiApproval' | 'aiAttempt' | 'aiBudget' | 'aiTask' | 'aiGrant' | 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
+    resourceKind: 'sourceReview' | 'mediaPurge' | 'talentInvitation' | 'talentClaim' | 'talentGrant' | 'talentSubmission' | 'talentConsent' | 'talentAccount' | 'brand' | 'aiConnectionTest' | 'aiConnection' | 'aiApproval' | 'aiAttempt' | 'aiBudget' | 'aiTask' | 'aiGrant' | 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
     resourceId: string;
     result: ReceiptResult;
 }
@@ -181,6 +181,7 @@ export interface RateBucket {
     until: string;
 }
 export interface ImportBatch extends Base {
+    formatVersion?: 1 | 2;
     actorId: string;
     sourceId: string;
     sourceRevision: number;
@@ -189,6 +190,7 @@ export interface ImportBatch extends Base {
     expiresAt: string;
 }
 export interface ImportRow {
+    kind?: 'TALENT' | 'CONTACT';
     index: number;
     displayName: string;
     roles: string[];
@@ -198,7 +200,7 @@ export interface ImportRow {
     personId: string | null;
 }
 export interface DurableJob extends Base {
-    type: 'IMPORT_PEOPLE';
+    type: 'IMPORT_PEOPLE' | 'IMPORT_TALENTS_V2';
     actorId: string;
     aggregateId: string;
     selectedRows: number[];
@@ -231,6 +233,7 @@ export interface RecordHandoff extends Base {
     closedAt: string | null;
     closedById: string | null;
 }
+import type {SourceReviewRequest} from './source-review.ts';
 export interface TableMap extends TalentV2Tables, TalentAuthTables, TalentMaintenanceTables {
     mediaPurgeIntents:MediaPurgeIntent;
     brands:Brand;projectParties:ProjectParty;
@@ -287,6 +290,7 @@ export interface TableMap extends TalentV2Tables, TalentAuthTables, TalentMainte
     imports: ImportBatch;
     jobs: DurableJob;
     handoffs: RecordHandoff;
+    sourceReviews: SourceReviewRequest;
 }
 export type Table = keyof TableMap;
 export interface Actor {

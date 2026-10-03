@@ -1,0 +1,170 @@
+acceptance	Process supervision and resource guards	﻿2026-10-03T16:19:29.0658697Z ##[group]Run pnpm test:lifecycle
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.0659212Z ^[[36;1mpnpm test:lifecycle^[[0m
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.0721376Z shell: /usr/bin/bash -e {0}
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.0721660Z env:
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.0721941Z   PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.0722295Z ##[endgroup]
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.3412406Z 
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.3413605Z > once-production-os@0.1.0-dev.1 test:lifecycle /home/runner/work/once-production-os/once-production-os
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.3415433Z > node --test --test-concurrency=1 tests/lifecycle/*.test.mjs
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.3415927Z 
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.3865139Z TAP version 13
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.5342391Z # Subtest: owned PG PASS reaches cleanup and zero (simulated Docker, no database)
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.5347271Z ok 1 - owned PG PASS reaches cleanup and zero (simulated Docker, no database)
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.5347963Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.5348321Z   duration_ms: 107.029648
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.5348720Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.5349088Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.6368567Z # Subtest: owned PG FAIL reaches cleanup and zero (simulated Docker, no database)
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.6370116Z ok 2 - owned PG FAIL reaches cleanup and zero (simulated Docker, no database)
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.6370814Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.6371176Z   duration_ms: 102.622065
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.6371589Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.6371951Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.7384650Z # Subtest: owned PG exception reaches cleanup and zero (simulated Docker, no database)
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.7392846Z ok 3 - owned PG exception reaches cleanup and zero (simulated Docker, no database)
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.7393978Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.7394386Z   duration_ms: 102.50181
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.7394810Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.7395144Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.8413021Z # Subtest: owned PG timeout reaches cleanup and zero (simulated Docker, no database)
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.8414442Z ok 4 - owned PG timeout reaches cleanup and zero (simulated Docker, no database)
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.8415190Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.8415526Z   duration_ms: 102.462828
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.8415928Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.8416184Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.9446026Z # Subtest: owned PG SIGINT reaches cleanup and zero (simulated Docker, no database)
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.9447298Z ok 5 - owned PG SIGINT reaches cleanup and zero (simulated Docker, no database)
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.9448303Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.9448717Z   duration_ms: 103.04584
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.9449163Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:29.9449542Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.0474199Z # Subtest: owned PG SIGTERM reaches cleanup and zero (simulated Docker, no database)
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.0475612Z ok 6 - owned PG SIGTERM reaches cleanup and zero (simulated Docker, no database)
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.0476219Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.0476445Z   duration_ms: 103.336935
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.0476690Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.0476891Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.1501946Z # Subtest: owned PG unknown-create reaches cleanup and zero (simulated Docker, no database)
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.1503404Z ok 7 - owned PG unknown-create reaches cleanup and zero (simulated Docker, no database)
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.1504447Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.1504675Z   duration_ms: 102.603632
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.1504922Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.1505137Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.2532381Z # Subtest: cleanup failure retains lock and reports leak (simulated)
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.2534000Z ok 8 - cleanup failure retains lock and reports leak (simulated)
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.2534406Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.2534662Z   duration_ms: 103.277976
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.2534922Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.2535131Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.3550724Z # Subtest: resource guard refuses before creating or querying Docker
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.3554128Z ok 9 - resource guard refuses before creating or querying Docker
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.3554892Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.3555149Z   duration_ms: 101.106515
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.3555438Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.3556094Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.4624849Z # Subtest: unknown Docker create with no observed container is not falsely certified zero
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.4627374Z ok 10 - unknown Docker create with no observed container is not falsely certified zero
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.4628161Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.4628489Z   duration_ms: 103.448836
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.4628776Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.4629022Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.5647565Z # Subtest: verification success cannot become PASS when final cleanup fails
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.5649157Z ok 11 - verification success cannot become PASS when final cleanup fails
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.5649846Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.5650097Z   duration_ms: 107.010479
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.5650385Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.5650626Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.6151345Z # Subtest: isolated Linux Actions accepts local Docker without macOS sysctl
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.6152881Z ok 12 - isolated Linux Actions accepts local Docker without macOS sysctl
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.6153673Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.6154332Z   duration_ms: 0.883876
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.6154768Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.6155133Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.6159542Z # Subtest: a Linux CI claim needs Actions and a local Unix Docker endpoint
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.6161075Z ok 13 - a Linux CI claim needs Actions and a local Unix Docker endpoint
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.6162040Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.6162660Z   duration_ms: 0.293741
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.6163305Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.6164119Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.6165150Z # Subtest: Actions variables never bypass shared Mac pressure or Swap gates
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.6166849Z ok 14 - Actions variables never bypass shared Mac pressure or Swap gates
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.6167974Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.6168375Z   duration_ms: 1.034518
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.6168810Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.6169179Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.7718985Z # Subtest: browser launch with no exposed PID is UNKNOWN and retains the owned run lock (simulated browser and Docker)
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.7720977Z ok 15 - browser launch with no exposed PID is UNKNOWN and retains the owned run lock (simulated browser and Docker)
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.7721874Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.7722229Z   duration_ms: 106.937231
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.7722611Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.7722953Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.9712730Z # Subtest: nested temporary migration files are registered and reclaimed after child failure
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.9717542Z ok 16 - nested temporary migration files are registered and reclaimed after child failure
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.9718446Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.9718880Z   duration_ms: 151.238424
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.9719357Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:30.9719737Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:31.0826002Z # Subtest: success and failure are distinguished
+acceptance	Process supervision and resource guards	2026-10-03T16:19:31.0826806Z ok 17 - success and failure are distinguished
+acceptance	Process supervision and resource guards	2026-10-03T16:19:31.0827364Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:31.0827717Z   duration_ms: 61.151557
+acceptance	Process supervision and resource guards	2026-10-03T16:19:31.0829403Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:31.0829799Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.1918452Z # Subtest: timeout kills an uncooperative child
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.1919386Z ok 18 - timeout kills an uncooperative child
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.1920306Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.1920987Z   duration_ms: 3108.669048
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.1921382Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.1921599Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.2479553Z # Subtest: parent SIGINT terminates child and reports failure
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.2480454Z ok 19 - parent SIGINT terminates child and reports failure
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.2480948Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.2481437Z   duration_ms: 56.82921
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.2481890Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.2482314Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.3031631Z # Subtest: parent SIGTERM terminates child and reports failure
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.3032779Z ok 20 - parent SIGTERM terminates child and reports failure
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.3033478Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.3034145Z   duration_ms: 54.714953
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.3034663Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.3035724Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.4477944Z # Subtest: descendants are killed after leader exits
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.4479022Z ok 21 - descendants are killed after leader exits
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.4479705Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.4480069Z   duration_ms: 141.622311
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.4480472Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.4480807Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.4481449Z # Subtest: spawn exception and pre-aborted task create no live child
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.4482376Z ok 22 - spawn exception and pre-aborted task create no live child
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.4482968Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.4483307Z   duration_ms: 2.396027
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.4483615Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.4484094Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.4774318Z # Subtest: leader exit with inherited pipes reclaims descendant promptly
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.4775637Z ok 23 - leader exit with inherited pipes reclaims descendant promptly
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.4776407Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.4776889Z   duration_ms: 29.946543
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.4777570Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:34.4778038Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:37.8457652Z # Subtest: nested supervisor cancellation reclaims registered independent groups
+acceptance	Process supervision and resource guards	2026-10-03T16:19:37.8458993Z ok 24 - nested supervisor cancellation reclaims registered independent groups
+acceptance	Process supervision and resource guards	2026-10-03T16:19:37.8459806Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:37.8460264Z   duration_ms: 3368.214381
+acceptance	Process supervision and resource guards	2026-10-03T16:19:37.8460766Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:37.8462560Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:38.0108599Z # Subtest: successful nested supervisor does not kill its ancestor
+acceptance	Process supervision and resource guards	2026-10-03T16:19:38.0109456Z ok 25 - successful nested supervisor does not kill its ancestor
+acceptance	Process supervision and resource guards	2026-10-03T16:19:38.0109823Z   ---
+acceptance	Process supervision and resource guards	2026-10-03T16:19:38.0110044Z   duration_ms: 166.438243
+acceptance	Process supervision and resource guards	2026-10-03T16:19:38.0110289Z   type: 'test'
+acceptance	Process supervision and resource guards	2026-10-03T16:19:38.0110496Z   ...
+acceptance	Process supervision and resource guards	2026-10-03T16:19:38.1258291Z 1..25
+acceptance	Process supervision and resource guards	2026-10-03T16:19:38.1258712Z # tests 25
+acceptance	Process supervision and resource guards	2026-10-03T16:19:38.1259046Z # suites 0
+acceptance	Process supervision and resource guards	2026-10-03T16:19:38.1259370Z # pass 25
+acceptance	Process supervision and resource guards	2026-10-03T16:19:38.1259877Z # fail 0
+acceptance	Process supervision and resource guards	2026-10-03T16:19:38.1260428Z # cancelled 0
+acceptance	Process supervision and resource guards	2026-10-03T16:19:38.1260956Z # skipped 0
+acceptance	Process supervision and resource guards	2026-10-03T16:19:38.1261458Z # todo 0
+acceptance	Process supervision and resource guards	2026-10-03T16:19:38.1262033Z # duration_ms 8754.135029

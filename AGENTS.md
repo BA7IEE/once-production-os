@@ -1,3 +1,13 @@
+# 当前授权：业务流修复（2026-10-03）
+
+用户已批准按本聊天修订后的方案开始落地。基线 1dae5e729b3be3a01d8149e4f02bd64bc9436d61；本轮只在 codex/business-flow-fixes 独立工作区修复来源核验协作、版本化导入及历史补齐、本人端未知结果处理、多来源直接保存和来源原文录入。跨来源建议保持独立逐项核对，不加入混合批量采纳。Commands 只管理回执，读取鉴权仍在领域 replay-policy。旧迁移1–74冻结，新模型仅追加迁移。既有分支与主目录未提交内容保留，不合并、不部署。
+
+严格遵守 docs/development/RESOURCE_LIFECYCLE.md。重型任务串行、Swap 不超过4GiB、临时资源继承 ResourceRun；新真实PG仅 test:postgres:owned。代码、轻量用例、真实PG、浏览器和供应商验证分别报告，未运行不写PASS。
+
+本轮收尾证据与实测边界见 docs/release/BUSINESS_FLOW_FIXES.md 和 artifacts/business-flow/verification.json。收尾后停在 Draft 交付，保持未合并、未部署，不自行关闭 M0/M1/M2/M3。
+
+以下为历史授权和证据。
+
 # 当前授权：PR-04D 同档接手与生命周期总收口
 
 用户批准基于冻结 PR-04C 4e7593c9 的独立 stacked 分支，实现同一 Person 的 CLAIM / SELF Grant 与显式 exposure、本人后续维护和 A–D 生命周期验收。复用既有模型；迁移1–74冻结，优先无75。新 PR35 保持 Draft、未合并未部署；PR31–34 head 不改。全量验收与 exact-head CI 后停止，等待复核，不进入 MCP / Skill。下方为历史授权。

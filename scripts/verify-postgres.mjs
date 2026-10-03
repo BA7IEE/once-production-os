@@ -1,10 +1,9 @@
-/** Explicit disposable-DB gate. No implicit .env fallback, cleanup or deletion.
- * The main integration database is supplied by the caller. Additional M1 maintenance tests create
- * fresh sibling databases and deliberately leave them for CI-service disposal/evidence. */
+/** Low-level child of the owned PostgreSQL runner; never creates a persistent test service. */
 import { spawnSync } from 'node:child_process';
 import { PrismaClient } from '@prisma/client';
 
 const raw=process.env.DATABASE_URL_TEST;
+if(!process.env.ONCE_RESOURCE_RUN_DIR){console.error('Use pnpm test:postgres:owned; an owning ResourceRun is required.');process.exit(2);}
 if(process.env.ALLOW_DB_TESTS!=='yes'||!raw){console.error('Requires ALLOW_DB_TESTS=yes and DATABASE_URL_TEST. See docs/release/LOCAL_RUN.md; no database was touched.');process.exit(2);}
 let url;try{url=new URL(raw);}catch{console.error('Invalid test database URL.');process.exit(2);}
 if(!['postgresql:','postgres:'].includes(url.protocol)||!['127.0.0.1','localhost','[::1]'].includes(url.hostname)||!new RegExp('^/once_test_[a-z0-9_]+$').test(url.pathname)||url.search||url.hash||!url.username||!url.password){console.error('Only a named disposable once_test_* database on loopback with explicit credentials is permitted.');process.exit(2);}

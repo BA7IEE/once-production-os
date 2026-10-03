@@ -1,0 +1,47 @@
+{
+  "evidenceMode": "CI_STEP_LOG_READBACK",
+  "run": 37136370653,
+  "head": "b071fa58bdccdee6ec0252e27643e3c6824cbc40",
+  "ownedPostgresRuns": 4,
+  "ownedRunsZeroResidue": true,
+  "runs": [
+    {
+      "baseline": "74",
+      "containers": 0,
+      "processes": 0,
+      "networks": 0,
+      "temporaryVolumes": 0,
+      "temporaryDirectories": 0
+    },
+    {
+      "baseline": "empty",
+      "containers": 0,
+      "processes": 0,
+      "networks": 0,
+      "temporaryVolumes": 0,
+      "temporaryDirectories": 0
+    },
+    {
+      "baseline": "business-flow",
+      "containers": 0,
+      "processes": 0,
+      "networks": 0,
+      "temporaryVolumes": 0,
+      "temporaryDirectories": 0,
+      "unresolvedBrowserLaunches": 0
+    },
+    {
+      "baseline": "talent-maintenance",
+      "containers": 0,
+      "processes": 0,
+      "networks": 0,
+      "temporaryVolumes": 0,
+      "temporaryDirectories": 0,
+      "unresolvedBrowserLaunches": 0
+    }
+  ],
+  "rawResourceJournals": "ARTIFACT_ONLY_NOT_DOWNLOADED",
+  "artifactCopy": "NOT_DOWNLOADED_AFTER_BOUNDED_TIMEOUTS",
+  "artifactUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/37136370653/artifacts/11279010208",
+  "realDockerFaultMatrix": "NOT_RUN"
+}

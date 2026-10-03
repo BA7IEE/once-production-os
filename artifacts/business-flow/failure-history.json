@@ -1,0 +1,120 @@
+[
+  {
+    "stage": "initial source-review test",
+    "result": "5 of 6 passed",
+    "cause": "typed evidence belongs to a fact owner, not necessarily direct personId",
+    "resolution": "resolve whitelisted typed owner before source exclusivity checks"
+  },
+  {
+    "stage": "two added test fixtures",
+    "result": "143 of 145 passed",
+    "cause": "old session retained its recovery epoch; location dates require full UTC timestamps",
+    "resolution": "assert old-session isolation, reauthenticate then assert task invalidation; use valid UTC fixture dates",
+    "evidence": "core-before-fixture-corrections.json"
+  },
+  {
+    "stage": "static route registration",
+    "result": "11 of 12 passed",
+    "cause": "OpenAPI path includes /api/v1 while route registry uses relative paths",
+    "resolution": "match exact registered route after removing API prefix",
+    "evidence": "static-before-route-registration.log"
+  },
+  {
+    "stage": "full frontend typecheck",
+    "result": "FAILED_HEAP_LIMIT_256_MIB",
+    "cause": "heap exhausted under the bounded memory setting",
+    "resolution": "bounded local heap failure retained; full real-dependency frontend and backend typecheck passed on accepted CI head b071fa5"
+  },
+  {
+    "stage": "first business-flow CI PG upgrade",
+    "run": 37130475284,
+    "head": "3fea0d3cebd7975436175b45ca43e7bae9a73d2a",
+    "result": "FAIL after migration75 on prepared old SELECT *",
+    "cause": "Prisma test client kept a prepared result shape across ALTER TABLE adding formatVersion",
+    "resolution": "disconnect the old test connection before deploy and reconnect afterwards, matching API/client restart; retain all preservation assertions",
+    "evidence": "ci-first-failure.log"
+  },
+  {
+    "stage": "first browser CI setup",
+    "run": 37131423480,
+    "head": "dc17d87824e5c75a44888d1e9244a11108f28f72",
+    "result": "FAIL before opening browser",
+    "cause": "new harness bootstrapped before setting required APP_ORIGIN",
+    "resolution": "allocate loopback origin before bootstrap; keep empty database and all real page assertions",
+    "evidence": "ci-browser-first-failure.log"
+  },
+  {
+    "stage": "third CI actual directory query",
+    "run": 37132022597,
+    "head": "612082d4e7a24407a309be7e304762cdaa43d290",
+    "result": "review/publication and raw text passed; contact assertion received reset query total",
+    "cause": "browser response waiter matched the in-flight reset ALL query rather than the subsequent CONTACT query",
+    "resolution": "bind the response to CONTACT mode and the exact submitted search text; keep the one-contact and no-role assertions",
+    "evidence": "ci-page-first-failure.log"
+  },
+  {
+    "stage": "fourth CI synthetic AI operator",
+    "run": 37132731222,
+    "head": "e76f5d5aadaa6046bdb398bf3b67994c34686378",
+    "result": "private review, raw source and typed import passed; AI input entry absent",
+    "cause": "bootstrap ADMIN intentionally does not receive ai.use by default",
+    "resolution": "explicitly grant ai.use to the synthetic operator through the existing membership API; preserve production defaults",
+    "evidence": "ci-portal-first-failure.log"
+  },
+  {
+    "stage": "fifth CI synthetic AI membership permissions",
+    "run": 37133476059,
+    "head": "b3d97ad89593d6b81437171deff804f3f52ef3ff",
+    "result": "types, core, build, PG and preceding browser flows passed; fixture permission request returned 404",
+    "cause": "fixture used the membership collection item instead of its permissions route, and omitted required role",
+    "resolution": "use PATCH /memberships/{id}/permissions with current role, then log in after the mandated session retirement",
+    "evidence": "ci-portal-second-failure.log"
+  },
+  {
+    "stage": "review renewal regression",
+    "result": "FAIL reproduced then targeted PASS",
+    "cause": "an invalidated pending review still blocked a fresh authorized request",
+    "resolution": "retire only already-invalid grants and create the new request atomically with minimal audit; audit failure rolls both changes back",
+    "before": "review-renewal-before-fix.tap",
+    "after": "review-renewal-after-fix.tap"
+  },
+  {
+    "stage": "sixth CI portal rejection fixture",
+    "run": 37134524123,
+    "head": "1c1acbb3a3fa7e0e2c5db9150c980dbabb2c20f7",
+    "result": "all six internal browser chains passed; portal structural overflow returned 400",
+    "cause": "21 aliases failed request shape validation before reaching a business 422",
+    "resolution": "use whitespace-only name to reach real NAME_REQUIRED 422, assert no draft persisted, keep correction/new-key assertion",
+    "evidence": "ci-input-first-failure.log"
+  },
+  {
+    "stage": "seventh CI lost portal draft response fixture",
+    "run": 37135234041,
+    "head": "d03d24b0a3c55ec1dc4a14a84102101a187507ec",
+    "result": "internal browser chains, real 422 correction and known-write refresh recovery passed; fixture expected 201 from portal command",
+    "cause": "portal command returns 200 with receipt; fixture copied internal resource creation status",
+    "resolution": "bind only the POST, require contract status 200 plus SUCCEEDED receipt and persisted DRAFT, drop its real response, and assert reload sends no second write",
+    "evidence": "ci-portal-recovery-failure.log"
+  },
+  {
+    "stage": "eighth CI reload before draft fault completed",
+    "run": 37135977942,
+    "head": "0a32e49bd6cb9724f6056fcc4359b8f19d97b93f",
+    "result": "draft was committed; fixture reloaded while the response-drop handler was still running",
+    "cause": "pending button appears when a write begins; visibility does not prove the write response was lost",
+    "resolution": "wait for the actual client network-unknown alert before removing the fault handler and reloading; keep zero-second-write and same-draft assertions",
+    "evidence": "ci-portal-reload-failure.log"
+  },
+  {
+    "stage": "accepted CI evidence retrieval",
+    "run": 37136370653,
+    "head": "b071fa58bdccdee6ec0252e27643e3c6824cbc40",
+    "result": "CI SUCCESS; complete logs read back; artifact local copy unavailable after bounded download attempts",
+    "resolution": "preserve exact-head metadata, actual per-file results and four owned cleanup outputs; retain original artifact URL without claiming raw journal/screenshot download",
+    "evidence": [
+      "ci-accepted-run.json",
+      "ci-accepted-validation.log",
+      "ci-accepted-lifecycle.log"
+    ]
+  }
+]

@@ -17,7 +17,7 @@ import { touch } from './helpers.ts';
 
 /** All TD2 rows and their security-relevant endpoints participate in one recovery digest.
  * Do not return raw rows, encrypted identifiers or machine credential hashes in a report. */
-export const TD2_INTEGRITY_TABLES = [...TALENT_V2_TABLES, 'people', 'sources', 'scopes',
+export const TD2_INTEGRITY_TABLES = [...TALENT_V2_TABLES, 'sourceReviews', 'people', 'sources', 'scopes',
     'memberships', 'works','workCredits','workAssets','talentSubmissionItems', 'mediaPurgeIntents','personMedia','uploads','talentSubmissions','sourceAttributions','sourceUseBases','talentConsents','talentAccounts','talentClaims','talentAccessGrants','talentInvitations','talentInvitationContexts','assets', 'evidence', 'shortlistItemAssets', 'shortlistItems', 'personAliases', 'personMerges', 'mergeHistoryErasures'] as const;
 export type IntegrityTable = typeof TD2_INTEGRITY_TABLES[number];
 type Row = { id: string; workspaceId: string; [key: string]: unknown };
@@ -54,6 +54,7 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
         const target = maps[table].get(String(id));
         check(!!target && target.workspaceId === workspaceId && (!samePerson || target.personId === row.personId));
     };
+    for(const r of data.sourceReviews){ref(r,'personId','people',false,true);ref(r,'sourceId','sources',false,true);for(const f of ['senderId','reviewerId','publisherId'])ref(r,f,'memberships',false,true);for(const f of ['personScopeId','sourceScopeId','targetScopeId'])ref(r,f,'scopes',false,true);}
     for(const w of data.works){ref(w,'sourceId','sources',false,true);ref(w,'scopeId','scopes',false,true);if(w.coverEntryId){const e=maps.workAssets.get(String(w.coverEntryId)),a=e?maps.assets.get(String(e.assetId)):null;check(!!e&&e.workId===w.id&&!!a&&String(a.mime).startsWith('image/'));}}
     const creditKeys=new Set<string>(),placementKeys=new Set<string>();
     for(const c of data.workCredits){ref(c,'workId','works',false,true);ref(c,'personId','people',false,true);check(!!c.personRoleId===!!c.sourceId);if(c.personRoleId){ref(c,'personRoleId','personRoles',true,true);ref(c,'sourceId','sources',false,true);check(maps.personRoles.get(String(c.personRoleId))?.roleCode===c.roleCode);}const key=c.workId+':'+c.personId+':'+c.roleCode;check(!creditKeys.has(key));creditKeys.add(key);}
