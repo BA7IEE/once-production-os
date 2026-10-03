@@ -39,8 +39,9 @@ async function search(page,name,role,city){
 const record=name=>{checks.push(name);console.log('PASS '+name);};
 try{
  assert.equal((await db.$queryRawUnsafe("SELECT tablename FROM pg_tables WHERE schemaname='public'")).length,0,'Require owned empty database, no reset');
- await run('pnpm',['db:deploy'],{env,capture:true});await run(process.execPath,['dist/apps/api/src/bootstrap.js'],{env,capture:true});
+ stage='migration';await run('pnpm',['db:deploy'],{env,capture:true});
  const port=createServer();await new Promise(r=>port.listen(0,'127.0.0.1',r));env.PORT=String(port.address().port);await new Promise(r=>port.close(r));base='http://127.0.0.1:'+env.PORT;env.APP_ORIGIN=base;
+ stage='bootstrap';await run(process.execPath,['dist/apps/api/src/bootstrap.js'],{env,capture:true});
  api=spawn(process.execPath,['dist/apps/api/src/main.js'],{env,stdio:'ignore'});worker=spawn(process.execPath,['dist/apps/api/src/worker-main.js'],{env,stdio:'ignore'});
  await poll(async()=>{try{return (await fetch(base+'/health/ready')).status===200;}catch{return false;}},'API readiness');
  browserOwner=await registeredBrowser(chromium,{headless:true,env:{...process.env,TMPDIR:temp.path}});browser=browserOwner.browser;

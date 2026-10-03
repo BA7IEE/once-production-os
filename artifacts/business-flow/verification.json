@@ -58,16 +58,23 @@
   "fullFrontendTypecheck": "PASS_CI_3fea0d3_PREVIOUS_LOCAL_HEAP_FAILURE_RETAINED",
   "fullBackendTypecheck": "PASS_CI_3fea0d3",
   "build": "PASS_CI_3fea0d3",
-  "postgres": "NOT_RUN",
-  "browser": "NOT_RUN",
+  "postgres": {
+    "status": "DB_TESTED",
+    "run": 37131423480,
+    "head": "dc17d87824e5c75a44888d1e9244a11108f28f72",
+    "upgrade": "74->75",
+    "fresh": "1->75"
+  },
+  "browser": "FAIL_SETUP_FIX_PENDING",
   "ci": {
-    "status": "FIRST_RUN_FAILED_PG_FIX_PENDING",
-    "run": 37130475284,
-    "head": "3fea0d3cebd7975436175b45ca43e7bae9a73d2a",
+    "status": "SECOND_RUN_FAILED_BROWSER_SETUP_FIX_PENDING",
+    "run": 37131423480,
+    "head": "dc17d87824e5c75a44888d1e9244a11108f28f72",
     "fullTypes": "PASS",
     "fullCore": "PASS",
     "build": "PASS",
-    "postgres": "FAIL"
+    "postgres": "DB_TESTED",
+    "browser": "FAIL_BEFORE_BROWSER"
   },
   "providerVerified": "NOT_RUN",
   "productionMigration": "NOT_RUN",
@@ -79,7 +86,7 @@
     "requiredPressureLevel": 1
   },
   "sourceSha256": {
-    ".github/workflows/business-flow.yml": "6c08bc553fa0c411297b60ad135ab9995f8bc316d6604b255a36227aa87a26f0",
+    ".github/workflows/business-flow.yml": "aac83ae6b45258a3959ab511650d8989229f2b315ef2e02555866791c74df5cc",
     "apps/admin-web/src/business-flow-ui.tsx": "a093b709a1ef66feef870542e50d3fd594c6a475a48027d524c336620a085f6a",
     "apps/admin-web/src/dto.ts": "174dc46da45ae1db9e1bb73ac5000c615c511953d0ab496dc6eda5c0fff185ac",
     "apps/admin-web/src/generated/requests.ts": "124583a4ffc68321ad57ec04960d0b87be696c8f85fbe993695e80d01d2ac4a0",
@@ -125,9 +132,10 @@
     "tests/lifecycle/supervisor.test.mjs": "f5a49fa11b84acbbf12e51c245e37aecdc37ac0571c61a2841f3bb3256ad98f3",
     "tests/postgres/business-flow.test.ts": "7c269ca2b9ee6f8d29fe3be2a9899e62919758706b7a445b374532e4e5848a97",
     "tests/support/memory-store.ts": "7aeb1295987dac3eea67fe27f0d60b90d520c27321538df874c3026ccf49e7a9",
-    "scripts/registered-browser.mjs": "b8ee556643dc3d6b2f4fae0686186d5e51f40a01f27163306f15566149ddc575",
-    "tests/acceptance/browser-business-flow.mjs": "a39cf9824def3e4be61294209e663e6c992eb5bcd10c834134997e4ad462bea3",
-    "tests/acceptance/browser-talent-maintenance.mjs": "0d72aca5680aced2e1ebf14a2962cf18ec418af2541ffe9fedd41ccbe4171961"
+    "scripts/registered-browser.mjs": "e744a296e74f4c6f4f9dcf2b03d33548287c859ca74ec5c879dec6d126ca5360",
+    "tests/acceptance/browser-business-flow.mjs": "91b3524fbd89d3b345bf6f4a88bdb00ab280f74157a03c056f001ac37fca53a8",
+    "tests/acceptance/browser-talent-maintenance.mjs": "0d72aca5680aced2e1ebf14a2962cf18ec418af2541ffe9fedd41ccbe4171961",
+    "packages/core/src/rebuild-model.ts": "de6c8f4daebcf6739fd13b9631d55b53f5152fa52009d256a4c2752b671a62ce"
   },
   "closingChecks": {
     "portalRegression": 7,

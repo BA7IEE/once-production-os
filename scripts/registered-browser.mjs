@@ -10,8 +10,9 @@ export async function registeredBrowser(type,options={}){
  try{
   const pid=server.process().pid;
   if(!Number.isSafeInteger(pid)||pid<=1)throw new Error('Browser process identity unavailable');
-  writeFileSync(join(root,`process-${pid}.json`),JSON.stringify({pgid:pid,supervisorPid:process.pid,started:new Date().toISOString(),status:'ACTIVE'}),{mode:0o600});
+  const path=join(root,`process-${pid}.json`),record={pgid:pid,supervisorPid:process.pid,started:new Date().toISOString(),status:'ACTIVE'};
+  writeFileSync(path,JSON.stringify(record),{mode:0o600});
   browser=await type.connect(server.wsEndpoint());
-  return {browser,async close(){try{await browser.close();}finally{await server.close();writeFileSync(intent,JSON.stringify({status:'CLOSED'}),{mode:0o600});}}};
+  return {browser,async close(){try{await browser.close();}finally{await server.close();writeFileSync(path,JSON.stringify({...record,status:'KILL_SENT'}),{mode:0o600});writeFileSync(intent,JSON.stringify({status:'CLOSED'}),{mode:0o600});}}};
  }catch(error){await server.close();throw error;}
 }

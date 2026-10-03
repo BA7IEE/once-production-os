@@ -13,6 +13,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Verify delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
@@ -43,7 +45,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: business-flow-${{ github.sha }}
+          name: business-flow-${{ github.event.pull_request.head.sha }}
           path: |
             artifacts/business-flow/
             artifacts/talent-experience-pr02b/

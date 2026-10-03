@@ -1,0 +1,26 @@
+acceptance	Real business pages and portal maintenance regression	﻿2026-10-03T15:01:50.7372855Z ##[group]Run pnpm test:postgres:owned --business-flow-browser
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:50.7373222Z ^[[36;1mpnpm test:postgres:owned --business-flow-browser^[[0m
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:50.7429119Z shell: /usr/bin/bash -e {0}
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:50.7429362Z env:
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:50.7429574Z   PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:50.7429830Z ##[endgroup]
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:50.9427742Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:50.9428811Z > once-production-os@0.1.0-dev.1 test:postgres:owned /home/runner/work/once-production-os/once-production-os
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:50.9429758Z > node scripts/test-postgres-owned.mjs --business-flow-browser
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:50.9430115Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:58.8123158Z file:///home/runner/work/once-production-os/once-production-os/scripts/resource-lifecycle.mjs:55
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:58.8124845Z       if(cleanupError || stopped || (error&&!allowFailure)) reject(new Error('Child failed, interrupted, timed out or cleanup failed; credentials omitted.'));
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:58.8125787Z                                                                    ^
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:58.8126133Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:58.8126442Z Error: Child failed, interrupted, timed out or cleanup failed; credentials omitted.
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:58.8127046Z     at finish (file:///home/runner/work/once-production-os/once-production-os/scripts/resource-lifecycle.mjs:55:68)
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:58.8127754Z     at ChildProcess.<anonymous> (file:///home/runner/work/once-production-os/once-production-os/scripts/resource-lifecycle.mjs:77:30)
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:58.8128248Z     at Object.onceWrapper (node:events:634:26)
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:58.8128531Z     at ChildProcess.emit (node:events:519:28)
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:58.8128812Z     at maybeClose (node:internal/child_process:1101:16)
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:58.8129163Z     at ChildProcess._handle.onexit (node:internal/child_process:304:5)
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:58.8129386Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:58.8129461Z Node.js v22.22.3
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:59.1036158Z Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:59.1166651Z  ELIFECYCLE  Command failed with exit code 1.
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:01:59.1335699Z ##[error]Process completed with exit code 1.

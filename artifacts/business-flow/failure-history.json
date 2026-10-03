@@ -33,5 +33,14 @@
     "cause": "Prisma test client kept a prepared result shape across ALTER TABLE adding formatVersion",
     "resolution": "disconnect the old test connection before deploy and reconnect afterwards, matching API/client restart; retain all preservation assertions",
     "evidence": "ci-first-failure.log"
+  },
+  {
+    "stage": "first browser CI setup",
+    "run": 37131423480,
+    "head": "dc17d87824e5c75a44888d1e9244a11108f28f72",
+    "result": "FAIL before opening browser",
+    "cause": "new harness bootstrapped before setting required APP_ORIGIN",
+    "resolution": "allocate loopback origin before bootstrap; keep empty database and all real page assertions",
+    "evidence": "ci-browser-first-failure.log"
   }
 ]
