@@ -1,4 +1,4 @@
-当前工作： [业务流修复与验收边界](docs/release/BUSINESS_FLOW_FIXES.md)。独立分支 `codex/business-flow-fixes`；修复代码已实现，新增迁移75未实跑，完整构建/浏览器/CI未验收，未合并部署。以下PR-04D记录属于上一基线。
+当前工作：[业务流修复与验收边界](docs/release/BUSINESS_FLOW_FIXES.md)，[Draft PR #36](https://github.com/BA7IEE/once-production-os/pull/36)。本轮完整类型、构建、778项Core、两条PG迁移与两组真实页面已通过CI，未合并、未部署。以下PR-04D记录属于上一基线。
 
 当前 PR-04D 进度见 [同档接手与生命周期交付说明](docs/release/PR04_AGENT_INGESTION_D.md)，独立 stacked Draft PR35、未合并、未部署。A–C及迁移1–74冻结；本轮本地全量通过，最终head CI另绑定PR与交付回复，D等待代码级复核。
 

@@ -1,0 +1,102 @@
+{
+  "run": 37136370653,
+  "head": "b071fa58bdccdee6ec0252e27643e3c6824cbc40",
+  "url": "https://github.com/BA7IEE/once-production-os/actions/runs/37136370653",
+  "status": "completed",
+  "conclusion": "success",
+  "artifact": {
+    "id": 11279010208,
+    "name": "business-flow-b071fa58bdccdee6ec0252e27643e3c6824cbc40",
+    "sizeBytes": 2706075
+  },
+  "steps": [
+    {
+      "name": "Set up job",
+      "conclusion": "success"
+    },
+    {
+      "name": "Run actions/checkout@v6",
+      "conclusion": "success"
+    },
+    {
+      "name": "Verify delivery fingerprints",
+      "conclusion": "success"
+    },
+    {
+      "name": "Run actions/setup-node@v6",
+      "conclusion": "success"
+    },
+    {
+      "name": "Run pnpm/action-setup@v6",
+      "conclusion": "success"
+    },
+    {
+      "name": "Run pnpm install --frozen-lockfile",
+      "conclusion": "success"
+    },
+    {
+      "name": "Generate the real Prisma client",
+      "conclusion": "success"
+    },
+    {
+      "name": "Contract and static checks",
+      "conclusion": "success"
+    },
+    {
+      "name": "Build API and web",
+      "conclusion": "success"
+    },
+    {
+      "name": "Process supervision and resource guards",
+      "conclusion": "success"
+    },
+    {
+      "name": "Fetch the test image on this isolated runner",
+      "conclusion": "success"
+    },
+    {
+      "name": "Owned PG16 upgrade 74 to 75 and fresh install 1 to 75",
+      "conclusion": "success"
+    },
+    {
+      "name": "Install this runner's Chromium",
+      "conclusion": "success"
+    },
+    {
+      "name": "Real business pages and portal maintenance regression",
+      "conclusion": "success"
+    },
+    {
+      "name": "Full types and core regression",
+      "conclusion": "success"
+    },
+    {
+      "name": "Preserve this run's evidence even on failure",
+      "conclusion": "success"
+    },
+    {
+      "name": "Post Run pnpm/action-setup@v6",
+      "conclusion": "success"
+    },
+    {
+      "name": "Post Run actions/setup-node@v6",
+      "conclusion": "success"
+    },
+    {
+      "name": "Post Run actions/checkout@v6",
+      "conclusion": "success"
+    },
+    {
+      "name": "Complete job",
+      "conclusion": "success"
+    }
+  ],
+  "evidenceMode": "CI_METADATA_AND_STEP_LOG_READBACK",
+  "coreTests": 778,
+  "affectedCoreTests": 147,
+  "lifecycleTests": 25,
+  "internalBrowserChecks": 6,
+  "portalBrowserChecks": 10,
+  "ownedPostgresRuns": 4,
+  "artifactCopy": "NOT_DOWNLOADED_AFTER_BOUNDED_TIMEOUTS"
+}

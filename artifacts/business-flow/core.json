@@ -112,5 +112,7 @@
     "networks": 0,
     "temporaryVolumes": 0
   },
-  "lastUpdated": "2026-10-03T14:36:54.839Z"
+  "lastUpdated": "2026-10-03T14:36:54.839Z",
+  "evidenceScope": "HISTORICAL_LOCAL_BEFORE_FINAL_CI",
+  "currentAcceptance": "verification.json"
 }

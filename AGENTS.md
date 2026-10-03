@@ -4,6 +4,8 @@
 
 严格遵守 docs/development/RESOURCE_LIFECYCLE.md。重型任务串行、Swap 不超过4GiB、临时资源继承 ResourceRun；新真实PG仅 test:postgres:owned。代码、轻量用例、真实PG、浏览器和供应商验证分别报告，未运行不写PASS。
 
+本轮收尾证据与实测边界见 docs/release/BUSINESS_FLOW_FIXES.md 和 artifacts/business-flow/verification.json。收尾后停在 Draft 交付，保持未合并、未部署，不自行关闭 M0/M1/M2/M3。
+
 以下为历史授权和证据。
 
 # 当前授权：PR-04D 同档接手与生命周期总收口

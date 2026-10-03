@@ -1,0 +1,16 @@
+{
+  "status": "BROWSER_TESTED",
+  "evidenceMode": "CI_STEP_LOG_READBACK",
+  "run": 37136370653,
+  "head": "b071fa58bdccdee6ec0252e27643e3c6824cbc40",
+  "checks": [
+    "default EDITOR private intake -> accepted limited review -> explicit administrator publication -> team directory",
+    "restricted raw text created and edited through the real source page; no AI call implied",
+    "V2 import real Worker checkpoint -> model/Shenzhen filters and ordinary contact without professional roles",
+    "page-authored raw source -> separately approved grant -> real minimized AI input preview; zero AI task/run",
+    "legacy checkpoint retained; real upgrade preview and explicit typed repair",
+    "single real core save carries each fact source; both fields persist with original provenance"
+  ],
+  "providerVerified": "NOT_RUN",
+  "aiInputSelection": "PREVIEW_ONLY_ZERO_TASK_RUN"
+}

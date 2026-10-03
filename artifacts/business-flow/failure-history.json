@@ -23,7 +23,7 @@
     "stage": "full frontend typecheck",
     "result": "FAILED_HEAP_LIMIT_256_MIB",
     "cause": "heap exhausted under the bounded memory setting",
-    "resolution": "NOT CLOSED; six entry files pass targeted real-dependency typecheck; full check waits for resource gate"
+    "resolution": "bounded local heap failure retained; full real-dependency frontend and backend typecheck passed on accepted CI head b071fa5"
   },
   {
     "stage": "first business-flow CI PG upgrade",
@@ -104,5 +104,17 @@
     "cause": "pending button appears when a write begins; visibility does not prove the write response was lost",
     "resolution": "wait for the actual client network-unknown alert before removing the fault handler and reloading; keep zero-second-write and same-draft assertions",
     "evidence": "ci-portal-reload-failure.log"
+  },
+  {
+    "stage": "accepted CI evidence retrieval",
+    "run": 37136370653,
+    "head": "b071fa58bdccdee6ec0252e27643e3c6824cbc40",
+    "result": "CI SUCCESS; complete logs read back; artifact local copy unavailable after bounded download attempts",
+    "resolution": "preserve exact-head metadata, actual per-file results and four owned cleanup outputs; retain original artifact URL without claiming raw journal/screenshot download",
+    "evidence": [
+      "ci-accepted-run.json",
+      "ci-accepted-validation.log",
+      "ci-accepted-lifecycle.log"
+    ]
   }
 ]

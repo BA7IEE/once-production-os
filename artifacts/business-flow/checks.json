@@ -50,5 +50,7 @@
     "processes": 0,
     "networks": 0,
     "temporaryVolumes": 0
-  }
+  },
+  "evidenceScope": "HISTORICAL_LOCAL_BEFORE_FINAL_CI",
+  "currentAcceptance": "verification.json"
 }

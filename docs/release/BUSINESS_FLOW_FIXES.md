@@ -61,11 +61,21 @@
 
 ## 验证与未关闭事项
 
-独立 CI 直接检出 PR head，串行执行完整类型检查、全量 Core、构建、契约与静态检查、资源生命周期、两条 owned PG 迁移和两个真实 Chromium 入口。当前收尾代码正在 CI 37135234041 验证；此前 head 已走通内部六条页面链路，本人端异常验收尚未完成。完整结果将绑定本轮代码 head、运行编号和文件指纹，权威证据为 `artifacts/business-flow/verification.json`。
+实现代码 b071fa58bdccdee6ec0252e27643e3c6824cbc40 的 [CI 37136370653](https://github.com/BA7IEE/once-production-os/actions/runs/37136370653) 全部通过；源文件指纹在 ci-accepted-source-fingerprints.json，权威记录为 artifacts/business-flow/verification.json。文档与证据收尾不改变已验收实现；最新PR head的CI另绑定PR描述和交付回复。
 
-内存回归使用测试专用 MemoryStore，正式入口仍只有 PrismaStore。PG 专项覆盖本轮升级、导入和核验共享，两个浏览器入口覆盖本轮内部链路及本人维护；旧版本的其他 PG/浏览器组、恢复演练和生产证据不会自动套用。
+| 验收层 | 本轮结果 | 实测范围 |
+| --- | --- | --- |
+| 类型、构建、契约、静态、指纹 | PASS | 真实Nest/React/Prisma依赖，完整前后端类型及API/Web构建 |
+| 全量Core | 778/778 CORE_MEMORY_TESTED | 受影响147/147；MemoryStore仅供测试 |
+| 生命周期 | 25/25 PASS | 真实进程监督及模拟Docker/未知浏览器启动；真实Docker故障矩阵NOT_RUN |
+| PostgreSQL16 | DB_TESTED | 有数据74→75、空库1→75，旧列/批次/检查点保留、typed导入、受限核验共享与回执重放；旧Worker错误检查点确切23514拒绝 |
+| 内部真实页面 | 6项 BROWSER_TESTED | 私有建档→核验→共享→检索、原文创建编辑、新导入/普通联系人、旧导入补齐、跨来源保存、AI输入预览 |
+| 本人端真实页面 | 10项 BROWSER_TESTED | 360/390/430px完整认领与文字提交、真实422、写后刷新失败、响应丢失后刷新只读核对、账号切换、ENROLL与secret guard |
+| 四轮owned资源退出 | ZERO_RESIDUE | PG升级、空库、内部页面、本人页面均回读退出计数；完整ResourceRun原始登记仍在GitHub产物 |
 
-来源原文→独立许可→最小 AI 输入预览已经从实际页面运行，未执行模型连接测试或创建 AI 任务，AI Task/Run 均为0。真实供应商、COS、物理手机、正式迁移、部署和本轮恢复演练仍为 `NOT_RUN`。M0/M1/M2/M3 不能据此关闭。
+正式入口仍只有PrismaStore。两个浏览器入口使用实际Nest、Worker、Prisma和PG，记录均为合成；本人认证使用受控通知网关，不代表真实认证供应商验收。
+
+来源原文→独立许可→最小AI输入预览从实际页面运行，未执行模型连接测试或创建AI任务，AI Task/Run均为0。真实供应商、COS、物理手机、正式迁移、正式镜像、部署、本轮恢复演练、旧版其他完整PG/浏览器组及真实Docker故障矩阵均NOT_RUN。M0/M1/M2/M3不能据此关闭。
 
 ## 资源与证据
 
@@ -73,4 +83,4 @@
 
 新临时资源创建前登记，嵌套进程继承 ResourceRun，finally 关闭浏览器、回收进程组和临时容器，再核查零残留。浏览器启动意图尚未闭合且无法确认 PID 时，按未知回收失败处理并保留锁；不认证零残留。模拟故障记录与真实运行分别统计。CI 仅上传登记 JSON，不打包临时密钥目录。
 
-首次失败原文及修正边界保留在 `artifacts/business-flow/failure-history.json` 和对应日志；局部类型检查和早期内存回归仅作历史记录。全量验收完成后更新状态表、Review、测试报告、README 和 MANIFEST。
+首次失败原文及修正边界保留在 `artifacts/business-flow/failure-history.json` 和对应日志；局部类型检查和早期内存回归仅作历史记录。状态表、Review、测试报告、README和MANIFEST已随交付同步。完整CI日志和精确head元数据已回读；[原始产物包](https://github.com/BA7IEE/once-production-os/actions/runs/37136370653/artifacts/11279010208)本地下载多次超时，未宣称取得截图或完整ResourceRun JSON。本地汇总注明CI_STEP_LOG_READBACK，原始报告仍保存在GitHub。
