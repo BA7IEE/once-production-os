@@ -1,0 +1,258 @@
+{
+  "run": 37131423480,
+  "head": "dc17d87824e5c75a44888d1e9244a11108f28f72",
+  "runs": [
+    {
+      "id": "0269ce96e01c128b34ea51a9",
+      "status": "ZERO_RESIDUE",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      },
+      "simulation": false
+    },
+    {
+      "id": "2176f2016c55840c4ef545eb",
+      "status": "CLEANUP_FAILED",
+      "outcome": "CLEANUP_FAILED",
+      "remaining": {
+        "containers": "UNKNOWN",
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      },
+      "simulation": true
+    },
+    {
+      "id": "2484819186c4d10f2d73e513",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      },
+      "simulation": false
+    },
+    {
+      "id": "2ed44f40bf64e8070591f098",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      },
+      "simulation": true
+    },
+    {
+      "id": "30dd9cd24e915904848032f0",
+      "status": "CLEANUP_FAILED",
+      "outcome": "CLEANUP_FAILED",
+      "remaining": {
+        "containers": "UNKNOWN",
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      },
+      "simulation": true
+    },
+    {
+      "id": "331726063f28a3be136beb0f",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      },
+      "simulation": false
+    },
+    {
+      "id": "4061cca55770ad9cfad640ee",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      },
+      "simulation": true
+    },
+    {
+      "id": "56068c103074ab82bdd8b544",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      },
+      "simulation": true
+    },
+    {
+      "id": "5c8c5664bfb9842bed096953",
+      "status": "ZERO_RESIDUE",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      },
+      "simulation": false
+    },
+    {
+      "id": "63711327d7b70de4fb628151",
+      "status": "ZERO_RESIDUE",
+      "outcome": "NOT_RUN",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      },
+      "simulation": true
+    },
+    {
+      "id": "69423566c8638d8bb1f6d3e4",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      },
+      "simulation": false
+    },
+    {
+      "id": "7303e47f6230351b65d9e465",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      },
+      "simulation": false
+    },
+    {
+      "id": "78906bf3851567343d6605fc",
+      "status": "CLEANUP_FAILED",
+      "outcome": "CLEANUP_FAILED",
+      "remaining": {
+        "containers": "UNKNOWN",
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      },
+      "simulation": true
+    },
+    {
+      "id": "86326fcc388efac819146da4",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      },
+      "simulation": false
+    },
+    {
+      "id": "8dd29afa2fa08ec15cde9122",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      },
+      "simulation": true
+    },
+    {
+      "id": "a76357326d2c265f732ecd30",
+      "status": "ZERO_RESIDUE",
+      "outcome": "INTERRUPTED",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      },
+      "simulation": true
+    },
+    {
+      "id": "c6c037692466221ded8d7c8d",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      },
+      "simulation": true
+    },
+    {
+      "id": "d4aa3cab63bd164a24283f13",
+      "status": "ZERO_RESIDUE",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      },
+      "simulation": false
+    },
+    {
+      "id": "e9a3e0e3624eb826d00167ea",
+      "status": "ZERO_RESIDUE",
+      "outcome": "INTERRUPTED",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      },
+      "simulation": true
+    },
+    {
+      "id": "eb81928e2a70b93a63afae90",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      },
+      "simulation": false
+    },
+    {
+      "id": "f2fb3178609df625a0da17d1",
+      "status": "ZERO_RESIDUE",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      },
+      "simulation": false
+    }
+  ]
+}

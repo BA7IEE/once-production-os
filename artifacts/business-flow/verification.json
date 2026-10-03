@@ -65,7 +65,7 @@
     "upgrade": "74->75",
     "fresh": "1->75"
   },
-  "browser": "FAIL_SETUP_FIX_PENDING",
+  "browser": "PARTIAL_REVIEW_RAW_TEXT_TESTED_CONTACT_WAITER_FIX_PENDING",
   "ci": {
     "status": "SECOND_RUN_FAILED_BROWSER_SETUP_FIX_PENDING",
     "run": 37131423480,
@@ -74,7 +74,12 @@
     "fullCore": "PASS",
     "build": "PASS",
     "postgres": "DB_TESTED",
-    "browser": "FAIL_BEFORE_BROWSER"
+    "browser": "FAIL_BEFORE_BROWSER",
+    "thirdRun": {
+      "run": 37132022597,
+      "head": "612082d4e7a24407a309be7e304762cdaa43d290",
+      "status": "FAIL_BROWSER_RESPONSE_WAITER"
+    }
   },
   "providerVerified": "NOT_RUN",
   "productionMigration": "NOT_RUN",
@@ -133,8 +138,8 @@
     "tests/postgres/business-flow.test.ts": "7c269ca2b9ee6f8d29fe3be2a9899e62919758706b7a445b374532e4e5848a97",
     "tests/support/memory-store.ts": "7aeb1295987dac3eea67fe27f0d60b90d520c27321538df874c3026ccf49e7a9",
     "scripts/registered-browser.mjs": "e744a296e74f4c6f4f9dcf2b03d33548287c859ca74ec5c879dec6d126ca5360",
-    "tests/acceptance/browser-business-flow.mjs": "91b3524fbd89d3b345bf6f4a88bdb00ab280f74157a03c056f001ac37fca53a8",
-    "tests/acceptance/browser-talent-maintenance.mjs": "0d72aca5680aced2e1ebf14a2962cf18ec418af2541ffe9fedd41ccbe4171961",
+    "tests/acceptance/browser-business-flow.mjs": "706f8c338946adf553602b98fee2dac8cc2c88f0b7a9600415bbd6d0353f88f1",
+    "tests/acceptance/browser-talent-maintenance.mjs": "de58877fbe3ffefb404bca15103ececa2262c6fb566c121cc986721cfd877fbb",
     "packages/core/src/rebuild-model.ts": "de6c8f4daebcf6739fd13b9631d55b53f5152fa52009d256a4c2752b671a62ce"
   },
   "closingChecks": {
@@ -143,6 +148,7 @@
     "portalTypecheck": "PASS",
     "static": "12/12 PASS",
     "unownedPostgresEntry": "REJECTED_BEFORE_DATABASE",
-    "ciWorkflow": "PREPARED_NOT_RUN"
+    "ciWorkflow": "PREPARED_NOT_RUN",
+    "fullCoreCI": 777
   }
 }

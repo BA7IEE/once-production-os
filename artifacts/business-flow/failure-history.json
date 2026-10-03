@@ -42,5 +42,14 @@
     "cause": "new harness bootstrapped before setting required APP_ORIGIN",
     "resolution": "allocate loopback origin before bootstrap; keep empty database and all real page assertions",
     "evidence": "ci-browser-first-failure.log"
+  },
+  {
+    "stage": "third CI actual directory query",
+    "run": 37132022597,
+    "head": "612082d4e7a24407a309be7e304762cdaa43d290",
+    "result": "review/publication and raw text passed; contact assertion received reset query total",
+    "cause": "browser response waiter matched the in-flight reset ALL query rather than the subsequent CONTACT query",
+    "resolution": "bind the response to CONTACT mode and the exact submitted search text; keep the one-contact and no-role assertions",
+    "evidence": "ci-page-first-failure.log"
   }
 ]

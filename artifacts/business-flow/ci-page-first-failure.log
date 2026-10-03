@@ -1,0 +1,33 @@
+acceptance	Real business pages and portal maintenance regression	﻿2026-10-03T15:10:51.7527019Z ##[group]Run pnpm test:postgres:owned --business-flow-browser
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:10:51.7527309Z ^[[36;1mpnpm test:postgres:owned --business-flow-browser^[[0m
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:10:51.7591584Z shell: /usr/bin/bash -e {0}
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:10:51.7591741Z env:
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:10:51.7591886Z   PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:10:51.7592060Z ##[endgroup]
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:10:51.9285288Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:10:51.9286305Z > once-production-os@0.1.0-dev.1 test:postgres:owned /home/runner/work/once-production-os/once-production-os
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:10:51.9287002Z > node scripts/test-postgres-owned.mjs --business-flow-browser
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:10:51.9287261Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:08.1246590Z PASS default EDITOR private intake -> accepted limited review -> explicit administrator publication -> team directory
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:09.0435470Z PASS restricted raw text created and edited through the real source page; no AI call implied
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.2361741Z node:internal/modules/run_main:123
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.2362135Z     triggerUncaughtException(
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.2364160Z     ^
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.2364264Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.2364448Z AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.2364616Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.2364663Z 3 !== 1
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.2364726Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.2365192Z     at file:///home/runner/work/once-production-os/once-production-os/tests/acceptance/browser-business-flow.mjs:73:428 {
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.2365601Z   generatedMessage: true,
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.2365741Z   code: 'ERR_ASSERTION',
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.2365940Z   actual: 3,
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.2366124Z   expected: 1,
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.2366347Z   operator: 'strictEqual',
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.2366592Z   diff: 'simple'
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.2366799Z }
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.2366885Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.2366981Z Node.js v22.22.3
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.5534548Z Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.5639002Z  ELIFECYCLE  Command failed with exit code 1.
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:11:11.5796918Z ##[error]Process completed with exit code 1.
