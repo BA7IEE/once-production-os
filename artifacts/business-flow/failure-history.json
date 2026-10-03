@@ -60,5 +60,22 @@
     "cause": "bootstrap ADMIN intentionally does not receive ai.use by default",
     "resolution": "explicitly grant ai.use to the synthetic operator through the existing membership API; preserve production defaults",
     "evidence": "ci-portal-first-failure.log"
+  },
+  {
+    "stage": "fifth CI synthetic AI membership permissions",
+    "run": 37133476059,
+    "head": "b3d97ad89593d6b81437171deff804f3f52ef3ff",
+    "result": "types, core, build, PG and preceding browser flows passed; fixture permission request returned 404",
+    "cause": "fixture used the membership collection item instead of its permissions route, and omitted required role",
+    "resolution": "use PATCH /memberships/{id}/permissions with current role, then log in after the mandated session retirement",
+    "evidence": "ci-portal-second-failure.log"
+  },
+  {
+    "stage": "review renewal regression",
+    "result": "FAIL reproduced then targeted PASS",
+    "cause": "an invalidated pending review still blocked a fresh authorized request",
+    "resolution": "retire only already-invalid grants and create the new request atomically with minimal audit; audit failure rolls both changes back",
+    "before": "review-renewal-before-fix.tap",
+    "after": "review-renewal-after-fix.tap"
   }
 ]

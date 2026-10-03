@@ -1,8 +1,8 @@
 {
-  "at": "2026-10-03T14:39:21.148911+00:00",
+  "at": "2026-10-03T15:47:53.457324+00:00",
   "base": "1dae5e729b3be3a01d8149e4f02bd64bc9436d61",
   "branch": "codex/business-flow-fixes",
-  "status": "IMPLEMENTED_PENDING_INTEGRATION_ACCEPTANCE",
+  "status": "IMPLEMENTED_CI_RERUN_PENDING",
   "core": {
     "status": "CORE_MEMORY_TESTED",
     "tests": 146,
@@ -84,6 +84,11 @@
       "run": 37132731222,
       "head": "e76f5d5aadaa6046bdb398bf3b67994c34686378",
       "status": "FAIL_AI_OPERATOR_FIX_PENDING"
+    },
+    "fifthRun": {
+      "run": 37133476059,
+      "head": "b3d97ad89593d6b81437171deff804f3f52ef3ff",
+      "status": "FAIL_FIXTURE_MEMBERSHIP_ROUTE"
     }
   },
   "providerVerified": "NOT_RUN",
@@ -108,7 +113,7 @@
     "apps/admin-web/src/talent-maintenance-ui.tsx": "a2f8b6d7627b67cb5817ba4d89dddfaafeaa0a0e4ef6737876435f85cd9d24cf",
     "apps/api/src/prisma-store.ts": "e929320ff43d5f00aae2e1a4835d6cc72dab94607b29b3445c792c8c06a51d5e",
     "package.json": "8a8141e34748441c8b19084975a8eb532d16936f38f3314aec26386883c4b5f6",
-    "packages/core/src/api.ts": "0296da9b414511676145ad7c9be37341521033b310783e07e1753389d1c20ca8",
+    "packages/core/src/api.ts": "b64b6dbcd4aad6e53171d87bfa9c1feefb050e179fb50f0b28d1ce16b58930b7",
     "packages/core/src/deletion-cleanup.ts": "0bf0ed51262158e0ddf0ed87847d4eb9c6f555aa8f85a8ddfe8094fa07b7441a",
     "packages/core/src/deletions.ts": "cba0b693302a0be991a70b0bc8f44185915a2396b8b2d87426a5b09e01209dfe",
     "packages/core/src/imports.ts": "14c886c7c64a69bd62bb12eca12fb1bc9094e905a068249d6d223f7a14c92e10",
@@ -116,7 +121,7 @@
     "packages/core/src/recovery.ts": "63b1bb51a79c9d7de2674a4bf14fdede49b1d3a2bf1409b0b644d77fe31e53a1",
     "packages/core/src/replay-policy.ts": "d4e1ffe40683d20c10efdc87b05ddcabe182f5047944e418436ee75f84d106c5",
     "packages/core/src/routes.ts": "8293fda738e11caabfbf2c216f6e397721dfc3cafa4112d7a952417b13c032bd",
-    "packages/core/src/source-review.ts": "946eb7b9e94fe4363c551cae53a94c8b5c41ff2cf18713f9987a2407bb5ba648",
+    "packages/core/src/source-review.ts": "6dde706fc535395ca0c3c3d62d46736421ed36d4fcc2323f38b99cda27e0ba3d",
     "packages/core/src/talent-directory.ts": "14f5adea15fb3639983e9435d760d0e869656f70ccbc4fa2108e91ad737be244",
     "packages/core/src/talent-maintenance-routes.ts": "8c35b62feaff1137027682268b42a9a6e4d89f6132e3e489c4419d03c73b5c93",
     "packages/core/src/talent-portal.ts": "bc48d14e56ee5c6b5244858a225139e4d9aece127e417d8cc5d2022f40e01271",
@@ -134,7 +139,7 @@
     "scripts/test-postgres-owned.mjs": "5260849545698c6f07f8ffdf16c1ecd30b34210bc88adddec9a03a2922d5849c",
     "scripts/verify-postgres.mjs": "0b6dc7d5ff4c4018f1de7400887b380cc073ecc29a344caa9c65607e640841a3",
     "tests/core/browser-storage-policy.test.ts": "a5105ae118a40ffd6b5b8d39769869c392e90c163b2468cf0b2209cd8971e92c",
-    "tests/core/business-flow.test.ts": "b730338514d2ddf8b6a261e56cdb8ad1e370f28763fadf9499d3ba6dc6c8a5ed",
+    "tests/core/business-flow.test.ts": "b358fc7c04a55131fbba306fd0bb43311ee5e70c6303201aee282422d6472a19",
     "tests/core/portal-command.test.ts": "45d50a324da09ca0114a2fc9e39d32d906ead31a84ba9e854882cfe8c84213f8",
     "tests/lifecycle/owned-postgres.test.mjs": "59703dff679a6a6818b057ca771acf897db58446d23336205ece97b9a8699ec2",
     "tests/lifecycle/preflight.test.mjs": "cf397185d5adcebc9a4ebebe693f880abaac102bace59a43ced1b1e6374d5eed",
@@ -143,7 +148,7 @@
     "tests/postgres/business-flow.test.ts": "fe930be705e023a2b60636b84a7706ce8cb2b8dc872a1a374644914aa424ae46",
     "tests/support/memory-store.ts": "7aeb1295987dac3eea67fe27f0d60b90d520c27321538df874c3026ccf49e7a9",
     "scripts/registered-browser.mjs": "e744a296e74f4c6f4f9dcf2b03d33548287c859ca74ec5c879dec6d126ca5360",
-    "tests/acceptance/browser-business-flow.mjs": "2bd152f33f8d132bd1a2738a2d530efd33b0fd99e5d05a4194a51c30cc24be0b",
+    "tests/acceptance/browser-business-flow.mjs": "a5829decea09794cbd1b7d7824dab3d40086fc5169b0734d120987e131a2dd7e",
     "tests/acceptance/browser-talent-maintenance.mjs": "91495508686f5f0aebb2391e7e88c93eb5b65d20d63fa1d3cc3a8abcc35e0137",
     "packages/core/src/rebuild-model.ts": "de6c8f4daebcf6739fd13b9631d55b53f5152fa52009d256a4c2752b671a62ce"
   },
@@ -153,7 +158,8 @@
     "portalTypecheck": "PASS",
     "static": "12/12 PASS",
     "unownedPostgresEntry": "REJECTED_BEFORE_DATABASE",
-    "ciWorkflow": "PREPARED_NOT_RUN",
-    "fullCoreCI": 777
+    "ciWorkflow": "CURRENT_SOURCE_RERUN_PENDING",
+    "fullCoreCI": 777,
+    "reviewRenewal": "PASS_TARGETED_INCLUDING_AUDIT_ROLLBACK"
   }
 }

@@ -46,6 +46,18 @@ test('expired owner draft can enter a fresh limited review, but expiry never ren
  ok(await f.reviewer.client.cmd('POST',`/source-reviews/${task}/accept`,{expectedRevision:1}),200);
  assert.equal(f.store.rows('sources')[0]!.basisMode,'TEMP_ORGANIZE');assert.equal((await f.editor.client.raw('GET',`/directory/talents/${f.id}`)).status,404);
 });
+test('an invalidated review does not block a fresh authorized review and retains a revoked audit header',async()=>{
+ const f=await setupReview(),old=ok(await f.editor.client.cmd('POST',`/people/${f.id}/source-reviews`,f.input),201).resourceId;
+ ok(await f.editor.client.cmd('PATCH',`/sources/${f.sourceId}`,{expectedRevision:1,title:'合成材料补正后重新送审'}),200);
+ assert.equal(ok(await f.editor.client.raw('GET',`/source-reviews/${old}`),200).effectiveState,'INVALIDATED');
+ const input={...f.input,expectedSourceRevision:2},key=randomUUID();f.store.failNextAudit=true;
+ assert.equal((await f.editor.client.cmd('POST',`/people/${f.id}/source-reviews`,input,key)).status,500);
+ assert.equal(f.store.rows('sourceReviews').length,1);assert.equal(f.store.rows('sourceReviews')[0]!.state,'PENDING','retiring the invalid grant must roll back when audit fails');
+ const fresh=ok(await f.editor.client.cmd('POST',`/people/${f.id}/source-reviews`,input,key),201).resourceId;
+ assert.notEqual(fresh,old);const retired=ok(await f.reviewer.client.raw('GET',`/source-reviews/${old}`),200);assert.equal(retired.state,'REVOKED');assert.equal(retired.source,null);assert.equal(retired.canAccept,false);
+ assert.ok(f.store.rows('audits').some(a=>a.action==='sourceReview.invalidated'&&a.resourceId===old));
+ assert.equal((await f.editor.client.cmd('POST',`/people/${f.id}/source-reviews`,{...f.input,expectedSourceRevision:2})).status,409,'a still-valid pending request remains unique');
+});
 test('typed import creates searchable talent roles and city; ordinary contact stays a contact',async()=>{
  const f=await fixture(),sourceId=ok(await f.owner.cmd('POST','/sources',sourceInput()),201).resourceId;
  const batch=ok(await f.owner.cmd('POST','/imports/preview',{schemaVersion:'once-talent-import-v2',sourceId,rows:[{displayName:'合成导入模特',roles:['model'],cityCode:'shenzhen'},{displayName:'合成普通联系人',kind:'CONTACT',roles:[]}]}),201).resourceId;

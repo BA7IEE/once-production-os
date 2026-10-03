@@ -62,14 +62,21 @@ export class SourceReviews {
   invariant(eligible(reviewer,'sources.review',source)&&eligible(publisher,'members.manage',source)&&await scopeVisible(tx,asActor(sender),r.targetScopeId)&&await scopeVisible(tx,asActor(publisher),r.targetScopeId),'REVIEW_INVALIDATED','核验或发布资格已变化',409);
   await this.exclusive(tx,r);return pair;
  }
- async create(tx:Tx,actor:Actor,id:string,input:unknown){
+ async create(tx:Tx,actor:Actor,id:string,input:unknown,meta:RequestMeta){
   const d=SourceReviewSchemas.create.parse(input),{person,source}=await this.owned(tx,actor,id);cas(person,d.expectedRevision);cas(source,d.expectedSourceRevision);
   invariant(d.acknowledgeLimitedAccess,'REVIEW_ACK_REQUIRED','须确认只授权所选核验人查看当前材料，发布另行确认',422);
   const options=await this.options(tx,actor,id);invariant(options.reviewers.some(r=>r.id===d.reviewerId)&&options.publishers.some(p=>p.id===d.publisherId&&p.scopeIds.includes(d.targetScopeId)),'REVIEW_RECIPIENT_INVALID','核验人、发布人或范围不可用',422);
   const now=this.clock.now().getTime();invariant(Date.parse(d.expiresAt)>now&&Date.parse(d.expiresAt)<=now+7*86400000,'REVIEW_EXPIRY_INVALID','核验期限最长七天',422);
   const pending=(await tx.find('sourceReviews',{workspaceId:actor.workspaceId})).filter(r=>open(r)&&Date.parse(r.expiresAt)>now);
-  invariant(!pending.some(r=>r.personId===id),'REVIEW_ALREADY_OPEN','已有未结束核验，请先撤销原任务',409);
-  invariant(pending.filter(r=>r.senderId===actor.membershipId||r.reviewerId===d.reviewerId).length<100,'REVIEW_LIMIT','未完成核验过多，请先处理已有任务',429);
+  for(const previous of pending.filter(r=>r.personId===id)){
+   let valid=true;
+   try{await this.current(tx,previous);}catch(error){if(!(error instanceof AppError)||error.status>=500)throw error;valid=false;}
+   invariant(!valid,'REVIEW_ALREADY_OPEN','已有有效核验，请先撤销原任务',409);
+   // The current common maintainer can replace an already-invalid grant, never a valid one.
+   await tx.replace('sourceReviews',{...touch(previous,this.clock),state:'REVOKED'});
+   await audit(tx,actor,actor.workspaceId,'sourceReview.invalidated','sourceReview',previous.id,['state'],meta,this.clock);
+  }
+  invariant(pending.filter(r=>r.personId!==id&&(r.senderId===actor.membershipId||r.reviewerId===d.reviewerId)).length<100,'REVIEW_LIMIT','未完成核验过多，请先处理已有任务',429);
   const sender=(await currentMember(tx,actor.workspaceId,actor.membershipId))!,reviewer=(await currentMember(tx,actor.workspaceId,d.reviewerId))!,publisher=(await currentMember(tx,actor.workspaceId,d.publisherId))!;
   const r:SourceReviewRequest={...base(actor.workspaceId,this.clock),personId:id,sourceId:source.id,senderId:sender.id,reviewerId:reviewer.id,publisherId:publisher.id,targetScopeId:d.targetScopeId,senderRevision:sender.revision,reviewerRevision:reviewer.revision,publisherRevision:publisher.revision,targetScopeRevision:(await tx.get('scopes',d.targetScopeId))!.revision,personRevision:person.revision,sourceRevision:source.revision,personEpoch:person.protectionEpoch,sourceEpoch:source.protectionEpoch,personScopeId:person.scopeId,sourceScopeId:source.scopeId,personScopeRevision:(await tx.get('scopes',person.scopeId))!.revision,sourceScopeRevision:(await tx.get('scopes',source.scopeId))!.revision,recoveryEpoch:this.config.recoveryEpoch,expiresAt:d.expiresAt,state:'PENDING'};
   await this.exclusive(tx,r);await tx.insert('sourceReviews',r);return r;

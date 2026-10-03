@@ -524,7 +524,7 @@ export class Application {
                     case 'sourceReview.list':return this.sourceReviews.list(tx,actor,query);
                     case 'sourceReview.options':return this.sourceReviews.options(tx,actor,id);
                     case 'sourceReview.get':return this.sourceReviews.get(tx,actor,id,meta);
-                    case 'sourceReview.create':return command('sourceReview',()=>this.sourceReviews.create(tx,actor,id,data));
+                    case 'sourceReview.create':return command('sourceReview',()=>this.sourceReviews.create(tx,actor,id,data,meta));
                     case 'sourceReview.review':return command('sourceReview',()=>this.sourceReviews.review(tx,actor,id,data));
                     case 'sourceReview.publish':return command('sourceReview',()=>this.sourceReviews.publish(tx,actor,id,data));
                     case 'sourceReview.accept':return command('sourceReview',()=>this.sourceReviews.act(tx,actor,id,data,'accept'));
