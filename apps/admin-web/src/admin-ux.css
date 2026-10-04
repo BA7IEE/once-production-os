@@ -185,3 +185,5 @@
  .talent-directory .directory-count{margin:6px 0}
  .talent-directory .directory-cover,.talent-directory .directory-cover-placeholder{height:190px}
 }
+
+@media(max-width:780px){.batch-choice{flex-wrap:wrap}.batch-choice>div{flex-basis:calc(100% - 32px)}.batch-choice>button{margin-left:auto}}
