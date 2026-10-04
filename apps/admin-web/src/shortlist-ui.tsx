@@ -3,6 +3,7 @@ import {navigateDirectoryPath} from './directory-state.ts';
 import {TalentDirectoryDetail} from './talent-directory-detail.tsx';
 import {TalentWorkbench} from './talent-ui.tsx';
 import {ProductionDetail} from './production-ui.tsx';
+import {CommandRecovery} from './command-recovery.tsx';
 import type {Selection} from './production-dto.ts';
 import { useEffect, useRef, useState } from 'react';
 import { TALENT_VERSION, type TalentDetail } from './talent-dto.ts';
@@ -36,7 +37,7 @@ function useCommand(onDone: (receipt: Receipt) => void) {
     }
     return {
         ...action,
-        unknown,
+        unknown,pending:pending.current,
         submit: <K extends keyof Inputs>(op: K, input: Inputs[K], params: Record<string, string> = {}) =>
             action.run(() => execute(op, input, params)),
         retry: () => action.run(async () => {
@@ -46,7 +47,7 @@ function useCommand(onDone: (receipt: Receipt) => void) {
     };
 }
 function CommandState({ command }: { command: ReturnType<typeof useCommand> }) {
-    return <><ErrorBox error={command.error}/>{command.unknown && <div className="notice compact">上次写入结果未知。请原样核对该请求，不要修改内容后重复提交。 <button type="button" onClick={() => void command.retry()} disabled={command.busy}>原样重试提交</button></div>}</>;
+    return <><ErrorBox error={command.error}/>{command.unknown&&command.pending&&<CommandRecovery operation={command.pending.op} params={command.pending.params} busy={command.busy} onRetry={()=>void command.retry()}/>}</>;
 }
 function catalogLabel(catalog: CatalogItem[], namespace: string, code: string | null) {
     if (!code)

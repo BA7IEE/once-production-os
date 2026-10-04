@@ -1,4 +1,5 @@
 import {visibleOrNull} from './production-policy.ts';
+import {currentIdentity} from './talent-maintenance-policy.ts';
 import {exactCreditCurrent} from './talent-work-cases.ts';
 import { loadTalentGraph, td2PersonFor } from './talent-v2-graph.ts';
 import type { FactRow } from './talent-v2-schema.ts';
@@ -275,10 +276,17 @@ export class Shortlists {
                     cas(role, entry.personRoleRevision);
                 } else {
                     invariant(!entry.personRoleId && !entry.personRoleRevision, 'SHORTLIST_ROLE_INVALID', '职业当前不可用', 422);
-                    const person = await personFor(tx, actor, entry.personId, this.clock);
+                    const person=graph.record('people',entry.personId);if(!person)missing();
                     invariant(person.roles.length, 'SHORTLIST_TALENT_REQUIRED', '普通联系人不能加入人才候选清单', 422);
                 }
-                const pair = await this.ensurePair(tx, actor, entry.personId, undefined, role ? String(role.roleCode) : undefined, graph);
+                // The graph is scoped to this transaction. Reuse its current policy inputs instead
+                // of re-reading all sources for every person in a 100-item batch.
+                const person=graph.record('people',entry.personId);if(!person||!graph.identityReadable(person)||!currentIdentity(person,graph.personRows('evidence',person.id),id=>graph.sourceUsable(id)?graph.source(id):null,id=>graph.source(id)))missing();
+                invariant(person.status!=='ARCHIVED','PERSON_ARCHIVED','已归档人才不能新增到候选清单',409);
+                const supporting=graph.personRows('evidence',person.id).find(e=>e.fieldPath==='displayName'&&graph.sourceUsable(e.sourceId)&&graph.source(e.sourceId)?.revision===e.sourceRevision);
+                const sourceId=graph.sourceUsable(person.sourceId)?person.sourceId:supporting?.sourceId??person.sourceId,personSource=graph.source(sourceId);
+                if(!personSource||!graph.sourceUsable(sourceId))missing();
+                const pair={person,personSource};
                 cas(pair.person, entry.expectedPersonRevision);
                 if (all.some(x => x.personId === entry.personId && x.workId === null && (x.personRoleId ?? null) === (role?.id ?? null))) {
                     existing++;

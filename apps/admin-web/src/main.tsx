@@ -131,10 +131,10 @@ function People() {
  const {me,catalog,can}=useOS();const [id,setId]=useState<string|null>(location.pathname.startsWith('/talents/')&&location.pathname!=='/talents/new'?location.pathname.split('/')[2]!:null),[creating,setCreating]=useState(location.pathname==='/talents/new'),[advanced,setAdvanced]=useState(false),[tick,setTick]=useState(0),[production,setProduction]=useState<Selection|null>(null);
  const open=(id:string|null)=>{setId(id);navigateDirectoryPath(id?'/talents/'+id:'/talents');};
  useEffect(()=>{const back=()=>{setId(location.pathname.startsWith('/talents/')&&location.pathname!=='/talents/new'?location.pathname.split('/')[2]!:null);setCreating(location.pathname==='/talents/new');};window.addEventListener('popstate',back);return()=>window.removeEventListener('popstate',back);},[]);
+ if(production)return <ProductionDetail selection={production} me={me} catalog={catalog} onClose={()=>setProduction(null)} onNavigate={setProduction}/>;
  return <>{id?<TalentDirectoryDetail key={id} id={id} me={me} catalog={catalog} refreshVersion={tick} onClose={()=>{open(null);setTick(t=>t+1);}} onAdvanced={()=>setAdvanced(true)} onProduction={setProduction} onViewList={listId=>{navigateDirectoryPath('/workspace/shortlists/'+listId);window.dispatchEvent(new PopStateEvent('popstate'));}}/>:<TalentDirectory me={me} catalog={catalog} tick={tick} onOpen={open} onViewList={listId=>{navigateDirectoryPath('/workspace/shortlists/'+listId);window.dispatchEvent(new PopStateEvent('popstate'));}} onCreate={can('records.write')?()=>{setCreating(true);navigateDirectoryPath('/talents/new');}:undefined}/>}
  {creating&&<TalentIntake catalog={catalog} canChooseSource={can('sources.read')} onClose={()=>{setCreating(false);navigateDirectoryPath('/talents');}} onSaved={id=>{setCreating(false);open(id);setTick(t=>t+1);}}/>}
  {advanced&&id&&<PersonDetail id={id} onClose={()=>{setAdvanced(false);setTick(t=>t+1);}} onChange={()=>setTick(t=>t+1)}/>}
- {production&&<ProductionDetail selection={production} me={me} catalog={catalog} onClose={()=>setProduction(null)} onNavigate={setProduction}/>}
  </>;
 }
 function PersonForm({ person, onClose, onSaved }: {

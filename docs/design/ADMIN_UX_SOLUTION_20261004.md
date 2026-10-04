@@ -1,7 +1,7 @@
 # ONCE 后台 UI UX 整体解决方案
 
-方案日期：2026-10-04  
-状态：已获用户授权并实施；本轮验收证据见 ../release/ADMIN_UX_IMPLEMENTATION.md  
+方案日期：2026-10-04
+状态：已获用户授权并实施；本轮验收证据见 ../release/ADMIN_UX_IMPLEMENTATION.md
 目标：让工作人员围绕收资料、维护档案、找人、组织候选和处理审核完成工作，减少对内部模型的理解、重复选择和跨页面寻找。
 
 本方案基于已核实的 PR #36，提交 ccfe1406a77788fa01cb15290e4ccceb6b8fa382。参照现有 PRD、Talent Experience v1.1 及冻结合同；分析使用最新代码和历史页面证据，当前预览已停止，没有本轮运行中的用户测试结果。实现使用基于上述提交的独立工作树和 codex/admin-ux-solution 分支，保留后续业务链。

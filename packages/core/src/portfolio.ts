@@ -101,7 +101,10 @@ export class Portfolio {
             if (await visibleOrNull(() => workFor(tx, actor, w.id, this.clock)))
                 rows.push(workHeader(w));
         }
-        return page(rows.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.id.localeCompare(b.id)), query, ['q', 'origin', 'status', 'industryCode', 'workTypeCode']);
+        const result=page(rows.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)||a.id.localeCompare(b.id)),query,['q','origin','status','industryCode','workTypeCode']);
+        const roots=await tx.findIn('works',actor.workspaceId,'id',result.items.map(w=>w.id)),entries=actor.permissions.includes('assets.read')?await tx.findIn('workAssets',actor.workspaceId,'id',roots.flatMap(w=>w.coverEntryId?[w.coverEntryId]:[])):[];
+        const items=[];for(const row of result.items){const root=roots.find(w=>w.id===row.id),entry=entries.find(e=>e.id===root?.coverEntryId&&e.workId===row.id),asset=entry?await visibleOrNull(()=>readyAsset(tx,actor,entry.assetId,this.clock)):null;items.push({...row,coverAssetId:asset?.mime.startsWith('image/')?asset.id:null});}
+        return {...result,items};
     }
     async get(tx: Tx, actor: Actor, id: string) {
         requirePermission(actor, 'records.read');

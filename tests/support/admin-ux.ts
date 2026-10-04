@@ -44,6 +44,8 @@ export async function caseScenario(f:UxSystem){
  const key=randomUUID(),r=ok(await f.owner.cmd('POST',`/people/${t.id}/work-cases`,input,key),200);assert.equal(result(await f.owner.cmd('POST',`/people/${t.id}/work-cases`,input,key)).replayed,true);
  const credits=await f.store.transaction(tx=>tx.find('workCredits',{workId:r.resourceId}));assert.equal(credits.length,1);assert.equal(credits[0]!.personRoleId,p.roles[0].id);assert.equal(credits[0]!.sourceId,t.sourceId);
  const cases=ok(await f.owner.raw('GET',`/people/${t.id}/work-cases`),200);assert.equal(cases.items[0].brandDisplayName,'合成品牌');assert.equal(cases.items[0].caseDate,null);assert.equal(cases.items[0].coverAssetId,a);
+ const listed=ok(await f.owner.raw('GET','/works'),200);assert.equal(listed.items.find((w:any)=>w.id===r.resourceId).coverAssetId,a);
+ const noMedia=await f.store.transaction(async tx=>{const actor=await f.app.identity.authenticate(tx,f.owner.jar.once_session!);return f.app.portfolio.list(tx,{...actor,permissions:actor.permissions.filter(p=>p!=='assets.read')},{});});assert.equal(noMedia.items.find(w=>w.id===r.resourceId)!.coverAssetId,null);
  const count=(await f.store.transaction(tx=>tx.find('works'))).length;
  assert.equal((await f.owner.cmd('POST',`/people/${t.id}/work-cases`,{...input,expectedRoleRevision:999})).status,409);
  assert.equal((await f.owner.cmd('POST',`/people/${t.id}/work-cases`,{...input,assetIds:[a,a]})).status,422);

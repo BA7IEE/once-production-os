@@ -5,6 +5,7 @@ export type Selection = {
     id: string;
 };
 export interface WorkSummary {
+    caseDate?:string|null;datePrecision?:'UNKNOWN'|'YEAR'|'MONTH'|'DAY'|'APPROXIMATE';location?:string;brandDisplayName?:string;coverAssetId?:string|null;
     id: string;
     title: string;
     industryCode: string | null;
@@ -32,6 +33,7 @@ export interface WorkItem {
     asset: {
         id: string;
         fileName: string;
+        mime?: string;
         width: number;
         height: number;
         revision: number;
