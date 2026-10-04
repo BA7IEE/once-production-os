@@ -18,6 +18,8 @@ R1 的读取投影与 R3 的异常响应是明确的前端故障注入，真实�
 
 本地轻量专项38/38、前后端类型检查、306条请求契约及12项静态检查通过。全部构建、核心回归、真实PostgreSQL、后台浏览器、原业务流及本人端回归在独立Linux runner执行，以 [PR #37 当前提交的检查](https://github.com/BA7IEE/once-production-os/pull/37/checks) 为准。当前提交的 `acceptance` 与 `core` 必须同时通过，旧提交和失败运行不替代最终结果。
 
+收尾运行 [37223495051](https://github.com/BA7IEE/once-production-os/actions/runs/37223495051) 的受控读取路径曾在等待networkidle时超时，失败截图已有档案；该运行不算通过。对应路径改为等待实际字段与控件状态，保存及数据保留断言和12秒上限均保留，不用延时或刷新掩盖失败。
+
 每批CI清空旧输出；报告记录本次head，包含数据库检查、浏览器步骤和截图。资源清理仅认证本轮登记的临时资源，要求实际运行的 `run.json` 为 `ZERO_RESIDUE`。证据索引见 [交付说明](ADMIN_UX_IMPLEMENTATION.md)，当前提交的完整报告与页面截图随CI artifact保存。
 
 无提示真人可用性验收及真实供应商验证仍为 **NOT_RUN**。自动化通过支持本次开发交付收尾，不等同于生产部署或真人业务验收。
