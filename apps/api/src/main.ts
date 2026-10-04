@@ -95,7 +95,7 @@ async function main() {
     if (existsSync(assets)) {
         server.use(express.static(assets, { index: false, maxAge: 0, fallthrough: true, setHeaders: (res) => res.setHeader('Cache-Control', 'no-cache') }));
         server.get(['/talent/login','/talent/claim','/talent/home'], (_req,res)=>config.talentAuth?.enabled?res.set('Cache-Control','no-store').sendFile('index.html',{root:assets}):res.status(503).set('Cache-Control','no-store').type('text/plain').send('人才登录暂未开放'));
-        server.get(['/', '/activate','/talents','/talents/:id','/workspace/:page'], (_req, res) => res.set('Cache-Control', 'no-store').sendFile('index.html', { root: assets }));
+        server.get(['/', '/activate','/talents','/talents/:id','/workspace/:page','/workspace/works/:id','/workspace/projects/:id','/workspace/shortlists/:id','/workspace/review/:kind/:id'], (_req, res) => res.set('Cache-Control', 'no-store').sendFile('index.html', { root: assets }));
     }
     app.enableShutdownHooks();
     const port = Number(process.env.PORT ?? 4318);
