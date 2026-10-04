@@ -1,5 +1,9 @@
 // Generated from packages/core/src/routes.ts and validation.ts. Do not edit.
 export interface Inputs {
+  "review.search": { "view": "TODO" | "SENT" | "DONE"; "kind": "ALL" | "CLAIM" | "SUBMISSION" | "SOURCE_REVIEW" | "INGESTION"; "page": number; "pageSize": number };
+  "review.get": undefined;
+  "command.inspect": { "operation": string; "commandKey": string };
+  "command.list": undefined;
   "mediaPurge.status": undefined;
   "mediaPurge.reconcile": {  };
   "ingestion.upload.create": { "context": { "kind": "AGENT_SUBMISSION"; "submissionId": string }; "expectedSubmissionRevision": number; "clientItemKey": string; "roleCandidateKey"?: string; "fileName": string; "mime": "image/jpeg" | "image/png" | "image/webp" | "application/pdf" | "video/mp4"; "expectedBytes": number; "sha256": string };
@@ -178,6 +182,7 @@ export interface Inputs {
   "td2.fact.mediaCollectionTags.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "collectionId": string; "tagCode": "FASHION" | "BEAUTY" | "COMMERCIAL" | "LINGERIE" | "RUNWAY" | "LIFESTYLE" | "INDUSTRIAL" | "PRODUCT"; "status"?: "ACTIVE" | "ARCHIVED" } };
   "td2.fact.mediaCollectionTags.patch": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "status"?: "ACTIVE" | "ARCHIVED" } };
   "work.personCases": undefined;
+  "work.personCaseCreate": { "expectedPersonRevision": number; "personRoleId": string; "expectedRoleRevision": number; "sourceId": string; "sourceRevision": number; "title": string; "description": string; "caseDate"?: string | null; "datePrecision"?: "UNKNOWN" | "YEAR" | "MONTH" | "DAY" | "APPROXIMATE"; "location"?: string; "brandDisplayName"?: string; "industryCode": string | null; "workTypeCodes": Array<string>; "origin": "ONCE" | "EXTERNAL" | "UNKNOWN"; "originNote": string; "creditNote": string; "assetIds": Array<string>; "coverAssetId": string | null };
   "work.list": undefined;
   "work.create": { "title": string; "sourceId"?: string; "inlineSource"?: { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string }; "caseDate"?: string | null; "datePrecision"?: "UNKNOWN" | "YEAR" | "MONTH" | "DAY" | "APPROXIMATE"; "location"?: string; "brandDisplayName"?: string; "description"?: string; "industryCode"?: string | null; "workTypeCodes"?: Array<string>; "origin"?: "ONCE" | "EXTERNAL" | "UNKNOWN"; "originNote"?: string };
   "work.get": undefined;
@@ -296,11 +301,33 @@ export interface Inputs {
   "shortlist.get": undefined;
   "shortlist.update": { "expectedRevision": number; "title"?: string; "brief"?: string };
   "shortlist.itemAdd": { "expectedRevision": number; "personId": string; "personRoleId"?: string; "personRoleRevision"?: number; "workId"?: string; "workAssetIds": Array<string>; "note": string };
+  "shortlist.batchAdd": { "expectedRevision": number; "entries": Array<{ "personId": string; "expectedPersonRevision": number; "personRoleId"?: string; "personRoleRevision"?: number }> };
+  "shortlist.selection": { "personIds": Array<string> };
   "shortlist.itemUpdate": { "expectedRevision": number; "entryId": string; "note": string };
   "shortlist.itemRemove": { "expectedRevision": number; "entryId": string };
   "shortlist.reorder": { "expectedRevision": number; "entryIds": Array<string> };
 }
 export const ENDPOINTS = {
+  "review.search": {
+    "method": "POST",
+    "path": "/review/search",
+    "mode": "READ"
+  },
+  "review.get": {
+    "method": "GET",
+    "path": "/review/{kind}/{id}",
+    "mode": "READ"
+  },
+  "command.inspect": {
+    "method": "POST",
+    "path": "/commands/inspect",
+    "mode": "READ"
+  },
+  "command.list": {
+    "method": "GET",
+    "path": "/commands",
+    "mode": "READ"
+  },
   "mediaPurge.status": {
     "method": "GET",
     "path": "/media-purge/status",
@@ -1191,6 +1218,11 @@ export const ENDPOINTS = {
     "path": "/people/{id}/work-cases",
     "mode": "READ"
   },
+  "work.personCaseCreate": {
+    "method": "POST",
+    "path": "/people/{id}/work-cases",
+    "mode": "COMMAND"
+  },
   "work.list": {
     "method": "GET",
     "path": "/works",
@@ -1780,6 +1812,16 @@ export const ENDPOINTS = {
     "method": "POST",
     "path": "/shortlists/{id}/items",
     "mode": "COMMAND"
+  },
+  "shortlist.batchAdd": {
+    "method": "POST",
+    "path": "/shortlists/{id}/batch",
+    "mode": "COMMAND"
+  },
+  "shortlist.selection": {
+    "method": "POST",
+    "path": "/shortlists/selection",
+    "mode": "READ"
   },
   "shortlist.itemUpdate": {
     "method": "POST",

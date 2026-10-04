@@ -11,6 +11,8 @@ import { base, cas, page, patchDefined, touch, workspaceRow } from './helpers.ts
 import { invariant, missing } from './errors.ts';
 import { requirePermission, sourceFor } from './policy.ts';
 import type { Talent } from './talent.ts';
+import {loadTalentGraph,td2PersonFor} from './talent-v2-graph.ts';
+import {collectionAssetFor} from './media-collections.ts';
 /** Owns Works and their ordered media and credits. It never writes Project participation. */
 export class Portfolio {
     clock: Clock;
@@ -33,6 +35,23 @@ export class Portfolio {
         this.checkHeader(w);
         await tx.insert('works', w);
         return w;
+    }
+    /** One internal command records a case, its exact role credit and ordered materials. */
+    async createPersonCase(tx:Tx,actor:Actor,personId:string,input:unknown){
+        requirePermission(actor,'records.write');requirePermission(actor,'assets.read');
+        const d=S.personCase.parse(input),p=await td2PersonFor(tx,actor,personId),g=await loadTalentGraph(tx,actor,this.clock,[personId]);cas(p,d.expectedPersonRevision);
+        invariant(g.identityReadable(p)&&p.status!=='ARCHIVED','PERSON_UNAVAILABLE','人才当前不能用于新增作品',409);
+        const role=g.fact('personRoles',d.personRoleId);if(!role||role.personId!==p.id||!g.usable('personRoles',role))missing();cas(role,d.expectedRoleRevision);await checkRole(tx,actor,String(role.roleCode));
+        const source=await sourceFor(tx,actor,d.sourceId,this.clock);cas(source,d.sourceRevision);
+        invariant(d.assetIds.length>0&&new Set(d.assetIds).size===d.assetIds.length,'WORK_ITEMS_REQUIRED','请明确选择不重复的作品素材',422);
+        invariant(!d.coverAssetId||d.assetIds.includes(d.coverAssetId),'WORK_COVER_INVALID','封面必须在本次素材中',422);
+        for(const id of d.assetIds){const asset=await collectionAssetFor(tx,actor,{personId,personRoleId:role.id,collectionTypeCode:'PORTFOLIO'},id,this.clock);invariant(asset.mime.startsWith('image/')||asset.mime==='video/mp4','WORK_ASSET_INVALID','作品案例只使用图片或视频',422);}
+        let w=await this.create(tx,actor,{sourceId:source.id,title:d.title,description:d.description,caseDate:d.caseDate,datePrecision:d.datePrecision,location:d.location,brandDisplayName:d.brandDisplayName,industryCode:d.industryCode,workTypeCodes:d.workTypeCodes,origin:d.origin,originNote:d.originNote});
+        await tx.insert('workCredits',{...base(actor.workspaceId,this.clock),workId:w.id,personId,personRoleId:role.id,sourceId:source.id,roleCode:String(role.roleCode),note:d.creditNote});
+        for(const assetId of d.assetIds)w=await this.addAsset(tx,actor,w.id,{expectedRevision:w.revision,assetId});
+        const entries=await tx.find('workAssets',{workspaceId:actor.workspaceId,workId:w.id});
+        w=await this.reorder(tx,actor,w.id,{expectedRevision:w.revision,entryIds:entries.sort((a,b)=>a.position-b.position).map(e=>e.id),coverEntryId:entries.find(e=>e.assetId===d.coverAssetId)?.id??null});
+        return this.update(tx,actor,w.id,{expectedRevision:w.revision,status:'ACTIVE'});
     }
     private checkHeader(w: Work) {
         validateCaseDate({caseDate:w.caseDate??null,datePrecision:w.datePrecision??'UNKNOWN'});
@@ -179,7 +198,7 @@ export class Portfolio {
         const d=S.creditUpgrade.parse(input),w=await this.edit(tx,actor,id,d.expectedRevision),c=await workspaceRow(tx,'workCredits',d.creditId,actor.workspaceId);
         if(!c||c.workId!==w.id)missing();cas(c,d.expectedCreditRevision);invariant(!c.personRoleId&&!c.sourceId,'WORK_CREDIT_ALREADY_EXACT','署名已经绑定精确职业，不可重复升级',409);
         await creditPerson(tx,actor,c.personId,this.clock);const role=await workspaceRow(tx,'personRoles',d.personRoleId,actor.workspaceId);
-        if(!role||role.personId!==c.personId)missing();cas(role,d.expectedRoleRevision);invariant(role.roleCode===c.roleCode&&role.status==='ACTIVE'&&periodCurrent(role as unknown as Record<string,unknown>,this.clock),'WORK_ROLE_INVALID','请核对同一人物的当前署名职业',409);await checkRole(tx,actor,role.roleCode);await sourceFor(tx,actor,role.sourceId,this.clock);
+        if(!role||role.personId!==c.personId)missing();cas(role,d.expectedRoleRevision);invariant(role.roleCode===c.roleCode&&role.status==='ACTIVE'&&periodCurrent(role as unknown as Record<string,unknown>,this.clock),'WORK_ROLE_INVALID','请核对同一人物的当前署名职业',409);await checkRole(tx,actor,String(role.roleCode));await sourceFor(tx,actor,role.sourceId,this.clock);
         const source=await sourceFor(tx,actor,d.sourceId,this.clock);cas(source,d.sourceRevision);invariant(sourceAllowsInternalAuthoring(source),'TALENT_BASIS_SCOPED','旧署名升级须使用独立内部来源',409);
         await tx.replace('workCredits',{...touch(c,this.clock),personRoleId:role.id,sourceId:source.id});const next=touch(w,this.clock);await tx.replace('works',next);return next;
     }

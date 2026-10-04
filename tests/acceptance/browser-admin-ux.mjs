@@ -1,0 +1,96 @@
+/** Synthetic records on owned PostgreSQL; real Nest, Worker and Chromium pages. */
+import assert from 'node:assert/strict';
+import {randomBytes,randomUUID} from 'node:crypto';
+import {writeFileSync,mkdirSync} from 'node:fs';
+import {join} from 'node:path';
+import {spawn} from 'node:child_process';
+import {createServer} from 'node:net';
+import sharp from 'sharp';
+import {PrismaClient} from '@prisma/client';
+import {chromium} from 'playwright';
+import {run} from '../../scripts/resource-lifecycle.mjs';
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
+import {registeredBrowser} from '../../scripts/registered-browser.mjs';
+assert.equal(process.env.ALLOW_BROWSER_TESTS,'yes');assert.ok(process.env.ONCE_RESOURCE_RUN_DIR);
+const raw=process.env.DATABASE_URL_TEST;assert.ok(raw);assert.match(new URL(raw).pathname,/^\/once_test_[a-z0-9_]+$/);
+const db=new PrismaClient({datasources:{db:{url:raw}},log:[]}),temp=registeredTemp(),password='Synthetic-'+randomBytes(20).toString('base64url')+'!';
+const file=(name,text)=>{const p=join(temp.path,name);writeFileSync(p,text,{mode:0o600});return p;};
+const env={...process.env,DATABASE_URL:raw,APP_ENV:'test',ACCESS_MODE:'INTERNAL',DATA_EGRESS_MODE:'INTERNAL_APPROVED',COOKIE_SECURE:'false',HOST:'127.0.0.1',CONTACT_KEY_FILE:file('contact',randomBytes(32).toString('hex')),CSRF_KEY_FILE:file('csrf',randomBytes(32).toString('hex')),RECOVERY_EPOCH_FILE:file('epoch',randomBytes(24).toString('hex')),BOOTSTRAP_LOGIN:'owner',BOOTSTRAP_NAME:'合成发布管理员',BOOTSTRAP_PASSWORD_FILE:file('password',password)};
+env.MEDIA_PROVIDER='local';env.MEDIA_ROOT=join(temp.path,'private-media');
+const evidence='artifacts/admin-ux';mkdirSync(evidence,{recursive:true});
+let api,worker,browserOwner,browser,base,stage='setup';const checks=[],errors=[];
+async function poll(predicate,label){const end=Date.now()+25000;while(!(await predicate())){assert.ok(Date.now()<end,label);await new Promise(r=>setTimeout(r,100));}}
+async function stop(child){if(!child||child.exitCode!==null||child.signalCode!==null)return;await new Promise(resolve=>{const timer=setTimeout(()=>{child.kill('SIGKILL');resolve();},5000);child.once('exit',()=>{clearTimeout(timer);resolve();});child.kill('SIGINT');});}
+async function login(page,name){await page.goto(base,{waitUntil:'networkidle'});await page.getByLabel('登录名',{exact:true}).fill(name);await page.getByLabel('密码',{exact:true}).fill(password);await page.getByRole('button',{name:'登录',exact:true}).click();await page.getByRole('button',{name:'工作台',exact:true}).waitFor();}
+async function cmd(page,path,data,method='POST'){
+ const me=await(await page.context().request.get(base+'/api/v1/me')).json();
+ const response=await page.context().request.fetch(base+'/api/v1'+path,{method,data,headers:{Origin:base,'X-CSRF-Token':me.csrfToken,'X-ONCE-Membership':me.membershipId,'Idempotency-Key':randomUUID()}});
+ assert.ok(response.ok(),'seed command '+path+' status '+response.status());return response.json();
+}
+async function writeUI(page,path,click,method='POST',query=null){
+ const result=page.waitForResponse(r=>r.url().endsWith('/api/v1'+path)&&r.request().method()===method&&(!query||query(r.request().postDataJSON())));await click();const response=await result;assert.ok(response.ok(),path+' status '+response.status());return response.json();
+}
+async function member(admin,name,role,label){
+ const result=await cmd(admin,'/memberships',{loginName:name,displayName:label,role,extraPermissions:[]}),context=await browser.newContext(),page=await context.newPage();page.setDefaultTimeout(12000);page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(base+'/activate',{waitUntil:'networkidle'});await page.getByLabel('激活凭证').fill(result.activationToken);await page.getByLabel('设置密码（至少 12 个字符）').fill(password);await page.getByRole('button',{name:'激活账号',exact:true}).click();await page.getByText('账号已激活').waitFor();await login(page,name);return {page,id:result.membershipId};
+}
+async function search(page,name,role,city){
+ await page.goto(base+'/workspace/people',{waitUntil:'networkidle'});await page.getByLabel('搜索姓名或别名',{exact:true}).fill(name);if(role){await page.getByLabel('选择职业',{exact:true}).click();await page.getByRole('checkbox',{name:{model:'模特',actor:'演员'}[role],exact:true}).check();await page.getByLabel('选择职业',{exact:true}).click();}if(city){await page.getByLabel('选择城市',{exact:true}).click();await page.getByRole('checkbox',{name:{shenzhen:'深圳'}[city],exact:true}).check();await page.getByLabel('选择城市',{exact:true}).click();}
+ return writeUI(page,'/directory/talents/search',()=>page.getByRole('button',{name:'搜索',exact:true}).click());
+}
+const record=name=>{checks.push(name);console.log('PASS '+name);};
+try{
+ assert.equal((await db.$queryRawUnsafe("SELECT tablename FROM pg_tables WHERE schemaname='public'")).length,0,'Require owned empty database, no reset');
+ await run('pnpm',['db:deploy'],{env,capture:true});
+ const port=createServer();await new Promise(r=>port.listen(0,'127.0.0.1',r));env.PORT=String(port.address().port);await new Promise(r=>port.close(r));base='http://127.0.0.1:'+env.PORT;env.APP_ORIGIN=base;
+ await run(process.execPath,['dist/apps/api/src/bootstrap.js'],{env,capture:true});
+ api=spawn(process.execPath,['dist/apps/api/src/main.js'],{env,stdio:'ignore'});worker=spawn(process.execPath,['dist/apps/api/src/worker-main.js'],{env,stdio:'ignore'});
+ await poll(async()=>{try{return (await fetch(base+'/health/ready')).status===200;}catch{return false;}},'API readiness');
+ browserOwner=await registeredBrowser(chromium,{headless:true,env:{...process.env,TMPDIR:temp.path}});browser=browserOwner.browser;
+ const page=await browser.newPage({viewport:{width:1280,height:800}});page.setDefaultTimeout(12000);page.on('pageerror',e=>errors.push(e.message));await login(page,'owner');
+ stage='task navigation and seeded directory';
+ assert.equal(await page.locator('nav[aria-label="日常业务"] button').count(),6);assert.equal(await page.locator('.management-nav[open]').count(),0);
+ await page.screenshot({path:join(evidence,'workspace-desktop.png'),fullPage:true});
+ const source=await cmd(page,'/sources',{title:'合成 UX 验收材料',type:'MANUAL',providerClaim:'仅用于自动化验收的合成记录',basisMode:'INTERNAL_USE',basisDescription:'合成测试内部使用依据',validUntil:new Date(Date.now()+30*86400000).toISOString()});
+ const people=[];for(let i=1;i<=22;i++)people.push(await cmd(page,'/directory/talents',{schemaVersion:'once-talent-experience-v1',displayName:'合成 UX '+String(i).padStart(2,'0'),kind:'TALENT',roleCodes:['model','actor'],sourceId:source.resourceId,sourceRevision:1}));
+ const result=await search(page,'合成 UX');assert.equal(result.total,22);assert.equal(result.items.length,20);
+ const cards=page.locator('article.directory-card');await cards.first().waitFor();const rect=await cards.first().boundingBox();assert.ok(rect&&rect.y<400&&rect.y+rect.height<=800,'first card must fit in initial desktop viewport');
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.screenshot({path:join(evidence,'directory-desktop.png'),fullPage:true});
+ stage='cross-page selection and detail return';
+ const first=result.items[0];await page.getByRole('checkbox',{name:'选择 '+first.displayName,exact:true}).check();await page.getByRole('button',{name:'下一页',exact:true}).click();await page.getByText('共 22 位',{exact:true}).waitFor();
+ const secondName=await cards.first().locator('h3').innerText();await page.getByRole('checkbox',{name:'选择 '+secondName,exact:true}).check();await page.getByText('已选 2 人',{exact:true}).waitFor();
+ await cards.first().getByRole('button').click();await page.getByRole('heading',{name:secondName,exact:true}).waitFor();await page.getByRole('button',{name:'← 返回目录',exact:true}).click();await page.getByText('已选 2 人',{exact:true}).waitFor();assert.equal(await page.getByRole('checkbox',{name:'选择 '+secondName,exact:true}).isChecked(),true);
+ stage='explicit list and roles with response loss';
+ await page.getByRole('button',{name:'加入候选清单',exact:true}).click();let modal=page.getByRole('dialog',{name:'加入候选清单',exact:true});assert.equal(await modal.getByRole('button',{name:'确认加入候选',exact:true}).isEnabled(),false);
+ await modal.getByRole('button',{name:'新建清单',exact:true}).click();await modal.getByLabel('新清单标题').fill('合成 UX 跨页选角');const workspaceScope=await db.accessScope.findFirstOrThrow({where:{mode:'WORKSPACE'}});await modal.getByLabel('清单可见范围').selectOption(workspaceScope.id);
+ const listReceipt=await writeUI(page,'/shortlists',()=>modal.getByRole('button',{name:'建立清单并继续',exact:true}).click());const listId=listReceipt.resourceId;
+ const roleSelects=modal.locator('.batch-choice select');await roleSelects.nth(1).waitFor();for(const select of await roleSelects.all()){const actor=await select.locator('option').filter({hasText:'演员'}).getAttribute('value');assert.ok(actor);await select.selectOption(actor);}
+ const writes=[];page.on('request',r=>{if(r.method()==='POST'&&r.url().endsWith('/shortlists/'+listId+'/batch'))writes.push(r.headers()['idempotency-key']);});
+ const drop=async route=>{const response=await route.fetch();assert.equal(response.status(),200);assert.deepEqual((await response.json()).summary,{added:2,existing:0});await route.abort('failed');};await page.route('**/api/v1/shortlists/'+listId+'/batch',drop);
+ await modal.getByRole('button',{name:'确认加入候选',exact:true}).click();await modal.getByText('结果未知，选择已冻结。先读取原批次结果。',{exact:true}).waitFor();assert.equal(await roleSelects.first().isDisabled(),true);assert.equal(await db.shortlistItem.count({where:{shortlistId:listId}}),2);
+ await page.unroute('**/api/v1/shortlists/'+listId+'/batch',drop);await modal.getByRole('button',{name:'只读核对批次结果',exact:true}).click();modal=page.getByRole('dialog',{name:'已加入候选清单',exact:true});await modal.getByRole('status').filter({hasText:'新增 2 项'}).waitFor();assert.equal(writes.length,1);assert.equal(await db.shortlistItem.count({where:{shortlistId:listId}}),2);await modal.getByRole('button',{name:'继续找人',exact:true}).click();assert.equal(await page.getByText('已选 2 人',{exact:true}).count(),0);
+ record('cross-page selection and detail return; explicit scope/list/role; lost committed response recovered readonly with one batch write');
+ stage='duplicate outcome';
+ await page.getByRole('checkbox',{name:'选择 '+secondName,exact:true}).check();await page.getByRole('button',{name:'加入候选清单',exact:true}).click();modal=page.getByRole('dialog',{name:'加入候选清单',exact:true});await modal.getByRole('button',{name:'合成 UX 跨页选角',exact:true}).click();const select=modal.locator('.batch-choice select');await select.selectOption(await select.locator('option').filter({hasText:'演员'}).getAttribute('value'));await modal.getByText('已在清单',{exact:true}).waitFor();await modal.getByRole('button',{name:'确认加入候选',exact:true}).click();modal=page.getByRole('dialog',{name:'已加入候选清单',exact:true});await modal.getByRole('status').filter({hasText:'新增 0 项，1 项已在清单'}).waitFor();assert.equal(await db.shortlistItem.count({where:{shortlistId:listId}}),2);await modal.getByRole('button',{name:'继续找人',exact:true}).click();record('duplicate preview and confirmed numeric outcome preserve existing candidates');
+ stage='mobile layout and keyboard filters';
+ for(const width of [360,390,430]){await page.setViewportSize({width,height:860});await page.goto(base+'/workspace/people',{waitUntil:'networkidle'});await page.locator('.directory-card').first().waitFor();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'mobile directory overflow at '+width);await page.getByRole('button',{name:'筛选条件',exact:true}).click();const filter=page.getByRole('dialog',{name:'筛选人才',exact:true});await filter.getByLabel('选择职业').focus();await page.keyboard.press('Enter');await filter.getByRole('checkbox',{name:/模特/}).check();await filter.getByLabel('选择职业').click();await filter.getByRole('button',{name:'应用筛选',exact:true}).click();await filter.waitFor({state:'detached'});await page.screenshot({path:join(evidence,'directory-'+width+'.png'),fullPage:true});}
+ record('360/390/430px no horizontal overflow; keyboard checkbox filter and explicit application');
+ await page.setViewportSize({width:1280,height:800});
+ stage='inline maintenance and unsaved guard';
+ await page.goto(base+'/talents/'+first.id,{waitUntil:'networkidle'});await page.getByRole('button',{name:'基本资料',exact:true}).click();await page.getByRole('button',{name:'编辑姓名与简介',exact:true}).click();let form=page.getByRole('region',{name:'编辑姓名与简介',exact:true});await form.getByLabel('人物简介',{exact:true}).fill('未保存的合成介绍');let confirms=0;page.once('dialog',async d=>{confirms++;await d.dismiss();});await page.getByRole('button',{name:'人才库',exact:true}).click();assert.equal(confirms,1);assert.equal(await form.getByLabel('人物简介',{exact:true}).inputValue(),'未保存的合成介绍');page.once('dialog',d=>d.accept());await form.getByRole('button',{name:'取消',exact:true}).click();
+ assert.notEqual((await db.person.findUniqueOrThrow({where:{id:first.id}})).intro,'未保存的合成介绍');record('inline editor preserves input when leaving is cancelled; explicit discard never writes');
+ stage='serial media upload and readonly recovery';
+ await page.getByRole('button',{name:'照片视频',exact:true}).click();const uploader=page.locator('.upload-composer');const image=await sharp({create:{width:64,height:96,channels:3,background:'#826856'}}).png().toBuffer();
+ await uploader.locator('input[type=file]').setInputFiles([{name:'合成肖像1.png',mimeType:'image/png',buffer:image},{name:'合成肖像2.png',mimeType:'image/png',buffer:image},{name:'格式错误.png',mimeType:'image/png',buffer:Buffer.from('not an image')}]);await uploader.getByRole('checkbox',{name:'确认本批文件确实来自上述资料来源',exact:true}).check();
+ const uploadPosts=[];page.on('request',r=>{if(r.method()==='POST'&&r.url().endsWith('/api/v1/uploads'))uploadPosts.push(r.headers()['idempotency-key']);});let dropped=false;
+ await page.route('**/api/v1/uploads/*/complete',async route=>{if(dropped)return route.continue();dropped=true;const r=await route.fetch();assert.equal(r.status(),202);await route.abort('failed');});
+ await uploader.getByRole('button',{name:'开始上传 3 份文件',exact:true}).click();await uploader.getByText('待核对',{exact:true}).waitFor();assert.equal(uploadPosts.length,1,'uncertainty pauses later files');await uploader.getByRole('button',{name:'只读核对上传状态',exact:true}).click();await uploader.getByRole('button',{name:'添加下一批文件',exact:true}).waitFor({timeout:30000});
+ assert.equal(uploadPosts.length,3);const uploadRows=await db.mediaUpload.findMany({where:{personId:first.id}});assert.equal(uploadRows.filter(r=>r.state==='READY').length,2);assert.equal(uploadRows.filter(r=>r.state==='FAILED').length,1);await page.screenshot({path:join(evidence,'upload-partial-result.png'),fullPage:true});record('real images processed in serial; uncertain completion pauses queue; readonly inspection resumes; successful files survive one invalid image');
+ stage='atomic contextual case';
+ await uploader.getByRole('button',{name:'添加下一批文件',exact:true}).click();await page.getByRole('button',{name:'作品与合作',exact:true}).click();await page.getByRole('button',{name:'添加作品案例',exact:true}).click();form=page.getByRole('region',{name:'为 '+first.displayName+' 添加作品案例',exact:true});await form.getByLabel('作品标题').fill('合成完整作品案例');const caseRole=form.getByLabel('本次参与职业');await caseRole.selectOption(await caseRole.locator('option').filter({hasText:'演员'}).getAttribute('value'));const imageChoices=form.locator('.case-asset-picker input[type=checkbox]');await imageChoices.nth(1).waitFor();await imageChoices.nth(0).check();await imageChoices.nth(1).check();const coverSelect=form.getByLabel('作品封面');await coverSelect.selectOption({label:'合成肖像2.png'});
+ const caseReceipt=await writeUI(page,'/people/'+first.id+'/work-cases',()=>form.getByRole('button',{name:'保存作品与本人署名',exact:true}).click());await form.waitFor({state:'detached'});const work=await db.work.findUniqueOrThrow({where:{id:caseReceipt.resourceId}});assert.equal(work.datePrecision,'UNKNOWN');assert.equal(work.caseDate,null);const credits=await db.workCredit.findMany({where:{workId:work.id}});assert.equal(credits.length,1);assert.equal(credits[0].roleCode,'actor');assert.equal(credits[0].sourceId,source.resourceId);assert.equal(await db.workAsset.count({where:{workId:work.id}}),2);await page.screenshot({path:join(evidence,'person-case.png'),fullPage:true});record('one UI command creates case, exact role credit and ordered media; explicit cover and unknown date preserved');
+ stage='table import and real worker rows';
+ await page.goto(base+'/workspace/imports',{waitUntil:'networkidle'});await page.getByLabel('粘贴表格（首行为列名）').fill('姓名\t职业\t城市\n合成表格甲\t模特\t深圳\n合成表格乙\t演员\t深圳\n合成表格待修正\t不存在的职业\t深圳');await page.getByRole('button',{name:'读取表格并对应字段',exact:true}).click();const sourceChoice=page.getByLabel('资料来源',{exact:true});await sourceChoice.selectOption(source.resourceId);const imported=await writeUI(page,'/imports/preview',()=>page.getByRole('button',{name:'生成服务器预览',exact:true}).click());await page.getByRole('button',{name:'确认导入 2 行',exact:true}).waitFor();await writeUI(page,'/imports/'+imported.resourceId+'/commit',()=>page.getByRole('button',{name:'确认导入 2 行',exact:true}).click());await poll(async()=>{const row=await db.importBatch.findUniqueOrThrow({where:{id:imported.resourceId}});return row.rows.filter(r=>r.state==='IMPORTED').length===2;},'real Worker table import');const importedRow=await db.importBatch.findUniqueOrThrow({where:{id:imported.resourceId}});assert.equal(importedRow.rows[2].state,'INVALID');assert.equal(await db.person.count({where:{displayName:'合成表格待修正'}}),0);await page.screenshot({path:join(evidence,'table-import.png'),fullPage:true});record('CSV/TSV mapping -> current server preview -> only valid rows imported by real Worker; unknown role retained as invalid');
+ assert.deepEqual(errors,[]);writeFileSync(join(evidence,'browser.json'),JSON.stringify({status:'BROWSER_TESTED',data:'SYNTHETIC',backend:'real Nest/Worker/PostgreSQL/private local media',providerVerified:'NOT_RUN',humanUsability:'NOT_RUN',checks,errors},null,2)+'\n');
+}catch(error){writeFileSync(join(evidence,'browser-failure.json'),JSON.stringify({status:'FAIL',stage,checks,errorType:error.name,error:String(error.message).slice(0,1500)},null,2)+'\n');if(browser){for(const page of browser.contexts().flatMap(c=>c.pages())){try{await page.screenshot({path:join(evidence,'failure.png'),fullPage:true});}catch{}}}throw error;}
+finally{try{await browserOwner?.close();}finally{await stop(worker);await stop(api);await db.$disconnect();temp.cleanup();}}

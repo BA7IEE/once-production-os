@@ -43,6 +43,8 @@ import { Identity } from './identity.ts';
 import { Talent } from './talent.ts';
 import { Commands } from './commands.ts';
 import { authorizeReceipt } from './replay-policy.ts';
+import { inspectCommand, recentCommands } from './command-inspection.ts';
+import { reviewTasks, reviewTask } from './review-workspace.ts';
 import { readSourceHistory } from './source-history.ts';
 import {SourceReviews,sourceReviewParticipant} from './source-review.ts';
 import { Handoffs, handoffParticipant } from './handoffs.ts';
@@ -338,6 +340,10 @@ export class Application {
                 const maintenance=new TalentMaintenance(this.clock,this.config);
                 const ingestion=new Ingestion(this.clock,this.config);
                 switch (route.operation) {
+                    case 'review.search': return reviewTasks(tx,actor,data,this.clock,this.config);
+                    case 'review.get': return reviewTask(tx,actor,params.kind??'',id,this.clock,this.config,meta);
+                    case 'command.inspect': return inspectCommand(tx, actor, data, this.clock, this.config);
+                    case 'command.list': return recentCommands(tx, actor, query, this.clock, this.config);
                     case 'ingestion.upload.create':return command('upload',()=>this.media.createAgent(tx,actor,data));
                     case 'ingestion.upload.authorize':return authorizeAgentReceive(tx,actor,await uploadFor(tx,actor,id),data,this.clock,this.config,meta);
                     case 'ingestion.upload.complete':return command('upload',()=>this.media.complete(tx,actor,id,data));
@@ -459,6 +465,8 @@ export class Application {
                     case 'shortlist.get': return this.shortlists.get(tx, actor, id);
                     case 'shortlist.update': return command('shortlist', () => this.shortlists.update(tx, actor, id, data));
                     case 'shortlist.itemAdd': return command('shortlist', () => this.shortlists.addItem(tx, actor, id, data));
+                    case 'shortlist.batchAdd': return command('shortlist', () => this.shortlists.batchAdd(tx, actor, id, data));
+                    case 'shortlist.selection': return this.shortlists.selection(tx, actor, data);
                     case 'shortlist.itemUpdate': return command('shortlist', () => this.shortlists.updateItem(tx, actor, id, data));
                     case 'shortlist.itemRemove': return command('shortlist', () => this.shortlists.removeItem(tx, actor, id, data));
                     case 'shortlist.reorder': return command('shortlist', () => this.shortlists.reorder(tx, actor, id, data));
@@ -467,6 +475,7 @@ export class Application {
                     case 'locale.create': return command('localeText',()=>this.localeTexts.create(tx,actor,data));
                     case 'locale.update': return command('localeText',()=>this.localeTexts.update(tx,actor,id,data));
                     case 'work.personCases':return this.portfolio.personCases(tx,actor,id);
+                    case 'work.personCaseCreate':return command('work',()=>this.portfolio.createPersonCase(tx,actor,id,data));
                     case 'work.list': return this.portfolio.list(tx, actor, query);
                     case 'work.create': return command('work', () => this.portfolio.create(tx, actor, data));
                     case 'work.get': return this.portfolio.get(tx, actor, id);

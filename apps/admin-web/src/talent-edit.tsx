@@ -1,4 +1,6 @@
 import {useEffect,useState} from 'react';
+import {EditorFrame} from './ux-controls.tsx';
+import {useUnsaved} from './unsaved.ts';
 import {ApiError,call,read} from './api.ts';
 import type {Inputs} from './generated/requests.ts';
 import type {CatalogItem,Page,Source} from './dto.ts';
@@ -43,19 +45,20 @@ export function talentInputValue(field:TalentField,value:string):unknown {
  if(field.kind==='datetime-local')return new Date(value).toISOString();
  return value;
 }
-export function TalentFactEditor({kind,row,detail,catalog,schema,onClose,onSaved}:{kind:TalentFactKind;row?:TalentFact;detail:TalentDetail;catalog:CatalogItem[];schema:TalentSchema;onClose:()=>void;onSaved:()=>void}) {
+export function TalentFactEditor({kind,row,detail,catalog,schema,onClose,onSaved,inline=false}:{kind:TalentFactKind;row?:TalentFact;detail:TalentDetail;catalog:CatalogItem[];schema:TalentSchema;onClose:()=>void;onSaved:()=>void;inline?:boolean}) {
  const section=TALENT_SECTIONS[kind],fields=section.fields.filter(f=>!row||!f.immutable);
  const [values,setValues]=useState<Record<string,string>>(()=>Object.fromEntries(fields.map(f=>[f.key,initialValue(f,row?.[f.key])]))),[changed,setChanged]=useState<string[]>([]),[source,setSource]=useState<Source|null>(null);
  const originalSource=useLoad(()=>row?read<Source>('source.get',{id:row.sourceId}):Promise.resolve(null),row?.sourceId??'new');
  useEffect(()=>{if(row&&originalSource.data?.current&&!source)setSource(originalSource.data);},[originalSource.data]);
  const action=useAction(),freeze=action.busy||outcomeUnknown(action.error);
+ useUnsaved(changed.length>0,section.title);
  const close=()=>{if(freeze)return;if(changed.length&&!window.confirm('尚有未保存的修改，确定关闭？'))return;onClose();};
- return <Modal title={(row?'编辑':'新增')+section.title} onClose={close} wide><form onSubmit={e=>{e.preventDefault();if(!source)return;void action.run(async()=>{
+ const Frame=inline?EditorFrame:Modal;return <Frame title={(row?'编辑':'新增')+section.title} onClose={close}><form onSubmit={e=>{e.preventDefault();if(!source)return;void action.run(async()=>{
   const selected=row?fields.filter(f=>changed.includes(f.key)):fields.filter(f=>values[f.key]!==''||f.required||f.key==='namespaceCode');
   const input={schemaVersion:TALENT_VERSION,expectedPersonRevision:detail.revision,sourceId:source.id,sourceRevision:source.revision,values:Object.fromEntries(selected.map(f=>[f.key,talentInputValue(f,values[f.key]??'')])),...(row?{expectedRevision:row.revision}:{})};
   const op=`td2.fact.${kind}.${row?'patch':'create'}` as keyof Pick<Inputs,`td2.fact.${TalentFactKind}.create`|`td2.fact.${TalentFactKind}.patch`>;
   await call(op,input,{id:row?.id??detail.id});onSaved();
  });}}><div className="modal-body"><ErrorBox error={action.error??originalSource.error}/>{section.hint&&<p className="notice">{section.hint}</p>}{row&&<p>原来源：{originalSource.data?.title??'正在核对'}。其他来源的新信息，请提交字段建议。</p>}{row&&source&&source.id!==row.sourceId&&<p className="notice">所选来源与原记录不同。请返回工作台提交修改建议，由有权成员核对后采用。</p>}<TalentSourceChoice value={source} disabled={freeze} onChange={s=>{setSource(s);setChanged(c=>c.includes('_source')?c:[...c,'_source']);}}/>
  <fieldset disabled={freeze}><div className="form-grid">{fields.map(f=>row?.unavailableFields.includes(f.key)?<p key={f.key}>{f.label}：当前不可读</p>:<TalentValueInput key={f.key} field={f} value={values[f.key]??''} detail={detail} catalog={catalog} schema={schema} onChange={value=>{setValues(v=>({...v,[f.key]:value}));setChanged(c=>c.includes(f.key)?c:[...c,f.key]);}}/>)}</div></fieldset>
- {outcomeUnknown(action.error)&&<p className="notice">提交结果未知，表单已保留。请原样再次提交，核对同一笔结果后再继续修改。</p>}</div><footer className="modal-footer"><button type="button" disabled={freeze} onClick={close}>取消</button><button className="primary" type="submit" disabled={action.busy||!source||(!!row&&source.id!==row.sourceId)||(!!row&&!changed.some(c=>c!=='_source'))}>{action.busy?'正在保存…':outcomeUnknown(action.error)?'原样重试':'保存'+section.title}</button></footer></form></Modal>;
+ {outcomeUnknown(action.error)&&<p className="notice">提交结果未知，表单已保留。请原样再次提交，核对同一笔结果后再继续修改。</p>}</div><footer className="modal-footer"><button type="button" disabled={freeze} onClick={close}>取消</button><button className="primary" type="submit" disabled={action.busy||!source||(!!row&&source.id!==row.sourceId)||(!!row&&!changed.some(c=>c!=='_source'))}>{action.busy?'正在保存…':outcomeUnknown(action.error)?'原样重试':'保存'+section.title}</button></footer></form></Frame>;
 }

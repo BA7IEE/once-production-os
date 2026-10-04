@@ -1,6 +1,6 @@
 import { test, afterEach, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { call, resetTransport, acknowledgeSecretInspection, unresolvedCommands, suspendTransport, pendingCommands, replayPending } from '../../apps/admin-web/src/api.ts';
+import { call, resetTransport, acknowledgeSecretInspection, unresolvedCommands, suspendTransport, pendingCommands, replayPending, inspectPending, setCsrf } from '../../apps/admin-web/src/api.ts';
 const original = globalThis.fetch;
 (globalThis as unknown as {
     window: EventTarget;
@@ -137,3 +137,17 @@ test('reload stores only a pending marker and requires explicit inspection befor
   fresh.acknowledgePendingInspection();assert.equal(fresh.needsPendingInspection(),false);
  }finally{(globalThis as any).sessionStorage=saved;}
 });
+
+test('readonly inspection confirms the original form without another domain write or receipt',async()=>{
+ const {fixture}=await import('../support/fixtures.ts'),f=await fixture();await identify(f.membershipId);setCsrf(f.owner.csrf);let writes=0;
+ globalThis.fetch=async(url,init)=>{const headers=Object.fromEntries(Object.entries(init!.headers as Record<string,string>).map(([k,v])=>[k.toLowerCase(),v])),r=await f.owner.raw(init!.method!,String(url).replace('/api/v1',''),init!.body?JSON.parse(String(init!.body)):undefined,headers);if(String(url).endsWith('/people')&&init!.method==='POST'){writes++;if(writes===1)throw new Error('committed response lost');}return new Response(JSON.stringify(r.body),{status:r.status});};
+ const body={...payload,sourceId:undefined,inlineSource:{title:'合成原材料',type:'MANUAL' as const,providerClaim:'合成人才',basisMode:'TEMP_ORGANIZE' as const,basisDescription:'合成核对资料'}};
+ await assert.rejects(call('person.create',body));const key=pendingCommands()[0]!.key,receiptCount=f.store.rows('receipts').length,auditCount=f.store.rows('audits').length;
+ const receipt=await inspectPending(key);assert.ok(receipt);await call('person.create',body);assert.equal(writes,1);assert.equal(f.store.rows('people').length,1);assert.equal(f.store.rows('receipts').length,receiptCount);assert.equal(f.store.rows('audits').length,auditCount);
+});
+test('global explicit replay leaves an acknowledged result for the original form to consume once',async()=>{
+ let writes=0,reads=0;globalThis.fetch=async(url)=>{if(String(url).endsWith('/commands/inspect')){reads++;return new Response(JSON.stringify({found:true,result:{operationId:actorId,resourceId:actorId,revision:1,state:'SUCCEEDED'}}));}writes++;if(writes===1)throw new Error('lost');return ok();};
+ await assert.rejects(call('person.create',payload));await replayPending(pendingCommands()[0]!.key);assert.equal(writes,2);await call('person.create',payload);assert.equal(writes,2);assert.equal(reads,1);assert.equal(unresolvedCommands().length,0);
+});
+test('missing readonly receipt keeps the unknown request and does not silently create a new command',async()=>{let writes=0;globalThis.fetch=async(url)=>{if(String(url).endsWith('/commands/inspect'))return new Response(JSON.stringify({found:false}));writes++;throw new Error('lost');};await assert.rejects(call('person.create',payload));const key=pendingCommands()[0]!.key;assert.equal(await inspectPending(key),null);assert.equal(pendingCommands()[0]!.key,key);assert.equal(writes,1);});
+test('authenticated reads carry the current membership binding and clear stale UI identity on account switch',async()=>{let expired=0;const listener=()=>expired++;window.addEventListener('once-session-expired',listener);try{globalThis.fetch=async(_url,init)=>{assert.equal((init!.headers as Record<string,string>)['X-ONCE-Membership'],actorId);return new Response(JSON.stringify({error:{code:'IDENTITY_CHANGED',message:'当前账号已变化'}}),{status:409});};await assert.rejects(call('person.list',undefined));assert.equal(expired,1);}finally{window.removeEventListener('once-session-expired',listener);}});

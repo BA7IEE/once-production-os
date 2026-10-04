@@ -1,4 +1,5 @@
 import {SourceReviewSchemas} from './source-review.ts';
+import {CommandInspectionSchema,ReviewQuerySchema} from './admin-ux-schema.ts';
 import {INGESTION_ROUTES} from './ingestion-routes.ts';
 import {TALENT_MAINTENANCE_ROUTES} from './talent-maintenance-routes.ts';
 import {TALENT_AUTH_ROUTES} from './talent-auth-routes.ts';
@@ -26,6 +27,10 @@ export interface RouteDefinition {
     schema?: Schema<unknown>;
 }
 export const ROUTES: RouteDefinition[] = [
+    {method:'POST',path:'/review/search',operation:'review.search',mode:'READ',permission:'records.read',schema:ReviewQuerySchema},
+    {method:'GET',path:'/review/{kind}/{id}',operation:'review.get',mode:'READ',permission:'records.read'},
+    {method:'POST',path:'/commands/inspect',operation:'command.inspect',mode:'READ',permission:'records.read',schema:CommandInspectionSchema},
+    {method:'GET',path:'/commands',operation:'command.list',mode:'READ',permission:'records.read'},
     {method:'GET',path:'/media-purge/status',operation:'mediaPurge.status',mode:'READ',permission:'members.manage'},
     {method:'POST',path:'/media-purge/reconcile',operation:'mediaPurge.reconcile',mode:'COMMAND',permission:'members.manage',schema:Schemas.empty},...INGESTION_ROUTES,...TALENT_AUTH_ROUTES,...TALENT_MAINTENANCE_ROUTES,
     {method:'POST',path:'/brands',operation:'brand.create',mode:'COMMAND',permission:'records.write',schema:PartySchemas.create},
@@ -62,6 +67,7 @@ export const ROUTES: RouteDefinition[] = [
     {method:'POST',path:'/directory/talents',operation:'directory.talent.create',mode:'COMMAND',permission:'records.write',schema:TalentIntakeSchema},
     ...TD2_ROUTES,
     { method:'GET',path:'/people/{id}/work-cases',operation:'work.personCases',mode:'READ',permission:'records.read' },
+    { method:'POST',path:'/people/{id}/work-cases',operation:'work.personCaseCreate',mode:'COMMAND',permission:'records.write',schema:PS.personCase },
     { method: 'GET', path: '/works', operation: 'work.list', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/works', operation: 'work.create', mode: 'COMMAND', permission: 'records.write', schema: PS.workCreate },
     { method: 'GET', path: '/works/{id}', operation: 'work.get', mode: 'READ', permission: 'records.read' },
@@ -180,6 +186,8 @@ export const ROUTES: RouteDefinition[] = [
     { method: 'GET', path: '/shortlists/{id}', operation: 'shortlist.get', mode: 'READ', permission: 'records.read' },
     { method: 'PATCH', path: '/shortlists/{id}', operation: 'shortlist.update', mode: 'COMMAND', permission: 'records.write', schema: SS.patch },
     { method: 'POST', path: '/shortlists/{id}/items', operation: 'shortlist.itemAdd', mode: 'COMMAND', permission: 'records.write', schema: SS.itemAdd },
+    { method: 'POST', path: '/shortlists/{id}/batch', operation: 'shortlist.batchAdd', mode: 'COMMAND', permission: 'records.write', schema: SS.batchAdd },
+    { method: 'POST', path: '/shortlists/selection', operation: 'shortlist.selection', mode: 'READ', permission: 'records.read', schema: SS.selection },
     { method: 'POST', path: '/shortlists/{id}/items/update', operation: 'shortlist.itemUpdate', mode: 'COMMAND', permission: 'records.write', schema: SS.itemPatch },
     { method: 'POST', path: '/shortlists/{id}/items/remove', operation: 'shortlist.itemRemove', mode: 'COMMAND', permission: 'records.write', schema: SS.remove },
     { method: 'POST', path: '/shortlists/{id}/items/reorder', operation: 'shortlist.reorder', mode: 'COMMAND', permission: 'records.write', schema: SS.order },

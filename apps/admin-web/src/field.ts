@@ -16,7 +16,7 @@ export function Field({ label, children, hint, wide = false }: {
         && ['input', 'select', 'textarea'].includes(children.type);
     if (!nativeControl) {
         // Existing composite controls retain their own labels and interaction model.
-        return createElement('label', { className: 'field' + (wide ? ' wide' : '') },
+        return createElement('div', { className: 'field' + (wide ? ' wide' : '') },
             createElement('span', null, label), children, hint && createElement('small', null, hint));
     }
     const controlId = children.props.id || `${generatedId}-control`;

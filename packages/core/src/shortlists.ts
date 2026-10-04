@@ -35,6 +35,23 @@ export class Shortlists {
     clock: Clock;
     constructor(clock: Clock) { this.clock = clock; }
 
+    async selection(tx: Tx, actor: Actor, input: unknown) {
+        requirePermission(actor, 'records.read');
+        const d = S.selection.parse(input);
+        invariant(new Set(d.personIds).size === d.personIds.length, 'DUPLICATE_SELECTION', '人物不能重复', 422);
+        const graph = await loadTalentGraph(tx, actor, this.clock, d.personIds);
+        return { items: d.personIds.map(id => {
+            const person = graph.record('people', id);
+            if (!person || !graph.identityReadable(person) || person.status === 'ARCHIVED' ||
+                !graph.fieldReadable('person', person as unknown as Record<string, unknown>, 'displayName')) return { id, unavailable: true as const };
+            const profiles=graph.personRows('talentProfiles',id),profile=profiles.some(p=>p.status==='ACTIVE');if(profiles.length&&!profile)return {id,unavailable:true as const};
+            const roles = graph.personRows('personRoles', id).filter(r => graph.usable('personRoles', r as unknown as FactRow))
+                .map(r => ({ id: r.id, revision: r.revision, roleCode: r.roleCode }));
+            if (profile && !roles.length || !profile && !person.roles.length) return { id, unavailable: true as const };
+            return { id, unavailable: false as const, displayName: person.displayName, revision: person.revision, roles, legacy: !profile };
+        }) };
+    }
+
     async create(tx: Tx, actor: Actor, input: unknown): Promise<Shortlist> {
         requirePermission(actor, 'records.write');
         const d = S.create.parse(input);
@@ -166,10 +183,10 @@ export class Shortlists {
         return next;
     }
 
-    private async ensurePair(tx: Tx, actor: Actor, personId: string, workId?: string, roleCode?: string) {
+    private async ensurePair(tx: Tx, actor: Actor, personId: string, workId?: string, roleCode?: string, existingGraph?: Awaited<ReturnType<typeof loadTalentGraph>>) {
         const person = await personFor(tx, actor, personId, this.clock);
         invariant(person.status !== 'ARCHIVED', 'PERSON_ARCHIVED', '已归档人才不能新增到候选清单', 409);
-        const graph=await loadTalentGraph(tx,actor,this.clock,[person.id]);
+        const graph=existingGraph??await loadTalentGraph(tx,actor,this.clock,[person.id]);
         const supporting=(await tx.find('evidence',{workspaceId:actor.workspaceId,personId:person.id,fieldPath:'displayName'})).find(e=>graph.sourceUsable(e.sourceId)&&graph.source(e.sourceId)?.revision===e.sourceRevision);
         const personSource = await sourceFor(tx, actor, graph.sourceUsable(person.sourceId)?person.sourceId:supporting?.sourceId??person.sourceId, this.clock);
         if (!workId)
@@ -233,6 +250,53 @@ export class Shortlists {
             missing();
         await tx.replace('shortlistItems', { ...touch(item, this.clock), note: d.note });
         return this.bump(tx, root);
+    }
+
+    /** One transaction, one receipt. Validate the entire batch before inserting anything. */
+    async batchAdd(tx: Tx, actor: Actor, id: string, input: unknown) {
+        const d = S.batchAdd.parse(input), root = await this.edit(tx, actor, id, d.expectedRevision);
+        invariant(d.entries.length > 0, 'EMPTY_SELECTION', '请先选择人才', 422);
+        invariant(new Set(d.entries.map(e => e.personId + ':' + (e.personRoleId ?? ''))).size === d.entries.length,
+            'DUPLICATE_SELECTION', '本次选择包含重复的人才与职业', 422);
+        const graph = await loadTalentGraph(tx, actor, this.clock, d.entries.map(e => e.personId));
+        const all = await tx.find('shortlistItems', { workspaceId: actor.workspaceId, shortlistId: id });
+        const planned: ShortlistItem[] = [];
+        let existing = 0;
+        for (let index = 0; index < d.entries.length; index++) {
+            const entry = d.entries[index]!;
+            try {
+                const profile = graph.rows('talentProfiles').find(p => p.personId === entry.personId);
+                let role: FactRow | null = null;
+                if (profile) {
+                    role = graph.fact('personRoles', entry.personRoleId ?? '') ?? null;
+                    invariant(role && role.personId === entry.personId && graph.usable('personRoles', role),
+                        'SHORTLIST_ROLE_REQUIRED', '请重新选择当前可用职业', 422);
+                    invariant(entry.personRoleRevision !== undefined, 'SHORTLIST_ROLE_REQUIRED', '请核对职业版本', 422);
+                    cas(role, entry.personRoleRevision);
+                } else {
+                    invariant(!entry.personRoleId && !entry.personRoleRevision, 'SHORTLIST_ROLE_INVALID', '职业当前不可用', 422);
+                    const person = await personFor(tx, actor, entry.personId, this.clock);
+                    invariant(person.roles.length, 'SHORTLIST_TALENT_REQUIRED', '普通联系人不能加入人才候选清单', 422);
+                }
+                const pair = await this.ensurePair(tx, actor, entry.personId, undefined, role ? String(role.roleCode) : undefined, graph);
+                cas(pair.person, entry.expectedPersonRevision);
+                if (all.some(x => x.personId === entry.personId && x.workId === null && (x.personRoleId ?? null) === (role?.id ?? null))) {
+                    existing++;
+                    continue;
+                }
+                planned.push({ ...base(actor.workspaceId, this.clock), shortlistId: id, personId: entry.personId,
+                    personRoleId: role?.id ?? null, personRoleRevision: role?.revision ?? null, roleContextState: role ? 'BOUND' : null,
+                    workId: null, position: all.length + planned.length, note: '', addedPersonRevision: pair.person.revision,
+                    addedPersonSourceRevision: pair.personSource.revision, addedWorkRevision: null, addedWorkSourceRevision: null });
+            } catch (error) {
+                if (error instanceof AppError) throw new AppError(error.status, error.code, `第 ${index + 1} 项无法加入：${error.message}。本批新增未写入，请核对选择。`);
+                throw error;
+            }
+        }
+        invariant(all.length + planned.length <= L.items, 'SHORTLIST_ITEM_LIMIT', '这份清单最多100条，请减少本次选择或另建清单；本批新增未写入', 422);
+        for (const item of planned) await tx.insert('shortlistItems', item);
+        const next = planned.length ? await this.bump(tx, root) : root;
+        return { ...next, commandSummary: { added: planned.length, existing } };
     }
 
     async removeItem(tx: Tx, actor: Actor, id: string, input: unknown) {

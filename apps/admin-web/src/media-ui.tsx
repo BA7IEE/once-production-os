@@ -1,169 +1,72 @@
-import { useEffect, useRef, useState } from 'react';
-import { ApiError, call, read } from './api.ts';
-import type { Inputs } from './generated/requests.ts';
-import type { Me, Page, Receipt, Source } from './dto.ts';
-import { ErrorBox, Field, PageTitle, Pager, Submit, useAction, useLoad, date } from './ui.tsx';
-export interface AssetDto {
-    id: string;
-    sourceId: string;
-    personId: string | null;
-    originSourceId?: string | null;
-    personRoleId?: string | null;
-    relationId?: string;
-    usageState: 'STAGED' | 'ADOPTED' | 'RETIRED';
-    fileName: string;
-    mime: string;
-    bytes: number;
-    width: number;
-    height: number;
-    state: 'READY' | 'QUARANTINED';
-    revision: number;
-    createdAt: string;
+import {useEffect,useRef,useState} from 'react';
+import {ApiError,call,read,inspectPending,pendingKey} from './api.ts';
+import type {Inputs} from './generated/requests.ts';
+import type {Me,Page,Receipt,Source} from './dto.ts';
+import {ErrorBox,Field,PageTitle,Pager,useAction,useLoad,Modal} from './ui.tsx';
+import {TalentSourceChoice,outcomeUnknown} from './talent-edit.tsx';
+import {useUnsaved} from './unsaved.ts';
+export interface AssetDto {id:string;sourceId:string;personId:string|null;originSourceId?:string|null;personRoleId?:string|null;relationId?:string;usageState:'STAGED'|'ADOPTED'|'RETIRED';fileName:string;mime:string;bytes:number;width:number;height:number;state:'READY'|'QUARANTINED';revision:number;createdAt:string}
+interface UploadDto {id:string;fileName:string;expectedBytes:number;state:string;revision:number;expiresAt:string;errorCode:string|null;assetId:string|null}
+const states:Record<string,string>={LOCAL:'待上传',OPEN:'等待文件',RECEIVING:'上传中',UPLOADED:'文件已收到',QUEUED:'等待检查',PROCESSING:'处理中',READY:'可使用',FAILED:'失败',CANCELLED:'已取消',UNKNOWN:'待核对'};
+const terminal=(s:string)=>['READY','FAILED','CANCELLED'].includes(s);
+type QueueRow={id:string;file:File;state:string};
+function UploadTask({file,source,personId,enabled,onState,onReady}:{file:File;source:{id:string;revision:number};personId?:string;enabled:boolean;onState:(s:string)=>void;onReady:()=>void}){
+ const [upload,setUpload]=useState<UploadDto|null>(null),[message,setMessage]=useState(''),a=useAction(),control=useAction(),started=useRef(false),notified=useRef(false);
+ const createInput=useRef<Inputs['upload.create']|null>(null),created=useRef<Receipt|null>(null),complete=useRef<Inputs['upload.complete']|null>(null),cancel=useRef<Inputs['upload.cancel']|null>(null);
+ const frozen=a.busy||control.busy,unknown=outcomeUnknown(a.error)||outcomeUnknown(control.error);
+ async function proceed(){
+  if(!createInput.current){
+   if(!['image/jpeg','image/png','image/webp','application/pdf','video/mp4'].includes(file.type)||file.size<1||file.size>(file.type==='application/pdf'?50000000:file.type==='video/mp4'?200000000:30000000))throw new Error('图片不超过30MB，PDF不超过50MB，MP4不超过200MB，请检查文件类型和大小。');
+   onState('RECEIVING');setMessage('准备文件…');const bytes=await file.arrayBuffer(),sha256=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(b=>b.toString(16).padStart(2,'0')).join('');
+   createInput.current={sourceId:source.id,expectedSourceRevision:source.revision,...(personId?{personId}:{}),fileName:file.name,mime:file.type as Inputs['upload.create']['mime'],expectedBytes:file.size,sha256};
+  }
+  // Keep the acknowledged resource even when the following read fails.
+  created.current??=await call<'upload.create',Receipt>('upload.create',createInput.current);
+  let u=await read<UploadDto>('upload.get',{id:created.current.resourceId});setUpload(u);onState(u.state);
+  if(complete.current){await call('upload.complete',complete.current,{id:u.id});complete.current=null;u=await read<UploadDto>('upload.get',{id:u.id});setUpload(u);onState(u.state);}
+  if(u.state==='OPEN'){
+   setMessage('正在上传文件…');onState('RECEIVING');const identity=await read<Me>('identity.me');let response:Response;
+   try {response=await fetch('/api/v1/uploads/'+u.id+'/content',{method:'PUT',body:file,credentials:'same-origin',cache:'no-store',redirect:'error',headers:{'Content-Type':'application/octet-stream','X-CSRF-Token':identity.csrfToken,'X-ONCE-Membership':identity.membershipId},signal:AbortSignal.timeout(70000)});}catch{throw new ApiError('上传响应未知，请先只读核对状态。','UPLOAD_OUTCOME_UNKNOWN',0,'',true);}
+   let body:unknown;try{body=await response.json();}catch{throw new ApiError('上传响应无法确认，请核对状态。','UPLOAD_OUTCOME_UNKNOWN',response.status,'',true);}
+   if(!response.ok){const e=(body as {error?:{message?:string;code?:string}})?.error;throw new ApiError(e?.message??'上传未完成',e?.code??'UPLOAD_FAILED',response.status,'',response.status>=500);}
+   u=body as UploadDto;setUpload(u);onState(u.state);
+  }
+  if(u.state==='UPLOADED'){complete.current={expectedRevision:u.revision};await call('upload.complete',complete.current,{id:u.id});complete.current=null;u=await read<UploadDto>('upload.get',{id:u.id});setUpload(u);onState(u.state);}
+  setMessage(states[u.state]??'等待核对');
+ }
+ useEffect(()=>{if(enabled&&!started.current){started.current=true;void a.run(proceed);}},[enabled]);
+ useEffect(()=>{if(unknown){onState('UNKNOWN');return;}if(a.error&&!upload&&!created.current)onState('FAILED');},[a.error,control.error]);
+ useEffect(()=>{if(!upload||unknown)return;if(terminal(upload.state)){onState(upload.state);if(upload.state==='READY'&&!notified.current){notified.current=true;onReady();}return;}if(!['QUEUED','PROCESSING','RECEIVING'].includes(upload.state))return;let alive=true;const timer=setInterval(()=>{void read<UploadDto>('upload.get',{id:upload.id}).then(u=>{if(alive){setUpload(u);onState(u.state);}}).catch(()=>{if(alive)setMessage('状态暂时读不到，请重试读取；不会重新上传。');});},2000);return()=>{alive=false;clearInterval(timer);};},[upload?.id,upload?.state,unknown]);
+ async function inspect(){
+  if(!created.current){const key=pendingKey('upload.create');if(key){const receipt=await inspectPending(key) as Receipt|null;if(!receipt){setMessage('仍没有可确认的结果，队列保持暂停。');return;}created.current=await call<'upload.create',Receipt>('upload.create',createInput.current!);}}
+  if(!created.current){setMessage('尚未开始上传，可明确重试此文件。');return;}
+  const id=created.current.resourceId,key=pendingKey('upload.complete',{id});
+  if(key){const receipt=await inspectPending(key);if(!receipt){setMessage('原处理提交仍未确认，队列保持暂停。');return;}await call('upload.complete',complete.current!,{id});complete.current=null;}
+  const cancelKey=pendingKey('upload.cancel',{id});if(cancelKey){const receipt=await inspectPending(cancelKey);if(!receipt){setMessage('原取消提交仍未确认，队列保持暂停。');return;}await call('upload.cancel',cancel.current!,{id});cancel.current=null;}
+  const current=await read<UploadDto>('upload.get',{id});setUpload(current);onState(current.state);setMessage('已读取：'+(states[current.state]??'待核对'));a.clear();control.clear();
+ }
+ if(!started.current&&!enabled)return null;
+ return <div className="upload-task"><ErrorBox error={a.error??control.error}/>{message&&<small role="status">{message}</small>}{upload?.errorCode&&<p>文件未通过检查，请确认格式、来源和文件内容后重新提供。</p>}<div className="button-row">{(unknown||!!a.error||!!control.error)&&<button type="button" disabled={frozen} onClick={()=>void control.run(inspect)}>只读核对上传状态</button>}{enabled&&(!upload||['OPEN','UPLOADED'].includes(upload.state))?<button type="button" disabled={frozen} onClick={()=>void a.run(proceed)}>{unknown?'原样重试此文件':'继续上传此文件'}</button>:null}{enabled&&upload&&!terminal(upload.state)&&!unknown&&<button type="button" disabled={frozen} onClick={()=>void control.run(async()=>{cancel.current??={expectedRevision:upload.revision};await call('upload.cancel',cancel.current,{id:upload.id});cancel.current=null;setUpload(await read<UploadDto>('upload.get',{id:upload.id}));})}>取消本次上传</button>}</div></div>;
 }
-interface UploadDto {
-    id: string;
-    fileName: string;
-    expectedBytes: number;
-    state: string;
-    revision: number;
-    expiresAt: string;
-    errorCode: string | null;
-    assetId: string | null;
+export function MediaPanel({me,personId,source,compact=false,onReady,coverId,onSetCover,showGallery=true}:{me:Me;personId?:string;source?:{id:string;revision:number;title?:string};compact?:boolean;onReady?:()=>void;coverId?:string|null;onSetCover?:(id:string|null)=>Promise<void>;showGallery?:boolean}){
+ const [refresh,setRefresh]=useState(0),[page,setPage]=useState(1),[selectedSource,setSource]=useState<Source|null>(null),[useOriginal,setOriginal]=useState(!!source),[ack,setAck]=useState(false),[queue,setQueue]=useState<QueueRow[]>([]),[running,setRunning]=useState(false),[creatingSource,setCreatingSource]=useState(false),[cover,setCover]=useState<string|null|undefined>(),[message,setMessage]=useState(''),control=useAction();
+ const assets=useLoad(()=>read<Page<AssetDto>>('asset.list',{}, {page:String(page),pageSize:'20',...(personId?{personId}:{})}),String(personId)+':'+page+':'+refresh);
+ const uploads=useLoad(()=>!compact?read<Page<UploadDto>>('upload.list',{}, {pageSize:'20'}):Promise.resolve(null),refresh);
+ const pending=queue.some(r=>!terminal(r.state)),dirty=queue.length>0&&pending||cover!==undefined;useUnsaved(dirty,'待上传文件或封面');
+ const coverSave=useRef<(()=>Promise<void>)|null>(null);
+ const batchSource=useRef<{id:string;revision:number}|null>(null),active=running?queue.find(r=>!terminal(r.state)):undefined;
+ const chooseFiles=(files:File[])=>{if(running&&pending)return;if(files.length>20){setMessage('一次最多选择20份文件，请分次添加。');return;}setQueue(files.map(file=>({id:crypto.randomUUID(),file,state:'LOCAL'})));setRunning(false);setMessage('');};
+ const ready=()=>{setRefresh(t=>t+1);onReady?.();};
+ return <section className="media-panel" aria-label="照片视频与附件">{!compact&&<PageTitle overline="素材" title="全局素材" description="按当前访问权限查看照片、视频和附件。"/>}<ErrorBox error={assets.error??control.error}/>
+ {me.mediaEnabled&&me.permissions.includes('assets.upload')?<section className="panel padded upload-composer"><div className="section-heading"><h2>添加照片视频</h2><span className="muted">逐文件处理，成功项保留</span></div><fieldset disabled={running&&pending}>{source&&<Field label="本批文件的资料来源"><select value={useOriginal?'ORIGINAL':'NEW'} onChange={e=>{setOriginal(e.target.value==='ORIGINAL');setAck(false);}}><option value="ORIGINAL">来自当前档案的原资料</option><option value="NEW">来自另一份新资料</option></select></Field>}{(!source||!useOriginal)&&<><TalentSourceChoice value={selectedSource} onChange={s=>{setSource(s);setAck(false);}}/>{me.permissions.includes('sources.write')&&<button type="button" onClick={()=>setCreatingSource(true)}>补充新资料来源</button>}</>}<label className="upload-dropzone" onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();chooseFiles([...e.dataTransfer.files]);}}><strong>选择或拖入多份文件</strong><span>图片30MB以内 · PDF50MB以内 · MP4视频200MB以内</span><input type="file" multiple accept="image/jpeg,image/png,image/webp,application/pdf,video/mp4" onChange={e=>chooseFiles([...e.target.files??[]])}/></label><label className="check-line"><input type="checkbox" checked={ack} onChange={e=>setAck(e.target.checked)}/>确认本批文件确实来自上述资料来源</label><button type="button" className="primary" disabled={!queue.length||!ack||(!useOriginal&&!selectedSource)||(!source&&!selectedSource)} onClick={()=>{const s=source&&useOriginal?source:selectedSource;if(s){batchSource.current={id:s.id,revision:s.revision};setRunning(true);}}}>开始上传 {queue.length||''} 份文件</button></fieldset>
+ {message&&<p role="status">{message}</p>}<ol className="upload-queue">{queue.map(r=><li key={r.id}><div className="upload-row-title"><strong>{r.file.name}</strong><span>{states[r.state]??'待核对'}</span><small>{(r.file.size/1000000).toFixed(2)} MB</small>{r.state==='LOCAL'&&!running&&<button type="button" onClick={()=>setQueue(old=>old.filter(x=>x.id!==r.id))}>移出队列</button>}</div>{running&&batchSource.current&&<UploadTask file={r.file} source={batchSource.current} personId={personId} enabled={active?.id===r.id} onState={state=>setQueue(old=>old.map(x=>x.id===r.id?{...x,state}:x))} onReady={ready}/>}</li>)}</ol>{running&&!pending&&<button type="button" onClick={()=>{setQueue([]);setRunning(false);setAck(false);}}>添加下一批文件</button>}<p className="muted">未上传的文件在关闭页面后需重新选择；已接收文件可以核对服务器状态。PDF仅保存附件。</p></section>:me.permissions.includes('assets.upload')&&<p className="notice">当前环境尚未开放媒体上传。</p>}
+ {showGallery&&<><div className="section-heading"><h2>当前可见素材</h2><button type="button" onClick={()=>setRefresh(t=>t+1)}>刷新素材与上传状态</button></div>{assets.busy&&<p role="status">正在读取素材…</p>}<div className="media-grid">{!assets.busy&&assets.data?.items.map(item=><article className="panel padded" key={item.id} data-asset-id={item.id}>{item.state!=='READY'?<p>素材已隔离</p>:item.mime==='application/pdf'?<p>PDF附件 · 未解析</p>:item.mime==='video/mp4'?<PrivateVideo id={item.id} name={item.fileName}/>:<img className="private-preview" loading="lazy" src={'/api/v1/assets/'+item.id+'/preview'} alt={item.fileName}/>}<strong>{item.fileName}</strong><small>{(item.bytes/1000000).toFixed(2)} MB · {item.state==='READY'?'可使用':'已隔离'}</small>{onSetCover&&item.state==='READY'&&item.mime.startsWith('image/')&&<button type="button" disabled={control.busy||outcomeUnknown(control.error)} onClick={()=>{coverSave.current=null;setCover(item.id);}}>{coverId===item.id?'当前封面':'选作封面'}</button>}{me.permissions.includes('sources.review')&&item.state==='READY'&&<details><summary>更多操作</summary><button type="button" disabled={control.busy||outcomeUnknown(control.error)} onClick={()=>{if(window.confirm('隔离此素材后将停止预览，确认？'))void control.run(async()=>{await call('asset.quarantine',{expectedRevision:item.revision},{id:item.id});setRefresh(t=>t+1);});}}>隔离素材</button></details>}</article>)}</div>{!assets.busy&&assets.data&&!assets.data.items.length&&<p className="muted">暂无当前可见素材。</p>}{assets.data&&<Pager page={page} pageSize={20} total={assets.data.total} setPage={setPage}/>} {onSetCover&&coverId&&<button type="button" disabled={control.busy||outcomeUnknown(control.error)} onClick={()=>{coverSave.current=null;setCover(null);}}>移除封面选择</button>}{cover!==undefined&&onSetCover&&<div className="notice"><p>{cover?'保存选中图片作为封面？':'移除当前封面选择？'}</p><button type="button" className="primary" disabled={control.busy} onClick={()=>void control.run(async()=>{coverSave.current??=()=>onSetCover(cover);await coverSave.current();coverSave.current=null;setCover(undefined);setRefresh(t=>t+1);})}>{outcomeUnknown(control.error)?'原样重试保存封面':'保存封面选择'}</button><button type="button" disabled={control.busy||outcomeUnknown(control.error)} onClick={()=>{coverSave.current=null;setCover(undefined);}}>取消</button></div>}
+ </>}{!compact&&uploads.data&&<details className="panel padded"><summary>我的最近上传</summary>{uploads.data.items.map(u=><div className="media-upload-row" key={u.id}><span>{u.fileName} · {states[u.state]??'待核对'}</span>{!terminal(u.state)&&<button type="button" onClick={()=>void control.run(async()=>{await read('upload.get',{id:u.id});setRefresh(t=>t+1);})}>只读核对状态</button>}</div>)}</details>}{creatingSource&&<UploadSource onClose={()=>setCreatingSource(false)} onSaved={s=>{setSource(s);setOriginal(false);setCreatingSource(false);setAck(false);}}/>}
+ </section>;
 }
-const states: Record<string, string> = { OPEN: '等待文件', RECEIVING: '正在接收', UPLOADED: '文件已收到，待提交检查', QUEUED: '等待检查', PROCESSING: '检查与生成预览', READY: '可预览', FAILED: '失败', CANCELLED: '已取消', QUARANTINED: '已隔离' };
-const errors: Record<string, string> = { IMAGE_REJECTED: '文件损坏、不支持的编码或超过处理限制；图片请导出JPEG，视频请导出H.264/AAC MP4后重传', MEDIA_TYPE_INVALID: '真实类型与声明不符', MEDIA_CONTEXT_CHANGED: '来源或权限发生变化，请重新核对', UPLOAD_EXPIRED: '上传已过期', UPLOAD_INTERRUPTED: '文件未完整接收', MEDIA_DIGEST_INVALID: '文件校验不一致', MEDIA_IO_FAILED: '存储操作未完成，请联系维护人员' };
-const terminal = (s: string) => ['READY', 'FAILED', 'CANCELLED'].includes(s);
-const uncertain = (e: unknown) => e instanceof ApiError && e.unknownOutcome;
-export function MediaPanel({ me, personId, source, compact = false, onReady }: {
-    me: Me;
-    personId?: string;
-    source?: {
-        id: string;
-        revision: number;
-    };
-    compact?: boolean;
-    onReady?:()=>void;
-}) {
-    const [refresh, setRefresh] = useState(0), [page, setPage] = useState(1), [selectedSource, setSource] = useState(source?.id ?? ''), [file, setFile] = useState<File | null>(null), [upload, setUpload] = useState<UploadDto | null>(null), [status, setStatus] = useState('');
-    const createInput = useRef<Inputs['upload.create'] | null>(null), completeInput = useRef<{
-        expectedRevision: number;
-    } | null>(null);
-    const fileControl = useRef<HTMLInputElement | null>(null);
-    const a = useAction(), control = useAction();
-    const sources = useLoad(() => me.permissions.includes('assets.upload') && !source ? read<Page<Source>>('source.list', {}, { pageSize: '100' }) : Promise.resolve({ items: [] } as unknown as Page<Source>), me.membershipId);
-    const assets = useLoad(() => read<Page<AssetDto>>('asset.list', {}, { page: String(page), pageSize: '20', ...(personId ? { personId } : {}) }), [personId, page, refresh].join(':'));
-    const uploads = useLoad(() => read<Page<UploadDto>>('upload.list', {}, { pageSize: '20' }), refresh);
-    const freeze = a.busy || uncertain(a.error) || !!upload;
-    useEffect(() => {
-        if (!upload || terminal(upload.state))
-            return;
-        let alive = true;
-        const timer = setInterval(() => {
-            void read<UploadDto>('upload.get', { id: upload.id }).then(u => { if (alive) {
-                setUpload(u);
-                if (terminal(u.state)){
-                    setRefresh(x => x + 1);if(u.state==='READY')onReady?.();}
-            } }).catch(() => { if (alive)
-                setStatus('状态读取失败，请手动核对；不会自动重新上传。'); });
-        }, 2000);
-        return () => { alive = false; clearInterval(timer); };
-    }, [upload?.id, upload?.state]);
-    async function proceed() {
-        if (!file)
-            throw new Error('请选择文件');
-        if (!createInput.current) {
-            const s = source ?? sources.data?.items.find(s => s.id === selectedSource);
-            if (!s)
-                throw new Error('请选择当前有权使用的来源');
-            if (!['image/jpeg', 'image/png', 'image/webp','application/pdf','video/mp4'].includes(file.type) || file.size < 1 || file.size > (file.type==='application/pdf'?50000000:file.type==='video/mp4'?200000000:30000000))
-                throw new Error('图片不超过30MB，PDF不超过50MB，精选MP4不超过200MB');
-            setStatus('计算文件校验值…');
-            const bytes = await file.arrayBuffer();
-            const sha256 = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(b => b.toString(16).padStart(2, '0')).join('');
-            createInput.current = { sourceId: s.id, expectedSourceRevision: s.revision, ...(personId ? { personId } : {}), fileName: file.name, mime: file.type as Inputs['upload.create']['mime'], expectedBytes: file.size, sha256 };
-        }
-        let u = upload;
-        if (!u) {
-            const receipt = await call<'upload.create', Receipt>('upload.create', createInput.current!);
-            u = await read<UploadDto>('upload.get', { id: receipt.resourceId });
-            setUpload(u);
-        }
-        else
-            u = await read<UploadDto>('upload.get', { id: u.id });
-        setUpload(u);
-        if (completeInput.current) {
-            await call('upload.complete', completeInput.current, { id: u.id });
-            completeInput.current = null;
-            u = await read<UploadDto>('upload.get', { id: u.id });
-            setUpload(u);
-        }
-        if (u.state === 'OPEN') {
-            setStatus('正在传输到私有隔离区…');
-            const identity = await read<Me>('identity.me');
-            let response: Response;
-            try {
-                response = await fetch('/api/v1/uploads/' + u.id + '/content', { method: 'PUT', body: file, credentials: 'same-origin', cache: 'no-store', redirect: 'error', headers: { 'Content-Type': 'application/octet-stream', 'X-CSRF-Token': identity.csrfToken }, signal: AbortSignal.timeout(70000) });
-            }
-            catch {
-                throw new ApiError('传输响应未知，请点击核对上传状态；不会覆盖已经收到的文件。', 'UPLOAD_OUTCOME_UNKNOWN', 0, '', true);
-            }
-            let body: unknown;
-            try {
-                body = await response.json();
-            }
-            catch {
-                throw new ApiError('传输响应无法解析，请核对状态。', 'UPLOAD_OUTCOME_UNKNOWN', response.status, '', true);
-            }
-            if (!response.ok) {
-                const e = (body as {
-                    error?: {
-                        message: string;
-                        code: string;
-                    };
-                }).error;
-                throw new ApiError(e?.message ?? '传输失败', e?.code ?? 'UPLOAD_FAILED', response.status);
-            }
-            u = body as UploadDto;
-            setUpload(u);
-        }
-        if (u.state === 'UPLOADED') {
-            completeInput.current = { expectedRevision: u.revision };
-            await call('upload.complete', completeInput.current, { id: u.id });
-            completeInput.current = null;
-            u = await read<UploadDto>('upload.get', { id: u.id });
-            setUpload(u);
-        }
-        setStatus(states[u.state] ?? u.state);
-        setRefresh(x => x + 1);
-    }
-    return <section className="media-panel">{!compact && <PageTitle overline="PRIVATE MEDIA" title="私有素材" description="图片生成私有预览，支持H.264/AAC MP4受控播放。PDF只保存附件，解析交给外部Agent；原件通过受控导出下载。"/>}
-        {compact && <h3>关联私有素材</h3>}<ErrorBox error={assets.error ?? sources.error ?? a.error ?? control.error}/>
-        {me.mediaEnabled && me.permissions.includes('assets.upload') && <form className="panel padded" onSubmit={e => { e.preventDefault(); void a.run(proceed); }}>
-            {!source && <Field label="文件资料来源"><select required disabled={freeze} value={selectedSource} onChange={e => { setSource(e.target.value); createInput.current = null; }}><option value="">选择当前有效来源</option>{sources.data?.items.filter(s => s.current).map(s => <option value={s.id} key={s.id}>{s.title}</option>)}</select></Field>}
-            <Field label="选择图片、PDF或精选MP4"><input ref={fileControl} type="file" required={!file} accept="image/jpeg,image/png,image/webp,application/pdf,video/mp4" disabled={freeze} onChange={e => { setFile(e.target.files?.[0] ?? null); createInput.current = null; }}/></Field>
-            <p className="muted">预览会重新编码并移除元数据。图片随来源及原生访问范围管理，基本档案交接不会自动开放图片。</p>
-            <div className="button-row"><Submit busy={a.busy}>{uncertain(a.error) || upload ? '核对上传状态并继续' : '上传并检查'}</Submit>{upload && terminal(upload.state) && !uncertain(a.error) && <button type="button" onClick={() => { setUpload(null); setFile(null); if (fileControl.current)
-            fileControl.current.value = ''; createInput.current = null; completeInput.current = null; a.clear(); setStatus(''); }}>上传另一份</button>}</div>
-            {status && <p role="status">{status}</p>}{upload && <p data-upload-state={upload.state}>状态：{states[upload.state]} {upload.errorCode && (errors[upload.errorCode] ?? upload.errorCode)}</p>}
-        </form>}
-        <div className="button-row"><button onClick={() => setRefresh(x => x + 1)}>刷新素材与上传状态</button></div>
-        <div className="media-grid">{assets.data?.items.map(item => <article className="panel padded" key={item.id} data-asset-id={item.id}>
-            {item.state === 'READY' && item.mime === 'application/pdf' ? <p>PDF附件 · 未解析，内容处理交给外部Agent</p> : item.state === 'READY' && item.mime === 'video/mp4' ? <PrivateVideo id={item.id} name={item.fileName}/> : item.state === 'READY' ? <img loading="lazy" className="private-preview" src={'/api/v1/assets/' + item.id + '/preview'} alt={'私有素材预览：' + item.fileName}/> : <p>已隔离，禁止读取预览</p>}
-            <strong>{item.fileName}</strong><small>{item.width} × {item.height} · {(item.bytes / 1000000).toFixed(2)}MB · {states[item.state]}</small>
-            {me.permissions.includes('sources.review') && item.state === 'READY' && <button className="danger" disabled={control.busy} onClick={() => { if (confirm('隔离后此图片将停止预览；本批暂不提供解除隔离。确认？'))
-            void control.run(async () => { await call('asset.quarantine', { expectedRevision: item.revision }, { id: item.id }); setRefresh(x => x + 1); }); }}>隔离图片</button>}
-        </article>)}</div>{assets.data?.items.length === 0 && <p className="muted">暂无当前可见的图片。</p>}
-        {assets.data && <Pager page={page} pageSize={20} total={assets.data.total} setPage={setPage}/>}
-        {!compact && <section className="panel padded"><h3>我的最近上传</h3>{uploads.data?.items.map(u => <div className="media-upload-row" key={u.id} data-upload-id={u.id}><span>{u.fileName} · {states[u.state]}{u.errorCode ? ' · ' + (errors[u.errorCode] ?? u.errorCode) : ''}</span><small>{date(u.expiresAt)}</small><div>
-            {u.state === 'UPLOADED' && <button disabled={control.busy} onClick={() => void control.run(async () => { await call('upload.complete', { expectedRevision: u.revision }, { id: u.id }); setRefresh(x => x + 1); })}>提交检查</button>}
-            {!terminal(u.state) && <button disabled={control.busy} onClick={() => void control.run(async () => { await call('upload.cancel', { expectedRevision: u.revision }, { id: u.id }); setRefresh(x => x + 1); })}>取消上传</button>}
-        </div></div>)}</section>}
-    </section>;
+function UploadSource({onClose,onSaved}:{onClose:()=>void;onSaved:(s:Source)=>void}){
+ const [title,setTitle]=useState(''),[provider,setProvider]=useState(''),[basis,setBasis]=useState(''),a=useAction(),receipt=useRef<Receipt|null>(null);useUnsaved(!!title||!!provider||!!basis,'新文件来源');
+ const close=()=>{if(a.busy||outcomeUnknown(a.error))return;if((title||provider||basis)&&!window.confirm('来源尚未保存，放弃填写？'))return;onClose();};
+ return <Modal title="补充本次文件来源" onClose={close}><form onSubmit={e=>{e.preventDefault();void a.run(async()=>{receipt.current??=await call<'source.create',Receipt>('source.create',{title,type:'MANUAL',providerClaim:provider,basisMode:'TEMP_ORGANIZE',basisDescription:basis});onSaved(await read<Source>('source.get',{id:receipt.current.resourceId}));});}}><div className="modal-body"><ErrorBox error={a.error}/><fieldset disabled={a.busy||outcomeUnknown(a.error)}><Field label="来源标题"><input required maxLength={120} value={title} onChange={e=>setTitle(e.target.value)}/></Field><Field label="由谁、通过什么方式提供"><input required maxLength={200} value={provider} onChange={e=>setProvider(e.target.value)}/></Field><Field label="本次整理依据"><textarea required minLength={4} maxLength={2000} value={basis} onChange={e=>setBasis(e.target.value)}/></Field><p>新来源先按本人范围临时整理，最长七天。团队共享另行核验。</p></fieldset></div><footer className="modal-footer"><button type="button" onClick={close}>取消</button><button className="primary" type="submit" disabled={a.busy}>{outcomeUnknown(a.error)?'原样重试保存来源':receipt.current?'读取已保存来源':'保存来源并继续'}</button></footer></form></Modal>;
 }
-
-function PrivateVideo({id, name}: {id: string; name: string}) {
-    const [error, setError] = useState(false);
-    return <div><video className="private-preview" controls playsInline preload="none" aria-label={'播放视频：' + name}
-        poster={'/api/v1/assets/' + id + '/preview'} src={'/api/v1/assets/' + id + '/playback'} onError={() => setError(true)}/>
-        {error && <p role="alert">视频暂时无法播放，请刷新核对权限；格式不支持时请重新提供 H.264/AAC MP4。</p>}</div>;
-}
+function PrivateVideo({id,name}:{id:string;name:string}){const [error,setError]=useState(false);return <div><video className="private-preview" controls playsInline preload="none" aria-label={'播放视频：'+name} poster={'/api/v1/assets/'+id+'/preview'} src={'/api/v1/assets/'+id+'/playback'} onError={()=>setError(true)}/>{error&&<p role="alert">视频暂时无法播放，请核对权限。可提供 H.264/AAC MP4 格式。</p>}</div>;}

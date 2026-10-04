@@ -1,5 +1,6 @@
 // Explicit presentation DTOs. Never import Prisma models into the browser.
 export interface Me {
+    workspaceName?: string;
     mediaEnabled?: boolean;
     ingestionEnabled?: boolean;
     directoryStateScope?: string; // Noncredential identity-session namespace for safe navigation state.
@@ -20,6 +21,7 @@ export interface Receipt {
     operationId: string;
     resourceId: string;
     revision: number;
+    summary?: { added: number; existing: number };
     state: 'SUCCEEDED' | 'ACCEPTED';
     replayed?: boolean;
 }

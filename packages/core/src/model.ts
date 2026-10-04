@@ -162,6 +162,8 @@ export interface ReceiptResult {
     revision: number;
     state: 'SUCCEEDED' | 'ACCEPTED';
     replayed?: boolean;
+    /** Numeric batch outcome only; never names, input or record contents. */
+    summary?: { added: number; existing: number };
 }
 export interface AuditEvent extends Base {
     principalKind?: 'INTERNAL'|'MACHINE'|'TALENT'|'SYSTEM';

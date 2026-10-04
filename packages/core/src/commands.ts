@@ -12,6 +12,7 @@ export class Commands {
     async execute(tx: Tx, actor: CommandPrincipal, operation: string, commandKey: string, targetId: string | null, input: unknown, kind: CommandReceipt['resourceKind'], meta: RequestMeta, apply: () => Promise<{
         id: string;
         revision: number;
+        commandSummary?: ReceiptResult['summary'];
     }>, authorizeReplay: (receipt: CommandReceipt) => Promise<void>, successState: ReceiptResult['state'] = 'SUCCEEDED'): Promise<ReceiptResult> {
         invariant(/^[A-Za-z0-9_-]{8,128}$/.test(commandKey), 'IDEMPOTENCY_REQUIRED', '写入需要 8–128 位 Idempotency-Key', 400);
         const requestDigest = digest({ operation, targetId, input });
@@ -24,6 +25,7 @@ export class Commands {
         // CAS belongs inside apply, after receipt lookup. The Store supplies the database lock.
         const row = await apply();
         const result: ReceiptResult = { operationId: randomUUID(), resourceId: row.id, revision: row.revision, state: successState };
+        if (operation === 'shortlist.batchAdd' && row.commandSummary) result.summary = row.commandSummary;
         await audit(tx, actor, actor.workspaceId, operation, kind, row.id, typeof input === 'object' && input !== null ? Object.keys(input).filter(k => k !== 'expectedRevision') : [], meta, this.clock);
         await tx.insert('receipts', { ...base(actor.workspaceId, this.clock), ...principalFields(actor), operation, commandKey, requestDigest,
             resourceKind: kind, resourceId: row.id, result });
