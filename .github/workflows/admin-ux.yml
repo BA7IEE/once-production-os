@@ -38,8 +38,6 @@ jobs:
       - name: Real PostgreSQL transactions and capacity
         run: pnpm test:postgres:owned --admin-ux
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Full types and core regression
-        run: node scripts/heavy-task.mjs pnpm typecheck && node scripts/heavy-task.mjs pnpm test:core
       - name: Real admin journeys and existing business and portal regression
         run: pnpm test:postgres:owned --admin-ux-browser
       - name: Preserve current run evidence
@@ -51,9 +49,39 @@ jobs:
             artifacts/admin-ux/
             artifacts/business-flow/
             artifacts/talent-experience-pr02b/
-            artifacts/core-test-report.json
             data/local-resource-runs/*/run.json
             data/local-resource-runs/*/process-*.json
             data/local-resource-runs/*/temporary-*.json
             data/local-resource-runs/*/browser-*.json
+          if-no-files-found: error
+  core:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Verify delivery fingerprints
+        run: sha256sum -c MANIFEST.sha256
+      - run: rm -f artifacts/core-test-report.json
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v6
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:generate
+      - name: Full types and core regression
+        run: node scripts/heavy-task.mjs pnpm typecheck && node scripts/heavy-task.mjs pnpm test:core
+      - name: Preserve this head's core evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: admin-ux-core-${{ github.event.pull_request.head.sha }}
+          path: |
+            artifacts/core-test-report.json
+            data/local-resource-runs/*/run.json
+            data/local-resource-runs/*/process-*.json
           if-no-files-found: error
