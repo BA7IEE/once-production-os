@@ -11,12 +11,18 @@ jobs:
   acceptance:
     runs-on: ubuntu-24.04
     timeout-minutes: 35
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha }}
     steps:
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Verify delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
+      - name: Start fresh evidence for this head
+        run: |
+          rm -rf artifacts/admin-ux artifacts/business-flow artifacts/talent-experience-pr02b
+          rm -f artifacts/core-test-report.json
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
@@ -32,10 +38,10 @@ jobs:
       - name: Real PostgreSQL transactions and capacity
         run: pnpm test:postgres:owned --admin-ux
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Real admin journeys and existing business and portal regression
-        run: pnpm test:postgres:owned --admin-ux-browser
       - name: Full types and core regression
         run: node scripts/heavy-task.mjs pnpm typecheck && node scripts/heavy-task.mjs pnpm test:core
+      - name: Real admin journeys and existing business and portal regression
+        run: pnpm test:postgres:owned --admin-ux-browser
       - name: Preserve current run evidence
         if: always()
         uses: actions/upload-artifact@v7

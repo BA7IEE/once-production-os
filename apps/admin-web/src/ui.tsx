@@ -33,7 +33,7 @@ export function Modal({ title, children, onClose, wide = false }: {
             if (e.key === 'Escape')
                 onClose();
             if (e.key === 'Tab') {
-                const list = [...root.current!.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex="0"]')];
+                const list = [...root.current!.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),summary,a[href],[tabindex="0"]')].filter(el=>el.getClientRects().length>0);
                 const first = list[0], last = list.at(-1);
                 if (e.shiftKey && document.activeElement === first) {
                     e.preventDefault();

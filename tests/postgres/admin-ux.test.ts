@@ -25,6 +25,6 @@ test('admin UX PostgreSQL: atomic batch, own readonly receipt, exact case credit
   assert.equal((await owner.cmd('POST',`/shortlists/${capacity}/batch`,{expectedRevision:r.revision,entries:[uxEntry(candidates[100])]})).status,422);assert.equal(await db.shortlistItem.count({where:{shortlistId:capacity}}),100);checks.push('real-100-item-batch-and-no-overflow');
   // A receipt remains inaccessible after the original operator loses write permission.
   const membership=await db.membership.findUniqueOrThrow({where:{id:f.membershipId}});await db.membership.update({where:{id:membership.id},data:{role:'VIEWER'}});assert.equal((await owner.raw('POST','/commands/inspect',{operation:'shortlist.batchAdd',commandKey:key})).status,403);checks.push('current-permission-rechecked-on-read-inspection');
-  mkdirSync('artifacts/admin-ux',{recursive:true});writeFileSync('artifacts/admin-ux/postgres.json',JSON.stringify({status:'DB_TESTED',migrations:75,capacity:100,durationMs,queryCount,checks,providerVerified:'NOT_RUN'},null,2)+'\n');
+  mkdirSync('artifacts/admin-ux',{recursive:true});writeFileSync('artifacts/admin-ux/postgres.json',JSON.stringify({head:process.env.ONCE_ACCEPTANCE_SHA,status:'DB_TESTED',migrations:75,capacity:100,durationMs,queryCount,checks,providerVerified:'NOT_RUN'},null,2)+'\n');
  }finally{await db.$disconnect();}
 });

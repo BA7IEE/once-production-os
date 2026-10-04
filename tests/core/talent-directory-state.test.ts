@@ -16,3 +16,8 @@ test('logout, expiry, different member and same-member new session reject all hi
  historyMock.state=old;bindDirectoryIdentity({...me,membershipId:roleId});assert.equal(readDirectoryState('candidate').selected.length,0);
  bindDirectoryIdentity(me);saveDirectoryState('candidate',state);listeners.get('once-session-expired')!();assert.equal(historyMock.state,null);historyMock.state=old;listeners.get('popstate')!();assert.equal(historyMock.state,null);
 });
+
+test('role choice may stay pending across pages, but cannot carry arbitrary data or contradict a chosen role',()=>{
+ const state={...emptyDirectoryState(),selected:[{personId,personRoleId:null,pendingRole:true}]};assert.deepEqual(safeDirectoryState(state).selected,state.selected);
+ assert.throws(()=>safeDirectoryState({...state,selected:[{personId,personRoleId:roleId,pendingRole:true}]}));assert.throws(()=>safeDirectoryState({...state,selected:[{personId,personRoleId:null,pendingRole:false}]}));
+});
