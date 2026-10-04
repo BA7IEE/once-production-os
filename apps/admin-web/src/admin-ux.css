@@ -27,7 +27,7 @@
 .ux-shell .field{font-size:14px;margin-bottom:16px;gap:6px}
 .ux-shell .field>small{font-size:12px}
 .ux-shell fieldset{min-width:0}
-.view-tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 0 18px;overflow:auto}
+.view-tabs{display:flex;flex-direction:row;gap:4px;border-bottom:1px solid var(--line);margin:0 0 18px;overflow:auto}
 .view-tabs>button{border:0;border-radius:0;background:transparent;padding:10px 16px;white-space:nowrap;border-bottom:2px solid transparent}
 .view-tabs>button[aria-pressed=true]{border-bottom-color:var(--accent);color:var(--accent);font-weight:650}
 .directory-toolbar{display:flex;align-items:end;gap:12px;padding:14px 16px;overflow:visible!important;position:relative;z-index:3}
@@ -172,13 +172,13 @@
 .directory-toolbar>.multi-choice:nth-child(3) .multi-options{left:auto;right:0}
 /* Leave room for a complete first row at a 1280 × 800 desktop viewport. */
 @media(min-width:1101px){
- .talent-directory .page-title{margin-bottom:12px}
+ .talent-directory .page-title{margin-bottom:8px}
  .talent-directory .page-title .eyebrow{display:none}
- .talent-directory .view-tabs{margin-bottom:12px}
- .talent-directory .view-tabs>button{padding-top:7px;padding-bottom:7px}
- .talent-directory .directory-toolbar{padding:10px 14px;margin-bottom:10px}
- .talent-directory .multi-choice summary{min-height:38px;padding-top:7px;padding-bottom:7px}
- .talent-directory .applied-filters{margin:4px 0 8px}
- .talent-directory .directory-count{margin:8px 0}
+ .talent-directory .view-tabs{margin-bottom:8px}
+ .talent-directory .view-tabs>button{padding-top:6px;padding-bottom:6px}
+ .talent-directory .directory-toolbar{padding:8px 14px;margin-bottom:8px}
+ .talent-directory .multi-choice summary{min-height:38px;padding-top:6px;padding-bottom:6px}
+ .talent-directory .applied-filters{margin:4px 0 6px}
+ .talent-directory .directory-count{margin:6px 0}
  .talent-directory .directory-cover,.talent-directory .directory-cover-placeholder{height:190px}
 }

@@ -1,5 +1,6 @@
-import {useEffect,useState} from 'react';
-import {EditorFrame} from './ux-controls.tsx';
+import {useEffect,useRef,useState} from 'react';
+import {EditorFrame,MultiChoice} from './ux-controls.tsx';
+import {CommandRecovery} from './command-recovery.tsx';
 import {useUnsaved} from './unsaved.ts';
 import {ApiError,call,read} from './api.ts';
 import type {Inputs} from './generated/requests.ts';
@@ -22,6 +23,7 @@ export function TalentRelationChoice({kind,value,onChange}:{kind:RelationKind;va
  return <div className="talent-related"><ErrorBox error={load.error}/>{kind==='person'&&<div className="filters"><input aria-label="查找个人代表" value={query} onChange={e=>setQuery(e.target.value)}/><button type="button" onClick={()=>{setFilter(query);setPage(1);}}>查找</button></div>}{load.busy?<p>正在读取可选记录…</p>:<div className="wp-options">{load.data?.items.filter(r=>kind!=='asset'||r.state==='READY').filter(r=>kind!=='organization'||r.status==='ACTIVE').map(r=><button type="button" key={r.id} aria-pressed={r.id===value} onClick={()=>onChange(r.id,r.fileName??r.name??r.displayName??'已有记录')}>{r.fileName??r.name??r.displayName}</button>)}</div>}{load.data&&<Pager page={page} pageSize={10} total={load.data.total} setPage={setPage}/>}</div>;
 }
 function initialValue(field:TalentField,value:unknown):string {
+ if(field.kind==='multi-choice')return JSON.stringify(Array.isArray(value)?value:[]);
  if(value===null||value===undefined)return '';
  if(field.kind==='datetime-local'){const time=new Date(String(value));return new Date(time.getTime()-time.getTimezoneOffset()*60000).toISOString().slice(0,16);}
  return String(value);
@@ -36,29 +38,33 @@ export function TalentValueInput({field,value,onChange,detail,catalog,schema}:{f
  if(field.kind==='collection')options=detail.facts.mediaCollections.filter(r=>r.usable).map(r=>({value:r.id,label:String(r.title)}));
  if(field.kind==='measurement')options=detail.facts.measurementSets.filter(r=>['CONFIRMED','SUPERSEDED'].includes(String(r.status))).map(r=>({value:r.id,label:String(r.measuredOn)+' · '+(TALENT_LABELS[String(r.status)]??'')}));
  const selection=['choice','role','language','city','capability','personRole','translatorRole','collection','measurement'].includes(field.kind);
+ if(field.kind==='multi-choice'){const selected: string[]=value?JSON.parse(value):[];return <MultiChoice title={field.label} value={selected} onChange={v=>onChange(JSON.stringify(v))} options={catalog.filter(c=>c.namespace===field.namespace&&(c.status==='ACTIVE'||selected.includes(c.code))).map(c=>[c.code,c.labelZh])}/>;}
  if(['asset','organization','person'].includes(field.kind))return <fieldset><legend>{field.label}{field.required?' *':''}</legend><p>{value?chosenLabel||'已关联记录':'尚未选择'}</p><button type="button" onClick={()=>setChoosing(v=>!v)}>{choosing?'收起选项':'选择'+field.label}</button>{value&&!field.required&&<button type="button" onClick={()=>{onChange('');setChosenLabel('');}}>清除选择</button>}{choosing&&<TalentRelationChoice kind={field.kind as RelationKind} value={value} onChange={(id,label)=>{onChange(id);setChosenLabel(label);setChoosing(false);}}/>}</fieldset>;
  return <Field label={field.label+(field.required?' *':'')}>{selection?<select required={field.required} value={value} onChange={e=>onChange(e.target.value)}><option value="">{field.required?'请选择':'未确认 / 不填写'}</option>{value&&!options.some(o=>o.value===value)&&<option value={value}>原记录（当前不可新选）</option>}{options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select>:field.kind==='textarea'?<textarea value={value} maxLength={5000} onChange={e=>onChange(e.target.value)}/>:<input type={field.kind} required={field.required} value={value} step={field.kind==='number'?'0.1':undefined} min={field.kind==='number'?(field.key==='heightCm'?40:10):undefined} max={field.kind==='number'?(field.key==='heightCm'?260:300):undefined} onChange={e=>onChange(e.target.value)} maxLength={field.kind==='text'?1000:undefined}/>}</Field>;
 }
 export function talentInputValue(field:TalentField,value:string):unknown {
+ if(field.kind==='multi-choice')return value?JSON.parse(value):[];
  if(!value)return field.kind==='text'||field.kind==='textarea'?value:null;
  if(field.kind==='number')return Number(value);
  if(field.kind==='datetime-local')return new Date(value).toISOString();
  return value;
 }
 export function TalentFactEditor({kind,row,detail,catalog,schema,onClose,onSaved,inline=false}:{kind:TalentFactKind;row?:TalentFact;detail:TalentDetail;catalog:CatalogItem[];schema:TalentSchema;onClose:()=>void;onSaved:()=>void;inline?:boolean}) {
- const section=TALENT_SECTIONS[kind],fields=section.fields.filter(f=>!row||!f.immutable);
+ const section=TALENT_SECTIONS[kind],fields=section.fields.filter(f=>!f.proposalOnly&&(!row||!f.immutable));
  const [values,setValues]=useState<Record<string,string>>(()=>Object.fromEntries(fields.map(f=>[f.key,initialValue(f,row?.[f.key])]))),[changed,setChanged]=useState<string[]>([]),[source,setSource]=useState<Source|null>(null);
  const originalSource=useLoad(()=>row?read<Source>('source.get',{id:row.sourceId}):Promise.resolve(null),row?.sourceId??'new');
  useEffect(()=>{if(row&&originalSource.data?.current&&!source)setSource(originalSource.data);},[originalSource.data]);
  const action=useAction(),freeze=action.busy||outcomeUnknown(action.error);
- useUnsaved(changed.length>0,section.title);
- const close=()=>{if(freeze)return;if(changed.length&&!window.confirm('尚有未保存的修改，确定关闭？'))return;onClose();};
- const Frame=inline?EditorFrame:Modal;return <Frame title={(row?'编辑':'新增')+section.title} onClose={close}><form onSubmit={e=>{e.preventDefault();if(!source)return;void action.run(async()=>{
+ const markSaved=useUnsaved(changed.length>0,section.title),form=useRef<HTMLFormElement>(null),snapshot=useRef<{operation:keyof Pick<Inputs,`td2.fact.${TalentFactKind}.create`|`td2.fact.${TalentFactKind}.patch`>;input:Inputs[`td2.fact.${TalentFactKind}.create`]|Inputs[`td2.fact.${TalentFactKind}.patch`];id:string}|null>(null);
+ const close=()=>{if(freeze)return;if(changed.length&&!window.confirm('尚有未保存的修改，确定关闭？'))return;markSaved();onClose();};
+ const Frame=inline?EditorFrame:Modal;return <Frame title={(row?'编辑':'新增')+section.title} onClose={close}><form ref={form} onChange={()=>{if(!freeze)snapshot.current=null;}} onSubmit={e=>{e.preventDefault();if(!source)return;void action.run(async()=>{
+  if(!snapshot.current){
   const selected=row?fields.filter(f=>changed.includes(f.key)):fields.filter(f=>values[f.key]!==''||f.required||f.key==='namespaceCode');
   const input={schemaVersion:TALENT_VERSION,expectedPersonRevision:detail.revision,sourceId:source.id,sourceRevision:source.revision,values:Object.fromEntries(selected.map(f=>[f.key,talentInputValue(f,values[f.key]??'')])),...(row?{expectedRevision:row.revision}:{})};
   const op=`td2.fact.${kind}.${row?'patch':'create'}` as keyof Pick<Inputs,`td2.fact.${TalentFactKind}.create`|`td2.fact.${TalentFactKind}.patch`>;
-  await call(op,input,{id:row?.id??detail.id});onSaved();
+  snapshot.current={operation:op,input,id:row?.id??detail.id};}
+  await call(snapshot.current.operation,snapshot.current.input,{id:snapshot.current.id});markSaved();onSaved();
  });}}><div className="modal-body"><ErrorBox error={action.error??originalSource.error}/>{section.hint&&<p className="notice">{section.hint}</p>}{row&&<p>原来源：{originalSource.data?.title??'正在核对'}。其他来源的新信息，请提交字段建议。</p>}{row&&source&&source.id!==row.sourceId&&<p className="notice">所选来源与原记录不同。请返回工作台提交修改建议，由有权成员核对后采用。</p>}<TalentSourceChoice value={source} disabled={freeze} onChange={s=>{setSource(s);setChanged(c=>c.includes('_source')?c:[...c,'_source']);}}/>
- <fieldset disabled={freeze}><div className="form-grid">{fields.map(f=>row?.unavailableFields.includes(f.key)?<p key={f.key}>{f.label}：当前不可读</p>:<TalentValueInput key={f.key} field={f} value={values[f.key]??''} detail={detail} catalog={catalog} schema={schema} onChange={value=>{setValues(v=>({...v,[f.key]:value}));setChanged(c=>c.includes(f.key)?c:[...c,f.key]);}}/>)}</div></fieldset>
- {outcomeUnknown(action.error)&&<p className="notice">提交结果未知，表单已保留。请原样再次提交，核对同一笔结果后再继续修改。</p>}</div><footer className="modal-footer"><button type="button" disabled={freeze} onClick={close}>取消</button><button className="primary" type="submit" disabled={action.busy||!source||(!!row&&source.id!==row.sourceId)||(!!row&&!changed.some(c=>c!=='_source'))}>{action.busy?'正在保存…':outcomeUnknown(action.error)?'原样重试':'保存'+section.title}</button></footer></form></Frame>;
+ <fieldset disabled={freeze}><div className="form-grid">{fields.map(f=>row?.unavailableFields.includes(f.key)?<p key={f.key}>{f.label}：当前不可读</p>:<TalentValueInput key={f.key} field={f} value={values[f.key]??''} detail={detail} catalog={catalog} schema={schema} onChange={value=>{if(!freeze)snapshot.current=null;setValues(v=>({...v,[f.key]:value}));setChanged(c=>c.includes(f.key)?c:[...c,f.key]);}}/>)}</div></fieldset>
+ {outcomeUnknown(action.error)&&snapshot.current&&<CommandRecovery operation={snapshot.current.operation} params={{id:snapshot.current.id}} busy={action.busy} onRetry={()=>form.current?.requestSubmit()}/>}</div><footer className="modal-footer"><button type="button" disabled={freeze} onClick={close}>取消</button><button className="primary" type="submit" disabled={action.busy||!source||(!!row&&source.id!==row.sourceId)||(!!row&&!changed.some(c=>c!=='_source'))}>{action.busy?'正在保存…':outcomeUnknown(action.error)?'原样重试':'保存'+section.title}</button></footer></form></Frame>;
 }
