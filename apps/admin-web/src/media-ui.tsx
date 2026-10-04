@@ -1,5 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
-import {ApiError,call,read,inspectPending,pendingKey} from './api.ts';
+import {ApiError,call,read,inspectPending,pendingKey,suspendTransport} from './api.ts';
 import type {Inputs} from './generated/requests.ts';
 import type {Me,Page,Receipt,Source} from './dto.ts';
 import {ErrorBox,Field,PageTitle,Pager,useAction,useLoad,Modal} from './ui.tsx';
@@ -27,8 +27,11 @@ function UploadTask({file,source,personId,enabled,onState,onReady}:{file:File;so
   if(u.state==='OPEN'){
    setMessage('正在上传文件…');onState('RECEIVING');const identity=await read<Me>('identity.me');let response:Response;
    try {response=await fetch('/api/v1/uploads/'+u.id+'/content',{method:'PUT',body:file,credentials:'same-origin',cache:'no-store',redirect:'error',headers:{'Content-Type':'application/octet-stream','X-CSRF-Token':identity.csrfToken,'X-ONCE-Membership':identity.membershipId},signal:AbortSignal.timeout(70000)});}catch{throw new ApiError('上传响应未知，请先只读核对状态。','UPLOAD_OUTCOME_UNKNOWN',0,'',true);}
+   if(response.status===401){suspendTransport();window.dispatchEvent(new Event('once-session-expired'));}
    let body:unknown;try{body=await response.json();}catch{throw new ApiError('上传响应无法确认，请核对状态。','UPLOAD_OUTCOME_UNKNOWN',response.status,'',true);}
-   if(!response.ok){const e=(body as {error?:{message?:string;code?:string}})?.error;throw new ApiError(e?.message??'上传未完成',e?.code??'UPLOAD_FAILED',response.status,'',response.status>=500);}
+   if(!response.ok){const e=(body as {error?:{message?:string;code?:string}})?.error;if(e?.code==='IDENTITY_CHANGED'&&response.status!==401){suspendTransport();window.dispatchEvent(new Event('once-session-expired'));}throw new ApiError(e?.message??'上传未完成',e?.code??'UPLOAD_FAILED',response.status,'',response.status>=500);}
+   const received=body as Partial<UploadDto>|null;
+   if(!received||typeof received!=='object'||Array.isArray(received)||received.id!==u.id||!Number.isInteger(received.revision)||(received.revision??0)<=u.revision||received.state!=='UPLOADED'||received.fileName!==file.name||received.expectedBytes!==file.size)throw new ApiError('上传响应无法确认，请先只读核对状态。','UPLOAD_OUTCOME_UNKNOWN',response.status,'',true);
    u=body as UploadDto;setUpload(u);onState(u.state);
   }
   if(u.state==='UPLOADED'){complete.current={expectedRevision:u.revision};await call('upload.complete',complete.current,{id:u.id});complete.current=null;u=await read<UploadDto>('upload.get',{id:u.id});setUpload(u);onState(u.state);}
