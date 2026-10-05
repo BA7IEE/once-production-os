@@ -88,8 +88,7 @@ try {
  const source=title=>({title,type:'MANUAL',providerClaim:'WP1合成记录',basisMode:'INTERNAL_USE',basisDescription:'隔离自动化测试资料，不代表真实授权',validUntil:new Date(Date.now()+86400000*7).toISOString()});
  const ws=(await cmd(owner,'POST','/sources',source('WP1作品来源'),201)).resourceId;
  const ps=(await cmd(owner,'POST','/sources',source('WP1项目来源'),201)).resourceId;
- const personSource=(await cmd(owner,'POST','/sources',source('WP1人员来源'),201)).resourceId;
- const personReceipt=await cmd(owner,'POST','/directory/talents',{schemaVersion:'once-talent-experience-v1',displayName:'WP1摄影剪辑人员',kind:'TALENT',roleCodes:['photographer','editor'],sourceId:personSource,sourceRevision:1},201),pid=personReceipt.resourceId;
+ const personReceipt=await cmd(owner,'POST','/people',{displayName:'WP1摄影剪辑人员',roles:['photographer','editor'],inlineSource:source('WP1人员来源')},201),pid=personReceipt.resourceId;
  const imagePersonId=(await cmd(owner,'POST','/people',{displayName:'WP1图片来源人物',roles:['model'],inlineSource:source('WP1独立图片来源')},201)).resourceId;
  const imagePerson=await prisma.person.findUniqueOrThrow({where:{id:imagePersonId}});
  worker=spawn('node',['dist/apps/api/src/worker-main.js'],{env,stdio:['ignore','pipe','pipe']});worker.stdout.resume();worker.stderr.resume();
@@ -193,6 +192,9 @@ try {
  assert.equal(await prisma.exportDependency.count({where:{exportId,usePermissionId:exportPermissionId,personId:pid}}),1);
  console.log('PASS DEV-07A browser: explicit export permission -> worker JSON -> controlled browser download');
 
+ // Preserve the legacy export above, then explicitly enroll the same person for the current talent finder.
+ const beforeEnroll=await prisma.person.findUniqueOrThrow({where:{id:pid}}),enrollSource=await prisma.sourceRecord.findUniqueOrThrow({where:{id:beforeEnroll.sourceId}});
+ await cmd(owner,'POST',`/td2/people/${pid}/enroll`,{schemaVersion:'once-talent-v2.0.0',expectedRevision:beforeEnroll.revision,sourceRevision:enrollSource.revision});
  // DEV-06: real browser internal shortlist flow. No share link/client state is created.
  await navigateWorkspace(owner,'候选清单');
  await owner.getByRole('button',{name:'＋ 新建清单',exact:true}).click();
