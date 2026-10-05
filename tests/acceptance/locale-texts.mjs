@@ -50,7 +50,7 @@ export async function verifyLocaleBrowser({owner,prisma,cmd,writeUI,source,json,
  assert.equal(await mergedDialog.getByText('待复核',{exact:true}).count(),1);
  await mergedDialog.getByRole('button',{name:'返回资料',exact:true}).click();await owner.getByRole('dialog').getByRole('button',{name:'关闭',exact:true}).first().click();
  console.log('PASS locale merge browser: explicit language choice, original text history, draft review state');
- await navigateWorkspace(owner,'内部导出');
+ await navigateWorkspace(owner,'内部导出',{fresh:true});
  const names={PERSON:'人物内部中英文文本、依据与原复核记录',WORK:'作品内部中英文文本、依据与原复核记录',PROJECT:'项目内部中英文文本、依据与原复核记录'},sourceLabels=['来源标题','来源类型','提供方说明','内部依据类型','依据说明','有效起点','有效截止','来源状态'],permits=[];
  const approvals=roots.map(({kind,id})=>[kind,id,[...(kind==='PERSON'?['姓名 / 展示名','角色','档案状态']:kind==='WORK'?['作品标题','制作归属','作品状态']:['项目标题','项目状态']),names[kind]]]);approvals.push(['SOURCE',sourceId,[...sourceLabels,...Object.values(names)]]);
  for(const [kind,id,labels] of approvals){

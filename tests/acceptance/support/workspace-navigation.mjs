@@ -1,5 +1,7 @@
 /** Historical contract journeys use the current visible navigation and advanced JSON panel. */
-export async function navigateWorkspace(page, name, {jsonImport=false}={}) {
+export async function navigateWorkspace(page, name, {jsonImport=false,fresh=false}={}) {
+  // Fixtures written by the API need a fresh visible form, not its previous page.
+  if(fresh&&name!=='工作台')await navigateWorkspace(page,'工作台');
   const button=page.locator('aside[aria-label="工作空间导航"]').getByRole('button',{name,exact:true});
   const mobile=page.getByRole('button',{name:'打开导航',exact:true});
   if(!await button.isVisible()&&await mobile.isVisible())await mobile.click();
@@ -58,6 +60,16 @@ export async function selectPaged(page,root,label,id) {
   const picker=root.getByRole('group',{name:label+'选择器',exact:true}),select=picker.getByLabel(label,{exact:true});
   await select.waitFor();
   await page.waitForFunction(element=>!element.disabled,await select.elementHandle());
+  const previous=picker.getByRole('button',{name:'上一页',exact:true});
+  for(let traversed=0;await previous.isEnabled();traversed++){
+    if(traversed>=100)throw new Error('Visible '+label+' picker could not return to its first page');
+    const current=Number((await picker.locator('.pager small').innerText()).match(/第 (\d+) 页$/)?.[1]);
+    if(!current||current<=1)throw new Error('Picker page is unavailable');
+    const response=page.waitForResponse(r=>r.request().method()==='GET'&&r.url().includes('/api/v1/')&&new URL(r.url()).searchParams.get('page')===String(current-1));
+    await previous.click();if((await response).status()!==200)throw new Error('Picker page failed');
+    await picker.locator('.pager small').filter({hasText:new RegExp('第 '+(current-1)+' 页$')}).waitFor();
+    await page.waitForFunction(element=>!element.disabled,await select.elementHandle());
+  }
   for(let current=1;!await select.locator('option[value="'+id+'"]').count();current++){
     if(current>=100)throw new Error('Visible '+label+' picker exhausted its bounded pages');
     const next=picker.getByRole('button',{name:'下一页',exact:true});

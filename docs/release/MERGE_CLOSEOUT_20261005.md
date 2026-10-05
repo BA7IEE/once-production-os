@@ -39,3 +39,5 @@ head `f110c29` 的 [CI37275480711](https://github.com/BA7IEE/once-production-os/
 head `8a18046` 的 [CI37276245747](https://github.com/BA7IEE/once-production-os/actions/runs/37276245747) 完整Core/类型与六组专项业务通过；旧17组中14组浏览器通过。目录组合与选择已通过，真实reload返回404暴露服务端遗漏 `/workspace/shortlists/:id/find`，已补SPA入口并严格要求reload HTTP200、分页和原选择均保留。作品旅程已跑通来源撤销、删除冻结和物理图片清理；其后合并输入按实际Field可访问名称定位，深层合并/语言文本仍须新head复验，业务断言保留。完整production串联八组深层程序，单组上限改为10分钟，与其他短组3分钟区分；资源回收、故障和中断规则不变。
 
 head `9dd8c57` 的真实目录刷新HTTP200、第二页选择保留、多职业人工确认及受控合并、候选原职业lineage均通过。两处剩余旧测试接口失配：城市复选名称正则的字符串转义错误、BrowserServer连接不支持download.path；改用实际下载流读取，JSON字段、加密数据和原件/preview SHA256断言均保留，不跳过导出。余下深层旅程与完整PG仍待新head复验。
+
+head `40842cd` 已完成实际专业导出原件/preview hash、旧身份/职业lineage/核验归属、共享证明物理删除及独立来源清理。其后深层合成通过API创建来源，而旧删除页仍保留此前页码；改为经真实工作台导航重新打开表单，并让选择器从实际首页有界遍历，不注入option或改断言。城市名称正则明确区分literal与字符串，使用无转义的可见计数字符。余下深层旅程与完整PG待新head复验。

@@ -125,7 +125,7 @@ export async function verifyTalentWorkbench({owner,prisma,cmd,writeUI,source,ass
  // Explicitly delete a shared collection/proof image through the actual impact, decision and cleanup pages.
  const proofEvidence=await prisma.fieldEvidence.findMany({where:{OR:[{adultEligibilityId:adult},{personCredentialId:credential}]},orderBy:{id:'asc'}});
  assert.equal(existsSync(join(mediaRoot,'uploads',extra)),true);
- await navigateWorkspace(owner,'删除任务');await owner.getByLabel('删除目标类型',{exact:true}).selectOption('ASSET');await selectPaged(owner,owner,'删除目标',extra);
+ await navigateWorkspace(owner,'删除任务',{fresh:true});await owner.getByLabel('删除目标类型',{exact:true}).selectOption('ASSET');await selectPaged(owner,owner,'删除目标',extra);
  const impact=await writeUI(owner,'POST','/deletion-requests/preview',()=>owner.getByRole('button',{name:'预览影响',exact:true}).click());assert.equal(impact.complete,true);assert.ok(impact.items.some(i=>i.resourceKind==='talentAssetGraph'));
  await owner.getByText(/移出 1 项作品集引用、撤销 1 项资质/).waitFor();
  await owner.getByLabel('申请原因',{exact:true}).fill('合成验收：删除共享证明原件，保留历史核验并撤销当前资格');const removal=(await writeUI(owner,'POST','/deletion-requests',()=>owner.getByRole('button',{name:'创建 DRAFT 申请',exact:true}).click(),201)).resourceId;
