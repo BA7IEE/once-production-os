@@ -60,7 +60,28 @@
         "admin-ux browser including contacts and import recovery"
       ],
       "failure": "Old business-flow test used partial label matching, which now resolves the paged selector, search input and select. Changed to exact labels; original workflow assertions retained.",
-      "core": "IN_PROGRESS_AT_FIX"
+      "core": "806/806 PASS"
+    },
+    {
+      "runId": 37263968578,
+      "head": "8f8fefe6bfd8c074841237f75886e098c30ec68e",
+      "core": "806/806 PASS",
+      "acceptance": "FAIL",
+      "passed": [
+        "contract",
+        "static",
+        "build",
+        "29 lifecycle checks",
+        "all three PostgreSQL groups",
+        "admin-ux browser",
+        "business-flow browser",
+        "talent-maintenance browser",
+        "ai-business browser including typed identity/restore/105-grant pagination",
+        "maintenance export final-page/search/cross-page request"
+      ],
+      "failure": "Agent rejection fixture used a Chinese externalSubmissionKey, rejected by the unchanged ASCII contract. Maintenance test mistook an open details empty attribute as closed and toggled the menu shut. Fixed fixture identifier and explicit attribute presence; original domain/UI assertions retained.",
+      "coreEvidence": "CI_ARTIFACT_READBACK",
+      "resourceCleanups": "All serial suite failures reported verified zero residue; raw acceptance artifact readback pending"
     }
   ]
 }

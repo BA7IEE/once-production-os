@@ -54,7 +54,7 @@ try {
   const p=await cmd(page,'/directory/talents',{schemaVersion:'once-talent-experience-v1',displayName:'分页人物 '+String(i).padStart(3,'0'),kind:'TALENT',roleCodes:['model'],sourceId:source.resourceId,sourceRevision:1});people.push(p.resourceId);
   await cmd(page,'/use-permissions',{sourceId:source.resourceId,subjectKind:'PERSON',subjectId:p.resourceId,fields:['person.displayName'],validUntil:'2026-11-30T00:00:00.000Z',evidenceNote:'Synthetic bounded export permission'});
  }
- async function navigate(name){const nav=page.locator('.management-nav');if(!(await nav.getAttribute('open')))await nav.locator('summary').click();await nav.getByRole('button',{name,exact:true}).click();}
+ async function navigate(name){const nav=page.locator('.management-nav');if(await nav.getAttribute('open')===null)await nav.locator('summary').click();await nav.getByRole('button',{name,exact:true}).click();}
  stage='export object final page and search';await navigate('内部导出');await page.getByRole('button',{name:'＋ 批准导出用途',exact:true}).click();
  const form=page.getByRole('dialog',{name:'批准内部导出用途',exact:true}),picker=form.getByRole('group',{name:'批准对象选择器',exact:true});
  for(let n=2;n<=6;n++){await picker.getByRole('button',{name:'下一页',exact:true}).click();await picker.getByText('第 '+n+' 页',{exact:false}).waitFor();}
