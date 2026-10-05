@@ -1,0 +1,445 @@
+
+> once-production-os@0.1.0-dev.1 verify:postgres /Users/dengwang/.codex/worktrees/talent-experience/once-production-os
+> node scripts/verify-postgres.mjs
+
+TAP version 13
+# Subtest: fresh disposable PostgreSQL: constraints, real transactions and independent workers
+    # Subtest: two independent clients serialize the same command into one source/person/receipt
+    ok 1 - two independent clients serialize the same command into one source/person/receipt
+      ---
+      duration_ms: 113.554209
+      type: 'test'
+      ...
+    # Subtest: actual PostgreSQL person-update rollback (atomic command coverage follows below)
+    ok 2 - actual PostgreSQL person-update rollback (atomic command coverage follows below)
+      ---
+      duration_ms: 4.747708
+      type: 'test'
+      ...
+    # Subtest: database itself rejects cross-workspace scope membership
+    ok 3 - database itself rejects cross-workspace scope membership
+      ---
+      duration_ms: 8.116541
+      type: 'test'
+      ...
+    # Subtest: two stale CAS writes cannot both succeed
+    ok 4 - two stale CAS writes cannot both succeed
+      ---
+      duration_ms: 56.098917
+      type: 'test'
+      ...
+    # Subtest: two workers claim once; expired owner cannot modify replacement lease
+    ok 5 - two workers claim once; expired owner cannot modify replacement lease
+      ---
+      duration_ms: 77.448208
+      type: 'test'
+      ...
+    # Subtest: real command rollback after sourceHistory insert, plus same-key successful retry
+    ok 6 - real command rollback after sourceHistory insert, plus same-key successful retry
+      ---
+      duration_ms: 34.506166
+      type: 'test'
+      ...
+    # Subtest: real command rollback after people insert, plus same-key successful retry
+    ok 7 - real command rollback after people insert, plus same-key successful retry
+      ---
+      duration_ms: 32.866708
+      type: 'test'
+      ...
+    # Subtest: real command rollback after audits insert, plus same-key successful retry
+    ok 8 - real command rollback after audits insert, plus same-key successful retry
+      ---
+      duration_ms: 35.636458
+      type: 'test'
+      ...
+    # Subtest: real command rollback after receipts insert, plus same-key successful retry
+    ok 9 - real command rollback after receipts insert, plus same-key successful retry
+      ---
+      duration_ms: 37.13925
+      type: 'test'
+      ...
+    # Subtest: new source-history SQL constraints reject duplicate revision, cross-scope FK, UPDATE and DELETE
+    ok 10 - new source-history SQL constraints reject duplicate revision, cross-scope FK, UPDATE and DELETE
+      ---
+      duration_ms: 5.122
+      type: 'test'
+      ...
+    # Subtest: PG partial import resume retains checkpoints, idempotency and two-worker ownership
+    ok 11 - PG partial import resume retains checkpoints, idempotency and two-worker ownership
+      ---
+      duration_ms: 96.1135
+      type: 'test'
+      ...
+# {"metric":"PG-preview","people":100,"rows":100,"queries":33,"elapsedMs":25.22004200000015}
+# {"metric":"PG-talent-search","people":100,"pageSize":20,"queries":20,"elapsedMs":13.171582999999828}
+# {"metric":"PG-preview","people":1000,"rows":100,"queries":33,"elapsedMs":29.26949999999988}
+# {"metric":"PG-talent-search","people":1000,"pageSize":20,"queries":20,"elapsedMs":13.119833000000199}
+    # Subtest: PG query count stays bounded for 100/1000 people across preview and structured talent search
+    ok 12 - PG query count stays bounded for 100/1000 people across preview and structured talent search
+      ---
+      duration_ms: 179.082458
+      type: 'test'
+      ...
+    # Subtest: H1 PG private basic-profile grant and native evidence separation
+    ok 13 - H1 PG private basic-profile grant and native evidence separation
+      ---
+      duration_ms: 178.284125
+      type: 'test'
+      ...
+    # Subtest: H1 PG atomic handoff creation rollback after handoffs
+    ok 14 - H1 PG atomic handoff creation rollback after handoffs
+      ---
+      duration_ms: 107.854667
+      type: 'test'
+      ...
+    # Subtest: H1 PG atomic handoff creation rollback after audits
+    ok 15 - H1 PG atomic handoff creation rollback after audits
+      ---
+      duration_ms: 61.260125
+      type: 'test'
+      ...
+    # Subtest: H1 PG atomic handoff creation rollback after receipts
+    ok 16 - H1 PG atomic handoff creation rollback after receipts
+      ---
+      duration_ms: 83.823
+      type: 'test'
+      ...
+    # Subtest: M1 PG same-key reservation, competing leases and unique asset from current attempt
+    ok 17 - M1 PG same-key reservation, competing leases and unique asset from current attempt
+      ---
+      duration_ms: 203.00875
+      type: 'test'
+      ...
+    # Subtest: M1 PG READY publication rollback after assets
+    ok 18 - M1 PG READY publication rollback after assets
+      ---
+      duration_ms: 176.314125
+      type: 'test'
+      ...
+    # Subtest: M1 PG READY publication rollback after audits
+    ok 19 - M1 PG READY publication rollback after audits
+      ---
+      duration_ms: 306.161792
+      type: 'test'
+      ...
+    # Subtest: DEV-07G PG merge persists one decision/alias, replay is singular and old id resolves read-only
+    ok 20 - DEV-07G PG merge persists one decision/alias, replay is singular and old id resolves read-only
+      ---
+      duration_ms: 533.125333
+      type: 'test'
+      ...
+    # Subtest: WP1 PG identical create commands on independent clients make one root/source/receipt
+    ok 21 - WP1 PG identical create commands on independent clients make one root/source/receipt
+      ---
+      duration_ms: 15.469625
+      type: 'test'
+      ...
+    # Subtest: WP1 PG concurrent child writes require same-parent CAS; retry old key does not write twice
+    ok 22 - WP1 PG concurrent child writes require same-parent CAS; retry old key does not write twice
+      ---
+      duration_ms: 96.70575
+      type: 'test'
+      ...
+    # Subtest: WP1 PG swaps deferred positions and validates cover belongs to this work at commit
+    ok 23 - WP1 PG swaps deferred positions and validates cover belongs to this work at commit
+      ---
+      duration_ms: 120.788333
+      type: 'test'
+      ...
+    # Subtest: WP1 PG removal compacts order, changes cover, but preserves original media
+    not ok 24 - WP1 PG removal compacts order, changes cover, but preserves original media
+      ---
+      duration_ms: 268.649875
+      type: 'test'
+      location: '/Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/postgres/production-contracts.ts:80:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        false !== true
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: true
+      actual: false
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/postgres/production-contracts.ts:88:16)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async runProductionContracts (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/postgres/production-contracts.ts:80:5)
+        async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/postgres/integration.test.ts:477:9)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+      ...
+    # Subtest: WP1 PG relationship uniqueness, state checks and workspace FKs are enforced by PostgreSQL
+    ok 25 - WP1 PG relationship uniqueness, state checks and workspace FKs are enforced by PostgreSQL
+      ---
+      duration_ms: 125.963
+      type: 'test'
+      ...
+    # Subtest: WP1 PG external work reference/delivery remains external; source loss redacts live children
+    ok 26 - WP1 PG external work reference/delivery remains external; source loss redacts live children
+      ---
+      duration_ms: 192.110583
+      type: 'test'
+      ...
+    # Subtest: WP1 PG link/cover/root/audit/receipt roll back after workAssets
+    ok 27 - WP1 PG link/cover/root/audit/receipt roll back after workAssets
+      ---
+      duration_ms: 96.040125
+      type: 'test'
+      ...
+    # Subtest: WP1 PG link/cover/root/audit/receipt roll back after audits
+    ok 28 - WP1 PG link/cover/root/audit/receipt roll back after audits
+      ---
+      duration_ms: 79.175333
+      type: 'test'
+      ...
+    # Subtest: WP1 PG link/cover/root/audit/receipt roll back after receipts
+    ok 29 - WP1 PG link/cover/root/audit/receipt roll back after receipts
+      ---
+      duration_ms: 83.724708
+      type: 'test'
+      ...
+    # Subtest: WP1 PG child insertion failure rolls back its parent revision: workCredits
+    ok 30 - WP1 PG child insertion failure rolls back its parent revision: workCredits
+      ---
+      duration_ms: 67.530125
+      type: 'test'
+      ...
+    # Subtest: WP1 PG child insertion failure rolls back its parent revision: projectParticipants
+    ok 31 - WP1 PG child insertion failure rolls back its parent revision: projectParticipants
+      ---
+      duration_ms: 73.578625
+      type: 'test'
+      ...
+    # Subtest: WP1 PG child insertion failure rolls back its parent revision: projectWorks
+    ok 32 - WP1 PG child insertion failure rolls back its parent revision: projectWorks
+      ---
+      duration_ms: 31.209583
+      type: 'test'
+      ...
+    # Subtest: DEV-06 PG work facts are constrained and power visible credited-work search
+    ok 33 - DEV-06 PG work facts are constrained and power visible credited-work search
+      ---
+      duration_ms: 89.043125
+      type: 'test'
+      ...
+    # Subtest: DEV-06 PG shortlist exact work-asset FK rejects cross-work selections
+    ok 34 - DEV-06 PG shortlist exact work-asset FK rejects cross-work selections
+      ---
+      duration_ms: 443.731209
+      type: 'test'
+      ...
+    # Subtest: DEV-06 PG unlinking a work image removes only derived shortlist selection and preserves media/item
+    ok 35 - DEV-06 PG unlinking a work image removes only derived shortlist selection and preserves media/item
+      ---
+      duration_ms: 459.407583
+      type: 'test'
+      ...
+    # Subtest: DEV-06 PG concurrent shortlist mutations serialize on root CAS
+    ok 36 - DEV-06 PG concurrent shortlist mutations serialize on root CAS
+      ---
+      duration_ms: 95.243708
+      type: 'test'
+      ...
+    # Subtest: DEV-06 PG candidate command rolls back after shortlistItems
+    ok 37 - DEV-06 PG candidate command rolls back after shortlistItems
+      ---
+      duration_ms: 382.5465
+      type: 'test'
+      ...
+    # Subtest: DEV-06 PG candidate command rolls back after shortlistItemAssets
+    ok 38 - DEV-06 PG candidate command rolls back after shortlistItemAssets
+      ---
+      duration_ms: 448.267167
+      type: 'test'
+      ...
+    # Subtest: DEV-06 PG candidate command rolls back after audits
+    ok 39 - DEV-06 PG candidate command rolls back after audits
+      ---
+      duration_ms: 355.661417
+      type: 'test'
+      ...
+    # Subtest: DEV-06 PG candidate command rolls back after receipts
+    ok 40 - DEV-06 PG candidate command rolls back after receipts
+      ---
+      duration_ms: 360.644458
+      type: 'test'
+      ...
+    # Subtest: DEV-07A PG typed export permissions reject wrong-source subjects and unregistered fields
+    ok 41 - DEV-07A PG typed export permissions reject wrong-source subjects and unregistered fields
+      ---
+      duration_ms: 12.58275
+      type: 'test'
+      ...
+    # Subtest: DEV-07A PG export freezes exact dependency and worker produces private JSON payload
+    ok 42 - DEV-07A PG export freezes exact dependency and worker produces private JSON payload
+      ---
+      duration_ms: 149.726708
+      type: 'test'
+      ...
+    # Subtest: DEV-07A PG export create rolls back after exports
+    ok 43 - DEV-07A PG export create rolls back after exports
+      ---
+      duration_ms: 98.983625
+      type: 'test'
+      ...
+    # Subtest: DEV-07A PG export create rolls back after exportDependencies
+    ok 44 - DEV-07A PG export create rolls back after exportDependencies
+      ---
+      duration_ms: 93.842958
+      type: 'test'
+      ...
+    # Subtest: DEV-07A PG export create rolls back after audits
+    ok 45 - DEV-07A PG export create rolls back after audits
+      ---
+      duration_ms: 93.690875
+      type: 'test'
+      ...
+    # Subtest: DEV-07A PG export create rolls back after receipts
+    ok 46 - DEV-07A PG export create rolls back after receipts
+      ---
+      duration_ms: 95.739125
+      type: 'test'
+      ...
+    # Subtest: DEV-07B PG deletion target/source shape and unresolved-count constraints are enforced by DB
+    ok 47 - DEV-07B PG deletion target/source shape and unresolved-count constraints are enforced by DB
+      ---
+      duration_ms: 8.931875
+      type: 'test'
+      ...
+    # Subtest: DEV-07B PG preview freezes exact visible impacts without blocking the target
+    ok 48 - DEV-07B PG preview freezes exact visible impacts without blocking the target
+      ---
+      duration_ms: 252.157667
+      type: 'test'
+      ...
+    # Subtest: DEV-07B PG draft deletion create rolls back after deletionRequests
+    ok 49 - DEV-07B PG draft deletion create rolls back after deletionRequests
+      ---
+      duration_ms: 220.508583
+      type: 'test'
+      ...
+    # Subtest: DEV-07B PG draft deletion create rolls back after deletionItems
+    ok 50 - DEV-07B PG draft deletion create rolls back after deletionItems
+      ---
+      duration_ms: 211.921083
+      type: 'test'
+      ...
+    # Subtest: DEV-07B PG draft deletion create rolls back after audits
+    ok 51 - DEV-07B PG draft deletion create rolls back after audits
+      ---
+      duration_ms: 235.669541
+      type: 'test'
+      ...
+    # Subtest: DEV-07B PG draft deletion create rolls back after receipts
+    ok 52 - DEV-07B PG draft deletion create rolls back after receipts
+      ---
+      duration_ms: 275.093291
+      type: 'test'
+      ...
+    # Subtest: DEV-07C PG person block raises protection epoch, hides normal reads/search and preserves row
+    ok 53 - DEV-07C PG person block raises protection epoch, hides normal reads/search and preserves row
+      ---
+      duration_ms: 137.597584
+      type: 'test'
+      ...
+    # Subtest: DEV-07C PG source block raises protection epoch and appends protected DELETION_BLOCKED history
+    ok 54 - DEV-07C PG source block raises protection epoch and appends protected DELETION_BLOCKED history
+      ---
+      duration_ms: 123.452292
+      type: 'test'
+      ...
+    # Subtest: DEV-07C PG source block rolls back after sourceHistory
+    ok 55 - DEV-07C PG source block rolls back after sourceHistory
+      ---
+      duration_ms: 157.402792
+      type: 'test'
+      ...
+    # Subtest: DEV-07C PG source block rolls back after audits
+    ok 56 - DEV-07C PG source block rolls back after audits
+      ---
+      duration_ms: 154.988542
+      type: 'test'
+      ...
+    # Subtest: DEV-07C PG source block rolls back after receipts
+    ok 57 - DEV-07C PG source block rolls back after receipts
+      ---
+      duration_ms: 164.772667
+      type: 'test'
+      ...
+    # Subtest: DEV-07D PG review decisions freeze a plan without cleaning underlying rows
+    ok 58 - DEV-07D PG review decisions freeze a plan without cleaning underlying rows
+      ---
+      duration_ms: 268.584583
+      type: 'test'
+      ...
+    # Subtest: DEV-07D PG invalid retention decision shapes are rejected by DB
+    ok 59 - DEV-07D PG invalid retention decision shapes are rejected by DB
+      ---
+      duration_ms: 3.361375
+      type: 'test'
+      ...
+    # Subtest: DEV-07D PG decision and freeze rollback with audit/receipt failures
+    ok 60 - DEV-07D PG decision and freeze rollback with audit/receipt failures
+      ---
+      duration_ms: 262.229291
+      type: 'test'
+      ...
+    # Subtest: DEV-07E PG executes frozen dependency cleanup and keeps blocked root
+    ok 61 - DEV-07E PG executes frozen dependency cleanup and keeps blocked root
+      ---
+      duration_ms: 929.030667
+      type: 'test'
+      ...
+    # Subtest: DEV-07E PG cleanup item delete rolls back when audit insert fails, then retries safely
+    ok 62 - DEV-07E PG cleanup item delete rolls back when audit insert fails, then retries safely
+      ---
+      duration_ms: 300.382917
+      type: 'test'
+      ...
+    # Subtest: DEV-07E PG cleanup state constraints reject forged completion evidence
+    ok 63 - DEV-07E PG cleanup state constraints reject forged completion evidence
+      ---
+      duration_ms: 2.508292
+      type: 'test'
+      ...
+    # Subtest: DEV-07F PG source finalization redacts history and writes strict ERASED root
+    ok 64 - DEV-07F PG source finalization redacts history and writes strict ERASED root
+      ---
+      duration_ms: 256.767416
+      type: 'test'
+      ...
+    # Subtest: DEV-07F PG erased/final states cannot be forged without strict tombstone evidence
+    ok 65 - DEV-07F PG erased/final states cannot be forged without strict tombstone evidence
+      ---
+      duration_ms: 201.036542
+      type: 'test'
+      ...
+    # Subtest: DEV-07F PG finalization audit failure rolls back root tombstone and final state, then retries safely
+    ok 66 - DEV-07F PG finalization audit failure rolls back root tombstone and final state, then retries safely
+      ---
+      duration_ms: 374.184083
+      type: 'test'
+      ...
+    1..66
+not ok 1 - fresh disposable PostgreSQL: constraints, real transactions and independent workers
+  ---
+  duration_ms: 12480.16475
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/postgres/integration.test.ts:29:1'
+  failureType: 'subtestsFailed'
+  error: '1 subtest failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 67
+# suites 0
+# pass 65
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12715.156084
+ ELIFECYCLE  Command failed with exit code 1.

@@ -1,3 +1,4 @@
+import type {MediaPurgeIntent} from './media-purge-model.ts';
 import type {TalentMaintenanceTables} from './talent-maintenance-model.ts';
 import type {TalentAuthTables,TalentAuthConfig} from './talent-auth-model.ts';
 import type {Brand,ProjectParty} from './project-parties.ts';
@@ -12,7 +13,7 @@ import type {MergeHistoryErasure} from './merge-history-erasure-model.ts';
 import type { TalentV2Tables, TalentOwnerRefs } from './talent-v2-model.ts';
 import type { Work, WorkAsset, WorkCredit, Project, ProjectParticipant, ProjectWork } from './production-model.ts';
 import type { Shortlist, ShortlistItem, ShortlistItemAsset } from './shortlist-model.ts';
-import type { MediaUpload, MediaAsset } from './media-model.ts';
+import type { MediaUpload, MediaAsset, PersonMedia } from './media-model.ts';
 import type { UsePermission, ExportJob, ExportDependency } from './export-model.ts';
 import type { DeletionRequest, DeletionItem } from './deletion-model.ts';
 import type { PersonMergeDecision, PersonAlias } from './merge-model.ts';
@@ -20,7 +21,8 @@ import type { RecoveryRun } from './recovery-model.ts';
 export type Role = 'ADMIN' | 'EDITOR' | 'REVIEWER' | 'VIEWER';
 export const EXTRA_PERMISSIONS = ['sensitive.read', 'sensitive.write', 'data.export', 'data.delete', 'data.merge', 'ai.use', 'talent.invite', 'talent.review'] as const;
 export type ExtraPermission = typeof EXTRA_PERMISSIONS[number];
-export type Permission = 'records.read' | 'records.write' | 'sources.read' | 'sources.write' | 'sources.review' | 'catalog.manage' | 'members.manage' | 'audit.read' | 'assets.read' | 'assets.upload' | 'talent.propose' | 'talent.fact.write' | ExtraPermission;
+export type IngestionPermission = 'ingestion.schema.read'|'ingestion.submit'|'ingestion.read.own'|'ingestion.withdraw.own'|'ingestion.media.upload';
+export type Permission = IngestionPermission | 'records.read' | 'records.write' | 'sources.read' | 'sources.write' | 'sources.review' | 'catalog.manage' | 'members.manage' | 'audit.read' | 'assets.read' | 'assets.upload' | 'talent.propose' | 'talent.fact.write' | ExtraPermission;
 export interface Base {
     id: string;
     workspaceId: string;
@@ -150,7 +152,7 @@ export interface CommandReceipt extends Base {
     operation: string;
     commandKey: string;
     requestDigest: string;
-    resourceKind: 'talentInvitation' | 'talentClaim' | 'talentGrant' | 'talentSubmission' | 'talentConsent' | 'talentAccount' | 'brand' | 'aiConnectionTest' | 'aiConnection' | 'aiApproval' | 'aiAttempt' | 'aiBudget' | 'aiTask' | 'aiGrant' | 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
+    resourceKind: 'sourceReview' | 'mediaPurge' | 'talentInvitation' | 'talentClaim' | 'talentGrant' | 'talentSubmission' | 'talentConsent' | 'talentAccount' | 'brand' | 'aiConnectionTest' | 'aiConnection' | 'aiApproval' | 'aiAttempt' | 'aiBudget' | 'aiTask' | 'aiGrant' | 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
     resourceId: string;
     result: ReceiptResult;
 }
@@ -160,6 +162,8 @@ export interface ReceiptResult {
     revision: number;
     state: 'SUCCEEDED' | 'ACCEPTED';
     replayed?: boolean;
+    /** Numeric batch outcome only; never names, input or record contents. */
+    summary?: { added: number; existing: number };
 }
 export interface AuditEvent extends Base {
     principalKind?: 'INTERNAL'|'MACHINE'|'TALENT'|'SYSTEM';
@@ -179,6 +183,7 @@ export interface RateBucket {
     until: string;
 }
 export interface ImportBatch extends Base {
+    formatVersion?: 1 | 2;
     actorId: string;
     sourceId: string;
     sourceRevision: number;
@@ -187,6 +192,7 @@ export interface ImportBatch extends Base {
     expiresAt: string;
 }
 export interface ImportRow {
+    kind?: 'TALENT' | 'CONTACT';
     index: number;
     displayName: string;
     roles: string[];
@@ -196,7 +202,7 @@ export interface ImportRow {
     personId: string | null;
 }
 export interface DurableJob extends Base {
-    type: 'IMPORT_PEOPLE';
+    type: 'IMPORT_PEOPLE' | 'IMPORT_TALENTS_V2';
     actorId: string;
     aggregateId: string;
     selectedRows: number[];
@@ -229,7 +235,9 @@ export interface RecordHandoff extends Base {
     closedAt: string | null;
     closedById: string | null;
 }
+import type {SourceReviewRequest} from './source-review.ts';
 export interface TableMap extends TalentV2Tables, TalentAuthTables, TalentMaintenanceTables {
+    mediaPurgeIntents:MediaPurgeIntent;
     brands:Brand;projectParties:ProjectParty;
     aiResponseMetadata: AiResponseMetadata;
     aiConnections: AiConnection;
@@ -264,6 +272,7 @@ export interface TableMap extends TalentV2Tables, TalentAuthTables, TalentMainte
     projectWorks: ProjectWork;
     uploads: MediaUpload;
     assets: MediaAsset;
+    personMedia: PersonMedia;
     workspaces: Workspace;
     users: User;
     memberships: Membership;
@@ -283,6 +292,7 @@ export interface TableMap extends TalentV2Tables, TalentAuthTables, TalentMainte
     imports: ImportBatch;
     jobs: DurableJob;
     handoffs: RecordHandoff;
+    sourceReviews: SourceReviewRequest;
 }
 export type Table = keyof TableMap;
 export interface Actor {
@@ -306,9 +316,15 @@ export interface Clock {
     now(): Date;
 }
 export interface Config {
+    ingestionEnabled?:boolean;
+    agentMediaEnabled?:boolean;
+    agentMediaAdmission?: import('./agent-media.ts').AgentMediaAdmission;
     talentAuth?: TalentAuthConfig;
     ai?: AiLedgerConfig;
+    mediaRetention?: import('./media-retention.ts').MediaRetention;
+    mediaAdmission?: import('./media-model.ts').MediaAdmission;
     mediaEnabled?: boolean;
+    mediaPlayback?: import('./media-playback.ts').MediaPlaybackLimits;
     origin: string;
     secureCookies: boolean;
     contactKey: Buffer;

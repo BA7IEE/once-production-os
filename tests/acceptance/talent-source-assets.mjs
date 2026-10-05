@@ -1,9 +1,12 @@
+import {navigateWorkspace,selectPaged} from './support/workspace-navigation.mjs';
+import {independentCollectionImage} from './collection-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {existsSync} from 'node:fs';
 import {join} from 'node:path';
 /** Independent-source original images and shared proof facts are synthetic API setup; deletion is real UI. */
 export async function verifySourceAssetChoices({owner,prisma,cmd,writeUI,source,originSourceId,keptAssetId,binary,queue,until,mediaBytes,mediaRoot,combined=false}) {
+ keptAssetId=await independentCollectionImage({owner,prisma,cmd,binary,queue,until,mediaBytes},keptAssetId);
  const schemaVersion='once-talent-v2.0.0',targetId=(await cmd(owner,'POST','/sources',source('合成两张证明原件来源'),201)).resourceId;
  let target=await prisma.sourceRecord.findUniqueOrThrow({where:{id:targetId}});if(target.status!=='CONFIRMED'){await cmd(owner,'POST',`/sources/${targetId}/review`,{expectedRevision:target.revision,basisDescription:'合成原件来源核验',validUntil:target.validUntil.toISOString()});target=await prisma.sourceRecord.findUniqueOrThrow({where:{id:targetId}});}
  const ids=[];for(let i=0;i<2;i++){const id=(await cmd(owner,'POST','/uploads',{sourceId:targetId,expectedSourceRevision:target.revision,fileName:`source-proof-${i}.png`,mime:'image/png',expectedBytes:mediaBytes.length,sha256:createHash('sha256').update(mediaBytes).digest('hex')},201)).resourceId;assert.equal((await binary(owner,id,mediaBytes)).status(),200);await queue(owner,id);await until(async()=>await prisma.mediaAsset.count({where:{id,state:'READY'}})===1);ids.push(id);}
@@ -21,7 +24,7 @@ export async function verifySourceAssetChoices({owner,prisma,cmd,writeUI,source,
   retained=await prisma.personLanguage.findUniqueOrThrow({where:{id:languageId}});
  }
  const evidence=await prisma.fieldEvidence.findMany({where:{personCredentialId:{in:credentials}},orderBy:{id:'asc'}});
- await owner.getByRole('button',{name:/概览/}).click();await owner.getByRole('button',{name:/删除影响评估/}).click();await owner.getByLabel('删除目标类型',{exact:true}).selectOption('SOURCE');await owner.getByLabel('删除目标',{exact:true}).selectOption(targetId);
+ await navigateWorkspace(owner,'删除任务',{fresh:true});await owner.getByLabel('删除目标类型',{exact:true}).selectOption('SOURCE');await selectPaged(owner,owner,'删除目标',targetId);
  const preview=await writeUI(owner,'POST','/deletion-requests/preview',()=>owner.getByRole('button',{name:'预览影响',exact:true}).click());assert.equal(preview.complete,true,JSON.stringify(preview.unresolved));assert.ok(preview.items.some(i=>i.resourceKind===(combined?'talentSourceFactGraph':'talentSourceAssetGraph')));if(combined){assert.equal(preview.items.some(i=>i.resourceKind==='talentSourceAssetGraph'),false);await owner.getByText(/同时删除 2 份原件/).waitFor();}else await owner.getByText(/移出 4 项作品集引用、撤销 2 项资质/).waitFor();
  await owner.getByLabel('申请原因',{exact:true}).fill('合成删除来源全部原件和证明引用，保留其他来源原件与核验历史');const requestId=(await writeUI(owner,'POST','/deletion-requests',()=>owner.getByRole('button',{name:'创建 DRAFT 申请',exact:true}).click(),201)).resourceId;
  const panel=owner.locator('.deletion-request-detail');await panel.getByText(requestId,{exact:true}).waitFor();owner.once('dialog',d=>void d.accept());await writeUI(owner,'POST',`/deletion-requests/${requestId}/block`,()=>panel.getByRole('button',{name:'阻断正常使用',exact:true}).click());if(!combined){await panel.getByRole('button',{name:'做决定',exact:true}).click();const dialog=owner.getByRole('dialog',{name:'记录保留决定',exact:true});assert.equal(await dialog.getByLabel('本项决定',{exact:true}).locator('option[value="RETAIN_WITH_BASIS"]').count(),0);await dialog.getByLabel('决定说明',{exact:true}).fill('明确撤销两张原件的共享引用及证明资格，不改变其他原件或核验历史');await writeUI(owner,'POST',`/deletion-requests/${requestId}/decisions`,()=>dialog.getByRole('button',{name:'保存决定',exact:true}).click());

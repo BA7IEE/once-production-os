@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomBytes,randomUUID} from 'node:crypto';
@@ -13,7 +14,7 @@ import {spawnSync} from 'node:child_process';
 test('TD2 PostgreSQL redacted merge-history export and real CLI rebuild preserve erased minimal headers, original evidence and audit rollback',async()=>{
  assert.equal(process.env.ALLOW_TD2_DB_TESTS,'yes');const urls=[process.env.DATABASE_URL_TD2_TEST,process.env.DATABASE_URL_TALENT_REBUILD_TEST];assert.notEqual(urls[0],urls[1]);
  for(const raw of urls){assert.ok(raw);const u=new URL(raw);assert.ok(['postgres:','postgresql:'].includes(u.protocol));assert.ok(['127.0.0.1','localhost','[::1]'].includes(u.hostname));assert.match(u.pathname,/^\/once_(test_td2|rebuild)_[a-z0-9_]+$/);assert.equal(u.search,'');assert.equal(u.hash,'');}
- const stores=urls.map(url=>new PrismaStore(new PrismaClient({datasources:{db:{url}},log:[]}))),clock=new FakeClock(),tmp=mkdtempSync(join(tmpdir(),'once-erased-history-rebuild-'));
+ const stores=urls.map(url=>new PrismaStore(new PrismaClient({datasources:{db:{url}},log:[]}))),clock=new FakeClock(),tmp=registeredTemp().path;
  try{
   const sides=[];for(const store of stores){assert.equal(await store.client.workspace.count(),0);const app=new Application(store,{origin:'https://retained.test.invalid',secureCookies:true,contactKey:randomBytes(32),csrfKey:randomBytes(32),recoveryEpoch:randomBytes(24).toString('hex'),accessMode:'INTERNAL',environment:'test',dataEgressMode:'INTERNAL_APPROVED',dataCleanupMode:'INTERNAL_APPROVED',dataMergeMode:'INTERNAL_APPROVED'},clock);await app.identity.bootstrap('owner','合成已删来源保留资料重建',SYNTHETIC_PASSWORD);const owner=new Client(app);assert.equal((await owner.login()).status,200);sides.push({app,store,clock,owner});}
   const eraseOrigin=process.env.TEST_ERASE_HISTORY_ORIGIN==='yes';

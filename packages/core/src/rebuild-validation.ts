@@ -27,6 +27,7 @@ const personData = v.object({
     status: v.enum(['DRAFT', 'ACTIVE', 'ARCHIVED'])
 });
 const workData = v.object({
+    caseDate:v.optional(v.nullable(v.string(100,1))),datePrecision:v.optional(v.enum(['UNKNOWN','YEAR','MONTH','DAY','APPROXIMATE'])),location:v.optional(v.string(500)),brandDisplayName:v.optional(v.string(200)),
     title: v.string(160, 1),
     description: v.optional(v.string(5000)),
     industryCode: v.optional(v.nullable(code)),
@@ -44,7 +45,9 @@ const projectData = v.object({
     status: v.enum(['DRAFT', 'ACTIVE', 'COMPLETED', 'ARCHIVED'])
 });
 
-export const TalentBasisTransferSchema=v.object({version:v.enum(['talent-basis-v1']),providerAccountId:uuid,submissionId:uuid,consentId:uuid,consentRevision:revision,textVersion:v.string(100,1),purpose:v.enum(['INTERNAL_DIRECTORY']),fieldScope:v.array(v.enum(['displayName','aliases','intro']),3,1),validUntil:dateIso,reviewerId:uuid});
+const ConsentBasisTransferSchema=v.object({version:v.enum(['talent-basis-v1','talent-basis-v2']),providerAccountId:uuid,submissionId:uuid,consentId:uuid,consentRevision:revision,textVersion:v.string(100,1),purpose:v.enum(['INTERNAL_DIRECTORY']),fieldScope:v.array(v.enum(['displayName','aliases','intro','media','work']),5,1),validUntil:dateIso,reviewerId:uuid});
+const ReviewBasisTransferSchema=v.object({version:v.enum(['internal-review-basis-v1']),basisKind:v.enum(['INTERNAL_REVIEW']),providerServicePrincipalId:uuid,submissionId:uuid,sourceAttributionId:uuid,reviewerId:uuid,reviewBasisDigest:v.string(64,64,/^[a-f0-9]{64}$/),purpose:v.enum(['INTERNAL_DIRECTORY']),fieldScope:v.array(v.string(120,1,/^[^\u0000]+$/),50,1),validUntil:dateIso});
+export const TalentBasisTransferSchema={json:{oneOf:[ConsentBasisTransferSchema.json,ReviewBasisTransferSchema.json]},parse(value:unknown){return value&&typeof value==='object'&&'version' in value&&value.version==='internal-review-basis-v1'?ReviewBasisTransferSchema.parse(value):ConsentBasisTransferSchema.parse(value);}};
 const source = v.object({ id: uuid, revision, protectionEpoch: revision, data: sourceData,talentBasis:v.optional(TalentBasisTransferSchema) });
 const person = v.object({ id: uuid, sourceId: uuid, revision, data: personData });
 const work = v.object({ id: uuid, sourceId: uuid, revision, data: workData });
@@ -64,7 +67,7 @@ const media = v.object({
     height: v.number(1)
 });
 const relations = v.object({
-    workCredits: v.array(v.object({ workId: uuid, personId: uuid, roleCode: code }), L.relations),
+    workCredits: v.array(v.object({ workId: uuid, personId: uuid, roleCode: code, personRoleId:v.optional(uuid),sourceId:v.optional(uuid),note:v.optional(v.string(1000)) }), L.relations),
     projectParticipants: v.array(v.object({
         projectId: uuid, personId: uuid, roleCode: code,
         state: v.enum(['NOMINATED', 'CONFIRMED', 'ACTUAL'])

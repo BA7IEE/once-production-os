@@ -1,3 +1,4 @@
+import {navigateWorkspace,selectPaged} from './support/workspace-navigation.mjs';
 import assert from 'node:assert/strict';
 export async function verifyIdentityRetentionChoices({owner,prisma,cmd,writeUI,source,json}){
  const schemaVersion='once-talent-v2.0.0',makeSource=async title=>{const id=(await cmd(owner,'POST','/sources',source(title),201)).resourceId;let row=await prisma.sourceRecord.findUniqueOrThrow({where:{id}});if(row.status!=='CONFIRMED'){await cmd(owner,'POST',`/sources/${id}/review`,{expectedRevision:row.revision,basisDescription:'合成身份独立字段核验',validUntil:row.validUntil.toISOString()});row=await prisma.sourceRecord.findUniqueOrThrow({where:{id}});}return row;};
@@ -6,7 +7,7 @@ export async function verifyIdentityRetentionChoices({owner,prisma,cmd,writeUI,s
  const person=()=>prisma.person.findUniqueOrThrow({where:{id:personId}});
  for(const fieldPath of ['displayName','aliases','intro'])await cmd(owner,'POST','/td2/evidence',{schemaVersion,ownerKind:'person',ownerId:personId,fieldPath,expectedRevision:(await person()).revision,sourceId:basis.id,sourceRevision:basis.revision});
  const evidence=await prisma.fieldEvidence.findMany({where:{personId,sourceId:basis.id},orderBy:{id:'asc'}}),before=await person();
- await owner.getByRole('button',{name:/概览/}).click();await owner.getByRole('button',{name:/删除影响评估/}).click();await owner.getByLabel('删除目标类型',{exact:true}).selectOption('SOURCE');await owner.getByLabel('删除目标',{exact:true}).selectOption(origin.id);
+ await navigateWorkspace(owner,'删除任务',{fresh:true});await owner.getByLabel('删除目标类型',{exact:true}).selectOption('SOURCE');await selectPaged(owner,owner,'删除目标',origin.id);
  const preview=await writeUI(owner,'POST','/deletion-requests/preview',()=>owner.getByRole('button',{name:'预览影响',exact:true}).click());assert.equal(preview.complete,true,JSON.stringify(preview.unresolved));
  await owner.getByLabel('申请原因',{exact:true}).fill('合成删除最初来源，按现有完整字段依据保留普通联系人');const requestId=(await writeUI(owner,'POST','/deletion-requests',()=>owner.getByRole('button',{name:'创建 DRAFT 申请',exact:true}).click(),201)).resourceId;
  const panel=owner.locator('.deletion-request-detail');await panel.getByText(requestId,{exact:true}).waitFor();owner.once('dialog',d=>void d.accept());await writeUI(owner,'POST',`/deletion-requests/${requestId}/block`,()=>panel.getByRole('button',{name:'阻断正常使用',exact:true}).click());

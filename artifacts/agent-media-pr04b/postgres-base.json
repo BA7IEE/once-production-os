@@ -1,0 +1,24 @@
+{
+  "status": "POSTGRES_TESTED",
+  "database": [
+    {
+      "version": "PostgreSQL 16.15 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit"
+    }
+  ],
+  "checks": [
+    "response-lost-original-key-one-upload-one-quota",
+    "no-existing-asset-url-or-client-media-reference",
+    "token-rotation-keeps-upload-lease-and-stable-uploader",
+    "new-unbound-machine-upload-staged-owner-isolation",
+    "intake-required-staged-hidden-from-formal-and-business-export",
+    "text-media-review-audit-and-receipt-fault-atomic",
+    "same-asset-role-source-atomic-adoption-formal-scope-replaces-intake",
+    "actual-business-export-adopted-only-machine-provenance-no-live-principal",
+    "proposed-existing-person-never-prebinds-media",
+    "agent-revoke-does-not-revoke-formal-basis-source-withdrawal-does",
+    "postgres-real-principal-xor-fk-null-person-immutable-epoch-origin-receive-hash",
+    "postgres-no-prebinding-or-half-adoption",
+    "actual-json-rebuild-verified-byte-hashes-formal-only-machine-provenance-no-live-auth",
+    "actual-pg16-dump-restore-staged-adopted-preserved-old-auth-not-revived"
+  ]
+}

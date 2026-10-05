@@ -1,3 +1,7 @@
+import {loadAgentMediaAdmission} from './media/agent-admission-config.ts';
+import {loadMediaRetention} from '../../../packages/core/src/media-retention.ts';
+import {loadMediaAdmission} from './media/admission-config.ts';
+import {loadPlaybackLimits} from './media/playback-limits.ts';
 import {loadTalentAuthConfig} from './talent-auth-config.ts';
 import { isAbsolute } from 'node:path';
 import { readFileSync } from 'node:fs';
@@ -35,6 +39,12 @@ export function loadConfig(): Config {
     if (!['true', 'false'].includes(secure))
         throw new Error('COOKIE_SECURE invalid');
     required('DATABASE_URL');
+    const ingestion=process.env.AGENT_INGESTION_ENABLED??'false';
+    if(!['true','false'].includes(ingestion))throw new Error('AGENT_INGESTION_ENABLED invalid');
+    const agentMedia=process.env.AGENT_MEDIA_ENABLED??'false';
+    if(!['true','false'].includes(agentMedia))throw new Error('AGENT_MEDIA_ENABLED invalid');
+    const agentMediaAdmission=loadAgentMediaAdmission(process.env);
+    if(agentMedia==='true'&&(!agentMediaAdmission||ingestion!=='true'))throw new Error('AGENT_MEDIA_ENABLED requires configured machine quotas and ingestion');
     const media = process.env.MEDIA_PROVIDER ?? 'disabled';
     if (!['disabled', 'local', 'cos'].includes(media))
         throw new Error('MEDIA_PROVIDER not supported');
@@ -49,6 +59,6 @@ export function loadConfig(): Config {
     const recoveryEpoch = readFileSync(required('RECOVERY_EPOCH_FILE'), 'utf8').trim();
     if (!/^[A-Za-z0-9_-]{32,128}$/.test(recoveryEpoch))
         throw new Error('RECOVERY_EPOCH_FILE must contain a 32-128 character base64url-style epoch');
-    return { talentAuth:loadTalentAuthConfig(environment), mediaEnabled: media !== 'disabled', origin: required('APP_ORIGIN'), secureCookies: secure === 'true', environment: environment as Config['environment'], accessMode: accessMode as Config['accessMode'], dataEgressMode: egress as Config['dataEgressMode'], dataCleanupMode: cleanup as Config['dataCleanupMode'], dataMergeMode: merge as Config['dataMergeMode'],
+    return { agentMediaEnabled:agentMedia==='true',agentMediaAdmission,ingestionEnabled:ingestion==='true', mediaRetention:loadMediaRetention(process.env), mediaAdmission:loadMediaAdmission(process.env), mediaPlayback:loadPlaybackLimits(process.env), talentAuth:loadTalentAuthConfig(environment), mediaEnabled: media !== 'disabled', origin: required('APP_ORIGIN'), secureCookies: secure === 'true', environment: environment as Config['environment'], accessMode: accessMode as Config['accessMode'], dataEgressMode: egress as Config['dataEgressMode'], dataCleanupMode: cleanup as Config['dataCleanupMode'], dataMergeMode: merge as Config['dataMergeMode'],
         contactKey: key('CONTACT_KEY_FILE'), csrfKey: key('CSRF_KEY_FILE'), recoveryEpoch };
 }

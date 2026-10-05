@@ -1,0 +1,86 @@
+{
+  "status": "IMPLEMENTED_LOCAL_TESTED_AWAITING_REVIEW",
+  "baseline": "280568c36cccf5a724515b1b57f32c1b0347b320",
+  "pr": 31,
+  "draft": true,
+  "merged": false,
+  "deployed": false,
+  "frozen": false,
+  "nextSliceStarted": false,
+  "core": {
+    "pass": 643,
+    "fail": 0,
+    "log": "logs/pr03df-core-full-final.txt",
+    "focusedFinal": "logs/pr03df-core-focused-final.txt"
+  },
+  "postgres": {
+    "programs": 60,
+    "tests": 150,
+    "fail": 0,
+    "localVersion": "14.19",
+    "ciVersion": "16",
+    "log": "logs/pr03df-fullpg-second.txt",
+    "finalCounterexamples": "logs/pr03df-final-pg-cases-results.json"
+  },
+  "browser": {
+    "groups": 11,
+    "failed": 0,
+    "results": "logs/pr03df-browser-results.json",
+    "finalAffectedReruns": [
+      "work-cases",
+      "production"
+    ],
+    "finalResults": "logs/pr03df-final-browser-results.json",
+    "realChrome": true,
+    "widths": [
+      360,
+      390,
+      430
+    ],
+    "realPostgres": true,
+    "asyncMediaWorker": true,
+    "workConsentScreenshots": [
+      "work-consent-360.png",
+      "work-consent-390.png",
+      "work-consent-430.png"
+    ],
+    "legacyUpgradeScreenshot": "legacy-credit-explicit-upgrade.png"
+  },
+  "contractRoutes": 260,
+  "staticChecks": 12,
+  "checkpoint": 17,
+  "schemaChanged": false,
+  "migrationAdded": false,
+  "immutableMigrations": "1–66",
+  "fingerprints": "frozen-migrations.json",
+  "restore": "restore.json",
+  "ci": {
+    "status": "VERIFY_EXACT_FINAL_HEAD_EXTERNALLY",
+    "record": "Final commit SHA, Actions run and conclusion are recorded in PR #31 description and delivery reply; no reuse of baseline CI."
+  },
+  "boundaries": {
+    "PROVIDER_VERIFIED": "NOT_RUN",
+    "COS_VERIFIED": "NOT_RUN",
+    "physicalPhone": "NOT_RUN",
+    "productionMigration": "NOT_RUN",
+    "deployed": false
+  },
+  "failedAttempts": [
+    {
+      "log": "logs/pr03df-core-first.txt",
+      "cause": "New Work consent not yet recognized by media adoption/upload checks; corrected capability compatibility."
+    },
+    {
+      "log": "logs/pr03df-core-second.txt",
+      "cause": "Old JSON talent basis scope bound rejected new Work field; added explicit v2 transfer and rebuild validation."
+    },
+    {
+      "log": "logs/pr03df-fullpg-first.txt",
+      "cause": "Fresh isolated DB initially unmigrated; applied all 66 migrations before rerun. No data reset."
+    },
+    {
+      "log": "logs/browser-setup-failure.txt",
+      "cause": "Browser setup helper used prisma.source instead of sourceRecord; fixed helper and reran full journey."
+    }
+  ]
+}

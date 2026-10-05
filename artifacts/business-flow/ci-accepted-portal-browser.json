@@ -1,0 +1,20 @@
+{
+  "status": "BROWSER_TESTED",
+  "evidenceMode": "CI_STEP_LOG_READBACK",
+  "run": 37136370653,
+  "head": "b071fa58bdccdee6ec0252e27643e3c6824cbc40",
+  "checks": [
+    "real-422-rejection-unlocks-correction-and-clears-only-uncommitted-marker",
+    "360px-invitation-auth-claim-server-draft-refresh-submit-review-same-person",
+    "known-write-refresh-network-fault-only-rereads-current-profile",
+    "390px-invitation-auth-claim-server-draft-refresh-submit-review-same-person",
+    "lost-draft-response-reload-queries-owned-receipt-and-does-not-create-again",
+    "430px-invitation-auth-claim-server-draft-refresh-submit-review-same-person",
+    "two-tabs-account-switch-clears-old-view-and-rejects-old-read-write",
+    "enroll-unbound-own-draft-no-fake-person-until-explicit-atomic-approval",
+    "structured-secret-leak-guard-OTP-receipt-audit-log-and-provider-secrets",
+    "real-https-origin-cookies-current-account-read-header-and-command-replay"
+  ],
+  "providerVerified": "NOT_RUN",
+  "authenticationProvider": "controlled local HTTP gateway; not real provider verification"
+}

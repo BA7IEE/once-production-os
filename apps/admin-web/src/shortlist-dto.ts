@@ -62,6 +62,8 @@ export interface ShortlistAssetSelection {
     };
 }
 export interface ShortlistAvailableItem {
+    personRoleId?: string | null;
+    roleCode?: string | null;
     id: string;
     position: number;
     unavailable: false;

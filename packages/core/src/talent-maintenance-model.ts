@@ -1,3 +1,4 @@
+import {AppError} from './errors.ts';
 import type {Base} from './model.ts';
 export interface TalentInvitation extends Base {
  purpose:string;
@@ -64,12 +65,22 @@ export interface TalentConsent extends Base {
  validUntil:string;
  revokedAt:string|null;
 }
-export interface TalentSubmission extends Base {
- talentAccountId:string;
+export interface StoredSubmission extends Base {
+ principalKind?:'TALENT'|'MACHINE';
+ servicePrincipalId?:string|null;
+ externalSubmissionKey?:string|null;
+ proposedPersonId?:string|null;
+ proposedTargetBaseline?:Record<string,unknown>|null;
+ servicePrincipalAuthorizationEpoch?:number|null;
+ intakeScopeRevision?:number|null;
+ maintainerId?:string|null;
+ sourceDeclaration?:Record<string,unknown>|null;
+ reviewTargetDecision?:string|null;
+ talentAccountId:string|null;
  personId:string|null;
  claimId:string|null;
  grantId:string|null;
- consentId:string;
+ consentId:string|null;
  scopeId:string;
  schemaVersion:string;
  state:string;
@@ -83,6 +94,9 @@ export interface TalentSubmission extends Base {
  protectionEpoch:number;
  recoveryEpoch:string;
 }
+export interface TalentSubmission extends StoredSubmission {talentAccountId:string;consentId:string;principalKind?:'TALENT';}
+export interface MachineSubmission extends StoredSubmission {principalKind:'MACHINE';talentAccountId:null;consentId:null;claimId:null;grantId:null;servicePrincipalId:string;externalSubmissionKey:string;servicePrincipalAuthorizationEpoch:number;intakeScopeRevision:number;maintainerId:string;sourceDeclaration:Record<string,unknown>;}
+export function talentSubmission(row:StoredSubmission):TalentSubmission {if(row.principalKind==='MACHINE'||!row.talentAccountId||!row.consentId)throw new AppError(404,'NOT_FOUND','内容不可访问');return row as TalentSubmission;}
 export interface TalentSubmissionItem extends Base {
  submissionId:string;
  clientItemKey:string;
@@ -96,6 +110,8 @@ export interface TalentSubmissionItem extends Base {
  appliedId:string|null;
 }
 export interface SourceAttribution extends Base {
+ principalKind?:'TALENT'|'MACHINE';
+ servicePrincipalId?:string|null;
  sourceId:string;
  submissionId:string|null;
  talentAccountId:string|null;
@@ -105,23 +121,29 @@ export interface SourceAttribution extends Base {
  importedBasis?:Record<string,unknown>|null;
 }
 export interface SourceUseBasis extends Base {
+ basisKind?:'TALENT_CONSENT'|'INTERNAL_REVIEW';
+ submissionId?:string|null;
+ sourceAttributionId?:string|null;
+ servicePrincipalId?:string|null;
+ reviewerId?:string|null;
+ reviewBasis?:string|null;
  sourceId:string;
  consentId:string|null;
- consentRevision:number;
+ consentRevision:number|null;
  purpose:string;
  fieldScope:string[];
  state:string;
  validUntil:string;
  importedBasis?:Record<string,unknown>|null;
 }
-export interface Exposure {kind:string;targetId:string;field:string;valueDigest:string;sourceId:string;sourceRevision:number;}
+export interface Exposure {consentId?:string;kind:string;targetId:string;field:string;valueDigest:string;sourceId:string;sourceRevision:number;approvedById?:string;approvedAt?:string;approvalBasis?:string;}
 export interface TalentMaintenanceTables {
 talentInvitations:TalentInvitation;
 talentInvitationContexts:TalentInvitationContext;
 talentClaims:TalentClaim;
 talentAccessGrants:TalentAccessGrant;
 talentConsents:TalentConsent;
-talentSubmissions:TalentSubmission;
+talentSubmissions:StoredSubmission;
 talentSubmissionItems:TalentSubmissionItem;
 sourceAttributions:SourceAttribution;
 sourceUseBases:SourceUseBasis;

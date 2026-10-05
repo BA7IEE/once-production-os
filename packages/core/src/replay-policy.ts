@@ -1,3 +1,4 @@
+import {Ingestion} from './ingestion.ts';
 import {TalentMaintenance} from './talent-maintenance.ts';
 import type {CommandPrincipal} from './talent-auth-model.ts';
 import {invariant} from './errors.ts';
@@ -14,6 +15,7 @@ import { workFor, projectFor } from './production-policy.ts';
 import { uploadFor, assetFor } from './media.ts';
 import type { Actor, Clock, CommandReceipt, Config } from './model.ts';
 import { profileAccess } from './handoff-policy.ts';
+import {sourceReviewParticipant} from './source-review.ts';
 import { handoffParticipant } from './handoffs.ts';
 import type { Tx } from './store.ts';
 import { workspaceRow } from './helpers.ts';
@@ -21,19 +23,22 @@ import { missing } from './errors.ts';
 import { personFor, sourceFor, sourceCurrent, requireScope, requirePermission } from './policy.ts';
 /** Domain authorization for returning minimal command receipts. Not part of the generic receipt engine. */
 export async function authorizeReceipt(tx: Tx, actor: CommandPrincipal, receipt: CommandReceipt, clock: Clock, config?: Config): Promise<void> {
+    if(actor.actorKind==='MACHINE'&&['upload','asset'].includes(receipt.resourceKind)){if(!config)missing();const u=await uploadFor(tx,actor,receipt.resourceId);if(!u.submissionId)missing();await new Ingestion(clock,config).access(tx,actor,u.submissionId);return;}
     if(actor.actorKind==='TALENT'){
         const account=await tx.get('talentAccounts',actor.talentAccountId);
         invariant(receipt.principalKind==='TALENT'&&receipt.talentAccountId===actor.talentAccountId&&receipt.workspaceId===actor.workspaceId&&account?.status==='ACTIVE'&&account.sessionEpoch===actor.sessionEpoch,'REPLAY_FORBIDDEN','当前账号不能读取此回执',403);
         if(receipt.resourceKind==='talentAccount'){invariant(receipt.resourceId===actor.talentAccountId,'REPLAY_FORBIDDEN','不可访问',403);return;}
         if(!config)missing();const m=new TalentMaintenance(clock,config);
+        if(receipt.resourceKind==='upload'||receipt.resourceKind==='asset'){const u=await uploadFor(tx,actor,receipt.resourceId);if(!u.submissionId)missing();await m.submissionAccess(tx,actor,u.submissionId,true);return;}
         if(receipt.resourceKind==='talentSubmission'){await m.submissionAccess(tx,actor,receipt.resourceId);return;}
         if(receipt.resourceKind==='talentClaim'){const c=await m.ownClaim(tx,actor,receipt.resourceId);if(c.state==='APPROVED'){const g=(await tx.find('talentAccessGrants',{workspaceId:actor.workspaceId,claimId:c.id}))[0];if(!g)missing();await m.grant(tx,actor.workspaceId,actor.talentAccountId,g.id);}return;}
         if(receipt.resourceKind==='talentConsent'){const c=await workspaceRow(tx,'talentConsents',receipt.resourceId,actor.workspaceId);if(!c||c.talentAccountId!==actor.talentAccountId)missing();return;}missing();
     }
     const id = receipt.resourceId;
     switch (receipt.resourceKind) {
+        case 'mediaPurge':requirePermission(actor,'members.manage');invariant(actor.actorKind!=='MACHINE'&&id===actor.workspaceId,'REPLAY_FORBIDDEN','不可访问',403);return;
         case 'talentInvitation':if(!config)missing();await new TalentMaintenance(clock,config).invitation(tx,actor,id);return;
-        case 'talentSubmission':if(!config)missing();await new TalentMaintenance(clock,config).internalSubmission(tx,actor,id);return;
+        case 'talentSubmission':{if(!config)missing();const s=await workspaceRow(tx,'talentSubmissions',id,actor.workspaceId);if(s?.principalKind==='MACHINE'){const ingestion=new Ingestion(clock,config);if(actor.actorKind!=='MACHINE'&&receipt.operation==='ingestionReview.review'&&s.reviewTargetDecision==='REJECT')await ingestion.reviewAccess(tx,actor,id);else await ingestion.access(tx,actor,id,actor.actorKind!=='MACHINE');if(receipt.operation==='ingestionReview.review'&&s.personId)await td2PersonFor(tx,actor,s.personId);}else await new TalentMaintenance(clock,config).internalSubmission(tx,actor,id);return;}
         case 'talentClaim':{requirePermission(actor,'talent.review');const c=await workspaceRow(tx,'talentClaims',id,actor.workspaceId);if(!c)missing();await requireScope(tx,actor,c.scopeId);if(c.targetPersonId)await td2PersonFor(tx,actor,c.targetPersonId);return;}
         case 'talentGrant':{requirePermission(actor,'talent.review');const g=await workspaceRow(tx,'talentAccessGrants',id,actor.workspaceId);if(!g)missing();await td2PersonFor(tx,actor,g.personId);return;}
         case 'talentConsent':missing();
@@ -95,6 +100,8 @@ export async function authorizeReceipt(tx: Tx, actor: CommandPrincipal, receipt:
         case 'asset':
             await assetFor(tx, actor, id, clock);
             return;
+        case 'sourceReview':
+            await sourceReviewParticipant(tx,actor,id);return;
         case 'handoff':
             await handoffParticipant(tx, actor, id);
             return;
@@ -128,7 +135,7 @@ export async function authorizeReceipt(tx: Tx, actor: CommandPrincipal, receipt:
             return;
         case 'import': {
             const batch = await workspaceRow(tx, 'imports', id, actor.workspaceId);
-            if (!batch || batch.actorId !== actor.membershipId || Date.parse(batch.expiresAt) <= clock.now().getTime())
+            if (!batch || batch.actorId !== actor.membershipId || receipt.operation!=='import.upgrade'&&Date.parse(batch.expiresAt) <= clock.now().getTime())
                 missing();
             await sourceFor(tx, actor, batch.sourceId, clock);
             return;

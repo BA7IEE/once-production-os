@@ -23,7 +23,15 @@ export class DeletionFinalizer {
         } : null;
         // A journal failure must not enter the failure-state mutation path.
         if (intent) await this.safetyIntent!.writeAhead(intent);
+        let leaseFailure: unknown;
+        let renewal=Promise.resolve();
+        const timer=setInterval(()=>{
+            renewal=renewal.then(async()=>{if(!leaseFailure)await this.core.deletionFinalization.heartbeat(claim);})
+                .catch(error=>{leaseFailure=error;});
+        },10000);
+        const fence=async()=>{await renewal;if(leaseFailure)throw leaseFailure;await this.core.deletionFinalization.heartbeat(claim);};
         try {
+            await fence();
             const tasks = await this.core.deletionFinalization.mediaTasks(claim);
             if (tasks.length && !this.provider) {
                 await this.core.deletionFinalization.fail(claim, 'MEDIA_PROVIDER_UNAVAILABLE');
@@ -32,7 +40,10 @@ export class DeletionFinalizer {
             }
             for (const task of tasks) {
                 if (signal.aborted) return true;
-                await this.provider!.purge(task.mediaId);
+                const already=await this.core.store.transaction(tx=>tx.get('uploads',task.mediaId));
+                await fence();
+                if(!already?.purgedAt)await this.provider!.purge(task.mediaId);
+                await fence();
                 await this.core.deletionFinalization.completeMediaPurge(claim, task.mediaId);
             }
             if (!signal.aborted) {
@@ -51,6 +62,7 @@ export class DeletionFinalizer {
                 // Never manufacture NO_COMMIT evidence from that exception.
             }
         }
+        finally { clearInterval(timer); await renewal; }
         return true;
     }
 }

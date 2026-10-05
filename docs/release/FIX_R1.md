@@ -1,3 +1,5 @@
+> 2026-10-04 当前修复见 [业务流修复交付](BUSINESS_FLOW_FIXES.md)。新增迁移75已在隔离PG16升级和空库安装实跑，两组真实页面及本轮完整CI通过；未合并、未部署。以下R1记录只保留作历史证据。
+
 # Review R1 修复增量
 
 - 目标基线：`BA7IEE/once-production-os@44aac4d93f23bb1f4c69e960a4c82d01b8b0d9dc`。

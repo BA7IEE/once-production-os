@@ -1,0 +1,19 @@
+PASS real MACHINE text Role JPEG MP4 PDF asynchronous worker READY/STAGED structure candidates
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: MINIMUM_IDENTITY_REQUIRED
+
+422 !== 200
+
+    at file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/acceptance/browser-agent-handoff.mjs:36:862 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 422,
+  expected: 200,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.3

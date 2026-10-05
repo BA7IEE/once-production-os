@@ -1,0 +1,16 @@
+{
+  "status": "DB_TESTED",
+  "evidenceMode": "CI_STEP_LOG_READBACK",
+  "run": 37136370653,
+  "head": "b071fa58bdccdee6ec0252e27643e3c6824cbc40",
+  "baseline": 74,
+  "migrations": 75,
+  "zeroResidue": {
+    "baseline": "74",
+    "containers": 0,
+    "processes": 0,
+    "networks": 0,
+    "temporaryVolumes": 0,
+    "temporaryDirectories": 0
+  }
+}

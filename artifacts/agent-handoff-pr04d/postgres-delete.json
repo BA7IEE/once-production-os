@@ -1,0 +1,11 @@
+{
+  "status": "POSTGRES_TESTED",
+  "migrationCount": [
+    {
+      "count": 74
+    }
+  ],
+  "checks": [
+    "Person-deletion-immediate-Portal-and-formal-media-block-without-early-byte-quota-release"
+  ]
+}

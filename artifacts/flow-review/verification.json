@@ -1,0 +1,317 @@
+{
+  "baseline": "bb8643d147a92c5611af2801a86bb640923958c0",
+  "branch": "codex/business-flow-review-fixes",
+  "phase": "DEVELOPMENT_ACCEPTANCE_COMPLETE",
+  "local": {
+    "status": "CORE_MEMORY_TESTED",
+    "uniqueTargetedTests": 100,
+    "contractRoutes": 306,
+    "staticChecks": 12,
+    "fullTypes": "NOT_RUN",
+    "build": "NOT_RUN",
+    "postgres": "NOT_RUN",
+    "browser": "NOT_RUN",
+    "resourceReason": "macOS swap above 4096 MiB gate",
+    "lifecycleSequenceTests": "4/4 PASS (simulated orchestration only)"
+  },
+  "ci": {
+    "runId": 37264594297,
+    "url": "https://github.com/BA7IEE/once-production-os/actions/runs/37264594297",
+    "head": "01320cc3e165a1cc24a6ffeaf00d0a52a913639c",
+    "conclusion": "SUCCESS",
+    "jobs": [
+      {
+        "name": "core",
+        "id": 111618608144,
+        "conclusion": "success"
+      },
+      {
+        "name": "acceptance",
+        "id": 111618608405,
+        "conclusion": "success"
+      }
+    ],
+    "fullTypes": "PASS",
+    "build": "PASS",
+    "contractRoutes": 306,
+    "staticChecks": 12,
+    "core": {
+      "status": "CORE_MEMORY_TESTED",
+      "tests": 806,
+      "passed": 806,
+      "skipped": 0
+    },
+    "lifecycle": {
+      "tests": 29,
+      "passed": 29,
+      "dockerFaultMatrix": "SIMULATED_ONLY"
+    },
+    "postgres": {
+      "status": "DB_TESTED",
+      "groups": [
+        "admin-ux",
+        "identity",
+        "rejection"
+      ],
+      "freshMigrations": 75
+    },
+    "browser": {
+      "status": "BROWSER_TESTED",
+      "groups": [
+        "admin-ux",
+        "business-flow",
+        "talent-maintenance",
+        "agent-ingestion",
+        "ai-business",
+        "maintenance-pagination"
+      ],
+      "portalNotificationGateway": "CONTROLLED_HTTP_GATEWAY",
+      "mediaPolling": "CONTROLLED_PROCESSING_PROJECTION",
+      "aiProvider": "CONTROLLED_TEST_ADAPTER"
+    },
+    "resources": {
+      "evidence": "CI_ZERO_RESIDUE_OUTPUT_READBACK",
+      "ownedRuns": [
+        {
+          "containers": 0,
+          "processes": 0,
+          "networks": 0,
+          "temporaryVolumes": 0,
+          "baseline": "admin-ux-postgres"
+        },
+        {
+          "baseline": "identity",
+          "containers": 0,
+          "processes": 0,
+          "networks": 0,
+          "temporaryVolumes": 0
+        },
+        {
+          "baseline": "rejection",
+          "containers": 0,
+          "processes": 0,
+          "networks": 0,
+          "temporaryVolumes": 0
+        },
+        {
+          "baseline": "admin-ux",
+          "containers": 0,
+          "processes": 0,
+          "networks": 0,
+          "temporaryVolumes": 0,
+          "temporaryDirectories": 0,
+          "unresolvedBrowserLaunches": 0
+        },
+        {
+          "baseline": "business-flow",
+          "containers": 0,
+          "processes": 0,
+          "networks": 0,
+          "temporaryVolumes": 0,
+          "temporaryDirectories": 0,
+          "unresolvedBrowserLaunches": 0
+        },
+        {
+          "baseline": "talent-maintenance",
+          "containers": 0,
+          "processes": 0,
+          "networks": 0,
+          "temporaryVolumes": 0,
+          "temporaryDirectories": 0,
+          "unresolvedBrowserLaunches": 0
+        },
+        {
+          "baseline": "agent-ingestion",
+          "containers": 0,
+          "processes": 0,
+          "networks": 0,
+          "temporaryVolumes": 0,
+          "temporaryDirectories": 0,
+          "unresolvedBrowserLaunches": 0
+        },
+        {
+          "baseline": "ai-business",
+          "containers": 0,
+          "processes": 0,
+          "networks": 0,
+          "temporaryVolumes": 0,
+          "temporaryDirectories": 0,
+          "unresolvedBrowserLaunches": 0
+        },
+        {
+          "baseline": "maintenance-pagination",
+          "containers": 0,
+          "processes": 0,
+          "networks": 0,
+          "temporaryVolumes": 0,
+          "temporaryDirectories": 0,
+          "unresolvedBrowserLaunches": 0
+        }
+      ],
+      "realOwnedRunCount": 9
+    },
+    "evidence": {
+      "core": {
+        "mode": "CI_ARTIFACT_READBACK",
+        "artifactId": 11325802656,
+        "publishedDigest": "sha256:ed9d6fa15fe4e9b0d49bf2a11dbf6b11e62f23d714da821f83693ffbba0a45ed",
+        "rawReportSha256": "2d0aa25f2d39a0c1f3be2538f53de158082527e04cc638f0da6b092c40bfc6be"
+      },
+      "acceptance": {
+        "mode": "CI_STEP_LOG_READBACK",
+        "jobId": 111618608405,
+        "fullLogSha256": "568d63f58bd5aab0e1d14b505f259fe7ba63144394dbb5dbc5bfbe02cca35bfe",
+        "artifactId": 11325499480,
+        "publishedDigest": "sha256:f828c85ae9f62c9c8d0a3f510c1051631c635dd1d936ec884521990748eaa083",
+        "artifactDownload": "TWO_BOUNDED_TIMEOUTS",
+        "rawJsonScreenshotsVideoCurrentHead": "NOT_DOWNLOADED",
+        "priorRunArtifactReadback": 37263968578
+      }
+    }
+  },
+  "providerVerified": "NOT_RUN",
+  "deployed": false,
+  "ciAttempts": [
+    {
+      "runId": 37262703092,
+      "head": "dd7bbe3988f7263dbc37e656198ae17ceb0c2ed1",
+      "acceptance": "FAIL",
+      "passed": [
+        "contract",
+        "static",
+        "build",
+        "lifecycle",
+        "admin-ux PostgreSQL",
+        "identity PostgreSQL"
+      ],
+      "failure": "Rejection fixture attempted to alter frozen submission recoveryEpoch. Fixed by test-only read projection; DB immutable trigger assertion added.",
+      "core": "806/806 PASS"
+    },
+    {
+      "runId": 37263140202,
+      "head": "3f058d552edd4612d25f765046b21d71c27dc96f",
+      "acceptance": "FAIL",
+      "passed": [
+        "contract",
+        "static",
+        "build",
+        "lifecycle",
+        "all three PostgreSQL groups"
+      ],
+      "failure": "Existing contact edit/remove was blocked by a required source picker used only for adding a new row. Picker made optional; add still requires a selected source and domain validates every row.",
+      "core": "806/806 PASS"
+    },
+    {
+      "runId": 37263507108,
+      "head": "967f5b0a22b2f4ea2a73eed9ae079f6577f8b1a1",
+      "acceptance": "FAIL",
+      "passed": [
+        "contract",
+        "static",
+        "build",
+        "lifecycle",
+        "all three PostgreSQL groups",
+        "admin-ux browser including contacts and import recovery"
+      ],
+      "failure": "Old business-flow test used partial label matching, which now resolves the paged selector, search input and select. Changed to exact labels; original workflow assertions retained.",
+      "core": "806/806 PASS"
+    },
+    {
+      "runId": 37263968578,
+      "head": "8f8fefe6bfd8c074841237f75886e098c30ec68e",
+      "core": "806/806 PASS",
+      "acceptance": "FAIL",
+      "passed": [
+        "contract",
+        "static",
+        "build",
+        "29 lifecycle checks",
+        "all three PostgreSQL groups",
+        "admin-ux browser",
+        "business-flow browser",
+        "talent-maintenance browser",
+        "ai-business browser including typed identity/restore/105-grant pagination",
+        "maintenance export final-page/search/cross-page request"
+      ],
+      "failure": "Agent rejection fixture used a Chinese externalSubmissionKey, rejected by the unchanged ASCII contract. Maintenance test mistook an open details empty attribute as closed and toggled the menu shut. Fixed fixture identifier and explicit attribute presence; original domain/UI assertions retained.",
+      "coreEvidence": "CI_ARTIFACT_READBACK",
+      "resourceCleanups": "CI_ARTIFACT_READBACK: 9 owned suites reached ZERO_RESIDUE; 7 PASS, 2 FAIL. Simulated cleanup-failure fixtures kept separate."
+    },
+    {
+      "runId": 37264594297,
+      "head": "01320cc3e165a1cc24a6ffeaf00d0a52a913639c",
+      "core": "806/806 PASS",
+      "acceptance": "PASS",
+      "postgresGroups": 3,
+      "browserGroups": 6,
+      "lifecycle": "29/29 PASS",
+      "realOwnedRunsZeroResidue": 9
+    }
+  ],
+  "validatedCodeHead": "01320cc3e165a1cc24a6ffeaf00d0a52a913639c",
+  "sourceFingerprints": {
+    ".github/workflows/flow-review.yml": "76a51f6a57d477b11121877de18bdbd1deefa93120df6fdbe6cba597099c0d43",
+    "apps/admin-web/src/ai-ui.tsx": "d4d667d58c347007e8beab038f26c54755b1e21415100cda992f7a309efa2ada",
+    "apps/admin-web/src/deletion-ui.tsx": "c50e6662e382b21b859d7663c4ccd85504a7380325377435089338e358954322",
+    "apps/admin-web/src/dto.ts": "926e6f152015c398664aa46ac949881267737b0cb52ce3d010b0667115c1f178",
+    "apps/admin-web/src/export-ui.tsx": "0f6e62c7d46be7022a32fb7ba6eaa391fd6e6b1983d75c880125fb711d11dd0e",
+    "apps/admin-web/src/import-command-state.ts": "b1a8483aab35c891945ae24ffec009afdca4e252ef17440d3a40c4836cc1bbd4",
+    "apps/admin-web/src/ingestion-review-ui.tsx": "4b68362a621428a7aace78a0b3fb73b7fb444fc811f2456f791d152ea3462e4d",
+    "apps/admin-web/src/main.tsx": "215ea6d38d0bc46e9dd247a9d966a6a9765d77a37be9ffa6bef540edbeda2a3b",
+    "apps/admin-web/src/paged-picker.tsx": "25e034c46f7db254792481ea46ded7e9b95ac3bf7ce5f4e9dec16fe226cb2b97",
+    "apps/admin-web/src/portal-draft-state.ts": "eba007a6ba344a30fe378e748fc5aa0ec5c619ae849ec081bb7967713b62ad6c",
+    "apps/admin-web/src/table-import.tsx": "bc0ca351abd71d82e7542377af4db8824d3b9f1882d44136da9e6e36ea3fa0ef",
+    "apps/admin-web/src/talent-contact-editor.tsx": "da1f83d61d671a8c207d5e789fb8c42f609473c851fd0e7ebb2df39973bf775b",
+    "apps/admin-web/src/talent-directory-detail.tsx": "d9e090b3f14117cdc408167526df7b89395842e32b6aae65991aa20cbb40c4b0",
+    "apps/admin-web/src/talent-edit.tsx": "09a6fa66ab77dae52bf84adebe787451a4f5daae89302648b6ed66b447c72240",
+    "apps/admin-web/src/talent-evidence.tsx": "6a185ad23a435d8637c7650af7bd229093ec495f44e145206c6f9243e1860e32",
+    "apps/admin-web/src/talent-maintenance-ui.tsx": "f05ff92c798cb337277a424a8a1fff81b56e12d696bcba03864e0ba46d8b6ba7",
+    "apps/admin-web/src/talent-media-staging.tsx": "222de953da3525430e3b588154cd7aeb5718d2228ac1415d1f9ccb6b428a2a12",
+    "apps/admin-web/src/talent-ui.tsx": "75d54562b438280262ea090ac2607fcb5a9a37bfadc6bb8e4b40a7b611209029",
+    "packages/core/src/ai-business.ts": "7d0f46b42c1acc839df5b0a60db2a9c3e1e003a4267b56707e77d331a748cd05",
+    "packages/core/src/api.ts": "1da295c0a3608bb35c2d8247b5835819e0a7caae734fc2d285e52895d9664a14",
+    "packages/core/src/ingestion.ts": "ad369ce88af938465cdb9729743ad718ee0dcc2bce1c2910970f52a736fa89c4",
+    "packages/core/src/media-adoption.ts": "e4f22ba76334e099eda6aac1e87a0993522c46cae21001700119c083a655c60a",
+    "packages/core/src/replay-policy.ts": "4a86cc5a887faa8c93c3c6bff700c2fa717fedf8a22ab74790c93bfcc49360e4",
+    "packages/core/src/review-workspace.ts": "f9a4d0ba3efa13c0c70a63102e4e8c2fa54165e2665f246a2f4e29b88a227a40",
+    "packages/core/src/talent-v2.ts": "88b0fcf3c19db629609fb08f582b8b9e1e50fcdb7ab9491a1577898ea0a7c331",
+    "packages/core/src/talent.ts": "0dec24f6f54b9aa64f5681cb48f259b7ca4e2e99b59b24525aa1283247d0e915",
+    "scripts/test-postgres-owned.mjs": "86505e50032e3fe8a0e890eafa8988161210bce49f056ce2993849ecd08cc9dc",
+    "tests/acceptance/ai-business.mjs": "58694c161b08608e2ba4ba158ecd1ff55e3c0140f88dd6bf67538c8fea7902ea",
+    "tests/acceptance/browser-admin-ux.mjs": "25ad3b0571267df247cbb54d081972101a332a864f13f7bc1735cd519e4a2765",
+    "tests/acceptance/browser-agent-ingestion.mjs": "a14556f093b493908552296a7c04f056f58303d9502b59c1cace17ed5b8b5366",
+    "tests/acceptance/browser-ai-business.mjs": "e206b897f58ad9ea1668306d3bcf23e1ffbb26f902dea78706ae1198075e3cd9",
+    "tests/acceptance/browser-business-flow.mjs": "07adba882280b1beddb83784edcbdfbb7a7e063bb106f3dbafbb45ee751393de",
+    "tests/acceptance/browser-maintenance-pagination.mjs": "e740948430d0c537b307e0d6fb2e46d3cb7425859621afa057351d8e71c992a4",
+    "tests/acceptance/browser-talent-maintenance.mjs": "8c1c15c813903127fc0310176f029c905d0a184ce9c3c040d79907fd7a5747b1",
+    "tests/acceptance/maintenance-pagination-ai.mjs": "73292b89e4ce08f0241fb8d5ea873b072514a8714fd4d11f08962055f4723ad2",
+    "tests/core/business-flow-identity.test.ts": "8b46caea3aef2a59872f9d24e664c69c2529981f0789d021f527ab6214157bf6",
+    "tests/core/import-command-state.test.ts": "b780a8cfb40e24b3016cef1a9d2116bb65ace90fdd511721b1eba1cefe9ab33c",
+    "tests/core/ingestion-rejection.test.ts": "6ede9305195cd9c654a4e7157142a36f99942b11b00b502123c1bd9a4b4b33e1",
+    "tests/core/maintenance-pagination.test.ts": "c62b3fa5a13c115eb4234e787c187235dc78c5add85473f8c5dcbe69e73051b3",
+    "tests/core/portal-draft-state.test.ts": "415c343da1ee2e5b28052cea3ee5663c9cd55bd9d3a565b9cf6cddc36fe59b04",
+    "tests/lifecycle/owned-sequence.test.mjs": "d2409776909ffb9446280ec8ccbb8c859beb565d99c55b900582234ce1127456",
+    "tests/postgres/business-flow-identity.test.ts": "62abc9af700cf5623b4df35ec8dfbb8a43e3ddd3ecf14983856c420258e19408",
+    "tests/postgres/business-flow-rejection.test.ts": "891174011f1a1cfff05c4c9fc8be52e9287219910918e4e7c6e8dec865428a6b",
+    "tests/support/agent-media.ts": "2bebcc8879fdebe20aa5c31492a2175b329085de0af33469270f693b95c6c87f",
+    "tests/support/business-flow-identity.ts": "84f67958ada81fb9aefd5604d8cd2acc901488ede2d794fcf38c98ec8c67a67d",
+    "tests/support/ingestion-rejection.ts": "0371b890367e6cb29552b72e897b0c59a1188d7b1733e06c39eb4ec8ce569d37"
+  },
+  "finalHeadBinding": "Final delivery changes documentation/evidence/manifest only. Validate these source fingerprints; latest delivery head CI recorded in PR body and final reply.",
+  "frozenBaseline": {
+    "schemaMigrationsDependencies": "UNCHANGED_FROM_PR37",
+    "migrations": "1-75"
+  },
+  "notRun": [
+    "REAL_AI_PROVIDER",
+    "REAL_NOTIFICATION_PROVIDER",
+    "COS",
+    "PHYSICAL_MOBILE_DEVICE",
+    "HUMAN_NO_PROMPT_ACCEPTANCE",
+    "PRODUCTION_MIGRATION",
+    "PRODUCTION_IMAGE",
+    "DEPLOYMENT",
+    "RECOVERY_DRILL",
+    "REAL_DOCKER_FAILURE_MATRIX"
+  ]
+}

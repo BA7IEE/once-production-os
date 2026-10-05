@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 /** DEV-09A real PostgreSQL recovery quarantine acceptance.
  * Runs only against a fresh migrated once_restore_* database created by verify-postgres.mjs. */
 import { test } from 'node:test';
@@ -39,7 +40,7 @@ test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch appro
     const url = restoreUrl();
     const client = new PrismaClient({ datasources: { db: { url } }, log: [] });
     const store = new PrismaStore(client);
-    const tmp = mkdtempSync(join(tmpdir(), 'once-recovery-pg-'));
+    const tmp = registeredTemp().path;
     const oldEpoch = 'old_restore_epoch_20260926_aaaaaaaaaaaaaaaaaaaa';
     const newEpoch = 'new_restore_epoch_20260926_bbbbbbbbbbbbbbbbbbbb';
     const clock = new FakeClock();

@@ -1,3 +1,4 @@
+import {formalMediaSource} from './media-ownership.ts';
 import {authorizePartyCleanup} from './project-parties.ts';
 import {affectedAi,aiErasureSnapshot,validateAiErasure} from './ai-maintenance.ts';
 import {affectedLocales,localeErasureSnapshot,validateLocaleErasurePlan} from './locale-maintenance.ts';
@@ -76,7 +77,8 @@ export class Deletions {
         const row = await workspaceRow(tx, 'assets', id, actor.workspaceId);
         if (!row) missing();
         await requireScope(tx, actor, row.scopeId);
-        const source = await sourceFor(tx, actor, row.sourceId, this.clock, false, true);
+        const sourceId=await formalMediaSource(tx,row);if(!sourceId)missing();
+        const source = await sourceFor(tx, actor, sourceId, this.clock, false, true);
         return { source, revision: row.revision, protectionEpoch: null };
     }
 
@@ -106,6 +108,7 @@ export class Deletions {
         if (targetKind === 'PROJECT') projects.add(targetId);
         if (targetKind === 'ASSET') assets.add(targetId);
 
+        const formalRelations=await tx.find('personMedia',{workspaceId:actor.workspaceId,usageState:'ADOPTED'});
         if (sources.size) {
             for (const sourceId of sources) {
                 for (const row of await tx.find('sourceHistory', { workspaceId: actor.workspaceId, sourceId }))
@@ -121,12 +124,13 @@ export class Deletions {
                     works.add(row.id);
                     add({ resourceKind: 'work', resourceId: row.id, dependencyKind: 'SOURCE_OWNS_WORK', proposedAction: 'REVIEW_RETENTION', evidenceState: 'REVIEW_REQUIRED', detailCode: 'WORK_MAY_REQUIRE_INDEPENDENT_BASIS' });
                 }
+                for(const row of await tx.find('workCredits',{workspaceId:actor.workspaceId,sourceId})){if(await this.rootVisible(tx,actor,'WORK',row.workId))add({resourceKind:'workCredit',resourceId:row.id,dependencyKind:'SOURCE_WORK_CREDIT',proposedAction:'REMOVE_RELATION',evidenceState:row.note?'REVIEW_REQUIRED':'PROVEN',detailCode:'CREDIT_BASIS_WITHDRAWN'});else miss('HIDDEN_WORK_DEPENDENCY');}
                 for (const row of await tx.find('projects', { workspaceId: actor.workspaceId, sourceId })) {
                     if (!(await scopeVisible(tx, actor, row.scopeId))) { miss('HIDDEN_PROJECT_DEPENDENCY'); continue; }
                     projects.add(row.id);
                     add({ resourceKind: 'project', resourceId: row.id, dependencyKind: 'SOURCE_OWNS_PROJECT', proposedAction: 'REVIEW_RETENTION', evidenceState: 'REVIEW_REQUIRED', detailCode: 'PROJECT_MAY_REQUIRE_INDEPENDENT_BASIS' });
                 }
-                for (const row of await tx.find('assets', { workspaceId: actor.workspaceId, sourceId })) {
+                for (const row of (await tx.find('assets', { workspaceId: actor.workspaceId })).filter(a=>a.sourceId===sourceId||formalRelations.some(r=>r.assetId===a.id&&r.sourceId===sourceId))) {
                     if (!(await scopeVisible(tx, actor, row.scopeId))) { miss('HIDDEN_ASSET_DEPENDENCY'); continue; }
                     assets.add(row.id);
                     add({ resourceKind: 'asset', resourceId: row.id, dependencyKind: 'SOURCE_OWNS_ASSET', proposedAction: 'ERASE_PAYLOAD', evidenceState: 'PROVEN', detailCode: 'MEDIA_BYTES_AND_PREVIEW' });
@@ -143,6 +147,7 @@ export class Deletions {
                     if (!(await scopeVisible(tx, actor, row.scopeId))) { miss('HIDDEN_UPLOAD_DEPENDENCY'); continue; }
                     add({ resourceKind: 'upload', resourceId: row.id, dependencyKind: 'SOURCE_UPLOAD', proposedAction: 'ERASE_PAYLOAD', evidenceState: 'PROVEN', detailCode: 'UPLOAD_METADATA_AND_STAGING' });
                 }
+                for(const row of await tx.find('sourceReviews',{workspaceId:actor.workspaceId,sourceId}))add({resourceKind:'sourceReview',resourceId:row.id,dependencyKind:'SOURCE_REVIEW',proposedAction:'RETAIN_MINIMAL_HEADER',evidenceState:'REVIEW_REQUIRED',detailCode:'SOURCE_REVIEW_SECURITY_HISTORY'});
                 for (const row of await tx.find('handoffs', { workspaceId: actor.workspaceId, sourceId })) {
                     if (!(await scopeVisible(tx, actor, row.personScopeId)) || !(await scopeVisible(tx, actor, row.sourceScopeId))) { miss('HIDDEN_HANDOFF_DEPENDENCY'); continue; }
                     add({ resourceKind: 'handoff', resourceId: row.id, dependencyKind: 'SOURCE_HANDOFF', proposedAction: 'RETAIN_MINIMAL_HEADER', evidenceState: 'REVIEW_REQUIRED', detailCode: 'HANDOFF_SECURITY_HISTORY' });
@@ -157,12 +162,12 @@ export class Deletions {
                 add({ resourceKind: 'evidence', resourceId: row.id, dependencyKind: 'PERSON_FIELD_EVIDENCE', proposedAction: 'REVIEW_RETENTION', evidenceState: 'REVIEW_REQUIRED', detailCode: 'FIELD_EVIDENCE' });
             for (const row of await tx.find('uploads', { workspaceId: actor.workspaceId, personId })) {
                 if (!(await scopeVisible(tx, actor, row.scopeId))) { miss('HIDDEN_UPLOAD_DEPENDENCY'); continue; }
-                if (sources.has(row.sourceId)) continue; // SOURCE_UPLOAD already mandates erasure with its original.
+                if ((row.sourceId!==null&&sources.has(row.sourceId))) continue; // SOURCE_UPLOAD already mandates erasure with its original.
                 add({ resourceKind: 'upload', resourceId: row.id, dependencyKind: 'PERSON_MEDIA_UPLOAD', proposedAction: 'REVIEW_RETENTION', evidenceState: 'REVIEW_REQUIRED', detailCode: 'MEDIA_MAY_HAVE_INDEPENDENT_SOURCE' });
             }
-            for (const row of await tx.find('assets', { workspaceId: actor.workspaceId, personId })) {
+            for (const row of (await tx.find('assets', { workspaceId: actor.workspaceId })).filter(a=>a.personId===personId||(!a.sourceId&&formalRelations.some(r=>r.personId===personId&&r.assetId===a.id)))) {
                 if (!(await scopeVisible(tx, actor, row.scopeId))) { miss('HIDDEN_ASSET_DEPENDENCY'); continue; }
-                if (!sources.has(row.sourceId))
+                if (!(row.sourceId!==null&&sources.has(row.sourceId)))
                     add({ resourceKind: 'asset', resourceId: row.id, dependencyKind: 'PERSON_MEDIA_ASSET', proposedAction: 'REVIEW_RETENTION', evidenceState: 'REVIEW_REQUIRED', detailCode: 'MEDIA_MAY_HAVE_INDEPENDENT_SOURCE' });
             }
             for (const row of await tx.find('workCredits', { workspaceId: actor.workspaceId, personId })) {
@@ -183,6 +188,7 @@ export class Deletions {
                 }
                 else miss('HIDDEN_SHORTLIST_DEPENDENCY');
             }
+            for(const row of await tx.find('sourceReviews',{workspaceId:actor.workspaceId,personId}))add({resourceKind:'sourceReview',resourceId:row.id,dependencyKind:'PERSON_SOURCE_REVIEW',proposedAction:'RETAIN_MINIMAL_HEADER',evidenceState:'REVIEW_REQUIRED',detailCode:'SOURCE_REVIEW_SECURITY_HISTORY'});
             for (const row of await tx.find('handoffs', { workspaceId: actor.workspaceId, personId }))
                 add({ resourceKind: 'handoff', resourceId: row.id, dependencyKind: 'PERSON_HANDOFF', proposedAction: 'RETAIN_MINIMAL_HEADER', evidenceState: 'REVIEW_REQUIRED', detailCode: 'HANDOFF_SECURITY_HISTORY' });
         }

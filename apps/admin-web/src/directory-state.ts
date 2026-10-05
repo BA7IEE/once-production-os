@@ -1,9 +1,9 @@
 import type {Me} from './dto.ts';
 import {DIRECTORY_DIMENSIONS} from '../../../packages/core/src/talent-directory-contract.ts';
 export type DirectoryDraft=Record<string,string|string[]>;
-export interface CandidateContext {personId:string;personRoleId:string|null}
+export interface CandidateContext {personId:string;personRoleId:string|null;pendingRole?:true}
 export interface DirectoryState {query:DirectoryDraft;draft:DirectoryDraft;page:number;selected:CandidateContext[];roleChoices:Record<string,string>}
-export const emptyDirectoryState=():DirectoryState=>({query:{mode:'ALL'},draft:{mode:'ALL'},page:1,selected:[],roleChoices:{}});
+export const emptyDirectoryState=():DirectoryState=>({query:{mode:'TALENT'},draft:{mode:'TALENT'},page:1,selected:[],roleChoices:{}});
 const uuid=(x:unknown):string=>{if(typeof x!=='string'||!(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/).test(x))throw new Error('Invalid ID');return x;};
 export const directoryRequest=(draft:DirectoryDraft)=>Object.fromEntries(Object.entries(draft).filter(([,value])=>value!==''&&(!Array.isArray(value)||value.length)).map(([key,value])=>[key,['ageMin','ageMax','heightMin','heightMax','page','pageSize'].includes(key)?Number(value):key==='ageUnknown'?value==='true':value]));
 export function safeDirectoryState(raw:unknown):DirectoryState{
@@ -16,7 +16,7 @@ export function safeDirectoryState(raw:unknown):DirectoryState{
  else if(['ageMin','ageMax','heightMin','heightMax'].includes(k)){if(typeof v!=='string'||v!==''&&(!Number.isFinite(Number(v))||Number(v)<0||Number(v)>260))throw new Error('Invalid range');if(v)result[k]=v;}
  else throw new Error('Unknown query field');}return result;};
  const roleChoices:Record<string,string>={};if(!d.roleChoices||typeof d.roleChoices!=='object'||Object.keys(d.roleChoices).length>200)throw new Error('Invalid choices');for(const [id,role]of Object.entries(d.roleChoices))if(role!=='')roleChoices[uuid(id)]=uuid(role);
- if(!Array.isArray(d.selected)||d.selected.length>200)throw new Error('Invalid selection');const selected=d.selected.map(s=>{if(!s||Object.keys(s).sort().join(',')!=='personId,personRoleId')throw new Error('Unknown candidate data');return {personId:uuid(s.personId),personRoleId:s.personRoleId===null?null:uuid(s.personRoleId)};});if(new Set(selected.map(s=>s.personId+':'+s.personRoleId)).size!==selected.length)throw new Error('Duplicate choice');
+ if(!Array.isArray(d.selected)||d.selected.length>200)throw new Error('Invalid selection');const selected=d.selected.map(s=>{if(!s||!['personId,personRoleId','pendingRole,personId,personRoleId'].includes(Object.keys(s).sort().join(','))||s.pendingRole!==undefined&&(s.pendingRole!==true||s.personRoleId!==null))throw new Error('Unknown candidate data');return {personId:uuid(s.personId),personRoleId:s.personRoleId===null?null:uuid(s.personRoleId),...(s.pendingRole?{pendingRole:true as const}:{})};});if(new Set(selected.map(s=>s.personId+':'+s.personRoleId)).size!==selected.length)throw new Error('Duplicate choice');
  if(!Number.isSafeInteger(d.page)||d.page<1||d.page>100000)throw new Error('Invalid page');return {query:query(d.query),draft:query(d.draft),page:d.page,selected,roleChoices};
 }
 let active:{membershipId:string;scope:string}|null=null;

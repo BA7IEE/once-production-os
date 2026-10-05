@@ -1,0 +1,76 @@
+TAP version 13
+# Subtest: DEV-07H T29 preview is zero-write and accepts a closed 10 people / 3 works / 1 project graph
+ok 1 - DEV-07H T29 preview is zero-write and accepts a closed 10 people / 3 works / 1 project graph
+  ---
+  duration_ms: 144.354583
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 apply preserves exported business ids and relations while rebinding target ownership/scope
+ok 2 - DEV-07H T29 apply preserves exported business ids and relations while rebinding target ownership/scope
+  ---
+  duration_ms: 140.040875
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 rejects non-rebuildable missing or unknown fields before any write
+ok 3 - DEV-07H T29 rejects non-rebuildable missing or unknown fields before any write
+  ---
+  duration_ms: 271.267333
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 rejects missing source closure, unknown target catalog codes, ACTUAL-without-note and ACTIVE work without bytes
+ok 4 - DEV-07H T29 rejects missing source closure, unknown target catalog codes, ACTUAL-without-note and ACTIVE work without bytes
+  ---
+  duration_ms: 521.416666
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 refuses to merge into an already-used target
+ok 5 - DEV-07H T29 refuses to merge into an already-used target
+  ---
+  duration_ms: 130.036583
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 cannot bypass normal per-work or per-project relationship limits
+ok 6 - DEV-07H T29 cannot bypass normal per-work or per-project relationship limits
+  ---
+  duration_ms: 258.4175
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 rejects states normal record APIs would not create
+ok 7 - DEV-07H T29 rejects states normal record APIs would not create
+  ---
+  duration_ms: 645.94175
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 media identity permits cross-work reuse but rejects duplicate links and order gaps
+ok 8 - DEV-07H T29 media identity permits cross-work reuse but rejects duplicate links and order gaps
+  ---
+  duration_ms: 504.43575
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 allows target-local catalog preparation through normal commands
+ok 9 - DEV-07H T29 allows target-local catalog preparation through normal commands
+  ---
+  duration_ms: 124.779208
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 audit failure rolls the complete rebuild transaction back
+ok 10 - DEV-07H T29 audit failure rolls the complete rebuild transaction back
+  ---
+  duration_ms: 124.457084
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 cannot be replayed into the same target after a successful rebuild
+ok 11 - DEV-07H T29 cannot be replayed into the same target after a successful rebuild
+  ---
+  duration_ms: 126.818709
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3197.696041

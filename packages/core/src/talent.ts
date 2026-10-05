@@ -81,7 +81,7 @@ export class Talent {
         return { id: source.id, title: source.title, type: source.type, scopeId: source.scopeId, maintainerId: source.maintainerId,
             status: source.status, basisMode: source.basisMode, basisDescription: current ? source.basisDescription : '',
             providerClaim: current ? source.providerClaim : '', validUntil: source.validUntil, revision: source.revision,
-            current, reviewedAt: source.reviewedAt, protectionEpoch: source.protectionEpoch,
+            current, allowsInternalAuthoring: !source.internalUseUntil, reviewedAt: source.reviewedAt, protectionEpoch: source.protectionEpoch,
             ...(includeContent && current && actor.permissions.includes('sensitive.read') ? { textPayload: source.textPayload } : {}),
             textRestricted: !actor.permissions.includes('sensitive.read') || !current };
     }
@@ -187,6 +187,8 @@ export class Talent {
         requirePermission(actor, 'records.write');
         const data = PersonPatch.parse(input);
         const access = await profileAccess(tx, actor, id, this.clock, 'edit');
+        invariant(access.person.status!=='ARCHIVED'||(data.status==='ACTIVE'&&Object.keys(data).length===2),'PERSON_ARCHIVED','已归档人物只能单独恢复在库后再修改资料',409);
+        if(access.person.status==='ARCHIVED')await sourceFor(tx,actor,access.person.sourceId,this.clock);
         const person = access.person;const origin=await tx.get('sources',person.sourceId);if(origin&&['displayName','aliases','intro'].some(k=>Object.hasOwn(data,k)))invariant(sourceAllowsInternalAuthoring(origin),'TALENT_BASIS_SCOPED','本人文字来源仅支持已批准的本次内容；新增内部资料须使用独立来源',409);
         if(LEGACY_PROFESSIONAL_FIELDS.some(key=>Object.hasOwn(data,key))) invariant(!professionallyManaged(person,await loadTalentGraph(tx,actor,this.clock)),'TD2_TYPED_WRITE_REQUIRED','专业资料请在专业工作台逐项维护，旧字段不能再修改',409);
         invariant((await tx.get('sources',person.sourceId))?.status!=='ERASED','TD2_IDENTITY_PROPOSAL_REQUIRED','最初来源已删除，请通过独立来源的字段建议修改身份资料',409);

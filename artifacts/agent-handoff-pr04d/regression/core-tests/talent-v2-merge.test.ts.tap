@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: TD2 typed merge preserves IDs, sources, role links and credentials; audit failure rolls back; exact retry/replay succeed
+ok 1 - TD2 typed merge preserves IDs, sources, role links and credentials; audit failure rolls back; exact retry/replay succeed
+  ---
+  duration_ms: 210.748334
+  type: 'test'
+  ...
+# Subtest: TD2 typed merge binds fact content, evidence and proposal revisions, not only root revisions
+ok 2 - TD2 typed merge binds fact content, evidence and proposal revisions, not only root revisions
+  ---
+  duration_ms: 159.220917
+  type: 'test'
+  ...
+# Subtest: TD2 hidden or sensitive dependencies expose no typed IDs, proposal values or secret data
+ok 3 - TD2 hidden or sensitive dependencies expose no typed IDs, proposal values or secret data
+  ---
+  duration_ms: 273.651667
+  type: 'test'
+  ...
+# Subtest: TD2 singleton collisions are enumerated and cannot be bypassed by explicit migration acknowledgements
+ok 4 - TD2 singleton collisions are enumerated and cannot be bypassed by explicit migration acknowledgements
+  ---
+  duration_ms: 149.058834
+  type: 'test'
+  ...
+# Subtest: TD2 overlapping language facts remain a conflict, and duplicate or invented acknowledgements fail
+ok 5 - TD2 overlapping language facts remain a conflict, and duplicate or invented acknowledgements fail
+  ---
+  duration_ms: 154.207041
+  type: 'test'
+  ...
+# Subtest: TD2 merging an independent agent rebinds inbound representation without moving the represented talent
+ok 6 - TD2 merging an independent agent rebinds inbound representation without moving the represented talent
+  ---
+  duration_ms: 153.195334
+  type: 'test'
+  ...
+# Subtest: TD2 source revocation for a professional fact invalidates preview while both identity sources remain readable
+ok 7 - TD2 source revocation for a professional fact invalidates preview while both identity sources remain readable
+  ---
+  duration_ms: 147.914625
+  type: 'test'
+  ...
+# Subtest: TD2 explicit conflict decisions retain source facts, immutable history and atomic retry
+ok 8 - TD2 explicit conflict decisions retain source facts, immutable history and atomic retry
+  ---
+  duration_ms: 213.903916
+  type: 'test'
+  ...
+# Subtest: TD2 contradictory interval decisions cannot deactivate a record selected as active elsewhere
+ok 9 - TD2 contradictory interval decisions cannot deactivate a record selected as active elsewhere
+  ---
+  duration_ms: 0.50775
+  type: 'test'
+  ...
+# Subtest: TD2 retained history requires merge permission and rechecks the original identity scope
+ok 10 - TD2 retained history requires merge permission and rechecks the original identity scope
+  ---
+  duration_ms: 396.2185
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2044.571708

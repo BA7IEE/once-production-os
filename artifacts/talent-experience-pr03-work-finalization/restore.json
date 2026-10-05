@@ -1,0 +1,13 @@
+{
+  "status": "PASSED",
+  "assets": 13,
+  "bytes": 92602,
+  "checks": [
+    "work-credit-role-source-media-cover-preserved-through-real-pg-dump-restore",
+    "collection-order-cover-current-tags-preserved-through-physical-restore-without-reviving-grants",
+    "real-pg-dump-restore-preserves-staged-adopted-relations-and-uploader",
+    "private-original-preview-backup-restore-hash-verified",
+    "real-recovery-prepare-quarantines-bytes-revokes-grants-sessions-preserves-usage",
+    "old-portal-cookie-and-staged-authorization-rejected-after-restore"
+  ]
+}

@@ -82,3 +82,19 @@ nav.talent-tabs {flex-direction:row;overflow:visible}.talent-tabs button {border
 .talent-login{width:min(100%,480px);margin:40px auto;padding:16px;box-sizing:border-box}.talent-login h1{font-size:28px}.talent-login form{display:grid;gap:16px;margin:24px 0}.talent-login label{display:grid;gap:8px}.talent-login input,.talent-login select,.talent-login button{box-sizing:border-box;width:100%;min-width:0;min-height:44px}.talent-login p{line-height:1.65;overflow-wrap:anywhere}.talent-login [role=alert]{color:#a12727}
 
 .talent-maintenance .panel{margin:1rem 0}.talent-maintenance fieldset{border:0;padding:0;min-width:0}.talent-maintenance label{display:block;margin:.8rem 0}.talent-maintenance input:not([type=checkbox]),.talent-maintenance textarea,.talent-maintenance select{width:100%;box-sizing:border-box}.talent-maintenance button{margin:.3rem .3rem .3rem 0}.talent-maintenance input[type=checkbox]{width:auto}.talent-maintenance p{overflow-wrap:anywhere}
+
+/* PR-03C: media stays in the primary talent detail, with readable mobile controls. */
+.collection-section { margin: 24px 0 40px; border-top: 1px solid var(--border, #d8d8d2); padding-top: 24px; }
+.collection-section header { margin-bottom: 20px; }
+.collection-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,230px),1fr)); gap: 18px; list-style: none; padding: 0; margin: 20px 0; }
+.collection-frame { margin: 0; background: #f2f1ed; border-radius: 12px; overflow: hidden; min-width: 0; }
+.collection-frame img, .collection-frame video { width: 100%; height: 300px; object-fit: contain; background: #e8e7e1; display: block; }
+.collection-caption, .collection-frame figcaption { padding: 14px; overflow-wrap: anywhere; }
+.collection-frame small { display: block; color: #677168; margin-top: 8px; }
+.collection-cover { width: 100%; max-height: 580px; object-fit: contain; background: #e8e7e1; border-radius: 12px; }
+.collection-editor { border: 0; padding: 0; min-width: 0; }
+.collection-editor label { display: block; margin: 10px 0; }
+.collection-editor input:not([type=checkbox]):not([type=radio]), .collection-editor select { width: 100%; max-width: 100%; }
+.collection-pdf { display: flex; align-items: center; justify-content: center; min-height: 200px; padding: 20px; }
+.collection-diff { border-left: 3px solid #52715d; padding: 4px 18px; margin: 16px 0; }
+@media(max-width: 500px) { .collection-grid { grid-template-columns: 1fr; } .collection-frame img,.collection-frame video { height: auto; max-height: 440px; } .collection-editor .detail-actions { flex-wrap: wrap; } .collection-editor button { min-height:44px; } }

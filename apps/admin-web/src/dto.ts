@@ -1,6 +1,8 @@
 // Explicit presentation DTOs. Never import Prisma models into the browser.
 export interface Me {
+    workspaceName?: string;
     mediaEnabled?: boolean;
+    ingestionEnabled?: boolean;
     directoryStateScope?: string; // Noncredential identity-session namespace for safe navigation state.
     membershipId: string;
     displayName: string;
@@ -19,6 +21,7 @@ export interface Receipt {
     operationId: string;
     resourceId: string;
     revision: number;
+    summary?: { added: number; existing: number };
     state: 'SUCCEEDED' | 'ACCEPTED';
     replayed?: boolean;
 }
@@ -75,6 +78,7 @@ export interface Person {
     }[];
 }
 export interface Source {
+    allowsInternalAuthoring: boolean;
     id: string;
     title: string;
     type: 'MANUAL' | 'TEXT';
@@ -108,6 +112,7 @@ export interface SourceHistoryEntry {
         status: string;
     };
 }
+export interface ContactListResponse {items:Contact[]}
 export interface Contact {
     id: string;
     kind: 'PHONE' | 'WECHAT' | 'EMAIL' | 'OTHER';
@@ -139,6 +144,7 @@ export interface Job {
     resumeBlockedReason: string | null;
 }
 export interface ImportRow {
+    kind?:'TALENT'|'CONTACT';
     index: number;
     displayName: string;
     roles: string[];
@@ -148,6 +154,7 @@ export interface ImportRow {
     personId: string | null;
 }
 export interface ImportBatch {
+    formatVersion:1|2;
     id: string;
     sourceId: string;
     revision: number;

@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { call, read } from './api.ts';
+import {ResourcePicker,type ResourceOption} from './paged-picker.tsx';
 import type { Me, Page, Person, Receipt, Source } from './dto.ts';
 import type { WorkSummary, ProjectSummary } from './production-dto.ts';
 import type { AssetDto } from './media-ui.tsx';
@@ -74,10 +75,9 @@ const unresolvedLabel: Record<string, string> = {
 };
 
 type Option = { id: string; name: string; revision: number };
-function DecisionModal({ request, item, sources, canRetain, onClose, onDone }: {
+function DecisionModal({ request, item, canRetain, onClose, onDone }: {
     request: DeletionRequestDetail;
     item: DeletionDecisionItem;
-    sources: Source[];
     canRetain: boolean;
     onClose: () => void;
     onDone: () => void;
@@ -85,6 +85,7 @@ function DecisionModal({ request, item, sources, canRetain, onClose, onDone }: {
     const [decision, setDecision] = useState<'APPLY_PROPOSED' | 'RETAIN_WITH_BASIS'>('APPLY_PROPOSED');
     const [reason, setReason] = useState(''), [retentionSourceId, setRetentionSourceId] = useState('');
     const action = useAction();
+    const [retentionSource,setRetentionSource]=useState<ResourceOption|null>(null);
     return <Modal title="记录保留决定" onClose={onClose}>
         <form onSubmit={e => { e.preventDefault(); void action.run(async () => {
             await call('deletion.decision', {
@@ -100,13 +101,13 @@ function DecisionModal({ request, item, sources, canRetain, onClose, onDone }: {
                 <div className="notice"><strong>{evidenceLabel[item.evidenceState] ?? item.evidenceState}</strong><p>{item.recordSummary}</p><p>{detailText(item.detailCode,item.dependencyKind)}</p></div>
                 <dl className="detail-grid"><div><dt>依赖类型</dt><dd><code>{partyLabels[item.dependencyKind]??item.dependencyKind}</code></dd></div><div><dt>系统建议</dt><dd>{actionLabel[item.proposedAction] ?? item.proposedAction}</dd></div></dl>
                 <Field label="本项决定">
-                    <select value={decision} onChange={e => { setDecision(e.target.value as 'APPLY_PROPOSED' | 'RETAIN_WITH_BASIS'); setRetentionSourceId(''); }}>
+                    <select value={decision} onChange={e => { setDecision(e.target.value as 'APPLY_PROPOSED' | 'RETAIN_WITH_BASIS'); setRetentionSourceId('');setRetentionSource(null); }}>
                         <option value="APPLY_PROPOSED">{item.dependencyKind==='SOURCE_OTHER_IDENTITY_EVIDENCE'?'确认撤回该来源的身份依据':item.dependencyKind==='SOURCE_TALENT_FACT'?'删除这项专业资料':item.dependencyKind==='SOURCE_TALENT_FACT_GROUP'?'确认按逐项决定执行':'按系统建议处置'}</option>
                         {canRetain && !['SOURCE_BRAND','SOURCE_ORGANIZATION','BRAND_ORGANIZATION','PROJECT_PARTY','DERIVED_LOCALE_TEXT','PERSON_TALENT_GRAPH','ASSET_TALENT_REFERENCES','SOURCE_TALENT_EVIDENCE','SOURCE_OTHER_IDENTITY_EVIDENCE','SOURCE_TALENT_FACT_GROUP','SOURCE_ASSET_TALENT_REFERENCES'].includes(item.dependencyKind) && <option value="RETAIN_WITH_BASIS">有独立依据，保留</option>}
                     </select>
                 </Field>
                 {decision === 'RETAIN_WITH_BASIS' && <Field label="独立保留依据" hint="必须是另一份当前有效的正式 INTERNAL_USE 来源；目标原来源不能自证保留。">
-                    <select required value={retentionSourceId} onChange={e => setRetentionSourceId(e.target.value)}><option value="">请选择当前可见来源</option>{sources.map(s => <option key={s.id} value={s.id}>{s.title} · v{s.revision}</option>)}</select>
+                    <ResourcePicker kind="SOURCE" label="独立保留依据" selected={retentionSource} onChange={row=>{setRetentionSource(row);setRetentionSourceId(row?.id??'');}} required eligible={row=>row.basisMode==='INTERNAL_USE'}/>
                 </Field>}
                 <Field label="决定说明" hint="记录为何按建议处置，或为何存在独立依据；不要粘贴完整敏感原文。"><textarea required minLength={4} maxLength={2000} rows={5} value={reason} onChange={e => setReason(e.target.value)}/></Field>
             </div>
@@ -115,7 +116,7 @@ function DecisionModal({ request, item, sources, canRetain, onClose, onDone }: {
     </Modal>;
 }
 
-function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sources: Source[]; canRetain: boolean; onChanged: () => void }) {
+function RequestDetail({ id, canRetain, onChanged }: { id: string; canRetain: boolean; onChanged: () => void }) {
     const [tick, setTick] = useState(0), [itemPage, setItemPage] = useState(1), [editing, setEditing] = useState<DeletionDecisionItem | null>(null);
     const block = useAction(), freeze = useAction(), cleanup = useAction();
     const snapshotKey = id + ':' + itemPage + ':' + tick;
@@ -232,37 +233,22 @@ function RequestDetail({ id, sources, canRetain, onChanged }: { id: string; sour
             </div>}
             {!load.data.cleanupAvailable && ['DRAFT','BLOCKED_FOR_USE'].includes(load.data.state) && <p className="muted">不可逆动作只会按冻结计划执行。</p>}
         </>}
-        {editing && load.data && <DecisionModal request={load.data} item={editing} sources={sources} canRetain={canRetain} onClose={() => setEditing(null)} onDone={() => { setEditing(null); setTick(x => x + 1); onChanged(); }}/>}
+        {editing && load.data && <DecisionModal request={load.data} item={editing} canRetain={canRetain} onClose={() => setEditing(null)} onDone={() => { setEditing(null); setTick(x => x + 1); onChanged(); }}/>}
     </section>;
 }
 
-export function DeletionImpactPanel({ me, initialPerson }: { me: Me; initialPerson?: {id:string;displayName:string;revision:number} | null }) {
+function DeletionImpactContent({ me, initialPerson }: { me: Me; initialPerson?: {id:string;displayName:string;revision:number} | null }) {
     const [refresh, setRefresh] = useState(0), [kind, setKind] = useState<DeletionTargetKind>('PERSON'), [targetId, setTargetId] = useState(initialPerson?.id ?? '');
     const [preview, setPreview] = useState<DeletionPreview | null>(null), [reason, setReason] = useState('');
     const [selectedRequest, setSelectedRequest] = useState<string | null>(null), [page, setPage] = useState(1);
     const inspect = useAction(), create = useAction();
 
-    const people = useLoad(() => read<Page<Person>>('person.list', {}, { pageSize: '100' }), 'delete-people:' + refresh);
-    const works = useLoad(() => read<Page<WorkSummary>>('work.list', {}, { pageSize: '100' }), 'delete-works:' + refresh);
-    const projects = useLoad(() => read<Page<ProjectSummary>>('project.list', {}, { pageSize: '100' }), 'delete-projects:' + refresh);
-    const sources = useLoad(() => me.permissions.includes('sources.read') ? read<Page<Source>>('source.list', {}, { pageSize: '100' })
-        : Promise.resolve({ items: [], total: 0, page: 1, pageSize: 100 } as Page<Source>), 'delete-sources:' + refresh);
-    const assets = useLoad(() => me.permissions.includes('assets.read') ? read<Page<AssetDto>>('asset.list', {}, { pageSize: '100' })
-        : Promise.resolve({ items: [], total: 0, page: 1, pageSize: 100 } as Page<AssetDto>), 'delete-assets:' + refresh);
+    const [selected,setSelected]=useState<ResourceOption|null>(initialPerson??null);
     const requests = useLoad(() => read<Page<DeletionRequestSummary>>('deletion.list', {}, { page: String(page), pageSize: '20' }), 'delete-requests:' + page + ':' + refresh);
-
-    const options = useMemo<Option[]>(() => {
-        if (kind === 'PERSON') { const rows = (people.data?.items ?? []).map(x => ({ id: x.id, name: x.displayName, revision: x.revision })); return initialPerson && !rows.some(x => x.id === initialPerson.id) ? [{id:initialPerson.id,name:'合并旧身份：' + initialPerson.displayName,revision:initialPerson.revision},...rows] : rows; }
-        if (kind === 'WORK') return (works.data?.items ?? []).map(x => ({ id: x.id, name: x.title, revision: x.revision }));
-        if (kind === 'PROJECT') return (projects.data?.items ?? []).map(x => ({ id: x.id, name: x.title, revision: x.revision }));
-        if (kind === 'SOURCE') return (sources.data?.items ?? []).map(x => ({ id: x.id, name: x.title, revision: x.revision }));
-        return (assets.data?.items ?? []).map(x => ({ id: x.id, name: x.fileName, revision: x.revision }));
-    }, [kind, people.data, works.data, projects.data, sources.data, assets.data, initialPerson]);
-    const selected = options.find(x => x.id === targetId);
     const allowedKinds: DeletionTargetKind[] = ['PERSON', 'WORK', 'PROJECT', ...(me.permissions.includes('sources.read') ? ['SOURCE' as const] : []), ...(me.permissions.includes('assets.read') ? ['ASSET' as const] : [])];
 
-    useEffect(() => { setTargetId(kind === 'PERSON' ? initialPerson?.id ?? '' : ''); setPreview(null); setReason(''); }, [kind, initialPerson]);
-    useEffect(() => { setPreview(null); setReason(''); }, [targetId]);
+    useEffect(() => { setSelected(kind==='PERSON'?initialPerson??null:null);setTargetId(kind === 'PERSON' ? initialPerson?.id ?? '' : ''); setPreview(null); setReason(''); }, [kind, initialPerson]);
+    useEffect(() => { setPreview(null); setReason(''); }, [targetId,selected?.revision]);
 
     async function runPreview() {
         if (!selected) throw new Error('请选择当前可见的目标');
@@ -279,14 +265,14 @@ export function DeletionImpactPanel({ me, initialPerson }: { me: Me; initialPers
     }
 
     return <><PageTitle overline="CONTROLLED DELETION / PLAN BEFORE CLEANUP" title="删除影响与清理" description="先证明影响并阻断使用，再完成保留决定、冻结计划；只有显式确认后才执行不可逆依赖清理。根对象终结、媒体物理清理和来源历史专用清理仍分阶段处理。" action={<button onClick={() => setRefresh(x => x + 1)}>刷新</button>}/>
-        <ErrorBox error={people.error ?? works.error ?? projects.error ?? sources.error ?? assets.error ?? requests.error ?? inspect.error ?? create.error}/>
+        <ErrorBox error={requests.error ?? inspect.error ?? create.error}/>
         <div className="notice"><strong>不可逆动作必须来自冻结计划</strong><p>阻断前重新验证影响图；清理前再次验证 planDigest 与保留依据。CLEANING 只处理已注册依赖动作，不会把待专用处理项假报完成。</p></div>
 
         <section className="panel padded deletion-preview">
             <h2>1. 选择目标并做零写入预览</h2>
             <div className="filters deletion-target-row">
                 <select aria-label="删除目标类型" value={kind} onChange={e => setKind(e.target.value as DeletionTargetKind)}>{allowedKinds.map(x => <option key={x} value={x}>{kindLabel[x]}</option>)}</select>
-                <select aria-label="删除目标" value={targetId} onChange={e => setTargetId(e.target.value)}><option value="">请选择当前可见目标</option>{options.map(x => <option key={x.id} value={x.id}>{x.name} · v{x.revision}</option>)}</select>
+                <ResourcePicker kind={kind} label="删除目标" selected={selected} onChange={row=>{setSelected(row);setTargetId(row?.id??'');}} refresh={refresh} disabled={inspect.busy||create.busy}/>
                 <button className="primary" disabled={!selected || inspect.busy} onClick={() => void inspect.run(runPreview)}>{inspect.busy ? '正在扫描…' : '预览影响'}</button>
             </div>
             {preview && <div className="deletion-impact-results">
@@ -312,6 +298,8 @@ export function DeletionImpactPanel({ me, initialPerson }: { me: Me; initialPers
             {requests.data?.items.length ? <div className="table-wrap"><table><thead><tr><th>时间</th><th>目标</th><th>影响项</th><th>需人工判断</th><th>状态</th><th/></tr></thead><tbody>{requests.data.items.map(x => <tr key={x.id}><td>{date(x.createdAt)}</td><td>{kindLabel[x.targetKind]}<small>{x.targetId}</small></td><td>{x.impactCount}</td><td>{x.reviewRequiredCount}</td><td><Tag value={x.state}/></td><td><button onClick={() => setSelectedRequest(x.id)}>查看摘要</button></td></tr>)}</tbody></table></div> : <Empty title="还没有删除申请">先完成影响预览；只有影响图完整时才能冻结 DRAFT。</Empty>}
             {requests.data && <Pager page={page} pageSize={20} total={requests.data.total} setPage={setPage}/>}
         </section>
-        {selectedRequest && <RequestDetail id={selectedRequest} sources={sources.data?.items ?? []} canRetain={me.permissions.includes('sources.review')} onChanged={() => setRefresh(x => x + 1)}/>}
+        {selectedRequest && <RequestDetail id={selectedRequest} canRetain={me.permissions.includes('sources.review')} onChanged={() => setRefresh(x => x + 1)}/>}
     </>;
 }
+
+export function DeletionImpactPanel(props:{me:Me;initialPerson?:{id:string;displayName:string;revision:number}|null}) {return <DeletionImpactContent key={props.me.membershipId} {...props}/>;}

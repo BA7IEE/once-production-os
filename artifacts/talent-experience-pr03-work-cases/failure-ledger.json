@@ -1,0 +1,9 @@
+{
+  "pr03d-pg-first.txt": "旧 ACTIVE 强制封面约束，迁移65前向修复",
+  "pr03d-pg-export3.txt": "同一 Asset 两条导出依赖，合并字段为单一依赖",
+  "pr03d-fullpg-first.txt": "旧自动选下一张封面的断言，与冻结的新语义冲突，改为明确 null 并保留原件断言",
+  "pr03d-fullpg-second.txt": "导出字段数据库白名单遗漏，迁移66前向补齐",
+  "pr03d-browser-first.txt": "浏览器辅助脚本 uploadIdRef 变量错误",
+  "pr03d-browser-second.txt": "审核外层 label 嵌套导致真实点击歧义，改为 article 和独立 checkbox label",
+  "pr03d-cases-final-cross.txt": "补充交叉测试曾选本人同意来源作内部新材料，被正确拒绝；测试改用既有独立内部来源，产品授权未放宽"
+}

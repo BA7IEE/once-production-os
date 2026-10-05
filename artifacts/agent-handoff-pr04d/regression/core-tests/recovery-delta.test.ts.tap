@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: DEV-09E aborted intent resolves as NO_COMMIT and covers every post-backup journal row
+ok 1 - DEV-09E aborted intent resolves as NO_COMMIT and covers every post-backup journal row
+  ---
+  duration_ms: 21.842083
+  type: 'test'
+  ...
+# Subtest: DEV-09E committed prepare-contained delta plus delayed audit is fully resolved
+ok 2 - DEV-09E committed prepare-contained delta plus delayed audit is fully resolved
+  ---
+  duration_ms: 17.640833
+  type: 'test'
+  ...
+# Subtest: DEV-09E committed non-contained mutation remains blocker
+ok 3 - DEV-09E committed non-contained mutation remains blocker
+  ---
+  duration_ms: 21.17275
+  type: 'test'
+  ...
+# Subtest: DEV-09E missing completion marker and missing write-ahead intent are blockers
+ok 4 - DEV-09E missing completion marker and missing write-ahead intent are blockers
+  ---
+  duration_ms: 9.160084
+  type: 'test'
+  ...
+# Subtest: DEV-09E pre-backup intent with post-backup contained commit is resolved
+ok 5 - DEV-09E pre-backup intent with post-backup contained commit is resolved
+  ---
+  duration_ms: 12.033875
+  type: 'test'
+  ...
+# Subtest: DEV-09E delayed audit after pre-backup commit is supplemental, not a false delta
+ok 6 - DEV-09E delayed audit after pre-backup commit is supplemental, not a false delta
+  ---
+  duration_ms: 16.707916
+  type: 'test'
+  ...
+# Subtest: DEV-09E completion marker cannot precede its write-ahead intent
+ok 7 - DEV-09E completion marker cannot precede its write-ahead intent
+  ---
+  duration_ms: 11.703083
+  type: 'test'
+  ...
+# Subtest: DEV-09E unmatched audit and contradictory commit+abort markers are rejected conservatively
+ok 8 - DEV-09E unmatched audit and contradictory commit+abort markers are rejected conservatively
+  ---
+  duration_ms: 19.603875
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 210.13525

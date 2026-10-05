@@ -1,0 +1,14 @@
+{
+  "status": "FAILED",
+  "kind": "Error",
+  "completedChecks": [
+    "real Nest machine schema/dictionaries; internal Cookie and Portal/review crossings denied",
+    "real byte SHA mismatch rejects without Asset",
+    "actual content length differs from declaration rejected before bytes",
+    "mime sniff mismatch rejects without Asset",
+    "actual MPEG4 MP4 rejected by asynchronous decoder",
+    "real JPEG PNG WebP PDF H264 bytes worker READY/STAGED; own preview and Range200/206/416; cross-principal denied",
+    "real MACHINE stable Role/Media keys Portfolio Showreel and Work candidates; arbitrary formal IDs rejected",
+    "real Bearer client submits frozen text/role/unknown-date facts without precreating Person"
+  ]
+}

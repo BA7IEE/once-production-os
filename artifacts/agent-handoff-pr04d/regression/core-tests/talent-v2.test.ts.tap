@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: TD2-T01 contact identity is independent from talent enrollment and preserves UUID
+ok 1 - TD2-T01 contact identity is independent from talent enrollment and preserves UUID
+  ---
+  duration_ms: 142.609667
+  type: 'test'
+  ...
+# Subtest: TD2-T02 one identity has model and translator roles; overlapping duplicate role rejected
+ok 2 - TD2-T02 one identity has model and translator roles; overlapping duplicate role rejected
+  ---
+  duration_ms: 129.900875
+  type: 'test'
+  ...
+# Subtest: TD2-T03 source-bound claims stay independent; origin suspension does not authorize or erase other-source facts
+ok 3 - TD2-T03 source-bound claims stay independent; origin suspension does not authorize or erase other-source facts
+  ---
+  duration_ms: 127.170625
+  type: 'test'
+  ...
+# Subtest: TD2-T04 exact external reference resolves only after human verification; same names do not merge
+ok 4 - TD2-T04 exact external reference resolves only after human verification; same names do not merge
+  ---
+  duration_ms: 129.243958
+  type: 'test'
+  ...
+# Subtest: TD2-T06 capability registry is separate from occupational roles and validates applicable roles and levels
+ok 5 - TD2-T06 capability registry is separate from occupational roles and validates applicable roles and levels
+  ---
+  duration_ms: 127.19575
+  type: 'test'
+  ...
+# Subtest: TD2-T07 unknown language level never satisfies a minimum; base and service locations remain separate
+ok 6 - TD2-T07 unknown language level never satisfies a minimum; base and service locations remain separate
+  ---
+  duration_ms: 129.173084
+  type: 'test'
+  ...
+# Subtest: TD2-T08 confirmed measurements are immutable and require real dates and paired size systems
+ok 7 - TD2-T08 confirmed measurements are immutable and require real dates and paired size systems
+  ---
+  duration_ms: 127.634917
+  type: 'test'
+  ...
+# Subtest: TD2-T09 adult unknown is fail-closed; generic fields cannot forge verification
+ok 8 - TD2-T09 adult unknown is fail-closed; generic fields cannot forge verification
+  ---
+  duration_ms: 126.747417
+  type: 'test'
+  ...
+# Subtest: TD2-T10 representation is scoped to role and territory; agent can be non-talent contact
+ok 9 - TD2-T10 representation is scoped to role and territory; agent can be non-talent contact
+  ---
+  duration_ms: 127.198791
+  type: 'test'
+  ...
+# Subtest: TD2-T11 collections separate type and content tag; reused assets are never deleted when unlinked
+ok 10 - TD2-T11 collections separate type and content tag; reused assets are never deleted when unlinked
+  ---
+  duration_ms: 131.886208
+  type: 'test'
+  ...
+# Subtest: TD2-T13 translation source/target and on-set service mode are tied to translator role
+ok 11 - TD2-T13 translation source/target and on-set service mode are tied to translator role
+  ---
+  duration_ms: 128.457875
+  type: 'test'
+  ...
+# Subtest: TD2-T14 qualification verification and encrypted identifier are separate from skills and public metadata
+ok 12 - TD2-T14 qualification verification and encrypted identifier are separate from skills and public metadata
+  ---
+  duration_ms: 125.485
+  type: 'test'
+  ...
+# Subtest: TD2-T18 conflicts create proposals, stale proposals do not overwrite and revoked supporting evidence masks adopted values
+ok 13 - TD2-T18 conflicts create proposals, stale proposals do not overwrite and revoked supporting evidence masks adopted values
+  ---
+  duration_ms: 130.752833
+  type: 'test'
+  ...
+# Subtest: TD2-T18 unknown schema, unknown field and stale parent CAS reject before mutating facts
+ok 14 - TD2-T18 unknown schema, unknown field and stale parent CAS reject before mutating facts
+  ---
+  duration_ms: 122.618417
+  type: 'test'
+  ...
+# Subtest: TD2-T12 shortlist keeps the selected occupation and does not silently fall back after role deactivation
+ok 15 - TD2-T12 shortlist keeps the selected occupation and does not silently fall back after role deactivation
+  ---
+  duration_ms: 130.122583
+  type: 'test'
+  ...
+# Subtest: TD2-T05 machine principal has real audit/receipt identity, bounded permissions and immediate rotation/revocation
+ok 16 - TD2-T05 machine principal has real audit/receipt identity, bounded permissions and immediate rotation/revocation
+  ---
+  duration_ms: 126.411584
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2296.50675

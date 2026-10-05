@@ -1,0 +1,8 @@
+import {ResourceRun} from './resource-run.mjs';
+import {mkdirSync,writeFileSync} from 'node:fs';
+const scope=new ResourceRun();
+const files=['business-flow','portal-command','browser-storage-policy','commands-imports','handoffs','talent-intake','talent-directory','talent-maintenance','client-transport','deletions','recovery'].map(n=>'tests/core/'+n+'.test.ts'),results=[];
+mkdirSync('artifacts/business-flow',{recursive:true});
+try {for(const file of files){const start=Date.now(),r=await scope.command(process.execPath,['--max-old-space-size=256','--experimental-strip-types','--test','--test-concurrency=1',file],{timeout:120000,capture:true,allowFailure:true});const log=r.output,name=file.split('/').at(-1);writeFileSync('artifacts/business-flow/'+name+'.tap',log);const count=k=>Number(new RegExp('# '+k+' (\\d+)').exec(log)?.[1]??0);const result={file,exitCode:r.code,tests:count('tests'),pass:count('pass'),fail:count('fail'),skipped:count('skipped'),durationMs:Date.now()-start};results.push(result);console.log(JSON.stringify(result));if(r.code!==0){process.exitCode=1;console.error(log.slice(-5000));}}}
+catch(error){console.error(error.message);process.exitCode=1;}
+finally{const cleanup=await scope.cleanup();const report={at:new Date().toISOString(),adapter:'MemoryStore / isolated frontend transport',status:results.length===files.length&&results.every(r=>r.exitCode===0&&r.tests>0)?'CORE_MEMORY_TESTED':'FAIL',results,resourceRun:cleanup.id,cleanup:cleanup.status,remaining:cleanup.remaining};writeFileSync('artifacts/business-flow/core.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({status:report.status,tests:results.reduce((n,r)=>n+r.tests,0),cleanup:cleanup.status,remaining:cleanup.remaining}));}

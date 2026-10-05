@@ -1,0 +1,11 @@
+{
+  "status": "POSTGRES_TESTED",
+  "migrationCount": [
+    {
+      "count": 74
+    }
+  ],
+  "checks": [
+    "intake-only-employee-no-formal-scope-cannot-open-handoff-exposure"
+  ]
+}

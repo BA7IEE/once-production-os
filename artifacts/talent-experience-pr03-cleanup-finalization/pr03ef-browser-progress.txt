@@ -1,0 +1,12 @@
+resume 0
+handoff 0
+media 0
+production 0
+talent-intake 0
+talent-directory 0
+talent-auth 0
+talent-maintenance 0
+media-staging 0
+media-collections 0
+work-cases 0
+media-purge 0

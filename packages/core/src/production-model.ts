@@ -11,16 +11,22 @@ export interface Work extends Base {
     originNote: string;
     status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED' | 'ERASED';
     coverEntryId: string | null;
+    caseDate?: string | null;
+    datePrecision?: 'UNKNOWN' | 'YEAR' | 'MONTH' | 'DAY' | 'APPROXIMATE';
+    location?: string;
+    brandDisplayName?: string;
 }
 export interface WorkAsset extends Base {
     workId: string;
     assetId: string;
     position: number;
 }
-/** Manual credit, supported by the Work's source. Never a project participation or verified Person field. */
+/** Legacy credits inherit the Work source; exact credits have their own source and PersonRole. */
 export interface WorkCredit extends Base {
     workId: string;
     personId: string;
+    personRoleId?: string | null;
+    sourceId?: string | null;
     roleCode: string;
     note: string;
 }

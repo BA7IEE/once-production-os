@@ -1,3 +1,5 @@
+import {WORK_CONSENT_VERSION} from './work-consent.ts';
+import {validateCaseDate} from './talent-work-cases.ts';
 import {mediaByteLimit} from './media-model.ts';
 import {validateParties,applyParties} from './project-parties.ts';
 import {LOCALE_EXPORT_VERSION} from './locale-transfer.ts';
@@ -108,6 +110,7 @@ export class JsonRebuild {
         uniqueBy(media, x => x.workId + ':' + x.id, 'REBUILD_DUPLICATE_MEDIA_LINK', '同一作品的媒体身份关系重复');
 
         const sourceIds = new Set(sources.map(x => x.id));
+        for(const w of works)validateCaseDate({caseDate:w.data.caseDate??null,datePrecision:w.data.datePrecision??'UNKNOWN'});
         const personIds = new Set(people.map(x => x.id));
         const workIds = new Set(works.map(x => x.id));
         const projectIds = new Set(projects.map(x => x.id));
@@ -133,7 +136,7 @@ export class JsonRebuild {
 
         for(const e of payload.manifest.talent?.evidence??[]) invariant(e.sourceRevision<=(sources.find(s=>s.id===e.sourceId)?.revision??0),'TD2_TRANSFER_EVIDENCE_SOURCE_REVISION','字段证据引用了不存在的来源版本',422);
         const referencedSources = new Set([
-            ...(payload.manifest.locales?.texts.flatMap(t=>[...t.dependencies,...t.importedBasis?.dependencies??[]].map(d=>d.sourceId))??[]), ...(payload.manifest.parties?[...payload.manifest.parties.brands,...payload.manifest.parties.organizations].map(r=>r.sourceId):[]), ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent?.assets??[]).map(a=>a.sourceId), ...(payload.manifest.talent?.evidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.identityEvidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.mergeHistory?[...payload.manifest.talent.mergeHistory.people,...payload.manifest.talent.mergeHistory.talentProfiles,...payload.manifest.talent.mergeHistory.castingProfiles,...payload.manifest.talent.mergeHistory.evidence,...payload.manifest.talent.mergeHistory.erasures??[]].map(r=>r.sourceId):[]), ...(payload.manifest.talent?.organizations??[]).map(o=>o.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>transferRows(payload.manifest.talent!,t).map(r=>r.sourceId)) : [])
+            ...(payload.manifest.locales?.texts.flatMap(t=>[...t.dependencies,...t.importedBasis?.dependencies??[]].map(d=>d.sourceId))??[]), ...(payload.manifest.parties?[...payload.manifest.parties.brands,...payload.manifest.parties.organizations].map(r=>r.sourceId):[]), ...payload.manifest.relations.workCredits.flatMap(c=>c.sourceId?[c.sourceId]:[]), ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent?.assets??[]).map(a=>a.sourceId), ...(payload.manifest.talent?.evidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.identityEvidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.mergeHistory?[...payload.manifest.talent.mergeHistory.people,...payload.manifest.talent.mergeHistory.talentProfiles,...payload.manifest.talent.mergeHistory.castingProfiles,...payload.manifest.talent.mergeHistory.evidence,...payload.manifest.talent.mergeHistory.erasures??[]].map(r=>r.sourceId):[]), ...(payload.manifest.talent?.organizations??[]).map(o=>o.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>transferRows(payload.manifest.talent!,t).map(r=>r.sourceId)) : [])
         ]);
         invariant(sources.every(x => referencedSources.has(x.id)), 'REBUILD_UNUSED_SOURCE',
             '来源清单包含没有被本次业务图引用的记录', 422);
@@ -154,7 +157,7 @@ export class JsonRebuild {
             invariant(row.data.title.trim().length > 0, 'REBUILD_TITLE_REQUIRED', '作品标题去除空白后不能为空', 422);
             invariant(unique(row.data.workTypeCodes ?? []).length === (row.data.workTypeCodes ?? []).length,
                 'REBUILD_DUPLICATE_CODE', '作品类型包含重复代码，不能静默归一化重建', 422);
-            invariant(row.data.status !== 'ACTIVE', 'REBUILD_MEDIA_BYTES_REQUIRED',
+            invariant(row.data.status !== 'ACTIVE'||(media.some(m=>m.workId===row.id)&&media.filter(m=>m.workId===row.id).every(m=>payload.manifest.talent?.assets?.some(a=>a.id===m.id))), 'REBUILD_MEDIA_BYTES_REQUIRED',
                 'ACTIVE 作品需要真实媒体字节与封面；当前 JSON 只有媒体身份清单，不能伪造 ACTIVE 作品', 409);
             invariant(row.data.origin !== 'ONCE' || (row.data.originNote ?? '').trim().length >= 4,
                 'REBUILD_ORIGIN_BASIS_REQUIRED', 'ONCE 制作作品必须包含明确制作依据', 422);
@@ -185,6 +188,9 @@ export class JsonRebuild {
         }
 
         for (const row of relations.workCredits) {
+            invariant(!!row.personRoleId===!!row.sourceId,'WORK_CREDIT_BASIS_REQUIRED','精确职业与署名来源须同时提供',422);
+            if(row.personRoleId){const role=payload.manifest.talent?transferRows(payload.manifest.talent,'personRoles').find(r=>r.id===row.personRoleId):null;invariant(role&&role.personId===row.personId&&role.data.roleCode===row.roleCode&&sourceIds.has(row.sourceId!),'WORK_CREDIT_ROLE_MISMATCH','署名必须引用同人物职业与独立来源',422);}
+
             invariant(workIds.has(row.workId) && personIds.has(row.personId), 'REBUILD_RELATION_REFERENCE_INVALID',
                 '作品署名关系引用了未导出的对象', 422);
             await this.catalog(tx, actor, 'role', [row.roleCode]);
@@ -256,9 +262,10 @@ export class JsonRebuild {
                 protectionEpoch: row.protectionEpoch + 1,
                 reviewedBy: actor.membershipId, reviewedAt: at
             };
+            if(row.talentBasis?.fieldScope.includes('work')&&row.talentBasis.version!=='internal-review-basis-v1')invariant(row.talentBasis.version==='talent-basis-v2'&&'textVersion' in row.talentBasis&&row.talentBasis.textVersion===WORK_CONSENT_VERSION,'WORK_CONSENT_REQUIRED','案例重建须携带明确 Work 使用依据',422);
             if(row.talentBasis)invariant(Date.parse(row.talentBasis.validUntil)>this.clock.now().getTime()&&Date.parse(row.data.validUntil)<=Date.parse(row.talentBasis.validUntil),'CONSENT_UNAVAILABLE','重建不能延长本人使用依据',422);
             await tx.insert('sources', source);
-            if(row.talentBasis){await tx.insert('sourceUseBases',{...base(actor.workspaceId,this.clock),sourceId:source.id,consentId:null,consentRevision:row.talentBasis.consentRevision,purpose:'INTERNAL_DIRECTORY',fieldScope:row.talentBasis.fieldScope,state:'ACTIVE',validUntil:row.talentBasis.validUntil,importedBasis:row.talentBasis});await tx.insert('sourceAttributions',{...base(actor.workspaceId,this.clock),sourceId:source.id,submissionId:null,talentAccountId:null,consentId:null,reviewerId:actor.membershipId,materialDescription:'受控业务JSON重建，原提供者/提交/同意见不可冒充的原始归因引用',importedBasis:row.talentBasis});}
+            if(row.talentBasis){await tx.insert('sourceUseBases',{...base(actor.workspaceId,this.clock),sourceId:source.id,consentId:null,basisKind:row.talentBasis.version==='internal-review-basis-v1'?'INTERNAL_REVIEW':'TALENT_CONSENT',consentRevision:'consentRevision' in row.talentBasis?row.talentBasis.consentRevision:null,purpose:'INTERNAL_DIRECTORY',fieldScope:row.talentBasis.fieldScope,state:'ACTIVE',validUntil:row.talentBasis.validUntil,importedBasis:row.talentBasis});await tx.insert('sourceAttributions',{...base(actor.workspaceId,this.clock),principalKind:row.talentBasis.version==='internal-review-basis-v1'?'MACHINE':'TALENT',sourceId:source.id,submissionId:null,talentAccountId:null,consentId:null,reviewerId:actor.membershipId,materialDescription:'受控业务JSON重建，原提供者/提交/同意见不可冒充的原始归因引用',importedBasis:row.talentBasis});}
             const history: SourceHistory = {
                 ...base(actor.workspaceId, this.clock), sourceId: source.id, sourceRevision: source.revision,
                 scopeId: source.scopeId, actorId: null, action: 'BASELINE',
@@ -295,6 +302,7 @@ export class JsonRebuild {
                 sourceId: row.sourceId, scopeId: target.scope.id, maintainerId: actor.membershipId,
                 title: row.data.title.trim(), description: row.data.description ?? '',
                 industryCode: row.data.industryCode ?? null, workTypeCodes: unique(row.data.workTypeCodes ?? []),
+                caseDate:row.data.caseDate??null,datePrecision:row.data.datePrecision??'UNKNOWN',location:row.data.location??'',brandDisplayName:row.data.brandDisplayName??'',
                 origin: row.data.origin, originNote: row.data.originNote ?? '', status: row.data.status,
                 coverEntryId: null
             };
@@ -312,7 +320,7 @@ export class JsonRebuild {
         }
 
         for (const row of payload.manifest.relations.workCredits) {
-            const relation: WorkCredit = { ...base(actor.workspaceId, this.clock), ...row, note: '' };
+            const relation: WorkCredit = { ...base(actor.workspaceId, this.clock), ...row, note: row.note??'' };
             await tx.insert('workCredits', relation);
         }
         for (const row of payload.manifest.relations.projectParticipants) {
@@ -332,11 +340,15 @@ export class JsonRebuild {
                 personId:a.personId,personEpoch:a.personId?1:null,personScopeId:a.personId?target.scope.id:null,personScopeRevision:a.personId?target.scope.revision:null,
                 fileName:a.fileName,mime:a.mime,expectedBytes:a.bytes,expectedHash:a.sha256,state:'READY',expiresAt:new Date(this.clock.now().getTime()+300000).toISOString(),renewals:0,attempts:1,receiveToken:randomUUID(),leaseToken:null,leaseUntil:null,errorCode:null,purgedAt:null};
             await tx.insert('uploads',upload);
-            const asset:MediaAsset={...a,workspaceId:actor.workspaceId,scopeId:target.scope.id,uploadId:a.id,objectToken:a.id,state:'READY'};
+            const {relation,...assetData}=a;
+            const asset:MediaAsset={...assetData,usageState:'ADOPTED',protectionEpoch:1,workspaceId:actor.workspaceId,scopeId:target.scope.id,uploadId:a.id,objectToken:a.id,state:'READY'};
             await tx.insert('assets',asset);
         }
         if (payload.manifest.talent?.mergeHistory) await applyHistoryPeople(tx,actor,target.scope.id,payload.manifest.talent.mergeHistory);
         if (payload.manifest.talent) await applyTalentRebuild(tx, actor, payload.manifest.talent, target.scope.id,this.credentialKeys);
+        for(const a of payload.manifest.talent?.assets??[])if(a.relation)await tx.insert('personMedia',{...base(actor.workspaceId,this.clock),assetId:a.id,personId:a.relation.personId,personRoleId:a.relation.personRoleId,sourceId:a.sourceId,submissionId:null,purpose:'SUBMITTED_MATERIAL',usageState:'ADOPTED',protectionEpoch:1,retainUntil:null,retiredAt:null,purgedAt:null,importedOrigin:a.relation.origin});
+        // Reconnect Work placements only to verified restored originals; identity-only legacy exports do not invent files.
+        for(const work of payload.manifest.works){const entries=payload.manifest.media.filter(m=>m.workId===work.id).sort((a,b)=>a.position-b.position);let cover:string|null=null;for(const e of entries){if(!payload.manifest.talent?.assets?.some(a=>a.id===e.id))continue;const entry={...base(actor.workspaceId,this.clock),workId:work.id,assetId:e.id,position:e.position};await tx.insert('workAssets',entry);if(e.isCover){invariant(!cover&&e.mime.startsWith('image/'),'WORK_COVER_INVALID','作品封面须为本作品唯一图片条目',422);cover=entry.id;}}if(cover){const current=(await tx.get('works',work.id))!;await tx.replace('works',{...current,coverEntryId:cover});}}
         if (payload.manifest.talent) await applyTransferEvidence(tx,actor,payload.manifest.talent);
         if(payload.manifest.parties)await applyParties(tx,actor,target.scope.id,payload.manifest.parties);
         if(payload.manifest.locales)await applyLocaleRebuild(tx,actor,this.clock,payload.manifest.locales);

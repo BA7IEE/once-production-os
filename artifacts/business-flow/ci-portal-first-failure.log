@@ -1,0 +1,32 @@
+acceptance	Real business pages and portal maintenance regression	﻿2026-10-03T15:24:05.3486058Z ##[group]Run pnpm test:postgres:owned --business-flow-browser
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:05.3486918Z ^[[36;1mpnpm test:postgres:owned --business-flow-browser^[[0m
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:05.3568007Z shell: /usr/bin/bash -e {0}
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:05.3568272Z env:
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:05.3568534Z   PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:05.3568859Z ##[endgroup]
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:05.6308381Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:05.6309418Z > once-production-os@0.1.0-dev.1 test:postgres:owned /home/runner/work/once-production-os/once-production-os
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:05.6310314Z > node scripts/test-postgres-owned.mjs --business-flow-browser
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:05.6310660Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:21.9520966Z PASS default EDITOR private intake -> accepted limited review -> explicit administrator publication -> team directory
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:22.9346431Z PASS restricted raw text created and edited through the real source page; no AI call implied
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:24.8791740Z PASS V2 import real Worker checkpoint -> model/Shenzhen filters and ordinary contact without professional roles
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.2029619Z node:internal/modules/run_main:123
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.2030496Z     triggerUncaughtException(
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.2031091Z     ^
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.2031382Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.2031900Z locator.click: Timeout 12000ms exceeded.
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.2037092Z Call log:
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.2039218Z   - waiting for getByRole('button', { name: '新建 AI 任务', exact: true })
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.2039730Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.2040473Z     at /home/runner/work/once-production-os/once-production-os/tests/acceptance/browser-business-flow.mjs:79:128 {
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.2041344Z   log: [
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.2042042Z     "  - waiting for getByRole('button', { name: '新建 AI 任务', exact: true })"
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.2042628Z   ],
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.2042932Z   name: 'TimeoutError'
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.2043274Z }
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.2043433Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.2043577Z Node.js v22.22.3
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.5086190Z Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.5238585Z  ELIFECYCLE  Command failed with exit code 1.
+acceptance	Real business pages and portal maintenance regression	2026-10-03T15:24:38.5436481Z ##[error]Process completed with exit code 1.

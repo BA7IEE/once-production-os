@@ -1,0 +1,22 @@
+PASS real MACHINE text Role JPEG MP4 PDF asynchronous worker READY/STAGED structure candidates
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+422 !== 200
+
+    at file:///Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os/tests/acceptance/browser-agent-handoff.mjs:36:785
+    at runNextTicks (node:internal/process/task_queues:64:5)
+    at process.processImmediate (node:internal/timers:452:9)
+    at process.callbackTrampoline (node:internal/async_hooks:130:17) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 422,
+  expected: 200,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.3

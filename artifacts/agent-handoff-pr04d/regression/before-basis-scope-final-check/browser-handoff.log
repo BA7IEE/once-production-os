@@ -1,0 +1,3 @@
+PASS H1 browser: private record offered; pending invitation exposes no profile
+PASS H1 browser/API: lost accept response replayed; source, contacts, history and sibling stay private
+PASS H1 browser/API: delegated edit preserved ownership; revoke denies next read and write

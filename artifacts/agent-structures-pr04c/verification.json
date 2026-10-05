@@ -1,0 +1,59 @@
+{
+  "status": "IMPLEMENTED_PENDING_CODE_REVIEW",
+  "baseline": "379d06dbea9295d47dd7f998a90f76d5d885169a",
+  "core": {
+    "tests": 743,
+    "pass": 743,
+    "fail": 0
+  },
+  "postgres": {
+    "engine": "PostgreSQL16.15",
+    "fullRun": {
+      "programs": 126,
+      "tests": 216,
+      "fail": 0
+    },
+    "finalStructuresVariants": 32,
+    "deduplicatedCoverage": {
+      "programs": 131,
+      "tests": 221,
+      "fail": 0
+    },
+    "fresh": "1→74 PASS",
+    "retained": "74→74 unchanged PASS",
+    "pg_dump_restore": "PASS",
+    "business_json_rebuild": "PASS",
+    "real_rebuild_cli": "PASS"
+  },
+  "browser": {
+    "existingSuites": 14,
+    "newAgentStructures": 1,
+    "status": "BROWSER_TESTED",
+    "chromeViewport": 390,
+    "realWorkerBytes": [
+      "JPEG",
+      "PNG",
+      "WebP",
+      "PDF",
+      "H264 MP4"
+    ]
+  },
+  "migration": {
+    "new": false,
+    "last": 74,
+    "frozen1Through74": "UNCHANGED"
+  },
+  "checks": {
+    "contract": "PASS",
+    "typecheck": "PASS",
+    "transport": "PASS",
+    "static": "PASS",
+    "build": "PASS"
+  },
+  "exactHeadCI": "bound in Draft PR34 description after push; historical CI not reused",
+  "PROVIDER_VERIFIED": "NOT_RUN",
+  "COS_PROVIDER_VERIFIED": "NOT_RUN",
+  "MOBILE_DEVICE_VERIFIED": "NOT_RUN",
+  "PRODUCTION_MIGRATION_VERIFIED": "NOT_RUN",
+  "DEPLOYED": false
+}

@@ -1,0 +1,20 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: {"error":{"code":"STORE_UNAVAILABLE","message":"数据库操作未完成，请联系维护人员","requestId":"3854b1a9-0fec-4aa3-9f21-936b6e4d7eca"}}
+
+503 !== 200
+
+    at Object.expect (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/media-staging.ts:13:73)
+    at async workCaseScenario (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/support/work-cases.ts:18:2)
+    at async file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/postgres/work-cases.test.ts:7:74 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 503,
+  expected: 200,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.3

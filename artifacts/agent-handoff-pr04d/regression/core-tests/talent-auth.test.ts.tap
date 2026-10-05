@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: PR02a authentication, isolation, stable principal, uncertainty and recovery
+ok 1 - PR02a authentication, isolation, stable principal, uncertainty and recovery
+  ---
+  duration_ms: 176.673542
+  type: 'test'
+  ...
+# Subtest: PR02a Talent command rolls back on audit failure
+ok 2 - PR02a Talent command rolls back on audit failure
+  ---
+  duration_ms: 129.225208
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 485.080792

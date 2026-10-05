@@ -1,0 +1,69 @@
+{
+  "status": "IMPLEMENTED_LOCAL_TESTED_AWAITING_REVIEW",
+  "pr": 31,
+  "draft": true,
+  "merged": false,
+  "deployed": false,
+  "baseline": "7909fa204de15224ae7f1f7bb43b88a285d37dc9",
+  "core": {
+    "passed": 641,
+    "failed": 0,
+    "log": "logs/pr03d-verify-final4.txt",
+    "focusedFinal": "logs/pr03d-cases-final-cross3.txt"
+  },
+  "contractRoutes": 259,
+  "staticChecks": 12,
+  "checkpoint": 17,
+  "postgres": {
+    "fullPrograms": 57,
+    "fullTests": 147,
+    "failed": 0,
+    "additionalFinalWorkVariants": 8,
+    "localVersion": "14.19",
+    "ciVersion": "16",
+    "log": "logs/pr03d-fullpg-third.txt",
+    "variants": "logs/pr03d-pg-cases-results.json",
+    "additionalCrossRegression": [
+      "logs/pr03d-pg-cross-results.json",
+      "logs/pr03d-pg-mergecross-results.json"
+    ]
+  },
+  "browser": {
+    "groups": 11,
+    "failed": 0,
+    "widths": [
+      360,
+      390,
+      430
+    ],
+    "realChrome": true,
+    "realAsyncWorker": true,
+    "h264Range": true,
+    "finalWorkRerun": "logs/pr03d-browser-work-cases-final.txt",
+    "results": "logs/pr03d-browser-results.json",
+    "focusedScreenshots": "logs/pr03d-browser-capture-results.json"
+  },
+  "restore": {
+    "status": "PASSED",
+    "assets": 13,
+    "bytes": 92602,
+    "checks": [
+      "work-credit-role-source-media-cover-preserved-through-real-pg-dump-restore",
+      "collection-order-cover-current-tags-preserved-through-physical-restore-without-reviving-grants",
+      "real-pg-dump-restore-preserves-staged-adopted-relations-and-uploader",
+      "private-original-preview-backup-restore-hash-verified",
+      "real-recovery-prepare-quarantines-bytes-revokes-grants-sessions-preserves-usage",
+      "old-portal-cookie-and-staged-authorization-rejected-after-restore"
+    ]
+  },
+  "migrationsAdded": [
+    64,
+    65,
+    66
+  ],
+  "frozenMigrations": "frozen-migrations.json",
+  "providerVerified": "NOT_RUN",
+  "cosVerified": "NOT_RUN",
+  "physicalPhone": "NOT_RUN",
+  "ci": "Final commit CI is linked in PR #31 description and delivery response; local results do not imply CI success."
+}

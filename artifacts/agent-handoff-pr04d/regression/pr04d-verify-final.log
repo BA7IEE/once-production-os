@@ -1,0 +1,16 @@
+
+> once-production-os@0.1.0-dev.1 verify /Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os
+> pnpm contract:check && pnpm typecheck && pnpm test:core && pnpm review:static && pnpm build
+
+
+> once-production-os@0.1.0-dev.1 contract:check /Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os
+> node --experimental-strip-types scripts/generate-contract.ts --check
+
+Contract verified: 286 routes; request schemas only
+
+> once-production-os@0.1.0-dev.1 typecheck /Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os
+> tsc -p tsconfig.server.json --noEmit && tsc -p apps/admin-web/tsconfig.json
+
+packages/core/src/talent-v2-integrity.ts(68,60): error TS2739: Type '{ origin: string; secureCookies: true; contactKey: Buffer<ArrayBufferLike>; csrfKey: Buffer<ArrayBuffer>; recoveryEpoch: string; accessMode: "INTERNAL"; }' is missing the following properties from type 'Config': environment, dataEgressMode, dataCleanupMode, dataMergeMode
+ ELIFECYCLE  Command failed with exit code 2.
+ ELIFECYCLE  Command failed with exit code 2.

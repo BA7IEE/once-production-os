@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: identical detached snapshots pass
+ok 1 - identical detached snapshots pass
+  ---
+  duration_ms: 1.493833
+  type: 'test'
+  ...
+# Subtest: negative control rejects job state without dumping payloads
+ok 2 - negative control rejects job state without dumping payloads
+  ---
+  duration_ms: 0.472625
+  type: 'test'
+  ...
+# Subtest: negative control rejects job revision without dumping payloads
+ok 3 - negative control rejects job revision without dumping payloads
+  ---
+  duration_ms: 0.143584
+  type: 'test'
+  ...
+# Subtest: negative control rejects claim attempts without dumping payloads
+ok 4 - negative control rejects claim attempts without dumping payloads
+  ---
+  duration_ms: 0.088625
+  type: 'test'
+  ...
+# Subtest: negative control rejects lease token without dumping payloads
+ok 5 - negative control rejects lease token without dumping payloads
+  ---
+  duration_ms: 0.132334
+  type: 'test'
+  ...
+# Subtest: negative control rejects lease deadline without dumping payloads
+ok 6 - negative control rejects lease deadline without dumping payloads
+  ---
+  duration_ms: 0.076792
+  type: 'test'
+  ...
+# Subtest: negative control rejects selected rows without dumping payloads
+ok 7 - negative control rejects selected rows without dumping payloads
+  ---
+  duration_ms: 0.124833
+  type: 'test'
+  ...
+# Subtest: negative control rejects error code without dumping payloads
+ok 8 - negative control rejects error code without dumping payloads
+  ---
+  duration_ms: 0.073625
+  type: 'test'
+  ...
+# Subtest: negative control rejects batch revision without dumping payloads
+ok 9 - negative control rejects batch revision without dumping payloads
+  ---
+  duration_ms: 0.341083
+  type: 'test'
+  ...
+# Subtest: negative control rejects source revision without dumping payloads
+ok 10 - negative control rejects source revision without dumping payloads
+  ---
+  duration_ms: 0.519417
+  type: 'test'
+  ...
+# Subtest: negative control rejects row state without dumping payloads
+ok 11 - negative control rejects row state without dumping payloads
+  ---
+  duration_ms: 0.214166
+  type: 'test'
+  ...
+# Subtest: negative control rejects row entity reference without dumping payloads
+ok 12 - negative control rejects row entity reference without dumping payloads
+  ---
+  duration_ms: 0.07925
+  type: 'test'
+  ...
+# Subtest: negative control rejects second person inserted without dumping payloads
+ok 13 - negative control rejects second person inserted without dumping payloads
+  ---
+  duration_ms: 0.066292
+  type: 'test'
+  ...
+# Subtest: negative control rejects first person changed without dumping payloads
+ok 14 - negative control rejects first person changed without dumping payloads
+  ---
+  duration_ms: 0.059125
+  type: 'test'
+  ...
+# Subtest: negative control rejects receipt inserted without dumping payloads
+ok 15 - negative control rejects receipt inserted without dumping payloads
+  ---
+  duration_ms: 0.559791
+  type: 'test'
+  ...
+# Subtest: capture reads only the target batch/source/job receipt and detaches the result
+ok 16 - capture reads only the target batch/source/job receipt and detaches the result
+  ---
+  duration_ms: 0.226792
+  type: 'test'
+  ...
+# Subtest: capture rejects a cross-workspace fixture
+ok 17 - capture rejects a cross-workspace fixture
+  ---
+  duration_ms: 0.356959
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 54.618625

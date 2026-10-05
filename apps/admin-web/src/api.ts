@@ -14,23 +14,39 @@ let lostPending = readPendingMarker();
 const unresolved = new Map<string, {
     key: string; body: string; owner: string; uncertain: boolean;
     operation: keyof Inputs; params: Record<string,string>; query: Record<string,string>;
+    confirmed?: unknown;
 }>();
 let blockedSecret = false;
+// A global recovery action must not make the original form submit another command.
+// Keep the acknowledged request in memory until that form consumes it once.
+const acknowledged = new Map<string,{key:string;body:string;owner:string;operation:keyof Inputs;receipt:unknown}>();
 function notifyPending() {
     writePendingMarker(unresolved.size > 0 || lostPending);
     window.dispatchEvent(new Event('once-pending-changed'));
 }
 export function suspendTransport() { csrf = ''; identity = null; }
 /** Test/reset boundary only. Session loss must use suspendTransport. */
-export function resetTransport() { suspendTransport(); unresolved.clear(); blockedSecret = false; lostPending = false; notifyPending(); }
+export function resetTransport() { suspendTransport(); unresolved.clear(); acknowledged.clear(); blockedSecret = false; lostPending = false; notifyPending(); }
 export function unresolvedCommands() { return [...unresolved.values()].map(x => x.key); }
 export function pendingCommands() { return [...unresolved.values()].filter(x=>x.owner===identity&&x.uncertain).map(x=>({key:x.key,operation:x.operation})); }
+export function pendingKey(operation:keyof Inputs,params:Record<string,string>={}){return [...unresolved.values()].find(x=>x.owner===identity&&x.operation===operation&&JSON.stringify(x.params)===JSON.stringify(params))?.key;}
 export function needsPendingInspection() { return lostPending; }
 export function acknowledgePendingInspection() { lostPending=false; notifyPending(); }
 export async function replayPending(key:string) {
+    const entry=[...unresolved.entries()].find(([,x])=>x.key===key&&x.owner===identity);
+    const row=entry?.[1];
+    if(!row) throw new ApiError('请使用原账号登录后核对提交。','PENDING_IDENTITY_REQUIRED');
+    const result=await call(row.operation,JSON.parse(row.body),row.params,row.query);
+    acknowledged.set(entry![0],{key:row.key,body:row.body,owner:row.owner,operation:row.operation,receipt:result});
+    return result;
+}
+export async function inspectPending(key:string): Promise<unknown|null> {
     const row=[...unresolved.values()].find(x=>x.key===key&&x.owner===identity);
     if(!row) throw new ApiError('请使用原账号登录后核对提交。','PENDING_IDENTITY_REQUIRED');
-    return call(row.operation,JSON.parse(row.body),row.params,row.query);
+    const result=await call<'command.inspect',{found:boolean;result?:unknown}>('command.inspect',{operation:row.operation,commandKey:key});
+    if(!result.found)return null;
+    if(!validReceipt(result.result,row.operation))throw new ApiError('核对结果无效，请继续保留原请求。','RECEIPT_INVALID');
+    row.confirmed=result.result;notifyPending();return result.result;
 }
 export function setCsrf(value: string) { csrf = value; }
 if(typeof window!=='undefined')window.addEventListener('beforeunload',event=>{
@@ -41,6 +57,10 @@ function validReceipt(value:unknown,operation:keyof Inputs):boolean {
     if(!value||typeof value!=='object'||Array.isArray(value))return false;
     const r=value as Record<string,unknown>;
     const state=['ai.create','import.commit','job.resume','upload.complete','export.create'].includes(operation)?'ACCEPTED':'SUCCEEDED';
+    if(operation==='shortlist.batchAdd'){
+        const summary=r.summary as Record<string,unknown>|undefined;
+        if(!summary||!Number.isSafeInteger(summary.added)||!Number.isSafeInteger(summary.existing)||(summary.added as number)<0||(summary.existing as number)<0||(summary.added as number)+(summary.existing as number)>200)return false;
+    }
     return typeof r.operationId==='string'&&uuid.test(r.operationId)&&typeof r.resourceId==='string'&&uuid.test(r.resourceId)
       &&typeof r.revision==='number'&&Number.isSafeInteger(r.revision)&&r.revision>=1&&r.state===state
       &&(r.replayed===undefined||typeof r.replayed==='boolean');
@@ -59,6 +79,18 @@ export async function call<K extends keyof Inputs, T = unknown>(operation: K, in
     const body = input === undefined ? undefined : JSON.stringify(input);
     const signature = identity + ':' + operation + ':' + path + '?' + qs;
     const previous = unresolved.get(signature);
+    const recovered=acknowledged.get(signature);
+    if(route.mode==='COMMAND'&&recovered?.owner===identity&&recovered.body===body){
+        const inspected=await call<'command.inspect',{found:boolean;result?:unknown}>('command.inspect',{operation:recovered.operation,commandKey:recovered.key});
+        if(!inspected.found||!validReceipt(inspected.result,operation))throw new ApiError('当前无法核对已确认提交，请保留表单。','RESULT_UNKNOWN',0,recovered.key,true);
+        acknowledged.delete(signature);return inspected.result as T;
+    }
+    // The original form consumes a read-confirmed result without creating another write.
+    if(route.mode==='COMMAND'&&previous?.confirmed&&previous.body===body){
+        const receipt=await inspectPending(previous.key);
+        if(!receipt)throw new ApiError('当前仍无法确认原提交，请保留表单。','RESULT_UNKNOWN',0,previous.key,true);
+        unresolved.delete(signature);notifyPending();return receipt as T;
+    }
     const uncertain = () => { const row=unresolved.get(signature); if(row)row.uncertain=true; notifyPending(); };
     let key: string | undefined;
     if (route.mode === 'COMMAND') {
@@ -71,6 +103,7 @@ export async function call<K extends keyof Inputs, T = unknown>(operation: K, in
     if (route.mode === 'SECRET' && blockedSecret)
         throw new ApiError('上一份凭证签发结果不明确。请先刷新成员列表，核对账号状态后执行明确的重置。', 'SECRET_OUTCOME_UNKNOWN');
     const headers: Record<string, string> = {};
+    if(identity)headers['X-ONCE-Membership']=identity;
     if (body !== undefined)
         headers['Content-Type'] = 'application/json';
     if (route.method !== 'GET')
@@ -117,7 +150,7 @@ export async function call<K extends keyof Inputs, T = unknown>(operation: K, in
         notifyPending();
         if (route.mode === 'SECRET' && response.status >= 500)
             blockedSecret = true;
-        if (response.status === 401) {
+        if (response.status === 401 || e?.code === 'IDENTITY_CHANGED') {
             suspendTransport(); window.dispatchEvent(new Event('once-session-expired'));
         }
         throw new ApiError(e?.message ?? '请求未完成', e?.code ?? 'HTTP_ERROR', response.status, e?.requestId ?? '', (!!previous?.uncertain || response.status >= 500) && route.mode !== 'READ' && route.method !== 'GET');

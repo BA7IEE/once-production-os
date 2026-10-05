@@ -15,7 +15,7 @@ export const REBUILD_EMPTY_TABLES: Table[] = [...MAINTENANCE_TABLES,'brands','pr
     'projects', 'projectParticipants', 'projectWorks',
     'uploads', 'assets',
     'sources', 'sourceHistory', 'people', 'contacts', 'evidence',
-    'imports', 'jobs', 'handoffs'
+    'imports', 'jobs', 'handoffs', 'sourceReviews'
 ];
 
 export const REBUILD_LIMITS = Object.freeze({

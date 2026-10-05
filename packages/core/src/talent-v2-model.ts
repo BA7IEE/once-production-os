@@ -168,11 +168,14 @@ export interface MediaCollection extends Base {
     personId: string;
     sourceId: string;
     personRoleId: string | null;
+    coverAssetId?: string | null;
+    isCurrent?: boolean;
     collectionTypeCode: 'MODEL_CARD' | 'POLAROIDS' | 'PORTFOLIO' | 'SHOWREEL' | 'INTRO_VIDEO' | 'OTHER';
     title: string;
     status: 'ACTIVE' | 'ARCHIVED';
 }
 export interface MediaCollectionTag extends Base {
+    status?: 'ACTIVE'|'ARCHIVED';
     personId: string;
     sourceId: string;
     collectionId: string;
@@ -187,6 +190,7 @@ export interface MediaCollectionItem extends Base {
     featured: boolean;
 }
 export interface ServicePrincipal extends Base {
+    authorizationEpoch?:number;
     displayName: string;
     scopeId: string;
     permissionCodes: string[];

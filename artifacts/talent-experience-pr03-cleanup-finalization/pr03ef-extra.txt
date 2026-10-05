@@ -1,0 +1,232 @@
+TAP version 13
+# Subtest: identical detached snapshots pass
+ok 1 - identical detached snapshots pass
+  ---
+  duration_ms: 1.418833
+  type: 'test'
+  ...
+# Subtest: negative control rejects job state without dumping payloads
+ok 2 - negative control rejects job state without dumping payloads
+  ---
+  duration_ms: 0.456959
+  type: 'test'
+  ...
+# Subtest: negative control rejects job revision without dumping payloads
+ok 3 - negative control rejects job revision without dumping payloads
+  ---
+  duration_ms: 0.137542
+  type: 'test'
+  ...
+# Subtest: negative control rejects claim attempts without dumping payloads
+ok 4 - negative control rejects claim attempts without dumping payloads
+  ---
+  duration_ms: 0.083
+  type: 'test'
+  ...
+# Subtest: negative control rejects lease token without dumping payloads
+ok 5 - negative control rejects lease token without dumping payloads
+  ---
+  duration_ms: 0.131208
+  type: 'test'
+  ...
+# Subtest: negative control rejects lease deadline without dumping payloads
+ok 6 - negative control rejects lease deadline without dumping payloads
+  ---
+  duration_ms: 0.078375
+  type: 'test'
+  ...
+# Subtest: negative control rejects selected rows without dumping payloads
+ok 7 - negative control rejects selected rows without dumping payloads
+  ---
+  duration_ms: 0.122917
+  type: 'test'
+  ...
+# Subtest: negative control rejects error code without dumping payloads
+ok 8 - negative control rejects error code without dumping payloads
+  ---
+  duration_ms: 0.073583
+  type: 'test'
+  ...
+# Subtest: negative control rejects batch revision without dumping payloads
+ok 9 - negative control rejects batch revision without dumping payloads
+  ---
+  duration_ms: 0.334167
+  type: 'test'
+  ...
+# Subtest: negative control rejects source revision without dumping payloads
+ok 10 - negative control rejects source revision without dumping payloads
+  ---
+  duration_ms: 0.523459
+  type: 'test'
+  ...
+# Subtest: negative control rejects row state without dumping payloads
+ok 11 - negative control rejects row state without dumping payloads
+  ---
+  duration_ms: 0.216
+  type: 'test'
+  ...
+# Subtest: negative control rejects row entity reference without dumping payloads
+ok 12 - negative control rejects row entity reference without dumping payloads
+  ---
+  duration_ms: 0.081708
+  type: 'test'
+  ...
+# Subtest: negative control rejects second person inserted without dumping payloads
+ok 13 - negative control rejects second person inserted without dumping payloads
+  ---
+  duration_ms: 0.067292
+  type: 'test'
+  ...
+# Subtest: negative control rejects first person changed without dumping payloads
+ok 14 - negative control rejects first person changed without dumping payloads
+  ---
+  duration_ms: 0.061458
+  type: 'test'
+  ...
+# Subtest: negative control rejects receipt inserted without dumping payloads
+ok 15 - negative control rejects receipt inserted without dumping payloads
+  ---
+  duration_ms: 0.491666
+  type: 'test'
+  ...
+# Subtest: capture reads only the target batch/source/job receipt and detaches the result
+ok 16 - capture reads only the target batch/source/job receipt and detaches the result
+  ---
+  duration_ms: 0.182417
+  type: 'test'
+  ...
+# Subtest: capture rejects a cross-workspace fixture
+ok 17 - capture rejects a cross-workspace fixture
+  ---
+  duration_ms: 0.295125
+  type: 'test'
+  ...
+# Subtest: unreviewed external and legacy-named publishing routes remain blocked
+ok 18 - unreviewed external and legacy-named publishing routes remain blocked
+  ---
+  duration_ms: 0.801417
+  type: 'test'
+  ...
+# Subtest: internal directory acceptance never admits child paths or transactions/booking
+ok 19 - internal directory acceptance never admits child paths or transactions/booking
+  ---
+  duration_ms: 0.213583
+  type: 'test'
+  ...
+# Subtest: PR02b admits reviewed account and claim routes, never uploads
+ok 20 - PR02b admits reviewed account and claim routes, never uploads
+  ---
+  duration_ms: 0.105458
+  type: 'test'
+  ...
+# Subtest: real image/png is sealed and re-encoded; EXIF removed and original inaccessible
+ok 21 - real image/png is sealed and re-encoded; EXIF removed and original inaccessible
+  ---
+  duration_ms: 271.701542
+  type: 'test'
+  ...
+# Subtest: real image/jpeg is sealed and re-encoded; EXIF removed and original inaccessible
+ok 22 - real image/jpeg is sealed and re-encoded; EXIF removed and original inaccessible
+  ---
+  duration_ms: 291.235667
+  type: 'test'
+  ...
+# Subtest: real image/webp is sealed and re-encoded; EXIF removed and original inaccessible
+ok 23 - real image/webp is sealed and re-encoded; EXIF removed and original inaccessible
+  ---
+  duration_ms: 226.617375
+  type: 'test'
+  ...
+# Subtest: HTML disguised as PNG never reaches READY
+ok 24 - HTML disguised as PNG never reaches READY
+  ---
+  duration_ms: 136.178375
+  type: 'test'
+  ...
+# Subtest: truncated PNG magic is rejected by actual decoder
+ok 25 - truncated PNG magic is rejected by actual decoder
+  ---
+  duration_ms: 215.170416
+  type: 'test'
+  ...
+# Subtest: changed staging bytes fail seal digest; no unsafe preview
+ok 26 - changed staging bytes fail seal digest; no unsafe preview
+  ---
+  duration_ms: 136.163541
+  type: 'test'
+  ...
+# Subtest: preview tampering is detected before bytes returned
+ok 27 - preview tampering is detected before bytes returned
+  ---
+  duration_ms: 271.768459
+  type: 'test'
+  ...
+# Subtest: per-attempt final paths prevent delayed worker from replacing successful preview
+ok 28 - per-attempt final paths prevent delayed worker from replacing successful preview
+  ---
+  duration_ms: 227.145459
+  type: 'test'
+  ...
+# Subtest: atomic terminal purge prevents an old worker from recreating final group
+ok 29 - atomic terminal purge prevents an old worker from recreating final group
+  ---
+  duration_ms: 135.651291
+  type: 'test'
+  ...
+# Subtest: provider rejects path traversal IDs and symlink roots
+ok 30 - provider rejects path traversal IDs and symlink roots
+  ---
+  duration_ms: 1.714834
+  type: 'test'
+  ...
+# Subtest: stream byte limit cuts oversize receive and cannot rewrite the same staging key
+ok 31 - stream byte limit cuts oversize receive and cannot rewrite the same staging key
+  ---
+  duration_ms: 133.080334
+  type: 'test'
+  ...
+# Subtest: restore-check opens existing media read-only and verifies original plus preview digests
+ok 32 - restore-check opens existing media read-only and verifies original plus preview digests
+  ---
+  duration_ms: 224.820125
+  type: 'test'
+  ...
+# Subtest: restore-check opener refuses an unregistered root without initializing it
+ok 33 - restore-check opener refuses an unregistered root without initializing it
+  ---
+  duration_ms: 0.956792
+  type: 'test'
+  ...
+# Subtest: PDF is an opaque private attachment: original preserved, no content interpretation
+ok 34 - PDF is an opaque private attachment: original preserved, no content interpretation
+  ---
+  duration_ms: 356.136416
+  type: 'test'
+  ...
+# Subtest: selected MP4 produces a bounded private cover without modifying the original
+ok 35 - selected MP4 produces a bounded private cover without modifying the original
+  ---
+  duration_ms: 641.192
+  type: 'test'
+  ...
+# Subtest: spoofed MP4 header fails actual probing
+ok 36 - spoofed MP4 header fails actual probing
+  ---
+  duration_ms: 266.818708
+  type: 'test'
+  ...
+# Subtest: new MP4 uploads reject MPEG-4 Part 2; require H.264 yuv420p with AAC or no audio
+ok 37 - new MP4 uploads reject MPEG-4 Part 2; require H.264 yuv420p with AAC or no audio
+  ---
+  duration_ms: 328.60725
+  type: 'test'
+  ...
+1..37
+# tests 37
+# suites 0
+# pass 37
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4147.414375

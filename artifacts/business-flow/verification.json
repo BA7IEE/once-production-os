@@ -1,0 +1,211 @@
+{
+  "at": "2026-10-03T17:04:40.794700+00:00",
+  "base": "1dae5e729b3be3a01d8149e4f02bd64bc9436d61",
+  "branch": "codex/business-flow-fixes",
+  "status": "DEVELOPMENT_ACCEPTANCE_PASSED",
+  "scope": "approved business-flow fixes; not full phase or production acceptance",
+  "testedCodeHead": "b071fa58bdccdee6ec0252e27643e3c6824cbc40",
+  "pr": {
+    "number": 36,
+    "draft": true,
+    "merged": false,
+    "deployed": false,
+    "baseRef": "codex/external-agent-claim-handoff-pr04d"
+  },
+  "ci": {
+    "run": 37136370653,
+    "head": "b071fa58bdccdee6ec0252e27643e3c6824cbc40",
+    "url": "https://github.com/BA7IEE/once-production-os/actions/runs/37136370653",
+    "status": "SUCCESS",
+    "evidenceMode": "CI_METADATA_AND_STEP_LOG_READBACK"
+  },
+  "core": {
+    "status": "CORE_MEMORY_TESTED",
+    "tests": 778,
+    "passed": 778,
+    "affectedTests": 147,
+    "source": "ci-accepted-core.json"
+  },
+  "checks": {
+    "fullBackendTypecheck": "PASS",
+    "fullFrontendTypecheck": "PASS",
+    "buildApiAndWeb": "PASS",
+    "contract": "PASS",
+    "static": "PASS",
+    "manifest": "PASS",
+    "realPrismaClientGeneration": "PASS"
+  },
+  "lifecycle": {
+    "status": "PASS",
+    "tests": 25,
+    "dockerFaultTests": "SIMULATED",
+    "realDockerFaultMatrix": "NOT_RUN",
+    "unknownBrowserLaunch": "SIMULATED_FAIL_CLOSED_LOCK_RETAINED"
+  },
+  "migration": {
+    "count": 75,
+    "testUpgrade": "74->75",
+    "testFreshInstall": "1->75",
+    "oldMigrationsUnmodified": true,
+    "appliedToProduction": false
+  },
+  "postgres": {
+    "status": "DB_TESTED",
+    "scope": "business-flow upgrade/fresh/import/review publication assertions",
+    "source": [
+      "ci-accepted-postgres-upgrade.json",
+      "ci-accepted-postgres-fresh.json"
+    ]
+  },
+  "browser": {
+    "status": "BROWSER_TESTED",
+    "internalChecks": 6,
+    "portalChecks": 10,
+    "portalWidths": [
+      360,
+      390,
+      430
+    ],
+    "authentication": "controlled synthetic HTTP gateway",
+    "source": [
+      "ci-accepted-business-browser.json",
+      "ci-accepted-portal-browser.json"
+    ],
+    "physicalMobile": "NOT_RUN"
+  },
+  "ai": {
+    "inputPreview": "BROWSER_TESTED_PREVIEW_ONLY",
+    "taskCount": 0,
+    "runCount": 0,
+    "providerVerified": "NOT_RUN"
+  },
+  "resources": {
+    "evidenceMode": "CI_STEP_LOG_READBACK",
+    "run": 37136370653,
+    "head": "b071fa58bdccdee6ec0252e27643e3c6824cbc40",
+    "ownedPostgresRuns": 4,
+    "ownedRunsZeroResidue": true,
+    "runs": [
+      {
+        "baseline": "74",
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      },
+      {
+        "baseline": "empty",
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      },
+      {
+        "baseline": "business-flow",
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      },
+      {
+        "baseline": "talent-maintenance",
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    ],
+    "rawResourceJournals": "ARTIFACT_ONLY_NOT_DOWNLOADED",
+    "artifactCopy": "NOT_DOWNLOADED_AFTER_BOUNDED_TIMEOUTS",
+    "artifactUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/37136370653/artifacts/11279010208",
+    "realDockerFaultMatrix": "NOT_RUN"
+  },
+  "artifact": {
+    "id": 11279010208,
+    "name": "business-flow-b071fa58bdccdee6ec0252e27643e3c6824cbc40",
+    "sizeBytes": 2706075,
+    "copy": "NOT_DOWNLOADED_AFTER_BOUNDED_TIMEOUTS",
+    "url": "https://github.com/BA7IEE/once-production-os/actions/runs/37136370653/artifacts/11279010208",
+    "localEvidence": "complete CI step output; raw reports/screenshots/journals remain in GitHub artifact"
+  },
+  "sourceSha256": {
+    ".github/workflows/business-flow.yml": "6a05148c4b1d816d7a2bf1153a7370e81bc02efa4c327f45a5efea68aa951cfc",
+    "Dockerfile": "fcfaf33b58490a51b04679d8e2761f570c2dbf5e68d3041355d75f792c8f3fba",
+    "apps/admin-web/src/business-flow-ui.tsx": "a093b709a1ef66feef870542e50d3fd594c6a475a48027d524c336620a085f6a",
+    "apps/admin-web/src/dto.ts": "174dc46da45ae1db9e1bb73ac5000c615c511953d0ab496dc6eda5c0fff185ac",
+    "apps/admin-web/src/generated/requests.ts": "124583a4ffc68321ad57ec04960d0b87be696c8f85fbe993695e80d01d2ac4a0",
+    "apps/admin-web/src/main.tsx": "4c62181c2e093c8dfba27175cc042cce68fbd23b16521ff846b3f8a22f233e12",
+    "apps/admin-web/src/portal-command.ts": "db9e22175ca9b2022e8a88a795362635535c78ab516b4de233e4a014e3259924",
+    "apps/admin-web/src/portal-pending-marker.ts": "d56b4e7255c4b9c57eb698dc76e6eed221b8380b371ae84d13766bf9c74046d4",
+    "apps/admin-web/src/source-review-ui.tsx": "f1edc1e05e797aa054802f54fbb168f97e32018ca7d26410740060eb136318e6",
+    "apps/admin-web/src/talent-directory-detail.tsx": "a1a0a7f232e2414336a99a022cf891634da77e0da6245d8d8aaa280ab937bd20",
+    "apps/admin-web/src/talent-maintenance-ui.tsx": "a2f8b6d7627b67cb5817ba4d89dddfaafeaa0a0e4ef6737876435f85cd9d24cf",
+    "apps/api/src/prisma-store.ts": "e929320ff43d5f00aae2e1a4835d6cc72dab94607b29b3445c792c8c06a51d5e",
+    "package.json": "8a8141e34748441c8b19084975a8eb532d16936f38f3314aec26386883c4b5f6",
+    "packages/core/src/api.ts": "b64b6dbcd4aad6e53171d87bfa9c1feefb050e179fb50f0b28d1ce16b58930b7",
+    "packages/core/src/deletion-cleanup.ts": "0bf0ed51262158e0ddf0ed87847d4eb9c6f555aa8f85a8ddfe8094fa07b7441a",
+    "packages/core/src/deletions.ts": "cba0b693302a0be991a70b0bc8f44185915a2396b8b2d87426a5b09e01209dfe",
+    "packages/core/src/imports.ts": "14c886c7c64a69bd62bb12eca12fb1bc9094e905a068249d6d223f7a14c92e10",
+    "packages/core/src/model.ts": "0aff835f4693d6a0901c6b377c6eb3ad136eb75eca276fa4afae06336edc5e23",
+    "packages/core/src/rebuild-model.ts": "de6c8f4daebcf6739fd13b9631d55b53f5152fa52009d256a4c2752b671a62ce",
+    "packages/core/src/recovery.ts": "63b1bb51a79c9d7de2674a4bf14fdede49b1d3a2bf1409b0b644d77fe31e53a1",
+    "packages/core/src/replay-policy.ts": "d4e1ffe40683d20c10efdc87b05ddcabe182f5047944e418436ee75f84d106c5",
+    "packages/core/src/routes.ts": "8293fda738e11caabfbf2c216f6e397721dfc3cafa4112d7a952417b13c032bd",
+    "packages/core/src/source-review.ts": "6dde706fc535395ca0c3c3d62d46736421ed36d4fcc2323f38b99cda27e0ba3d",
+    "packages/core/src/talent-directory.ts": "14f5adea15fb3639983e9435d760d0e869656f70ccbc4fa2108e91ad737be244",
+    "packages/core/src/talent-maintenance-routes.ts": "8c35b62feaff1137027682268b42a9a6e4d89f6132e3e489c4419d03c73b5c93",
+    "packages/core/src/talent-portal.ts": "bc48d14e56ee5c6b5244858a225139e4d9aece127e417d8cc5d2022f40e01271",
+    "packages/core/src/talent-v2-integrity.ts": "ef9e7b7e5a4f6dc73ca0453a148aac282d5e0aef97548d635913fb569f6b5149",
+    "packages/core/src/validation.ts": "7e3c79fe9eb3be6f836e1c73b51369d85c1d6fadd5ba4310e61d0840a00d5523",
+    "prisma/migrations/202610030001_business_flow/migration.sql": "63873a9f9baf35dfe8bf769b6a44fa0db974972208ecad2ba0e6b3b790581bb1",
+    "prisma/schema.prisma": "f57cb241d84bc65c6563027063d303b55b102f10fb8c6a2d7f603d99bdd0ba4f",
+    "scripts/browser-storage-policy.mjs": "068342307971d9177a4f15941dac481332af9ff3b734f06f04dba19fe008c8ef",
+    "scripts/heavy-task.mjs": "4bddd6c3b1e53ec316999b8c089e862f8d2bc5c8fb039b30ed09dbad2516c034",
+    "scripts/registered-browser.mjs": "9f342e3fc6947dd427452087f68ddb8e7b45dc9428433b30ab3a173199478fa2",
+    "scripts/registered-temp.mjs": "05d511ee27bb0bf6bef599e955afe2990303f3914f2649c8b3b9b7d523a20eea",
+    "scripts/resource-lifecycle.mjs": "8640883fc1d2aed9d60d16d706f640766e7526f5580805e9dab6a2c9327dabe4",
+    "scripts/resource-run.mjs": "fa2b411a2ea403dc343c90dfac3299801b4e309d6286a47afba2c690a5ba8b05",
+    "scripts/talent-experience-surface-policy.mjs": "bf792fab148d84e2735309bc2c83a25ca2585e445c751c34a555ce7beb1126b2",
+    "scripts/test-business-flow.mjs": "d4e1f311afb4d2532e3d63b71bda18edf4a3a47e7fc3e79ea9b164c61928ccf6",
+    "scripts/test-postgres-owned.mjs": "5260849545698c6f07f8ffdf16c1ecd30b34210bc88adddec9a03a2922d5849c",
+    "scripts/verify-postgres.mjs": "0b6dc7d5ff4c4018f1de7400887b380cc073ecc29a344caa9c65607e640841a3",
+    "tests/acceptance/browser-business-flow.mjs": "a5829decea09794cbd1b7d7824dab3d40086fc5169b0734d120987e131a2dd7e",
+    "tests/acceptance/browser-talent-maintenance.mjs": "36787d16ffda47c446985c9f0f062c005ec98a45e2c6e54515cb115e3cfef3dc",
+    "tests/core/browser-storage-policy.test.ts": "a5105ae118a40ffd6b5b8d39769869c392e90c163b2468cf0b2209cd8971e92c",
+    "tests/core/business-flow.test.ts": "b358fc7c04a55131fbba306fd0bb43311ee5e70c6303201aee282422d6472a19",
+    "tests/core/portal-command.test.ts": "45d50a324da09ca0114a2fc9e39d32d906ead31a84ba9e854882cfe8c84213f8",
+    "tests/lifecycle/owned-postgres.test.mjs": "59703dff679a6a6818b057ca771acf897db58446d23336205ece97b9a8699ec2",
+    "tests/lifecycle/preflight.test.mjs": "cf397185d5adcebc9a4ebebe693f880abaac102bace59a43ced1b1e6374d5eed",
+    "tests/lifecycle/registered-browser.test.mjs": "c244cea5482396bf8ae71f2a438b32951c15a069b523a55d25328c7c79fd1ced",
+    "tests/lifecycle/registered-temp.test.mjs": "39132f7a770134442c4b25077ebc471d1509d7c594a29dc961184a25c3322730",
+    "tests/lifecycle/supervisor.test.mjs": "f5a49fa11b84acbbf12e51c245e37aecdc37ac0571c61a2841f3bb3256ad98f3",
+    "tests/postgres/business-flow.test.ts": "fe930be705e023a2b60636b84a7706ce8cb2b8dc872a1a374644914aa424ae46",
+    "tests/support/memory-store.ts": "7aeb1295987dac3eea67fe27f0d60b90d520c27321538df874c3026ccf49e7a9"
+  },
+  "resourceObservation": {
+    "swapUsedMiB": 7855.06,
+    "pressureLevel": 2,
+    "maxSwapMiB": 4096,
+    "requiredPressureLevel": 1,
+    "localHeavyValidation": "NOT_RUN",
+    "observedAt": "2026-10-03T17:14:25.209248+00:00"
+  },
+  "notRun": [
+    "real AI provider",
+    "COS provider",
+    "physical mobile device",
+    "production migration",
+    "production image",
+    "deployment",
+    "this-round restore drill",
+    "other historical full PG/browser groups",
+    "real Docker failure matrix"
+  ],
+  "milestonesClosed": false
+}

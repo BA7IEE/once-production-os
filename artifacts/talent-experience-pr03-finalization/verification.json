@@ -1,0 +1,86 @@
+{
+  "baseline": "d8e59f7ab70fdb5f55ea0aead0a2f54cef020579",
+  "generatedAt": "2026-10-01T10:34:11.689278+00:00",
+  "status": "IMPLEMENTED_CORE_POSTGRES_BROWSER_TESTED_DRAFT_REVIEW_PENDING",
+  "schemaChanges": false,
+  "newMigrations": [],
+  "migrations1to63": "UNCHANGED",
+  "core": {
+    "tests": 633,
+    "pass": 633,
+    "fail": 0
+  },
+  "postgres": {
+    "version": "14.19 local real PostgreSQL",
+    "tapPrograms": 50,
+    "tests": 140,
+    "fail": 0,
+    "affectedProgramsRerun": 6,
+    "sourceWithdrawalCounterexample": "postgres-affected.log"
+  },
+  "browser": {
+    "groups": 10,
+    "regressionGroups": [
+      "resume",
+      "handoff",
+      "media",
+      "production",
+      "talent-intake",
+      "talent-directory",
+      "talent-auth",
+      "talent-maintenance",
+      "media-staging"
+    ],
+    "collections": "browser.json",
+    "widths": [
+      360,
+      390,
+      430
+    ],
+    "server": "Nest + Prisma + PostgreSQL + real async worker",
+    "extra": "deterministic delayed revision-read locks sibling collection save"
+  },
+  "restore": {
+    "status": "PASSED",
+    "assets": 13,
+    "bytes": 92602,
+    "checks": [
+      "collection-order-cover-current-tags-preserved-through-physical-restore-without-reviving-grants",
+      "real-pg-dump-restore-preserves-staged-adopted-relations-and-uploader",
+      "private-original-preview-backup-restore-hash-verified",
+      "real-recovery-prepare-quarantines-bytes-revokes-grants-sessions-preserves-usage",
+      "old-portal-cookie-and-staged-authorization-rejected-after-restore"
+    ]
+  },
+  "contractRoutes": 255,
+  "checkpointTests": 17,
+  "providerVerified": "NOT_RUN",
+  "cosProviderVerified": "NOT_RUN",
+  "mobileDeviceVerified": "NOT_RUN",
+  "merge": "NOT_MERGED",
+  "deployment": "NOT_DEPLOYED",
+  "ci": "Final exact-head run is recorded in PR #31 description; not inherited from baseline.",
+  "sourceSha256": {
+    "apps/admin-web/src/collection-ui.tsx": "0faa4b9dee23431624f08605a5d9655766dbe69dbdf06c16161483a93880f703",
+    "apps/admin-web/src/generated/requests.ts": "44fc07f3fc81299dc0418d9554a6a9401212cdc0eb1f4a9da3c393537f80fe1e",
+    "apps/admin-web/src/portal-collections.tsx": "7bc3847fe1e1d8d9f5f05084fd29ef7efc9e407b0beece2c0b3cce97bdd5db36",
+    "apps/admin-web/src/talent-maintenance-ui.tsx": "494080ba2eab65ff99cf7452b89fbc01441f6099d1f3d715ea960502b94ebb93",
+    "packages/core/src/api.ts": "5c1498612a2bd60785345215cdaecd6ad2fea26f6ca0bd0e5ef3a8bb78750c89",
+    "packages/core/src/media-collections.ts": "1e397b1f808e227cd0d2bbd406ac90404e6cdf82f9524e96df14318fe42d3810",
+    "packages/core/src/talent-maintenance-model.ts": "bb176fb069dc8cf48685c58fa221ed20613037711515210e09bd35c54647fa05",
+    "packages/core/src/talent-maintenance-routes.ts": "2446f4a79e6730c983b086a175a7050d55312eb3d1b0c9570dd463428f514d39",
+    "packages/core/src/talent-maintenance.ts": "686aca65fa526fe2bb01021d07b29932c2d7b1c2ecd03f5c4954c33126e96159",
+    "packages/core/src/talent-media-exposure.ts": "7f578c2cb90eafad7649664f2a88fd64bc5adf9b107e413ae32edc2ad9fda3ff",
+    "packages/core/src/talent-v2.ts": "366cb7c87880e664e2df2650f66a5d60430a275933c34b13903e7335eb7b13b9",
+    "scripts/talent-experience-surface-policy.mjs": "7a6cd2cead4c36c4cbaa2d6d82d269ece838f84e70ef8eeeef16d7714b693153",
+    "scripts/verify-postgres.mjs": "6f8365e415260fdd6b0fee8241d10e64b90aaaade98fb7984b3c1ddb76174059",
+    "tests/acceptance/browser-media-collections.mjs": "19bcc7c0617b6af19ff4000ef1f648ee84e7a903f35d59894fc8817d3ec88045",
+    "tests/acceptance/collection-exposure.mjs": "6c5410c5b5346bb2d74118100fa49a5381ad9a4522075621bc4ffc452a41da2a",
+    "tests/acceptance/media-collections-restore.mjs": "5c8b725d9de6e3a0debe8f5255870295b0a48003e0757c795df23e41a8028688",
+    "tests/core/media-collections.test.ts": "da49abf06343c3164e7773c421eaec74f33e0798964cfbb3078189c5b1f0b725",
+    "tests/core/talent-v2.test.ts": "eecd4e0302d00e9e21c156b246a85f3da4e36dd211117e1e35950afe4c552b62",
+    "tests/postgres/media-collections.test.ts": "116daa99a2f2942a21d983a821497444afad7ef065120861f83f44680f87884f",
+    "tests/postgres/recovery-approval.test.ts": "7ebfc17f2f5e0dc056a0286b440af5ec1bf84125804645cffa22e219bd12367a",
+    "tests/support/media-collections-finalization.ts": "f5867e485b08c618be8405e3b079788ed2b3263e095e613ca77e5c1c9ed7c84c"
+  }
+}

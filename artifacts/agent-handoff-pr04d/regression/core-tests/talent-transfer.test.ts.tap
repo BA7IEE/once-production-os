@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: TD2 explicit person and fact-source permits export a typed whitelist and atomically rebuild stable relationships
+ok 1 - TD2 explicit person and fact-source permits export a typed whitelist and atomically rebuild stable relationships
+  ---
+  duration_ms: 394.146375
+  type: 'test'
+  ...
+# Subtest: TD2 frozen professional downloads fail closed after fact changes, source revocation, or disabled requestor
+ok 2 - TD2 frozen professional downloads fail closed after fact changes, source revocation, or disabled requestor
+  ---
+  duration_ms: 478.634417
+  type: 'test'
+  ...
+# Subtest: TD2 selected dependencies are explicit and unsupported typed fields cannot be smuggled into export
+ok 3 - TD2 selected dependencies are explicit and unsupported typed fields cannot be smuggled into export
+  ---
+  duration_ms: 291.498542
+  type: 'test'
+  ...
+# Subtest: TD2 foreign-source field evidence cannot be silently flattened and worker rechecks revoked grants
+ok 4 - TD2 foreign-source field evidence cannot be silently flattened and worker rechecks revoked grants
+  ---
+  duration_ms: 326.547167
+  type: 'test'
+  ...
+# Subtest: TD2 capability transfer preserves only referenced definitions and stales queued or ready exports when meaning changes
+ok 5 - TD2 capability transfer preserves only referenced definitions and stales queued or ready exports when meaning changes
+  ---
+  duration_ms: 172.85725
+  type: 'test'
+  ...
+# Subtest: TD2 capability rebuild rejects omitted, unrelated, duplicate, invalid-role and invalid-level definitions before writes
+ok 6 - TD2 capability rebuild rejects omitted, unrelated, duplicate, invalid-role and invalid-level definitions before writes
+  ---
+  duration_ms: 283.24275
+  type: 'test'
+  ...
+# Subtest: TD2 selected eight groups use current format without exporting unselected capabilities
+ok 7 - TD2 selected eight groups use current format without exporting unselected capabilities
+  ---
+  duration_ms: 285.587
+  type: 'test'
+  ...
+# Subtest: TD2 shared inactive capability definitions and nullable role or level survive rebuild without reactivation
+ok 8 - TD2 shared inactive capability definitions and nullable role or level survive rebuild without reactivation
+  ---
+  duration_ms: 295.086959
+  type: 'test'
+  ...
+# Subtest: TD2 retired development formats v1-v13 are rejected before any rebuild write
+ok 9 - TD2 retired development formats v1-v13 are rejected before any rebuild write
+  ---
+  duration_ms: 281.32525
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3035.1215

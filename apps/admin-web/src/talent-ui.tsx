@@ -1,10 +1,14 @@
+import {EditorFrame} from './ux-controls.tsx';
+import {useUnsaved} from './unsaved.ts';
 import {LocaleWorkspace} from './locale-ui.tsx';
 import {TalentHeightReviews} from './talent-migration.tsx';
 import {CandidateListChoice} from './shortlist-ui.tsx';
 import {TalentRegistryCreate} from './talent-registry.tsx';
 import {TalentCollectionEditor} from './talent-collection.tsx';
 import {TalentFieldEvidence,TalentProposals,TalentEvidenceHistory} from './talent-evidence.tsx';
-import {useState} from 'react';
+import {useRef,useState} from 'react';
+import {CommandRecovery} from './command-recovery.tsx';
+import type {Inputs} from './generated/requests.ts';
 import {call,read} from './api.ts';
 import type {CatalogItem,Me,Source} from './dto.ts';
 import {ErrorBox,Field,Modal,useAction,useLoad} from './ui.tsx';
@@ -12,7 +16,7 @@ import {TALENT_VERSION,type TalentDetail,type TalentFact,type TalentFactKind,typ
 import {TALENT_LABELS,TALENT_SECTIONS} from './talent-fields.ts';
 import {TalentFactEditor,TalentRelationChoice,TalentSourceChoice,outcomeUnknown} from './talent-edit.tsx';
 const groups=[['common','基本职业与语言'],['casting','模特与选角'],['translation','翻译服务'],['professional','技能与资质'],['media','媒体集合']] as const;
-function textValue(key:string,value:unknown,detail:TalentDetail,catalog:CatalogItem[],schema:TalentSchema):string {
+export function textValue(key:string,value:unknown,detail:TalentDetail,catalog:CatalogItem[],schema:TalentSchema):string {
  if(value===null||value===undefined||value==='')return '未确认';
  if(key==='personRoleId'){const row=detail.facts.personRoles.find(r=>r.id===value);return row?textValue('roleCode',row.roleCode,detail,catalog,schema):'关联职业当前不可读';}
  if(key==='collectionId')return String(detail.facts.mediaCollections.find(r=>r.id===value)?.title??'关联集合当前不可读');
@@ -33,7 +37,7 @@ export function TalentWorkbench({personId,me,catalog,onClose,onChange,backLabel=
  const [registry,setRegistry]=useState<'capability'|'organization'|null>(null);
  const [tick,setTick]=useState(0),[group,setGroup]=useState<(typeof groups)[number][0]>('common');
  const [edit,setEdit]=useState<{kind:TalentFactKind;row?:TalentFact}|null>(null),[review,setReview]=useState<{kind:TalentFactKind;row:TalentFact;action:string}|null>(null),[enroll,setEnroll]=useState(false);
- const [collection,setCollection]=useState<TalentFact|null>(null),[fieldEvidence,setFieldEvidence]=useState<{kind:TalentFactKind;row:TalentFact;mode:'evidence'|'proposal'}|null>(null),[proposals,setProposals]=useState(false);
+ const [collection,setCollection]=useState<TalentFact|null>(null),[fieldEvidence,setFieldEvidence]=useState<{kind:TalentFactKind|'person';row:TalentFact|TalentDetail;mode:'evidence'|'proposal'}|null>(null),[proposals,setProposals]=useState(false);
  const load=useLoad(()=>Promise.all([read<TalentDetail>('td2.person.get',{id:personId}),read<TalentSchema>('td2.schema')]),personId+':'+tick);
  const saved=()=>{setHeightReviews(false);setCandidate(false);setIdentity(false);setRegistry(null);setEdit(null);setReview(null);setEnroll(false);setCollection(null);setFieldEvidence(null);setProposals(false);setTick(t=>t+1);onChange();};
  const detail=load.data?.[0],schema=load.data?.[1];
@@ -41,7 +45,7 @@ export function TalentWorkbench({personId,me,catalog,onClose,onChange,backLabel=
  if(heightReviews)return <TalentHeightReviews personId={personId} onClose={()=>setHeightReviews(false)} onSaved={saved}/>;
  if(history)return <TalentEvidenceHistory {...history} onClose={()=>setHistory(null)}/>;
  if(detail&&candidate)return <CandidateListChoice person={detail} catalog={catalog} onClose={()=>setCandidate(false)} onDone={saved}/>;
- if(detail&&identity)return <TalentIdentityEditor detail={detail} onClose={()=>setIdentity(false)} onSaved={saved}/>;
+ if(detail&&identity)return <TalentIdentityEditor detail={detail} onClose={()=>setIdentity(false)} onSaved={saved} onPropose={()=>{setIdentity(false);setFieldEvidence({kind:'person',row:detail,mode:'proposal'});}}/>;
  if(registry)return <TalentRegistryCreate mode={registry} catalog={catalog} onClose={()=>setRegistry(null)} onSaved={saved}/>;
  if(detail&&collection)return <TalentCollectionEditor detail={detail} row={collection} onClose={()=>setCollection(null)} onSaved={saved}/>;
  if(detail&&schema&&fieldEvidence)return <TalentFieldEvidence {...fieldEvidence} detail={detail} catalog={catalog} schema={schema} onClose={()=>setFieldEvidence(null)} onSaved={saved}/>;
@@ -54,7 +58,7 @@ export function TalentWorkbench({personId,me,catalog,onClose,onChange,backLabel=
  <div className="talent-overview"><div><p className="eyebrow">人才资料</p><h3>{detail.displayName}</h3><p>{detail.intro||'尚未填写简介'}</p></div><div><strong>{detail.isTalent?'已建立专业档案':'普通人物'}</strong><p>成年资格：{TALENT_LABELS[detail.adultState]??'未知'}</p></div></div>
  {!detail.isTalent&&<div className="notice"><p>这份人物资料尚未建立专业档案。建立时会保留已有职业、语言和地点；不会猜测熟练度或量尺含义。</p>{canWrite&&<button className="primary" onClick={()=>setEnroll(true)}>建立专业档案</button>}</div>}
  {!canWrite&&<p className="notice">当前只可浏览专业资料。</p>}
- <div className="detail-actions"><button onClick={()=>setLocales(true)}>内部中英文文本</button>{canReview&&detail.originAvailable&&<button onClick={()=>setHeightReviews(true)}>查看旧身高复核</button>}{canReadEvidence&&<button onClick={()=>setHistory({kind:'person',ownerId:detail.id})}>查看身份依据</button>}{canWrite&&detail.isTalent&&<button onClick={()=>setCandidate(true)}>加入候选清单</button>}{canWrite&&detail.originAvailable&&<button onClick={()=>setIdentity(true)}>编辑人物信息</button>}{canReview&&<button onClick={()=>setProposals(true)}>查看字段建议</button>}{me.permissions.includes('catalog.manage')&&<button onClick={()=>setRegistry('capability')}>登记专业能力</button>}{canWrite&&<button onClick={()=>setRegistry('organization')}>登记机构</button>}</div>
+ <div className="detail-actions"><button onClick={()=>setLocales(true)}>内部中英文文本</button>{canReview&&detail.originAvailable&&<button onClick={()=>setHeightReviews(true)}>查看旧身高复核</button>}{canReadEvidence&&<button onClick={()=>setHistory({kind:'person',ownerId:detail.id})}>查看身份依据</button>}{canWrite&&detail.isTalent&&<button onClick={()=>setCandidate(true)}>加入候选清单</button>}{detail.canEdit&&detail.originAvailable&&<button onClick={()=>setIdentity(true)}>{detail.status==='ARCHIVED'?'恢复在库':'编辑人物信息'}</button>}{canWrite&&<button onClick={()=>setFieldEvidence({kind:'person',row:detail,mode:'proposal'})}>补充姓名与简介依据</button>}{canReview&&<button onClick={()=>setProposals(true)}>查看字段建议</button>}{me.permissions.includes('catalog.manage')&&<button onClick={()=>setRegistry('capability')}>登记专业能力</button>}{canWrite&&<button onClick={()=>setRegistry('organization')}>登记机构</button>}</div>
  <nav className="talent-tabs" aria-label="专业资料分类">{groups.map(([key,label])=><button key={key} aria-pressed={group===key} onClick={()=>setGroup(key)}>{label}</button>)}</nav>
  {(Object.keys(TALENT_SECTIONS) as TalentFactKind[]).filter(kind=>TALENT_SECTIONS[kind].group===group).map(kind=>{const section=TALENT_SECTIONS[kind],rows=detail.facts[kind];const singleton=['talentProfiles','castingProfiles'].includes(kind);return <section key={kind} className="panel talent-section" aria-label={section.title}><div className="panel-heading"><div><h3>{section.title}</h3>{section.hint&&<p>{section.hint}</p>}</div>{canWrite&&(detail.isTalent||kind==='personLanguages')&&!(singleton&&rows.length)&&<button onClick={()=>setEdit({kind})}>新增{section.title}</button>}</div>
  {!rows.length?<p className="muted">尚无当前可见的{section.title}记录。</p>:rows.map(row=><article key={row.id} className="talent-fact"><div className="talent-fact-heading"><strong>{TALENT_LABELS[String(row.status??row.state)]??'已记录'}</strong><span className={row.usable?'muted':'notice-inline'}>{row.usable?'当前可使用':'当前不可用于业务筛选'}</span></div><dl className="detail-grid">{section.fields.map(f=><div key={f.key}><dt>{f.label}</dt><dd>{row.unavailableFields.includes(f.key)?'当前不可读':textValue(f.key,row[f.key],detail,catalog,schema)}</dd></div>)}</dl>
@@ -76,7 +80,7 @@ function TalentEnroll({detail,onClose,onSaved}:{detail:TalentDetail;onClose:()=>
  const load=useLoad(()=>read<Source>('source.get',{id:detail.originSourceId}),detail.id),action=useAction(),[ack,setAck]=useState(false),freeze=action.busy||outcomeUnknown(action.error);
  return <Modal title="建立专业档案" onClose={()=>{if(!freeze)onClose();}}><form onSubmit={e=>{e.preventDefault();if(!load.data||!ack)return;void action.run(async()=>{await call('td2.person.enroll',{schemaVersion:TALENT_VERSION,expectedRevision:detail.revision,sourceRevision:load.data!.revision},{id:detail.id});onSaved();});}}><div className="modal-body"><ErrorBox error={load.error??action.error}/><p>将以原资料来源建立专业档案，已有职业、语言和地点会保留。已有候选会标为待核实职业，需要到候选清单逐项确认，不会自动猜测。来源：{load.data?.title??'正在读取…'}</p><label><input type="checkbox" checked={ack} disabled={freeze} onChange={e=>setAck(e.target.checked)}/>我已核对当前人物与来源</label></div><footer className="modal-footer"><button type="button" disabled={freeze} onClick={onClose}>取消</button><button type="submit" className="primary" disabled={action.busy||!load.data?.current||!ack}>{outcomeUnknown(action.error)?'原样重试':'确认建立'}</button></footer></form></Modal>;
 }
-function TalentReview({kind,row,action:operation,detail,onClose,onSaved}:{kind:TalentFactKind;row:TalentFact;action:string;detail:TalentDetail;onClose:()=>void;onSaved:()=>void}) {
+export function TalentReview({kind,row,action:operation,detail,onClose,onSaved}:{kind:TalentFactKind;row:TalentFact;action:string;detail:TalentDetail;onClose:()=>void;onSaved:()=>void}) {
  const load=useLoad(()=>read<Source>('source.get',{id:row.sourceId}),row.sourceId),action=useAction(),[ack,setAck]=useState(false),[assetId,setAssetId]=useState(String(row.evidenceAssetId??'')),[assetLabel,setAssetLabel]=useState('原证明材料'),[until,setUntil]=useState(''),[identifier,setIdentifier]=useState('');
  const freeze=action.busy||outcomeUnknown(action.error),secret=operation==='identifier',clearSecret=operation==='identifier-clear',adult=kind==='adultEligibilities';
  const title=clearSecret?'清除受限资质编号':secret?'设置受限资质编号':operation==='revoke'?'撤销核验':kind==='measurementSets'?'确认量尺':'核验'+TALENT_SECTIONS[kind].title;
@@ -98,14 +102,24 @@ export function TalentPersonCreate({onClose,onSaved}:{onClose:()=>void;onSaved:(
  return <Modal title="新建人物" onClose={close}><form onSubmit={e=>{e.preventDefault();if(!source)return;void action.run(async()=>{const receipt=await call<'td2.person.create',import('./dto.ts').Receipt>('td2.person.create',{schemaVersion:TALENT_VERSION,originSourceId:source.id,sourceRevision:source.revision,displayName:name,aliases:aliases.split('\n').map(s=>s.trim()).filter(Boolean),intro,createTalent:talent});onSaved(receipt.resourceId);});}}><div className="modal-body"><ErrorBox error={action.error}/><p>人物身份可以独立于职业存在。需要维护模特、翻译或制作技能时，再建立专业档案并逐项添加职业。</p><fieldset disabled={freeze}><Field label="姓名或艺名 *"><input value={name} onChange={e=>setName(e.target.value)} required maxLength={120}/></Field><Field label="其他姓名（每行一个）"><textarea value={aliases} onChange={e=>setAliases(e.target.value)}/></Field><Field label="人物简介"><textarea value={intro} onChange={e=>setIntro(e.target.value)} maxLength={5000}/></Field><label><input type="checkbox" checked={talent} onChange={e=>setTalent(e.target.checked)}/>同时建立专业档案（稍后逐项填写职业）</label></fieldset><TalentSourceChoice value={source} onChange={setSource} disabled={freeze}/>{outcomeUnknown(action.error)&&<p className="notice">结果未知，请保留资料并原样重试，避免重复建档。</p>}</div><footer className="modal-footer"><button type="button" disabled={freeze} onClick={close}>取消</button><button type="submit" className="primary" disabled={action.busy||!source}>{outcomeUnknown(action.error)?'原样重试':'保存人物'}</button></footer></form></Modal>;
 }
 
-function TalentIdentityEditor({detail,onClose,onSaved}:{detail:TalentDetail;onClose:()=>void;onSaved:()=>void}) {
+export function TalentIdentityEditor({detail,onClose,onSaved,onPropose,inline=false}:{detail:TalentDetail;onClose:()=>void;onSaved:()=>void;onPropose?:()=>void;inline?:boolean}) {
  const [name,setName]=useState(detail.displayName),[aliases,setAliases]=useState(detail.aliases.join('\n')),[intro,setIntro]=useState(detail.intro),[status,setStatus]=useState<'DRAFT'|'ACTIVE'|'ARCHIVED'>(detail.status as 'DRAFT'|'ACTIVE'|'ARCHIVED'),action=useAction(),freeze=action.busy||outcomeUnknown(action.error);
+ const source=useLoad(()=>read<Source>('source.get',{id:detail.originSourceId}),detail.originSourceId),archived=detail.status==='ARCHIVED',canEditIdentity=!archived&&source.data?.current&&source.data.allowsInternalAuthoring;
  const dirty=name!==detail.displayName||aliases!==detail.aliases.join('\n')||intro!==detail.intro||status!==detail.status;
- const close=()=>{if(freeze)return;if(dirty&&!window.confirm('人物信息尚未保存，确定关闭？'))return;onClose();};
- return <Modal title="编辑人物信息" onClose={close}><form onSubmit={e=>{e.preventDefault();void action.run(async()=>{await call('td2.person.patch',{schemaVersion:TALENT_VERSION,expectedRevision:detail.revision,...(name!==detail.displayName?{displayName:name}:{}),...(aliases!==detail.aliases.join('\n')?{aliases:aliases.split('\n').map(s=>s.trim()).filter(Boolean)}:{}),...(intro!==detail.intro?{intro}:{}),...(status!==detail.status?{status}:{})},{id:detail.id});onSaved();});}}><div className="modal-body"><ErrorBox error={action.error}/><fieldset disabled={freeze}><Field label="姓名或艺名 *"><input required value={name} maxLength={120} onChange={e=>setName(e.target.value)}/></Field><Field label="其他姓名（每行一个）"><textarea value={aliases} onChange={e=>setAliases(e.target.value)}/></Field><Field label="人物简介"><textarea value={intro} maxLength={5000} onChange={e=>setIntro(e.target.value)}/></Field><Field label="人物状态"><select value={status} onChange={e=>setStatus(e.target.value as typeof status)}><option value="DRAFT">草稿</option><option value="ACTIVE">在库</option><option value="ARCHIVED">归档</option></select></Field></fieldset></div><footer className="modal-footer"><button type="button" disabled={freeze} onClick={close}>取消</button><button type="submit" className="primary" disabled={action.busy||!dirty}>{outcomeUnknown(action.error)?'原样重试':'保存人物信息'}</button></footer></form></Modal>;
+ const markSaved=useUnsaved(dirty,'姓名与简介'),form=useRef<HTMLFormElement>(null),snapshot=useRef<Inputs['td2.person.patch']|null>(null);
+ const close=()=>{if(freeze)return;if(dirty&&!window.confirm('人物信息尚未保存，确定关闭？'))return;markSaved();onClose();};
+ const Frame=inline?EditorFrame:Modal;
+ return <Frame title={archived?'恢复人物在库':'编辑姓名与简介'} onClose={close}><form ref={form} onChange={()=>{if(!freeze)snapshot.current=null;}} onSubmit={e=>{e.preventDefault();void action.run(async()=>{
+  if(!snapshot.current)snapshot.current={schemaVersion:TALENT_VERSION,expectedRevision:detail.revision,...(canEditIdentity&&name!==detail.displayName?{displayName:name}:{}),...(canEditIdentity&&aliases!==detail.aliases.join('\n')?{aliases:aliases.split('\n').map(s=>s.trim()).filter(Boolean)}:{}),...(canEditIdentity&&intro!==detail.intro?{intro}:{}),...(status!==detail.status?{status}:{})};
+  await call('td2.person.patch',snapshot.current,{id:detail.id});markSaved();onSaved();
+ });}}><div className="modal-body"><ErrorBox error={action.error??source.error}/>
+ {archived?<p className="notice">先恢复在库，再修改人物资料。恢复不会延长来源期限或重新签发已失效的媒体访问凭证。</p>:source.data?.allowsInternalAuthoring===false&&<div className="notice"><p>姓名与简介来自本人投稿。员工收到新资料时，请选择独立来源提交逐字段建议，核对后采用。</p>{onPropose&&<button type="button" disabled={freeze||dirty} onClick={onPropose}>补充姓名与简介依据</button>}</div>}
+ {!archived&&<fieldset disabled={freeze||!canEditIdentity}><Field label="姓名或艺名 *"><input required value={name} maxLength={120} onChange={e=>setName(e.target.value)}/></Field><Field label="其他姓名（每行一个）"><textarea value={aliases} onChange={e=>setAliases(e.target.value)}/></Field><Field label="人物简介"><textarea value={intro} maxLength={5000} onChange={e=>setIntro(e.target.value)}/></Field></fieldset>}
+ <fieldset disabled={freeze}><Field label="人物状态"><select value={status} onChange={e=>setStatus(e.target.value as typeof status)}>{!archived&&<option value="DRAFT">草稿</option>}<option value="ACTIVE">在库</option><option value="ARCHIVED">归档</option></select></Field></fieldset>
+ {outcomeUnknown(action.error)&&<CommandRecovery operation="td2.person.patch" params={{id:detail.id}} busy={action.busy} onRetry={()=>form.current?.requestSubmit()}/>}</div><footer className="modal-footer"><button type="button" disabled={freeze} onClick={close}>取消</button><button type="submit" className="primary" disabled={action.busy||!dirty}>{outcomeUnknown(action.error)?'原样重试':archived?'确认恢复在库':'保存姓名与简介'}</button></footer></form></Frame>;
 }
 
-function TalentFactSource({id,readable}:{id:string;readable:boolean}) {
+export function TalentFactSource({id,readable}:{id:string;readable:boolean}) {
  const load=useLoad(()=>readable?read<Source>('source.get',{id}):Promise.resolve(null),id+':'+readable);
  return <p className="muted">来源：{!readable?'详情受限':load.busy?'正在核对…':load.data?load.data.title+' · 有效期截止 '+new Date(load.data.validUntil).toLocaleDateString('zh-CN'):'当前不可读取原来源'}</p>;
 }

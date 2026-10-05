@@ -1,0 +1,78 @@
+{
+  "baseline": "2c29e6819b3a1bcced4bd172777050415230c684",
+  "status": "IMPLEMENTED_CORE_POSTGRES_BROWSER_TESTED_DRAFT_REVIEW_PENDING",
+  "generatedAt": "2026-10-01T09:09:19.192040+00:00",
+  "core": {
+    "tests": 632,
+    "pass": 632,
+    "fail": 0,
+    "newScenarioPrograms": 7
+  },
+  "postgres": {
+    "version": "14.19 local real PostgreSQL",
+    "tapPrograms": 49,
+    "tests": 139,
+    "fail": 0,
+    "migrationUpgrade": "populated 62 to 63 and empty install",
+    "collectionVariants": [
+      "base",
+      "security",
+      "enroll",
+      "export/rebuild",
+      "merge"
+    ]
+  },
+  "browser": {
+    "suiteGroups": 10,
+    "widths": [
+      360,
+      390,
+      430
+    ],
+    "browser": "real Chrome",
+    "server": "Nest + Prisma + async media worker",
+    "regressionGroups": [
+      "resume",
+      "handoff",
+      "media",
+      "production",
+      "talent-intake",
+      "talent-directory",
+      "talent-auth",
+      "talent-maintenance",
+      "media-staging"
+    ],
+    "collections": "browser.json"
+  },
+  "restore": {
+    "status": "PASSED",
+    "assets": 11,
+    "bytes": 73631,
+    "checks": [
+      "collection-order-cover-current-tags-preserved-through-physical-restore-without-reviving-grants",
+      "real-pg-dump-restore-preserves-staged-adopted-relations-and-uploader",
+      "private-original-preview-backup-restore-hash-verified",
+      "real-recovery-prepare-quarantines-bytes-revokes-grants-sessions-preserves-usage",
+      "old-portal-cookie-and-staged-authorization-rejected-after-restore"
+    ]
+  },
+  "contracts": 254,
+  "checks": [
+    "pnpm verify",
+    "pnpm typecheck:core",
+    "pnpm typecheck:transport",
+    "17 checkpoint tests",
+    "pnpm verify:postgres",
+    "10 real browser suites"
+  ],
+  "migration63": {
+    "name": "202610010008_media_collections",
+    "sha256": "f346a065de4e7671eae037362d3e42704d8dfe2a1caf5dffa928b571b4b774f7",
+    "priorMigrationsUnchanged": true
+  },
+  "PROVIDER_VERIFIED": "NOT_RUN",
+  "COS_PROVIDER_VERIFIED": "NOT_RUN",
+  "MOBILE_DEVICE_VERIFIED": "NOT_RUN",
+  "deployment": "NOT_DEPLOYED",
+  "ci": "Final exact-head run is linked in PR 31 description after push; no earlier-head run substituted."
+}

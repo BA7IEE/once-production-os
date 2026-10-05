@@ -8,6 +8,7 @@ import { asRow, loadTalentGraph, td2PersonFor } from './talent-v2-graph.ts';
 const MACHINE_READS=new Set(['td2.schema','td2.person.list','td2.person.get','td2.resolve','td2.organization.list']);
 const MACHINE_WRITES=new Set(['td2.person.create','td2.person.patch','td2.person.enroll']);
 export function authorizeTd2Operation(actor:Actor,operation:string,mode:string){
+    if(operation.startsWith('ingestion.')){invariant(actor.actorKind==='MACHINE','MACHINE_REQUIRED','摄取入口仅接受机器主体',403);return;}
     if(actor.actorKind==='MACHINE'){
         const fact=/^td2\.fact\.[A-Za-z]+\.(create|patch)$/.test(operation);
         invariant(MACHINE_READS.has(operation)||MACHINE_WRITES.has(operation)||fact||operation==='td2.proposal.create','MACHINE_OPERATION_FORBIDDEN','此操作不对机器账号开放',403);

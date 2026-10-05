@@ -1,8 +1,12 @@
+import {navigateWorkspace,beginMediaUpload} from './support/workspace-navigation.mjs';
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
+import {registeredBrowser} from '../../scripts/registered-browser.mjs';
+let browserOwner;
 /** M1 real Nest/Prisma/Chromium acceptance. Only an empty disposable loopback test DB.
  * Never reads a .env target, resets a DB, or sends requests to a production host. */
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID, createHash } from 'node:crypto';
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, mkdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
@@ -18,7 +22,8 @@ assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname));
 assert.match(url.pathname, /^\/once_test_[a-z0-9_]+$/);
 assert.ok(url.username && url.password && !url.search && !url.hash);
 const prisma = new PrismaClient({ datasources: { db: { url: raw } }, log: [] });
-const tmp = mkdtempSync(join(tmpdir(), 'once-private-media-'));
+const ownedTemp=registeredTemp();
+const tmp = ownedTemp.path;
 const password = 'Synthetic-' + randomBytes(20).toString('base64url') + '!';
 const put = (name, text) => { const path = join(tmp, name); writeFileSync(path, text, { mode: 0o600 }); return path; };
 const env = { ...process.env, DATABASE_URL: raw, APP_ENV: 'test', ACCESS_MODE: 'INTERNAL', COOKIE_SECURE: 'false', HOST: '127.0.0.1',
@@ -41,7 +46,7 @@ async function login(page, loginName) {
     await page.locator('input[autocomplete=username]').fill(loginName);
     await page.locator('input[autocomplete=current-password]').fill(password);
     await page.getByRole('button', { name: '登录', exact: true }).click();
-    await page.getByRole('button', { name: /概览/ }).waitFor();
+    await page.locator('.topbar').getByText('工作空间 / 工作台',{exact:true}).waitFor();
 }
 async function cmd(page, method, path, data, expected = 200) {
     const me = await page.context().request.get(base + '/api/v1/me'); assert.equal(me.status(), 200);
@@ -66,33 +71,33 @@ try {
  base='http://127.0.0.1:'+env.PORT;env.APP_ORIGIN=base;run('node',['dist/apps/api/src/bootstrap.js']);
  api=spawn('node',['dist/apps/api/src/main.js'],{env,stdio:['ignore','pipe','pipe']});api.stdout.resume();api.stderr.resume();
  await until(async()=>(await fetch(base+'/health/ready')).status===200);
- browser=await chromium.launch({headless:true,...(process.env.CHROME_EXECUTABLE?{executablePath:process.env.CHROME_EXECUTABLE}:{})});
+ browserOwner=await registeredBrowser(chromium,{headless:true,...(process.env.CHROME_EXECUTABLE?{executablePath:process.env.CHROME_EXECUTABLE}:{})});browser=browserOwner.browser;
  const owner=await browser.newPage(),editor=await browser.newPage();for(const p of[owner,editor])p.on('pageerror',e=>errors.push(e.message));
  await login(owner,'owner');const added=await cmd(owner,'POST','/memberships',{loginName:'m1_editor',displayName:'合成图片维护人',role:'EDITOR',extraPermissions:[]},201);
  await editor.goto(base+'/activate',{waitUntil:'networkidle'});await editor.getByLabel('激活凭证').fill(added.activationToken);await editor.getByLabel('设置密码（至少 12 个字符）').fill(password);await editor.getByRole('button',{name:'激活账号',exact:true}).click();await editor.getByText('账号已激活').waitFor();await login(editor,'m1_editor');
- await editor.getByRole('button',{name:/人才档案/}).click();await editor.getByRole('button',{name:/新增人才/}).click();
+ await navigateWorkspace(editor,'人才库');await editor.getByRole('button',{name:/新增人才/}).click();
  await editor.getByLabel('姓名 / 艺名 *').fill('M1私有图片人才');await editor.getByRole('checkbox',{name:'模特',exact:true}).check();
  const sourceReadPath='**/api/v1/sources/*';let releaseSource,sourceEntered;const sourceGate=new Promise(resolve=>{releaseSource=resolve;}),sourceRequested=new Promise(resolve=>{sourceEntered=resolve;});
  const holdSource=async route=>{const response=await route.fetch();sourceEntered();await sourceGate;await route.fulfill({response});};await editor.route(sourceReadPath,holdSource);
  const createdResponse=editor.waitForResponse(r=>r.url().endsWith('/directory/talents')&&r.request().method()==='POST');await editor.getByRole('button',{name:'保存草稿',exact:true}).click();const created=await createdResponse;assert.equal(created.status(),201);
  const pid=(await created.json()).resourceId,person=await prisma.person.findUniqueOrThrow({where:{id:pid}});
- await sourceRequested;await editor.getByText('正在核对素材来源…',{exact:true}).waitFor();assert.equal(await editor.getByRole('heading',{name:'关联私有素材'}).count(),0,'source-backed upload must not render an unrelated required source selector while the profile source loads');releaseSource();
- await editor.getByRole('heading',{name:'关联私有素材'}).waitFor();await editor.unroute(sourceReadPath,holdSource);
+ await editor.getByRole('button',{name:'照片视频',exact:true}).click();
+ await sourceRequested;await editor.getByText('正在核对素材来源…',{exact:true}).waitFor();assert.equal(await editor.getByRole('region',{name:'照片视频与附件'}).count(),0,'source-backed upload must not render an unrelated required source selector while the profile source loads');releaseSource();
+ await editor.getByRole('region',{name:'照片视频与附件'}).waitFor();await editor.unroute(sourceReadPath,holdSource);
  const image=await sharp({create:{width:80,height:40,channels:3,background:'#336699'}}).png().withMetadata({orientation:6}).toBuffer();
  const sends=[];const path='**/api/v1/uploads/*/complete';
  editor.on('request',r=>{if(r.url().endsWith('/complete'))sends.push({key:r.headers()['idempotency-key'],body:r.postData()});});
  const lose=async route=>{const upstream=await route.fetch();assert.equal(upstream.status(),202);await route.abort('failed');};await editor.route(path,lose);
- await editor.locator('input[type=file]').setInputFiles({name:'M1-synthetic.png',mimeType:'image/png',buffer:image});
- await editor.getByRole('button',{name:'上传并检查',exact:true}).click();await editor.getByRole('alert').waitFor();
+ await beginMediaUpload(editor,{name:'M1-synthetic.png',mimeType:'image/png',buffer:image});await editor.getByRole('alert').waitFor();
  // QUEUED is already true after the first committed request; it cannot prove replay finished.
  assert.equal(sends.length,1);
  assert.equal(await prisma.mediaUpload.count({where:{state:'QUEUED'}}),1);
  await editor.unroute(path,lose);
  const replayResponse=editor.waitForResponse(r=>r.url().endsWith('/complete')&&r.request().method()==='POST');
- await editor.getByRole('button',{name:'核对上传状态并继续',exact:true}).click();
+ await editor.getByRole('button',{name:'原样重试此文件',exact:true}).click();
  const replay=await replayResponse;assert.equal(replay.status(),202);
  assert.equal((await replay.json()).replayed,true,'must observe the actual replay receipt, not only old queue state');
- await editor.locator('[data-upload-state=QUEUED]').waitFor();
+ await editor.locator('.upload-queue').getByText('等待检查',{exact:true}).waitFor();
  await until(async()=>await prisma.mediaUpload.count({where:{state:'QUEUED'}})===1);
  assert.equal(sends.length,2);assert.deepEqual(sends[0],sends[1]);
  const upload=await prisma.mediaUpload.findFirstOrThrow();assert.equal(await prisma.commandReceipt.count({where:{operation:'upload.complete',resourceId:upload.id}}),1);
@@ -108,15 +113,45 @@ try {
  assert.equal(await getStatus(editor,'/assets/'+upload.id+'/original'),404);
  console.log('PASS M1 browser: upload/unknown-complete replay/worker/decoded preview; metadata stripped and private scope enforced');
  // PDF is stored without parsing; the real page must not suggest a rendered preview.
- await editor.getByRole('button',{name:'上传另一份',exact:true}).click();
  const pdf=Buffer.from('%PDF-1.7\nOpaque external Agent attachment');
- await editor.locator('input[type=file]').setInputFiles({name:'external-agent.pdf',mimeType:'application/pdf',buffer:pdf});
- await editor.getByRole('button',{name:'上传并检查',exact:true}).click();
- await editor.getByText('PDF附件 · 未解析，内容处理交给外部Agent',{exact:true}).waitFor();
+ await beginMediaUpload(editor,{name:'external-agent.pdf',mimeType:'application/pdf',buffer:pdf});
+ await editor.getByText('PDF附件 · 未解析',{exact:true}).waitFor();
  const pdfAsset=await prisma.mediaAsset.findFirstOrThrow({where:{mime:'application/pdf'}});
  assert.equal(pdfAsset.bytes,pdf.length);assert.equal(await getStatus(owner,'/assets/'+pdfAsset.id+'/preview'),404);
  assert.equal(await editor.locator('[data-asset-id="'+pdfAsset.id+'"] img').count(),0);
  console.log('PASS PDF attachment: actual upload/worker/DB and explicit unparsed page, no administrator scope bypass');
+
+ // PR-03 startup: actual H.264/AAC file, asynchronous worker, native video element and authorized ranges.
+ const videoPath=join(tmp,'playable.mp4');run('ffmpeg',['-v','error','-f','lavfi','-i','testsrc2=size=160x120:duration=3:rate=24','-f','lavfi','-i','sine=frequency=440:duration=3','-c:v','libx264','-pix_fmt','yuv420p','-c:a','aac','-threads','1','-movflags','+faststart','-shortest',videoPath]);
+ const videoBytes=readFileSync(videoPath);
+ await beginMediaUpload(editor,{name:'playable.mp4',mimeType:'video/mp4',buffer:videoBytes});
+ const video=editor.getByLabel('播放视频：playable.mp4');await video.waitFor();
+ await video.evaluate(async element=>{element.muted=true;await element.play();});
+ await editor.waitForFunction(()=>{const v=document.querySelector('video');return v && v.currentTime>0.1 && v.videoWidth===160;});
+ await video.evaluate(element=>{element.pause();element.currentTime=2.7;});
+ await editor.waitForFunction(()=>{const v=document.querySelector('video');return v&&!v.seeking&&v.currentTime>=2.6;});
+ const videoAsset=await prisma.mediaAsset.findFirstOrThrow({where:{mime:'video/mp4'}}),playUrl=base+'/api/v1/assets/'+videoAsset.id+'/playback';
+ const auditBefore=await prisma.auditEvent.count({where:{action:'asset.playback'}});
+ await prisma.$executeRawUnsafe("CREATE FUNCTION once_playback_audit_fail() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.action='asset.playback' THEN RAISE EXCEPTION 'synthetic playback audit failure'; END IF; RETURN NEW; END; $$");
+ await prisma.$executeRawUnsafe('CREATE TRIGGER once_playback_audit_fail BEFORE INSERT ON audits FOR EACH ROW EXECUTE FUNCTION once_playback_audit_fail()');
+ try {const denied=await editor.context().request.get(playUrl);assert.equal(denied.status(),503);assert.match(denied.headers()['content-type'],/json/);assert.equal(await prisma.auditEvent.count({where:{action:'asset.playback'}}),auditBefore);}
+ finally {await prisma.$executeRawUnsafe('DROP TRIGGER once_playback_audit_fail ON audits');await prisma.$executeRawUnsafe('DROP FUNCTION once_playback_audit_fail()');}
+
+ for(const [range,start,end] of [['bytes=0-63',0,63],['bytes=-64',videoBytes.length-64,videoBytes.length-1],['bytes=64-',64,videoBytes.length-1]]){
+  const r=await editor.context().request.get(playUrl,{headers:{Range:range}});assert.equal(r.status(),206);assert.equal(r.headers()['content-range'],`bytes ${start}-${end}/${videoBytes.length}`);assert.deepEqual(await r.body(),videoBytes.subarray(start,end+1));
+ }
+ assert.equal((await editor.context().request.get(playUrl,{headers:{Range:'bytes=999999999-'}})).status(),416);
+ const multi=await editor.context().request.get(playUrl,{headers:{Range:'bytes=0-1,5-6'}});assert.equal(multi.status(),200);assert.deepEqual(await multi.body(),videoBytes);
+ assert.equal((await owner.context().request.get(playUrl)).status(),404);assert.equal((await fetch(playUrl)).status,401);
+ assert.equal((await editor.context().request.get(playUrl,{headers:{Authorization:'Bearer once_machine.synthetic'}})).status(),403);
+ mkdirSync('artifacts/talent-experience-pr03',{recursive:true});await editor.screenshot({path:'artifacts/talent-experience-pr03/video-playback.png',fullPage:true});
+ assert.equal((await cmd(editor,'POST','/assets/'+videoAsset.id+'/quarantine',{expectedRevision:videoAsset.revision},403)).error.code,'FORBIDDEN');
+ const memberId=(await json(editor,'/me')).membershipId,member=await prisma.membership.findUniqueOrThrow({where:{id:memberId}});
+ await cmd(owner,'PATCH','/memberships/'+memberId+'/permissions',{expectedRevision:member.revision,role:'REVIEWER',extraPermissions:[]});await login(editor,'m1_editor');
+ await cmd(editor,'POST','/assets/'+videoAsset.id+'/quarantine',{expectedRevision:videoAsset.revision});
+ await cmd(owner,'PATCH','/memberships/'+memberId+'/permissions',{expectedRevision:member.revision+1,role:'EDITOR',extraPermissions:[]});await login(editor,'m1_editor');
+ assert.equal((await editor.context().request.get(playUrl,{headers:{Range:'bytes=0-15'}})).status(),404);
+ console.log('PASS PR03 playback: real H264/AAC + worker + PostgreSQL + native play/seek + exact Range + private scope + next-request quarantine');
 
  // Queue malformed and cancelled files using real bounded binary API, not response mocks.
  const bad=Buffer.from('<html>not a png</html>'),b=await prepare(editor,person,bad,'invalid.png');assert.equal((await binary(editor,b.resourceId,bad)).status(),200);await queue(editor,b.resourceId);
@@ -134,4 +169,4 @@ try {
  assert.equal(await getStatus(owner,'/assets/'+q2.resourceId+'/preview'),404);assert.equal((await json(owner,'/assets?personId='+pp.id)).total,0);
  console.log('PASS M1 API: quarantine and current source suspension deny subsequent preview requests');
  assert.deepEqual(errors,[]);
-}finally{await browser?.close();await stop(worker);await stop(api);await prisma.$disconnect();rmSync(tmp,{recursive:true,force:true});}
+}finally{await browserOwner?.close();await stop(worker);await stop(api);await prisma.$disconnect();ownedTemp.cleanup();}

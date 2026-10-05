@@ -1,0 +1,130 @@
+TAP version 13
+# Subtest: identical detached snapshots pass
+ok 1 - identical detached snapshots pass
+  ---
+  duration_ms: 2.510125
+  type: 'test'
+  ...
+# Subtest: negative control rejects job state without dumping payloads
+ok 2 - negative control rejects job state without dumping payloads
+  ---
+  duration_ms: 0.486625
+  type: 'test'
+  ...
+# Subtest: negative control rejects job revision without dumping payloads
+ok 3 - negative control rejects job revision without dumping payloads
+  ---
+  duration_ms: 0.1435
+  type: 'test'
+  ...
+# Subtest: negative control rejects claim attempts without dumping payloads
+ok 4 - negative control rejects claim attempts without dumping payloads
+  ---
+  duration_ms: 0.085291
+  type: 'test'
+  ...
+# Subtest: negative control rejects lease token without dumping payloads
+ok 5 - negative control rejects lease token without dumping payloads
+  ---
+  duration_ms: 0.132667
+  type: 'test'
+  ...
+# Subtest: negative control rejects lease deadline without dumping payloads
+ok 6 - negative control rejects lease deadline without dumping payloads
+  ---
+  duration_ms: 0.078792
+  type: 'test'
+  ...
+# Subtest: negative control rejects selected rows without dumping payloads
+ok 7 - negative control rejects selected rows without dumping payloads
+  ---
+  duration_ms: 0.126625
+  type: 'test'
+  ...
+# Subtest: negative control rejects error code without dumping payloads
+ok 8 - negative control rejects error code without dumping payloads
+  ---
+  duration_ms: 0.075833
+  type: 'test'
+  ...
+# Subtest: negative control rejects batch revision without dumping payloads
+ok 9 - negative control rejects batch revision without dumping payloads
+  ---
+  duration_ms: 0.337083
+  type: 'test'
+  ...
+# Subtest: negative control rejects source revision without dumping payloads
+ok 10 - negative control rejects source revision without dumping payloads
+  ---
+  duration_ms: 0.536541
+  type: 'test'
+  ...
+# Subtest: negative control rejects row state without dumping payloads
+ok 11 - negative control rejects row state without dumping payloads
+  ---
+  duration_ms: 0.282166
+  type: 'test'
+  ...
+# Subtest: negative control rejects row entity reference without dumping payloads
+ok 12 - negative control rejects row entity reference without dumping payloads
+  ---
+  duration_ms: 0.083375
+  type: 'test'
+  ...
+# Subtest: negative control rejects second person inserted without dumping payloads
+ok 13 - negative control rejects second person inserted without dumping payloads
+  ---
+  duration_ms: 0.067209
+  type: 'test'
+  ...
+# Subtest: negative control rejects first person changed without dumping payloads
+ok 14 - negative control rejects first person changed without dumping payloads
+  ---
+  duration_ms: 0.569958
+  type: 'test'
+  ...
+# Subtest: negative control rejects receipt inserted without dumping payloads
+ok 15 - negative control rejects receipt inserted without dumping payloads
+  ---
+  duration_ms: 0.714
+  type: 'test'
+  ...
+# Subtest: capture reads only the target batch/source/job receipt and detaches the result
+ok 16 - capture reads only the target batch/source/job receipt and detaches the result
+  ---
+  duration_ms: 0.37475
+  type: 'test'
+  ...
+# Subtest: capture rejects a cross-workspace fixture
+ok 17 - capture rejects a cross-workspace fixture
+  ---
+  duration_ms: 0.849292
+  type: 'test'
+  ...
+# Subtest: unreviewed external and legacy-named publishing routes remain blocked
+ok 18 - unreviewed external and legacy-named publishing routes remain blocked
+  ---
+  duration_ms: 1.097834
+  type: 'test'
+  ...
+# Subtest: internal directory acceptance never admits child paths or transactions/booking
+ok 19 - internal directory acceptance never admits child paths or transactions/booking
+  ---
+  duration_ms: 0.256166
+  type: 'test'
+  ...
+# Subtest: PR02b admits reviewed account and claim routes, never uploads
+ok 20 - PR02b admits reviewed account and claim routes, never uploads
+  ---
+  duration_ms: 0.112208
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 73.119958

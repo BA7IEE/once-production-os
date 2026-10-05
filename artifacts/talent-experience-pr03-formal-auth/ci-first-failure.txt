@@ -1,0 +1,23 @@
+2026-10-01T07:49:17.6475665Z Browser page errors: []
+2026-10-01T07:49:17.6516331Z Page route: /workspace/exports
+2026-10-01T07:49:17.6546141Z Page route: /
+2026-10-01T07:49:17.8023144Z node:internal/modules/run_main:123
+2026-10-01T07:49:17.8023512Z     triggerUncaughtException(
+2026-10-01T07:49:17.8023753Z     ^
+2026-10-01T07:49:17.8023844Z
+2026-10-01T07:49:17.8024084Z AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+2026-10-01T07:49:17.8024314Z
+2026-10-01T07:49:17.8024387Z 0 !== 1
+2026-10-01T07:49:17.8024507Z
+2026-10-01T07:49:17.8025326Z     at verifyAiBrowser (file:///home/runner/work/once-production-os/once-production-os/tests/acceptance/ai-business.mjs:53:10)
+2026-10-01T07:49:17.8026276Z     at async file:///home/runner/work/once-production-os/once-production-os/tests/acceptance/browser-production.mjs:600:60 {
+2026-10-01T07:49:17.8026797Z   generatedMessage: true,
+2026-10-01T07:49:17.8027026Z   code: 'ERR_ASSERTION',
+2026-10-01T07:49:17.8027244Z   actual: 0,
+2026-10-01T07:49:17.8027419Z   expected: 1,
+2026-10-01T07:49:17.8027594Z   operator: 'strictEqual',
+2026-10-01T07:49:17.8027777Z   diff: 'simple'
+2026-10-01T07:49:17.8027949Z }
+2026-10-01T07:49:17.8028037Z
+2026-10-01T07:49:17.8028109Z Node.js v22.22.3
+2026-10-01T07:49:17.8220477Z ##[error]Process completed with exit code 1.

@@ -1,0 +1,931 @@
+{
+  "generatedAt": "2026-10-02T06:18:38.354Z",
+  "node": "v22.22.3",
+  "adapter": "tests/support/MemoryStore (NOT PostgreSQL)",
+  "results": [
+    {
+      "file": "adult-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 5718,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "agent-media.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 4694,
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "ai-business.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 4663,
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "ai-connections.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2653,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "ai-ledger.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 3526,
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "ai-model-client.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 955,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "ai-model-wire.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2695,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "ai-operations.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 3510,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "backup-manifest.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 324,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "browser-storage-policy.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 778,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "client-transport.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2401,
+      "tests": 20,
+      "pass": 20,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "collection-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 6495,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "commands-imports.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 4926,
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "cos-media.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 491,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "credential-media-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 4862,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "deletions.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 5895,
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "exports.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2412,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "handoffs.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 20833,
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "http-contract.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1182,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "identity-origin-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 3026,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "identity-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 4540,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "identity.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 12332,
+      "tests": 25,
+      "pass": 25,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "imported-review-basis.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 769,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "ingestion.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 3556,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "json-validation.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1371,
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "local-config.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1250,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "locale-merge.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2058,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "locale-texts.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1850,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "locale-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2908,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "media-byte-stream.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 576,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "media-collections.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 4883,
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "media-playback.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2599,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "media-purge-provider.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 608,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "media-purge.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 47667,
+      "tests": 32,
+      "pass": 32,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "media-staging.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 6525,
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "media.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 4854,
+      "tests": 24,
+      "pass": 24,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "merge-erasure-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1753,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "merge-history-erasure.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2029,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "merge-history-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1061,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "person-merges.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2219,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "prelaunch-runtime.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2548,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "production.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 5345,
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "project-parties.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2116,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "rebuild.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 5810,
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "recovery-delta-adversarial.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 747,
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "recovery-delta.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 494,
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "recovery-worker-intent.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 302,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "recovery.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 5987,
+      "tests": 13,
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "retained-origin-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2742,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "review-r1.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 6017,
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "safety-intent.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1211,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "safety-journal.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 383,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "secret-leak.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 112,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "shortlists.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2951,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "source-history-clearance.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1467,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-asset-erasure.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2658,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-auth-config.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1060,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-auth-provider.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2321,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-auth.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1584,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-candidate-context.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2962,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-candidate-merge.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 8378,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-credential-retention.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1812,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-credential-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 13329,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-directory-finalization.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2334,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-directory-lifecycle.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2180,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-directory-state.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 117,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-directory.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2536,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-evidence-history.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1338,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-evidence-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2712,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-external-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 3252,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-height-review.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 498,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-identity-retention.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1123,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-intake.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1505,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-legacy-projection.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 728,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-maintenance-finalization.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 848,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-maintenance.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2621,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-manual-maintenance.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 599,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-representation-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2079,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-source-asset-erasure.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1335,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-source-combined-erasure.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1380,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-source-erasure.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1198,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-source-fact-erasure.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 900,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-source-identity-evidence.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1203,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-source-person-erasure.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 867,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-structured-compatibility.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 394,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-transfer.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 3137,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-v2-maintenance.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 1071,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-v2-merge.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2110,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-v2-search.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 992,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent-v2.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2279,
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "talent.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 4831,
+      "tests": 26,
+      "pass": 26,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "file": "work-cases.test.ts",
+      "exitCode": 0,
+      "error": null,
+      "durationMs": 2590,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    }
+  ],
+  "tests": 711,
+  "pass": 711,
+  "fail": 0,
+  "allPassed": true
+}

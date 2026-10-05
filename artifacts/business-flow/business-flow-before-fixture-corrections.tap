@@ -1,0 +1,117 @@
+TAP version 13
+# Subtest: editor private intake -> reviewer accepts evidence -> designated publisher shares; native endpoints stay closed until publish
+ok 1 - editor private intake -> reviewer accepts evidence -> designated publisher shares; native endpoints stay closed until publish
+  ---
+  duration_ms: 388.649584
+  type: 'test'
+  ...
+# Subtest: review revocation closes limited material access, outsider cannot read task; changes invalidate accepted task
+ok 2 - review revocation closes limited material access, outsider cannot read task; changes invalidate accepted task
+  ---
+  duration_ms: 485.323542
+  type: 'test'
+  ...
+# Subtest: expired owner draft can enter a fresh limited review, but expiry never renews itself
+ok 3 - expired owner draft can enter a fresh limited review, but expiry never renews itself
+  ---
+  duration_ms: 480.757209
+  type: 'test'
+  ...
+# Subtest: typed import creates searchable talent roles and city; ordinary contact stays a contact
+ok 4 - typed import creates searchable talent roles and city; ordinary contact stays a contact
+  ---
+  duration_ms: 130.504333
+  type: 'test'
+  ...
+# Subtest: legacy batch semantics remain stable, explicit repair is bounded, replayable and works after preview expiry
+ok 5 - legacy batch semantics remain stable, explicit repair is bounded, replayable and works after preview expiry
+  ---
+  duration_ms: 183.857625
+  type: 'test'
+  ...
+# Subtest: multi-source core correction uses individual bases, preserves atomic rollback and rejects stale selected facts
+ok 6 - multi-source core correction uses individual bases, preserves atomic rollback and rejects stale selected facts
+  ---
+  duration_ms: 124.087291
+  type: 'test'
+  ...
+# Subtest: shared source cannot enter single-person review or silently reveal another identity
+ok 7 - shared source cannot enter single-person review or silently reveal another identity
+  ---
+  duration_ms: 348.971291
+  type: 'test'
+  ...
+# Subtest: raw evidence requires a qualified reviewer, and grant invalidates when membership changes
+ok 8 - raw evidence requires a qualified reviewer, and grant invalidates when membership changes
+  ---
+  duration_ms: 594.583875
+  type: 'test'
+  ...
+# Subtest: restored workspace epoch invalidates an accepted source review
+not ok 9 - restored workspace epoch invalidates an accepted source review
+  ---
+  duration_ms: 359.146959
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/business-flow-fixes/once-production-os/tests/core/business-flow.test.ts:92:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"MAINTENANCE","message":"系统处于维护或恢复隔离状态","requestId":"4c9f80df-64ee-4b71-997a-75daacb65801"}}
+    
+    503 !== 200
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 200
+  actual: 503
+  operator: 'strictEqual'
+  stack: |-
+    expectResponse (file:///Users/dengwang/.codex/worktrees/business-flow-fixes/once-production-os/tests/support/talent-v2-maintenance.ts:18:12)
+    TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/business-flow-fixes/once-production-os/tests/core/business-flow.test.ts:95:17)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: core city correction targets the selected period instead of the first historical BASE row
+not ok 10 - core city correction targets the selected period instead of the first historical BASE row
+  ---
+  duration_ms: 124.982625
+  type: 'test'
+  location: '/Users/dengwang/.codex/worktrees/business-flow-fixes/once-production-os/tests/core/business-flow.test.ts:97:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"VALIDATION_FAILED","message":"values.validUntil必须是有效 UTC 日期时间","requestId":"2fd7fb51-c9c7-41d3-a6e2-3b67420449f9"}}
+    
+    400 !== 201
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 201
+  actual: 400
+  operator: 'strictEqual'
+  stack: |-
+    expectResponse (file:///Users/dengwang/.codex/worktrees/business-flow-fixes/once-production-os/tests/support/talent-v2-maintenance.ts:18:12)
+    make (file:///Users/dengwang/.codex/worktrees/business-flow-fixes/once-production-os/tests/core/business-flow.test.ts:100:32)
+    async TestContext.<anonymous> (file:///Users/dengwang/.codex/worktrees/business-flow-fixes/once-production-os/tests/core/business-flow.test.ts:101:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported import worker format fails before creating records
+ok 11 - unsupported import worker format fails before creating records
+  ---
+  duration_ms: 118.468708
+  type: 'test'
+  ...
+# Subtest: portal receipt lookup is account-bound and returns only the authorized command result
+ok 12 - portal receipt lookup is account-bound and returns only the authorized command result
+  ---
+  duration_ms: 123.016041
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 10
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3685.827667

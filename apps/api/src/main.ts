@@ -64,7 +64,7 @@ async function main() {
     app.use((req: Request, res: Response, next: NextFunction) => {
         res.setHeader('X-Content-Type-Options', 'nosniff');
         res.setHeader('Referrer-Policy', 'no-referrer');
-        res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
+        res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
         if (config.secureCookies)
             res.setHeader('Strict-Transport-Security', 'max-age=31536000');
         next();
@@ -95,7 +95,7 @@ async function main() {
     if (existsSync(assets)) {
         server.use(express.static(assets, { index: false, maxAge: 0, fallthrough: true, setHeaders: (res) => res.setHeader('Cache-Control', 'no-cache') }));
         server.get(['/talent/login','/talent/claim','/talent/home'], (_req,res)=>config.talentAuth?.enabled?res.set('Cache-Control','no-store').sendFile('index.html',{root:assets}):res.status(503).set('Cache-Control','no-store').type('text/plain').send('人才登录暂未开放'));
-        server.get(['/', '/activate','/talents','/talents/:id','/workspace/:page'], (_req, res) => res.set('Cache-Control', 'no-store').sendFile('index.html', { root: assets }));
+        server.get(['/', '/activate','/talents','/talents/:id','/workspace/:page','/workspace/works/:id','/workspace/projects/:id','/workspace/shortlists/:id','/workspace/shortlists/:id/find','/workspace/review/:kind/:id'], (_req, res) => res.set('Cache-Control', 'no-store').sendFile('index.html', { root: assets }));
     }
     app.enableShutdownHooks();
     const port = Number(process.env.PORT ?? 4318);

@@ -1,0 +1,104 @@
+{
+  "status": "IMPLEMENTED + CORE_MEMORY_TESTED + POSTGRES_TESTED + BROWSER_TESTED",
+  "baseline": "87ec47160a90680b97269f251a5f16668d34abf4",
+  "pr": 31,
+  "draft": true,
+  "merged": false,
+  "deployed": false,
+  "schemaChanged": false,
+  "newMigrations": [],
+  "frozenMigrations": "1–62 unchanged",
+  "core": {
+    "tests": 625,
+    "pass": 625,
+    "fail": 0
+  },
+  "postgres": {
+    "version": "14.19 local",
+    "tapPrograms": 43,
+    "tests": 133,
+    "fail": 0,
+    "skipped": 0,
+    "additionalFinalSharedScenarios": [
+      "bound",
+      "enroll",
+      "role"
+    ]
+  },
+  "browser": {
+    "engine": "real Google Chrome",
+    "suites": [
+      "resume",
+      "handoff",
+      "media",
+      "production",
+      "talent-intake",
+      "talent-directory",
+      "talent-auth",
+      "talent-maintenance",
+      "media-staging"
+    ],
+    "viewportWidths": [
+      360,
+      390,
+      430
+    ],
+    "allPassed": true,
+    "checks": [
+      "360px-own-upload-real-async-worker-ready-staged-private-view",
+      "image-ADOPTED-formal-B-without-intake-allowed-intake-only-A-denied",
+      "360px-invitation-auth-claim-server-draft-refresh-submit-review-same-person",
+      "390px-own-upload-real-async-worker-ready-staged-private-view",
+      "MP4-Range-ADOPTED-formal-B-without-intake-allowed-intake-only-A-denied",
+      "390px-invitation-auth-claim-server-draft-refresh-submit-review-same-person",
+      "430px-own-upload-real-async-worker-ready-staged-private-view",
+      "image-ADOPTED-formal-B-without-intake-allowed-intake-only-A-denied",
+      "430px-invitation-auth-claim-server-draft-refresh-submit-review-same-person",
+      "430px-own-upload-real-async-worker-ready-staged-private-view",
+      "two-tabs-account-switch-clears-old-view-and-rejects-old-read-write",
+      "360px-own-upload-real-async-worker-ready-staged-private-view",
+      "390px-own-upload-real-async-worker-ready-staged-private-view",
+      "ENROLL-intake-A-staged-image-and-MP4-Range-before-adoption",
+      "image-ADOPTED-formal-B-without-intake-allowed-intake-only-A-denied",
+      "MP4-Range-ADOPTED-formal-B-without-intake-allowed-intake-only-A-denied",
+      "enroll-unbound-own-draft-no-fake-person-until-explicit-atomic-approval",
+      "current-formal-source-scope-change-rechecked-on-image-preview-and-every-MP4-Range",
+      "real-https-origin-cookies-current-account-read-header-and-command-replay",
+      "real-pg-dump-restore-preserves-staged-adopted-relations-and-uploader",
+      "private-original-preview-backup-restore-hash-verified",
+      "real-recovery-prepare-quarantines-bytes-revokes-grants-sessions-preserves-usage",
+      "old-portal-cookie-and-staged-authorization-rejected-after-restore"
+    ]
+  },
+  "restore": {
+    "status": "PASSED",
+    "assets": 6,
+    "bytes": 46744,
+    "checks": [
+      "real-pg-dump-restore-preserves-staged-adopted-relations-and-uploader",
+      "private-original-preview-backup-restore-hash-verified",
+      "real-recovery-prepare-quarantines-bytes-revokes-grants-sessions-preserves-usage",
+      "old-portal-cookie-and-staged-authorization-rejected-after-restore"
+    ]
+  },
+  "providerVerified": "NOT_RUN",
+  "cosProviderVerified": "NOT_RUN",
+  "mobileDeviceVerified": "NOT_RUN",
+  "commands": [
+    "pnpm verify",
+    "pnpm typecheck:core",
+    "pnpm typecheck:transport",
+    "pnpm verify:postgres",
+    "node tests/acceptance/browser-{resume,handoff,media,production,talent-intake,talent-directory,talent-auth,talent-maintenance,media-staging}.mjs"
+  ],
+  "ci": "Final head and run URL are recorded in PR #31 after push; previous-head runs are not reused.",
+  "ciFailureResolved": {
+    "run": 36831884657,
+    "head": "6b606813a1f9c267288afcd472e60f59893912d5",
+    "job": "browser-production",
+    "failure": "ai-business.mjs:53 expected controlled provider calls 1, observed 0",
+    "cause": "Background worker-main also polls the same AI queue, competing with the browser fixture controlled SDK worker",
+    "change": "After all real media/export/deletion worker checks, await its exit before the isolated controlled AI adapter; keep requests===1 and all existing assertions",
+    "verification": "Fresh complete browser-production and final-head full CI; no retry/timeout changes"
+  }
+}

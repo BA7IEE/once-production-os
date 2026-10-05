@@ -1,0 +1,1144 @@
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	﻿2026-10-03T16:19:43.7373065Z ##[group]Run pnpm test:postgres:owned --business-flow
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:43.7373488Z ^[[36;1mpnpm test:postgres:owned --business-flow^[[0m
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:43.7435353Z shell: /usr/bin/bash -e {0}
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:43.7435617Z env:
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:43.7435881Z   PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:43.7436214Z ##[endgroup]
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:44.0130781Z 
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:44.0131759Z > once-production-os@0.1.0-dev.1 test:postgres:owned /home/runner/work/once-production-os/once-production-os
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:44.0132653Z > node scripts/test-postgres-owned.mjs --business-flow
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:44.0132984Z 
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:45.5631045Z TAP version 13
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:51.0337072Z # Subtest: business flow on PostgreSQL: populated 74 migration upgrade or new empty installation, typed import and private review publication
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:51.0348795Z ok 1 - business flow on PostgreSQL: populated 74 migration upgrade or new empty installation, typed import and private review publication
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:51.0350720Z   ---
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:51.0351445Z   duration_ms: 5108.301953
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:51.0352163Z   type: 'test'
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:51.0352686Z   ...
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:51.0547942Z 1..1
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:51.0549593Z # tests 1
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:51.0550447Z # suites 0
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:51.0551253Z # pass 1
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:51.0553197Z # fail 0
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:51.0554893Z # cancelled 0
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:51.0555298Z # skipped 0
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:51.0556704Z # todo 0
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:51.0557389Z # duration_ms 5504.214116
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:51.3532690Z {"baseline":"74","containers":0,"processes":0,"networks":0,"temporaryVolumes":0,"temporaryDirectories":0}
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:52.7746532Z TAP version 13
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:56.7787857Z # Subtest: business flow on PostgreSQL: populated 74 migration upgrade or new empty installation, typed import and private review publication
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:56.7795705Z ok 1 - business flow on PostgreSQL: populated 74 migration upgrade or new empty installation, typed import and private review publication
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:56.7797267Z   ---
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:56.7798100Z   duration_ms: 3633.544537
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:56.7798837Z   type: 'test'
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:56.7799435Z   ...
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:56.8014870Z 1..1
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:56.8016937Z # tests 1
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:56.8017596Z # suites 0
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:56.8018442Z # pass 1
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:56.8020527Z # fail 0
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:56.8021092Z # cancelled 0
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:56.8022125Z # skipped 0
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:56.8023536Z # todo 0
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:56.8024712Z # duration_ms 4039.228072
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T16:19:57.0979299Z {"baseline":"empty","containers":0,"processes":0,"networks":0,"temporaryVolumes":0,"temporaryDirectories":0}
+acceptance	Real business pages and portal maintenance regression	﻿2026-10-03T16:20:18.5629725Z ##[group]Run pnpm test:postgres:owned --business-flow-browser
+acceptance	Real business pages and portal maintenance regression	2026-10-03T16:20:18.5630222Z ^[[36;1mpnpm test:postgres:owned --business-flow-browser^[[0m
+acceptance	Real business pages and portal maintenance regression	2026-10-03T16:20:18.5691932Z shell: /usr/bin/bash -e {0}
+acceptance	Real business pages and portal maintenance regression	2026-10-03T16:20:18.5692224Z env:
+acceptance	Real business pages and portal maintenance regression	2026-10-03T16:20:18.5692477Z   PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
+acceptance	Real business pages and portal maintenance regression	2026-10-03T16:20:18.5692804Z ##[endgroup]
+acceptance	Real business pages and portal maintenance regression	2026-10-03T16:20:18.8357223Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T16:20:18.8358421Z > once-production-os@0.1.0-dev.1 test:postgres:owned /home/runner/work/once-production-os/once-production-os
+acceptance	Real business pages and portal maintenance regression	2026-10-03T16:20:18.8359397Z > node scripts/test-postgres-owned.mjs --business-flow-browser
+acceptance	Real business pages and portal maintenance regression	2026-10-03T16:20:18.8359767Z 
+acceptance	Real business pages and portal maintenance regression	2026-10-03T16:20:34.9559318Z PASS default EDITOR private intake -> accepted limited review -> explicit administrator publication -> team directory
+acceptance	Real business pages and portal maintenance regression	2026-10-03T16:20:35.9755840Z PASS restricted raw text created and edited through the real source page; no AI call implied
+acceptance	Real business pages and portal maintenance regression	2026-10-03T16:20:38.3931299Z PASS V2 import real Worker checkpoint -> model/Shenzhen filters and ordinary contact without professional roles
+acceptance	Real business pages and portal maintenance regression	2026-10-03T16:20:40.3465115Z PASS page-authored raw source -> separately approved grant -> real minimized AI input preview; zero AI task/run
+acceptance	Real business pages and portal maintenance regression	2026-10-03T16:20:41.4509243Z PASS legacy checkpoint retained; real upgrade preview and explicit typed repair
+acceptance	Real business pages and portal maintenance regression	2026-10-03T16:20:42.7598386Z PASS single real core save carries each fact source; both fields persist with original provenance
+acceptance	Real business pages and portal maintenance regression	2026-10-03T16:20:44.0912693Z {"baseline":"business-flow","containers":0,"processes":0,"networks":0,"temporaryVolumes":0,"temporaryDirectories":0,"unresolvedBrowserLaunches":0}
+acceptance	Real business pages and portal maintenance regression	2026-10-03T16:21:19.7460196Z PASS real-422-rejection-unlocks-correction-and-clears-only-uncommitted-marker; 360px-invitation-auth-claim-server-draft-refresh-submit-review-same-person; known-write-refresh-network-fault-only-rereads-current-profile; 390px-invitation-auth-claim-server-draft-refresh-submit-review-same-person; lost-draft-response-reload-queries-owned-receipt-and-does-not-create-again; 430px-invitation-auth-claim-server-draft-refresh-submit-review-same-person; two-tabs-account-switch-clears-old-view-and-rejects-old-read-write; enroll-unbound-own-draft-no-fake-person-until-explicit-atomic-approval; structured-secret-leak-guard-OTP-receipt-audit-log-and-provider-secrets; real-https-origin-cookies-current-account-read-header-and-command-replay
+acceptance	Real business pages and portal maintenance regression	2026-10-03T16:21:20.1055275Z {"baseline":"talent-maintenance","containers":0,"processes":0,"networks":0,"temporaryVolumes":0,"temporaryDirectories":0,"unresolvedBrowserLaunches":0}
+acceptance	Full types and core regression	﻿2026-10-03T16:21:20.1189260Z ##[group]Run node scripts/heavy-task.mjs pnpm typecheck && node scripts/heavy-task.mjs pnpm test:core
+acceptance	Full types and core regression	2026-10-03T16:21:20.1189996Z ^[[36;1mnode scripts/heavy-task.mjs pnpm typecheck && node scripts/heavy-task.mjs pnpm test:core^[[0m
+acceptance	Full types and core regression	2026-10-03T16:21:20.1252123Z shell: /usr/bin/bash -e {0}
+acceptance	Full types and core regression	2026-10-03T16:21:20.1252397Z env:
+acceptance	Full types and core regression	2026-10-03T16:21:20.1252658Z   PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
+acceptance	Full types and core regression	2026-10-03T16:21:20.1252995Z ##[endgroup]
+acceptance	Full types and core regression	2026-10-03T16:21:20.4238956Z 
+acceptance	Full types and core regression	2026-10-03T16:21:20.4239987Z > once-production-os@0.1.0-dev.1 typecheck /home/runner/work/once-production-os/once-production-os
+acceptance	Full types and core regression	2026-10-03T16:21:20.4241216Z > tsc -p tsconfig.server.json --noEmit && tsc -p apps/admin-web/tsconfig.json
+acceptance	Full types and core regression	2026-10-03T16:21:20.4241809Z 
+acceptance	Full types and core regression	2026-10-03T16:21:40.2544844Z 
+acceptance	Full types and core regression	2026-10-03T16:21:40.2545869Z > once-production-os@0.1.0-dev.1 test:core /home/runner/work/once-production-os/once-production-os
+acceptance	Full types and core regression	2026-10-03T16:21:40.2546637Z > node scripts/run-core-tests.mjs
+acceptance	Full types and core regression	2026-10-03T16:21:40.2546881Z 
+acceptance	Full types and core regression	2026-10-03T16:21:44.8730237Z {"file":"adult-transfer.test.ts","exitCode":0,"error":null,"durationMs":4586,"tests":5,"pass":5,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:21:48.9094842Z {"file":"agent-handoff.test.ts","exitCode":0,"error":null,"durationMs":4036,"tests":14,"pass":14,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:21:53.4400606Z {"file":"agent-media.test.ts","exitCode":0,"error":null,"durationMs":4530,"tests":22,"pass":22,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:00.7230206Z {"file":"agent-structures.test.ts","exitCode":0,"error":null,"durationMs":7283,"tests":32,"pass":32,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:03.3302465Z {"file":"ai-business.test.ts","exitCode":0,"error":null,"durationMs":2607,"tests":12,"pass":12,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:04.7459413Z {"file":"ai-connections.test.ts","exitCode":0,"error":null,"durationMs":1415,"tests":4,"pass":4,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:07.0294939Z {"file":"ai-ledger.test.ts","exitCode":0,"error":null,"durationMs":2284,"tests":12,"pass":12,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:07.4206590Z {"file":"ai-model-client.test.ts","exitCode":0,"error":null,"durationMs":391,"tests":7,"pass":7,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:09.8162755Z {"file":"ai-model-wire.test.ts","exitCode":0,"error":null,"durationMs":2395,"tests":6,"pass":6,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:11.8922866Z {"file":"ai-operations.test.ts","exitCode":0,"error":null,"durationMs":2075,"tests":9,"pass":9,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:12.0557620Z {"file":"backup-manifest.test.ts","exitCode":0,"error":null,"durationMs":163,"tests":2,"pass":2,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:12.5619473Z {"file":"browser-storage-policy.test.ts","exitCode":0,"error":null,"durationMs":506,"tests":2,"pass":2,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:17.9866347Z {"file":"business-flow.test.ts","exitCode":0,"error":null,"durationMs":5425,"tests":13,"pass":13,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:19.5400946Z {"file":"client-transport.test.ts","exitCode":0,"error":null,"durationMs":1553,"tests":20,"pass":20,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:22.7774778Z {"file":"collection-transfer.test.ts","exitCode":0,"error":null,"durationMs":3238,"tests":4,"pass":4,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:27.1972713Z {"file":"commands-imports.test.ts","exitCode":0,"error":null,"durationMs":4419,"tests":22,"pass":22,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:27.5241290Z {"file":"cos-media.test.ts","exitCode":0,"error":null,"durationMs":326,"tests":4,"pass":4,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:30.1670336Z {"file":"credential-media-transfer.test.ts","exitCode":0,"error":null,"durationMs":2642,"tests":4,"pass":4,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:35.2718839Z {"file":"deletions.test.ts","exitCode":0,"error":null,"durationMs":5105,"tests":23,"pass":23,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:37.1097796Z {"file":"exports.test.ts","exitCode":0,"error":null,"durationMs":1838,"tests":7,"pass":7,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:50.3525501Z {"file":"handoffs.test.ts","exitCode":0,"error":null,"durationMs":13243,"tests":27,"pass":27,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:50.9861051Z {"file":"http-contract.test.ts","exitCode":0,"error":null,"durationMs":633,"tests":1,"pass":1,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:53.1279503Z {"file":"identity-origin-transfer.test.ts","exitCode":0,"error":null,"durationMs":2142,"tests":4,"pass":4,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:22:55.9179453Z {"file":"identity-transfer.test.ts","exitCode":0,"error":null,"durationMs":2790,"tests":6,"pass":6,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:23:02.2007656Z {"file":"identity.test.ts","exitCode":0,"error":null,"durationMs":6283,"tests":25,"pass":25,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:23:02.4804092Z {"file":"imported-review-basis.test.ts","exitCode":0,"error":null,"durationMs":280,"tests":1,"pass":1,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:23:04.0575859Z {"file":"ingestion.test.ts","exitCode":0,"error":null,"durationMs":1577,"tests":1,"pass":1,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:23:04.6842718Z {"file":"json-validation.test.ts","exitCode":0,"error":null,"durationMs":627,"tests":27,"pass":27,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:23:05.2716503Z {"file":"local-config.test.ts","exitCode":0,"error":null,"durationMs":587,"tests":6,"pass":6,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:23:06.9739304Z {"file":"locale-merge.test.ts","exitCode":0,"error":null,"durationMs":1702,"tests":6,"pass":6,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:23:08.8192197Z {"file":"locale-texts.test.ts","exitCode":0,"error":null,"durationMs":1845,"tests":7,"pass":7,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:23:11.1646713Z {"file":"locale-transfer.test.ts","exitCode":0,"error":null,"durationMs":2345,"tests":5,"pass":5,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:23:11.4944112Z {"file":"media-byte-stream.test.ts","exitCode":0,"error":null,"durationMs":330,"tests":2,"pass":2,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:23:14.4199411Z {"file":"media-collections.test.ts","exitCode":0,"error":null,"durationMs":2925,"tests":8,"pass":8,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:23:15.8076990Z {"file":"media-playback.test.ts","exitCode":0,"error":null,"durationMs":1388,"tests":7,"pass":7,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:23:16.1634653Z {"file":"media-purge-provider.test.ts","exitCode":0,"error":null,"durationMs":356,"tests":9,"pass":9,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:23:58.3483531Z {"file":"media-purge.test.ts","exitCode":0,"error":null,"durationMs":42185,"tests":32,"pass":32,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:03.8137099Z {"file":"media-staging.test.ts","exitCode":0,"error":null,"durationMs":5465,"tests":18,"pass":18,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:08.5948571Z {"file":"media.test.ts","exitCode":0,"error":null,"durationMs":4781,"tests":24,"pass":24,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:11.0010250Z {"file":"merge-erasure-transfer.test.ts","exitCode":0,"error":null,"durationMs":2406,"tests":3,"pass":3,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:13.7886408Z {"file":"merge-history-erasure.test.ts","exitCode":0,"error":null,"durationMs":2788,"tests":5,"pass":5,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:15.2059292Z {"file":"merge-history-transfer.test.ts","exitCode":0,"error":null,"durationMs":1417,"tests":3,"pass":3,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:17.7401941Z {"file":"person-merges.test.ts","exitCode":0,"error":null,"durationMs":2534,"tests":10,"pass":10,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:17.8848575Z {"file":"portal-command.test.ts","exitCode":0,"error":null,"durationMs":144,"tests":7,"pass":7,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:20.3798993Z {"file":"prelaunch-runtime.test.ts","exitCode":0,"error":null,"durationMs":2495,"tests":3,"pass":3,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:26.4693634Z {"file":"production.test.ts","exitCode":0,"error":null,"durationMs":6090,"tests":31,"pass":31,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:28.7072176Z {"file":"project-parties.test.ts","exitCode":0,"error":null,"durationMs":2237,"tests":7,"pass":7,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:32.6973115Z {"file":"rebuild.test.ts","exitCode":0,"error":null,"durationMs":3990,"tests":11,"pass":11,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:32.9911495Z {"file":"recovery-delta-adversarial.test.ts","exitCode":0,"error":null,"durationMs":293,"tests":12,"pass":12,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:33.2350843Z {"file":"recovery-delta.test.ts","exitCode":0,"error":null,"durationMs":244,"tests":8,"pass":8,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:33.3861072Z {"file":"recovery-worker-intent.test.ts","exitCode":0,"error":null,"durationMs":151,"tests":2,"pass":2,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:37.9008368Z {"file":"recovery.test.ts","exitCode":0,"error":null,"durationMs":4515,"tests":13,"pass":13,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:40.7169671Z {"file":"retained-origin-transfer.test.ts","exitCode":0,"error":null,"durationMs":2816,"tests":4,"pass":4,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:46.7812433Z {"file":"review-r1.test.ts","exitCode":0,"error":null,"durationMs":6064,"tests":23,"pass":23,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:47.8496911Z {"file":"safety-intent.test.ts","exitCode":0,"error":null,"durationMs":1068,"tests":5,"pass":5,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:48.1741973Z {"file":"safety-journal.test.ts","exitCode":0,"error":null,"durationMs":324,"tests":5,"pass":5,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:48.3165000Z {"file":"secret-leak.test.ts","exitCode":0,"error":null,"durationMs":142,"tests":3,"pass":3,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:50.2824685Z {"file":"shortlists.test.ts","exitCode":0,"error":null,"durationMs":1966,"tests":7,"pass":7,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:52.3222591Z {"file":"source-history-clearance.test.ts","exitCode":0,"error":null,"durationMs":2039,"tests":2,"pass":2,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:53.7148666Z {"file":"talent-asset-erasure.test.ts","exitCode":0,"error":null,"durationMs":1392,"tests":3,"pass":3,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:53.8546353Z {"file":"talent-auth-config.test.ts","exitCode":0,"error":null,"durationMs":140,"tests":1,"pass":1,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:55.3426667Z {"file":"talent-auth-provider.test.ts","exitCode":0,"error":null,"durationMs":1488,"tests":7,"pass":7,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:56.1383625Z {"file":"talent-auth.test.ts","exitCode":0,"error":null,"durationMs":796,"tests":2,"pass":2,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:24:57.4808552Z {"file":"talent-candidate-context.test.ts","exitCode":0,"error":null,"durationMs":1342,"tests":4,"pass":4,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:00.4932518Z {"file":"talent-candidate-merge.test.ts","exitCode":0,"error":null,"durationMs":3012,"tests":5,"pass":5,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:01.1773314Z {"file":"talent-credential-retention.test.ts","exitCode":0,"error":null,"durationMs":684,"tests":1,"pass":1,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:05.0367028Z {"file":"talent-credential-transfer.test.ts","exitCode":0,"error":null,"durationMs":3859,"tests":7,"pass":7,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:06.2434767Z {"file":"talent-directory-finalization.test.ts","exitCode":0,"error":null,"durationMs":1207,"tests":1,"pass":1,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:07.9199113Z {"file":"talent-directory-lifecycle.test.ts","exitCode":0,"error":null,"durationMs":1676,"tests":1,"pass":1,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:08.0538490Z {"file":"talent-directory-state.test.ts","exitCode":0,"error":null,"durationMs":134,"tests":2,"pass":2,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:10.4250871Z {"file":"talent-directory.test.ts","exitCode":0,"error":null,"durationMs":2371,"tests":7,"pass":7,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:11.6074646Z {"file":"talent-evidence-history.test.ts","exitCode":0,"error":null,"durationMs":1183,"tests":2,"pass":2,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:14.7668640Z {"file":"talent-evidence-transfer.test.ts","exitCode":0,"error":null,"durationMs":3159,"tests":5,"pass":5,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:17.5090738Z {"file":"talent-external-transfer.test.ts","exitCode":0,"error":null,"durationMs":2742,"tests":4,"pass":4,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:18.0992853Z {"file":"talent-height-review.test.ts","exitCode":0,"error":null,"durationMs":591,"tests":1,"pass":1,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:19.3194034Z {"file":"talent-identity-retention.test.ts","exitCode":0,"error":null,"durationMs":1220,"tests":3,"pass":3,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:21.0708763Z {"file":"talent-intake.test.ts","exitCode":0,"error":null,"durationMs":1751,"tests":6,"pass":6,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:22.0340178Z {"file":"talent-legacy-projection.test.ts","exitCode":0,"error":null,"durationMs":963,"tests":2,"pass":2,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:23.2291542Z {"file":"talent-maintenance-finalization.test.ts","exitCode":0,"error":null,"durationMs":1195,"tests":1,"pass":1,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:26.0281629Z {"file":"talent-maintenance.test.ts","exitCode":0,"error":null,"durationMs":2799,"tests":7,"pass":7,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:26.7778581Z {"file":"talent-manual-maintenance.test.ts","exitCode":0,"error":null,"durationMs":750,"tests":1,"pass":1,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:29.2220854Z {"file":"talent-representation-transfer.test.ts","exitCode":0,"error":null,"durationMs":2444,"tests":4,"pass":4,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:30.4240811Z {"file":"talent-source-asset-erasure.test.ts","exitCode":0,"error":null,"durationMs":1202,"tests":2,"pass":2,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:32.0081964Z {"file":"talent-source-combined-erasure.test.ts","exitCode":0,"error":null,"durationMs":1584,"tests":2,"pass":2,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:33.5190072Z {"file":"talent-source-erasure.test.ts","exitCode":0,"error":null,"durationMs":1510,"tests":4,"pass":4,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:34.9167985Z {"file":"talent-source-fact-erasure.test.ts","exitCode":0,"error":null,"durationMs":1398,"tests":3,"pass":3,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:36.7179709Z {"file":"talent-source-identity-evidence.test.ts","exitCode":0,"error":null,"durationMs":1801,"tests":4,"pass":4,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:37.9235068Z {"file":"talent-source-person-erasure.test.ts","exitCode":0,"error":null,"durationMs":1206,"tests":1,"pass":1,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:38.5734043Z {"file":"talent-structured-compatibility.test.ts","exitCode":0,"error":null,"durationMs":650,"tests":1,"pass":1,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:42.8848319Z {"file":"talent-transfer.test.ts","exitCode":0,"error":null,"durationMs":4311,"tests":9,"pass":9,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:44.4766614Z {"file":"talent-v2-maintenance.test.ts","exitCode":0,"error":null,"durationMs":1592,"tests":5,"pass":5,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:47.4840802Z {"file":"talent-v2-merge.test.ts","exitCode":0,"error":null,"durationMs":3007,"tests":10,"pass":10,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:48.9433473Z {"file":"talent-v2-search.test.ts","exitCode":0,"error":null,"durationMs":1460,"tests":4,"pass":4,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:51.9810747Z {"file":"talent-v2.test.ts","exitCode":0,"error":null,"durationMs":3037,"tests":16,"pass":16,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:25:57.9194972Z {"file":"talent.test.ts","exitCode":0,"error":null,"durationMs":5939,"tests":26,"pass":26,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:26:01.1936017Z {"file":"work-cases.test.ts","exitCode":0,"error":null,"durationMs":3274,"tests":10,"pass":10,"fail":0,"skipped":0}
+acceptance	Full types and core regression	2026-10-03T16:26:01.1943077Z {
+acceptance	Full types and core regression	2026-10-03T16:26:01.1945056Z   "generatedAt": "2026-10-03T16:26:01.193Z",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1945701Z   "node": "v22.22.3",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1946293Z   "adapter": "tests/support/MemoryStore (NOT PostgreSQL)",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1946904Z   "results": [
+acceptance	Full types and core regression	2026-10-03T16:26:01.1947247Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.1947654Z       "file": "adult-transfer.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1948151Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1948519Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1948902Z       "durationMs": 4586,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1949296Z       "tests": 5,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1949941Z       "pass": 5,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1950276Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1950573Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.1950782Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.1950971Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.1951342Z       "file": "agent-handoff.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1951636Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1952041Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1952257Z       "durationMs": 4036,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1952489Z       "tests": 14,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1952697Z       "pass": 14,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1952899Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1953097Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.1953328Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.1953516Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.1954932Z       "file": "agent-media.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1955285Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1955506Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1955751Z       "durationMs": 4530,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1955996Z       "tests": 22,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1956219Z       "pass": 22,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1956445Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1956646Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.1956860Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.1957067Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.1957327Z       "file": "agent-structures.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1957635Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1957873Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1958105Z       "durationMs": 7283,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1958368Z       "tests": 32,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1958598Z       "pass": 32,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1958817Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1959013Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.1959228Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.1959442Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.1959664Z       "file": "ai-business.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1959949Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1960182Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1960410Z       "durationMs": 2607,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1960633Z       "tests": 12,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1960853Z       "pass": 12,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1961065Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1961273Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.1961500Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.1961694Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.1961948Z       "file": "ai-connections.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1962242Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1962451Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1962656Z       "durationMs": 1415,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1962884Z       "tests": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1963109Z       "pass": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1963327Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1963523Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.1963989Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.1964245Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.1964470Z       "file": "ai-ledger.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1964764Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1965133Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1965552Z       "durationMs": 2284,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1966000Z       "tests": 12,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1966358Z       "pass": 12,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1966736Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1966960Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.1967191Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.1967481Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.1967717Z       "file": "ai-model-client.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1967996Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1968202Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1968416Z       "durationMs": 391,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1968638Z       "tests": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1968838Z       "pass": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1969036Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1969233Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.1969422Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.1969598Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.1969819Z       "file": "ai-model-wire.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1970081Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1970280Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1970488Z       "durationMs": 2395,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1970707Z       "tests": 6,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1970899Z       "pass": 6,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1971097Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1971288Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.1971477Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.1971647Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.1972073Z       "file": "ai-operations.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1972336Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1972544Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1972749Z       "durationMs": 2075,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1972968Z       "tests": 9,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1973391Z       "pass": 9,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1974445Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1975038Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.1975380Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.1975672Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.1976048Z       "file": "backup-manifest.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1976484Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1976811Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1977154Z       "durationMs": 163,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1977526Z       "tests": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1977856Z       "pass": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1978217Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1978561Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.1978893Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.1979181Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.1979612Z       "file": "browser-storage-policy.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1980183Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1980560Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1980915Z       "durationMs": 506,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1981295Z       "tests": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1981600Z       "pass": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1981802Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1982013Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.1982220Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.1982394Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.1982621Z       "file": "business-flow.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1982989Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1983342Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1983971Z       "durationMs": 5425,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1984393Z       "tests": 13,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1984749Z       "pass": 13,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1985087Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1985427Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.1985735Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.1986038Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.1986491Z       "file": "client-transport.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1987021Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1987422Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1987816Z       "durationMs": 1553,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1988213Z       "tests": 20,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1988568Z       "pass": 20,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1988930Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1989301Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.1989655Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.1989985Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.1990450Z       "file": "collection-transfer.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1990997Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1991395Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1991808Z       "durationMs": 3238,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1992229Z       "tests": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1992594Z       "pass": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1992955Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1993314Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.1993663Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.1994236Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.1994650Z       "file": "commands-imports.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1995178Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1995565Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1995975Z       "durationMs": 4419,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1996397Z       "tests": 22,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1996792Z       "pass": 22,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1997175Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1997551Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.1997926Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.1998259Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.1998657Z       "file": "cos-media.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.1999108Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1999506Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.1999847Z       "durationMs": 326,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2000204Z       "tests": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2000529Z       "pass": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2000847Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2001162Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2001475Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2001770Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2002276Z       "file": "credential-media-transfer.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2002820Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2003198Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2003583Z       "durationMs": 2642,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2004661Z       "tests": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2005052Z       "pass": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2005386Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2005762Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2006128Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2006456Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2006855Z       "file": "deletions.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2007324Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2007904Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2008294Z       "durationMs": 5105,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2008698Z       "tests": 23,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2009065Z       "pass": 23,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2009420Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2009758Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2010123Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2010447Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2010848Z       "file": "exports.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2011307Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2011663Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2012060Z       "durationMs": 1838,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2012467Z       "tests": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2012820Z       "pass": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2013158Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2013523Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2014075Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2014442Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2014840Z       "file": "handoffs.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2015301Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2015680Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2016069Z       "durationMs": 13243,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2016479Z       "tests": 27,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2016812Z       "pass": 27,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2017172Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2017539Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2017887Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2018183Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2018582Z       "file": "http-contract.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2019061Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2019450Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2019844Z       "durationMs": 633,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2020235Z       "tests": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2020564Z       "pass": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2020922Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2021287Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2021607Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2021940Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2022391Z       "file": "identity-origin-transfer.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2022963Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2023313Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2023873Z       "durationMs": 2142,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2024307Z       "tests": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2024670Z       "pass": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2025027Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2025358Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2025713Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2025988Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2026455Z       "file": "identity-transfer.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2026919Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2027336Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2027767Z       "durationMs": 2790,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2028174Z       "tests": 6,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2028536Z       "pass": 6,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2028889Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2029251Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2029615Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2029947Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2030345Z       "file": "identity.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2030797Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2031179Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2031543Z       "durationMs": 6283,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2031950Z       "tests": 25,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2032331Z       "pass": 25,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2032693Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2033055Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2033415Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2033881Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2034333Z       "file": "imported-review-basis.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2034856Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2035213Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2035639Z       "durationMs": 280,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2036071Z       "tests": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2036394Z       "pass": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2036720Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2037096Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2037434Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2038008Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2038394Z       "file": "ingestion.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2038825Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2039052Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2039269Z       "durationMs": 1577,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2039526Z       "tests": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2039746Z       "pass": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2040293Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2040640Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2040847Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2041027Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2041263Z       "file": "json-validation.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2041550Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2041761Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2041973Z       "durationMs": 627,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2042194Z       "tests": 27,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2042397Z       "pass": 27,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2042592Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2042794Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2042984Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2043156Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2043379Z       "file": "local-config.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2043649Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2044447Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2044742Z       "durationMs": 587,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2045062Z       "tests": 6,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2045320Z       "pass": 6,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2045519Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2045717Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2045930Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2046108Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2046343Z       "file": "locale-merge.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2046610Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2046820Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2047031Z       "durationMs": 1702,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2047252Z       "tests": 6,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2047448Z       "pass": 6,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2047646Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2047841Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2048030Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2048213Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2048429Z       "file": "locale-texts.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2048687Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2048894Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2049105Z       "durationMs": 1845,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2049322Z       "tests": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2049516Z       "pass": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2049712Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2049904Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2050094Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2050276Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2050500Z       "file": "locale-transfer.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2050772Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2050975Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2051180Z       "durationMs": 2345,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2051396Z       "tests": 5,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2051594Z       "pass": 5,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2051790Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2051991Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2052187Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2052359Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2052590Z       "file": "media-byte-stream.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2052874Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2053082Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2053332Z       "durationMs": 330,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2053554Z       "tests": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2054132Z       "pass": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2054425Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2054627Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2054825Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2054996Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2055228Z       "file": "media-collections.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2055524Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2055735Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2055943Z       "durationMs": 2925,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2056161Z       "tests": 8,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2056360Z       "pass": 8,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2056551Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2056747Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2056942Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2057114Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2057344Z       "file": "media-playback.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2057619Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2057823Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2058038Z       "durationMs": 1388,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2058459Z       "tests": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2058657Z       "pass": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2058848Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2059042Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2059236Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2059407Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2059653Z       "file": "media-purge-provider.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2060076Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2060283Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2060493Z       "durationMs": 356,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2060717Z       "tests": 9,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2061006Z       "pass": 9,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2061411Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2061810Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2062148Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2062452Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2062841Z       "file": "media-purge.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2063291Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2063640Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2064326Z       "durationMs": 42185,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2064713Z       "tests": 32,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2065061Z       "pass": 32,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2065382Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2065700Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2066011Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2066287Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2066653Z       "file": "media-staging.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2067085Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2067413Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2067776Z       "durationMs": 5465,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2068163Z       "tests": 18,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2068508Z       "pass": 18,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2068845Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2069228Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2069546Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2069835Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2070179Z       "file": "media.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2070586Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2070905Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2071245Z       "durationMs": 4781,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2071621Z       "tests": 24,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2071961Z       "pass": 24,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2072296Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2072637Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2072967Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2073303Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2075454Z       "file": "merge-erasure-transfer.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2075844Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2076079Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2076300Z       "durationMs": 2406,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2076538Z       "tests": 3,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2076740Z       "pass": 3,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2076939Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2077140Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2077344Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2077531Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2077786Z       "file": "merge-history-erasure.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2078092Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2078314Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2078528Z       "durationMs": 2788,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2078751Z       "tests": 5,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2078954Z       "pass": 5,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2079152Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2079349Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2079548Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2079724Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2079972Z       "file": "merge-history-transfer.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2080268Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2080476Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2080684Z       "durationMs": 1417,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2080904Z       "tests": 3,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2081102Z       "pass": 3,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2081297Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2081491Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2081687Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2081861Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2082084Z       "file": "person-merges.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2082356Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2082562Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2082769Z       "durationMs": 2534,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2082994Z       "tests": 10,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2083193Z       "pass": 10,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2083386Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2083580Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2084001Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2084446Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2084678Z       "file": "portal-command.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2084957Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2085159Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2085367Z       "durationMs": 144,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2085589Z       "tests": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2085782Z       "pass": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2086090Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2086289Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2086476Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2086647Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2086881Z       "file": "prelaunch-runtime.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2087155Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2087359Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2087564Z       "durationMs": 2495,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2087787Z       "tests": 3,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2087982Z       "pass": 3,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2088178Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2088372Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2088561Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2088732Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2088962Z       "file": "production.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2089354Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2089566Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2089780Z       "durationMs": 6090,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2089998Z       "tests": 31,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2090194Z       "pass": 31,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2090393Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2090592Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2090784Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2090955Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2091189Z       "file": "project-parties.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2091461Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2091668Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2091882Z       "durationMs": 2237,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2092095Z       "tests": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2092287Z       "pass": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2092480Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2092674Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2092863Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2093039Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2093252Z       "file": "rebuild.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2093496Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2093906Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2094181Z       "durationMs": 3990,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2094406Z       "tests": 11,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2094607Z       "pass": 11,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2094810Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2095005Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2095195Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2095374Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2095634Z       "file": "recovery-delta-adversarial.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2095946Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2096156Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2096362Z       "durationMs": 293,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2096587Z       "tests": 12,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2096786Z       "pass": 12,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2096988Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2097182Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2097376Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2097549Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2097770Z       "file": "recovery-delta.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2098036Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2098241Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2098448Z       "durationMs": 244,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2098666Z       "tests": 8,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2098866Z       "pass": 8,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2099058Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2099252Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2099441Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2099615Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2099864Z       "file": "recovery-worker-intent.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2100161Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2100362Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2100568Z       "durationMs": 151,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2100787Z       "tests": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2100979Z       "pass": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2101169Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2101362Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2101554Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2101730Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2101945Z       "file": "recovery.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2102194Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2102396Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2102604Z       "durationMs": 4515,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2102991Z       "tests": 13,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2103190Z       "pass": 13,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2103383Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2103578Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2104022Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2104294Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2104739Z       "file": "retained-origin-transfer.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2105411Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2105672Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2105885Z       "durationMs": 2816,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2106107Z       "tests": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2106304Z       "pass": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2106497Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2106697Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2106887Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2107061Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2107277Z       "file": "review-r1.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2107527Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2107733Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2107943Z       "durationMs": 6064,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2108161Z       "tests": 23,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2108377Z       "pass": 23,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2108578Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2108775Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2108966Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2109143Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2109370Z       "file": "safety-intent.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2109646Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2109858Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2110072Z       "durationMs": 1068,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2110290Z       "tests": 5,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2110486Z       "pass": 5,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2121472Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2121783Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2122009Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2122195Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2122431Z       "file": "safety-journal.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2122723Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2122948Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2123170Z       "durationMs": 324,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2123398Z       "tests": 5,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2123603Z       "pass": 5,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2124081Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2124308Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2124513Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2124692Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2124920Z       "file": "secret-leak.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2125195Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2125408Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2125636Z       "durationMs": 142,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2125865Z       "tests": 3,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2126068Z       "pass": 3,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2126266Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2126466Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2126662Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2126836Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2127060Z       "file": "shortlists.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2127324Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2127537Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2127755Z       "durationMs": 1966,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2127978Z       "tests": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2128174Z       "pass": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2128379Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2128576Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2128773Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2128948Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2129210Z       "file": "source-history-clearance.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2129522Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2129730Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2129941Z       "durationMs": 2039,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2130167Z       "tests": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2130361Z       "pass": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2130557Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2130752Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2130943Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2131116Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2131363Z       "file": "talent-asset-erasure.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2131654Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2131864Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2132078Z       "durationMs": 1392,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2132297Z       "tests": 3,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2132490Z       "pass": 3,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2132684Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2132878Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2133253Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2133430Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2133658Z       "file": "talent-auth-config.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2134370Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2134593Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2134803Z       "durationMs": 140,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2135022Z       "tests": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2135369Z       "pass": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2135560Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2135754Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2135944Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2136114Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2136358Z       "file": "talent-auth-provider.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2136643Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2136848Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2137055Z       "durationMs": 1488,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2137278Z       "tests": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2137474Z       "pass": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2137665Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2137853Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2138048Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2138226Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2138450Z       "file": "talent-auth.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2138709Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2138911Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2139131Z       "durationMs": 796,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2139352Z       "tests": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2139545Z       "pass": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2139738Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2139936Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2140122Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2140291Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2140539Z       "file": "talent-candidate-context.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2140841Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2141041Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2141244Z       "durationMs": 1342,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2141453Z       "tests": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2141645Z       "pass": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2141833Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2142029Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2142214Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2142377Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2142628Z       "file": "talent-candidate-merge.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2142932Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2143134Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2143342Z       "durationMs": 3012,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2143566Z       "tests": 5,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2143997Z       "pass": 5,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2144200Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2144405Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2144597Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2144774Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2145049Z       "file": "talent-credential-retention.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2145361Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2145569Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2145778Z       "durationMs": 684,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2145998Z       "tests": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2146195Z       "pass": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2146395Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2146587Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2146777Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2146953Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2147207Z       "file": "talent-credential-transfer.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2147674Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2147883Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2148096Z       "durationMs": 3859,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2148315Z       "tests": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2148513Z       "pass": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2148707Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2148899Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2149092Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2149268Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2149536Z       "file": "talent-directory-finalization.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2149842Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2150047Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2150256Z       "durationMs": 1207,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2150483Z       "tests": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2150685Z       "pass": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2150877Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2151069Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2151257Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2151429Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2151679Z       "file": "talent-directory-lifecycle.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2151974Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2152336Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2152549Z       "durationMs": 1676,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2152773Z       "tests": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2152973Z       "pass": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2153165Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2153363Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2153561Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2154111Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2154378Z       "file": "talent-directory-state.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2154690Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2154904Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2155115Z       "durationMs": 134,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2155340Z       "tests": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2155539Z       "pass": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2155732Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2155932Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2156126Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2156305Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2156537Z       "file": "talent-directory.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2156810Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2157018Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2157232Z       "durationMs": 2371,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2157449Z       "tests": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2157642Z       "pass": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2157832Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2158023Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2158216Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2158391Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2158639Z       "file": "talent-evidence-history.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2158937Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2159137Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2159343Z       "durationMs": 1183,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2159557Z       "tests": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2159755Z       "pass": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2159942Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2160135Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2160329Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2160501Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2160748Z       "file": "talent-evidence-transfer.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2161051Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2161252Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2161458Z       "durationMs": 3159,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2161676Z       "tests": 5,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2161869Z       "pass": 5,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2162059Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2162249Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2162443Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2162613Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2162857Z       "file": "talent-external-transfer.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2163158Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2163362Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2163569Z       "durationMs": 2742,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2164044Z       "tests": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2164259Z       "pass": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2164452Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2164651Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2164849Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2165021Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2165265Z       "file": "talent-height-review.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2165567Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2165776Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2165985Z       "durationMs": 591,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2166212Z       "tests": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2166408Z       "pass": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2166604Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2166800Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2166990Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2167162Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2167416Z       "file": "talent-identity-retention.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2167717Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2167924Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2168139Z       "durationMs": 1220,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2168366Z       "tests": 3,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2168559Z       "pass": 3,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2168755Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2168964Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2169160Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2169333Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2169558Z       "file": "talent-intake.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2169827Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2170031Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2170237Z       "durationMs": 1751,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2170455Z       "tests": 6,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2170794Z       "pass": 6,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2170994Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2171189Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2171377Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2171548Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2171792Z       "file": "talent-legacy-projection.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2172092Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2172300Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2172624Z       "durationMs": 963,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2172841Z       "tests": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2173032Z       "pass": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2173224Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2173415Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2173603Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2174015Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2174295Z       "file": "talent-maintenance-finalization.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2174614Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2174814Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2175023Z       "durationMs": 1195,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2175240Z       "tests": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2175435Z       "pass": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2175630Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2175822Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2176010Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2176180Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2176409Z       "file": "talent-maintenance.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2176688Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2176895Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2177103Z       "durationMs": 2799,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2177323Z       "tests": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2177520Z       "pass": 7,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2177708Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2177902Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2178094Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2178264Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2178519Z       "file": "talent-manual-maintenance.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2178818Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2179022Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2179228Z       "durationMs": 750,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2179448Z       "tests": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2179638Z       "pass": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2179828Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2180023Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2180213Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2180381Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2180648Z       "file": "talent-representation-transfer.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2180963Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2181165Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2181371Z       "durationMs": 2444,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2181594Z       "tests": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2181787Z       "pass": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2181978Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2182178Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2182368Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2182535Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2182784Z       "file": "talent-source-asset-erasure.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2183084Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2183285Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2183494Z       "durationMs": 1202,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2183843Z       "tests": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2184044Z       "pass": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2184234Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2184428Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2184618Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2184791Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2185056Z       "file": "talent-source-combined-erasure.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2185361Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2185562Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2185766Z       "durationMs": 1584,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2185979Z       "tests": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2186174Z       "pass": 2,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2186370Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2186561Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2186748Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2186917Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2187155Z       "file": "talent-source-erasure.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2187440Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2187649Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2187855Z       "durationMs": 1510,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2188073Z       "tests": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2188266Z       "pass": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2188463Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2188655Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2188844Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2189161Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2189411Z       "file": "talent-source-fact-erasure.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2189708Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2189910Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2190119Z       "durationMs": 1398,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2190331Z       "tests": 3,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2190529Z       "pass": 3,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2190830Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2191024Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2191210Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2191377Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2191648Z       "file": "talent-source-identity-evidence.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2191964Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2192164Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2192370Z       "durationMs": 1801,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2192586Z       "tests": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2192779Z       "pass": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2192965Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2193160Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2193350Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2193519Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2193919Z       "file": "talent-source-person-erasure.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2194226Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2194425Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2194632Z       "durationMs": 1206,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2194852Z       "tests": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2195044Z       "pass": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2195237Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2195429Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2195616Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2195785Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2196057Z       "file": "talent-structured-compatibility.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2196367Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2196566Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2196774Z       "durationMs": 650,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2196984Z       "tests": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2197174Z       "pass": 1,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2197370Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2197558Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2197747Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2197916Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2198138Z       "file": "talent-transfer.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2198406Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2198605Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2198817Z       "durationMs": 4311,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2199030Z       "tests": 9,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2199220Z       "pass": 9,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2199410Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2199604Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2199796Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2199970Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2200202Z       "file": "talent-v2-maintenance.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2200482Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2200681Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2200885Z       "durationMs": 1592,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2201098Z       "tests": 5,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2201288Z       "pass": 5,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2201482Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2201675Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2201863Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2202032Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2202253Z       "file": "talent-v2-merge.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2202522Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2202728Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2202932Z       "durationMs": 3007,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2203146Z       "tests": 10,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2203341Z       "pass": 10,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2203533Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2203853Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2204056Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2204228Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2204449Z       "file": "talent-v2-search.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2204750Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2204950Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2205154Z       "durationMs": 1460,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2205366Z       "tests": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2205562Z       "pass": 4,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2205749Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2205942Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2206131Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2206300Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2206513Z       "file": "talent-v2.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2206765Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2207102Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2207311Z       "durationMs": 3037,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2207526Z       "tests": 16,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2207719Z       "pass": 16,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2207908Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2208099Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2208292Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2208462Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2208822Z       "file": "talent.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2209060Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2209258Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2209467Z       "durationMs": 5939,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2209695Z       "tests": 26,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2209888Z       "pass": 26,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2210076Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2210266Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2210451Z     },
+acceptance	Full types and core regression	2026-10-03T16:26:01.2210620Z     {
+acceptance	Full types and core regression	2026-10-03T16:26:01.2210834Z       "file": "work-cases.test.ts",
+acceptance	Full types and core regression	2026-10-03T16:26:01.2211089Z       "exitCode": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2211290Z       "error": null,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2211495Z       "durationMs": 3274,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2211714Z       "tests": 10,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2211906Z       "pass": 10,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2212098Z       "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2212297Z       "skipped": 0
+acceptance	Full types and core regression	2026-10-03T16:26:01.2212481Z     }
+acceptance	Full types and core regression	2026-10-03T16:26:01.2212654Z   ],
+acceptance	Full types and core regression	2026-10-03T16:26:01.2212838Z   "tests": 778,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2213039Z   "pass": 778,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2213227Z   "fail": 0,
+acceptance	Full types and core regression	2026-10-03T16:26:01.2213420Z   "allPassed": true
+acceptance	Full types and core regression	2026-10-03T16:26:01.2213628Z }

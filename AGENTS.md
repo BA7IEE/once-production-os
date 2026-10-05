@@ -1,3 +1,93 @@
+# 当前授权：主分支合并与收尾（2026-10-05）
+
+用户明确要求“合并撒 收尾收干净呀”。允许PR #38改向main，整合已包含的PR #31–#38，清理已被main包含的旧PR和本聊天worktree；主目录旧改动须先保存可恢复stash，私密/持久数据及其他聊天worktree保留。先修复主分支旧CI的owned入口，最终以当前head和合并提交CI为准。不部署，不关闭业务/供应商验收。见 [合并收尾记录](docs/release/MERGE_CLOSEOUT_20261005.md)。下方Draft/不合并为历史授权，已被本次明确要求替代。
+
+# 当前授权：业务流程复核修复（2026-10-05）
+
+用户明确要求“落地修复”本聊天已复核的七项问题。基于 PR #37 / bb8643d147a92c5611af2801a86bb640923958c0，在独立 codex/business-flow-review-fixes 工作区修复联系方式入口、本人草稿刷新、表格重预览、typed 来源身份字段与 AI 采纳、Agent 拒绝收口、归档恢复、维护入口分页。保持人工跨来源逐字段核对、AI 单次原子采纳、当前权限/来源与原请求回执边界。迁移1–75冻结，无新依赖；保持 Draft，不合并、不部署。验收以本轮 exact-head CI 为准，不借用 PR37 结果。共享 Mac Swap 超门槛，不启动本地重型验证；使用独立 CI 的 ResourceRun/owned PG，按本轮零残留交付。
+
+# 当前授权：后台 UI UX 整体落地（2026-10-04）
+
+用户明确要求“直接落地”本聊天的 docs/design/ADMIN_UX_SOLUTION_20261004.md。基线 PR #36 / ccfe1406a77788fa01cb15290e4ccceb6b8fa382；仅在 codex/admin-ux-solution 独立工作区实施日常导航、目录与候选批量加入、统一详情及编辑、上传队列、审核协作、只读结果核对、表格导入和工作台。保留现有权限、来源、审计和生命周期；迁移1–75冻结。保持 Draft，不合并、不部署。真实供应商、业务人员无提示验收分别记录。继续遵守 RESOURCE_LIFECYCLE，不放宽资源门槛。
+
+# 当前授权：业务流修复（2026-10-03）
+
+用户已批准按本聊天修订后的方案开始落地。基线 1dae5e729b3be3a01d8149e4f02bd64bc9436d61；本轮只在 codex/business-flow-fixes 独立工作区修复来源核验协作、版本化导入及历史补齐、本人端未知结果处理、多来源直接保存和来源原文录入。跨来源建议保持独立逐项核对，不加入混合批量采纳。Commands 只管理回执，读取鉴权仍在领域 replay-policy。旧迁移1–74冻结，新模型仅追加迁移。既有分支与主目录未提交内容保留，不合并、不部署。
+
+严格遵守 docs/development/RESOURCE_LIFECYCLE.md。重型任务串行、Swap 不超过4GiB、临时资源继承 ResourceRun；新真实PG仅 test:postgres:owned。代码、轻量用例、真实PG、浏览器和供应商验证分别报告，未运行不写PASS。
+
+本轮收尾证据与实测边界见 docs/release/BUSINESS_FLOW_FIXES.md 和 artifacts/business-flow/verification.json。收尾后停在 Draft 交付，保持未合并、未部署，不自行关闭 M0/M1/M2/M3。
+
+以下为历史授权和证据。
+
+# 当前授权：PR-04D 同档接手与生命周期总收口
+
+用户批准基于冻结 PR-04C 4e7593c9 的独立 stacked 分支，实现同一 Person 的 CLAIM / SELF Grant 与显式 exposure、本人后续维护和 A–D 生命周期验收。复用既有模型；迁移1–74冻结，优先无75。新 PR35 保持 Draft、未合并未部署；PR31–34 head 不改。全量验收与 exact-head CI 后停止，等待复核，不进入 MCP / Skill。下方为历史授权。
+
+# 当前授权：PR-04C WORK appliedId finalization
+
+本轮以665ea7b为基线，只将MACHINE WORK item appliedId统一为Work.id，补CREATE/LINK及exact/new Credit和既有类型/Talent回归。无新字段、模型或迁移；1–74及PR31/32/33 head不改。PR34继续Draft，完整Core/PG/Browser与新head16项CI通过后交最终复核，不自行冻结、不进入PR-04D。下方为历史授权。
+
+# 当前授权：PR-04C Agent Collection / Work 摄取
+
+用户批准从 PR-04B frozen 379d06dbea9295d47dd7f998a90f76d5d885169a 建独立 stacked 分支。本轮仅同批 stable key Collection/Work 候选、完整依赖基线、内部明确 CREATE/LINK、精确 Credit 与原子采纳及生命周期；复用既有业务表。迁移1–74不改，若需新增从75前向追加。PR31/32/33 head 不改；新PR34保持 Draft、未合并、未部署。完成全量 Core/PG16/Browser、恢复升级和 exact-head CI 后停止，不进入PR-04D。下方授权和阶段状态保留为历史。
+
+# 当前授权：PR-04B 真实机器媒体摄取
+
+PR-04A 已由用户冻结，基线67f45a57801cdef9e419803139775e15dd329839。当前独立stacked分支只接通AGENT_SUBMISSION真实字节、MACHINE独立额度、全阶段authorizationEpoch fencing、READY/STAGED专用读及文字/媒体原子审核、正式授权和生命周期。迁移1–72冻结，从73前向追加；PR31/32 head不改，不合并部署，新的PR保持Draft。完成Core/PG16/Browser/升级恢复与最终head CI后停止，不进入Collection/Work摄取PR-04C。下方阶段范围为历史，当前范围由本次用户授权替代。
+
+# 当前授权：PR-04A finalization
+
+基线d1e4936，仅完整imported INTERNAL_REVIEW JSON DB CHECK和结构化secret leak检测。前向72，1–71不修改；保留首次失败记录，不削弱正文/凭据泄漏检查。Core/PG/原12组Browser+ingestion以及最终14项CI完成后交冻结复核。PR #32保持Draft、未合并未部署，PR #31不修改；不进入PR-04B。当前证据见docs/release/PR04A_FINALIZATION.md。下方范围为历史阶段。
+
+# 当前授权：PR-04A 主体与文字摄取
+
+用户已批准基于PR-03冻结aeaf49da的stacked开发，设计7017d5ef为冻结依据。当前codex/external-agent-ingestion-pr04a仅实现真实MACHINE Submission、schema/字典、文字/职业/基础事实、内部审核、typed basis和scope转换。从69前向迁移，1–68不改。PR #31 head不变、不合并部署；新业务PR保持Draft。不得进入媒体摄取、Collection/Work、本人接手闭环、MCP/Skill、抓取/OCR/自动merge或商业模块。完成真实Core/PG/Nest/Chrome和精确head CI后停止交复核。下方DESIGN_ONLY为历史阶段，已由本次用户明确启动授权替代。
+
+# 2026-10-02 当前状态：PR-03 冻结，PR-04 仅设计
+
+用户正式确认 PR-03 DEVELOPMENT FROZEN；A–E均FROZEN，代码SHA aeaf49da7d5346785adac6df4e2d34321f9d92d2，CI36901766784为13/13 SUCCESS。PR #31 Ready for Review、未合并、未部署。业务代码、迁移1–68和验收合同不改写；供应商/COS/物理手机/生产迁移继续NOT_RUN，DEPLOYED=false。权威状态见 docs/release/PR03_DEVELOPMENT_FREEZE.md。
+
+本次独立 docs/pr03-freeze-pr04-design 分支仅收口冻结文档、完成 docs/design/PR04_EXTERNAL_AGENT_INGESTION.md。PR-04主题为External Agent Ingestion；当前已按用户要求冻结设计§4.3–4.6的候选/绑定分离、typed SourceUseBasis、独立authorizationEpoch、双scope转换及§10.2反例，仍DESIGN_ONLY，整稿待复核、尚未获编码授权，设计提交后停止等待复核。不加功能、不合并、不部署。下方切片限制和Draft状态保留为历史记录；仍适用的身份、来源、权限、回执、秘密和迁移安全约束继续执行。
+
+# 当前切片：PR-03E finalization
+
+基线7016c4d，A–D冻结，E暂不冻结。本轮只修显式删除与TTL物理删除权竞争、显式finalizer续租、上传尊重配置保留期。迁移1–68不改，PR #31保持Draft、未合并、未部署；完整回归和精确head CI后交回复核。
+
+# 当前切片：PR-03E 暂存回收与最终收口
+
+用户已冻结 A–D，基线 ff6e10f。当前授权实现独立 purge、UNKNOWN 核对、容量归还、竞争/恢复安全及 PR-03 总回归。迁移1–66冻结，只允许前向增量。保持 PR #31 Draft、未合并未部署；不进入 PR-04 或其他后续业务。以下旧切片禁止进入E的文字是历史边界。
+
+# 当前切片：PR-03D finalization
+
+基线280568c，主体复核通过但未冻结。本轮仅LINK共享事实/素材不写入、独立Work Consent、exact Credit接手及legacy内部升级。迁移1–66不改，无67；PR #31继续Draft、未合并未部署，完成后等待复核，不进入PR-03E。当前实测证据以PR描述及新finalization目录为准。
+
+# 2026-10-01 当前切片：PR-03D Work / 作品案例
+
+用户已冻结 PR-03A/B/C，基线7909fa2。当前仅复用 Work/WorkCredit/WorkAsset，实现本人案例提交、精确职业署名、来源/授权和生命周期。迁移1–63冻结；本轮前向64–66，已实跑的64/65不改写。PR #31保持Draft、未合并、未部署，完成后等待代码复核，不进入PR-03E或其他延期模块。下方禁止进入Work为历史切片范围。
+
+# 2026-10-01 当前切片：PR-03C finalization
+
+主体复核通过但未冻结。本轮仅修 Grant-bound selfExposureManifest、Tag 当前来源和父集合版本、失效旧来源 current 切换、集合类型 identity。迁移1–63均保持原样；PR #31保持Draft、未合并、未部署。不进入PR-03D Work、客户分享、官网或Agent摄取。新增/完整实测证据见 docs/release/TALENT_EXPERIENCE_PR03.md，最终head CI以PR描述及本轮回复为准。
+
+# 2026-10-01 当前切片：PR-03C 媒体集合
+
+用户已复核冻结 PR-03A/03B（head 2c29e6819b3a1bcced4bd172777050415230c684）。当前继续 PR #31 Draft、未合并未部署，只做复用 MediaCollection/Item/Tag 的模卡、素颜照、Portfolio、Showreel、介绍视频和本人集合提交审核。下方禁止进入集合是历史范围，由本次用户授权替代。迁移1–62冻结，本轮增量63；先读 docs/release/TALENT_EXPERIENCE_PR03.md。完成后停下来复核，不进入 PR-03D Work、客户分享、官网或 Agent 摄取。Provider/COS/真实手机验证继续 NOT_RUN。
+
+# 2026-10-01 当前切片：ADOPTED 正式媒体授权修正
+
+只修正式媒体对原intake范围的依赖；STAGED审核接收范围保持严格。正式读统一PersonMedia Person/Role/Source及当前用途/删除保护。迁移1–62冻结、无新增迁移；PR #31继续Draft、未合并未部署。最终Core/PG/全部浏览器和精确head CI证据见PR-03交付说明及formal-auth证据目录。先交复核，不进入MediaCollection/模卡/素颜照/Portfolio/介绍视频。
+
+# 2026-10-01 当前切片：PR-03 媒体归属与暂存底座
+
+PR #31 保持 Draft，不合并、不部署。本轮仅 UploadContext、真实 uploader、STAGED/ADOPTED/RETIRED、Person/Role/Asset 多来源关系及本人/审核暂存读取、原子采纳和生命周期。当前迁移1–62已在隔离库应用，后续不得改写。先读 docs/release/TALENT_EXPERIENCE_PR03.md。本切片交付后等待复核，再进入 MediaCollection/模卡/素颜照/作品案例；不继续扩播放器、不进入客户分享、官网或PR-04。
+
+# 2026-10-01 当前授权：PR-02 已合并冻结，启动 PR-03
+
+PR #30 按用户指定 head 9fc2f9295068a16a16e6409b6df1c230bbe055ca 合并，main=1a297d86ecfeac5d7a3c748322a867c9852a20c9 的 CI 36815702669 九项通过。PR-02 已合并、开发冻结、未部署，PROVIDER_VERIFIED=NOT_RUN。下方禁止进入 PR-03、保持 PR #30 Draft 的内容属于历史范围，已由本次用户授权替代。
+
+当前独立分支 codex/talent-experience-pr03，按 spec/15 与 spec/16 推进模卡、照片、视频、作品案例及本人多来源媒体维护。先读 docs/release/TALENT_EXPERIENCE_PR03.md；不得新增客户分享/官网/支付/CRM。既有迁移1–61冻结，新实体必须同步权限、审计、导出重建、删除、合并与恢复。PR-03 未获合并/部署授权，开发PR保持Draft，真实供应商结果不得由Mock替代。
+
 # 2026-10-01 当前实现范围：PR-02b
 
 用户已复核冻结 PR-02a。继续当前 PR #30 分支实施定向 CLAIM、ENROLL、逐人 grant、同档认领、服务器文本草稿/Submission、批量审核、来源归因与 INTERNAL_DIRECTORY 同意。保持 Draft，不合并、不部署；PROVIDER_VERIFIED=NOT_RUN。下方 PR-02a 禁止进入02b为历史范围，已被本次用户授权替代。前57次迁移冻结，只追加58及后续。不得进入PR-03媒体或客户分享/官网。

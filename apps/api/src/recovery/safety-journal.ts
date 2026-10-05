@@ -15,7 +15,7 @@ const LEGACY_ENTRY_VERSION = 'once-safety-journal-entry-v1';
 const ZERO = '0'.repeat(64);
 const NOISY_READ_ACTIONS = new Set([
     'auth.login', 'auth.login-denied', 'auth.logout',
-    'contact.read', 'asset.preview', 'export.download'
+    'contact.read', 'asset.preview', 'asset.playback', 'export.download'
 ]);
 
 export interface SafetyJournalHeader {

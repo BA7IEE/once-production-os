@@ -1,0 +1,17 @@
+{
+  "status": "POSTGRES_TESTED",
+  "database": [
+    {
+      "version": "PostgreSQL 16.15 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit"
+    }
+  ],
+  "checks": [
+    "collection-work-media-person-source-receipt-audit-all-rollback",
+    "stable-key-collection-work-exact-role-real-adoption-one-source-one-transaction-original-key-replay",
+    "explicit-existing-collection-update-no-duplicate-removal-keeps-asset",
+    "LINK-new-media-adopted-independently-no-work-facts-cover-assets-credit-id-source-note-change",
+    "same-title-no-automatic-merge-explicit-CREATE",
+    "formal-source-revoke-invalidates-work-media-projections",
+    "postgres-frozen-collection-insert-unique-exact-credit-role-FK"
+  ]
+}

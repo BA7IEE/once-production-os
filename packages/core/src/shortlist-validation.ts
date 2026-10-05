@@ -2,6 +2,7 @@ import { v, uuid, revision } from './validation.ts';
 import { SHORTLIST_LIMITS as L } from './shortlist-model.ts';
 
 export const ShortlistSchemas = {
+    selection: v.object({ personIds: v.array(uuid, 200) }),
     create: v.object({
         title: v.string(160, 1),
         brief: v.optional(v.string(5000)),
@@ -25,6 +26,15 @@ export const ShortlistSchemas = {
         expectedRevision: revision,
         entryId: uuid,
         note: v.string(2000)
+    }),
+    batchAdd: v.object({
+        expectedRevision: revision,
+        entries: v.array(v.object({
+            personId: uuid,
+            expectedPersonRevision: revision,
+            personRoleId: v.optional(uuid),
+            personRoleRevision: v.optional(revision)
+        }), 200)
     }),
     remove: v.object({
         expectedRevision: revision,

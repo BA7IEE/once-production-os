@@ -1,3 +1,9 @@
+import {principalFields} from './principal.ts';
+import {saveWorkDrafts} from './talent-work-cases.ts';
+import {saveCollectionDrafts} from './media-collections.ts';
+import {Media,uploadFor} from './media.ts';
+import type {Tx} from './store.ts';
+import type {TalentActor} from './talent-auth-model.ts';
 import {TalentMaintenance} from './talent-maintenance.ts';
 import {TALENT_MAINTENANCE_ROUTES} from './talent-maintenance-routes.ts';
 import type {ApiRequest,ApiResponse} from './api.ts';
@@ -17,6 +23,11 @@ export class TalentPortal {
  auth:TalentAuth;writeAhead:(actor:CommandPrincipal,operation:string,requestId:string,resourceId:string,key:string)=>Promise<SafetyIntent|null>;sink:SafetyIntentSink|null;
  constructor(auth:TalentAuth,writeAhead:TalentPortal['writeAhead'],sink:SafetyIntentSink|null){this.auth=auth;this.writeAhead=writeAhead;this.sink=sink;}
  cookie(name:string,value:string,seconds:number){return `${name}=${value}; Path=${path}; HttpOnly; Secure; SameSite=Lax; Max-Age=${seconds}`;}
+ async authenticated<T>(req:ApiRequest,fn:(tx:Tx,actor:TalentActor)=>Promise<T>):Promise<T>{
+ const c=this.auth.settings();invariant(!req.headers.authorization,'PORTAL_AUTH_INVALID','人才入口不接受机器凭证',401);
+ const matches=(req.headers.cookie??'').split(';').map(x=>x.trim()).filter(x=>x.startsWith(sessionName+'='));invariant(matches.length===1,'AUTH_REQUIRED','请登录人才账号',401);const token=matches[0]!.slice(sessionName.length+1);
+ return this.auth.store.transaction(async tx=>{const actor=await this.auth.authenticate(tx,token);invariant(req.headers['x-once-talent-account']===actor.talentAccountId,'IDENTITY_CHANGED','账号已变化，请重新登录核对',409);if(req.method!=='GET'){invariant(req.headers.origin===this.auth.config.origin,'ORIGIN_DENIED','请求来源不被允许',403);invariant(equalSecret(req.headers['x-csrf-token']??'',csrfFor(token,c.csrfKey)),'CSRF_INVALID','会话校验失败',403);}return fn(tx,actor);});
+ }
  async handle(req:ApiRequest,res:ApiResponse,meta:RequestMeta):Promise<ApiResponse>{
  const c=this.auth.settings();invariant(!req.headers.authorization,'PORTAL_AUTH_INVALID','人才入口不接受机器凭证',401);
  const url=new URL(req.url,this.auth.config.origin);invariant(!url.search&&!url.pathname.includes('%'),'QUERY_INVALID','请求路径无效',400);
@@ -44,13 +55,20 @@ export class TalentPortal {
  if(route.operation==='portal.me'){res.body=await this.auth.store.transaction(async tx=>{const actor=await authenticate(tx);const a=(await tx.get('talentAccounts',actor.talentAccountId))!;return {talentAccountId:a.id,status:a.status,revision:a.revision,csrfToken:csrfFor(token,c.csrfKey)};});return res;}
  if(route.operation==='portal.auth.logout'){await this.auth.store.transaction(async tx=>{const actor=await authenticate(tx);await this.auth.logout(tx,actor,meta);});res.cookies.push(this.cookie(sessionName,'',0));res.body={loggedOut:true};return res;}
  if(TALENT_MAINTENANCE_ROUTES.includes(route)){
- if(route.mode==='READ'){res.body=await this.auth.store.transaction(async tx=>maintenance.portalRead(tx,await authenticate(tx),route.operation,resourceId,browser));return res;}
+ if(route.mode==='READ'){res.body=await this.auth.store.transaction(async tx=>{const actor=await authenticate(tx);if(route.operation==='portal.command.get'){const rows=await tx.find('receipts',{workspaceId:actor.workspaceId,...principalFields(actor),commandKey:resourceId});invariant(rows.length===1&&rows[0]!.operation.startsWith('portal.'),'NOT_FOUND','当前未找到可确认的原请求，请保留核对标记',404);await authorizeReceipt(tx,actor,rows[0]!,this.auth.clock,this.auth.config);return rows[0]!.result;}if(route.operation==='portal.upload.get'){const u=await uploadFor(tx,actor,resourceId);await maintenance.submissionAccess(tx,actor,u.submissionId!,true);return new Media(this.auth.store,this.auth.clock,this.auth.config).get(tx,actor,resourceId);}return maintenance.portalRead(tx,actor,route.operation,resourceId,browser);});return res;}
  const actor=await this.auth.store.transaction(authenticate),key=req.headers['idempotency-key']??'';const intent=await this.writeAhead(actor,route.operation,meta.requestId,resourceId||actor.talentAccountId,key);
- const kind=route.operation.startsWith('portal.claim.')?'talentClaim':route.operation==='portal.consent.revoke'?'talentConsent':'talentSubmission';
+ const kind=route.operation.startsWith('portal.upload.')?'upload':route.operation.startsWith('portal.asset.')?'asset':route.operation.startsWith('portal.claim.')?'talentClaim':route.operation==='portal.consent.revoke'?'talentConsent':'talentSubmission';
  res.body=await this.auth.store.transaction(async tx=>{const current=await authenticate(tx);return new Commands(this.auth.clock).execute(tx,current,route.operation,key,resourceId||null,data,kind,meta,async()=>{switch(route.operation){
+ case 'portal.submission.mediaConsent':return maintenance.mediaConsent(tx,current,resourceId,data);
+ case 'portal.upload.create':return new Media(this.auth.store,this.auth.clock,this.auth.config).createTalent(tx,current,data);
+ case 'portal.upload.complete':return new Media(this.auth.store,this.auth.clock,this.auth.config).complete(tx,current,resourceId,data);
+ case 'portal.upload.cancel':return new Media(this.auth.store,this.auth.clock,this.auth.config).cancel(tx,current,resourceId,data);
+ case 'portal.asset.retire':return new Media(this.auth.store,this.auth.clock,this.auth.config).retireDraft(tx,current,resourceId,data);
  case 'portal.claim.create':return maintenance.claim(tx,current,browser,data);
  case 'portal.claim.renew':return maintenance.renew(tx,current,browser,resourceId,data);
  case 'portal.submission.create':return maintenance.createDraft(tx,current,data);
+ case 'portal.submission.works':return saveWorkDrafts(tx,current,resourceId,data,this.auth.clock,this.auth.config);
+ case 'portal.submission.collections':return saveCollectionDrafts(tx,current,resourceId,data,this.auth.clock,this.auth.config);
  case 'portal.submission.save':return maintenance.saveDraft(tx,current,resourceId,data);
  case 'portal.submission.submit':return maintenance.submissionAction(tx,current,resourceId,data,'submit');
  case 'portal.submission.withdraw':return maintenance.submissionAction(tx,current,resourceId,data,'withdraw');

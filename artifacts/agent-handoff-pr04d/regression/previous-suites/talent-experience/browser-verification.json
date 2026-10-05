@@ -1,0 +1,14 @@
+{
+  "status": "BROWSER_TESTED",
+  "database": "PostgreSQL 16.15 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit",
+  "checks": [
+    "PostgreSQL same-key concurrency creates exactly one typed person and receipt",
+    "PostgreSQL audit fault rolls back all composed writes; original key retries",
+    "Browser name-only intake, multi-role and lost response replay keep one person",
+    "Browser contact branch creates no professional record; form fits 360/390/430/1280",
+    "Real viewer UI/API refuse creation and restricted person access"
+  ],
+  "scope": "PR-01a internal intake only",
+  "providers": "NOT_RUN",
+  "errors": []
+}

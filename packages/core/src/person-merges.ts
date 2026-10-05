@@ -1,3 +1,4 @@
+import {adoptedMediaFor} from './media-ownership.ts';
 import {maintenanceSnapshot,maintenanceScopeBlocker,revokePersonMaintenance} from './talent-maintenance-lifecycle.ts';
 import {scanLocaleMerge,applyLocaleMerge,type LocaleMergePlan} from './locale-merge.ts';
 import { scanTalentMerge, applyTalentMerge, type TalentMergePlan } from './talent-v2-merge.ts';
@@ -99,6 +100,9 @@ export class PersonMerges {
         const talent = await scanTalentMerge(tx, actor, this.clock, canonical.id, duplicate.id);
         for (const code of talent.blockers) blocker(blockers, code);
 
+        // A selected upload Role is a historical origin. Do not silently move or drop that binding.
+        const pinnedMediaRoles=(await tx.find('uploads',{workspaceId:actor.workspaceId,personId:duplicate.id})).filter(u=>u.personRoleId&&u.state!=='ERASED');
+        if(pinnedMediaRoles.length)blocker(blockers,'MEDIA_ROLE_DEPENDENCY_REQUIRES_REVIEW',pinnedMediaRoles.length);
         if (canonical.scopeId !== duplicate.scopeId) blocker(blockers, 'SCOPE_MISMATCH');
         if (canonical.status === 'ERASED' || duplicate.status === 'ERASED') blocker(blockers, 'ERASED_PERSON');
         if (await personAliasFor(tx, actor.workspaceId, canonical.id)) blocker(blockers, 'CANONICAL_ALREADY_ALIAS');
@@ -148,20 +152,28 @@ export class PersonMerges {
         if (activePermissions.length && !actor.permissions.includes('sources.review')) blocker(blockers, 'SOURCES_REVIEW_REQUIRED');
 
         const uploadRows = await tx.find('uploads', { workspaceId: actor.workspaceId, personId: duplicate.id });
+        const formalMedia=await tx.find('personMedia',{workspaceId:actor.workspaceId,personId:duplicate.id,usageState:'ADOPTED'});
+        const formalAssetIds=new Set(formalMedia.map(r=>r.assetId));
+        for(const r of formalMedia){
+            try{const a=await tx.get('assets',r.assetId);if(!a)missing();await adoptedMediaFor(tx,actor,a,this.clock);}
+            catch(e){if(e instanceof AppError&&e.status===404)blocker(blockers,'HIDDEN_MEDIA_DEPENDENCY');else throw e;}
+        }
         for (const row of uploadRows) {
-            try { await requireScope(tx, actor, row.scopeId); await sourceFor(tx, actor, row.sourceId, this.clock, false); }
+            if(formalAssetIds.has(row.id))continue;
+            try { await requireScope(tx, actor, row.scopeId); if(row.sourceId)await sourceFor(tx, actor, row.sourceId, this.clock, false); }
             catch(e) { if(e instanceof AppError && e.status===404) blocker(blockers,'HIDDEN_MEDIA_DEPENDENCY'); else throw e; }
         }
         const assetRows = await tx.find('assets', { workspaceId: actor.workspaceId, personId: duplicate.id });
         for (const row of assetRows) {
-            try { await requireScope(tx, actor, row.scopeId); await sourceFor(tx, actor, row.sourceId, this.clock, false); }
+            if(formalAssetIds.has(row.id))continue;
+            try { await requireScope(tx, actor, row.scopeId); if(row.sourceId)await sourceFor(tx, actor, row.sourceId, this.clock, false); }
             catch(e) { if(e instanceof AppError && e.status===404) blocker(blockers,'HIDDEN_MEDIA_DEPENDENCY'); else throw e; }
         }
-        const assetReassignIds = assetRows.filter(a => a.sourceId === canonical.sourceId && a.state !== 'ERASED').map(a=>a.id).sort();
-        const assetDetachIds = assetRows.filter(a => a.sourceId !== canonical.sourceId && a.state !== 'ERASED').map(a=>a.id).sort();
+        const assetReassignIds = assetRows.filter(a => a.sourceId!==null && a.sourceId === canonical.sourceId && a.state !== 'ERASED').map(a=>a.id).sort();
+        const assetDetachIds = assetRows.filter(a => a.sourceId!==null && a.sourceId !== canonical.sourceId && a.state !== 'ERASED').map(a=>a.id).sort();
         const covers=await tx.find('talentProfiles',{workspaceId:actor.workspaceId,personId:duplicate.id});
         invariant(!covers.some(p=>p.coverAssetId&&assetDetachIds.includes(p.coverAssetId)),'MERGE_COVER_DETACH_CONFLICT','重复人物的封面原件来自另一来源，请先明确移除封面选择后重新预览合并；原件仍按来源保留',409);
-        const uploadIds = uploadRows.filter(u => u.state !== 'ERASED').map(u=>u.id).sort();
+        const uploadIds = uploadRows.filter(u => u.sourceId!==null && u.state !== 'ERASED').map(u=>u.id).sort();
 
         const collisions: Collision[] = [];
         const workCreditMoveIds: string[] = [], projectParticipantMoveIds: string[] = [], shortlistItemMoveIds: string[] = [];
@@ -170,6 +182,7 @@ export class PersonMerges {
         const duplicateCredits = await tx.find('workCredits', { workspaceId: actor.workspaceId, personId: duplicate.id });
         const canonicalCredits = await tx.find('workCredits', { workspaceId: actor.workspaceId, personId: canonical.id });
         for (const row of duplicateCredits) {
+            if (row.personRoleId) { blocker(blockers, 'EXACT_WORK_ROLE_CONFLICT'); continue; }
             const root = await this.visibleWork(tx, actor, row.workId);
             if (!root) { blocker(blockers, 'HIDDEN_WORK_REFERENCE'); continue; }
             affectedWorkIds.add(row.workId);
@@ -224,7 +237,7 @@ export class PersonMerges {
             media: { uploadsToDetach: uploadIds.length, assetsToReassign: assetReassignIds.length, assetsToDetach: assetDetachIds.length },
             moves: { workCredits: workCreditMoveIds.length, projectParticipants: projectParticipantMoveIds.length, shortlistItems: shortlistItemMoveIds.length }
         };
-        const maintenance=await maintenanceSnapshot(tx,actor.workspaceId,[canonical.id,duplicate.id]);const maintenanceBlocker=await maintenanceScopeBlocker(tx,actor,maintenance.data);if(maintenanceBlocker)responseCore.blockers.push({code:maintenanceBlocker,count:1});
+        const maintenance=await maintenanceSnapshot(tx,actor.workspaceId,[canonical.id,duplicate.id]);const maintenanceBlocker=await maintenanceScopeBlocker(tx,actor,maintenance.data,'MERGE_CURRENT');if(maintenanceBlocker)responseCore.blockers.push({code:maintenanceBlocker,count:1});
         const internal = { ...responseCore,maintenanceDigest:maintenance.digest, talentDigest: talent.digest, localeDigest:locales.digest,
             activeHandoffIds: activeHandoffs.map(x=>x.id).sort(), activePermissionIds: activePermissions.map(x=>x.id).sort(),
             contactIds: contactRows.map(x=>x.id).sort(), evidenceIds: evidenceRows.map(x=>x.id).sort(), uploadIds,
@@ -364,6 +377,8 @@ export class PersonMerges {
             if (row?.personId === plan.duplicate.id) await tx.replace('uploads', { ...touch(row, this.clock),
                 personId: null, personEpoch: null, personScopeId: null, personScopeRevision: null });
         }
+        // Only already adopted formal relations move. Staging and immutable upload origin stay put.
+        for(const r of await tx.find('personMedia',{workspaceId:actor.workspaceId,personId:plan.duplicate.id,usageState:'ADOPTED'}))await tx.replace('personMedia',{...touch(r,this.clock),personId:plan.canonical.id,protectionEpoch:r.protectionEpoch+1});
         for (const id of plan.assetReassignIds) {
             const row = await workspaceRow(tx, 'assets', id, actor.workspaceId);
             if (row?.personId === plan.duplicate.id) await tx.replace('assets', { ...touch(row, this.clock), personId: plan.canonical.id });

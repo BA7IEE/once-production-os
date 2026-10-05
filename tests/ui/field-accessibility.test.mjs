@@ -4,13 +4,15 @@ import { createElement as h } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { chromium } from 'playwright';
 import { Field } from '../../apps/admin-web/src/field.ts';
+import {registeredBrowser} from '../../scripts/registered-browser.mjs';
 
-let browser;
+let browser,browserOwner;
 before(async () => {
-    browser = await chromium.launch({ headless: true,
+    browserOwner = await registeredBrowser(chromium,{ headless: true,
         ...(process.env.CHROME_EXECUTABLE ? { executablePath: process.env.CHROME_EXECUTABLE } : {}) });
+    browser=browserOwner.browser;
 });
-after(async () => { if (browser) await browser.close(); });
+after(async () => { await browserOwner?.close(); });
 async function pageWith(t, content) {
     const page = await browser.newPage();
     t.after(() => page.close());
@@ -82,8 +84,10 @@ test('disabled fieldset still disables the correctly named native controls', asy
 });
 
 test('existing composite single-select controls retain their native association', async t => {
-    function City() { return h('select', null, h('option', null, '深圳')); }
-    const page = await pageWith(t, h(Field, { label: '常驻城市' }, h(City)));
-    assert.equal(await page.getByLabel('常驻城市', { exact: false }).count(), 1);
+    function City(props) { return h('select', props, h('option', null, '深圳')); }
+    const page = await pageWith(t, h(Field, { label: '常驻城市', singleControl:true, hint:'请选择实际常驻城市' }, h(City)));
+    assert.equal(await page.getByLabel('常驻城市', { exact: true }).count(), 1);
     assert.equal(await page.getByRole('combobox').inputValue(), '深圳');
+    await page.getByText('常驻城市',{exact:true}).click();
+    assert.equal(await page.getByRole('combobox').evaluate(el=>el===document.activeElement),true);
 });

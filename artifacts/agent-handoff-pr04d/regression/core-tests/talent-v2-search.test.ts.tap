@@ -1,0 +1,34 @@
+TAP version 13
+# Subtest: TD2-T15 result totals and all-page facets exclude hidden professional facts
+ok 1 - TD2-T15 result totals and all-page facets exclude hidden professional facts
+  ---
+  duration_ms: 301.068458
+  type: 'test'
+  ...
+# Subtest: TD2-T15 industry and work type must match the same work in the selected occupation
+ok 2 - TD2-T15 industry and work type must match the same work in the selected occupation
+  ---
+  duration_ms: 159.510125
+  type: 'test'
+  ...
+# Subtest: TD2-T15 actual collaboration and combined professional filters preserve role context
+ok 3 - TD2-T15 actual collaboration and combined professional filters preserve role context
+  ---
+  duration_ms: 151.905167
+  type: 'test'
+  ...
+# Subtest: TD2-T15 suspended sources remove search matches and orphan filter qualifiers are rejected
+ok 4 - TD2-T15 suspended sources remove search matches and orphan filter qualifiers are rejected
+  ---
+  duration_ms: 150.012917
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 963.583416

@@ -1,0 +1,42 @@
+[
+  {
+    "variant": "base",
+    "exitCode": 0,
+    "log": "/tmp/pr03d-pg-base-final.txt"
+  },
+  {
+    "variant": "lifecycle",
+    "exitCode": 0,
+    "log": "/tmp/pr03d-pg-lifecycle-final.txt"
+  },
+  {
+    "variant": "enroll",
+    "exitCode": 0,
+    "log": "/tmp/pr03d-pg-enroll-final.txt"
+  },
+  {
+    "variant": "export",
+    "exitCode": 0,
+    "log": "/tmp/pr03d-pg-export-final.txt"
+  },
+  {
+    "variant": "PERSON",
+    "exitCode": 0,
+    "log": "/tmp/pr03d-pg-PERSON-final.txt"
+  },
+  {
+    "variant": "WORK",
+    "exitCode": 0,
+    "log": "/tmp/pr03d-pg-WORK-final.txt"
+  },
+  {
+    "variant": "MERGE",
+    "exitCode": 0,
+    "log": "/tmp/pr03d-pg-MERGE-final.txt"
+  },
+  {
+    "variant": "shared",
+    "exitCode": 0,
+    "log": "/tmp/pr03d-pg-shared-final.txt"
+  }
+]

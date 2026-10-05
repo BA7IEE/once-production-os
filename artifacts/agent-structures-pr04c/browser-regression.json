@@ -1,0 +1,77 @@
+{
+  "status": "BROWSER_TESTED",
+  "results": [
+    {
+      "suite": "resume",
+      "exitCode": 0,
+      "durationSeconds": 22.2
+    },
+    {
+      "suite": "handoff",
+      "exitCode": 0,
+      "durationSeconds": 14.5
+    },
+    {
+      "suite": "media",
+      "exitCode": 0,
+      "durationSeconds": 26.5
+    },
+    {
+      "suite": "production",
+      "exitCode": 0,
+      "durationSeconds": 249.0
+    },
+    {
+      "suite": "talent-intake",
+      "exitCode": 0,
+      "durationSeconds": 16.5
+    },
+    {
+      "suite": "talent-directory",
+      "exitCode": 0,
+      "durationSeconds": 35.9
+    },
+    {
+      "suite": "talent-auth",
+      "exitCode": 0,
+      "durationSeconds": 11.8
+    },
+    {
+      "suite": "talent-maintenance",
+      "exitCode": 0,
+      "durationSeconds": 51.5
+    },
+    {
+      "suite": "media-staging",
+      "exitCode": 0,
+      "durationSeconds": 102.9
+    },
+    {
+      "suite": "media-collections",
+      "exitCode": 0,
+      "durationSeconds": 185.4,
+      "initialExitCode": 1,
+      "rerun": "unchanged full suite; fresh once_test_c_browser_collection_retry1; build completed; original failure retained"
+    },
+    {
+      "suite": "work-cases",
+      "exitCode": 0,
+      "durationSeconds": 186.7
+    },
+    {
+      "suite": "media-purge",
+      "exitCode": 0,
+      "durationSeconds": 219.0
+    },
+    {
+      "suite": "agent-ingestion",
+      "exitCode": 0,
+      "durationSeconds": 20.2
+    },
+    {
+      "suite": "agent-media",
+      "exitCode": 0,
+      "durationSeconds": 49.7
+    }
+  ]
+}

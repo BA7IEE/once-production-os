@@ -1,3 +1,6 @@
+import {SourceReviewSchemas} from './source-review.ts';
+import {CommandInspectionSchema,ReviewQuerySchema} from './admin-ux-schema.ts';
+import {INGESTION_ROUTES} from './ingestion-routes.ts';
 import {TALENT_MAINTENANCE_ROUTES} from './talent-maintenance-routes.ts';
 import {TALENT_AUTH_ROUTES} from './talent-auth-routes.ts';
 import { DirectoryUpdateSchema, DirectoryQuerySchema } from './talent-directory.ts';
@@ -23,7 +26,13 @@ export interface RouteDefinition {
     permission?: Permission;
     schema?: Schema<unknown>;
 }
-export const ROUTES: RouteDefinition[] = [...TALENT_AUTH_ROUTES,...TALENT_MAINTENANCE_ROUTES,
+export const ROUTES: RouteDefinition[] = [
+    {method:'POST',path:'/review/search',operation:'review.search',mode:'READ',permission:'records.read',schema:ReviewQuerySchema},
+    {method:'GET',path:'/review/{kind}/{id}',operation:'review.get',mode:'READ',permission:'records.read'},
+    {method:'POST',path:'/commands/inspect',operation:'command.inspect',mode:'READ',permission:'records.read',schema:CommandInspectionSchema},
+    {method:'GET',path:'/commands',operation:'command.list',mode:'READ',permission:'records.read'},
+    {method:'GET',path:'/media-purge/status',operation:'mediaPurge.status',mode:'READ',permission:'members.manage'},
+    {method:'POST',path:'/media-purge/reconcile',operation:'mediaPurge.reconcile',mode:'COMMAND',permission:'members.manage',schema:Schemas.empty},...INGESTION_ROUTES,...TALENT_AUTH_ROUTES,...TALENT_MAINTENANCE_ROUTES,
     {method:'POST',path:'/brands',operation:'brand.create',mode:'COMMAND',permission:'records.write',schema:PartySchemas.create},
     {method:'GET',path:'/brands',operation:'brand.list',mode:'READ',permission:'records.read'},
     {method:'PATCH',path:'/brands/{id}',operation:'brand.patch',mode:'COMMAND',permission:'records.write',schema:PartySchemas.patch},
@@ -57,6 +66,8 @@ export const ROUTES: RouteDefinition[] = [...TALENT_AUTH_ROUTES,...TALENT_MAINTE
     {method:'GET',path:'/directory/talents/{id}',operation:'directory.talent.get',mode:'READ',permission:'records.read'},
     {method:'POST',path:'/directory/talents',operation:'directory.talent.create',mode:'COMMAND',permission:'records.write',schema:TalentIntakeSchema},
     ...TD2_ROUTES,
+    { method:'GET',path:'/people/{id}/work-cases',operation:'work.personCases',mode:'READ',permission:'records.read' },
+    { method:'POST',path:'/people/{id}/work-cases',operation:'work.personCaseCreate',mode:'COMMAND',permission:'records.write',schema:PS.personCase },
     { method: 'GET', path: '/works', operation: 'work.list', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/works', operation: 'work.create', mode: 'COMMAND', permission: 'records.write', schema: PS.workCreate },
     { method: 'GET', path: '/works/{id}', operation: 'work.get', mode: 'READ', permission: 'records.read' },
@@ -65,6 +76,7 @@ export const ROUTES: RouteDefinition[] = [...TALENT_AUTH_ROUTES,...TALENT_MAINTE
     { method: 'POST', path: '/works/{id}/assets/remove', operation: 'work.assetRemove', mode: 'COMMAND', permission: 'records.write', schema: PS.remove },
     { method: 'POST', path: '/works/{id}/assets/reorder', operation: 'work.reorder', mode: 'COMMAND', permission: 'records.write', schema: PS.order },
     { method: 'POST', path: '/works/{id}/credits', operation: 'work.creditAdd', mode: 'COMMAND', permission: 'records.write', schema: PS.credit },
+    {method:'POST',path:'/works/{id}/credits/upgrade',operation:'work.creditUpgrade',mode:'COMMAND',permission:'records.write',schema:PS.creditUpgrade},
     { method: 'POST', path: '/works/{id}/credits/remove', operation: 'work.creditRemove', mode: 'COMMAND', permission: 'records.write', schema: PS.remove },
     { method: 'GET', path: '/projects', operation: 'project.list', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/projects', operation: 'project.create', mode: 'COMMAND', permission: 'records.write', schema: PS.projectCreate },
@@ -85,6 +97,8 @@ export const ROUTES: RouteDefinition[] = [...TALENT_AUTH_ROUTES,...TALENT_MAINTE
     { method: 'POST', path: '/uploads/{id}/cancel', operation: 'upload.cancel', mode: 'COMMAND', permission: 'records.read', schema: MediaSchemas.revision },
     { method: 'GET', path: '/assets', operation: 'asset.list', mode: 'READ', permission: 'assets.read' },
     { method: 'GET', path: '/assets/{id}', operation: 'asset.get', mode: 'READ', permission: 'assets.read' },
+    { method: 'GET', path: '/assets/{id}/playback', operation: 'asset.playback', mode: 'BINARY', permission: 'assets.read' },
+    {method:'GET',path:'/assets/{id}/attachment',operation:'asset.attachment',mode:'BINARY',permission:'assets.read'},
     { method: 'GET', path: '/assets/{id}/preview', operation: 'asset.preview', mode: 'BINARY', permission: 'assets.read' },
     { method: 'POST', path: '/assets/{id}/quarantine', operation: 'asset.quarantine', mode: 'COMMAND', permission: 'sources.review', schema: MediaSchemas.revision },
     { method: 'GET', path: '/auth/csrf', operation: 'auth.csrf', mode: 'AUTH' },
@@ -112,6 +126,16 @@ export const ROUTES: RouteDefinition[] = [...TALENT_AUTH_ROUTES,...TALENT_MAINTE
     { method: 'PATCH', path: '/sources/{id}', operation: 'source.update', mode: 'COMMAND', permission: 'sources.write', schema: Schemas.sourcePatch },
     { method: 'POST', path: '/sources/{id}/review', operation: 'source.review', mode: 'COMMAND', permission: 'sources.review', schema: Schemas.sourceReview },
     { method: 'POST', path: '/sources/{id}/suspend', operation: 'source.suspend', mode: 'COMMAND', permission: 'sources.review', schema: Schemas.suspend },
+    {method:'GET',path:'/source-reviews/candidates',operation:'sourceReview.candidates',mode:'READ',permission:'records.write'},
+    {method:'GET',path:'/people/{id}/source-review-options',operation:'sourceReview.options',mode:'READ',permission:'records.write'},
+    {method:'POST',path:'/people/{id}/source-reviews',operation:'sourceReview.create',mode:'COMMAND',permission:'records.write',schema:SourceReviewSchemas.create},
+    {method:'GET',path:'/source-reviews',operation:'sourceReview.list',mode:'READ',permission:'records.read'},
+    {method:'GET',path:'/source-reviews/{id}',operation:'sourceReview.get',mode:'READ',permission:'records.read'},
+    {method:'POST',path:'/source-reviews/{id}/accept',operation:'sourceReview.accept',mode:'COMMAND',permission:'records.read',schema:Schemas.revision},
+    {method:'POST',path:'/source-reviews/{id}/decline',operation:'sourceReview.decline',mode:'COMMAND',permission:'records.read',schema:Schemas.revision},
+    {method:'POST',path:'/source-reviews/{id}/revoke',operation:'sourceReview.revoke',mode:'COMMAND',permission:'records.read',schema:Schemas.revision},
+    {method:'POST',path:'/source-reviews/{id}/review',operation:'sourceReview.review',mode:'COMMAND',permission:'sources.review',schema:SourceReviewSchemas.review},
+    {method:'POST',path:'/source-reviews/{id}/publish',operation:'sourceReview.publish',mode:'COMMAND',permission:'members.manage',schema:SourceReviewSchemas.publish},
     { method: 'GET', path: '/people/{id}/handoff-recipients', operation: 'handoff.recipients', mode: 'READ', permission: 'records.write' },
     { method: 'POST', path: '/people/{id}/handoffs', operation: 'handoff.create', mode: 'COMMAND', permission: 'records.write', schema: Schemas.handoffCreate },
     { method: 'GET', path: '/handoffs', operation: 'handoff.list', mode: 'READ', permission: 'records.read' },
@@ -129,6 +153,8 @@ export const ROUTES: RouteDefinition[] = [...TALENT_AUTH_ROUTES,...TALENT_MAINTE
     { method: 'GET', path: '/people/{id}/contacts', operation: 'contact.get', mode: 'READ', permission: 'sensitive.read' },
     { method: 'PUT', path: '/people/{id}/contacts', operation: 'contact.replace', mode: 'COMMAND', permission: 'sensitive.write', schema: Schemas.contacts },
     { method: 'POST', path: '/field-evidence', operation: 'evidence.confirm', mode: 'COMMAND', permission: 'sources.review', schema: Schemas.evidence },
+    {method:'GET',path:'/imports/{id}/upgrade-preview',operation:'import.upgradePreview',mode:'READ',permission:'records.write'},
+    {method:'POST',path:'/imports/{id}/upgrade',operation:'import.upgrade',mode:'COMMAND',permission:'records.write',schema:Schemas.importUpgrade},
     { method: 'POST', path: '/imports/preview', operation: 'import.preview', mode: 'COMMAND', permission: 'records.write', schema: Schemas.importPreview },
     { method: 'GET', path: '/imports/{id}', operation: 'import.get', mode: 'READ', permission: 'records.write' },
     { method: 'POST', path: '/imports/{id}/commit', operation: 'import.commit', mode: 'COMMAND', permission: 'records.write', schema: Schemas.importCommit },
@@ -160,6 +186,8 @@ export const ROUTES: RouteDefinition[] = [...TALENT_AUTH_ROUTES,...TALENT_MAINTE
     { method: 'GET', path: '/shortlists/{id}', operation: 'shortlist.get', mode: 'READ', permission: 'records.read' },
     { method: 'PATCH', path: '/shortlists/{id}', operation: 'shortlist.update', mode: 'COMMAND', permission: 'records.write', schema: SS.patch },
     { method: 'POST', path: '/shortlists/{id}/items', operation: 'shortlist.itemAdd', mode: 'COMMAND', permission: 'records.write', schema: SS.itemAdd },
+    { method: 'POST', path: '/shortlists/{id}/batch', operation: 'shortlist.batchAdd', mode: 'COMMAND', permission: 'records.write', schema: SS.batchAdd },
+    { method: 'POST', path: '/shortlists/selection', operation: 'shortlist.selection', mode: 'READ', permission: 'records.read', schema: SS.selection },
     { method: 'POST', path: '/shortlists/{id}/items/update', operation: 'shortlist.itemUpdate', mode: 'COMMAND', permission: 'records.write', schema: SS.itemPatch },
     { method: 'POST', path: '/shortlists/{id}/items/remove', operation: 'shortlist.itemRemove', mode: 'COMMAND', permission: 'records.write', schema: SS.remove },
     { method: 'POST', path: '/shortlists/{id}/items/reorder', operation: 'shortlist.reorder', mode: 'COMMAND', permission: 'records.write', schema: SS.order },

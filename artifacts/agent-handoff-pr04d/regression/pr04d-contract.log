@@ -1,0 +1,5 @@
+
+> once-production-os@0.1.0-dev.1 contract:generate /Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os
+> node --experimental-strip-types scripts/generate-contract.ts
+
+Contract generated: 286 routes; request schemas only

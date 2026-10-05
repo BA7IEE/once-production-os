@@ -1,0 +1,23 @@
+{
+  "status": "PASSED",
+  "providerVerified": "NOT_RUN",
+  "provider": "controlled local HTTP gateway",
+  "checks": [
+    "360px-own-upload-real-async-worker-ready-staged-private-view",
+    "360px-invitation-auth-claim-server-draft-refresh-submit-review-same-person",
+    "390px-own-upload-real-async-worker-ready-staged-private-view",
+    "390px-invitation-auth-claim-server-draft-refresh-submit-review-same-person",
+    "430px-own-upload-real-async-worker-ready-staged-private-view",
+    "430px-invitation-auth-claim-server-draft-refresh-submit-review-same-person",
+    "430px-own-upload-real-async-worker-ready-staged-private-view",
+    "two-tabs-account-switch-clears-old-view-and-rejects-old-read-write",
+    "360px-own-upload-real-async-worker-ready-staged-private-view",
+    "enroll-unbound-own-draft-no-fake-person-until-explicit-atomic-approval",
+    "real-https-origin-cookies-current-account-read-header-and-command-replay",
+    "real-pg-dump-restore-preserves-staged-adopted-relations-and-uploader",
+    "private-original-preview-backup-restore-hash-verified",
+    "real-recovery-prepare-quarantines-bytes-revokes-grants-sessions-preserves-usage",
+    "old-portal-cookie-and-staged-authorization-rejected-after-restore"
+  ],
+  "errors": []
+}

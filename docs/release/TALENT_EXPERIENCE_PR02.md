@@ -1,3 +1,9 @@
+## 2026-10-01：PR-02 已合并、开发冻结、未部署
+
+用户复核通过后，PR #30 从 Draft 转 Ready，并以 `9fc2f9295068a16a16e6409b6df1c230bbe055ca` 为 expected head 合并。合并后远端 main 为 `1a297d86ecfeac5d7a3c748322a867c9852a20c9`；[main 完整 CI 36815702669](https://github.com/BA7IEE/once-production-os/actions/runs/36815702669) **9/9 SUCCESS**，已核对精确 SHA，包含 PostgreSQL16 和全部8组浏览器。
+
+**PR-02 已合并、开发冻结、未部署，PROVIDER_VERIFIED=NOT_RUN。** 真实认证发送及生产接管未验证，正式外部入口默认关闭。下方 Draft/待复核内容保留为历史记录，由本节覆盖。PR-03 从该 main 独立分支推进，不修改已合并 PR-02 的迁移1–61。
+
 ## 2026-10-01：PR-02b finalization（三项复核修正，Draft 待复核）
 
 主体复核通过，但PR-02b尚未冻结。本轮只修正终态审核、ENROLL全拒绝决定及本人来源原文保护，PR #30继续Draft、未合并未部署；PROVIDER_VERIFIED=NOT_RUN，不进入PR-03。

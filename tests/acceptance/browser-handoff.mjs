@@ -1,3 +1,7 @@
+import {navigateWorkspace,openAdvancedPerson} from './support/workspace-navigation.mjs';
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
+import {registeredBrowser} from '../../scripts/registered-browser.mjs';
+let browserOwner;
 /** H1 real Nest/Prisma/Chromium acceptance. Only an empty disposable loopback test DB.
  * Never reads a .env target, resets a DB, or sends requests to a production host. */
 import assert from 'node:assert/strict';
@@ -17,7 +21,8 @@ assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname));
 assert.match(url.pathname, /^\/once_test_[a-z0-9_]+$/);
 assert.ok(url.username && url.password && !url.search && !url.hash);
 const prisma = new PrismaClient({ datasources: { db: { url: raw } }, log: [] });
-const tmp = mkdtempSync(join(tmpdir(), 'once-handoff-'));
+const ownedTemp=registeredTemp();
+const tmp = ownedTemp.path;
 const password = 'Synthetic-' + randomBytes(20).toString('base64url') + '!';
 const put = (name, text) => { const path = join(tmp, name); writeFileSync(path, text, { mode: 0o600 }); return path; };
 const env = { ...process.env, DATABASE_URL: raw, APP_ENV: 'test', ACCESS_MODE: 'INTERNAL', COOKIE_SECURE: 'false', HOST: '127.0.0.1',
@@ -39,7 +44,7 @@ async function login(page, loginName) {
     await page.locator('input[autocomplete=username]').fill(loginName);
     await page.locator('input[autocomplete=current-password]').fill(password);
     await page.getByRole('button', { name: '登录', exact: true }).click();
-    await page.getByRole('button', { name: /概览/ }).waitFor();
+    await page.locator('.topbar').getByText('工作空间 / 工作台',{exact:true}).waitFor();
 }
 async function cmd(page, method, path, data, expected = 200) {
     const me = await page.context().request.get(base + '/api/v1/me'); assert.equal(me.status(), 200);
@@ -61,7 +66,7 @@ try {
     api = spawn('node', ['dist/apps/api/src/main.js'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
     api.stdout.resume(); api.stderr.resume();
     await until(async () => (await fetch(base + '/health/ready')).status === 200);
-    browser = await chromium.launch({ headless: true, ...(process.env.CHROME_EXECUTABLE ? { executablePath: process.env.CHROME_EXECUTABLE } : {}) });
+    browserOwner=await registeredBrowser(chromium,{ headless: true, ...(process.env.CHROME_EXECUTABLE ? { executablePath: process.env.CHROME_EXECUTABLE } : {}) });browser=browserOwner.browser;
     const owner = await browser.newPage(), sender = await browser.newPage(), receiver = await browser.newPage();
     for (const page of [owner, sender, receiver]) page.on('pageerror', e => errors.push(e.message));
     await login(owner, 'owner');
@@ -75,7 +80,7 @@ try {
     }
     const recipient = await prisma.user.findUniqueOrThrow({ where: { loginName: 'h1_receiver' } });
     const recipientMember = await prisma.membership.findFirstOrThrow({ where: { userId: recipient.id } });
-    await sender.getByRole('button', { name: /人才档案/ }).click();
+    await navigateWorkspace(sender,'人才库');
     await sender.getByRole('button', { name: /新增人才/ }).click();
     await sender.getByLabel('姓名 / 艺名 *').fill('H1浏览器私有人才');
     await sender.getByRole('checkbox', {name:'模特',exact:true}).check();
@@ -87,7 +92,7 @@ try {
     const sourceBefore = await prisma.sourceRecord.findUniqueOrThrow({ where: { id: person.sourceId } });
     const scopesBefore = await prisma.scopeMember.findMany({ orderBy: { id: 'asc' } });
     const sibling = await cmd(sender, 'POST', '/people', { displayName: 'H1同来源但未交接的人才', roles: ['model'], sourceId: person.sourceId }, 201);
-    await sender.locator('summary').filter({hasText:'高级管理：来源、依据、历史与权限'}).click();await sender.getByRole('button',{name:'打开高级管理',exact:true}).click();
+    await openAdvancedPerson(sender);
     await sender.getByRole('button', { name: '交给指定同事', exact: true }).click();
     await sender.getByLabel('接收同事').selectOption(recipientMember.id);
     await sender.getByRole('checkbox', { name: /我已检查基本字段/ }).check();
@@ -95,7 +100,7 @@ try {
     await sender.getByRole('button', { name: '发送交接邀请' }).click();
     const invited = await invitedResponse; assert.equal(invited.status(), 201); const handoffId = (await invited.json()).resourceId;
     assert.equal(await getStatus(receiver, '/people/' + personId), 404);
-    await receiver.getByRole('button', { name: /资料交接/ }).click();
+    await navigateWorkspace(receiver,'资料交接');
     await hrow(receiver, handoffId).getByText('待接收', { exact: true }).waitFor();
     assert.equal(await hrow(receiver, handoffId).getByText(person.displayName, { exact: true }).count(), 0);
     console.log('PASS H1 browser: private record offered; pending invitation exposes no profile');
@@ -136,7 +141,7 @@ try {
     assert.equal(changed.intro, 'H1接收人已整理基本简介'); assert.equal(changed.maintainerId, person.maintainerId);
     assert.equal(changed.sourceId, person.sourceId); assert.equal(changed.scopeId, person.scopeId);
     await sender.getByRole('button', { name: '关闭', exact: true }).last().click();
-    await sender.getByRole('button', { name: /资料交接/ }).click();
+    await navigateWorkspace(sender,'资料交接');
     await sender.getByRole('button', { name: '发出的交接', exact: true }).click();
     await hrow(sender, handoffId).getByRole('button', { name: '撤销交接' }).click();
     await hrow(sender, handoffId).getByText('已撤销', { exact: true }).waitFor();
@@ -150,5 +155,5 @@ try {
     console.log('PASS H1 browser/API: delegated edit preserved ownership; revoke denies next read and write');
     assert.deepEqual(errors, []);
 } finally {
-    await browser?.close(); await stop(api); await prisma.$disconnect(); rmSync(tmp, { recursive: true, force: true });
+    await browserOwner?.close(); await stop(api); await prisma.$disconnect(); ownedTemp.cleanup();
 }

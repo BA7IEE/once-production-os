@@ -1,0 +1,3 @@
+First final affected browser run (2026-10-01): setup failed before UI interaction.
+TypeError: Cannot read properties of undefined (reading findUniqueOrThrow) at work-credit-upgrade-journey.mjs:4.
+Cause: helper used prisma.source instead of actual prisma.sourceRecord. Corrected test model reference; full journey rerun on a new isolated DB. Original stdout path was reused by rerun; this is an error transcription, not a raw log.

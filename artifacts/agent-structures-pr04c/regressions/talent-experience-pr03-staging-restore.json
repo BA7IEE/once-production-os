@@ -1,0 +1,11 @@
+{
+  "status": "PASSED",
+  "assets": 5,
+  "bytes": 32174,
+  "checks": [
+    "real-pg-dump-restore-preserves-staged-adopted-relations-and-uploader",
+    "private-original-preview-backup-restore-hash-verified",
+    "real-recovery-prepare-quarantines-bytes-revokes-grants-sessions-preserves-usage",
+    "old-portal-cookie-and-staged-authorization-rejected-after-restore"
+  ]
+}

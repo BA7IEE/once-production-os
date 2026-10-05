@@ -1,0 +1,21 @@
+PASS M1 browser: upload/unknown-complete replay/worker/decoded preview; metadata stripped and private scope enforced
+PASS PDF attachment: actual upload/worker/DB and explicit unparsed page, no administrator scope bypass
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: POST /assets/08f91cca-8361-4de2-a1dc-6488cd9cff4f/quarantine
+
+403 !== 200
+
+    at cmd (file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/acceptance/browser-media.mjs:50:12)
+    at async file:///Users/dengwang/.codex/worktrees/talent-experience/once-production-os/tests/acceptance/browser-media.mjs:147:2 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 403,
+  expected: 200,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.3

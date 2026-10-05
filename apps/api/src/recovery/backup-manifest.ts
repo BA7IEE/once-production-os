@@ -62,6 +62,7 @@ function validate(body: BackupManifest): BackupManifest {
         && Array.isArray(body.media?.assets) && body.media.assets.length === body.media.assetCount
         && body.media.assets.every((x: any) => x && typeof x === 'object'
             && /^[0-9a-f-]{36}$/.test(x.id) && /^[0-9a-f-]{36}$/.test(x.uploadId) && /^[0-9a-f-]{36}$/.test(x.objectToken)
+            && (x.missingParts===undefined||(/^[0-9a-f-]{36}$/.test(x.purgeIntentId??'')&&Array.isArray(x.missingParts)&&x.missingParts.length<=2&&new Set(x.missingParts).size===x.missingParts.length&&x.missingParts.every((p:unknown)=>p==='original'||p==='preview')))
             && Number.isSafeInteger(x.original?.bytes) && x.original.bytes > 0 && /^[a-f0-9]{64}$/.test(x.original?.sha256 ?? '')
             && Number.isSafeInteger(x.preview?.bytes) && x.preview.bytes > 0 && /^[a-f0-9]{64}$/.test(x.preview?.sha256 ?? ''))
         && (body.media.provider === 'local' || (body.media.assetCount === 0 && body.media.totalBytes === 0))

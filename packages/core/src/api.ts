@@ -1,3 +1,9 @@
+import {handoffOverview,approveHandoffExposure} from './talent-handoff.ts';
+import {Ingestion} from './ingestion.ts';
+import {authorizeAgentReceive} from './agent-media.ts';
+import {MediaPurge} from './media-purge.ts';
+import {approveMediaExposure} from './talent-media-exposure.ts';
+import {saveInternalCollection} from './media-collections.ts';
 import {TalentMaintenance} from './talent-maintenance.ts';
 import {TalentPortal} from './talent-portal.ts';
 import {TalentAuth,isolateTalentAuth} from './talent-auth.ts';
@@ -37,7 +43,10 @@ import { Identity } from './identity.ts';
 import { Talent } from './talent.ts';
 import { Commands } from './commands.ts';
 import { authorizeReceipt } from './replay-policy.ts';
+import { inspectCommand, recentCommands } from './command-inspection.ts';
+import { reviewTasks, reviewTask } from './review-workspace.ts';
 import { readSourceHistory } from './source-history.ts';
+import {SourceReviews,sourceReviewParticipant} from './source-review.ts';
 import { Handoffs, handoffParticipant } from './handoffs.ts';
 import { Imports } from './imports.ts';
 import { csrfFor, equalSecret, randomSecret } from './crypto.ts';
@@ -76,6 +85,7 @@ function cookies(header: string): Record<string, string> {
     return out;
 }
 export class Application {
+    readonly mediaPurge:MediaPurge;
     portal: TalentPortal;
     store: Store;
     clock: Clock;
@@ -85,6 +95,7 @@ export class Application {
     commands: Commands;
     imports: Imports;
     handoffs: Handoffs;
+    sourceReviews: SourceReviews;
     media: Media;
     portfolio: Portfolio;
     ai: AiBusiness;
@@ -127,6 +138,8 @@ export class Application {
         this.deletionFinalization = new DeletionFinalization(store, clock, config);
         this.personMerges = new PersonMerges(clock, config);
         this.handoffs = new Handoffs(clock);
+        this.sourceReviews=new SourceReviews(clock,config);
+        this.mediaPurge=new MediaPurge(store,clock,config);
         this.media = new Media(store, clock, config);
         this.commands = new Commands(clock);
         this.imports = new Imports(store, clock, config, this.talent);
@@ -208,6 +221,14 @@ export class Application {
         }
         return this.store.transaction(async (tx) => { const actor = await this.identity.authenticate(tx, token); requirePermission(actor, permission); return work(tx, actor); });
     }
+    /** Bearer-only media transport; never chooses an employee/Talent cookie. */
+    async ingestionAuthenticated<T>(request:ApiRequest,permission:Permission,work:(tx:Tx,actor:Actor)=>Promise<T>):Promise<T>{
+        invariant(!request.headers.cookie,'MIXED_AUTH_FORBIDDEN','机器入口不能混用会话',400);
+        const header=request.headers.authorization;invariant(header&&/^Bearer once_machine\./.test(header),'MACHINE_UNAUTHENTICATED','此入口要求机器 Bearer',401);
+        invariant(!request.headers.origin||request.headers.origin===this.config.origin,'ORIGIN_DENIED','请求来源不被允许',403);
+        return this.store.transaction(async tx=>{const actor=await this.machine.authenticate(tx,header.slice(7));requirePermission(actor,permission);await new Ingestion(this.clock,this.config).principal(tx,actor);return work(tx,actor);});
+    }
+    async ingestionReceiveIntent(request:ApiRequest,id:string,requestId:string){const actor=await this.ingestionAuthenticated(request,'ingestion.media.upload',async(tx,actor)=>{await uploadFor(tx,actor,id);return actor;});return this.writeAhead(actor,'ingestion.upload.content',requestId,id);}
     async handle(request: ApiRequest): Promise<ApiResponse> {
         const meta: RequestMeta = { requestId: randomUUID(), ip: request.ip };
         const response: ApiResponse = { status: 200, body: null, headers: { 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff', 'X-Request-Id': meta.requestId }, cookies: [] };
@@ -220,12 +241,13 @@ export class Application {
             const machineRequest=bearerHeader!==undefined;
             if(machineRequest){
                 invariant(!!bearerHeader && /^Bearer once_machine\./.test(bearerHeader),'MACHINE_UNAUTHENTICATED','机器认证头无效',401);
-                invariant(route.operation.startsWith('td2.'),'MACHINE_OPERATION_FORBIDDEN','机器账号只能调用人才2.0的受限接口',403);
+                invariant((route.operation.startsWith('td2.')||route.operation.startsWith('ingestion.')),'MACHINE_OPERATION_FORBIDDEN','机器账号只能调用人才2.0的受限接口',403);
                 invariant(!request.headers.cookie,'MIXED_AUTH_FORBIDDEN','不能混用会话与机器凭证',400);
                 invariant(!request.headers.origin||request.headers.origin===this.config.origin,'ORIGIN_DENIED','请求来源不被允许',403);
             }
             if (request.method !== 'GET' && !machineRequest)
                 invariant(request.headers.origin === this.config.origin, 'ORIGIN_DENIED', '请求来源不被允许', 403);
+            if(route.operation.startsWith('ingestion.'))invariant(machineRequest,'MACHINE_REQUIRED','摄取入口仅接受机器 Bearer',401);
             const jar = cookies(request.headers.cookie ?? '');
             const token = jar[sessionName] ?? '';
             const authenticate = async (tx:Tx) => {
@@ -239,6 +261,7 @@ export class Application {
                 invariant(!Object.hasOwn(query, key), 'QUERY_INVALID', '筛选字段不能重复', 400);
                 query[key] = value;
             }
+            if(route.operation.startsWith('ingestion.'))invariant(Object.keys(query).length===0,'QUERY_INVALID','摄取接口不接受额外查询字段',400);
             let data: unknown = {};
             if (route.schema) {
                 invariant(request.headers['content-type']?.split(';')[0]?.trim() === 'application/json', 'JSON_REQUIRED', '请求必须使用 application/json', 415);
@@ -308,20 +331,47 @@ export class Application {
                 const command = (kind: CommandReceipt['resourceKind'], execute: () => Promise<{
                     id: string;
                     revision: number;
-                }>, target = id || null) => this.commands.execute(tx, actor, route.operation, request.headers['idempotency-key'] ?? '', target, data, kind, meta, execute, receipt => authorizeReceipt(tx, actor, receipt, this.clock, this.config), ['ai.create', 'import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation) ? 'ACCEPTED' : 'SUCCEEDED');
+                }>, target = id || null) => this.commands.execute(tx, actor, route.operation, request.headers['idempotency-key'] ?? '', target, data, kind, meta, execute, receipt => authorizeReceipt(tx, actor, receipt, this.clock, this.config), ['ai.create', 'import.commit', 'job.resume', 'upload.complete', 'ingestion.upload.complete', 'export.create'].includes(route.operation) ? 'ACCEPTED' : 'SUCCEEDED');
                 if(route.operation.startsWith('td2.fact.')){
                     const [, ,table,action]=route.operation.split('.');
                     invariant(TD2_TABLES.includes(table as FactTable),'NOT_FOUND','资料类型不存在',404);
                     return command('talentFact',()=>action==='create'?this.talentV2.createFact(tx,actor,table as FactTable,id,data):this.talentV2.patchFact(tx,actor,table as FactTable,id,data));
                 }
                 const maintenance=new TalentMaintenance(this.clock,this.config);
+                const ingestion=new Ingestion(this.clock,this.config);
                 switch (route.operation) {
+                    case 'review.search': return reviewTasks(tx,actor,data,this.clock,this.config);
+                    case 'review.get': return reviewTask(tx,actor,params.kind??'',id,this.clock,this.config,meta);
+                    case 'command.inspect': return inspectCommand(tx, actor, data, this.clock, this.config);
+                    case 'command.list': return recentCommands(tx, actor, query, this.clock, this.config);
+                    case 'ingestion.upload.create':return command('upload',()=>this.media.createAgent(tx,actor,data));
+                    case 'ingestion.upload.authorize':return authorizeAgentReceive(tx,actor,await uploadFor(tx,actor,id),data,this.clock,this.config,meta);
+                    case 'ingestion.upload.complete':return command('upload',()=>this.media.complete(tx,actor,id,data));
+                    case 'ingestion.upload.cancel':return command('upload',()=>this.media.cancel(tx,actor,id,data));
+                    case 'ingestion.upload.status':return this.media.get(tx,actor,id);
+                    case 'ingestion.schema':return ingestion.schema(tx,actor);
+                    case 'ingestion.dictionaries':return ingestion.dictionaries(tx,actor);
+                    case 'ingestion.create':return command('talentSubmission',()=>ingestion.create(tx,actor,data));
+                    case 'ingestion.get':return ingestion.dto(tx,await ingestion.access(tx,actor,id));
+                    case 'ingestion.items':return command('talentSubmission',()=>ingestion.save(tx,actor,id,data));
+                    case 'ingestion.validate':return ingestion.validate(tx,actor,id,data);
+                    case 'ingestion.submit':return command('talentSubmission',()=>ingestion.submit(tx,actor,id,data));
+                    case 'ingestion.withdraw':return command('talentSubmission',()=>ingestion.withdraw(tx,actor,id,data));
+                    case 'ingestion.fork':return command('talentSubmission',()=>ingestion.fork(tx,actor,id,data));
+                    case 'ingestionReview.list':return ingestion.list(tx,actor,query);
+                    case 'ingestionReview.get':return ingestion.dto(tx,await ingestion.reviewAccess(tx,actor,id),actor);
+                    case 'ingestionReview.review':return command('talentSubmission',()=>ingestion.review(tx,actor,id,data));
+                    case 'mediaPurge.status':return this.mediaPurge.overview(tx,actor);
+                    case 'mediaPurge.reconcile':return command('mediaPurge',()=>this.mediaPurge.reconcile(tx,actor));
                     case 'talent.invitation.create':return command('talentInvitation',()=>maintenance.createInvitation(tx,actor,data));
                     case 'talent.invitation.list':return maintenance.internalList(tx,actor,'invitation');
                     case 'talent.invitation.issue':return maintenance.issue(tx,actor,id,data,meta);
                     case 'talent.invitation.revoke':return command('talentInvitation',()=>maintenance.revokeInvitation(tx,actor,id,data));
                     case 'talent.claim.list':return maintenance.internalList(tx,actor,'claim');
                     case 'talent.claim.decide':return command('talentClaim',()=>maintenance.decideClaim(tx,actor,id,data));
+                    case 'talent.handoff.get':return handoffOverview(tx,actor,id,this.clock,this.config);
+                    case 'talent.grant.exposure':return command('talentGrant',()=>approveHandoffExposure(tx,actor,id,data,this.clock,this.config));
+                    case 'talent.grant.mediaExposure':return command('talentGrant',()=>approveMediaExposure(tx,actor,id,data,this.clock,this.config));
                     case 'talent.grant.revoke':return command('talentGrant',()=>maintenance.revokeGrant(tx,actor,id,data));
                     case 'talent.submission.list':return maintenance.internalList(tx,actor,'submission');
                     case 'talent.submission.get':return maintenance.submissionDto(tx,await maintenance.internalSubmission(tx,actor,id),actor);
@@ -383,12 +433,14 @@ export class Application {
                     case 'td2.credential.secret': return command('talentFact',()=>this.talentV2.credentialSecret(tx,actor,id,data));
                     case 'td2.adult.verify': return command('talentFact',()=>this.talentV2.adultVerify(tx,actor,id,data));
                     case 'td2.resolve': return this.talentV2.resolve(tx,actor,query);
+                    case 'td2.collection.save': return command('talentFact',()=>saveInternalCollection(tx,actor,id,data,this.clock,this.config));
                     case 'td2.collection.add': return command('talentFact',()=>this.talentV2.collectionMutation(tx,actor,id,data,'ADD'));
                     case 'td2.collection.remove': return command('talentFact',()=>this.talentV2.collectionMutation(tx,actor,id,data,'REMOVE'));
                     case 'td2.collection.order': return command('talentFact',()=>this.talentV2.collectionMutation(tx,actor,id,data,'ORDER'));
                     case 'td2.principal.list': return this.machine.list(tx,actor,query);
                     case 'td2.principal.create': return this.machine.create(tx,actor,data,meta);
                     case 'td2.principal.rotate': return this.machine.rotate(tx,actor,id,data,meta);
+                    case 'td2.principal.authorization':return command('servicePrincipal',()=>this.machine.authorization(tx,actor,id,data));
                     case 'td2.principal.revoke': return command('servicePrincipal',()=>this.machine.revoke(tx,actor,id,data));
 
                     case 'deletion.preview': return this.deletions.preview(tx, actor, data);
@@ -413,6 +465,8 @@ export class Application {
                     case 'shortlist.get': return this.shortlists.get(tx, actor, id);
                     case 'shortlist.update': return command('shortlist', () => this.shortlists.update(tx, actor, id, data));
                     case 'shortlist.itemAdd': return command('shortlist', () => this.shortlists.addItem(tx, actor, id, data));
+                    case 'shortlist.batchAdd': return command('shortlist', () => this.shortlists.batchAdd(tx, actor, id, data));
+                    case 'shortlist.selection': return this.shortlists.selection(tx, actor, data);
                     case 'shortlist.itemUpdate': return command('shortlist', () => this.shortlists.updateItem(tx, actor, id, data));
                     case 'shortlist.itemRemove': return command('shortlist', () => this.shortlists.removeItem(tx, actor, id, data));
                     case 'shortlist.reorder': return command('shortlist', () => this.shortlists.reorder(tx, actor, id, data));
@@ -420,6 +474,8 @@ export class Application {
                     case 'locale.get': return this.localeTexts.get(tx,actor,id);
                     case 'locale.create': return command('localeText',()=>this.localeTexts.create(tx,actor,data));
                     case 'locale.update': return command('localeText',()=>this.localeTexts.update(tx,actor,id,data));
+                    case 'work.personCases':return this.portfolio.personCases(tx,actor,id);
+                    case 'work.personCaseCreate':return command('work',()=>this.portfolio.createPersonCase(tx,actor,id,data));
                     case 'work.list': return this.portfolio.list(tx, actor, query);
                     case 'work.create': return command('work', () => this.portfolio.create(tx, actor, data));
                     case 'work.get': return this.portfolio.get(tx, actor, id);
@@ -428,6 +484,7 @@ export class Application {
                     case 'work.assetRemove': return command('work', () => this.portfolio.removeAsset(tx, actor, id, data));
                     case 'work.reorder': return command('work', () => this.portfolio.reorder(tx, actor, id, data));
                     case 'work.creditAdd': return command('work', () => this.portfolio.addCredit(tx, actor, id, data));
+                    case 'work.creditUpgrade': return command('work', () => this.portfolio.upgradeCredit(tx, actor, id, data));
                     case 'work.creditRemove': return command('work', () => this.portfolio.removeCredit(tx, actor, id, data));
                     case 'project.list': return this.projects.list(tx, actor, query);
                     case 'project.create': return command('project', () => this.projects.create(tx, actor, data));
@@ -448,7 +505,7 @@ export class Application {
                     case 'asset.list': return this.media.listAssets(tx, actor, query);
                     case 'asset.get': return this.media.getAsset(tx, actor, id);
                     case 'asset.quarantine': return command('asset', () => this.media.quarantine(tx, actor, id, data));
-                    case 'identity.me': return { directoryStateScope: digest({purpose:'directory-state-v1',sessionId:actor.sessionId}), membershipId: actor.membershipId, displayName: actor.displayName, role: actor.role, permissions: actor.permissions, mediaEnabled: this.config.mediaEnabled === true, workspaceName: (await tx.get('workspaces', actor.workspaceId))?.name ?? 'ONCE', csrfToken: csrfFor(token, this.config.csrfKey), version: '0.1.0-dev.1' };
+                    case 'identity.me': return { directoryStateScope: digest({purpose:'directory-state-v1',sessionId:actor.sessionId}), membershipId: actor.membershipId, displayName: actor.displayName, role: actor.role, permissions: actor.permissions, mediaEnabled: this.config.mediaEnabled === true, ingestionEnabled:this.config.ingestionEnabled===true, workspaceName: (await tx.get('workspaces', actor.workspaceId))?.name ?? 'ONCE', csrfToken: csrfFor(token, this.config.csrfKey), version: '0.1.0-dev.1' };
                     case 'dashboard.get': return this.dashboard(tx, actor);
                     case 'member.list': return this.identity.listMembers(tx, actor, query);
                     case 'member.create': return this.identity.createMember(tx, actor, data, meta);
@@ -472,6 +529,16 @@ export class Application {
                     case 'source.update': return command('source', () => this.talent.updateSource(tx, actor, id, data));
                     case 'source.review': return command('source', () => this.talent.reviewSource(tx, actor, id, data));
                     case 'source.suspend': return command('source', () => this.talent.suspendSource(tx, actor, id, data));
+                    case 'sourceReview.candidates':return this.sourceReviews.candidates(tx,actor,query);
+                    case 'sourceReview.list':return this.sourceReviews.list(tx,actor,query);
+                    case 'sourceReview.options':return this.sourceReviews.options(tx,actor,id);
+                    case 'sourceReview.get':return this.sourceReviews.get(tx,actor,id,meta);
+                    case 'sourceReview.create':return command('sourceReview',()=>this.sourceReviews.create(tx,actor,id,data,meta));
+                    case 'sourceReview.review':return command('sourceReview',()=>this.sourceReviews.review(tx,actor,id,data));
+                    case 'sourceReview.publish':return command('sourceReview',()=>this.sourceReviews.publish(tx,actor,id,data));
+                    case 'sourceReview.accept':return command('sourceReview',()=>this.sourceReviews.act(tx,actor,id,data,'accept'));
+                    case 'sourceReview.decline':return command('sourceReview',()=>this.sourceReviews.act(tx,actor,id,data,'decline'));
+                    case 'sourceReview.revoke':return command('sourceReview',()=>this.sourceReviews.act(tx,actor,id,data,'revoke'));
                     case 'handoff.recipients': return this.handoffs.recipients(tx, actor, id, query);
                     case 'handoff.list': return this.handoffs.list(tx, actor, query);
                     case 'handoff.get': return this.handoffs.get(tx, actor, id);
@@ -493,6 +560,8 @@ export class Application {
                     case 'contact.get': return this.talent.contacts(tx, actor, id, meta);
                     case 'contact.replace': return command('person', () => this.talent.replaceContacts(tx, actor, id, data));
                     case 'evidence.confirm': return command('person', () => this.talent.confirmEvidence(tx, actor, data));
+                    case 'import.upgradePreview':return this.imports.upgradePreview(tx,actor,id);
+                    case 'import.upgrade':return command('import',()=>this.imports.upgrade(tx,actor,id,data));
                     case 'import.preview': return command('import', () => this.imports.preview(tx, actor, data));
                     case 'import.get': return this.imports.get(tx, actor, id);
                     case 'import.commit': return command('job', () => this.imports.commit(tx, actor, id, data));
@@ -510,10 +579,10 @@ export class Application {
             }
             await this.markCommitted(safetyIntent,
                 this.resultResourceId(response.body, params.id ?? safetyIntent?.resourceId ?? meta.requestId));
-            if (['ai.create', 'import.commit', 'job.resume', 'upload.complete', 'export.create'].includes(route.operation))
+            if (['ai.create', 'import.commit', 'job.resume', 'upload.complete', 'ingestion.upload.complete', 'export.create'].includes(route.operation))
                 response.status = 202;
             else if (route.operation==='directory.talent.create' || route.operation.startsWith('td2.') && route.operation.endsWith('.create')) response.status = 201;
-            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['brand.create', 'ai.grant', 'locale.create', 'deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create'].includes(route.operation)))
+            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['sourceReview.create','brand.create', 'ai.grant', 'locale.create', 'deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create', 'ingestion.upload.create'].includes(route.operation)))
                 response.status = 201;
             return response;
         }
@@ -556,6 +625,7 @@ export class Application {
                     await uploadFor(tx, actor, row.resourceId);
                 if (row.resourceKind === 'asset')
                     await assetFor(tx, actor, row.resourceId, this.clock);
+                if(row.resourceKind==='sourceReview')await sourceReviewParticipant(tx,actor,row.resourceId);
                 if (row.resourceKind === 'handoff')
                     await handoffParticipant(tx, actor, row.resourceId);
                 if (row.resourceKind === 'deletion')

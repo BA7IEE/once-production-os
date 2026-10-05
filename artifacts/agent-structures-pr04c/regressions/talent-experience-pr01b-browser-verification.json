@@ -1,0 +1,23 @@
+{
+  "status": "BROWSER_TESTED",
+  "database": "PostgreSQL 14.19 (Homebrew) on aarch64-apple-darwin24.4.0, compiled by Apple clang version 17.0.0 (clang-1700.0.13.3), 64-bit",
+  "checks": [
+    "UI intake reuses merged name-only multi-role flow and opens primary detail",
+    "UI maintenance, conservative age and unknown measurement date persist in PostgreSQL; lost response replays atomically",
+    "Real private upload and worker preview decode; same-person image becomes persisted cover",
+    "Combination finds one correct person, opens direct core detail and preserves query/selection on return",
+    "Real directory cards and filters fit 360/390/430/1280 widths",
+    "Year-only possible age interval does not falsely match exact 25; honest empty state",
+    "Candidate finder uses the same POST contract, exact combined result and photo card",
+    "Actual second-page detail return preserves page, query and selected person",
+    "Real work/industry/type facets deduplicate repeated credits and cannot combine industry from one work with type from another",
+    "Real multi-select city OR + gender/market AND + amateur OR professional, all advanced counts and age preset/manual parity",
+    "Second-page refresh and detail return restore candidate surface and exact Person+Role; actor reaches existing Shortlist and model remains a separate choice",
+    "Real logout and expired-session reload clear safe history; same-user new session rejects historical entries; actual browser Back restores only current-session state"
+  ],
+  "personId": "88bd9045-79bd-4d9b-9b59-506d00e9e946",
+  "profileId": "863a27bb-5cea-4e55-a656-b8b9f3186807",
+  "measurementId": "6a9f63cc-07cb-404a-9104-a4abb368a1e0",
+  "unknownDate": null,
+  "errors": []
+}

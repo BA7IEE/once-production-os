@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 /** T29 end-to-end PostgreSQL acceptance.
  * Source side uses the already-migrated disposable once_test_* database after its normal suite.
  * Target side is a second fresh migrated once_rebuild_* database created by verify-postgres.mjs.
@@ -154,7 +155,7 @@ test('DEV-07H T29 real once-export-v1 -> PostgreSQL rollback -> CLI rebuild 10/3
     const sourceClient = new PrismaClient({ datasources: { db: { url: sourceUrl } }, log: [] });
     const targetClient = new PrismaClient({ datasources: { db: { url: targetUrl } }, log: [] });
     const sourceStore = new PrismaStore(sourceClient), targetStore = new PrismaStore(targetClient);
-    const tmp = mkdtempSync(join(tmpdir(), 'once-rebuild-pg-'));
+    const tmp = registeredTemp().path;
     try {
         await sourceClient.$connect();
         await targetClient.$connect();

@@ -1,3 +1,4 @@
+import {irreversiblePurge} from './media-purge-model.ts';
 import {affectedAi} from './ai-maintenance.ts';
 import {assertLocaleFinalizationClean} from './locale-maintenance.ts';
 import { deletionWorkerActor } from './deletion-worker-policy.ts';
@@ -50,6 +51,10 @@ export class DeletionFinalization {
                 if (row.cleanupLeaseUntil && Date.parse(row.cleanupLeaseUntil) > now) continue;
                 if (row.finalizationLeaseUntil && Date.parse(row.finalizationLeaseUntil) > now) continue;
                 const items = await tx.find('deletionItems', { workspaceId: row.workspaceId, requestId: row.id });
+                const purges=(await tx.find('mediaPurgeIntents',{workspaceId:row.workspaceId})).filter(p=>
+                    row.targetKind==='ASSET'&&row.targetId===p.assetId||items.some(i=>i.resourceId===p.assetId));
+                if(purges.some(p=>['DELETE_PENDING','DELETE_UNKNOWN','DELETE_CONFIRMED'].includes(p.state)
+                    ||p.leaseUntil&&Date.parse(p.leaseUntil)>now))continue;
                 if (items.some(item => item.cleanupState === 'PENDING' || (item.cleanupState === 'FAILED' && item.cleanupAttempts < 3)))
                     continue;
                 if (items.some(item => item.cleanupState === 'FAILED' && item.cleanupAttempts >= 3)) {
@@ -67,10 +72,23 @@ export class DeletionFinalization {
                 const next: DeletionRequest = { ...touch(row, this.clock), finalizationAttempts: row.finalizationAttempts + 1,
                     finalizationLeaseToken: randomUUID(), finalizationLeaseUntil: new Date(now + LEASE_MS).toISOString(),
                     finalizationErrorCode: null };
+                for(const p of purges)if(['ELIGIBLE','CLAIMED'].includes(p.state)){
+                    await tx.replace('mediaPurgeIntents',{...touch(p,this.clock),state:'SKIPPED',leaseToken:null,leaseUntil:null,lastCode:'EXPLICIT_DELETION_TAKEOVER'});
+                    await audit(tx,null,row.workspaceId,'media.purge.skipped','mediaPurge',p.id,
+                        ['EXPLICIT_DELETION_TAKEOVER'],{requestId:randomUUID(),ip:'worker'},this.clock);
+                }
                 await tx.replace('deletionRequests', next);
                 return next;
             }
             return null;
+        });
+    }
+
+    async heartbeat(claim: DeletionRequest): Promise<void> {
+        await this.store.transaction(async tx => {
+            await this.enabled(tx,claim.workspaceId);
+            const row=await this.owned(tx,claim);
+            await tx.replace('deletionRequests',{...row,finalizationLeaseUntil:new Date(this.clock.now().getTime()+LEASE_MS).toISOString()});
         });
     }
 
@@ -83,7 +101,11 @@ export class DeletionFinalization {
                     && (item.resourceKind === 'asset' || item.resourceKind === 'upload'))
                     ids.add(item.resourceId);
             if (row.targetKind === 'ASSET') ids.add(row.targetId);
-            for (const id of ids) await assertTalentFinalizationClean(tx, row.workspaceId, 'ASSET', id, this.clock);
+            for (const id of ids) {
+                const purge=(await tx.find('mediaPurgeIntents',{assetId:id}))[0];
+                invariant(!purge||!irreversiblePurge(purge.state)||purge.state==='ERASED','MEDIA_PURGE_IN_PROGRESS','自动清理正在确认物理结果，显式删除须等待',409);
+                await assertTalentFinalizationClean(tx,row.workspaceId,'ASSET',id,this.clock);
+            }
             return [...ids].sort().map(mediaId => ({ mediaId }));
         });
     }
@@ -101,8 +123,8 @@ export class DeletionFinalization {
 
     private erasedUpload(row: any) {
         return { ...touch(row, this.clock), fileName: '[ERASED]', expectedHash: ZERO_HASH, expectedBytes: 0,
-            state: 'ERASED' as const, personId: null, personScopeId: null, personEpoch: null, personScopeRevision: null,
-            receiveToken: null, leaseToken: null, leaseUntil: null, errorCode: 'ERASED_BY_DELETION',
+            state: 'ERASED' as const, personRoleId:null, personId: null, personScopeId: null, personEpoch: null, personScopeRevision: null,
+            receiveToken: null, receiveAuthorizationHash:null,receiveAuthorizationUntil:null, leaseToken: null, leaseUntil: null, errorCode: 'ERASED_BY_DELETION',
             purgedAt: row.purgedAt ?? this.clock.now().toISOString() };
     }
     private erasedAsset(row: any) {
@@ -114,10 +136,16 @@ export class DeletionFinalization {
         await this.store.transaction(async tx => {
             await this.enabled(tx, claim.workspaceId);
             const request = await this.owned(tx, claim);
+            const purge=(await tx.find('mediaPurgeIntents',{assetId:mediaId}))[0];
+            invariant(!purge||['SKIPPED','ERASED'].includes(purge.state),'MEDIA_PURGE_IN_PROGRESS','物理删除权已变化',409);
             const upload = await tx.get('uploads', mediaId);
             const asset = await tx.get('assets', mediaId);
             if (upload && upload.state !== 'ERASED') await tx.replace('uploads', this.erasedUpload(upload));
-            if (asset && asset.state !== 'ERASED') await tx.replace('assets', this.erasedAsset(asset));
+            if (asset && asset.state !== 'ERASED') {
+                const relations=await tx.find('personMedia',{workspaceId:asset.workspaceId,assetId:asset.id});
+                for(const r of relations)await tx.replace('personMedia',{...touch(r,this.clock),usageState:'RETIRED',protectionEpoch:r.protectionEpoch+1,retiredAt:r.retiredAt??this.clock.now().toISOString(),purgedAt:this.clock.now().toISOString(),retainUntil:null,importedOrigin:null});
+                await tx.replace('assets', {...this.erasedAsset(asset),...(relations.length?{usageState:'RETIRED',protectionEpoch:(asset.protectionEpoch??1)+1}:{})});
+            }
             for (const item of await tx.find('deletionItems', { workspaceId: request.workspaceId, requestId: request.id })) {
                 if (item.resourceId === mediaId && item.cleanupState === 'WAITING_EXTERNAL'
                     && item.cleanupErrorCode === 'MEDIA_PURGE_REQUIRED' && (item.resourceKind === 'asset' || item.resourceKind === 'upload'))
@@ -149,6 +177,12 @@ export class DeletionFinalization {
         }
         if (kind === 'PERSON') {
             const row = await tx.get('people', id); if (!row) missing();
+            // A legacy source-owned file remains owned by its independent Source.
+            // Clearing its explicit collection association does not erase the original.
+            for (const relation of await tx.find('personMedia', {workspaceId:row.workspaceId,personId:id})) {
+                const asset=await tx.get('assets',relation.assetId);
+                if (!relation.submissionId && asset?.sourceId && !asset.personId) await tx.remove('personMedia',relation.id);
+            }
             const next = { ...touch(row, this.clock), displayName: '[ERASED]', aliases: [], roles: ['erased'], cityCode: null,
                 languageCodes: [], skillCodes: [], heightCm: null, intro: '', status: 'ERASED' as const,
                 protectionEpoch: row.protectionEpoch + 1 };
@@ -158,7 +192,7 @@ export class DeletionFinalization {
         if (kind === 'WORK') {
             const row = await tx.get('works', id); if (!row) missing();
             const next = { ...touch(row, this.clock), title: '[ERASED]', description: '', industryCode: null, workTypeCodes: [],
-                origin: 'UNKNOWN' as const, originNote: '', status: 'ERASED' as const, coverEntryId: null };
+                origin: 'UNKNOWN' as const, originNote: '', caseDate:null,datePrecision:'UNKNOWN' as const,location:'',brandDisplayName:'',status: 'ERASED' as const, coverEntryId: null };
             await tx.replace('works', next);
             return { kind, id, revision: next.revision, status: next.status };
         }

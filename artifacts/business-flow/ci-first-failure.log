@@ -1,0 +1,46 @@
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	﻿2026-10-03T14:44:58.9443343Z ##[group]Run pnpm test:postgres:owned --business-flow
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:44:58.9443587Z ^[[36;1mpnpm test:postgres:owned --business-flow^[[0m
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:44:58.9497804Z shell: /usr/bin/bash -e {0}
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:44:58.9497944Z env:
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:44:58.9498085Z   PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:44:58.9498262Z ##[endgroup]
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:44:59.1090728Z 
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:44:59.1091763Z > once-production-os@0.1.0-dev.1 test:postgres:owned /home/runner/work/once-production-os/once-production-os
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:00.4905205Z > node scripts/test-postgres-owned.mjs --business-flow
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:00.4905520Z 
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:00.4905610Z TAP version 13
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8641420Z # Subtest: business flow on PostgreSQL: populated 74 migration upgrade or new empty installation, typed import and private review publication
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8646781Z not ok 1 - business flow on PostgreSQL: populated 74 migration upgrade or new empty installation, typed import and private review publication
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8647499Z   ---
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8647720Z   duration_ms: 2160.617744
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8647936Z   type: 'test'
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8648474Z   location: '/home/runner/work/once-production-os/once-production-os/tests/postgres/business-flow.test.ts:16:1'
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8649032Z   failureType: 'testCodeFailure'
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8649306Z   error: |-
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8649474Z     
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8649686Z     Invalid `prisma.$queryRawUnsafe()` invocation:
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8649886Z     
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8649984Z     
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8650208Z     Raw query failed. Code: `0A000`. Message: `ERROR: cached plan must not change result type`
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8650476Z   code: 'ERR_TEST_FAILURE'
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8650603Z   stack: |-
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8651119Z     ei.handleRequestError (/home/runner/work/once-production-os/once-production-os/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.8.3__typescript@5.8.3/node_modules/@prisma/client/runtime/library.js:121:7268)
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8652013Z     ei.handleAndLogRequestError (/home/runner/work/once-production-os/once-production-os/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.8.3__typescript@5.8.3/node_modules/@prisma/client/runtime/library.js:121:6593)
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8652829Z     ei.request (/home/runner/work/once-production-os/once-production-os/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.8.3__typescript@5.8.3/node_modules/@prisma/client/runtime/library.js:121:6300)
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8653609Z     async a (/home/runner/work/once-production-os/once-production-os/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.8.3__typescript@5.8.3/node_modules/@prisma/client/runtime/library.js:130:9551)
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8654710Z     async TestContext.<anonymous> (file:///home/runner/work/once-production-os/once-production-os/tests/postgres/business-flow.test.ts:35:15)
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8655135Z     async Test.run (node:internal/test_runner/test:1054:7)
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8655563Z     async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8657647Z   ...
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8779786Z 1..1
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8780456Z # tests 1
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8780917Z # suites 0
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8781149Z # pass 0
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8781916Z # fail 1
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8782241Z # cancelled 0
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8782577Z # skipped 0
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8783157Z # todo 0
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:02.8783436Z # duration_ms 2394.873339
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:03.1417931Z Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:03.1522730Z  ELIFECYCLE  Command failed with exit code 1.
+acceptance	Owned PG16 upgrade 74 to 75 and fresh install 1 to 75	2026-10-03T14:45:03.1675475Z ##[error]Process completed with exit code 1.

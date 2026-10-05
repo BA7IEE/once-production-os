@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {seedParties} from '../support/project-parties.ts';
 import {verifyHistoryErasure} from '../support/merge-history-erasure.ts';
 import {exportRetainedIdentity} from '../support/identity-origin-transfer.ts';
@@ -54,7 +55,7 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
     const sourceStore=new PrismaStore(sourceClient);
     const restoreClient=new PrismaClient({datasources:{db:{url:restoreUrl}},log:[]});
     const restoreStore=new PrismaStore(restoreClient);
-    const tmp=mkdtempSync(join(tmpdir(),'once-recovery-approval-'));chmodSync(tmp,0o700);
+    const tmp=registeredTemp().path;chmodSync(tmp,0o700);
     const backupDir=join(tmp,'backup');mkdirSync(backupDir,{mode:0o700});
     const sourceMediaRoot=join(tmp,'source-media');
     const restoredMediaRoot=join(tmp,'restored-media');
@@ -142,8 +143,10 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         const adultBase=await sourceClient.adultEligibility.findFirstOrThrow({where:{personId}});
         const importedAdult=await sourceClient.adultEligibility.update({where:{id:adultBase.id},data:{state:'VERIFIED_ADULT',verifiedByMembershipId:null,verifiedAt:adultBase.createdAt,validUntil:new Date('2026-09-30T00:00:00.000Z'),evidenceAssetId:uploadId,originalVerificationWorkspaceId:randomUUID(),originalVerificationMembershipId:randomUUID()}});
         await sourceClient.fieldEvidence.create({data:{...evidenceBase,id:randomUUID(),personLanguageId:null,adultEligibilityId:importedAdult.id,fieldPath:'state',valueDigest:digest('VERIFIED_ADULT'),reviewerId:null,reviewedAt:null,originalReviewWorkspaceId:importedAdult.originalVerificationWorkspaceId,originalReviewMembershipId:importedAdult.originalVerificationMembershipId,originalReviewedAt:importedAdult.verifiedAt}});
+        const collectionBeforeLink=await sourceClient.mediaCollection.findUniqueOrThrow({where:{id:td2.collectionId}});
+        assert.equal(collectionBeforeLink.revision,2,'seeded content tag advances parent collection revision');
         const linked = await owner.cmd('POST', `/td2/collections/${td2.collectionId}/items`, {
-            schemaVersion: 'once-talent-v2.0.0', expectedRevision: 1,
+            schemaVersion: 'once-talent-v2.0.0', expectedRevision: collectionBeforeLink.revision,
             expectedPersonRevision: td2Person.revision, assetId: uploadId
         });
         assert.equal(linked.status, 200, JSON.stringify(linked.body));

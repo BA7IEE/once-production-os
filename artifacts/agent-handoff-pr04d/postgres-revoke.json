@@ -1,0 +1,11 @@
+{
+  "status": "POSTGRES_TESTED",
+  "migrationCount": [
+    {
+      "count": 74
+    }
+  ],
+  "checks": [
+    "Grant-revoke-only-access-formal-unchanged-new-Grant-no-old-exposure-inheritance"
+  ]
+}

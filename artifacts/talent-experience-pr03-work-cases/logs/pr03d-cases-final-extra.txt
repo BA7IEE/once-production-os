@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: PR03D exact-role external case, draft freeze, atomic review, replay and self projection
+ok 1 - PR03D exact-role external case, draft freeze, atomic review, replay and self projection
+  ---
+  duration_ms: 185.24425
+  type: 'test'
+  ...
+# Subtest: PR03D source separation, sharing, role history and dependent/nondependent CAS
+ok 2 - PR03D source separation, sharing, role history and dependent/nondependent CAS
+  ---
+  duration_ms: 188.185958
+  type: 'test'
+  ...
+# Subtest: PR03D ENROLL creates Person, Role, Work, Credit, media and Grant atomically
+ok 3 - PR03D ENROLL creates Person, Role, Work, Credit, media and Grant atomically
+  ---
+  duration_ms: 142.037667
+  type: 'test'
+  ...
+# Subtest: PR03D export worker and physical-original JSON rebuild preserve formal cases without external authority
+ok 4 - PR03D export worker and physical-original JSON rebuild preserve formal cases without external authority
+  ---
+  duration_ms: 406.590375
+  type: 'test'
+  ...
+# Subtest: PR03D PERSON case lifecycle protection
+ok 5 - PR03D PERSON case lifecycle protection
+  ---
+  duration_ms: 156.7615
+  type: 'test'
+  ...
+# Subtest: PR03D WORK case lifecycle protection
+ok 6 - PR03D WORK case lifecycle protection
+  ---
+  duration_ms: 155.060167
+  type: 'test'
+  ...
+# Subtest: PR03D MERGE case lifecycle protection
+ok 7 - PR03D MERGE case lifecycle protection
+  ---
+  duration_ms: 152.286875
+  type: 'test'
+  ...
+# Subtest: PR03D internal explicit shared Work link adds only own Credit and keeps public facts
+ok 8 - PR03D internal explicit shared Work link adds only own Credit and keeps public facts
+  ---
+  duration_ms: 158.047333
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1725.541042

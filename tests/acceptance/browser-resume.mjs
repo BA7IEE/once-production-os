@@ -1,3 +1,7 @@
+import {navigateWorkspace} from './support/workspace-navigation.mjs';
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
+import {registeredBrowser} from '../../scripts/registered-browser.mjs';
+let browserOwner;
 /** Real browser + API + Worker + PostgreSQL acceptance on a fresh, disposable loopback DB.
  * The SQL trigger is installed only in this empty test database and is removed after each fault.
  * No production entrypoint or business table is reset or deleted.
@@ -22,7 +26,8 @@ assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname));
 assert.match(url.pathname, /^\/once_test_[a-z0-9_]+$/);
 assert.ok(url.username && url.password && !url.search && !url.hash);
 
-const tmp = mkdtempSync(join(tmpdir(), 'once-browser-resume-'));
+const ownedTemp=registeredTemp();
+const tmp = ownedTemp.path;
 const password = 'Synthetic-' + randomBytes(20).toString('base64url') + '!';
 const put = (name, value) => { const p = join(tmp, name); writeFileSync(p, value, { mode: 0o600 }); return p; };
 const contact = put('contact.hex', randomBytes(32).toString('hex'));
@@ -96,7 +101,7 @@ async function login(page, loginName, secret) {
     await page.locator('input[autocomplete=username]').fill(loginName);
     await page.locator('input[autocomplete=current-password]').fill(secret);
     await page.getByRole('button', { name: '登录', exact: true }).click();
-    await page.getByRole('button', { name: /概览/ }).waitFor();
+    await page.locator('.topbar').getByText('工作空间 / 工作台',{exact:true}).waitFor();
 }
 async function token(page) {
     const response = await page.context().request.get(base + '/api/v1/me');
@@ -127,7 +132,7 @@ async function queueByApi(page, sourceId, label) {
     return { jobId: committed.resourceId, batchId: preview.resourceId };
 }
 async function queueInBrowser(page, sourceTitle, label) {
-    await page.getByRole('button', { name: /批量导入/ }).click();
+    await navigateWorkspace(page,'导入资料',{jsonImport:true});
     await page.getByLabel('本批资料来源').selectOption({ label: sourceTitle });
     await page.getByLabel('JSON 数据').fill(JSON.stringify([
         { displayName: label + '-first', roles: ['model'] }, { displayName: label + '-second', roles: ['editor'] }
@@ -172,7 +177,7 @@ try {
     run('node', ['dist/apps/api/src/bootstrap.js']);
     apiProcess = launch('node', ['dist/apps/api/src/main.js']);
     await eventually(async () => (await fetch(base + '/health/ready')).status === 200, 'API readiness');
-    browser = await chromium.launch({ headless: true, ...(process.env.CHROME_EXECUTABLE ? { executablePath: process.env.CHROME_EXECUTABLE } : {}) });
+    browserOwner=await registeredBrowser(chromium,{ headless: true, ...(process.env.CHROME_EXECUTABLE ? { executablePath: process.env.CHROME_EXECUTABLE } : {}) });browser=browserOwner.browser;
     const owner = await browser.newPage({ viewport: { width: 1280, height: 800 } });
     const pageErrors = [];
     owner.on('pageerror', error => pageErrors.push(error.message));
@@ -255,7 +260,7 @@ try {
     const permissionSource = await source(owner, '权限验收来源-' + suffix);
     const permissionName = `acceptance-${suffix}-permission`;
     const { jobId: permissionJob } = await queueByApi(editor, permissionSource, permissionName);
-    await editor.getByRole('button', { name: /批量导入/ }).click();
+    await navigateWorkspace(editor,'导入资料',{jsonImport:true});
     await failSecond(permissionJob);
     await partial(editor, permissionJob, permissionName);
     const beforePermission = await captureImportCheckpoint(prisma, permissionJob);
@@ -274,7 +279,7 @@ try {
     const viewer = await freshMe.json();
     assert.equal(viewer.role, 'VIEWER');
     assert.equal(viewer.permissions.includes('records.write'), false);
-    assert.equal(await editor.getByRole('button', { name: /批量导入/ }).count(), 0);
+    assert.equal(await editor.getByRole('button', { name: '导入资料',exact:true,includeHidden:true }).count(), 0);
     const freshDenied = await requestCommand(editor, 'POST', `/jobs/${permissionJob}/resume`,
         { expectedRevision: beforePermission.job.revision }, 403);
     assert.equal(freshDenied.error.code, 'FORBIDDEN');
@@ -284,9 +289,9 @@ try {
     console.log('PASS browser/API: revoked session gets 401; fresh viewer gets 403; checkpoints and receipts unchanged');
 } finally {
     await stop(workerProcess);
-    await browser?.close();
+    await browserOwner?.close();
     await stop(apiProcess);
     await removeSecondRowFault();
     await prisma.$disconnect();
-    rmSync(tmp, { recursive: true, force: true });
+    ownedTemp.cleanup();
 }

@@ -267,6 +267,8 @@ export const TD2_FACTS = {
     "fields": {
       "personRoleId": "uuid?",
       "collectionTypeCode": "enum:MODEL_CARD,POLAROIDS,PORTFOLIO,SHOWREEL,INTRO_VIDEO,OTHER",
+      "coverAssetId": "uuid?",
+      "isCurrent": "bool",
       "title": "text",
       "status": "enum:ACTIVE,ARCHIVED"
     },
@@ -284,7 +286,8 @@ export const TD2_FACTS = {
     "ownerKey": "mediaCollectionTagId",
     "fields": {
       "collectionId": "uuid",
-      "tagCode": "enum:FASHION,BEAUTY,COMMERCIAL,LINGERIE,RUNWAY,LIFESTYLE,INDUSTRIAL,PRODUCT"
+      "tagCode": "enum:FASHION,BEAUTY,COMMERCIAL,LINGERIE,RUNWAY,LIFESTYLE,INDUSTRIAL,PRODUCT",
+      "status": "enum:ACTIVE,ARCHIVED"
     },
     "required": [
       "collectionId",
@@ -355,7 +358,8 @@ export const TD2Schemas={
     collectionRemove:v.object({schemaVersion:VERSION,expectedRevision:revision,expectedPersonRevision:revision,itemId:uuid}),
     collectionOrder:v.object({schemaVersion:VERSION,expectedRevision:revision,expectedPersonRevision:revision,itemIds:v.array(uuid,200,1)}),
     credentialSecret:v.object({schemaVersion:VERSION,expectedRevision:revision,expectedPersonRevision:revision,identifier:v.string(180,1)}),
-    principalCreate:v.object({schemaVersion:VERSION,displayName:v.string(120,1),scopeId:uuid,defaultMaintainerMembershipId:uuid,permissionCodes:v.array(v.enum(['records.read','sources.read','talent.propose','talent.fact.write']),4,1),expiresAt:dateIso}),
+    principalAuthorization:v.object({expectedRevision:revision,scopeId:uuid,defaultMaintainerMembershipId:uuid,permissionCodes:v.array(v.enum(['records.read','sources.read','talent.propose','talent.fact.write','ingestion.schema.read','ingestion.submit','ingestion.read.own','ingestion.withdraw.own','ingestion.media.upload']),9,1)}),
+    principalCreate:v.object({schemaVersion:VERSION,displayName:v.string(120,1),scopeId:uuid,defaultMaintainerMembershipId:uuid,permissionCodes:v.array(v.enum(['records.read','sources.read','talent.propose','talent.fact.write','ingestion.schema.read','ingestion.submit','ingestion.read.own','ingestion.withdraw.own','ingestion.media.upload']),9,1),expiresAt:dateIso}),
     principalChange:v.object({schemaVersion:VERSION,expectedRevision:revision}),
     shortlistRole:v.object({schemaVersion:VERSION,expectedRevision:revision,itemId:uuid,personRoleId:uuid,personRoleRevision:revision})
 };

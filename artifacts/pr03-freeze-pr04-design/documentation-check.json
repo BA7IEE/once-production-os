@@ -1,0 +1,14 @@
+{
+  "scope": "documentation-only; not runtime testing",
+  "frozenHead": "aeaf49da7d5346785adac6df4e2d34321f9d92d2",
+  "changedPathsAllowed": true,
+  "checkedLocalMarkdownLinks": 149,
+  "businessCodeUnchanged": true,
+  "migrations1to68Unchanged": true,
+  "frozenSpecsAndAcceptanceContractsUnchanged": true,
+  "newSchema": false,
+  "newMigration": false,
+  "PR04_IMPLEMENTED": false,
+  "PR04_RUNTIME_TESTS": "NOT_RUN",
+  "passed": true
+}

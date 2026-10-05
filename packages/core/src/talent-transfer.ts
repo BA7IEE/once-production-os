@@ -1,7 +1,7 @@
 import {RetainedOriginSchema,validateRetainedOrigins,type RetainedOrigin} from './retained-origin-transfer.ts';
 import {MERGE_ERASURE_VERSION,ErasedMergeHistorySchema,collectMergeHistory,type MergeHistory} from './merge-history-transfer.ts';
 import {IDENTITY_FIELDS,IdentityEvidenceSchema,collectIdentityEvidence,type IdentityEvidence} from './identity-transfer.ts';
-import { TransferAssetSchema, transferAsset, type TransferAsset } from './media-transfer.ts';
+import { TransferAssetSchema, transferFormalAsset, type TransferAsset } from './media-transfer.ts';
 import { readyAsset } from './production-policy.ts';
 import { digest } from './json.ts';
 import { v, uuid, revision, dateIso, code, type Schema } from './validation.ts';
@@ -27,8 +27,8 @@ export const TALENT_TRANSFER_FIELDS = {
     castingProfiles: ['hairColorCode', 'eyeColorCode', 'appearanceObservedOn', 'currentMeasurementSetId'],
     translatorLanguagePairs: ['personRoleId', 'sourceLanguageCode', 'targetLanguageCode', 'status'],
     translatorServiceModes: ['personRoleId', 'modeCode', 'status'],
-    mediaCollections: ['personRoleId','collectionTypeCode','title','status'],
-    mediaCollectionTags: ['collectionId','tagCode'],
+    mediaCollections: ['personRoleId','collectionTypeCode','title','status','coverAssetId','isCurrent'],
+    mediaCollectionTags: ['collectionId','tagCode','status'],
     adultEligibilities: ['state','validUntil','evidenceAssetId','status','verifiedAt','verification']
 } as const;
 export type TransferTable = keyof typeof TALENT_TRANSFER_FIELDS;
@@ -62,6 +62,8 @@ for (const table of TRANSFER_TABLES) {
         shape[field] = field==='reportedAt' ? v.optional(v.nullable(dateIso)) : table==='adultEligibilities'&&field==='verification' ? v.nullable(v.object({workspaceId:uuid,membershipId:uuid})) : table==='adultEligibilities'&&field==='state' ? v.enum(['UNKNOWN','SELF_DECLARED_ADULT','VERIFIED_ADULT','RESTRICTED']) : table==='personCredentials'&&field==='status' ? v.enum(['UNVERIFIED','VERIFIED','REVOKED']) : field==='identifierCiphertext' ? v.nullable(v.string(2048,1,/^v1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/)) : field==='maskedIdentifier' ? v.nullable(v.string(7,4)) : type ? fieldSchema(type, field) : field === 'state' ? v.enum(['OBSERVED','VERIFIED','REVOKED']) : field === 'status' ? v.enum(['DRAFT','CONFIRMED','SUPERSEDED'])
             : field === 'currentMeasurementSetId' ? v.nullable(uuid) : v.nullable(dateIso);
     }
+    if(table==='mediaCollections')for(const f of ['coverAssetId','isCurrent'])shape[f]=v.optional(shape[f]!);
+    if(table==='mediaCollectionTags')shape.status=v.optional(shape.status!);
     if(table==='talentProfiles'||table==='personRoles')for(const field of Object.keys(rowDefaults(table)))if(!['internalSummary','status','roleCode','validFrom','validUntil'].includes(field))shape[field]=v.optional(shape[field]!);
     tableSchemas[table] = v.array(v.object({ id: uuid, personId: uuid, sourceId: uuid, revision, createdAt: dateIso, updatedAt: dateIso, data: v.object(shape) }), 500);
 }
@@ -184,11 +186,12 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
     const assets: TransferAsset[]=[];
     if(withMedia) {
         requirePermission(actor,'assets.read');
-        const ids=new Set([...tables.talentProfiles.map(r=>r.data.coverAssetId),...tables.personCredentials.map(r=>r.data.evidenceAssetId),...tables.adultEligibilities.map(r=>r.data.evidenceAssetId),...collectionItems.map(i=>i.assetId)].filter(Boolean));
+        const formalRelations=(await tx.find('personMedia',{workspaceId:actor.workspaceId,usageState:'ADOPTED'})).filter(r=>r.personId&&people.has(r.personId));
+        const ids=new Set([...formalRelations.map(r=>r.assetId),...tables.talentProfiles.map(r=>r.data.coverAssetId),...tables.personCredentials.map(r=>r.data.evidenceAssetId),...tables.adultEligibilities.map(r=>r.data.evidenceAssetId),...collectionItems.map(i=>i.assetId)].filter(Boolean));
         for(const id of ids) {
             const asset=await readyAsset(tx,actor,String(id),clock);
             invariant(!asset.personId||people.has(asset.personId),'TD2_TRANSFER_MEDIA_PERSON','证明图片所属人物必须一同选择并批准',422);
-            assets.push(transferAsset(asset));
+            assets.push(await transferFormalAsset(tx,asset));
         }
         assets.sort((a,b)=>a.id.localeCompare(b.id));
     }
@@ -200,7 +203,7 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
         retainedOrigins
     };
     const mergeHistory=withHistory?await collectMergeHistory(tx,actor,clock,peopleIds,data,withEvidence):undefined;
-    for(const profile of mergeHistory?.talentProfiles??[])if(profile.coverAssetId&&!assets.some(a=>a.id===profile.coverAssetId)){invariant(withMedia,'TD2_TRANSFER_MEDIA_GRANT_REQUIRED','历史封面须连同原件及许可迁移',422);requirePermission(actor,'assets.read');const asset=await readyAsset(tx,actor,profile.coverAssetId,clock);assets.push(transferAsset(asset));}
+    for(const profile of mergeHistory?.talentProfiles??[])if(profile.coverAssetId&&!assets.some(a=>a.id===profile.coverAssetId)){invariant(withMedia,'TD2_TRANSFER_MEDIA_GRANT_REQUIRED','历史封面须连同原件及许可迁移',422);requirePermission(actor,'assets.read');const asset=await readyAsset(tx,actor,profile.coverAssetId,clock);assets.push(await transferFormalAsset(tx,asset));}
     assets.sort((a,b)=>a.id.localeCompare(b.id));
     if(mergeHistory?.erasures?.length){for(const id of new Set([...mergeHistory.people,...mergeHistory.erasures].map(r=>r.sourceId).concat(mergeHistory.decisions.flatMap(d=>[d.canonicalSourceId,d.duplicateSourceId])))){const source=await sourceFor(tx,actor,id,clock,false,true);if(source.status==='ERASED'&&!retainedOrigins.some(o=>o.id===id))retainedOrigins.push({id,revision:source.revision,protectionEpoch:source.protectionEpoch,status:'ERASED'});}}
     for(const profile of mergeHistory?.talentProfiles??[])if((profile as unknown as Record<string,unknown>).birthDate!=null)invariant(withBirthDate,'BIRTH_DATE_GRANT_REQUIRED','历史完整生日须另行批准迁移',422);
@@ -278,15 +281,18 @@ export function validateTransferLinks(bundle: TalentTransfer, personIds: string[
     invariant(items.length===new Set(items.map(i=>i.id)).size,'TD2_TRANSFER_COLLECTION_DUPLICATE','集合项目编号重复',422);
     for(const i of items) invariant(maps.mediaCollections.get(i.collectionId)?.personId===i.personId,'TD2_TRANSFER_COLLECTION_OWNER','集合项目必须属于已选人物和集合',422);
     for(const c of transferRows(bundle,'mediaCollections')) {
+        invariant(!c.data.coverAssetId||items.some(i=>i.collectionId===c.id&&i.assetId===c.data.coverAssetId),'COLLECTION_COVER_INVALID','集合封面必须随项目重建',422);
+        invariant(!c.data.isCurrent||c.data.status==='ACTIVE'&&transferRows(bundle,'mediaCollections').filter(o=>o.personId===c.personId&&o.data.personRoleId===c.data.personRoleId&&o.data.collectionTypeCode===c.data.collectionTypeCode&&o.data.isCurrent).length===1,'COLLECTION_CURRENT_CONFLICT','当前集合版本冲突',422);
         const children=items.filter(i=>i.collectionId===c.id).sort((a,b)=>a.orderIndex-b.orderIndex);
         invariant(children.length<=200&&children.every((i,n)=>i.orderIndex===n)&&new Set(children.map(i=>i.assetId)).size===children.length,'TD2_TRANSFER_COLLECTION_ORDER','集合图片必须唯一且顺序连续',422);
     }
     const tags=transferRows(bundle,'mediaCollectionTags');
     invariant(new Set(tags.map(t=>String(t.data.collectionId)+':'+String(t.data.tagCode))).size===tags.length,'TD2_TRANSFER_COLLECTION_TAG_DUPLICATE','集合内容标签重复',422);
-    const assets=bundle.assets??[], assetIds=new Set([...bundle.tables.talentProfiles.map(r=>r.data.coverAssetId),...(bundle.mergeHistory?.talentProfiles??[]).map(r=>r.coverAssetId),...credentials.map(r=>r.data.evidenceAssetId),...adults.map(r=>r.data.evidenceAssetId),...items.map(i=>i.assetId)].filter(Boolean));
+    const assets=bundle.assets??[], assetIds=new Set([...assets.filter(a=>a.relation).map(a=>a.id),...bundle.tables.talentProfiles.map(r=>r.data.coverAssetId),...(bundle.mergeHistory?.talentProfiles??[]).map(r=>r.coverAssetId),...credentials.map(r=>r.data.evidenceAssetId),...adults.map(r=>r.data.evidenceAssetId),...items.map(i=>i.assetId)].filter(Boolean));
     invariant(assets.length===new Set(assets.map(a=>a.id)).size && assets.length===assetIds.size && assets.every(a=>assetIds.has(a.id)), 'TD2_TRANSFER_MEDIA_MISSING','证明原件清单必须完整且不得夹带无关文件',422);
     for(const profile of bundle.tables.talentProfiles) if(profile.data.coverAssetId) invariant(assets.some(a=>a.id===profile.data.coverAssetId&&a.personId===profile.personId&&a.mime.startsWith('image/')),'TD2_TRANSFER_COVER_INVALID','封面须是同人物的图片原件',422);
     for(const asset of assets) {
+        if(asset.relation){invariant(asset.personId===asset.relation.personId&&people.has(asset.relation.personId),'MEDIA_RELATION_INVALID','媒体正式归属人物必须随同重建',422);if(asset.relation.personRoleId)invariant(bundle.tables.personRoles.some(r=>r.id===asset.relation!.personRoleId&&r.personId===asset.personId),'MEDIA_ROLE_MISSING','媒体职业须随同重建',422);}
         invariant(!asset.personId||people.has(asset.personId),'TD2_TRANSFER_MEDIA_PERSON','证明图片所属人物缺失',422);
         invariant(asset.width*asset.height<=60000000,'TD2_TRANSFER_MEDIA_SIZE','图片像素超过上限',422);
         invariant(!asset.personId||credentials.filter(r=>r.data.evidenceAssetId===asset.id).every(r=>r.personId===asset.personId),'TD2_TRANSFER_MEDIA_PERSON','证明图片必须属于相应人物',422);

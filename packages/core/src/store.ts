@@ -2,7 +2,11 @@ import type {DirectoryDatabaseQuery,DirectoryDatabaseResult} from './talent-dire
 import type { Table, TableMap } from './model.ts';
 import type { TalentQueryFilters, TalentQueryResult } from './search-query-model.ts';
 /** A short database transaction. All implementations must atomically commit or roll back. */
+export interface PurgeOverview {pending:number;cleaning:number;unknown:number;recentFailures:number;oldestDue:string|null;pendingBytes:number;reconcileIds:string[]}
 export interface Tx {
+    mediaPurgeOverview(workspaceId:string,now:string):Promise<PurgeOverview>;
+    /** Indexed bounded scheduling query; does not load the workspace into memory. */
+    mediaPurgeCandidates(now:string,limit:number):Promise<string[]>;
     talentDirectoryQuery(input:DirectoryDatabaseQuery):Promise<DirectoryDatabaseResult>;
     findIn<K extends Table>(table:K,workspaceId:string,field:keyof TableMap[K],ids:string[]):Promise<TableMap[K][]>;
     get<K extends Table>(table: K, id: string): Promise<TableMap[K] | null>;

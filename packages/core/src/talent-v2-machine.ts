@@ -1,3 +1,4 @@
+import {authorizationEpoch} from './machine-authorization.ts';
 import type { Actor, Clock, Config, Permission, RequestMeta } from './model.ts';
 import type { ServicePrincipal } from './talent-v2-model.ts';
 import type { Tx } from './store.ts';
@@ -7,10 +8,12 @@ import { invariant, missing } from './errors.ts';
 import { equalSecret, hashSecret, randomSecret } from './crypto.ts';
 import { permissionsFor, requirePermission, requireScope, scopeVisible } from './policy.ts';
 
-export const MACHINE_PERMISSIONS:readonly Permission[]=['records.read','sources.read','talent.propose','talent.fact.write'];
+export const INGESTION_PERMISSIONS:readonly Permission[]=['ingestion.schema.read','ingestion.submit','ingestion.read.own','ingestion.withdraw.own','ingestion.media.upload'];
+export const MACHINE_PERMISSIONS:readonly Permission[]=['records.read','sources.read','talent.propose','talent.fact.write',...INGESTION_PERMISSIONS];
 export function machineOwnerPermissions(permissions:Permission[]):Permission[]{
     const allowed=[...permissions];
-    if(permissions.includes('records.write'))allowed.push('talent.fact.write','talent.propose');
+    if(permissions.includes('records.write'))allowed.push('talent.fact.write','talent.propose',...INGESTION_PERMISSIONS.filter(p=>p!=='ingestion.media.upload'));
+    if(permissions.includes('records.write')&&permissions.includes('assets.upload'))allowed.push('ingestion.media.upload');
     if(permissions.includes('sources.review'))allowed.push('talent.propose');
     return [...new Set(allowed)];
 }
@@ -28,6 +31,7 @@ export class MachineIdentity {
     async validateMaintainer(tx:Tx,workspaceId:string,id:string,scopeId:string,codes:Permission[]){
         const member=await workspaceRow(tx,'memberships',id,workspaceId),user=member?await workspaceRow(tx,'users',member.userId,workspaceId):null;
         invariant(!!member&&!!user&&member.status==='ACTIVE'&&user.status==='ACTIVE','MACHINE_MAINTAINER_UNAVAILABLE','机器账号的责任成员不可用',403);
+        invariant(!codes.some(c=>INGESTION_PERMISSIONS.includes(c))||codes.every(c=>INGESTION_PERMISSIONS.includes(c)),'MACHINE_PERMISSION_ESCALATION','摄取凭证不能混用正式写入或其他旧机器权限',403);
         const permissions=machineOwnerPermissions(permissionsFor(member));
         invariant(codes.every(c=>MACHINE_PERMISSIONS.includes(c)&&permissions.includes(c)),'MACHINE_PERMISSION_ESCALATION','机器权限不能超过责任成员当前拥有的权限',403);
         const human:Actor={userId:user.id,membershipId:member.id,workspaceId,role:member.role,permissions,displayName:user.displayName,userEpoch:user.sessionEpoch,sessionId:''};
@@ -40,7 +44,7 @@ export class MachineIdentity {
         invariant(new Set(d.permissionCodes).size===d.permissionCodes.length,'MACHINE_PERMISSIONS_DUPLICATE','权限不能重复',422);
         await this.validateMaintainer(tx,actor.workspaceId,d.defaultMaintainerMembershipId,d.scopeId,d.permissionCodes);
         const initial=base(actor.workspaceId,this.clock),token=this.token(initial.id,1);
-        const row:ServicePrincipal={...initial,displayName:d.displayName,scopeId:d.scopeId,defaultMaintainerMembershipId:d.defaultMaintainerMembershipId,permissionCodes:d.permissionCodes,credentialHash:hashSecret(token),keyVersion:1,expiresAt:d.expiresAt,recoveryEpoch:this.config.recoveryEpoch,status:'ACTIVE'};
+        const row:ServicePrincipal={...initial,authorizationEpoch:1,displayName:d.displayName,scopeId:d.scopeId,defaultMaintainerMembershipId:d.defaultMaintainerMembershipId,permissionCodes:d.permissionCodes,credentialHash:hashSecret(token),keyVersion:1,expiresAt:d.expiresAt,recoveryEpoch:this.config.recoveryEpoch,status:'ACTIVE'};
         await tx.insert('servicePrincipals',row);await audit(tx,actor,actor.workspaceId,'td2.principal.create','servicePrincipal',row.id,['created'],meta,this.clock);
         return {...principalDto(row),resourceId:row.id,token};
     }
@@ -54,7 +58,15 @@ export class MachineIdentity {
     }
     async revoke(tx:Tx,actor:Actor,id:string,input:unknown){
         const row=(await this.management(tx,actor,id))!,d=S.principalChange.parse(input);cas(row,d.expectedRevision);
-        const next={...touch(row,this.clock),credentialHash:null,keyVersion:row.keyVersion+1,status:'REVOKED' as const};await tx.replace('servicePrincipals',next);return next;
+        const next={...touch(row,this.clock),credentialHash:null,keyVersion:row.keyVersion+1,status:'REVOKED' as const,authorizationEpoch:authorizationEpoch(row)+1};await tx.replace('servicePrincipals',next);return next;
+    }
+    async authorization(tx:Tx,actor:Actor,id:string,input:unknown){
+        const row=(await this.management(tx,actor,id))!,d=S.principalAuthorization.parse(input);cas(row,d.expectedRevision);invariant(row.status==='ACTIVE','MACHINE_REVOKED','机器账号不可用',409);
+        await requireScope(tx,actor,d.scopeId);await this.validateMaintainer(tx,actor.workspaceId,d.defaultMaintainerMembershipId,d.scopeId,d.permissionCodes);
+        invariant(new Set(d.permissionCodes).size===d.permissionCodes.length,'MACHINE_PERMISSIONS_DUPLICATE','权限不能重复',422);
+        const next={...touch(row,this.clock),scopeId:d.scopeId,defaultMaintainerMembershipId:d.defaultMaintainerMembershipId,permissionCodes:d.permissionCodes};
+        next.authorizationEpoch=authorizationEpoch(row)+(JSON.stringify([row.scopeId,row.defaultMaintainerMembershipId,row.permissionCodes])!==JSON.stringify([next.scopeId,next.defaultMaintainerMembershipId,next.permissionCodes])?1:0);
+        await tx.replace('servicePrincipals',next);return next;
     }
     async list(tx:Tx,actor:Actor,query:Record<string,string>){
         await this.management(tx,actor);const result=[];for(const row of await tx.find('servicePrincipals',{workspaceId:actor.workspaceId}))if(await scopeVisible(tx,actor,row.scopeId))result.push(principalDto(row));return page(result,query);

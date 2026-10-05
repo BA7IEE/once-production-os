@@ -1,0 +1,12 @@
+
+> once-production-os@0.1.0-dev.1 db:generate /Users/dengwang/.codex/worktrees/agent-claim-handoff-pr04d/once-production-os
+> prisma generate
+
+Prisma schema loaded from prisma/schema.prisma
+
+✔ Generated Prisma Client (v6.19.3) to ./node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.8.3__typescript@5.8.3/node_modules/@prisma/client in 2.49s
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+

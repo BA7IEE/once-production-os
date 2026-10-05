@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: DEV-09C safety journal is private, ordered, append-idempotent and excludes noisy reads
+ok 1 - DEV-09C safety journal is private, ordered, append-idempotent and excludes noisy reads
+  ---
+  duration_ms: 65.466291
+  type: 'test'
+  ...
+# Subtest: DEV-09D concurrent first open is race-safe and never overwrites the journal header
+ok 2 - DEV-09D concurrent first open is race-safe and never overwrites the journal header
+  ---
+  duration_ms: 119.249208
+  type: 'test'
+  ...
+# Subtest: DEV-09C safety journal detects line tampering, truncation and duplicate audit ids
+ok 3 - DEV-09C safety journal detects line tampering, truncation and duplicate audit ids
+  ---
+  duration_ms: 113.401584
+  type: 'test'
+  ...
+# Subtest: DEV-09C safety journal refuses public parent/file permissions
+ok 4 - DEV-09C safety journal refuses public parent/file permissions
+  ---
+  duration_ms: 18.319667
+  type: 'test'
+  ...
+# Subtest: DEV-09F approval barrier excludes append until commit and releases after failure
+ok 5 - DEV-09F approval barrier excludes append until commit and releases after failure
+  ---
+  duration_ms: 199.422333
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 591.904542

@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {verifyDirectoryFinalization} from '../support/talent-directory-finalization.ts';
 import {spawnSync} from 'node:child_process';
 import {test} from 'node:test';
@@ -14,7 +15,7 @@ import {verifyDirectoryLifecycle} from '../support/talent-directory-lifecycle.ts
 test('PR01b real PostgreSQL new fields, private cover, typed transfer, recovery, merge and erasure',async()=>{
  assert.equal(process.env.ALLOW_TD2_DB_TESTS,'yes');const urls=[process.env.DATABASE_URL_TD2_TEST,process.env.DATABASE_URL_DIRECTORY_REBUILD_TEST];assert.notEqual(urls[0],urls[1]);
  for(const raw of urls){assert.ok(raw);const u=new URL(raw);assert.ok(['postgres:','postgresql:'].includes(u.protocol));assert.ok(['localhost','127.0.0.1','[::1]'].includes(u.hostname));assert.match(u.pathname,/^\/once_test_td2_[a-z0-9_]+$/);assert.ok(u.username&&u.password&&!u.search&&!u.hash);}
- const stores=urls.map(url=>new PrismaStore(new PrismaClient({datasources:{db:{url}},log:[]}))),clock=new FakeClock(),root=await mkdtemp(join(await realpath(tmpdir()),'once-pg-pr01b-'));
+ const stores=urls.map(url=>new PrismaStore(new PrismaClient({datasources:{db:{url}},log:[]}))),clock=new FakeClock(),root=registeredTemp().path;
  try{const contexts=[];for(const store of stores){assert.equal(await store.client.workspace.count(),0);const app=new Application(store,{origin:'https://pr01b.test.invalid',secureCookies:true,contactKey:randomBytes(32),csrfKey:randomBytes(32),recoveryEpoch:randomBytes(24).toString('hex'),accessMode:'INTERNAL',environment:'test',dataEgressMode:'INTERNAL_APPROVED',dataCleanupMode:'INTERNAL_APPROVED',dataMergeMode:'INTERNAL_APPROVED'},clock);await app.identity.bootstrap('owner','合成目录管理员',SYNTHETIC_PASSWORD);const owner=new Client(app);assert.equal((await owner.login()).status,200);contexts.push({app,store,clock,owner});}
  const result=await verifyDirectoryLifecycle(contexts[0]!,contexts[1]!,root);
  const restoreUrl=process.env.DATABASE_URL_DIRECTORY_RESTORE_TEST;assert.ok(restoreUrl);const restore=new URL(restoreUrl);assert.ok(['postgresql:','postgres:'].includes(restore.protocol));assert.ok(['127.0.0.1','localhost','[::1]'].includes(restore.hostname));assert.match(restore.pathname,/^\/once_restore_pr01b_[a-z0-9_]+$/);assert.ok(restore.username&&restore.password&&!restore.search&&!restore.hash);assert.ok(!urls.includes(restoreUrl));

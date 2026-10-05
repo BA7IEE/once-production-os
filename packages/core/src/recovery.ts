@@ -208,7 +208,7 @@ export class RecoveryOps {
             try{connectionKey(row,this.config as Config);}catch{ai.blockers.push('AI_CONNECTION_KEY_INVALID');}
         }
         const talentAuth=await inspectTalentAuth(tx,actor.workspaceId);
-        const talent = await inspectTalentIntegrity(tx, actor.workspaceId, this.config.contactKey);
+        const talent = await inspectTalentIntegrity(tx, actor.workspaceId, this.config.contactKey,this.clock);
         const currentAssets = state.assets.filter(x => x.state !== 'ERASED');
         const expectedAssetIds = currentAssets.map(x => x.id).sort();
         const currentMediaIdentityDigest = digest(currentAssets.map(x => ({
@@ -453,6 +453,7 @@ export class RecoveryOps {
             if (row.id !== actor.membershipId && row.status !== 'DISABLED')
                 await tx.replace('memberships', { ...touch(row, this.clock), status: 'DISABLED' });
 
+        for(const row of await tx.find('sourceReviews',{workspaceId:actor.workspaceId}))if(['PENDING','ACCEPTED','REVIEWED'].includes(row.state))await tx.replace('sourceReviews',{...touch(row,this.clock),state:'REVOKED'});
         for (const row of await tx.find('handoffs', { workspaceId: actor.workspaceId }))
             if (row.state === 'PENDING' || row.state === 'ACCEPTED')
                 await tx.replace('handoffs', { ...touch(row, this.clock), state: 'REVOKED',
@@ -473,9 +474,10 @@ export class RecoveryOps {
                 await tx.replace('jobs', { ...touch(row, this.clock), state: 'FAILED',
                     errorCode: RECOVERY_ERROR, leaseToken: null, leaseUntil: null });
 
+        for(const p of await tx.find('mediaPurgeIntents',{workspaceId:actor.workspaceId}))if(!['ERASED','SKIPPED'].includes(p.state))await tx.replace('mediaPurgeIntents',{...touch(p,this.clock),leaseToken:null,leaseUntil:null,lastCode:'RECOVERY_RECONCILIATION_REQUIRED'});
         for (const row of await tx.find('uploads', { workspaceId: actor.workspaceId }))
             if (!['READY','FAILED','CANCELLED','ERASED'].includes(row.state))
-                await tx.replace('uploads', { ...touch(row, this.clock), state: 'FAILED',
+                await tx.replace('uploads', { ...touch(row, this.clock), state: 'FAILED', receiveAuthorizationHash:null,receiveAuthorizationUntil:null,
                     errorCode: RECOVERY_ERROR, leaseToken: null, leaseUntil: null });
 
         for (const row of await tx.find('assets', { workspaceId: actor.workspaceId }))

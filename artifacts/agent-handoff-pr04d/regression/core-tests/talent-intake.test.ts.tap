@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: TE intake: name-only creates one typed model and a real restricted temporary source
+ok 1 - TE intake: name-only creates one typed model and a real restricted temporary source
+  ---
+  duration_ms: 262.568709
+  type: 'test'
+  ...
+# Subtest: TE intake: multiple roles share one person; contact enrollment preserves its identity
+ok 2 - TE intake: multiple roles share one person; contact enrollment preserves its identity
+  ---
+  duration_ms: 125.326041
+  type: 'test'
+  ...
+# Subtest: TE intake: original key replay creates no duplicate; changed body conflicts; expired source blocks replay
+ok 3 - TE intake: original key replay creates no duplicate; changed body conflicts; expired source blocks replay
+  ---
+  duration_ms: 194.270875
+  type: 'test'
+  ...
+# Subtest: TE intake: existing source CAS and role validation produce no orphan records
+ok 4 - TE intake: existing source CAS and role validation produce no orphan records
+  ---
+  duration_ms: 126.885833
+  type: 'test'
+  ...
+# Subtest: TE intake: audit failure rolls back scope/source/person/profile/roles/receipt; same key can retry
+ok 5 - TE intake: audit failure rolls back scope/source/person/profile/roles/receipt; same key can retry
+  ---
+  duration_ms: 122.714917
+  type: 'test'
+  ...
+# Subtest: TE intake: viewer cannot create and suspended source cannot be borrowed
+ok 6 - TE intake: viewer cannot create and suspended source cannot be borrowed
+  ---
+  duration_ms: 244.066166
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1259.981
