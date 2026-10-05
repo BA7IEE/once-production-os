@@ -382,12 +382,12 @@ try {
  const mergePickers=owner.locator('.merge-picker');
  const canonicalPicker=mergePickers.nth(0),duplicatePicker=mergePickers.nth(1);
  const canonicalSearch=owner.waitForResponse(r=>r.request().method()==='GET'&&r.url().includes('/api/v1/people?')&&r.url().includes('q=DEV07G'));
- await canonicalPicker.getByLabel('主档案（保留）搜索',{exact:true}).fill('DEV07G主档案');
+ await canonicalPicker.getByLabel('主档案（保留）',{exact:true}).fill('DEV07G主档案');
  const canonicalSearchResponse=await canonicalSearch;assert.equal(canonicalSearchResponse.status(),200);
  assert.ok((await canonicalSearchResponse.json()).items.some(x=>x.id===mergeCanonicalId));
  await canonicalPicker.getByRole('button',{name:/DEV07G主档案/}).click();
  const duplicateSearch=owner.waitForResponse(r=>r.request().method()==='GET'&&r.url().includes('/api/v1/people?')&&r.url().includes('q=DEV07G'));
- await duplicatePicker.getByLabel('重复档案（归档并建立旧 ID 映射）搜索',{exact:true}).fill('DEV07G重复档案');
+ await duplicatePicker.getByLabel('重复档案（归档并建立旧 ID 映射）',{exact:true}).fill('DEV07G重复档案');
  const duplicateSearchResponse=await duplicateSearch;assert.equal(duplicateSearchResponse.status(),200);
  assert.ok((await duplicateSearchResponse.json()).items.some(x=>x.id===mergeDuplicateId));
  await duplicatePicker.getByRole('button',{name:/DEV07G重复档案/}).click();

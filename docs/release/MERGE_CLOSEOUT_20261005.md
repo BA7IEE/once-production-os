@@ -12,7 +12,7 @@ PR #38 直接以 main 为目标，保留 merge commit，一次包含 PR #31–#3
 
 主分支原17组验收仍直接调用低层数据库/浏览器脚本，无法继承现有资源登记。这次将17组全部改为 `test:postgres:owned`，浏览器复用已验收的临时目录和 BrowserServer 登记；各组原业务断言保留。旧旅程通过当前导航、实际高级JSON面板和当前审核任务入口操作；当前迁移严格预期75并保留checksum/旧数据no-op断言。完整类型、Core、契约与静态检查由同次 flow-review CI运行，各历史浏览器独立构建。两个工作流均核对本次实际 head；flow-review也在main合并提交执行。
 
-完整PG保留全部既有案例及真实JSON重建CLI。新建的逐案例 sibling DB在案例退出后释放，登记集合只含本次创建的DB，既有基线库和外部库不在删除范围；整个容器仍在finally按本轮标签回收。PG资源上限保持512MiB；总PG验证有界20分钟，浏览器单组3分钟，失败不能写PASS。更长ResourceRun ID的派生库名使用16字符后缀，避免PostgreSQL标识符截断。
+完整PG保留全部既有案例及真实JSON重建CLI。新建的逐案例 sibling DB在案例退出后释放，登记集合只含本次创建的DB，既有基线库和外部库不在删除范围；整个容器仍在finally按本轮标签回收。PG资源上限保持512MiB；总PG验证有界20分钟；原production串联八组深层旅程，保留有界10分钟，其余浏览器单组3分钟，失败不能写PASS。更长ResourceRun ID的派生库名使用16字符后缀，避免PostgreSQL标识符截断。
 
 本地仅核对YAML/JavaScript语法及12项owned编排模拟，未在高Swap的共享Mac启动数据库、浏览器或构建。合并前与main合并后的最终CI记录以 [PR #38](https://github.com/BA7IEE/once-production-os/pull/38) 和 [Actions](https://github.com/BA7IEE/once-production-os/actions) 的实际SHA/状态为准；该记录不预先将待运行步骤写PASS。业务修复 head31390的 [CI 37265584287](https://github.com/BA7IEE/once-production-os/actions/runs/37265584287) 已通过，旧记录只支持对应head。
 
@@ -35,3 +35,5 @@ head `cafdab7` 的 [CI37273571438](https://github.com/BA7IEE/once-production-os/
 head `fdfd49f` 的专项业务浏览器再次通过；旧媒体上传回归通过。目录facet的复合控件按实际summary所在details取人数；作品旅程保留旧版Person/导出前置条件，在原导出下载后通过正式enroll命令将同一人物建立专业档案，再进入当前候选找人流程，不能让typed fixture混用旧版角色导出。两组新修正待复验，所有原数据库断言保留。
 
 head `f110c29` 的 [CI37275480711](https://github.com/BA7IEE/once-production-os/actions/runs/37275480711) 完整Core/类型与专项业务均通过。目录组合、多页返回和作品候选前段真实链路已通过；历史素材失效提示按当前“该图片当前不可用”等待实际内容，避免把刷新占位状态计为完成。候选刷新回归先确认安全history已落入当前页与选择，再刷新，并保留诊断/原断言。继续一次性对齐合并历史及内部语言文本入口、旧资料“全部人物”、独立专业导出分页；这些旧页面断言待新head复验。
+
+head `8a18046` 的 [CI37276245747](https://github.com/BA7IEE/once-production-os/actions/runs/37276245747) 完整Core/类型与六组专项业务通过；旧17组中14组浏览器通过。目录组合与选择已通过，真实reload返回404暴露服务端遗漏 `/workspace/shortlists/:id/find`，已补SPA入口并严格要求reload HTTP200、分页和原选择均保留。作品旅程已跑通来源撤销、删除冻结和物理图片清理；其后合并输入按实际Field可访问名称定位，深层合并/语言文本仍须新head复验，业务断言保留。完整production串联八组深层程序，单组上限改为10分钟，与其他短组3分钟区分；资源回收、故障和中断规则不变。

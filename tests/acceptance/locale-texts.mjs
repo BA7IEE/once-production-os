@@ -33,10 +33,10 @@ export async function verifyLocaleBrowser({owner,prisma,cmd,writeUI,source,json,
  }
  const duplicateName='浏览器语言合并重复档案',duplicateId=(await cmd(owner,'POST','/people',{displayName:duplicateName,roles:['photographer'],sourceId},201)).resourceId;
  await cmd(owner,'POST','/locale-texts',{subjectKind:'PERSON',subjectId:duplicateId,locale:'en',text:'Chosen browser merged English.',expectedSubjectRevision:1,sourceRefs:[{id:sourceId,expectedRevision:1}],confirmCurrentBasis:true},201);
- await navigateWorkspace(owner,'合并重复档案');
+ await navigateWorkspace(owner,'人才合并');
  const pickers=owner.locator('.merge-picker');
- await pickers.nth(0).getByLabel('主档案（保留）搜索',{exact:true}).fill('浏览器语言PERSON');await pickers.nth(0).getByRole('button',{name:/浏览器语言PERSON/}).click();
- await pickers.nth(1).getByLabel('重复档案（归档并建立旧 ID 映射）搜索',{exact:true}).fill(duplicateName);await pickers.nth(1).getByRole('button',{name:new RegExp(duplicateName)}).click();
+ await pickers.nth(0).getByLabel('主档案（保留）',{exact:true}).fill('浏览器语言PERSON');await pickers.nth(0).getByRole('button',{name:/浏览器语言PERSON/}).click();
+ await pickers.nth(1).getByLabel('重复档案（归档并建立旧 ID 映射）',{exact:true}).fill(duplicateName);await pickers.nth(1).getByRole('button',{name:new RegExp(duplicateName)}).click();
  const mergePreview=await writeUI(owner,'POST','/people/merge-preview',()=>owner.getByRole('button',{name:'预览合并影响',exact:true}).click());
  for(const field of mergePreview.fieldConflicts)await owner.getByLabel('字段决定 '+field.field,{exact:true}).selectOption('CANONICAL');
  await owner.getByLabel('合并依据 *',{exact:true}).fill('人工核对同一合成人物并选择英文正文');

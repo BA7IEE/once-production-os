@@ -11,9 +11,9 @@ export async function verifyMergeHistoryErasure({owner,prisma,cmd,writeUI,until,
  const mergeId=(await cmd(owner,'POST','/people/merge',{canonicalId,duplicateId:oldId,expectedCanonicalRevision:1,expectedDuplicateRevision:2,previewDigest:preview.previewDigest,fieldDecisions:preview.fieldConflicts.map(f=>({field:f.field,choice:'CANONICAL'})),collisionDecisions:[],professionalDecisions:preview.professional.items.map(({table,id,action})=>({table,id,action})),professionalConflicts:preview.professional.conflicts.map(c=>({table:c.table,canonicalId:c.canonicalId,duplicateId:c.duplicateId,choice:'RETAIN_DUPLICATE_HISTORY'})),acknowledgeRevocations:true,acknowledgeMediaDetach:true,reason:'合成明确清理旧身份的原合并说明'},200)).resourceId;
  const currentBefore=await prisma.person.findUniqueOrThrow({where:{id:canonicalId}}),profileBefore=await prisma.talentProfile.findFirstOrThrow({where:{personId:canonicalId}});
  const openHistory=async()=>{
-  await navigateWorkspace(owner,'合并重复档案');const picker=owner.locator('.merge-picker').first();
+  await navigateWorkspace(owner,'人才合并');const picker=owner.locator('.merge-picker').first();
   const response=owner.waitForResponse(r=>r.request().method()==='GET'&&r.url().includes('/api/v1/people?')&&decodeURIComponent(r.url()).includes('q=历史清理保留人物'));
-  await picker.getByLabel('主档案（保留）搜索',{exact:true}).fill('历史清理保留人物');assert.equal((await response).status(),200);await picker.getByRole('button',{name:/历史清理保留人物/}).click();
+  await picker.getByLabel('主档案（保留）',{exact:true}).fill('历史清理保留人物');assert.equal((await response).status(),200);await picker.getByRole('button',{name:/历史清理保留人物/}).click();
   await owner.getByRole('button',{name:'查看合并保留资料',exact:true}).click();return owner.locator('section').filter({has:owner.getByRole('heading',{name:'合并保留资料',exact:true})});
  };
  const history=await openHistory();await history.getByRole('button',{name:'评估清理旧身份：历史清理旧身份',exact:true}).click();

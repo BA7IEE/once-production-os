@@ -40,7 +40,7 @@ export async function ownedPostgres({ scope = new ResourceRun(), guard = preflig
     if (!/^127\.0\.0\.1:\d+$/.test(endpoint)) throw new Error('Unexpected Docker port.');
     const url = `postgresql://once_test:${password}@${endpoint}/once_test_${scope.id}`;
     const env = { ...process.env,DATABASE_URL:url,DATABASE_URL_TEST:url,ALLOW_DB_TESTS:'yes' };
-    if(suite==='browser-flow'||suite==='ci-browser')await scope.command(process.execPath,[`tests/acceptance/browser-${baseline}.mjs`],{env:{...env,ALLOW_BROWSER_TESTS:'yes'},timeout:180000});
+    if(suite==='browser-flow'||suite==='ci-browser')await scope.command(process.execPath,[`tests/acceptance/browser-${baseline}.mjs`],{env:{...env,ALLOW_BROWSER_TESTS:'yes'},timeout:suite==='ci-browser'&&baseline==='production'?600000:180000});
     else if(suite==='flow-review-db'){const files={identity:'business-flow-identity',rejection:'business-flow-rejection'};if(!files[baseline])throw new Error('Unknown flow review database suite');await scope.command(process.execPath,['--experimental-strip-types','--test','--test-concurrency=1',`tests/postgres/${files[baseline]}.test.ts`],{env,timeout:180000});}
     else if(suite==='admin-ux')await scope.command(process.execPath,['--experimental-strip-types','--test','--test-concurrency=1','tests/postgres/admin-ux.test.ts'],{env,timeout:180000});
     else if(suite==='business-flow')await scope.command(process.execPath,['--experimental-strip-types','--test','--test-concurrency=1','tests/postgres/business-flow.test.ts'],{env:{...env,BUSINESS_FLOW_BASELINE:baseline},timeout:180000});
