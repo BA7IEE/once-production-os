@@ -1,3 +1,4 @@
+import {navigateWorkspace} from './support/workspace-navigation.mjs';
 import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {registeredBrowser} from '../../scripts/registered-browser.mjs';
 let browserOwner;
@@ -100,7 +101,7 @@ async function login(page, loginName, secret) {
     await page.locator('input[autocomplete=username]').fill(loginName);
     await page.locator('input[autocomplete=current-password]').fill(secret);
     await page.getByRole('button', { name: '登录', exact: true }).click();
-    await page.getByRole('button', { name: /概览/ }).waitFor();
+    await page.getByRole('button', { name: '工作台', exact:true }).waitFor();
 }
 async function token(page) {
     const response = await page.context().request.get(base + '/api/v1/me');
@@ -131,7 +132,7 @@ async function queueByApi(page, sourceId, label) {
     return { jobId: committed.resourceId, batchId: preview.resourceId };
 }
 async function queueInBrowser(page, sourceTitle, label) {
-    await page.getByRole('button', { name: /批量导入/ }).click();
+    await navigateWorkspace(page,'导入资料',{jsonImport:true});
     await page.getByLabel('本批资料来源').selectOption({ label: sourceTitle });
     await page.getByLabel('JSON 数据').fill(JSON.stringify([
         { displayName: label + '-first', roles: ['model'] }, { displayName: label + '-second', roles: ['editor'] }
@@ -259,7 +260,7 @@ try {
     const permissionSource = await source(owner, '权限验收来源-' + suffix);
     const permissionName = `acceptance-${suffix}-permission`;
     const { jobId: permissionJob } = await queueByApi(editor, permissionSource, permissionName);
-    await editor.getByRole('button', { name: /批量导入/ }).click();
+    await navigateWorkspace(editor,'导入资料',{jsonImport:true});
     await failSecond(permissionJob);
     await partial(editor, permissionJob, permissionName);
     const beforePermission = await captureImportCheckpoint(prisma, permissionJob);
@@ -278,7 +279,7 @@ try {
     const viewer = await freshMe.json();
     assert.equal(viewer.role, 'VIEWER');
     assert.equal(viewer.permissions.includes('records.write'), false);
-    assert.equal(await editor.getByRole('button', { name: /批量导入/ }).count(), 0);
+    assert.equal(await editor.getByRole('button', { name: '导入资料',exact:true,includeHidden:true }).count(), 0);
     const freshDenied = await requestCommand(editor, 'POST', `/jobs/${permissionJob}/resume`,
         { expectedRevision: beforePermission.job.revision }, 403);
     assert.equal(freshDenied.error.code, 'FORBIDDEN');

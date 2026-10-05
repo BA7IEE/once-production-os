@@ -3,17 +3,19 @@ import { cloneElement, createElement, isValidElement, useId, type ReactNode } fr
 type NativeControlProps = { id?: string; 'aria-describedby'?: string; 'aria-labelledby'?: string };
 
 /** A Field's visible title names its native control; hints are descriptions, not names. */
-export function Field({ label, children, hint, wide = false }: {
+export function Field({ label, children, hint, wide = false, singleControl = false }: {
     label: string;
     children: ReactNode;
     hint?: string;
     wide?: boolean;
+    /** Composite single controls must forward id and aria props to their native input. */
+    singleControl?: boolean;
 }) {
     const generatedId = useId();
     const labelId = `${generatedId}-label`, hintId = `${generatedId}-hint`;
     const nativeControl = isValidElement<NativeControlProps>(children)
-        && typeof children.type === 'string'
-        && ['input', 'select', 'textarea'].includes(children.type);
+        && (singleControl || typeof children.type === 'string'
+        && ['input', 'select', 'textarea'].includes(children.type));
     if (!nativeControl) {
         // Existing composite controls retain their own labels and interaction model.
         return createElement('div', { className: 'field' + (wide ? ' wide' : '') },

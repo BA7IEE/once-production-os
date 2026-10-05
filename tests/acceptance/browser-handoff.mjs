@@ -1,3 +1,4 @@
+import {navigateWorkspace} from './support/workspace-navigation.mjs';
 import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {registeredBrowser} from '../../scripts/registered-browser.mjs';
 let browserOwner;
@@ -43,7 +44,7 @@ async function login(page, loginName) {
     await page.locator('input[autocomplete=username]').fill(loginName);
     await page.locator('input[autocomplete=current-password]').fill(password);
     await page.getByRole('button', { name: '登录', exact: true }).click();
-    await page.getByRole('button', { name: /概览/ }).waitFor();
+    await page.getByRole('button', { name: '工作台', exact:true }).waitFor();
 }
 async function cmd(page, method, path, data, expected = 200) {
     const me = await page.context().request.get(base + '/api/v1/me'); assert.equal(me.status(), 200);
@@ -79,7 +80,7 @@ try {
     }
     const recipient = await prisma.user.findUniqueOrThrow({ where: { loginName: 'h1_receiver' } });
     const recipientMember = await prisma.membership.findFirstOrThrow({ where: { userId: recipient.id } });
-    await sender.getByRole('button', { name: /人才档案/ }).click();
+    await sender.getByRole('button', { name: '人才库', exact:true }).click();
     await sender.getByRole('button', { name: /新增人才/ }).click();
     await sender.getByLabel('姓名 / 艺名 *').fill('H1浏览器私有人才');
     await sender.getByRole('checkbox', {name:'模特',exact:true}).check();
@@ -99,7 +100,7 @@ try {
     await sender.getByRole('button', { name: '发送交接邀请' }).click();
     const invited = await invitedResponse; assert.equal(invited.status(), 201); const handoffId = (await invited.json()).resourceId;
     assert.equal(await getStatus(receiver, '/people/' + personId), 404);
-    await receiver.getByRole('button', { name: /资料交接/ }).click();
+    await navigateWorkspace(receiver,'资料交接');
     await hrow(receiver, handoffId).getByText('待接收', { exact: true }).waitFor();
     assert.equal(await hrow(receiver, handoffId).getByText(person.displayName, { exact: true }).count(), 0);
     console.log('PASS H1 browser: private record offered; pending invitation exposes no profile');
@@ -140,7 +141,7 @@ try {
     assert.equal(changed.intro, 'H1接收人已整理基本简介'); assert.equal(changed.maintainerId, person.maintainerId);
     assert.equal(changed.sourceId, person.sourceId); assert.equal(changed.scopeId, person.scopeId);
     await sender.getByRole('button', { name: '关闭', exact: true }).last().click();
-    await sender.getByRole('button', { name: /资料交接/ }).click();
+    await navigateWorkspace(sender,'资料交接');
     await sender.getByRole('button', { name: '发出的交接', exact: true }).click();
     await hrow(sender, handoffId).getByRole('button', { name: '撤销交接' }).click();
     await hrow(sender, handoffId).getByText('已撤销', { exact: true }).waitFor();

@@ -45,7 +45,7 @@ async function login(page, loginName) {
     await page.locator('input[autocomplete=username]').fill(loginName);
     await page.locator('input[autocomplete=current-password]').fill(password);
     await page.getByRole('button', { name: '登录', exact: true }).click();
-    await page.getByRole('button', { name: /概览/ }).waitFor();
+    await page.getByRole('button', { name: '工作台', exact:true }).waitFor();
 }
 async function cmd(page, method, path, data, expected = 200) {
     const me = await page.context().request.get(base + '/api/v1/me'); assert.equal(me.status(), 200);
@@ -74,12 +74,13 @@ try {
  const owner=await browser.newPage(),editor=await browser.newPage();for(const p of[owner,editor])p.on('pageerror',e=>errors.push(e.message));
  await login(owner,'owner');const added=await cmd(owner,'POST','/memberships',{loginName:'m1_editor',displayName:'合成图片维护人',role:'EDITOR',extraPermissions:[]},201);
  await editor.goto(base+'/activate',{waitUntil:'networkidle'});await editor.getByLabel('激活凭证').fill(added.activationToken);await editor.getByLabel('设置密码（至少 12 个字符）').fill(password);await editor.getByRole('button',{name:'激活账号',exact:true}).click();await editor.getByText('账号已激活').waitFor();await login(editor,'m1_editor');
- await editor.getByRole('button',{name:/人才档案/}).click();await editor.getByRole('button',{name:/新增人才/}).click();
+ await editor.getByRole('button',{name:'人才库',exact:true}).click();await editor.getByRole('button',{name:/新增人才/}).click();
  await editor.getByLabel('姓名 / 艺名 *').fill('M1私有图片人才');await editor.getByRole('checkbox',{name:'模特',exact:true}).check();
  const sourceReadPath='**/api/v1/sources/*';let releaseSource,sourceEntered;const sourceGate=new Promise(resolve=>{releaseSource=resolve;}),sourceRequested=new Promise(resolve=>{sourceEntered=resolve;});
  const holdSource=async route=>{const response=await route.fetch();sourceEntered();await sourceGate;await route.fulfill({response});};await editor.route(sourceReadPath,holdSource);
  const createdResponse=editor.waitForResponse(r=>r.url().endsWith('/directory/talents')&&r.request().method()==='POST');await editor.getByRole('button',{name:'保存草稿',exact:true}).click();const created=await createdResponse;assert.equal(created.status(),201);
  const pid=(await created.json()).resourceId,person=await prisma.person.findUniqueOrThrow({where:{id:pid}});
+ await editor.locator('summary').filter({hasText:'高级管理：来源、依据、历史与权限'}).click();await editor.getByRole('button',{name:'打开高级管理',exact:true}).click();
  await sourceRequested;await editor.getByText('正在核对素材来源…',{exact:true}).waitFor();assert.equal(await editor.getByRole('heading',{name:'关联私有素材'}).count(),0,'source-backed upload must not render an unrelated required source selector while the profile source loads');releaseSource();
  await editor.getByRole('heading',{name:'关联私有素材'}).waitFor();await editor.unroute(sourceReadPath,holdSource);
  const image=await sharp({create:{width:80,height:40,channels:3,background:'#336699'}}).png().withMetadata({orientation:6}).toBuffer();
