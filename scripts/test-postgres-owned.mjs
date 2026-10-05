@@ -53,7 +53,24 @@ export async function ownedPostgres({ scope = new ResourceRun(), guard = preflig
   }
   scope.record.outcome='PASS';scope.save();return scope.record;
 }
+// Independent suites remain serial. A business failure may continue only after
+// verified cleanup; interruption, pressure refusal or unknown cleanup stops here.
+export async function ownedSequence(baselines,{suite='browser-flow',execute=ownedPostgres,createScope=()=>new ResourceRun()}={}) {
+  const failures=[];
+  for(const baseline of baselines) {
+    const scope=createScope();
+    try {
+      const record=await execute({scope,suite,baseline});
+      console.log(JSON.stringify({baseline,...record.remaining}));
+    } catch(error) {
+      if(scope.controller.signal.aborted||scope.record.status!=='ZERO_RESIDUE'||scope.record.outcome!=='FAIL')throw error;
+      failures.push(error);
+      console.error(`FAIL ${baseline}; verified zero residue, continuing the next independent suite.`);
+    }
+  }
+  if(failures.length)throw new AggregateError(failures,'Independent owned suites failed.');
+}
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  (async()=>{if(process.argv.includes('--flow-review-browser')){for(const baseline of ['admin-ux','business-flow','talent-maintenance','agent-ingestion','ai-business','maintenance-pagination']){const record=await ownedPostgres({suite:'browser-flow',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else if(process.argv.includes('--flow-review-db')){for(const baseline of ['identity','rejection']){const record=await ownedPostgres({suite:'flow-review-db',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else if(process.argv.includes('--admin-ux-browser')){for(const baseline of ['admin-ux','business-flow','talent-maintenance']){const record=await ownedPostgres({suite:'browser-flow',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else if(process.argv.includes('--admin-ux')){const record=await ownedPostgres({suite:'admin-ux'});console.log(JSON.stringify(record.remaining));}else if(process.argv.includes('--business-flow-browser')){for(const baseline of ['business-flow','talent-maintenance']){const record=await ownedPostgres({suite:'browser-flow',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else if(process.argv.includes('--business-flow')){for(const baseline of ['74','empty']){const record=await ownedPostgres({suite:'business-flow',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else console.log(JSON.stringify((await ownedPostgres()).remaining));})()
+  (async()=>{if(process.argv.includes('--flow-review-browser')){await ownedSequence(['admin-ux','business-flow','talent-maintenance','agent-ingestion','ai-business','maintenance-pagination']);}else if(process.argv.includes('--flow-review-db')){for(const baseline of ['identity','rejection']){const record=await ownedPostgres({suite:'flow-review-db',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else if(process.argv.includes('--admin-ux-browser')){for(const baseline of ['admin-ux','business-flow','talent-maintenance']){const record=await ownedPostgres({suite:'browser-flow',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else if(process.argv.includes('--admin-ux')){const record=await ownedPostgres({suite:'admin-ux'});console.log(JSON.stringify(record.remaining));}else if(process.argv.includes('--business-flow-browser')){for(const baseline of ['business-flow','talent-maintenance']){const record=await ownedPostgres({suite:'browser-flow',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else if(process.argv.includes('--business-flow')){for(const baseline of ['74','empty']){const record=await ownedPostgres({suite:'business-flow',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else console.log(JSON.stringify((await ownedPostgres()).remaining));})()
     .catch(() => { console.error('Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.'); process.exitCode=1; });
 }
