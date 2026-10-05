@@ -208,7 +208,7 @@ function ShortlistDetailPanel({ id, catalog, onChanged }: { id: string; catalog:
 
 export function ShortlistWorkbench({me,catalog}:{me:Me;catalog:CatalogItem[]}) {
  const fromPath=()=>location.pathname.startsWith('/workspace/shortlists/')?location.pathname.split('/')[3]??null:null;
- const [selectedListId,setSelectedListId]=useState<string|null>(fromPath),[finding,setFinding]=useState(false),[creating,setCreating]=useState(false),[tick,setTick]=useState(0),[page,setPage]=useState(1),[q,setQ]=useState(''),[search,setSearch]=useState(''),[personId,setPersonId]=useState<string|null>(null),[advanced,setAdvanced]=useState(false),[production,setProduction]=useState<Selection|null>(null);
+ const [selectedListId,setSelectedListId]=useState<string|null>(fromPath),[finding,setFinding]=useState(()=>location.pathname.endsWith('/find')),[creating,setCreating]=useState(false),[tick,setTick]=useState(0),[page,setPage]=useState(1),[q,setQ]=useState(''),[search,setSearch]=useState(''),[personId,setPersonId]=useState<string|null>(null),[advanced,setAdvanced]=useState(false),[production,setProduction]=useState<Selection|null>(null);
  useEffect(()=>{const pop=()=>{setSelectedListId(fromPath());setFinding(location.pathname.endsWith('/find'));setPersonId(null);};window.addEventListener('popstate',pop);return()=>window.removeEventListener('popstate',pop);},[]);
  const open=(id:string|null,find=false)=>{setSelectedListId(id);setFinding(find);navigateDirectoryPath('/workspace/shortlists'+(id?'/'+id+(find?'/find':''):''));};
  const lists=useLoad(()=>read<Page<ShortlistSummary>>('shortlist.list',{}, {page:String(page),pageSize:'20',q:search}),page+':'+search+':'+tick);

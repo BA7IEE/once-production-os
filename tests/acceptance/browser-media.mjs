@@ -94,7 +94,7 @@ try {
  assert.equal(await prisma.mediaUpload.count({where:{state:'QUEUED'}}),1);
  await editor.unroute(path,lose);
  const replayResponse=editor.waitForResponse(r=>r.url().endsWith('/complete')&&r.request().method()==='POST');
- await editor.getByRole('button',{name:'只读核对上传状态',exact:true}).click();
+ await editor.getByRole('button',{name:'原样重试此文件',exact:true}).click();
  const replay=await replayResponse;assert.equal(replay.status(),202);
  assert.equal((await replay.json()).replayed,true,'must observe the actual replay receipt, not only old queue state');
  await editor.locator('.upload-queue').getByText('等待检查',{exact:true}).waitFor();

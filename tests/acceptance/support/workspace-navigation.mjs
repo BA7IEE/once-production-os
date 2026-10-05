@@ -42,6 +42,34 @@ export async function openFilters(page,{reset=false}={}) {
   return form;
 }
 
+export async function openShortlist(page,title,{finding=false}={}) {
+  await navigateWorkspace(page,'候选清单');
+  const all=page.getByRole('button',{name:'← 所有清单',exact:true});
+  if(await all.isVisible())await all.click();
+  await page.getByLabel('查找清单',{exact:true}).fill(title);
+  await page.getByRole('button',{name:'查找',exact:true}).click();
+  await page.locator('button.shortlist-card').filter({has:page.getByRole('heading',{name:title,exact:true})}).click();
+  await page.locator('.sl-detail').getByRole('heading',{name:title,exact:true}).waitFor();
+  if(finding){await page.getByRole('button',{name:'继续找人',exact:true}).click();await page.locator('.talent-directory').waitFor();}
+}
+
+/** Walk the visible picker, including later pages; never inject a missing option. */
+export async function selectPaged(page,root,label,id) {
+  const picker=root.getByRole('group',{name:label+'选择器',exact:true}),select=picker.getByLabel(label,{exact:true});
+  await select.waitFor();
+  await page.waitForFunction(element=>!element.disabled,await select.elementHandle());
+  for(let current=1;!await select.locator('option[value="'+id+'"]').count();current++){
+    if(current>=100)throw new Error('Visible '+label+' picker exhausted its bounded pages');
+    const next=picker.getByRole('button',{name:'下一页',exact:true});
+    if(!await next.isEnabled())throw new Error('Expected '+label+' is unavailable in the visible picker');
+    const response=page.waitForResponse(r=>r.request().method()==='GET'&&r.url().includes('/api/v1/')&&new URL(r.url()).searchParams.get('page')===String(current+1));
+    await next.click();if((await response).status()!==200)throw new Error('Picker page failed');
+    await picker.locator('.pager small').filter({hasText:new RegExp('第 '+(current+1)+' 页$')}).waitFor();
+    await page.waitForFunction(element=>!element.disabled,await select.elementHandle());
+  }
+  await select.selectOption(id);
+}
+
 export async function beginMediaUpload(page,file) {
   const panel=page.getByRole('region',{name:'照片视频与附件',exact:true});
   const next=panel.getByRole('button',{name:'添加下一批文件',exact:true});

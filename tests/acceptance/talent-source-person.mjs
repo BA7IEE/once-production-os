@@ -1,3 +1,4 @@
+import {navigateWorkspace,selectPaged} from './support/workspace-navigation.mjs';
 import {independentCollectionImage} from './collection-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
@@ -13,7 +14,7 @@ export async function verifySourcePersonChoices({owner,prisma,cmd,writeUI,source
  const assetId=(await cmd(owner,'POST','/uploads',{sourceId,personId,expectedSourceRevision:origin.revision,fileName:'source-person-original.png',mime:'image/png',expectedBytes:mediaBytes.length,sha256:createHash('sha256').update(mediaBytes).digest('hex')},201)).resourceId;assert.equal((await binary(owner,assetId,mediaBytes)).status(),200);await queue(owner,assetId);await until(async()=>await prisma.mediaAsset.count({where:{id:assetId,state:'READY'}})===1);
  for(const id of [assetId,keptAssetId]){const c=await prisma.mediaCollection.findUniqueOrThrow({where:{id:collectionId}});await cmd(owner,'POST',`/td2/collections/${collectionId}/items`,{schemaVersion,expectedRevision:c.revision,expectedPersonRevision:(await person()).revision,assetId:id});}
  const listId=(await cmd(owner,'POST','/shortlists',{title:'合成整人删除关联候选',scopeId:(await person()).scopeId},201)).resourceId;await cmd(owner,'POST',`/shortlists/${listId}/items`,{expectedRevision:1,personId,personRoleId:roleId,personRoleRevision:1,workAssetIds:[],note:''});
- await owner.getByRole('button',{name:/概览/}).click();await owner.getByRole('button',{name:/删除影响评估/}).click();await owner.getByLabel('删除目标类型',{exact:true}).selectOption('SOURCE');await owner.getByLabel('删除目标',{exact:true}).selectOption(sourceId);
+ await navigateWorkspace(owner,'删除任务');await owner.getByLabel('删除目标类型',{exact:true}).selectOption('SOURCE');await selectPaged(owner,owner,'删除目标',sourceId);
  const preview=await writeUI(owner,'POST','/deletion-requests/preview',()=>owner.getByRole('button',{name:'预览影响',exact:true}).click());assert.equal(preview.complete,true,JSON.stringify(preview.unresolved));assert.ok(preview.items.some(i=>i.detailCode.startsWith('TD2_SOURCE_PERSON:')));assert.ok(preview.items.some(i=>i.resourceKind==='upload'&&i.resourceId===assetId&&i.dependencyKind==='SOURCE_UPLOAD'&&i.proposedAction==='ERASE_PAYLOAD'));
  await owner.getByLabel('申请原因',{exact:true}).fill('合成明确删除来源、人物、全部专业资料和自己的原件，其他来源原件保留');const requestId=(await writeUI(owner,'POST','/deletion-requests',()=>owner.getByRole('button',{name:'创建 DRAFT 申请',exact:true}).click(),201)).resourceId;
  const panel=owner.locator('.deletion-request-detail');await panel.getByText(requestId,{exact:true}).waitFor();owner.once('dialog',d=>void d.accept());await writeUI(owner,'POST',`/deletion-requests/${requestId}/block`,()=>panel.getByRole('button',{name:'阻断正常使用',exact:true}).click());

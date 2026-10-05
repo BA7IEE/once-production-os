@@ -1,11 +1,12 @@
+import {navigateWorkspace,selectPaged} from './support/workspace-navigation.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 export async function verifyIdentityOriginExport({owner,prisma,writeUI,until,retained}){
  const {personId,origin,basis}=retained,fields=['姓名 / 展示名','别名','简介','身份字段的来源证据与原核验记录'],sourceFields=['来源标题','来源类型','提供方说明','内部依据类型','依据说明','有效起点','有效截止','来源状态'];
- await owner.getByRole('button',{name:/内部导出/}).click();
+ await navigateWorkspace(owner,'内部导出');
  const permits=[],expiry=new Date(Date.now()+3600000),pad=n=>String(n).padStart(2,'0'),date=`${expiry.getFullYear()}-${pad(expiry.getMonth()+1)}-${pad(expiry.getDate())}T${pad(expiry.getHours())}:${pad(expiry.getMinutes())}`;
  for(const [kind,id,labels] of [['PERSON',personId,[...fields,'档案状态']],['SOURCE',basis.id,[...sourceFields,...fields]]]){
-  await owner.getByRole('button',{name:'＋ 批准导出用途',exact:true}).click();const form=owner.getByRole('dialog',{name:'批准内部导出用途',exact:true});await form.waitFor();await form.getByLabel('对象类型',{exact:true}).selectOption(kind);await form.getByLabel('批准对象',{exact:true}).selectOption(id);
+  await owner.getByRole('button',{name:'＋ 批准导出用途',exact:true}).click();const form=owner.getByRole('dialog',{name:'批准内部导出用途',exact:true});await form.waitFor();await form.getByLabel('对象类型',{exact:true}).selectOption(kind);await selectPaged(owner,form,'批准对象',id);
   if(kind==='PERSON'){await form.getByText(/最初来源已删除。请选择当前独立身份依据/).waitFor();await form.getByLabel('身份保留依据',{exact:true}).selectOption(basis.id);}else assert.equal(await form.getByLabel('批准对象',{exact:true}).locator(`option[value="${origin.id}"]`).count(),0);
   for(const label of labels)await form.getByLabel(label,{exact:true}).check();await form.getByLabel('许可截止时间',{exact:true}).fill(date);await form.getByLabel('审批依据',{exact:true}).fill('合成许可原始来源最小编号与当前独立身份依据，保留真实核验归属');permits.push((await writeUI(owner,'POST','/use-permissions',()=>form.getByRole('button',{name:'批准用途',exact:true}).click(),201)).resourceId);
  }

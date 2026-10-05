@@ -1,4 +1,4 @@
-import {navigateWorkspace,openAdvancedPerson,openFilters,chooseValues,retryOriginal} from './support/workspace-navigation.mjs';
+import {navigateWorkspace,openAdvancedPerson,openFilters,chooseValues,retryOriginal,openShortlist,selectPaged} from './support/workspace-navigation.mjs';
 import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {registeredBrowser} from '../../scripts/registered-browser.mjs';
 let browserOwner;
@@ -88,7 +88,8 @@ try {
  const source=title=>({title,type:'MANUAL',providerClaim:'WP1合成记录',basisMode:'INTERNAL_USE',basisDescription:'隔离自动化测试资料，不代表真实授权',validUntil:new Date(Date.now()+86400000*7).toISOString()});
  const ws=(await cmd(owner,'POST','/sources',source('WP1作品来源'),201)).resourceId;
  const ps=(await cmd(owner,'POST','/sources',source('WP1项目来源'),201)).resourceId;
- const personReceipt=await cmd(owner,'POST','/people',{displayName:'WP1摄影剪辑人员',roles:['photographer','editor'],inlineSource:source('WP1人员来源')},201),pid=personReceipt.resourceId;
+ const personSource=(await cmd(owner,'POST','/sources',source('WP1人员来源'),201)).resourceId;
+ const personReceipt=await cmd(owner,'POST','/directory/talents',{schemaVersion:'once-talent-experience-v1',displayName:'WP1摄影剪辑人员',kind:'TALENT',roleCodes:['photographer','editor'],sourceId:personSource,sourceRevision:1},201),pid=personReceipt.resourceId;
  const imagePersonId=(await cmd(owner,'POST','/people',{displayName:'WP1图片来源人物',roles:['model'],inlineSource:source('WP1独立图片来源')},201)).resourceId;
  const imagePerson=await prisma.person.findUniqueOrThrow({where:{id:imagePersonId}});
  worker=spawn('node',['dist/apps/api/src/worker-main.js'],{env,stdio:['ignore','pipe','pipe']});worker.stdout.resume();worker.stderr.resume();
@@ -199,17 +200,17 @@ try {
  await f.getByLabel('清单标题',{exact:true}).fill('WP1内部候选清单');
  await f.getByLabel('需求简述',{exact:true}).fill('合成内部选人需求，不是客户确认或预订');const listScope=await prisma.accessScope.findFirstOrThrow({where:{mode:'WORKSPACE'}});await f.getByLabel('协作范围',{exact:true}).selectOption(listScope.id);
  const shortlistCreate=await writeUI(owner,'POST','/shortlists',()=>f.getByRole('button',{name:'建立清单',exact:true}).click(),201),shortlistId=shortlistCreate.resourceId,slpath='/shortlists/'+shortlistId;
- await owner.getByRole('heading',{name:'WP1内部候选清单',exact:true}).waitFor();
- await owner.getByLabel('搜索姓名或别名',{exact:true}).fill('WP1摄影剪辑人员');const candidateFilter=await openFilters(owner);await candidateFilter.getByLabel('档案状态',{exact:true}).selectOption('DRAFT');await chooseValues(candidateFilter,'作品行业',['家具']);await chooseValues(candidateFilter,'作品类型',['产品摄影']);await candidateFilter.getByRole('button',{name:'应用筛选',exact:true}).click();
+ await owner.locator('.sl-detail').getByRole('heading',{name:'WP1内部候选清单',exact:true}).waitFor();
+ await owner.getByRole('button',{name:'继续找人',exact:true}).click();await owner.getByLabel('搜索姓名或别名',{exact:true}).fill('WP1摄影剪辑人员');const candidateFilter=await openFilters(owner);await candidateFilter.getByLabel('档案状态',{exact:true}).selectOption('DRAFT');await chooseValues(candidateFilter,'作品行业',['家具']);await chooseValues(candidateFilter,'作品类型',['产品摄影']);await candidateFilter.getByRole('button',{name:'应用筛选',exact:true}).click();
  const candidateCard=owner.locator('article.directory-card').filter({has:owner.getByRole('heading',{name:'WP1摄影剪辑人员',exact:true})});
- await candidateCard.getByRole('button',{name:'加入当前清单',exact:true}).click();
- f=await dialogReady(owner,'加入候选 · WP1摄影剪辑人员');
+ await candidateCard.locator('button.person-card').click();await openAdvancedPerson(owner);await owner.getByRole('button',{name:'加入候选清单',exact:true}).click();await owner.getByRole('dialog',{name:'选择候选清单',exact:true}).getByRole('button',{name:'WP1内部候选清单',exact:true}).click();
+ f=await dialogReady(owner,'加入候选 · WP1摄影剪辑人员');const photographer=await prisma.personRole.findFirstOrThrow({where:{personId:pid,roleCode:'photographer'}});await f.getByLabel('本次入选职业',{exact:true}).selectOption(photographer.id);
  await f.getByLabel('关联署名作品（可选）',{exact:true}).selectOption(wid);
  await f.getByAltText(/WP1-image-/).first().waitFor();
  await f.getByAltText(/WP1-image-/).first().locator('..').click();
  await f.getByLabel('内部协作备注',{exact:true}).fill('PRIVATE_BROWSER_SHORTLIST_NOTE');
- await writeUI(owner,'POST',slpath+'/items',()=>f.getByRole('button',{name:'加入当前清单',exact:true}).click());
- await owner.getByRole('heading',{name:'WP1内部候选清单',exact:true}).waitFor();
+ await writeUI(owner,'POST',slpath+'/items',()=>f.getByRole('button',{name:'加入当前清单',exact:true}).click());await owner.getByRole('button',{name:'返回人物资料',exact:true}).click();await owner.getByRole('button',{name:'← 返回目录',exact:true}).click();await owner.getByRole('button',{name:'查看清单中的人才',exact:true}).click();
+ await owner.locator('.sl-detail').getByRole('heading',{name:'WP1内部候选清单',exact:true}).waitFor();
  await owner.getByText('WP1摄影剪辑人员',{exact:true}).last().waitFor();
  await owner.getByText('PRIVATE_BROWSER_SHORTLIST_NOTE',{exact:true}).waitFor();
  assert.equal(await prisma.shortlistItem.count({where:{shortlistId}}),1);
@@ -242,8 +243,8 @@ try {
  d=await reloadDetail(owner,'WP1外部家具作品');await until(async()=>await d.locator('img').count()===0);assert.equal(await d.getByText('该素材当前不可用',{exact:true}).count(),2);
  await d.getByRole('button',{name:'返回资料',exact:true}).click();
  await owner.getByRole('button',{name:'← 返回目录',exact:true}).click();
- await navigateWorkspace(owner,'候选清单');
- await owner.getByRole('heading',{name:'WP1内部候选清单',exact:true}).waitFor();
+ await openShortlist(owner,'WP1内部候选清单');
+ await owner.locator('.sl-detail').getByRole('heading',{name:'WP1内部候选清单',exact:true}).waitFor();
  const shortlistPanel=owner.locator('.sl-detail');
  await shortlistPanel.getByText('该条目当前不可用',{exact:true}).waitFor();
  assert.equal(await shortlistPanel.getByText('PRIVATE_BROWSER_SHORTLIST_NOTE',{exact:true}).count(),0);
@@ -493,7 +494,7 @@ try {
  console.log('PASS TD2 browser: explicit conflict selection and retained history; per-record confirmation gates professional merge; stable role/language/collection/item IDs and original media survive');
 
  // The human role review is a real UI action; a lost response must replay the original request.
- await navigateWorkspace(owner,'候选清单');await owner.locator('.sl-list-bar').getByRole('button',{name:/TD2职业待核实候选/}).click();
+ await openShortlist(owner,'TD2职业待核实候选');
  await owner.getByRole('button',{name:'核实候选职业',exact:true}).click();const roleDialog=owner.getByRole('dialog',{name:'核实候选职业',exact:true});
  await roleDialog.getByLabel('本次入选职业',{exact:true}).selectOption(tdRole);await roleDialog.getByLabel('我已核对本次候选需求与职业',{exact:true}).check();
  const rolePath=`/td2/shortlists/${tdUnknownList}/role`,rolePattern='**/api/v1'+rolePath,roleRequests=[];
@@ -538,7 +539,7 @@ try {
  for(const [kind,id,labels] of [['PERSON',tdCanonical,['姓名 / 展示名','档案状态',...transferLabels]],['SOURCE',tdSource,[...sourceLabels,...transferLabels,'姓名 / 展示名','图片原件及预览（单独批准）']],['SOURCE',transferSource,[...sourceLabels,transferLabels[2],transferLabels[4],transferLabels[5],transferLabels[6],transferLabels[7]]],['PERSON',transferAgent,['姓名 / 展示名','档案状态',...transferLabels]],['SOURCE',transferEvidenceSource,[...sourceLabels,transferLabels[2],transferLabels[6],transferLabels[12],'姓名 / 展示名']],['ASSET',tdUpload.resourceId,['图片原件及预览（单独批准）']]]){
   await owner.getByRole('button',{name:'＋ 批准导出用途',exact:true}).click();
   f=await dialogReady(owner,'批准内部导出用途');
-  await f.getByLabel('对象类型',{exact:true}).selectOption(kind);await f.getByLabel('批准对象',{exact:true}).selectOption(id);
+  await f.getByLabel('对象类型',{exact:true}).selectOption(kind);await selectPaged(owner,f,'批准对象',id);
   for(const label of labels) await f.getByLabel(label,{exact:true}).check();
   await f.getByLabel('许可截止时间',{exact:true}).fill(expiry.getFullYear()+'-'+pad(expiry.getMonth()+1)+'-'+pad(expiry.getDate())+'T'+pad(expiry.getHours())+':'+pad(expiry.getMinutes()));
   await f.getByLabel('审批依据',{exact:true}).fill('合成验收：所选人物和实际来源的专业资料用于内部重建');
