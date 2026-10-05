@@ -1,3 +1,6 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
+import {registeredBrowser} from '../../scripts/registered-browser.mjs';
+let browserOwner;
 /** Real browser + API + Worker + PostgreSQL acceptance on a fresh, disposable loopback DB.
  * The SQL trigger is installed only in this empty test database and is removed after each fault.
  * No production entrypoint or business table is reset or deleted.
@@ -22,7 +25,8 @@ assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname));
 assert.match(url.pathname, /^\/once_test_[a-z0-9_]+$/);
 assert.ok(url.username && url.password && !url.search && !url.hash);
 
-const tmp = mkdtempSync(join(tmpdir(), 'once-browser-resume-'));
+const ownedTemp=registeredTemp();
+const tmp = ownedTemp.path;
 const password = 'Synthetic-' + randomBytes(20).toString('base64url') + '!';
 const put = (name, value) => { const p = join(tmp, name); writeFileSync(p, value, { mode: 0o600 }); return p; };
 const contact = put('contact.hex', randomBytes(32).toString('hex'));
@@ -172,7 +176,7 @@ try {
     run('node', ['dist/apps/api/src/bootstrap.js']);
     apiProcess = launch('node', ['dist/apps/api/src/main.js']);
     await eventually(async () => (await fetch(base + '/health/ready')).status === 200, 'API readiness');
-    browser = await chromium.launch({ headless: true, ...(process.env.CHROME_EXECUTABLE ? { executablePath: process.env.CHROME_EXECUTABLE } : {}) });
+    browserOwner=await registeredBrowser(chromium,{ headless: true, ...(process.env.CHROME_EXECUTABLE ? { executablePath: process.env.CHROME_EXECUTABLE } : {}) });browser=browserOwner.browser;
     const owner = await browser.newPage({ viewport: { width: 1280, height: 800 } });
     const pageErrors = [];
     owner.on('pageerror', error => pageErrors.push(error.message));
@@ -284,9 +288,9 @@ try {
     console.log('PASS browser/API: revoked session gets 401; fresh viewer gets 403; checkpoints and receipts unchanged');
 } finally {
     await stop(workerProcess);
-    await browser?.close();
+    await browserOwner?.close();
     await stop(apiProcess);
     await removeSecondRowFault();
     await prisma.$disconnect();
-    rmSync(tmp, { recursive: true, force: true });
+    ownedTemp.cleanup();
 }

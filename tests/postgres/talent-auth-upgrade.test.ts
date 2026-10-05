@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
@@ -12,7 +13,7 @@ import {digest} from '../../packages/core/src/json.ts';
 import {FakeClock} from '../support/fixtures.ts';
 import type {Actor} from '../../packages/core/src/model.ts';
 test('PR02a populated migration 55 preserves internal/machine receipts and system attribution',async()=>{
- assert.equal(process.env.ALLOW_TALENT_AUTH_DB_TESTS,'yes');const raw=process.env.DATABASE_URL_TALENT_AUTH_UPGRADE_TEST;assert.ok(raw);const u=new URL(raw);assert.ok(['localhost','127.0.0.1'].includes(u.hostname));assert.match(u.pathname,/^\/once_test_[a-z0-9_]+$/);assert.ok(u.username&&u.password&&!u.search&&!u.hash);const db=new PrismaClient({datasources:{db:{url:raw}},log:[]}),root=mkdtempSync(join(tmpdir(),'once-auth-upgrade-'));try{
+ assert.equal(process.env.ALLOW_TALENT_AUTH_DB_TESTS,'yes');const raw=process.env.DATABASE_URL_TALENT_AUTH_UPGRADE_TEST;assert.ok(raw);const u=new URL(raw);assert.ok(['localhost','127.0.0.1'].includes(u.hostname));assert.match(u.pathname,/^\/once_test_[a-z0-9_]+$/);assert.ok(u.username&&u.password&&!u.search&&!u.hash);const db=new PrismaClient({datasources:{db:{url:raw}},log:[]}),root=registeredTemp().path;try{
  assert.equal((await db.$queryRawUnsafe<any[]>("SELECT tablename FROM pg_tables WHERE schemaname='public'")).length,0);const migrations=resolve('prisma/migrations'),names=readdirSync(migrations).filter(x=>/^\d/.test(x)).sort();const prior=names.filter(x=>x<'202610010001');assert.equal(prior.length,55);copyFileSync('prisma/schema.prisma',join(root,'schema.prisma'));mkdirSync(join(root,'migrations'));copyFileSync(join(migrations,'migration_lock.toml'),join(root,'migrations/migration_lock.toml'));for(const name of prior){mkdirSync(join(root,'migrations',name));copyFileSync(join(migrations,name,'migration.sql'),join(root,'migrations',name,'migration.sql'));}
  const deploy=(schema:string)=>{const r=spawnSync('pnpm',['exec','prisma','migrate','deploy','--schema',schema],{env:{...process.env,DATABASE_URL:raw},encoding:'utf8',timeout:120000});assert.equal(r.status,0,r.stderr);};deploy(join(root,'schema.prisma'));
  const workspaceId=randomUUID(),userId=randomUUID(),membershipId=randomUUID(),scopeId=randomUUID(),machineId=randomUUID(),clock=new FakeClock(),now=clock.now().toISOString(),base=(id=randomUUID())=>({id,workspaceId,createdAt:now,updatedAt:now,revision:1});

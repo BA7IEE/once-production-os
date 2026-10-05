@@ -15,26 +15,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Browser jobs include slow Ubuntu/Chromium downloads; preserve every test step.
+  # Browser suites retain their business assertions; shared type/core checks run in flow-review.
   browser-resume:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: once_ci
-          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-          POSTGRES_DB: once_test_browser
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U once_ci -d once_test_browser"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 20
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify committed delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
@@ -42,41 +32,32 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
-      - name: Set isolated database target
-        env:
-          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-        run: |
-          echo "::add-mask::$CI_DB_PASSWORD"
-          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_browser" >> "$GITHUB_ENV"
-          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_browser" >> "$GITHUB_ENV"
-          echo "ALLOW_BROWSER_TESTS=yes" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - run: pnpm verify && pnpm typecheck:transport
+      - run: docker pull postgres:16-bookworm
+      - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
       - run: node --test tests/acceptance/checkpoint.test.mjs
-      - run: pnpm verify:browser
+      - run: pnpm test:postgres:owned --browser-suite resume
 
-  # A separate runner/service/database: never reuse the browser suite's populated DB.
+      - name: Preserve owned resource evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: owned-browser-resume-${{ github.event.pull_request.head.sha || github.sha }}
+          path: data/local-resource-runs/**/*.json
+          if-no-files-found: error
+
+  # A separate owned database; no browser suite shares its populated target.
   postgres-contract:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: once_ci
-          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-          POSTGRES_DB: once_test_contract
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U once_ci -d once_test_contract"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 20
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify committed delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
@@ -84,42 +65,28 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
-      - name: Set independent contract database target
-        env:
-          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-        run: |
-          echo "::add-mask::$CI_DB_PASSWORD"
-          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_contract" >> "$GITHUB_ENV"
-          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_contract" >> "$GITHUB_ENV"
-          echo "ALLOW_DB_TESTS=yes" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - name: Apply migrations only to this fresh contract database
-        run: pnpm db:deploy
-      - name: PostgreSQL atomicity, constraints, leases and resume
-        run: pnpm verify:postgres
-      - name: T29 isolated JSON rebuild CLI against fresh PostgreSQL
-        run: node --experimental-strip-types tests/postgres/rebuild-cli.mjs
+      - run: docker pull postgres:16-bookworm
+      - name: PostgreSQL contracts, migrations and real rebuild CLI
+        run: pnpm test:postgres:owned --full-ci
+      - name: Preserve owned resource evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: owned-postgres-contract-${{ github.event.pull_request.head.sha || github.sha }}
+          path: data/local-resource-runs/**/*.json
+          if-no-files-found: error
 
   browser-handoff:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: once_ci
-          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-          POSTGRES_DB: once_test_handoff
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U once_ci -d once_test_handoff"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 20
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify committed delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
@@ -127,40 +94,29 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
-      - name: Set isolated database target
-        env:
-          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-        run: |
-          echo "::add-mask::$CI_DB_PASSWORD"
-          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_handoff" >> "$GITHUB_ENV"
-          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_handoff" >> "$GITHUB_ENV"
-          echo "ALLOW_BROWSER_TESTS=yes" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - run: pnpm verify && pnpm typecheck:transport
+      - run: docker pull postgres:16-bookworm
+      - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
-      - run: node tests/acceptance/browser-handoff.mjs
-
+      - run: pnpm test:postgres:owned --browser-suite handoff
+      - name: Preserve owned resource evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: owned-browser-handoff-${{ github.event.pull_request.head.sha || github.sha }}
+          path: data/local-resource-runs/**/*.json
+          if-no-files-found: error
 
   browser-media:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: once_ci
-          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-          POSTGRES_DB: once_test_media
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U once_ci -d once_test_media"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 20
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify committed delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
@@ -168,42 +124,31 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
-      - name: Set isolated database target
-        env:
-          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-        run: |
-          echo "::add-mask::$CI_DB_PASSWORD"
-          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_media" >> "$GITHUB_ENV"
-          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_media" >> "$GITHUB_ENV"
-          echo "ALLOW_BROWSER_TESTS=yes" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - run: pnpm verify && pnpm typecheck:transport
+      - run: docker pull postgres:16-bookworm
+      - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: node --experimental-strip-types --test tests/media/local-images.test.mjs
-      - run: node tests/acceptance/browser-media.mjs
-
+      - run: pnpm test:postgres:owned --browser-suite media
+      - name: Preserve owned resource evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: owned-browser-media-${{ github.event.pull_request.head.sha || github.sha }}
+          path: data/local-resource-runs/**/*.json
+          if-no-files-found: error
 
   browser-production:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: once_ci
-          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-          POSTGRES_DB: once_test_production
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U once_ci -d once_test_production"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 20
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify committed delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
@@ -211,42 +156,31 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
-      - name: Set isolated database target
-        env:
-          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-        run: |
-          echo "::add-mask::$CI_DB_PASSWORD"
-          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_production" >> "$GITHUB_ENV"
-          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_production" >> "$GITHUB_ENV"
-          echo "ALLOW_BROWSER_TESTS=yes" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - run: pnpm verify && pnpm typecheck:transport
+      - run: docker pull postgres:16-bookworm
+      - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
       - name: Native form labels and descriptions in a real browser
         run: node --experimental-strip-types --test tests/ui/field-accessibility.test.mjs
-      - run: node tests/acceptance/browser-production.mjs
-
+      - run: pnpm test:postgres:owned --browser-suite production
+      - name: Preserve owned resource evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: owned-browser-production-${{ github.event.pull_request.head.sha || github.sha }}
+          path: data/local-resource-runs/**/*.json
+          if-no-files-found: error
 
   browser-talent-intake:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: once_ci
-          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-          POSTGRES_DB: once_test_talent_intake
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U once_ci -d once_test_talent_intake"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 20
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify committed delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
@@ -254,41 +188,30 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
-      - name: Set isolated database target
-        env:
-          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-        run: |
-          echo "::add-mask::$CI_DB_PASSWORD"
-          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_talent_intake" >> "$GITHUB_ENV"
-          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_talent_intake" >> "$GITHUB_ENV"
-          echo "ALLOW_BROWSER_TESTS=yes" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - run: pnpm verify && pnpm typecheck:transport
+      - run: docker pull postgres:16-bookworm
+      - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
       - run: node --test tests/acceptance/talent-experience-surface-policy.test.mjs
-      - run: pnpm verify:talent-intake
-
+      - run: pnpm test:postgres:owned --browser-suite talent-intake
+      - name: Preserve owned resource evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: owned-browser-talent-intake-${{ github.event.pull_request.head.sha || github.sha }}
+          path: data/local-resource-runs/**/*.json
+          if-no-files-found: error
 
   browser-talent-directory:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: once_ci
-          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-          POSTGRES_DB: once_test_talent_intake
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U once_ci -d once_test_talent_intake"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 20
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify committed delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
@@ -296,41 +219,30 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
-      - name: Set isolated database target
-        env:
-          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-        run: |
-          echo "::add-mask::$CI_DB_PASSWORD"
-          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_talent_intake" >> "$GITHUB_ENV"
-          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_talent_intake" >> "$GITHUB_ENV"
-          echo "ALLOW_BROWSER_TESTS=yes" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - run: pnpm verify && pnpm typecheck:transport
+      - run: docker pull postgres:16-bookworm
+      - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
       - run: node --test tests/acceptance/talent-experience-surface-policy.test.mjs
-      - run: node tests/acceptance/browser-talent-directory.mjs
-
+      - run: pnpm test:postgres:owned --browser-suite talent-directory
+      - name: Preserve owned resource evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: owned-browser-talent-directory-${{ github.event.pull_request.head.sha || github.sha }}
+          path: data/local-resource-runs/**/*.json
+          if-no-files-found: error
 
   browser-talent-auth:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: once_ci
-          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-          POSTGRES_DB: once_test_talent_auth
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U once_ci -d once_test_talent_auth"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 20
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify committed delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
@@ -338,41 +250,30 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
-      - name: Set isolated database target
-        env:
-          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-        run: |
-          echo "::add-mask::$CI_DB_PASSWORD"
-          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_talent_auth" >> "$GITHUB_ENV"
-          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_talent_auth" >> "$GITHUB_ENV"
-          echo "ALLOW_BROWSER_TESTS=yes" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - run: pnpm verify && pnpm typecheck:transport
+      - run: docker pull postgres:16-bookworm
+      - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
       - run: node --test tests/acceptance/talent-experience-surface-policy.test.mjs
-      - run: node tests/acceptance/browser-talent-auth.mjs
-
+      - run: pnpm test:postgres:owned --browser-suite talent-auth
+      - name: Preserve owned resource evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: owned-browser-talent-auth-${{ github.event.pull_request.head.sha || github.sha }}
+          path: data/local-resource-runs/**/*.json
+          if-no-files-found: error
 
   browser-talent-maintenance:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: once_ci
-          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-          POSTGRES_DB: once_test_talent_maintenance
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U once_ci -d once_test_talent_maintenance"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 20
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify committed delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
@@ -380,40 +281,30 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
-      - name: Set isolated database target
-        env:
-          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-        run: |
-          echo "::add-mask::$CI_DB_PASSWORD"
-          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_talent_maintenance" >> "$GITHUB_ENV"
-          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_talent_maintenance" >> "$GITHUB_ENV"
-          echo "ALLOW_BROWSER_TESTS=yes" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - run: pnpm verify && pnpm typecheck:transport
+      - run: docker pull postgres:16-bookworm
+      - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
       - run: node --test tests/acceptance/talent-experience-surface-policy.test.mjs
-      - run: node tests/acceptance/browser-talent-maintenance.mjs
+      - run: pnpm test:postgres:owned --browser-suite talent-maintenance
+      - name: Preserve owned resource evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: owned-browser-talent-maintenance-${{ github.event.pull_request.head.sha || github.sha }}
+          path: data/local-resource-runs/**/*.json
+          if-no-files-found: error
 
   browser-media-staging:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: once_ci
-          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-          POSTGRES_DB: once_test_media_staging
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U once_ci -d once_test_media_staging"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 20
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify committed delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
@@ -421,42 +312,31 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
-      - name: Set isolated database target
-        env:
-          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-        run: |
-          echo "::add-mask::$CI_DB_PASSWORD"
-          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_media_staging" >> "$GITHUB_ENV"
-          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_media_staging" >> "$GITHUB_ENV"
-          echo "ALLOW_BROWSER_TESTS=yes" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - run: pnpm verify && pnpm typecheck:transport
+      - run: docker pull postgres:16-bookworm
+      - run: pnpm build && pnpm typecheck:transport
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: pnpm exec playwright install --with-deps chromium
       - run: node --test tests/acceptance/talent-experience-surface-policy.test.mjs
-      - run: node tests/acceptance/browser-media-staging.mjs
-
+      - run: pnpm test:postgres:owned --browser-suite media-staging
+      - name: Preserve owned resource evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: owned-browser-media-staging-${{ github.event.pull_request.head.sha || github.sha }}
+          path: data/local-resource-runs/**/*.json
+          if-no-files-found: error
 
   browser-media-collections:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: once_ci
-          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-          POSTGRES_DB: once_test_media_collections
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U once_ci -d once_test_media_collections"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 20
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify committed delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
@@ -464,42 +344,31 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
-      - name: Set isolated database target
-        env:
-          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-        run: |
-          echo "::add-mask::$CI_DB_PASSWORD"
-          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_media_collections" >> "$GITHUB_ENV"
-          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_media_collections" >> "$GITHUB_ENV"
-          echo "ALLOW_BROWSER_TESTS=yes" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - run: pnpm verify && pnpm typecheck:transport
+      - run: docker pull postgres:16-bookworm
+      - run: pnpm build && pnpm typecheck:transport
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: pnpm exec playwright install --with-deps chromium
       - run: node --test tests/acceptance/talent-experience-surface-policy.test.mjs
-      - run: node tests/acceptance/browser-media-collections.mjs
-
+      - run: pnpm test:postgres:owned --browser-suite media-collections
+      - name: Preserve owned resource evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: owned-browser-media-collections-${{ github.event.pull_request.head.sha || github.sha }}
+          path: data/local-resource-runs/**/*.json
+          if-no-files-found: error
 
   browser-work-cases:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: once_ci
-          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-          POSTGRES_DB: once_test_work_cases
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U once_ci -d once_test_work_cases"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 20
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify committed delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
@@ -507,43 +376,34 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
-      - name: Set isolated database target
-        env:
-          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-        run: |
-          echo "::add-mask::$CI_DB_PASSWORD"
-          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_work_cases" >> "$GITHUB_ENV"
-          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_work_cases" >> "$GITHUB_ENV"
-          echo "ALLOW_BROWSER_TESTS=yes" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - run: pnpm verify && pnpm typecheck:transport
+      - run: docker pull postgres:16-bookworm
+      - run: pnpm build && pnpm typecheck:transport
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: pnpm exec playwright install --with-deps chromium
       - run: node --test tests/acceptance/talent-experience-surface-policy.test.mjs
-      - run: node tests/acceptance/browser-work-cases.mjs
+      - run: pnpm test:postgres:owned --browser-suite work-cases
 
 
   # First PR04A run spent 22 minutes installing ffmpeg; preserve all browser assertions.
+      - name: Preserve owned resource evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: owned-browser-work-cases-${{ github.event.pull_request.head.sha || github.sha }}
+          path: data/local-resource-runs/**/*.json
+          if-no-files-found: error
+
   browser-media-purge:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: once_ci
-          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-          POSTGRES_DB: once_test_media_purge
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U once_ci -d once_test_media_purge"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 20
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify committed delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
@@ -551,42 +411,31 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
-      - name: Set isolated database target
-        env:
-          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-        run: |
-          echo "::add-mask::$CI_DB_PASSWORD"
-          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_media_purge" >> "$GITHUB_ENV"
-          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_media_purge" >> "$GITHUB_ENV"
-          echo "ALLOW_BROWSER_TESTS=yes" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - run: pnpm verify && pnpm typecheck:transport
+      - run: docker pull postgres:16-bookworm
+      - run: pnpm build && pnpm typecheck:transport
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: pnpm exec playwright install --with-deps chromium
       - run: node --test tests/acceptance/talent-experience-surface-policy.test.mjs
-      - run: node tests/acceptance/browser-media-purge.mjs
-
+      - run: pnpm test:postgres:owned --browser-suite media-purge
+      - name: Preserve owned resource evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: owned-browser-media-purge-${{ github.event.pull_request.head.sha || github.sha }}
+          path: data/local-resource-runs/**/*.json
+          if-no-files-found: error
 
   browser-agent-ingestion:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: once_ci
-          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-          POSTGRES_DB: once_test_agent_ingestion
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U once_ci -d once_test_agent_ingestion"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 20
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify committed delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
@@ -594,47 +443,37 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
-      - name: Set isolated database target
-        env:
-          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-        run: |
-          echo "::add-mask::$CI_DB_PASSWORD"
-          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_agent_ingestion" >> "$GITHUB_ENV"
-          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_agent_ingestion" >> "$GITHUB_ENV"
-          echo "ALLOW_BROWSER_TESTS=yes" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - run: pnpm verify && pnpm typecheck:transport
+      - run: docker pull postgres:16-bookworm
+      - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
       - run: node --test tests/acceptance/talent-experience-surface-policy.test.mjs
-      - run: node tests/acceptance/browser-agent-ingestion.mjs
+      - run: pnpm test:postgres:owned --browser-suite agent-ingestion
 
       - name: Preserve real ingestion browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: agent-ingestion-pr04a-${{ github.sha }}
+          name: agent-ingestion-pr04a-${{ github.event.pull_request.head.sha || github.sha }}
           path: artifacts/agent-ingestion-pr04a
+      - name: Preserve owned resource evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: owned-browser-agent-ingestion-${{ github.event.pull_request.head.sha || github.sha }}
+          path: data/local-resource-runs/**/*.json
+          if-no-files-found: error
 
   browser-agent-media:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: once_ci
-          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-          POSTGRES_DB: once_test_agent_media
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U once_ci -d once_test_agent_media"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 20
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify committed delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
@@ -642,48 +481,38 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
-      - name: Set isolated database target
-        env:
-          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-        run: |
-          echo "::add-mask::$CI_DB_PASSWORD"
-          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_agent_media" >> "$GITHUB_ENV"
-          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_agent_media" >> "$GITHUB_ENV"
-          echo "ALLOW_BROWSER_TESTS=yes" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - run: pnpm verify && pnpm typecheck:transport
+      - run: docker pull postgres:16-bookworm
+      - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
       - run: node --test tests/acceptance/talent-experience-surface-policy.test.mjs
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
-      - run: node tests/acceptance/browser-agent-media.mjs
+      - run: pnpm test:postgres:owned --browser-suite agent-media
 
       - name: Preserve real ingestion browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: agent-media-pr04b-${{ github.sha }}
+          name: agent-media-pr04b-${{ github.event.pull_request.head.sha || github.sha }}
           path: artifacts/agent-media-pr04b
+      - name: Preserve owned resource evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: owned-browser-agent-media-${{ github.event.pull_request.head.sha || github.sha }}
+          path: data/local-resource-runs/**/*.json
+          if-no-files-found: error
 
   browser-agent-structures:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: once_ci
-          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-          POSTGRES_DB: once_test_agent_structures
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U once_ci -d once_test_agent_structures"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 20
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify committed delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
@@ -691,48 +520,38 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
-      - name: Set isolated database target
-        env:
-          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-        run: |
-          echo "::add-mask::$CI_DB_PASSWORD"
-          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_agent_structures" >> "$GITHUB_ENV"
-          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_agent_structures" >> "$GITHUB_ENV"
-          echo "ALLOW_BROWSER_TESTS=yes" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - run: pnpm verify && pnpm typecheck:transport
+      - run: docker pull postgres:16-bookworm
+      - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
       - run: node --test tests/acceptance/talent-experience-surface-policy.test.mjs
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
-      - run: node tests/acceptance/browser-agent-structures.mjs
+      - run: pnpm test:postgres:owned --browser-suite agent-structures
 
       - name: Preserve real ingestion browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: agent-structures-pr04c-${{ github.sha }}
+          name: agent-structures-pr04c-${{ github.event.pull_request.head.sha || github.sha }}
           path: artifacts/agent-structures-pr04c
+      - name: Preserve owned resource evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: owned-browser-agent-structures-${{ github.event.pull_request.head.sha || github.sha }}
+          path: data/local-resource-runs/**/*.json
+          if-no-files-found: error
 
   browser-agent-handoff:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: once_ci
-          POSTGRES_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-          POSTGRES_DB: once_test_agent_handoff
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U once_ci -d once_test_agent_handoff"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 20
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify committed delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - uses: actions/setup-node@v6
@@ -740,25 +559,25 @@ jobs:
           node-version-file: .nvmrc
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
-      - name: Set isolated database target
-        env:
-          CI_DB_PASSWORD: ci_${{ github.run_id }}_${{ github.run_attempt }}
-        run: |
-          echo "::add-mask::$CI_DB_PASSWORD"
-          echo "DATABASE_URL_TEST=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_agent_handoff" >> "$GITHUB_ENV"
-          echo "DATABASE_URL=postgresql://once_ci:$CI_DB_PASSWORD@127.0.0.1:5432/once_test_agent_handoff" >> "$GITHUB_ENV"
-          echo "ALLOW_BROWSER_TESTS=yes" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate && pnpm db:generate
-      - run: pnpm verify && pnpm typecheck:transport
+      - run: docker pull postgres:16-bookworm
+      - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
       - run: node --test tests/acceptance/talent-experience-surface-policy.test.mjs
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
-      - run: node tests/acceptance/browser-agent-handoff.mjs
+      - run: pnpm test:postgres:owned --browser-suite agent-handoff
 
       - name: Preserve real ingestion browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: agent-handoff-pr04d-${{ github.sha }}
+          name: agent-handoff-pr04d-${{ github.event.pull_request.head.sha || github.sha }}
           path: artifacts/agent-handoff-pr04d
+      - name: Preserve owned resource evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: owned-browser-agent-handoff-${{ github.event.pull_request.head.sha || github.sha }}
+          path: data/local-resource-runs/**/*.json
+          if-no-files-found: error

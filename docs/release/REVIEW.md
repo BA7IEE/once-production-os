@@ -1,3 +1,7 @@
+## 2026-10-05：主分支整合复核
+
+原main1a297d8是修复head31390f4的祖先；PR #38一次整合已包含的PR #31–#38，保留历史提交。CI入口、临时浏览器登记和逐案例owned PG释放是本次收尾变动；未改生产领域/权限/回执或已应用迁移。旧主目录内容先备份后快进，仅清理归属及祖先关系已确认的资源。详见 [合并收尾记录](MERGE_CLOSEOUT_20261005.md)；下方Draft为历史。
+
 ## 2026-10-05：七项业务流程修复完成开发验收（Draft PR #38）
 
 基于 PR #37 / `bb8643d147a92c5611af2801a86bb640923958c0`，本轮修复联系方式、本人草稿刷新、导入重预览、独立依据的身份修改与 AI 采纳、失效 Agent 投稿驳回、归档恢复及维护分页。实现代码 `01320cc3e165a1cc24a6ffeaf00d0a52a913639c` 的 [CI 37264594297](https://github.com/BA7IEE/once-production-os/actions/runs/37264594297) 全部通过：完整前后端类型/构建/306条契约/12项静态 PASS，Core **806/806 CORE_MEMORY_TESTED、零跳过**，生命周期 **29/29 PASS**，三组隔离 PostgreSQL 16 **DB_TESTED**，六组 Chromium 页面 **BROWSER_TESTED**。详见 [修复与证据记录](BUSINESS_FLOW_REVIEW_FIXES.md) 及 `artifacts/flow-review/verification.json`。

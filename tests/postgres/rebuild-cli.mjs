@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 /** DEV-07H / T29 isolated JSON rebuild acceptance against real PostgreSQL and the real CLI.
  * Creates a new once_rebuild_* database beside the disposable contract DB and deliberately leaves it
  * in place. It never drops, truncates, resets or touches a non-loopback database. */
@@ -30,7 +31,7 @@ const targetUrl = target.toString();
 
 const admin = new PrismaClient({ datasources: { db: { url: raw } }, log: [] });
 const targetClient = new PrismaClient({ datasources: { db: { url: targetUrl } }, log: [] });
-const tmp = mkdtempSync(join(tmpdir(), 'once-t29-rebuild-'));
+const tmp = registeredTemp().path;
 
 function run(command, args, env = process.env, expected = 0) {
     const r = spawnSync(command, args, { encoding: 'utf8', timeout: 180000, env });

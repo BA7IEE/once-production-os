@@ -1,3 +1,6 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
+import {registeredBrowser} from '../../scripts/registered-browser.mjs';
+let browserOwner;
 /** PR03 staging: real Nest/Prisma/PostgreSQL/Chrome, controlled HTTP notification gateway. */
 import assert from 'node:assert/strict';
 import {assertStoredSecretsAbsent,secretMatcher} from '../support/secret-leak.mjs';
@@ -11,7 +14,8 @@ import {createServer as createHttpsServer} from 'node:https';
 import {PrismaClient} from '@prisma/client';
 import {chromium} from 'playwright';
 assert.equal(process.env.ALLOW_BROWSER_TESTS,'yes');const raw=process.env.DATABASE_URL_TEST;assert.ok(raw);const url=new URL(raw);assert.ok(['127.0.0.1','localhost','[::1]'].includes(url.hostname));assert.match(url.pathname,/^\/once_test_[a-z0-9_]+$/);assert.ok(url.username&&url.password&&!url.search&&!url.hash);
-const prisma=new PrismaClient({datasources:{db:{url:raw}},log:[]}),tmp=mkdtempSync(join(tmpdir(),'once-auth-browser-')),sent=[],logs=[],errors=[],checks=[];let api,worker,browser,base,proxy,stagedId,oldToken;
+const ownedTemp=registeredTemp();
+const prisma=new PrismaClient({datasources:{db:{url:raw}},log:[]}),tmp=ownedTemp.path,sent=[],logs=[],errors=[],checks=[];let api,worker,browser,base,proxy,stagedId,oldToken;
 const evidence='artifacts/talent-experience-pr03-formal-auth';mkdirSync(evidence,{recursive:true});
 const put=(name,value)=>{const p=join(tmp,name);writeFileSync(p,value,{mode:0o600});return p;};
 const gateway=createServer(async(req,res)=>{let raw='';for await(const c of req)raw+=c;const data=JSON.parse(raw);sent.push(data);res.setHeader('Content-Type','application/json');res.end(JSON.stringify({requestKey:data.requestKey,state:'ACCEPTED'}));});
@@ -38,7 +42,7 @@ try{
   if(width===390){await page.locator('video').evaluate(v=>v.play());await page.waitForFunction(()=>document.querySelector('video')?.currentTime>0.1);}else await page.waitForFunction(()=>Array.from(document.images).some(i=>i.alt==='self-photo.png'&&i.naturalWidth>0));
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.screenshot({path:join(evidence,'own-ready-'+width+'.png'),fullPage:true});checks.push(width+'px-own-upload-real-async-worker-ready-staged-private-view');return {id:a.id,hash:a.sha256,uploader:u.talentAccountId};
  }
- browser=await chromium.launch({headless:true,...(process.env.CHROME_EXECUTABLE?{executablePath:process.env.CHROME_EXECUTABLE}:{})});
+ browserOwner=await registeredBrowser(chromium,{headless:true,...(process.env.CHROME_EXECUTABLE?{executablePath:process.env.CHROME_EXECUTABLE}:{})});browser=browserOwner.browser;
 
  const internal=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:1400,height:1000}}),admin=await internal.newPage();admin.on('pageerror',e=>errors.push(e.message));await admin.goto(base);await admin.getByLabel('登录名', {exact:true}).fill('owner');await admin.getByLabel('密码',{exact:true}).fill(readFileSync(env.BOOTSTRAP_PASSWORD_FILE,'utf8'));await admin.getByRole('button',{name:'登录',exact:true}).click();await admin.getByRole('button',{name:'人才档案',exact:false}).waitFor();
  const me=await (await internal.request.get(base+'/api/v1/me')).json(),csrf=me.csrfToken;
@@ -91,4 +95,4 @@ try{
  assert.deepEqual(errors,[]);assert.equal(await prisma.person.count(),4);assert.equal(await prisma.talentAccessGrant.count({where:{state:'ACTIVE'}}),4);assert.equal(await prisma.sourceAttribution.count(),4);assert.equal(await prisma.user.count(),3);assert.equal(await prisma.membership.count(),3);await assertStoredSecretsAbsent(prisma,logs,[...sent.map(message=>secretMatcher('OTP',message.code)),...['TALENT_CODE_KEY_FILE','TALENT_AUTH_CREDENTIAL_FILE'].map(key=>secretMatcher('AUTH_SECRET',readFileSync(env[key],'utf8')))]);checks.push('structured-secret-leak-guard-OTP-receipt-audit-log-and-provider-secrets');checks.push('real-https-origin-cookies-current-account-read-header-and-command-replay');await internal.close();
  await stop(worker);await stop(api);const {restoreStaging}=await import('./media-staging-restore.mjs');const restored=await restoreStaging({prisma,env,tmp,oldToken,stagedId});checks.push(...restored.checks);writeFileSync(join(evidence,'restore.json'),JSON.stringify({status:'PASSED',...restored},null,2)+'\n');
  writeFileSync(join(evidence,'browser.json'),JSON.stringify({status:'PASSED',providerVerified:'NOT_RUN',provider:'controlled local HTTP gateway',checks,errors},null,2)+'\n');console.log('PASS '+checks.join('; '));
-}finally{await browser?.close();await stop(worker);await stop(api);if(proxy)await new Promise(r=>proxy.close(r));await prisma.$disconnect();await new Promise(r=>gateway.close(r));rmSync(tmp,{recursive:true,force:true});}
+}finally{await browserOwner?.close();await stop(worker);await stop(api);if(proxy)await new Promise(r=>proxy.close(r));await prisma.$disconnect();await new Promise(r=>gateway.close(r));ownedTemp.cleanup();}

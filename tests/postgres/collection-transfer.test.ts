@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {AppError} from '../../packages/core/src/errors.ts';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -20,7 +21,7 @@ test('real PostgreSQL collection migration preserves shared bytes, source tags a
     assert.equal(process.env.ALLOW_TD2_DB_TESTS,'yes');
     const urls=[process.env.DATABASE_URL_TD2_TEST,process.env.DATABASE_URL_TALENT_REBUILD_TEST];assert.notEqual(urls[0],urls[1]);
     for(const raw of urls){assert.ok(raw);const u=new URL(raw);assert.ok(['postgres:','postgresql:'].includes(u.protocol));assert.ok(['127.0.0.1','localhost','[::1]'].includes(u.hostname));assert.match(u.pathname,/^\/once_(test_td2|rebuild)_[a-z0-9_]+$/);assert.equal(u.search,'');assert.equal(u.hash,'');}
-    const stores=urls.map(url=>new PrismaStore(new PrismaClient({datasources:{db:{url}},log:[]}))),clock=new FakeClock(),dir=await mkdtemp(join(await realpath(tmpdir()),'once-proof-pg-'));
+    const stores=urls.map(url=>new PrismaStore(new PrismaClient({datasources:{db:{url}},log:[]}))),clock=new FakeClock(),dir=registeredTemp().path;
     try {
         const sides=[];
         for(const store of stores) {

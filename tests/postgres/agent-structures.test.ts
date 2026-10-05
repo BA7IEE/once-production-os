@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import assert from 'node:assert/strict';
 import {randomBytes,randomUUID} from 'node:crypto';
 import {mkdtempSync,rmSync,writeFileSync,mkdirSync} from 'node:fs';
@@ -9,7 +10,7 @@ import {PrismaStore} from '../../apps/api/src/prisma-store.ts';
 import {agentStructuresScenario,agentStructuresCounterexample,agentStructuresLifecycle,agentStructuresProtection,agentStructuresPartialIsolation,agentStructuresBasisRevocation} from '../support/agent-structures.ts';
 import {RecoveryOps} from '../../packages/core/src/recovery.ts';
 import {hashSecret} from '../../packages/core/src/crypto.ts';
-const raw=process.env.DATABASE_URL_TEST;assert.equal(process.env.ALLOW_DB_TESTS,'yes');assert.ok(raw);const url=new URL(raw);assert.match(url.pathname,/^\/once_test_/);const db=new PrismaClient({datasources:{db:{url:raw}},log:[]}),store=new PrismaStore(db),variant=process.env.AGENT_STRUCTURES_VARIANT??'base',checks:string[]=[],tmp=mkdtempSync(join(tmpdir(),'once-agent-structures-'));
+const raw=process.env.DATABASE_URL_TEST;assert.equal(process.env.ALLOW_DB_TESTS,'yes');assert.ok(raw);const url=new URL(raw);assert.match(url.pathname,/^\/once_test_/);const db=new PrismaClient({datasources:{db:{url:raw}},log:[]}),store=new PrismaStore(db),variant=process.env.AGENT_STRUCTURES_VARIANT??'base',checks:string[]=[],tmp=registeredTemp().path;
 const run=(cmd:string,args:string[],u=raw)=>{const r=spawnSync(cmd,args,{env:{...process.env,DATABASE_URL:u},encoding:'utf8',timeout:180000});assert.equal(r.status,0,'isolated database command failed');};
 try{
  if(variant==='base'){const out=await agentStructuresScenario(store);checks.push(...out.checks);const item=await db.talentSubmissionItem.findFirstOrThrow({where:{kind:'COLLECTION'}});await assert.rejects(db.talentSubmissionItem.create({data:{...item,id:randomUUID(),clientItemKey:'late-collection'}}));const credit=await db.workCredit.findFirstOrThrow(),role=await db.personRole.findFirstOrThrow();await assert.rejects(db.workCredit.create({data:{...credit,id:randomUUID()}}));await assert.rejects(db.$transaction(tx=>tx.workCredit.update({where:{id:credit.id},data:{personRoleId:randomUUID()}})));checks.push('postgres-frozen-collection-insert-unique-exact-credit-role-FK');}

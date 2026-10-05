@@ -1,22 +1,24 @@
 name: ONCE business flow repair acceptance
 on:
   pull_request:
-    branches: [codex/admin-ux-solution]
+    branches: [main, codex/admin-ux-solution]
+  push:
+    branches: [main]
 permissions:
   contents: read
 concurrency:
-  group: once-flow-review-${{ github.event.pull_request.number }}
+  group: once-flow-review-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
   acceptance:
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     env:
-      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha }}
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - name: Start fresh evidence for this head
@@ -46,7 +48,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: flow-review-${{ github.event.pull_request.head.sha }}
+          name: flow-review-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
             artifacts/business-flow-review/
             artifacts/flow-review/
@@ -63,11 +65,11 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
-      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha }}
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify delivery fingerprints
         run: sha256sum -c MANIFEST.sha256
       - run: rm -f artifacts/core-test-report.json
@@ -84,7 +86,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: flow-review-core-${{ github.event.pull_request.head.sha }}
+          name: flow-review-core-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
             artifacts/core-test-report.json
             data/local-resource-runs/*/run.json

@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomBytes,randomUUID} from 'node:crypto';
@@ -18,7 +19,7 @@ test('locale transfer actual three PostgreSQL databases and CLI preserve provena
  assert.equal(process.env.ALLOW_TD2_DB_TESTS,'yes');
  const checked=(name:string,prefix:string)=>{const raw=process.env[name];assert.ok(raw);const url=new URL(raw);assert.ok(['127.0.0.1','localhost','[::1]'].includes(url.hostname));assert.match(url.pathname,new RegExp('^/'+prefix+'[a-z0-9_]+$'));return raw;};
  const sourceUrl=checked('DATABASE_URL_TD2_TEST','once_test_td2_locale_'),targetUrl=checked('DATABASE_URL_LOCALE_REBUILD_TEST','once_rebuild_locale_'),restoreUrl=checked('DATABASE_URL_LOCALE_RESTORE_TEST','once_restore_locale_');assert.notEqual(sourceUrl,targetUrl);assert.notEqual(targetUrl,restoreUrl);
- const sourceClient=new PrismaClient({datasources:{db:{url:sourceUrl}},log:[]}),targetClient=new PrismaClient({datasources:{db:{url:targetUrl}},log:[]}),sourceStore=new PrismaStore(sourceClient),targetStore=new PrismaStore(targetClient),tmp=mkdtempSync(join(tmpdir(),'once-locale-transfer-')),clock=new FakeClock();
+ const sourceClient=new PrismaClient({datasources:{db:{url:sourceUrl}},log:[]}),targetClient=new PrismaClient({datasources:{db:{url:targetUrl}},log:[]}),sourceStore=new PrismaStore(sourceClient),targetStore=new PrismaStore(targetClient),tmp=registeredTemp().path,clock=new FakeClock();
  const app=(store:PrismaStore)=>new Application(store,{origin:'https://locale-transfer.test.invalid',secureCookies:true,contactKey:randomBytes(32),csrfKey:randomBytes(32),recoveryEpoch:randomBytes(24).toString('hex'),accessMode:'INTERNAL',environment:'test',dataEgressMode:'INTERNAL_APPROVED',dataCleanupMode:'INTERNAL_APPROVED',dataMergeMode:'INTERNAL_APPROVED'},clock);
  try{
   assert.equal(await sourceClient.workspace.count(),0);assert.equal(await targetClient.workspace.count(),0);

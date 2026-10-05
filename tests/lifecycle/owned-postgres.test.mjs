@@ -45,6 +45,14 @@ test('resource guard refuses before creating or querying Docker', async () => {
   assert.equal(called,false);assert.equal(scope.record.containers.length,0);assert.ok(unlocked);
 });
 
+test('unknown CI browser cannot create resources or execute an arbitrary file', async () => {
+  const scope=new ResourceRun({simulation:true});let called=false,unlocked=false;
+  scope.command=async()=>{called=true;};
+  await assert.rejects(ownedPostgres({scope,suite:'ci-browser',baseline:'../../arbitrary',guard:()=>{},lock:()=>()=>{unlocked=true;}}),/Unknown CI browser suite/);
+  assert.equal(called,false);assert.equal(scope.record.containers.length,0);assert.ok(unlocked);
+  assert.equal(scope.record.status,'ZERO_RESIDUE');
+});
+
 test('unknown Docker create with no observed container is not falsely certified zero', async () => {
   const scope=new ResourceRun({simulation:true});let unlocked=false;
   scope.command=async (_cmd,args)=>{if(args[0]==='ps')return '';throw new Error('unknown request');};

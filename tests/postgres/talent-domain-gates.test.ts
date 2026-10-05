@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {verifyParties,exportParties,erasePartySource} from '../support/project-parties.ts';
 import {verifyAiProcessCrash} from '../support/ai-process-crash.ts';
 import {verifyAiConnections} from '../support/ai-connections.ts';
@@ -27,7 +28,7 @@ import {decryptContact} from '../../packages/core/src/crypto.ts';
 
 test('TD2-T01 through T15 and T18: actual PostgreSQL domain contracts and private media',async t=>{
  assert.equal(process.env.ALLOW_TD2_DB_TESTS,'yes');const raw=process.env.DATABASE_URL_TD2_TEST;assert.ok(raw);const url=new URL(raw);assert.ok(['postgres:','postgresql:'].includes(url.protocol));assert.ok(['127.0.0.1','localhost','[::1]'].includes(url.hostname));assert.match(url.pathname,/^\/once_test_td2_[a-z0-9_]+$/);assert.equal(url.search,'');assert.equal(url.hash,'');
- const client=new PrismaClient({datasources:{db:{url:raw}},log:[]}),store=new PrismaStore(client),clock=new FakeClock(),tmp=realpathSync(mkdtempSync(join(tmpdir(),'once-domain-gates-')));
+ const client=new PrismaClient({datasources:{db:{url:raw}},log:[]}),store=new PrismaStore(client),clock=new FakeClock(),tmp=realpathSync(registeredTemp().path);
  try{
   assert.equal(await client.workspace.count(),0);const app=new Application(store,{origin:'https://td2-gates.test.invalid',secureCookies:true,contactKey:randomBytes(32),csrfKey:randomBytes(32),recoveryEpoch:randomBytes(24).toString('hex'),accessMode:'INTERNAL',environment:'test',dataEgressMode:'INTERNAL_APPROVED',dataCleanupMode:'INTERNAL_APPROVED',dataMergeMode:'INTERNAL_APPROVED'},clock);
   const ids=await app.identity.bootstrap('owner','合成人才2.0逐项验收',SYNTHETIC_PASSWORD),owner=new Client(app);assert.equal((await owner.login()).status,200);

@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import assert from 'node:assert/strict';
 import {mkdtempSync,mkdirSync,copyFileSync,readdirSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -8,7 +9,7 @@ import {fixture,createPerson,result} from '../support/fixtures.ts';
 import {PrismaStore} from '../../apps/api/src/prisma-store.ts';
 import {Application} from '../../packages/core/src/api.ts';
 const raw=process.env.DATABASE_URL_MEDIA_UPGRADE_TEST;assert.equal(process.env.ALLOW_DB_TESTS,'yes');assert.ok(raw);const u=new URL(raw);assert.ok(['localhost','127.0.0.1'].includes(u.hostname));assert.match(u.pathname,/^\/once_test_[a-z0-9_]+$/);
-const db=new PrismaClient({datasources:{db:{url:raw}},log:[]}),root=mkdtempSync(join(tmpdir(),'once-media-upgrade-'));
+const db=new PrismaClient({datasources:{db:{url:raw}},log:[]}),root=registeredTemp().path;
 try{
  assert.equal((await db.$queryRawUnsafe<any[]>("SELECT tablename FROM pg_tables WHERE schemaname='public'")).length,0);const names=readdirSync('prisma/migrations').filter(x=>/^\d/.test(x)).sort(),prior=names.slice(0,61);assert.equal(prior.at(-1),'202610010006_talent_submission_ownership');
  copyFileSync('prisma/schema.prisma',join(root,'schema.prisma'));mkdirSync(join(root,'migrations'));copyFileSync('prisma/migrations/migration_lock.toml',join(root,'migrations/migration_lock.toml'));for(const name of prior){mkdirSync(join(root,'migrations',name));copyFileSync(join('prisma/migrations',name,'migration.sql'),join(root,'migrations',name,'migration.sql'));}

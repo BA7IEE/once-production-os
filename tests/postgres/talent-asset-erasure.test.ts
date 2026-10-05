@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {verifySourceOtherIdentity} from '../support/talent-source-identity-evidence.ts';
 import {verifyIdentityRetention} from '../support/talent-identity-retention.ts';
 import { verifySourcePersonErasure } from '../support/talent-source-person-erasure.ts';
@@ -34,7 +35,7 @@ test('TD2 real PostgreSQL shared proof erasure and physical file cleanup', async
             dataCleanupMode: 'INTERNAL_APPROVED', dataMergeMode: 'INTERNAL_APPROVED' }, clock);
         await app.identity.bootstrap('owner', '合成2.0维护管理员', SYNTHETIC_PASSWORD);
         const owner = new Client(app); assert.equal((await owner.login()).status, 200);
-        const mediaRoot = await mkdtemp(join(await realpath(tmpdir()), 'once-pg-shared-proof-'));
+        const mediaRoot = registeredTemp().path;
         try { await verifySharedAssetErasure({app,store,clock,owner},mediaRoot); await verifySourceAssetErasure({app,store,clock,owner},mediaRoot); await verifyCombinedSourceErasure({app,store,clock,owner},mediaRoot); await verifySourcePersonErasure({app,store,clock,owner},mediaRoot);await verifyIdentityRetention({app,store,clock,owner});await verifyIdentityRetention({app,store,clock,owner},false);await verifySourceOtherIdentity({app,store,clock,owner}); } finally { await rm(mediaRoot,{recursive:true,force:true}); }
         console.log('PASS TD2 PG: shared collection/proof deletion, current requester checks, audit rollback/retry, historical evidence retained, physical media purge and ERASED finalization');
     } finally { await store.close(); }

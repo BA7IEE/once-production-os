@@ -1,3 +1,5 @@
+当前主分支交付见 [合并收尾记录](MERGE_CLOSEOUT_20261005.md)。用户已授权PR #38整合到main，下方Draft与不合并文字为历史交付状态；原技术证据的head与实测边界保持。
+
 # 业务流程复核修复
 
 基线：PR #37 / `bb8643d147a92c5611af2801a86bb640923958c0`。分支：`codex/business-flow-review-fixes`。状态：七项修复完成开发验收，Draft PR #38、未合并、未部署。

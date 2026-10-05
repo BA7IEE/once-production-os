@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {seedParties} from '../support/project-parties.ts';
 import {verifyHistoryErasure} from '../support/merge-history-erasure.ts';
 import {exportRetainedIdentity} from '../support/identity-origin-transfer.ts';
@@ -54,7 +55,7 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
     const sourceStore=new PrismaStore(sourceClient);
     const restoreClient=new PrismaClient({datasources:{db:{url:restoreUrl}},log:[]});
     const restoreStore=new PrismaStore(restoreClient);
-    const tmp=mkdtempSync(join(tmpdir(),'once-recovery-approval-'));chmodSync(tmp,0o700);
+    const tmp=registeredTemp().path;chmodSync(tmp,0o700);
     const backupDir=join(tmp,'backup');mkdirSync(backupDir,{mode:0o700});
     const sourceMediaRoot=join(tmp,'source-media');
     const restoredMediaRoot=join(tmp,'restored-media');

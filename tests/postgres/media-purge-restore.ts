@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {collectRecoveryExternalCheck} from '../../apps/api/src/recovery/external-check.ts';
 /** Offline recovery drill. Both databases are disposable synthetic fixtures; never enables a restored service. */
 import assert from 'node:assert/strict';
@@ -11,7 +12,7 @@ import {LocalMediaProvider} from '../../apps/api/src/media/local-provider.ts';im
 import {backupPrivateMedia,restorePrivateMedia} from '../../apps/api/src/recovery/media-backup.ts';
 export async function purgeRestoreScenario(store:PrismaStore,db:PrismaClient,url:string){
  const f=await stagingFixture(store),ids=[await unitReady(f),await unitReady(f)];f.app.config.dataCleanupMode='INTERNAL_APPROVED';
- const tmp=await mkdtemp(join(await realpath(tmpdir()),'once-purge-restore-')),root=join(tmp,'private'),provider=await LocalMediaProvider.create(root);
+ const tmp=registeredTemp().path,root=join(tmp,'private'),provider=await LocalMediaProvider.create(root);
  for(const id of ids){const a=await db.mediaAsset.findUniqueOrThrow({where:{id}}),dir=provider.work(id,a.objectToken);await mkdir(dir,{recursive:true,mode:0o700});await writeFile(join(dir,'original.bin'),unitOriginal,{mode:0o400});await writeFile(join(dir,'preview.jpg'),unitPreview,{mode:0o400});}
  f.clock.advance(90*86400000);const claims=[];
  for(let n=0;n<2;n++){const c=(await f.app.mediaPurge.claim())!;assert.ok(c);claims.push(c);await f.app.mediaPurge.beginDelete(c);for(const o of c.objects){if(n===0&&o.part==='preview')continue;await provider.deleteImmutableObject({...o,uploadId:c.uploadId,objectToken:c.objectToken},new AbortController().signal);}await f.app.mediaPurge.objectResult(c,'original','UNKNOWN');}

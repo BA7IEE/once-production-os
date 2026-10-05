@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {AiLedger} from '../../packages/core/src/ai-ledger.ts';
 import {digest} from '../../packages/core/src/json.ts';
 /** A new empty database is first installed at the frozen pre-TD2 baseline, populated with
@@ -19,7 +20,7 @@ import {expectResponse as ok} from '../support/talent-v2-maintenance.ts';
 test('TD2-T17 populated frozen pre-TD2 baseline upgrades without rewriting business rows',async()=>{
  assert.equal(process.env.ALLOW_TD2_UPGRADE_TESTS,'yes');const raw=process.env.DATABASE_URL_TD2_UPGRADE_TEST;assert.ok(raw);const url=new URL(raw);
  assert.ok(['postgres:','postgresql:'].includes(url.protocol));assert.ok(['127.0.0.1','localhost','[::1]'].includes(url.hostname));assert.match(url.pathname,/^\/once_test_td2_upgrade_[a-z0-9_]+$/);assert.equal(url.search,'');assert.equal(url.hash,'');
- const db=new PrismaClient({datasources:{db:{url:raw}},log:[]}),temp=mkdtempSync(join(tmpdir(),'once-frozen-upgrade-'));
+ const db=new PrismaClient({datasources:{db:{url:raw}},log:[]}),temp=registeredTemp().path;
  const migrations=resolve('prisma/migrations'),names=readdirSync(migrations).filter(x=>/^\d/.test(x)).sort(),old=names.filter(x=>x<'202609270001_talent_domain_v2');
  const hash=(file:string)=>createHash('sha256').update(readFileSync(file)).digest('hex');const fingerprints=names.map(name=>[name,hash(join(migrations,name,'migration.sql'))]);
  const deploy=(schema:string)=>{const r=spawnSync('pnpm',['exec','prisma','migrate','deploy','--schema',schema],{env:{...process.env,DATABASE_URL:raw},encoding:'utf8',timeout:120000});assert.equal(r.status,0,(r.stdout+r.stderr).split(raw).join('[test database]'));};

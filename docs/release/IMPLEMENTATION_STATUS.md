@@ -1,3 +1,7 @@
+## 2026-10-05：主分支合并收尾
+
+用户已明确授权合并和清理。PR #38直接整合PR #31–#38到main，17组旧回归接入owned资源入口，业务代码与迁移保持原样；待运行的当前SHA验收不预写PASS。部署、供应商和人工业务验收仍NOT_RUN。详见 [合并收尾记录](MERGE_CLOSEOUT_20261005.md)。下方Draft为历史状态。
+
 ## 2026-10-05：七项业务流程修复完成开发验收（Draft PR #38）
 
 基于 PR #37 / `bb8643d147a92c5611af2801a86bb640923958c0`，本轮修复联系方式、本人草稿刷新、导入重预览、独立依据的身份修改与 AI 采纳、失效 Agent 投稿驳回、归档恢复及维护分页。实现代码 `01320cc3e165a1cc24a6ffeaf00d0a52a913639c` 的 [CI 37264594297](https://github.com/BA7IEE/once-production-os/actions/runs/37264594297) 全部通过：完整前后端类型/构建/306条契约/12项静态 PASS，Core **806/806 CORE_MEMORY_TESTED、零跳过**，生命周期 **29/29 PASS**，三组隔离 PostgreSQL 16 **DB_TESTED**，六组 Chromium 页面 **BROWSER_TESTED**。详见 [修复与证据记录](BUSINESS_FLOW_REVIEW_FIXES.md) 及 `artifacts/flow-review/verification.json`。

@@ -1,3 +1,6 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
+import {registeredBrowser} from '../../scripts/registered-browser.mjs';
+let browserOwner;
 /** PR03C collection journey: real Nest/Prisma/PostgreSQL/Chrome, controlled HTTP notification gateway. */
 import assert from 'node:assert/strict';
 import {assertStoredSecretsAbsent,secretMatcher} from '../support/secret-leak.mjs';
@@ -11,7 +14,8 @@ import {createServer as createHttpsServer} from 'node:https';
 import {PrismaClient} from '@prisma/client';
 import {chromium} from 'playwright';
 assert.equal(process.env.ALLOW_BROWSER_TESTS,'yes');const raw=process.env.DATABASE_URL_TEST;assert.ok(raw);const url=new URL(raw);assert.ok(['127.0.0.1','localhost','[::1]'].includes(url.hostname));assert.match(url.pathname,/^\/once_test_[a-z0-9_]+$/);assert.ok(url.username&&url.password&&!url.search&&!url.hash);
-const prisma=new PrismaClient({datasources:{db:{url:raw}},log:[]}),tmp=mkdtempSync(join(tmpdir(),'once-auth-browser-')),sent=[],logs=[],errors=[],checks=[];let api,worker,browser,base,proxy,stagedId,oldToken;
+const ownedTemp=registeredTemp();
+const prisma=new PrismaClient({datasources:{db:{url:raw}},log:[]}),tmp=ownedTemp.path,sent=[],logs=[],errors=[],checks=[];let api,worker,browser,base,proxy,stagedId,oldToken;
 const evidence=process.env.PR03E_MEDIA_PURGE==='yes'?'artifacts/talent-experience-pr03-cleanup':process.env.PR03D_WORK_CASES==='yes'?'artifacts/talent-experience-pr03-work-cases':'artifacts/talent-experience-pr03-collections';mkdirSync(evidence,{recursive:true});
 const put=(name,value)=>{const p=join(tmp,name);writeFileSync(p,value,{mode:0o600});return p;};
 const gateway=createServer(async(req,res)=>{let raw='';for await(const c of req)raw+=c;const data=JSON.parse(raw);sent.push(data);res.setHeader('Content-Type','application/json');res.end(JSON.stringify({requestKey:data.requestKey,state:'ACCEPTED'}));});
@@ -56,7 +60,7 @@ try{
   if(width===390){for(const type of ['SHOWREEL','INTRO_VIDEO','PORTFOLIO']){await section.getByRole('button',{name:'新增媒体集合',exact:true}).click();const editor=section.locator('fieldset').last();await editor.getByLabel('集合类型',{exact:true}).selectOption(type);await editor.getByLabel('集合名称',{exact:true}).fill(type==='SHOWREEL'?'表演片段':type==='INTRO_VIDEO'?'本人介绍':'商业作品集');await editor.getByLabel('设为该职业的当前版本',{exact:true}).check();await editor.getByLabel('选择可用素材',{exact:true}).selectOption({label:'self-video.mp4'});await editor.getByRole('button',{name:'加入集合',exact:true}).click();if(type==='PORTFOLIO'){await editor.getByLabel('选择可用素材',{exact:true}).selectOption({label:'side-390.png'});await editor.getByRole('button',{name:'加入集合',exact:true}).click();}}await section.getByRole('button',{name:'保存集合草稿',exact:true}).click();await section.getByRole('status').filter({hasText:'集合草稿已保存在服务器'}).waitFor();}
 
  }
- browser=await chromium.launch({headless:true,...(process.env.CHROME_EXECUTABLE?{executablePath:process.env.CHROME_EXECUTABLE}:{})});
+ browserOwner=await registeredBrowser(chromium,{headless:true,...(process.env.CHROME_EXECUTABLE?{executablePath:process.env.CHROME_EXECUTABLE}:{})});browser=browserOwner.browser;
 
  const internal=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:1400,height:1000}}),admin=await internal.newPage();admin.on('pageerror',e=>errors.push(e.message));await admin.goto(base);await admin.getByLabel('登录名', {exact:true}).fill('owner');await admin.getByLabel('密码',{exact:true}).fill(readFileSync(env.BOOTSTRAP_PASSWORD_FILE,'utf8'));await admin.getByRole('button',{name:'登录',exact:true}).click();await admin.getByRole('button',{name:'人才档案',exact:false}).waitFor();
  const me=await (await internal.request.get(base+'/api/v1/me')).json(),csrf=me.csrfToken;
@@ -117,4 +121,4 @@ assert.equal((await prisma.person.findUniqueOrThrow({where:{id:person}})).displa
  assert.deepEqual(errors,[]);assert.equal(await prisma.person.count(),4);assert.equal(await prisma.talentAccessGrant.count({where:{state:'ACTIVE'}}),4);assert.equal(await prisma.sourceAttribution.count(),4);assert.equal(await prisma.user.count(),3);assert.equal(await prisma.membership.count(),3);await assertStoredSecretsAbsent(prisma,logs,[...sent.map(message=>secretMatcher('OTP',message.code)),...['TALENT_CODE_KEY_FILE','TALENT_AUTH_CREDENTIAL_FILE'].map(key=>secretMatcher('AUTH_SECRET',readFileSync(env[key],'utf8')))]);checks.push('structured-secret-leak-guard-OTP-receipt-audit-log-and-provider-secrets');checks.push('real-https-origin-cookies-current-account-read-header-and-command-replay');await internal.close();
  await stop(worker);await stop(api);const {restoreStaging}=await import('./media-collections-restore.mjs');const restored=await restoreStaging({prisma,env,tmp,oldToken,stagedId});checks.push(...restored.checks);writeFileSync(join(evidence,'restore.json'),JSON.stringify({status:'PASSED',...restored},null,2)+'\n');
  writeFileSync(join(evidence,'browser.json'),JSON.stringify({status:'PASSED',providerVerified:'NOT_RUN',provider:'controlled local HTTP gateway',checks,errors},null,2)+'\n');console.log('PASS '+checks.join('; '));
-}catch(e){if(browser){let index=0;for(const ctx of browser.contexts())for(const page of ctx.pages())await page.screenshot({path:join(evidence,'failure-'+index+++'.png'),fullPage:true}).catch(()=>{});}throw e;}finally{await browser?.close();await stop(worker);await stop(api);if(proxy)await new Promise(r=>proxy.close(r));await prisma.$disconnect();await new Promise(r=>gateway.close(r));rmSync(tmp,{recursive:true,force:true});}
+}catch(e){if(browser){let index=0;for(const ctx of browser.contexts())for(const page of ctx.pages())await page.screenshot({path:join(evidence,'failure-'+index+++'.png'),fullPage:true}).catch(()=>{});}throw e;}finally{await browserOwner?.close();await stop(worker);await stop(api);if(proxy)await new Promise(r=>proxy.close(r));await prisma.$disconnect();await new Promise(r=>gateway.close(r));ownedTemp.cleanup();}

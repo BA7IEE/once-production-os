@@ -1,3 +1,5 @@
+当前交付：[主分支合并收尾](docs/release/MERGE_CLOSEOUT_20261005.md)（随 [PR #38](https://github.com/BA7IEE/once-production-os/pull/38) 合并生效）。PR #31–#38一次整合到main；旧CI已改接受控数据库/浏览器入口，原业务回归保留，当前SHA验收以Actions为准。未部署，供应商及人工业务验收仍待完成。下方Draft状态均为历史记录。
+
 当前工作：[七项业务流程复核修复](docs/release/BUSINESS_FLOW_REVIEW_FIXES.md)，[Draft PR #38](https://github.com/BA7IEE/once-production-os/pull/38)。基于PR #37，在独立分支完成修复；本轮CI已通过完整类型/构建、806项Core、三组真实PG和六组浏览器，未合并、未部署。验证边界与首次失败记录见交付文档。以下PR-04D记录属于历史基线。
 
 历史 PR-04D 进度见 [同档接手与生命周期交付说明](docs/release/PR04_AGENT_INGESTION_D.md)，独立 stacked Draft PR35、未合并、未部署。A–C及迁移1–74冻结；本轮本地全量通过，最终head CI另绑定PR与交付回复，D等待代码级复核。

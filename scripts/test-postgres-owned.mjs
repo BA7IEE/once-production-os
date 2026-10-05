@@ -3,12 +3,15 @@ import { pathToFileURL } from 'node:url';
 import { acquireLock, preflight } from './resource-lifecycle.mjs';
 import { ResourceRun } from './resource-run.mjs';
 
+export const CI_BROWSER_SUITES = ['resume','handoff','media','production','talent-intake','talent-directory','talent-auth','talent-maintenance','media-staging','media-collections','work-cases','media-purge','agent-ingestion','agent-media','agent-structures','agent-handoff'];
+
 export async function ownedPostgres({ scope = new ResourceRun(), guard = preflight, lock = acquireLock, cleanupCommand, suite='full', baseline='74' } = {}) {
   const name = `once-os-test-pg-${scope.id}`;
   const label = `io.once.test-run=${scope.id}`;
   let release;
   try {
     release = lock(); guard(); scope.check();
+    if(suite==='ci-browser'&&!CI_BROWSER_SUITES.includes(baseline))throw new Error('Unknown CI browser suite.');
     const stale = await scope.command('docker', ['ps', '-aq', '--filter', 'label=io.once.lifecycle=temporary'], { capture:true, timeout:10000 });
     if (stale) throw new Error('Previous owned test containers exist; investigate before creating another.');
     const fault=process.env.ONCE_TEST_LIFECYCLE_FAULT;
@@ -37,11 +40,11 @@ export async function ownedPostgres({ scope = new ResourceRun(), guard = preflig
     if (!/^127\.0\.0\.1:\d+$/.test(endpoint)) throw new Error('Unexpected Docker port.');
     const url = `postgresql://once_test:${password}@${endpoint}/once_test_${scope.id}`;
     const env = { ...process.env,DATABASE_URL:url,DATABASE_URL_TEST:url,ALLOW_DB_TESTS:'yes' };
-    if(suite==='browser-flow')await scope.command(process.execPath,[`tests/acceptance/browser-${baseline}.mjs`],{env:{...env,ALLOW_BROWSER_TESTS:'yes'},timeout:180000});
+    if(suite==='browser-flow'||suite==='ci-browser')await scope.command(process.execPath,[`tests/acceptance/browser-${baseline}.mjs`],{env:{...env,ALLOW_BROWSER_TESTS:'yes'},timeout:180000});
     else if(suite==='flow-review-db'){const files={identity:'business-flow-identity',rejection:'business-flow-rejection'};if(!files[baseline])throw new Error('Unknown flow review database suite');await scope.command(process.execPath,['--experimental-strip-types','--test','--test-concurrency=1',`tests/postgres/${files[baseline]}.test.ts`],{env,timeout:180000});}
     else if(suite==='admin-ux')await scope.command(process.execPath,['--experimental-strip-types','--test','--test-concurrency=1','tests/postgres/admin-ux.test.ts'],{env,timeout:180000});
     else if(suite==='business-flow')await scope.command(process.execPath,['--experimental-strip-types','--test','--test-concurrency=1','tests/postgres/business-flow.test.ts'],{env:{...env,BUSINESS_FLOW_BASELINE:baseline},timeout:180000});
-    else {await scope.command('pnpm', ['db:deploy'], {env});await scope.command(process.execPath, ['scripts/verify-postgres.mjs'], {env});}
+    else {await scope.command('pnpm', ['db:deploy'], {env});await scope.command(process.execPath, ['scripts/verify-postgres.mjs',...(suite==='full-ci'?['--with-rebuild-cli']:[])], {env,timeout:1200000});}
     scope.record.outcome='VERIFIED_PENDING_CLEANUP';
   } catch (error) {
     scope.record.outcome=scope.controller.signal.aborted?'INTERRUPTED':scope.record.containers.length?'FAIL':'NOT_RUN';
@@ -71,6 +74,6 @@ export async function ownedSequence(baselines,{suite='browser-flow',execute=owne
   if(failures.length)throw new AggregateError(failures,'Independent owned suites failed.');
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  (async()=>{if(process.argv.includes('--flow-review-browser')){await ownedSequence(['admin-ux','business-flow','talent-maintenance','agent-ingestion','ai-business','maintenance-pagination']);}else if(process.argv.includes('--flow-review-db')){for(const baseline of ['identity','rejection']){const record=await ownedPostgres({suite:'flow-review-db',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else if(process.argv.includes('--admin-ux-browser')){for(const baseline of ['admin-ux','business-flow','talent-maintenance']){const record=await ownedPostgres({suite:'browser-flow',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else if(process.argv.includes('--admin-ux')){const record=await ownedPostgres({suite:'admin-ux'});console.log(JSON.stringify(record.remaining));}else if(process.argv.includes('--business-flow-browser')){for(const baseline of ['business-flow','talent-maintenance']){const record=await ownedPostgres({suite:'browser-flow',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else if(process.argv.includes('--business-flow')){for(const baseline of ['74','empty']){const record=await ownedPostgres({suite:'business-flow',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else console.log(JSON.stringify((await ownedPostgres()).remaining));})()
+  (async()=>{if(process.argv.includes('--browser-suite')){const baseline=process.argv[process.argv.indexOf('--browser-suite')+1];console.log(JSON.stringify((await ownedPostgres({suite:'ci-browser',baseline})).remaining));}else if(process.argv.includes('--full-ci')){console.log(JSON.stringify((await ownedPostgres({suite:'full-ci'})).remaining));}else if(process.argv.includes('--flow-review-browser')){await ownedSequence(['admin-ux','business-flow','talent-maintenance','agent-ingestion','ai-business','maintenance-pagination']);}else if(process.argv.includes('--flow-review-db')){for(const baseline of ['identity','rejection']){const record=await ownedPostgres({suite:'flow-review-db',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else if(process.argv.includes('--admin-ux-browser')){for(const baseline of ['admin-ux','business-flow','talent-maintenance']){const record=await ownedPostgres({suite:'browser-flow',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else if(process.argv.includes('--admin-ux')){const record=await ownedPostgres({suite:'admin-ux'});console.log(JSON.stringify(record.remaining));}else if(process.argv.includes('--business-flow-browser')){for(const baseline of ['business-flow','talent-maintenance']){const record=await ownedPostgres({suite:'browser-flow',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else if(process.argv.includes('--business-flow')){for(const baseline of ['74','empty']){const record=await ownedPostgres({suite:'business-flow',baseline});console.log(JSON.stringify({baseline,...record.remaining}));}}else console.log(JSON.stringify((await ownedPostgres()).remaining));})()
     .catch(() => { console.error('Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.'); process.exitCode=1; });
 }

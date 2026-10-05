@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 /** Real SQL writes, retained 71->72 and physical restore. Historical IDs are not live FKs. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -14,7 +15,7 @@ import {TalentBasisTransferSchema} from '../../packages/core/src/rebuild-validat
 import {reviewBasisSnapshot,consentBasisSnapshot,malformedReviewSnapshots} from '../support/imported-review-basis.ts';
 test('migration72 rejects malformed imported INTERNAL_REVIEW, preserves retained71 data and survives pg_dump/restore',async()=>{
  const raw=process.env.DATABASE_URL_IMPORTED_REVIEW_TEST;assert.equal(process.env.ALLOW_DB_TESTS,'yes');assert.ok(raw);const u=new URL(raw);assert.ok(['localhost','127.0.0.1'].includes(u.hostname));assert.match(u.pathname,/^\/once_test_[a-z0-9_]+$/);
- const db=new PrismaClient({datasources:{db:{url:raw}},log:[]}),store=new PrismaStore(db),tmp=mkdtempSync(join(tmpdir(),'once-review-basis-'));
+ const db=new PrismaClient({datasources:{db:{url:raw}},log:[]}),store=new PrismaStore(db),tmp=registeredTemp().path;
  const run=(cmd:string,args:string[],url=raw)=>{const r=spawnSync(cmd,args,{env:{...process.env,DATABASE_URL:url},encoding:'utf8',timeout:120000});assert.equal(r.status,0,'isolated database operation failed');};
  const deploy=(schema:string)=>run('pnpm',['exec','prisma','migrate','deploy','--schema',schema]);
  try{

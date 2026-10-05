@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 /** Two independent fresh PostgreSQL databases: actual controlled export -> typed rebuild. */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -18,7 +19,7 @@ test('TD2 PostgreSQL controlled multi-source export and isolated typed rebuild p
     assert.notEqual(urls[0],urls[1]);
     for(const raw of urls){assert.ok(raw);const u=new URL(raw);assert.ok(['postgres:','postgresql:'].includes(u.protocol));assert.ok(['127.0.0.1','localhost','[::1]'].includes(u.hostname));assert.match(u.pathname,/^\/once_(test_td2|rebuild)_[a-z0-9_]+$/);assert.equal(u.search,'');assert.equal(u.hash,'');}
     const stores=urls.map(url=>new PrismaStore(new PrismaClient({datasources:{db:{url}},log:[]})));
-    const clock=new FakeClock();const tmp=mkdtempSync(join(tmpdir(),'once-typed-rebuild-'));
+    const clock=new FakeClock();const tmp=registeredTemp().path;
     try {
         const sides=[];
         for(const store of stores){

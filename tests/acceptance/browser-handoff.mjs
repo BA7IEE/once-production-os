@@ -1,3 +1,6 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
+import {registeredBrowser} from '../../scripts/registered-browser.mjs';
+let browserOwner;
 /** H1 real Nest/Prisma/Chromium acceptance. Only an empty disposable loopback test DB.
  * Never reads a .env target, resets a DB, or sends requests to a production host. */
 import assert from 'node:assert/strict';
@@ -17,7 +20,8 @@ assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname));
 assert.match(url.pathname, /^\/once_test_[a-z0-9_]+$/);
 assert.ok(url.username && url.password && !url.search && !url.hash);
 const prisma = new PrismaClient({ datasources: { db: { url: raw } }, log: [] });
-const tmp = mkdtempSync(join(tmpdir(), 'once-handoff-'));
+const ownedTemp=registeredTemp();
+const tmp = ownedTemp.path;
 const password = 'Synthetic-' + randomBytes(20).toString('base64url') + '!';
 const put = (name, text) => { const path = join(tmp, name); writeFileSync(path, text, { mode: 0o600 }); return path; };
 const env = { ...process.env, DATABASE_URL: raw, APP_ENV: 'test', ACCESS_MODE: 'INTERNAL', COOKIE_SECURE: 'false', HOST: '127.0.0.1',
@@ -61,7 +65,7 @@ try {
     api = spawn('node', ['dist/apps/api/src/main.js'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
     api.stdout.resume(); api.stderr.resume();
     await until(async () => (await fetch(base + '/health/ready')).status === 200);
-    browser = await chromium.launch({ headless: true, ...(process.env.CHROME_EXECUTABLE ? { executablePath: process.env.CHROME_EXECUTABLE } : {}) });
+    browserOwner=await registeredBrowser(chromium,{ headless: true, ...(process.env.CHROME_EXECUTABLE ? { executablePath: process.env.CHROME_EXECUTABLE } : {}) });browser=browserOwner.browser;
     const owner = await browser.newPage(), sender = await browser.newPage(), receiver = await browser.newPage();
     for (const page of [owner, sender, receiver]) page.on('pageerror', e => errors.push(e.message));
     await login(owner, 'owner');
@@ -150,5 +154,5 @@ try {
     console.log('PASS H1 browser/API: delegated edit preserved ownership; revoke denies next read and write');
     assert.deepEqual(errors, []);
 } finally {
-    await browser?.close(); await stop(api); await prisma.$disconnect(); rmSync(tmp, { recursive: true, force: true });
+    await browserOwner?.close(); await stop(api); await prisma.$disconnect(); ownedTemp.cleanup();
 }

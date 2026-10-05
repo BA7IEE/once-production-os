@@ -1,3 +1,4 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import assert from 'node:assert/strict';
 import {PrismaClient} from '@prisma/client';
 import {PrismaStore} from '../../apps/api/src/prisma-store.ts';
@@ -17,7 +18,7 @@ const raw=process.env.DATABASE_URL_TEST;assert.ok(raw);assert.equal(process.env.
 try{const version=await db.$queryRawUnsafe<any[]>('SELECT version()');assert.match(version[0].version,/PostgreSQL 16/);const out=variant==='export-recovery'?await lifecycle():variant==='base'?await handoffScenario(store):await handoffCounterexample(store,variant);mkdirSync('artifacts/agent-handoff-pr04d',{recursive:true});writeFileSync('artifacts/agent-handoff-pr04d/postgres-'+variant+'.json',JSON.stringify({status:'POSTGRES_TESTED',migrationCount:await db.$queryRawUnsafe('SELECT count(*)::integer AS count FROM _prisma_migrations'),checks:out.checks},null,2)+'\n');console.log(JSON.stringify({variant,checks:out.checks}));}finally{await store.close();}
 
 async function lifecycle(){
- const adminUrl=new URL(raw!);adminUrl.pathname='/postgres';const admin=new PrismaClient({datasources:{db:{url:adminUrl.href}},log:[]}),tmp=mkdtempSync(join(tmpdir(),'once-handoff-lifecycle-')),checks:string[]=[];
+ const adminUrl=new URL(raw!);adminUrl.pathname='/postgres';const admin=new PrismaClient({datasources:{db:{url:adminUrl.href}},log:[]}),tmp=registeredTemp().path,checks:string[]=[];
  const command=(args:string[],env:NodeJS.ProcessEnv)=>{const r=spawnSync(args[0]!,args.slice(1),{env,encoding:'utf8',timeout:180000});assert.equal(r.status,0,'isolated lifecycle command failed: '+args[0]);return r;};
  const fresh=async(prefix:string,migrate=true)=>{const u=new URL(raw!);u.pathname='/'+prefix+randomBytes(6).toString('hex');await admin.$executeRawUnsafe('CREATE DATABASE "'+u.pathname.slice(1)+'"');if(migrate)command(['pnpm','db:deploy'],{...process.env,DATABASE_URL:u.href});return u;};
  try{const rebuild=await fresh('once_test_d_json_'),target=new PrismaStore(new PrismaClient({datasources:{db:{url:rebuild.href}},log:[]}));let result:Awaited<ReturnType<typeof handoffExport>>;try{result=await handoffExport(store,target);}finally{await target.close();}checks.push(...result!.checks);const f=result!.f;

@@ -1,3 +1,6 @@
+import {registeredTemp} from '../../scripts/registered-temp.mjs';
+import {registeredBrowser} from '../../scripts/registered-browser.mjs';
+let browserOwner;
 /** Internal intake slice only: real Nest, Prisma, disposable PostgreSQL and Chromium.
  * No portal, SMS/email, COS or production acceptance is implied. */
 import assert from 'node:assert/strict';
@@ -13,7 +16,8 @@ const raw=process.env.DATABASE_URL_TEST;
 assert.equal(process.env.ALLOW_BROWSER_TESTS,'yes');assert.ok(raw);
 const url=new URL(raw);assert.ok(['postgres:','postgresql:'].includes(url.protocol));assert.ok(['127.0.0.1','localhost','[::1]'].includes(url.hostname));assert.match(url.pathname,/^\/once_test_[a-z0-9_]+$/);assert.ok(url.username&&url.password&&!url.search&&!url.hash);
 const prisma=new PrismaClient({datasources:{db:{url:raw}},log:[]});
-const tmp=mkdtempSync(join(tmpdir(),'once-te-browser-')),password='Synthetic-'+randomBytes(20).toString('base64url')+'!';
+const ownedTemp=registeredTemp();
+const tmp=ownedTemp.path,password='Synthetic-'+randomBytes(20).toString('base64url')+'!';
 const put=(name,text)=>{const path=join(tmp,name);writeFileSync(path,text,{mode:0o600});return path;};
 const env={...process.env,DATABASE_URL:raw,APP_ENV:'test',ACCESS_MODE:'INTERNAL',COOKIE_SECURE:'false',HOST:'127.0.0.1',CONTACT_KEY_FILE:put('contact.hex',randomBytes(32).toString('hex')),CSRF_KEY_FILE:put('csrf.hex',randomBytes(32).toString('hex')),RECOVERY_EPOCH_FILE:put('recovery.epoch',randomBytes(24).toString('hex')),BOOTSTRAP_LOGIN:'owner',BOOTSTRAP_NAME:'合成快速建档管理员',BOOTSTRAP_PASSWORD_FILE:put('bootstrap.password',password)};
 const evidence='artifacts/talent-experience';mkdirSync(evidence,{recursive:true});
@@ -34,7 +38,7 @@ try{
  run('pnpm',['db:deploy']);const net=createServer();await new Promise(r=>net.listen(0,'127.0.0.1',r));env.PORT=String(net.address().port);await new Promise(r=>net.close(r));base='http://127.0.0.1:'+env.PORT;env.APP_ORIGIN=base;run('node',['dist/apps/api/src/bootstrap.js']);
  api=spawn('node',['dist/apps/api/src/main.js'],{env,stdio:['ignore','pipe','pipe']});api.stdout.resume();api.stderr.resume();
  const end=Date.now()+20000;for(;;){try{if((await fetch(base+'/health/ready')).status===200)break;}catch{}assert.ok(Date.now()<end,'Service readiness');await new Promise(r=>setTimeout(r,100));}
- browser=await chromium.launch({headless:true,...(process.env.CHROME_EXECUTABLE?{executablePath:process.env.CHROME_EXECUTABLE}:{})});const page=await browser.newPage();page.on('pageerror',e=>errors.push(e.message));await login(page);
+ browserOwner=await registeredBrowser(chromium,{headless:true,...(process.env.CHROME_EXECUTABLE?{executablePath:process.env.CHROME_EXECUTABLE}:{})});browser=browserOwner.browser;const page=await browser.newPage();page.on('pageerror',e=>errors.push(e.message));await login(page);
  const key=randomUUID(),pair=await Promise.all([command(page,'/directory/talents',input,key),command(page,'/directory/talents',input,key)]);
  assert.ok(pair.every(r=>r.status===201),JSON.stringify(pair));assert.equal(pair[0].body.resourceId,pair[1].body.resourceId);assert.equal(await prisma.person.count(),1);assert.equal(await prisma.personRole.count(),1);assert.equal(await prisma.talentProfile.count(),1);assert.equal(await prisma.commandReceipt.count({where:{operation:'directory.talent.create'}}),1);record('PostgreSQL same-key concurrency creates exactly one typed person and receipt');
  const before=await Promise.all([prisma.person.count(),prisma.sourceRecord.count(),prisma.accessScope.count(),prisma.talentProfile.count(),prisma.personRole.count(),prisma.commandReceipt.count()]);
@@ -59,5 +63,5 @@ try{
  const version=await prisma.$queryRawUnsafe('SELECT version()');writeFileSync(join(evidence,'browser-verification.json'),JSON.stringify({status:'BROWSER_TESTED',database:version[0].version,checks,scope:'PR-01a internal intake only',providers:'NOT_RUN',errors},null,2)+'\n');
 }finally{
  if(fault){await prisma.$executeRawUnsafe('DROP TRIGGER IF EXISTS once_te_fail_audit ON "audits"');await prisma.$executeRawUnsafe('DROP FUNCTION IF EXISTS once_te_fail_audit()');}
- await browser?.close();await stop(api);await prisma.$disconnect();rmSync(tmp,{recursive:true,force:true});
+ await browserOwner?.close();await stop(api);await prisma.$disconnect();ownedTemp.cleanup();
 }
