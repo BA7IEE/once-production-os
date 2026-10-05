@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import type {Store} from '../../packages/core/src/store.ts';
-import type {Table} from '../../packages/core/src/model.ts';
+import type {Table,TableMap} from '../../packages/core/src/model.ts';
 import {AppError} from '../../packages/core/src/errors.ts';
 import {base} from '../../packages/core/src/helpers.ts';
 import {agentMediaFixture} from './agent-media.ts';
@@ -9,7 +9,10 @@ import {Client} from './fixtures.ts';
 
 /** Shared MemoryStore/PrismaStore scenario. All media processing uses bounded synthetic bytes. */
 export async function ingestionRejectionScenario(inner:Store){
- const f=await agentMediaFixture(inner),checks:string[]=[];
+ // Corrupt read projections exercise the domain guard without disabling frozen DB constraints.
+ let projection:{id:string;fields:Record<string,unknown>}|null=null;
+ const projected:Store={transaction:fn=>inner.transaction(tx=>fn({...tx,get:async<K extends Table>(table:K,id:string):Promise<TableMap[K]|null>=>{const row=await tx.get(table,id);return row&&table==='talentSubmissions'&&id===projection?.id?{...row,...projection.fields} as TableMap[K]:row;}})),close:async()=>{}};
+ const f=await agentMediaFixture(projected),checks:string[]=[];
  const path=(id:string)=>'/ingestion-review/submissions/'+id;
  const rows=(table:Table)=>f.store.transaction(async tx=>(await tx.find(table)).sort((a,b)=>a.id.localeCompare(b.id)));
  const formalTables=['people','sources','sourceHistory','sourceAttributions','sourceUseBases','evidence','personRoles','talentProfiles','castingProfiles','measurementSets','works','workCredits','mediaCollections','talentAccessGrants'] as const;
@@ -48,12 +51,12 @@ export async function ingestionRejectionScenario(inner:Store){
  await f.expect(reviewer.raw('GET',path(stale)),403);await f.expect(inspect(),403);await f.expect(reviewer.cmd('POST',path(stale)+'/review',body,key),403);await f.store.transaction(tx=>tx.replace('memberships',member));
  await f.store.transaction(tx=>tx.remove('scopeMembers',scopeMember.id));await f.expect(reject(gate,reviewer),404);await f.expect(reviewer.raw('GET',path(stale)),404);await f.expect(inspect(),404);await f.expect(reviewer.cmd('POST',path(stale)+'/review',body,key),404);await f.store.transaction(tx=>tx.insert('scopeMembers',scopeMember));
  await f.store.transaction(tx=>tx.replace('memberships',{...member,status:'DISABLED'}));await f.expect(reject(gate,reviewer),401);await f.store.transaction(tx=>tx.replace('memberships',member));
- const root=(await f.store.transaction(tx=>tx.get('talentSubmissions',gate)))!;await f.store.transaction(tx=>tx.replace('talentSubmissions',{...root,recoveryEpoch:'old-recovery'}));await denied(reject(gate),'INGESTION_AUTHORIZATION_CHANGED');await f.expect(f.owner.raw('GET',path(gate)),409);await f.store.transaction(tx=>tx.replace('talentSubmissions',root));
+ const root=(await f.store.transaction(tx=>tx.get('talentSubmissions',gate)))!;projection={id:gate,fields:{recoveryEpoch:'a'.repeat(48)}};try{await denied(reject(gate),'INGESTION_AUTHORIZATION_CHANGED');await f.expect(f.owner.raw('GET',path(gate)),409);}finally{projection=null;}
  const workspace=(await f.store.transaction(tx=>tx.get('workspaces',f.w)))!;await f.store.transaction(tx=>tx.replace('workspaces',{...workspace,recoveryEpoch:'old-workspace'}));await f.expect(reject(gate),503);await f.store.transaction(tx=>tx.replace('workspaces',workspace));
  f.app.config.ingestionEnabled=false;await f.expect(reject(gate),503);f.app.config.ingestionEnabled=true;
  await f.expect(f.owner.raw('POST',path(gate)+'/review',await f.review(gate,[]),{'idempotency-key':randomUUID(),'x-csrf-token':'invalid'}),403);await f.expect(f.machine('POST',path(gate)+'/review',await f.review(gate,[])),403);
  for(const extra of [{acceptedKeys:['name']},{targetPersonId:person},{formalScopeId:f.formal.resourceId},{collectionDecisions:[]},{workDecisions:[]}])await denied(f.owner.cmd('POST',path(gate)+'/review',{...await f.review(gate,[]),...extra}),'REVIEW_DECISION_INVALID',422);
- await f.store.transaction(tx=>tx.replace('talentSubmissions',{...root,payloadDigest:'0'.repeat(64)}));assert.equal((await dto(gate)).canReject,false);await denied(reject(gate),'SUBMISSION_DIGEST_MISMATCH');await f.store.transaction(tx=>tx.replace('talentSubmissions',root));
+ projection={id:gate,fields:{payloadDigest:'0'.repeat(64)}};try{assert.equal((await dto(gate)).canReject,false);await denied(reject(gate),'SUBMISSION_DIGEST_MISMATCH');}finally{projection=null;}
  await f.store.transaction(async tx=>{const a=(await tx.get('assets',retiredMedia))!,r=(await tx.find('personMedia',{assetId:retiredMedia}))[0]!;await tx.replace('assets',{...a,usageState:'RETIRED'});await tx.replace('personMedia',{...r,usageState:'RETIRED',retiredAt:f.clock.now().toISOString()});});assert.equal((await dto(gate)).canAdopt,false);assert.equal((await dto(gate)).canReject,true);
  const retiredSnapshot=await f.store.transaction(async tx=>({asset:await tx.get('assets',retiredMedia),relations:await tx.find('personMedia',{assetId:retiredMedia}),upload:await tx.get('uploads',retiredMedia)}));
  checks.push('current-membership-permission-intake-scope-recovery-switch-csrf-and-machine-boundaries','reject-refuses-mixed-adoption-input-and-corrupt-frozen-content');

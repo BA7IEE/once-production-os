@@ -12,6 +12,10 @@ test('business flow PostgreSQL: stale rejection permissions, frozen payload, aud
   assert.equal((await db.$queryRawUnsafe<any[]>("SELECT tablename FROM pg_tables WHERE schemaname='public'")).length,0,'Owned empty DB only; never reset');
   await run('pnpm',['db:deploy'],{env:{...process.env,DATABASE_URL:raw},capture:true});
   const result=await ingestionRejectionScenario(new PrismaStore(db));
-  mkdirSync('artifacts/business-flow-review',{recursive:true});writeFileSync('artifacts/business-flow-review/rejection-postgres.json',JSON.stringify({head:process.env.ONCE_ACCEPTANCE_SHA,status:'DB_TESTED',...result,providerVerified:'NOT_RUN'},null,2)+'\n');
+  const frozen=await db.talentSubmission.findFirstOrThrow({where:{principalKind:'MACHINE'}});
+  for(const data of [{recoveryEpoch:'a'.repeat(48)},{payloadDigest:'0'.repeat(64)}])await assert.rejects(db.talentSubmission.update({where:{id:frozen.id},data}),error=>error instanceof Error&&/immutable|23514/.test(error.message));
+  assert.deepEqual(await db.talentSubmission.findUniqueOrThrow({where:{id:frozen.id}}),frozen);
+  result.checks.push('PostgreSQL-frozen-owner-and-payload-mutations-rejected-without-disabling-triggers');
+  mkdirSync('artifacts/business-flow-review' ,{recursive:true});writeFileSync('artifacts/business-flow-review/rejection-postgres.json',JSON.stringify({head:process.env.ONCE_ACCEPTANCE_SHA,status:'DB_TESTED',...result,providerVerified:'NOT_RUN'},null,2)+'\n');
  }finally{await db.$disconnect();}
 });

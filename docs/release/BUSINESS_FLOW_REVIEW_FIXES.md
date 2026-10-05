@@ -25,3 +25,5 @@
 新增 workflow `flow-review.yml` 对当前PR head运行完整类型/Core、契约/静态/构建、生命周期测试、owned PG事务和六组真实浏览器。AI使用真实PG/Application/页面与受控模型适配器，供应商未实测。其他浏览器使用实际Nest/Prisma入口；临时PG、目录、浏览器均登记后创建，finally回收。
 
 本轮结果待CI完成回填。每项仅在取得对应证据后写 CORE_MEMORY_TESTED、DB_TESTED 或 BROWSER_TESTED。真实供应商、COS、人工无提示业务验收、物理手机、生产迁移、正式部署、完整恢复演练为 NOT_RUN；不关闭M0/M1/M2/M3。
+
+首次CI 37262703092中构建、生命周期、admin UX PG和身份/AI PG通过；拒绝场景的故障夹具试图改写已冻结字段，被DB触发器拒绝。修正为测试专用读取投影，另直接断言DB禁止改写恢复标识与冻结摘要；原迁移/约束不变。后续结果以新head CI为准。
