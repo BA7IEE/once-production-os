@@ -33,7 +33,7 @@ jobs:
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: DATABASE_URL=postgresql://once_schema_check:syntax_only@127.0.0.1:1/once_validate pnpm exec prisma validate && pnpm db:generate
       - run: docker pull postgres:16-bookworm
       - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
@@ -66,7 +66,7 @@ jobs:
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: DATABASE_URL=postgresql://once_schema_check:syntax_only@127.0.0.1:1/once_validate pnpm exec prisma validate && pnpm db:generate
       - run: docker pull postgres:16-bookworm
       - name: PostgreSQL contracts, migrations and real rebuild CLI
         run: pnpm test:postgres:owned --full-ci
@@ -95,7 +95,7 @@ jobs:
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: DATABASE_URL=postgresql://once_schema_check:syntax_only@127.0.0.1:1/once_validate pnpm exec prisma validate && pnpm db:generate
       - run: docker pull postgres:16-bookworm
       - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
@@ -125,7 +125,7 @@ jobs:
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: DATABASE_URL=postgresql://once_schema_check:syntax_only@127.0.0.1:1/once_validate pnpm exec prisma validate && pnpm db:generate
       - run: docker pull postgres:16-bookworm
       - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
@@ -157,7 +157,7 @@ jobs:
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: DATABASE_URL=postgresql://once_schema_check:syntax_only@127.0.0.1:1/once_validate pnpm exec prisma validate && pnpm db:generate
       - run: docker pull postgres:16-bookworm
       - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
@@ -189,7 +189,7 @@ jobs:
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: DATABASE_URL=postgresql://once_schema_check:syntax_only@127.0.0.1:1/once_validate pnpm exec prisma validate && pnpm db:generate
       - run: docker pull postgres:16-bookworm
       - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
@@ -220,7 +220,7 @@ jobs:
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: DATABASE_URL=postgresql://once_schema_check:syntax_only@127.0.0.1:1/once_validate pnpm exec prisma validate && pnpm db:generate
       - run: docker pull postgres:16-bookworm
       - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
@@ -251,7 +251,7 @@ jobs:
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: DATABASE_URL=postgresql://once_schema_check:syntax_only@127.0.0.1:1/once_validate pnpm exec prisma validate && pnpm db:generate
       - run: docker pull postgres:16-bookworm
       - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
@@ -282,7 +282,7 @@ jobs:
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: DATABASE_URL=postgresql://once_schema_check:syntax_only@127.0.0.1:1/once_validate pnpm exec prisma validate && pnpm db:generate
       - run: docker pull postgres:16-bookworm
       - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
@@ -313,7 +313,7 @@ jobs:
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: DATABASE_URL=postgresql://once_schema_check:syntax_only@127.0.0.1:1/once_validate pnpm exec prisma validate && pnpm db:generate
       - run: docker pull postgres:16-bookworm
       - run: pnpm build && pnpm typecheck:transport
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
@@ -345,7 +345,7 @@ jobs:
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: DATABASE_URL=postgresql://once_schema_check:syntax_only@127.0.0.1:1/once_validate pnpm exec prisma validate && pnpm db:generate
       - run: docker pull postgres:16-bookworm
       - run: pnpm build && pnpm typecheck:transport
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
@@ -377,7 +377,7 @@ jobs:
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: DATABASE_URL=postgresql://once_schema_check:syntax_only@127.0.0.1:1/once_validate pnpm exec prisma validate && pnpm db:generate
       - run: docker pull postgres:16-bookworm
       - run: pnpm build && pnpm typecheck:transport
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
@@ -412,7 +412,7 @@ jobs:
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: DATABASE_URL=postgresql://once_schema_check:syntax_only@127.0.0.1:1/once_validate pnpm exec prisma validate && pnpm db:generate
       - run: docker pull postgres:16-bookworm
       - run: pnpm build && pnpm typecheck:transport
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
@@ -444,7 +444,7 @@ jobs:
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: DATABASE_URL=postgresql://once_schema_check:syntax_only@127.0.0.1:1/once_validate pnpm exec prisma validate && pnpm db:generate
       - run: docker pull postgres:16-bookworm
       - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
@@ -482,7 +482,7 @@ jobs:
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: DATABASE_URL=postgresql://once_schema_check:syntax_only@127.0.0.1:1/once_validate pnpm exec prisma validate && pnpm db:generate
       - run: docker pull postgres:16-bookworm
       - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
@@ -521,7 +521,7 @@ jobs:
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: DATABASE_URL=postgresql://once_schema_check:syntax_only@127.0.0.1:1/once_validate pnpm exec prisma validate && pnpm db:generate
       - run: docker pull postgres:16-bookworm
       - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
@@ -560,7 +560,7 @@ jobs:
           package-manager-cache: false
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma validate && pnpm db:generate
+      - run: DATABASE_URL=postgresql://once_schema_check:syntax_only@127.0.0.1:1/once_validate pnpm exec prisma validate && pnpm db:generate
       - run: docker pull postgres:16-bookworm
       - run: pnpm build && pnpm typecheck:transport
       - run: pnpm exec playwright install --with-deps chromium
