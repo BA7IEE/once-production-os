@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { call, read } from './api.ts';
+import {ResourcePicker,type ResourceOption} from './paged-picker.tsx';
 import type { Me, Page, Person, Receipt, Source } from './dto.ts';
 import type { WorkDetail, WorkSummary, ProjectDetail, ProjectSummary } from './production-dto.ts';
 import type { AssetDto } from './media-ui.tsx';
@@ -68,48 +69,34 @@ function exportErrorLabel(code: string | null) {
     return code ? (map[code] ?? code) : '—';
 }
 
-type ResourceSets = {
-    people: Person[];
-    works: WorkSummary[];
-    projects: ProjectSummary[];
-    sources: Source[];
-    assets: AssetDto[];
-};
-function subjectLabel(p: Pick<UsePermissionDto, 'subjectKind' | 'subjectId'>, data: ResourceSets) {
-    if (p.subjectKind === 'PERSON') return data.people.find(x => x.id === p.subjectId)?.displayName ?? p.subjectId;
-    if (p.subjectKind === 'WORK') return data.works.find(x => x.id === p.subjectId)?.title ?? p.subjectId;
-    if (p.subjectKind === 'PROJECT') return data.projects.find(x => x.id === p.subjectId)?.title ?? p.subjectId;
-    if (p.subjectKind === 'SOURCE') return data.sources.find(x => x.id === p.subjectId)?.title ?? p.subjectId;
-    return data.assets.find(x => x.id === p.subjectId)?.fileName ?? p.subjectId;
+function PermissionSubject({permission:p}:{permission:UsePermissionDto}) {
+    const routes={PERSON:'person.get',WORK:'work.get',PROJECT:'project.get',SOURCE:'source.get',ASSET:'asset.get'} as const;
+    const load=useLoad(()=>read<ResourceOption>(routes[p.subjectKind],{id:p.subjectId}),p.subjectKind+':'+p.subjectId+':'+p.revision);
+    return <>{load.error?'当前不可读取':load.data?.displayName??load.data?.title??load.data?.fileName??'正在读取对象…'}</>;
 }
 
-function PermissionForm({ resources, onClose, onDone }: { resources: ResourceSets; onClose: () => void; onDone: () => void }) {
+function PermissionForm({onClose,onDone}:{onClose:()=>void;onDone:()=>void}) {
     const [kind, setKind] = useState<ExportSubjectKind>('PERSON');
-    const [subjectId, setSubjectId] = useState('');
+    const [subject,setSubject]=useState<ResourceOption|null>(null),subjectId=subject?.id??'';
+    const [retentionSource,setRetentionSource]=useState<ResourceOption|null>(null);
     const [fields, setFields] = useState<ExportFieldCode[]>([]);
     const [validUntil, setValidUntil] = useState(futureLocal());
     const [evidenceNote, setEvidenceNote] = useState('');
     const [retentionBasisSourceId,setRetentionBasisSourceId]=useState('');
-    useEffect(()=>setRetentionBasisSourceId(''),[kind,subjectId]);
+    useEffect(()=>{setRetentionBasisSourceId('');setRetentionSource(null);},[kind,subjectId]);
     const person=useLoad<{id:string;source:{status:string}}|null>(()=>kind==='PERSON'&&subjectId?read('person.get',{id:subjectId}):Promise.resolve(null),kind+':'+subjectId);
     const retainedOrigin=kind==='PERSON'&&person.data?.id===subjectId&&person.data.source.status==='ERASED';
     const action = useAction();
 
-    useEffect(() => { setSubjectId(''); setFields([]); }, [kind]);
+    useEffect(() => { setSubject(null); setFields([]); }, [kind]);
     const work = useLoad<WorkDetail | null>(() => kind === 'WORK' && subjectId ? read<WorkDetail>('work.get', { id: subjectId }) : Promise.resolve(null), kind + ':' + subjectId);
     const project = useLoad<ProjectDetail | null>(() => kind === 'PROJECT' && subjectId ? read<ProjectDetail>('project.get', { id: subjectId }) : Promise.resolve(null), kind + ':' + subjectId);
 
     const sourceId = kind === 'SOURCE' ? subjectId
-        : kind === 'PERSON' ? resources.people.find(x => x.id === subjectId)?.sourceId ?? ''
-        : kind === 'ASSET' ? resources.assets.find(x => x.id === subjectId)?.sourceId ?? ''
+        : kind === 'PERSON' ? subject?.sourceId ?? ''
+        : kind === 'ASSET' ? subject?.sourceId ?? ''
         : kind === 'WORK' ? work.data?.sourceId ?? ''
         : project.data?.sourceId ?? '';
-
-    const options = kind === 'PERSON' ? resources.people.map(x => [x.id, x.displayName] as const)
-        : kind === 'WORK' ? resources.works.map(x => [x.id, x.title] as const)
-        : kind === 'PROJECT' ? resources.projects.map(x => [x.id, x.title] as const)
-        : kind === 'SOURCE' ? resources.sources.map(x => [x.id, x.title] as const)
-        : resources.assets.map(x => [x.id, x.fileName] as const);
 
     return <Modal title="批准内部导出用途" onClose={onClose} wide><form onSubmit={e => { e.preventDefault(); void action.run(async () => {
             if(kind==='PERSON'&&(person.busy||person.data?.id!==subjectId))throw new Error('人物身份仍在核对，请稍后再提交');
@@ -129,8 +116,8 @@ function PermissionForm({ resources, onClose, onDone }: { resources: ResourceSet
                 <Field label="对象类型"><select value={kind} onChange={e => setKind(e.target.value as ExportSubjectKind)}>
                     <option value="PERSON">人才</option><option value="WORK">作品</option><option value="PROJECT">项目</option><option value="SOURCE">资料来源</option><option value="ASSET">图片身份</option>
                 </select></Field>
-                <Field label="批准对象"><select required value={subjectId} onChange={e => setSubjectId(e.target.value)}><option value="">请选择</option>{options.map(([id, name]) => <option value={id} key={id}>{name}</option>)}</select></Field>
-                {retainedOrigin&&<><p className="notice">最初来源已删除。请选择当前独立身份依据，并勾选姓名、别名、简介和身份字段依据；导出只保留原来源编号，不恢复其内容。</p><Field label="身份保留依据"><select required value={retentionBasisSourceId} onChange={e=>setRetentionBasisSourceId(e.target.value)}><option value="">请选择独立身份依据</option>{resources.sources.filter(s=>s.basisMode==='INTERNAL_USE'&&s.id!==sourceId).map(s=><option key={s.id} value={s.id}>{s.title}</option>)}</select></Field></>}
+                <Field label="批准对象"><ResourcePicker kind={kind} label="批准对象" selected={subject} onChange={setSubject} required disabled={action.busy}/></Field>
+                {retainedOrigin&&<><p className="notice">最初来源已删除。请选择当前独立身份依据，并勾选姓名、别名、简介和身份字段依据；导出只保留原来源编号，不恢复其内容。</p><Field label="身份保留依据"><ResourcePicker kind="SOURCE" label="身份保留依据" selected={retentionSource} onChange={row=>{setRetentionSource(row);setRetentionBasisSourceId(row?.id??'');}} eligible={row=>row.basisMode==='INTERNAL_USE'&&row.id!==sourceId} required/></Field></>}
                 <Field label="允许导出的字段" hint="只允许本次明确勾选的字段进入 JSON；联系方式、来源原文、密码/会话/密钥没有可选项。">
                     <div className="check-grid">{fieldGroups[kind].map(([code, label]) => <label className={'check-chip' + (fields.includes(code) ? ' checked' : '')} key={code}><input type="checkbox" checked={fields.includes(code)} onChange={e => setFields(e.target.checked ? [...fields, code] : fields.filter(x => x !== code))}/>{label}</label>)}</div>
                 </Field>
@@ -191,31 +178,17 @@ function ExportDetailPanel({ id, onChanged }: { id: string; onChanged: () => voi
     </section>;
 }
 
-export function ExportPanel({ me }: { me: Me }) {
+function ExportContent({ me }: { me: Me }) {
     const canApprove = me.permissions.includes('sources.review');
     const canExport = me.permissions.includes('data.export');
     const [refresh, setRefresh] = useState(0), [permissionModal, setPermissionModal] = useState(false), [page, setPage] = useState(1);
-    const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]), [selectedExport, setSelectedExport] = useState<string | null>(null);
+    const [chosen, setChosen] = useState<UsePermissionDto[]>([]), [selectedExport, setSelectedExport] = useState<string | null>(null);
     const create = useAction(), revoke = useAction();
 
-    const people = useLoad(() => read<Page<Person>>('person.list', {}, { pageSize: '100' }), 'export-people:' + refresh);
-    const works = useLoad(() => read<Page<WorkSummary>>('work.list', {}, { pageSize: '100' }), 'export-works:' + refresh);
-    const projects = useLoad(() => read<Page<ProjectSummary>>('project.list', {}, { pageSize: '100' }), 'export-projects:' + refresh);
-    const sources = useLoad(() => me.permissions.includes('sources.read')
-        ? read<Page<Source>>('source.list', {}, { pageSize: '100' })
-        : Promise.resolve({ items: [], total: 0, page: 1, pageSize: 100 } as Page<Source>), 'export-sources:' + refresh);
-    const assets = useLoad(() => read<Page<AssetDto>>('asset.list', {}, { pageSize: '100' }), 'export-assets:' + refresh);
-    const permissions = useLoad(() => read<Page<UsePermissionDto>>('usePermission.list', {}, { pageSize: '100' }), 'export-permissions:' + refresh);
+    const [permissionPage,setPermissionPage]=useState(1),[permissionKind,setPermissionKind]=useState(''),[permissionStatus,setPermissionStatus]=useState('');
+    const permissions = useLoad(() => read<Page<UsePermissionDto>>('usePermission.list', {}, {page:String(permissionPage),pageSize:'20',...(permissionKind?{subjectKind:permissionKind}:{}),...(permissionStatus?{status:permissionStatus}:{})}), 'export-permissions:' + permissionPage+':'+permissionKind+':'+permissionStatus+':'+refresh);
     const exports = useLoad(() => canExport ? read<Page<ExportSummary>>('export.list', {}, { page: String(page), pageSize: '20' }) : Promise.resolve({ items: [], total: 0, page: 1, pageSize: 20 }), 'exports:' + page + ':' + refresh);
-
-    const resources: ResourceSets = {
-        people: people.data?.items ?? [], works: works.data?.items ?? [], projects: projects.data?.items ?? [],
-        sources: sources.data?.items ?? [], assets: assets.data?.items ?? []
-    };
-    const activePermissions = useMemo(() => (permissions.data?.items ?? []).filter(p => p.status === 'ACTIVE' && Date.parse(p.validUntil) > Date.now()), [permissions.data]);
-    const chosen = activePermissions.filter(p => selectedPermissions.includes(p.id));
-    const primary = chosen.filter(p => ['PERSON', 'WORK', 'PROJECT'].includes(p.subjectKind));
-
+    const selectedPermissions=chosen.map(p=>p.id),primary=chosen.filter(p=>['PERSON','WORK','PROJECT'].includes(p.subjectKind));
     async function createExport() {
         if (!primary.length) throw new Error('至少选择一条人才、作品或项目的导出许可');
         const ids = {
@@ -225,19 +198,22 @@ export function ExportPanel({ me }: { me: Me }) {
         };
         const fields = [...new Set(chosen.flatMap(p => p.fields))] as ExportFieldCode[];
         const receipt = await call<'export.create', Receipt>('export.create', { format: 'JSON', selectedIds: ids, fields, usePermissionRefs: selectedPermissions });
-        setSelectedPermissions([]); setSelectedExport(receipt.resourceId); setRefresh(x => x + 1);
+        setChosen([]); setSelectedExport(receipt.resourceId); setRefresh(x => x + 1);
     }
 
     return <><PageTitle overline="CONTROLLED DATA EGRESS" title="内部 JSON 导出" description="用于有权限的内部迁移/重建，不是客户资料包。可读不等于可导出；每个对象和字段都必须有独立 INTERNAL_EXPORT 许可。" action={canApprove ? <button className="primary" onClick={() => setPermissionModal(true)}>＋ 批准导出用途</button> : undefined}/>
-        <ErrorBox error={people.error ?? works.error ?? projects.error ?? sources.error ?? assets.error ?? permissions.error ?? exports.error ?? create.error ?? revoke.error}/>
+        <ErrorBox error={permissions.error ?? exports.error ?? create.error ?? revoke.error}/>
         <div className="notice"><strong>三道安全门</strong><p>账号必须有 data.export；对象必须有当前有效的精确用途许可；部署侧 DATA_EGRESS_MODE 必须明确开放。生产默认关闭出口。</p></div>
 
         <div className="notice"><strong>内部语言文本</strong><p>请分别批准人物、作品或项目的语言文本字段，以及每份实际依据来源的相同字段。正文、依据和原复核记录一起迁移；在目标库保留为待复核文本，不会把导入人记作原复核人。</p></div><div className="notice"><strong>2.0 专业资料导出范围</strong><p>可选择主档案、职业、能力及所用字典、外部标识、代表关系及关联机构、语言、地点、外观、量尺历史和翻译资料；请同时选择必要关联；代表人须另行批准并一起选择导出。若需保留字段依据，请同时批准“所选专业字段的来源证据与原核验记录”，并批准每条证据来源及其对应专业资料；未选择时仍是旧版资料快照，不含字段证据。原核验仅保留历史归属，不等于新环境里的核验。包含每个来源的全部来源字段后，可用于隔离重建。无证明附件的资质可迁移；如有编号，必须另外批准加密编号并在隔离重建时提供原环境和目标环境密钥。带证明附件或已核验资质须同时批准图片及来源的“资质证明原件及预览”，下载 JSON 后再逐项保存原件和预览。媒体集合与内容标签可另行选择，必须同时批准集合引用的全部图片；类型、标签、顺序和说明分别保留。成年资格需单独批准，已核验记录还必须选择字段来源证据；原核验归属仅作历史记录，迁移不延长有效期。身份字段的来源证据可单独选择，普通联系人无需建立人才档案；须同时批准姓名、别名或简介以及各条证据的来源。合并保留资料可另行批准，包含旧身份、保留主档案、原合并决定及核验归属；须同时选择当前对应主档案、关联量尺及字段证据。原来源已删除而资料有独立依据保留时，必须一并选择字段证据；只迁移已删来源编号与删除状态，不恢复来源原文，也不把它重新变成可用依据。这份 JSON 不是完整备份。专业资料、所用能力定义或关联机构变化会使旧文件失效。</p></div>
         <section className="panel padded"><div className="panel-heading"><div><h2>可用导出许可</h2><p>先由资料核验人员批准对象、字段和截止时间。导出任务只能使用这里的现行许可。</p></div><button onClick={() => setRefresh(x => x + 1)}>刷新</button></div>
+            <div className="filters"><select aria-label="许可对象类型" value={permissionKind} onChange={e=>{setPermissionKind(e.target.value);setPermissionPage(1);}}><option value="">全部类型</option>{Object.entries(kindNames).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select><select aria-label="许可状态" value={permissionStatus} onChange={e=>{setPermissionStatus(e.target.value);setPermissionPage(1);}}><option value="">全部状态</option><option value="ACTIVE">有效</option><option value="REVOKED">已撤销</option></select></div>
             <div className="table-wrap"><table><thead><tr>{canExport && <th>用于本次导出</th>}<th>对象</th><th>允许字段</th><th>截止</th><th>状态</th>{canApprove && <th>操作</th>}</tr></thead>
-                <tbody>{permissions.data?.items.map(p => <tr key={p.id}>{canExport && <td><input aria-label={'选择导出许可 ' + p.id} type="checkbox" disabled={p.status !== 'ACTIVE' || Date.parse(p.validUntil) <= Date.now()} checked={selectedPermissions.includes(p.id)} onChange={e => setSelectedPermissions(e.target.checked ? [...selectedPermissions, p.id] : selectedPermissions.filter(x => x !== p.id))}/></td>}<td><strong>{kindNames[p.subjectKind]} · {subjectLabel(p, resources)}</strong><small>{p.subjectId}</small></td><td>{p.fields.map(x => fieldGroups[p.subjectKind].find(([c]) => c === x)?.[1] ?? x).join(' / ')}</td><td>{date(p.validUntil)}</td><td>{p.status === 'ACTIVE' ? '有效' : '已撤销'}</td>{canApprove && <td>{p.status === 'ACTIVE' && <button className="danger-text" disabled={revoke.busy} onClick={() => {
+                <tbody>{permissions.data?.items.map(p => <tr key={p.id}>{canExport && <td><input aria-label={'选择导出许可 ' + p.id} type="checkbox" disabled={p.status !== 'ACTIVE' || Date.parse(p.validUntil) <= Date.now()} checked={selectedPermissions.includes(p.id)} onChange={e => setChosen(rows=>e.target.checked?[...rows.filter(x=>x.id!==p.id),p]:rows.filter(x=>x.id!==p.id))}/></td>}<td><strong>{kindNames[p.subjectKind]} · <PermissionSubject permission={p}/></strong><small>{p.subjectId}</small></td><td>{p.fields.map(x => fieldGroups[p.subjectKind].find(([c]) => c === x)?.[1] ?? x).join(' / ')}</td><td>{date(p.validUntil)}</td><td>{p.status === 'ACTIVE' ? '有效' : '已撤销'}</td>{canApprove && <td>{p.status === 'ACTIVE' && <button className="danger-text" disabled={revoke.busy} onClick={() => {
                     if (confirm('撤销后，依赖此许可的旧导出会立即不可下载。确认撤销？')) void revoke.run(async () => { await call('usePermission.revoke', { expectedRevision: p.revision }, { id: p.id }); setRefresh(x => x + 1); });
                 }}>撤销</button>}</td>}</tr>)}</tbody></table></div>
+            {permissions.data&&<Pager page={permissionPage} pageSize={20} total={permissions.data.total} setPage={setPermissionPage}/>}
+            {chosen.length>0&&<div className="button-row" aria-label="本次所选许可">{chosen.map(p=><button key={p.id} type="button" disabled={create.busy} onClick={()=>setChosen(rows=>rows.filter(x=>x.id!==p.id))}>移除 {kindNames[p.subjectKind]}许可 {p.id}</button>)}</div>}
             {!permissions.data?.items.length && <p className="muted">暂无当前可见的导出许可。</p>}
             {canExport && <div className="export-create-bar"><div><strong>已选 {selectedPermissions.length} 个许可</strong><small>人才/作品/项目决定导出记录；来源许可还需覆盖每条专业资料的实际来源；图片许可仅补充媒体身份。</small></div><button className="primary" disabled={create.busy || !selectedPermissions.length} onClick={() => void create.run(createExport)}>生成内部 JSON</button></div>}
         </section>
@@ -247,6 +223,8 @@ export function ExportPanel({ me }: { me: Me }) {
             {exports.data && <Pager page={page} pageSize={20} total={exports.data.total} setPage={setPage}/>}
         </section>}
         {selectedExport && <ExportDetailPanel id={selectedExport} onChanged={() => setRefresh(x => x + 1)}/>}
-        {permissionModal && <PermissionForm resources={resources} onClose={() => setPermissionModal(false)} onDone={() => { setPermissionModal(false); setRefresh(x => x + 1); }}/>}
+        {permissionModal && <PermissionForm onClose={() => setPermissionModal(false)} onDone={() => { setPermissionModal(false); setRefresh(x => x + 1); }}/>}
     </>;
 }
+
+export function ExportPanel({me}:{me:Me}) {return <ExportContent key={me.membershipId} me={me}/>;}

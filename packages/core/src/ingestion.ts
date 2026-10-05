@@ -38,6 +38,34 @@ export class Ingestion {
   else{const p=await this.principal(tx,actor);if(s.servicePrincipalId!==p.id)missing();}
   if(forFork){invariant(s.recoveryEpoch===this.config.recoveryEpoch,'INGESTION_AUTHORIZATION_CHANGED','恢复隔离后的旧草稿不可复用',409);const p=(await this.currentPrincipal(tx,s.servicePrincipalId,s.workspaceId)).p;const maintainer=await new MachineIdentity(this.clock,this.config).validateMaintainer(tx,s.workspaceId,p.defaultMaintainerMembershipId,p.scopeId,p.permissionCodes as Permission[]);await requireScope(tx,maintainer,s.scopeId);}else await this.currentPrincipal(tx,s.servicePrincipalId,s.workspaceId,s);return s;
  }
+ /** Internal review belongs to the original intake scope. Closing a rejected batch
+  * does not renew the machine's authority to submit, read media or adopt facts. */
+ async reviewAccess(tx:Tx,actor:Actor,id:string){
+  this.enabled();invariant(actor.actorKind!=='MACHINE','HUMAN_REVIEW_REQUIRED','审核需要内部人员',403);requirePermission(actor,'talent.review');
+  const raw=await workspaceRow(tx,'talentSubmissions',id,actor.workspaceId);if(!raw||raw.principalKind!=='MACHINE')missing();const s=raw as MachineSubmission;
+  await requireScope(tx,actor,s.scopeId);
+  const workspace=await tx.get('workspaces',actor.workspaceId);
+  invariant(this.config.accessMode==='INTERNAL'&&workspace?.recoveryEpoch===this.config.recoveryEpoch&&s.recoveryEpoch===this.config.recoveryEpoch,'INGESTION_AUTHORIZATION_CHANGED','恢复隔离后的旧提交不能继续审核',409);
+  return s;
+ }
+ private frozenSubmission(s:MachineSubmission,items:TalentSubmissionItem[]){
+  invariant(s.state==='SUBMITTED','SUBMISSION_CLOSED','提交已失效或已处理',409);
+  invariant(!s.sourceDeclaration.erased&&!items.some(i=>i.values.erased),'SUBMISSION_ERASED','原材料已按保留期限清理，不能重新处理',409);
+  invariant(s.payloadDigest===this.payload(s,items),'SUBMISSION_DIGEST_MISMATCH','冻结内容已变化',409);
+ }
+ private async adoptionCurrent(tx:Tx,s:MachineSubmission,items:TalentSubmissionItem[]){
+  await this.currentPrincipal(tx,s.servicePrincipalId,s.workspaceId,s);
+  invariant(Date.parse(s.expiresAt)>this.clock.now().getTime(),'SUBMISSION_CLOSED','提交已过期，不能采纳',409);
+  await this.checkTarget(tx,s);await this.checkItems(tx,s,items);
+ }
+ private async reviewStatus(tx:Tx,actor:Actor,s:MachineSubmission,items:TalentSubmissionItem[]){
+  let canReject=false,canAdopt=false,rejectBlockedReason:string|null=null,adoptBlockedReason:string|null=null;
+  const expected=(e:unknown)=>e instanceof AppError&&[403,404,409,422,503].includes(e.status);
+  try{this.frozenSubmission(s,items);canReject=true;}catch(e){if(!expected(e))throw e;rejectBlockedReason=(e as AppError).message;}
+  if(canReject)try{await this.adoptionCurrent(tx,s,items);requirePermission(actor,'records.write');requirePermission(actor,'sources.review');if(s.proposedPersonId)await td2PersonFor(tx,actor,s.proposedPersonId);canAdopt=true;}catch(e){if(!expected(e))throw e;adoptBlockedReason=(e as AppError).message;}
+  else adoptBlockedReason=rejectBlockedReason;
+  return {canReject,canAdopt,rejectBlockedReason,adoptBlockedReason};
+ }
  async itemsFor(tx:Tx,s:MachineSubmission){return (await tx.find('talentSubmissionItems',{workspaceId:s.workspaceId,submissionId:s.id})).sort((a,b)=>a.clientItemKey.localeCompare(b.clientItemKey));}
  async targetBaseline(tx:Tx,workspaceId:string,id:string){
   const p=await workspaceRow(tx,'people',id,workspaceId);invariant(p&&p.status!=='ERASED'&&p.status!=='ARCHIVED'&&!await personAliasFor(tx,workspaceId,id)&&!await deletionBlocked(tx,workspaceId,'PERSON',id),'TARGET_REBASE_REQUIRED','建议目标已合并、删除或不可用于本次关联',409);
@@ -68,13 +96,33 @@ export class Ingestion {
  async submit(tx:Tx,actor:Actor,id:string,input:unknown){await this.validate(tx,actor,id,input);const s=await this.access(tx,actor,id),next={...touch(s,this.clock),proposedTargetBaseline:s.proposedPersonId?await this.targetBaseline(tx,s.workspaceId,s.proposedPersonId):null,state:'SUBMITTED',submittedAt:this.now(),expiresAt:this.until(this.config.mediaRetention?.submitted??180)};await freezeStructures(tx,s,await this.itemsFor(tx,s),this.clock);next.payloadDigest=this.payload(next,await this.itemsFor(tx,s));await tx.replace('talentSubmissions',next);await syncMediaRetention(tx,next,this.clock);return next;}
  async withdraw(tx:Tx,actor:Actor,id:string,input:unknown){const s=await this.access(tx,actor,id);cas(s,S.revision.parse(input).expectedRevision);invariant(open.has(s.state),'SUBMISSION_CLOSED','提交已经关闭',409);const next={...touch(s,this.clock),state:'WITHDRAWN',expiresAt:this.until(this.config.mediaRetention?.withdrawn??7)};await tx.replace('talentSubmissions',next);await syncMediaRetention(tx,next,this.clock);return next;}
  async fork(tx:Tx,actor:Actor,id:string,input:unknown){const s=await this.access(tx,actor,id,false,true),d=S.fork.parse(input);cas(s,d.expectedRevision);invariant(!s.sourceDeclaration.erased,'SUBMISSION_ERASED','原材料已按保留期限清理，不能复活；请新建提交',409);const n=await this.create(tx,actor,{schemaVersion:INGESTION_INPUT_VERSION,externalSubmissionKey:d.externalSubmissionKey,proposedPersonId:s.proposedPersonId,sourceDeclaration:s.sourceDeclaration});n.forkedFromId=s.id;await tx.replace('talentSubmissions',n);for(const i of (await this.itemsFor(tx,s)).filter(i=>!['MEDIA','COLLECTION','WORK'].includes(i.kind)))await tx.insert('talentSubmissionItems',{...i,...base(s.workspaceId,this.clock),submissionId:n.id,state:'PENDING',appliedId:null,baseline:{}});return n;}
- async dto(tx:Tx,s:MachineSubmission,reviewer?:Actor){const media=new Map<string,Record<string,unknown>>();for(const i of await this.itemsFor(tx,s))if(i.kind==='MEDIA'){const a=await tx.get('assets',String(i.values.assetId));if(a)media.set(i.clientItemKey,{id:a.id,fileName:a.fileName,mime:a.mime,state:a.state,usageState:a.usageState,bytes:a.bytes});}const p=(await tx.get('servicePrincipals',s.servicePrincipalId))!;let target:Record<string,unknown>|null=null,rebaseRequired=false;if(reviewer&&s.proposedPersonId){try{await this.checkTarget(tx,s);const row=await td2PersonFor(tx,reviewer,s.proposedPersonId);target={id:row.id,displayName:(await loadTalentGraph(tx,reviewer,this.clock,[row.id])).get(row.id).displayName,scopeId:row.scopeId};}catch(e){if(e instanceof AppError&&['TARGET_REBASE_REQUIRED','NOT_FOUND','SCOPE_FORBIDDEN','FORBIDDEN'].includes(e.code))rebaseRequired=true;else throw e;}}
-  return {id:s.id,revision:s.revision,state:s.state,mode:s.proposedPersonId?'EXISTING':'NEW',externalSubmissionKey:s.externalSubmissionKey,principalName:p.displayName,sourceDeclaration:s.sourceDeclaration,proposedPersonId:s.proposedPersonId,personId:s.personId,publicReason:s.publicReason,items:(await this.itemsFor(tx,s)).map(i=>({clientItemKey:i.clientItemKey,kind:i.kind,...(media.has(i.clientItemKey)?{media:media.get(i.clientItemKey)}:{}),values:reviewer&&i.kind==='PROFILE'&&!reviewer.permissions.includes('sensitive.read')?Object.fromEntries(Object.entries(i.values).filter(([k])=>k!=='birthDate')):i.values,unavailableFields:reviewer&&i.kind==='PROFILE'&&Object.hasOwn(i.values,'birthDate')&&!reviewer.permissions.includes('sensitive.read')?['birthDate']:[],dependencyGroup:i.dependencyGroup,dependsOn:i.dependsOn,state:i.state})),...(reviewer?{target,rebaseRequired,structureOptions:await structureReviewOptions(tx,reviewer,s,await this.itemsFor(tx,s),this.clock)}:{} )};}
- async list(tx:Tx,actor:Actor,query:Record<string,string>){this.enabled();invariant(actor.actorKind!=='MACHINE','HUMAN_REVIEW_REQUIRED','审核需要内部人员',403);requirePermission(actor,'talent.review');const out=[];for(const raw of await tx.find('talentSubmissions',{workspaceId:actor.workspaceId,principalKind:'MACHINE'})){if(!await scopeVisible(tx,actor,raw.scopeId))continue;out.push(await this.dto(tx,raw as MachineSubmission,actor));}return page(out,query);}
- async review(tx:Tx,actor:Actor,id:string,input:unknown){this.enabled();const s=await this.access(tx,actor,id,true);invariant(!['APPROVED','PARTIALLY_APPROVED','REJECTED'].includes(s.state),'SUBMISSION_CLOSED','本批提交已处理',409);const d=S.review.parse(input);invariant(d.reviewBasis.trim().length>=4,'REVIEW_BASIS_REQUIRED','请记录真实内部审核依据',422);cas(s,d.expectedRevision);invariant(s.state==='SUBMITTED'&&Date.parse(s.expiresAt)>this.clock.now().getTime(),'SUBMISSION_CLOSED','提交已失效或已处理',409);const items=await this.itemsFor(tx,s);invariant(s.payloadDigest===this.payload(s,items),'SUBMISSION_DIGEST_MISMATCH','冻结内容已变化',409);await this.checkTarget(tx,s);await this.checkItems(tx,s,items);
+ async dto(tx:Tx,s:MachineSubmission,reviewer?:Actor){
+  const items=await this.itemsFor(tx,s),media=new Map<string,Record<string,unknown>>();
+  for(const i of items)if(i.kind==='MEDIA'){const a=await tx.get('assets',String(i.values.assetId));if(a)media.set(i.clientItemKey,{id:a.id,fileName:a.fileName,mime:a.mime,state:a.state,usageState:a.usageState,bytes:a.bytes});}
+  const p=(await tx.get('servicePrincipals',s.servicePrincipalId))!;
+  let target:Record<string,unknown>|null=null,rebaseRequired=false;
+  if(reviewer&&s.proposedPersonId){try{await this.checkTarget(tx,s);const row=await td2PersonFor(tx,reviewer,s.proposedPersonId);target={id:row.id,displayName:(await loadTalentGraph(tx,reviewer,this.clock,[row.id])).get(row.id).displayName,scopeId:row.scopeId};}catch(e){if(e instanceof AppError&&['TARGET_REBASE_REQUIRED','NOT_FOUND','SCOPE_FORBIDDEN','FORBIDDEN'].includes(e.code))rebaseRequired=true;else throw e;}}
+  const status=reviewer?await this.reviewStatus(tx,reviewer,s,items):null;
+  let structureOptions:Awaited<ReturnType<typeof structureReviewOptions>>={collections:[],works:[]};
+  if(reviewer&&status?.canAdopt)try{structureOptions=await structureReviewOptions(tx,reviewer,s,items,this.clock);}catch(e){if(!(e instanceof AppError&&[403,404,409,422].includes(e.status)))throw e;status.canAdopt=false;status.adoptBlockedReason=e.message;}
+  return {id:s.id,revision:s.revision,state:s.state,mode:s.proposedPersonId?'EXISTING':'NEW',externalSubmissionKey:s.externalSubmissionKey,principalName:p.displayName,sourceDeclaration:s.sourceDeclaration,proposedPersonId:s.proposedPersonId,personId:s.personId,publicReason:s.publicReason,items:items.map(i=>({clientItemKey:i.clientItemKey,kind:i.kind,...(media.has(i.clientItemKey)?{media:media.get(i.clientItemKey)}:{}),values:reviewer&&i.kind==='PROFILE'&&!reviewer.permissions.includes('sensitive.read')?Object.fromEntries(Object.entries(i.values).filter(([k])=>k!=='birthDate')):i.values,unavailableFields:reviewer&&i.kind==='PROFILE'&&Object.hasOwn(i.values,'birthDate')&&!reviewer.permissions.includes('sensitive.read')?['birthDate']:[],dependencyGroup:i.dependencyGroup,dependsOn:i.dependsOn,state:i.state})),...(reviewer?{target,rebaseRequired,structureOptions,...status}:{})};
+ }
+ async list(tx:Tx,actor:Actor,query:Record<string,string>){this.enabled();invariant(actor.actorKind!=='MACHINE','HUMAN_REVIEW_REQUIRED','审核需要内部人员',403);requirePermission(actor,'talent.review');const out=[];for(const raw of await tx.find('talentSubmissions',{workspaceId:actor.workspaceId,principalKind:'MACHINE'})){if(!await scopeVisible(tx,actor,raw.scopeId))continue;try{const s=await this.reviewAccess(tx,actor,raw.id);out.push(await this.dto(tx,s,actor));}catch(e){if(!(e instanceof AppError&&[403,404,409].includes(e.status)))throw e;}}return page(out,query);}
+ async review(tx:Tx,actor:Actor,id:string,input:unknown){
+  const s=await this.reviewAccess(tx,actor,id);invariant(s.state==='SUBMITTED','SUBMISSION_CLOSED','本批提交已失效或已处理',409);
+  const d=S.review.parse(input);invariant(d.reviewBasis.trim().length>=4,'REVIEW_BASIS_REQUIRED','请记录真实内部审核依据',422);cas(s,d.expectedRevision);
+  const items=await this.itemsFor(tx,s);this.frozenSubmission(s,items);
+  if(d.decision==='REJECT'){
+   invariant(d.acceptedKeys.length===0&&d.targetPersonId===undefined&&d.formalScopeId===undefined&&d.collectionDecisions===undefined&&d.workDecisions===undefined,'REVIEW_DECISION_INVALID','拒绝只能关闭整批提交，不能夹带采纳条目、目标或结构决定',422);
+   for(const item of items)await tx.replace('talentSubmissionItems',{...touch(item,this.clock),state:'REJECTED',appliedId:null});
+   const expiresAt=new Date(Math.min(Date.parse(s.expiresAt),Date.parse(this.until(this.config.mediaRetention?.decided??30)))).toISOString();
+   const next={...touch(s,this.clock),personId:null,reviewTargetDecision:'REJECT' as const,state:'REJECTED',decidedAt:this.now(),decidedById:actor.membershipId,publicReason:d.publicReason,expiresAt};
+   await tx.replace('talentSubmissions',next);await syncMediaRetention(tx,next,this.clock,true);return next;
+  }
+  await this.adoptionCurrent(tx,s,items);
   const accepted=new Set(d.acceptedKeys),applied=new Map<string,string>();invariant(accepted.size===d.acceptedKeys.length&&d.acceptedKeys.every(k=>items.some(i=>i.clientItemKey===k)),'ITEM_SELECTION_INVALID','条目选择不正确',422);for(const i of items)if(accepted.has(i.clientItemKey))invariant(items.filter(j=>j.dependencyGroup===i.dependencyGroup).every(j=>accepted.has(j.clientItemKey))&&i.dependsOn.every(k=>accepted.has(k)),'DEPENDENCY_GROUP_INCOMPLETE','相关条目必须整组采纳',422);
   await checkStructureReview(tx,actor,s,items,accepted,d,this.clock);
-  invariant((d.decision==='REJECT')===!accepted.size,'REVIEW_DECISION_INVALID','拒绝不能采纳条目，采纳必须明确目标决定',422);let person:Person|null=null;
+  invariant(accepted.size>0,'REVIEW_DECISION_INVALID','采纳必须明确目标决定和至少一个条目',422);let person:Person|null=null;
   if(accepted.size){requirePermission(actor,'records.write');requirePermission(actor,'sources.review');invariant(Date.parse(d.validUntil)>this.clock.now().getTime()&&Date.parse(d.validUntil)<=this.clock.now().getTime()+365*86400000,'BASIS_EXPIRY_INVALID','内部使用依据必须有未来一年内的明确期限',422);
    if(s.proposedPersonId){invariant(d.decision==='LINK_EXISTING'&&d.targetPersonId===s.proposedPersonId&&d.formalScopeId===undefined,'EXACT_TARGET_REQUIRED','必须明确关联冻结的同一目标；不能改目标或范围',422);person=await td2PersonFor(tx,actor,s.proposedPersonId);}else{invariant(d.decision==='CREATE_NEW'&&!!d.formalScopeId&&d.targetPersonId===undefined,'FORMAL_SCOPE_REQUIRED','新建须由审核人明确选择正式范围',422);await requireScope(tx,actor,d.formalScopeId);invariant(TEXT.every(f=>items.some(i=>i.kind==='IDENTITY_TEXT'&&i.values.field===f&&accepted.has(i.clientItemKey)))&&items.some(i=>i.kind==='ROLE'&&accepted.has(i.clientItemKey)),'MINIMUM_IDENTITY_REQUIRED','新建须明确采纳姓名、别名、简介和至少一个职业',422);}
    const reviewBasis=chosenStructures(d)?JSON.stringify({version:'agent-structure-review-v1',batchBasis:d.reviewBasis,workDecisions:d.workDecisions??[],collectionDecisions:d.collectionDecisions??[]}):d.reviewBasis;

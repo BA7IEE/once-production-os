@@ -9,10 +9,11 @@ import {ErrorBox,Field,Modal,Pager,Submit,useAction,useLoad} from './ui.tsx';
 import {TALENT_VERSION,type TalentDetail,type TalentFact,type TalentFactKind,type TalentSchema} from './talent-dto.ts';
 import {TALENT_SECTIONS,TALENT_LABELS,type TalentField} from './talent-fields.ts';
 export const outcomeUnknown=(error:unknown)=>error instanceof ApiError&&error.unknownOutcome;
-export function TalentSourceChoice({value,onChange,disabled=false}:{value:Source|null;onChange:(value:Source)=>void;disabled?:boolean}) {
+export function TalentSourceChoice({value,onChange,disabled=false,internalAuthoringOnly=false}:{value:Source|null;onChange:(value:Source)=>void;disabled?:boolean;internalAuthoringOnly?:boolean}) {
  const [page,setPage]=useState(1),load=useLoad(()=>read<Page<Source>>('source.list',{}, {page:String(page),pageSize:'10'}),page);
  return <fieldset disabled={disabled||load.busy} className="talent-source"><legend>本次资料依据</legend><ErrorBox error={load.error}/>{value&&<p>已选：<strong>{value.title}</strong> · 截止 {new Date(value.validUntil).toLocaleDateString('zh-CN')}</p>}
- <Field label="资料来源"><select value={value?.id??''} onChange={e=>{const chosen=load.data?.items.find(s=>s.id===e.target.value);if(chosen)onChange(chosen);}} required><option value="">选择有效来源</option>{value&&!load.data?.items.some(s=>s.id===value.id)&&<option value={value.id}>{value.title}</option>}{load.data?.items.filter(s=>s.current).map(s=><option key={s.id} value={s.id}>{s.title}</option>)}</select></Field>
+ <Field label="资料来源"><select value={value?.id??''} onChange={e=>{const chosen=load.data?.items.find(s=>s.id===e.target.value);if(chosen)onChange(chosen);}} required><option value="">选择有效来源</option>{value&&!load.data?.items.some(s=>s.id===value.id)&&<option value={value.id}>{value.title}</option>}{load.data?.items.filter(s=>s.current&&(!internalAuthoringOnly||s.allowsInternalAuthoring)).map(s=><option key={s.id} value={s.id}>{s.title}</option>)}</select></Field>
+ {internalAuthoringOnly&&<p className="muted">请选择本次新资料的独立内部来源；本人投稿的原依据不能承接新增内容。没有合适来源时，可先到来源管理登记。</p>}
  {value&&<details><summary>查看依据说明</summary><p className="pre-line">{value.basisDescription}</p></details>}{load.busy&&<p>正在读取来源…</p>}{load.data&&<Pager page={page} pageSize={10} total={load.data.total} setPage={setPage}/>}</fieldset>;
 }
 type RelationKind='asset'|'organization'|'person';

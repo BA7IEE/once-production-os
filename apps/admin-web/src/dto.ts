@@ -78,7 +78,7 @@ export interface Person {
     }[];
 }
 export interface Source {
-    allowsInternalAuthoring?: boolean;
+    allowsInternalAuthoring: boolean;
     id: string;
     title: string;
     type: 'MANUAL' | 'TEXT';
@@ -112,6 +112,7 @@ export interface SourceHistoryEntry {
         status: string;
     };
 }
+export interface ContactListResponse {items:Contact[]}
 export interface Contact {
     id: string;
     kind: 'PHONE' | 'WECHAT' | 'EMAIL' | 'OTHER';

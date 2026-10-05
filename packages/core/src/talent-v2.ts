@@ -41,13 +41,30 @@ export class TalentV2 {
         return person;
     }
     async patchPerson(tx:Tx,actor:Actor,id:string,input:unknown){
-        talentWrite(actor);const d=S.personPatch.parse(input),p=await this.parent(tx,actor,id,d.expectedRevision);
+        talentWrite(actor);const d=S.personPatch.parse(input),p=await td2PersonFor(tx,actor,id);cas(p,d.expectedRevision);
+        invariant(p.status!=='ARCHIVED'||(d.status==='ACTIVE'&&Object.keys(d).length===3),'PERSON_ARCHIVED','已归档人物只能单独恢复在库后再修改资料',409);
         const origin=await sourceFor(tx,actor,p.sourceId,this.clock);if(['displayName','aliases','intro'].some(k=>Object.hasOwn(d,k)))invariant(sourceAllowsInternalAuthoring(origin),'TALENT_BASIS_SCOPED','本人文字来源仅支持已批准的本次内容；新增内部资料须使用独立来源',409);
         const next=touch(p,this.clock);
         for(const key of ['displayName','intro','aliases','status'] as const)if(d[key]!==undefined)Object.assign(next,{[key]:d[key]});
         invariant(Object.keys(d).length>2,'EMPTY_UPDATE','没有需要保存的修改',400);
         if(next.status!==p.status)next.protectionEpoch++;
         await tx.replace('people',next);return next;
+    }
+    /** Internal AI adoption only: preserve identity origin and record each selected field's own basis. */
+    async applyAiIdentity(tx:Tx,actor:Actor,id:string,expectedRevision:number,changes:Array<{field:string;value:unknown;sources:Array<{id:string;revision:number}>}>){
+        invariant(actor.actorKind!=='MACHINE','HUMAN_REVIEW_REQUIRED','采纳 AI 建议需要内部成员',403);requirePermission(actor,'ai.use');talentWrite(actor);
+        const person=await this.parent(tx,actor,id,expectedRevision);await sourceFor(tx,actor,person.sourceId,this.clock);
+        invariant(changes.length>0&&new Set(changes.map(c=>c.field)).size===changes.length,'AI_SELECTION_INVALID','请仅选择本次建议字段',400);
+        const next=touch(person,this.clock);
+        for(const change of changes){
+            const value=this.field('person',change.field,true).parse(change.value);
+            invariant(change.sources.length>0,'AI_EVIDENCE_REQUIRED','建议缺少原文依据',422);
+            for(const ref of change.sources)await this.source(tx,actor,ref.id,ref.revision);
+            Object.assign(next,{[change.field]:value});
+        }
+        await tx.replace('people',next);
+        for(const change of changes)for(const ref of change.sources)await this.evidenceFor(tx,actor,'person',asRow(next),[change.field],ref.id,ref.revision,false);
+        return next;
     }
     async enroll(tx:Tx,actor:Actor,id:string,input:unknown){
         talentWrite(actor);const d=S.enroll.parse(input),p=await this.parent(tx,actor,id,d.expectedRevision);

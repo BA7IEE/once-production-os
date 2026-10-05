@@ -31,8 +31,12 @@ export async function adoptSubmissionMedia(tx:Tx,actor:Actor,s:TalentSubmission,
  }
 }
 
-export async function syncMediaRetention(tx:Tx,s:StoredSubmission,clock:Clock){
- for(const r of await tx.find('personMedia',{workspaceId:s.workspaceId,submissionId:s.id,usageState:'STAGED'}))await tx.replace('personMedia',{...touch(r,clock),retainUntil:s.expiresAt});
+export async function syncMediaRetention(tx:Tx,s:StoredSubmission,clock:Clock,shortenOnly=false){
+ for(const r of await tx.find('personMedia',{workspaceId:s.workspaceId,submissionId:s.id,usageState:'STAGED'})){
+  // Rejection never renews retention or changes a purge worker's ownership.
+  if(shortenOnly&&(!r.retainUntil||r.retainUntil<=s.expiresAt||r.retiredAt||r.purgedAt))continue;
+  await tx.replace('personMedia',{...touch(r,clock),retainUntil:s.expiresAt});
+ }
 }
 
 /** MEDIA references originate in worker.finish, never in caller-supplied candidate JSON. */

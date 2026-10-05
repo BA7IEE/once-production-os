@@ -26,7 +26,7 @@ import { createRoot } from 'react-dom/client';
 import { useEffect, useState, createContext, useContext, type ReactNode } from 'react';
 import { call, read, suspendTransport, acknowledgeSecretInspection, type ApiError } from './api.ts';
 import type { Inputs } from './generated/requests.ts';
-import type { Me, Person, Page, CatalogItem, Receipt, Source, Membership, Contact, Job, ImportBatch, Scope, Audit, SourceHistoryEntry } from './dto.ts';
+import type { Me, Person, Page, CatalogItem, Receipt, Source, Membership, Contact, ContactListResponse, Job, ImportBatch, Scope, Audit, SourceHistoryEntry } from './dto.ts';
 import { Modal, Field, ErrorBox, Tag, Empty, date, useLoad, useAction, Submit, PageTitle, Pager, labels } from './ui.tsx';
 import './style.css';
 import './admin-ux.css';
@@ -233,9 +233,7 @@ function ContactForm({ person, onClose, onSaved }: {
     onSaved: () => void;
 }) {
     const { can } = useOS();
-    const load = useLoad(() => read<{
-        items: Contact[];
-    }>('contact.get', { id: person.id }), person.id);
+    const load = useLoad(() => read<ContactListResponse>('contact.get', { id: person.id }), person.id);
     const [rows, setRows] = useState<Array<{
         kind: Contact['kind'];
         value: string;

@@ -359,7 +359,7 @@ export class Application {
                     case 'ingestion.withdraw':return command('talentSubmission',()=>ingestion.withdraw(tx,actor,id,data));
                     case 'ingestion.fork':return command('talentSubmission',()=>ingestion.fork(tx,actor,id,data));
                     case 'ingestionReview.list':return ingestion.list(tx,actor,query);
-                    case 'ingestionReview.get':return ingestion.dto(tx,await ingestion.access(tx,actor,id,true),actor);
+                    case 'ingestionReview.get':return ingestion.dto(tx,await ingestion.reviewAccess(tx,actor,id),actor);
                     case 'ingestionReview.review':return command('talentSubmission',()=>ingestion.review(tx,actor,id,data));
                     case 'mediaPurge.status':return this.mediaPurge.overview(tx,actor);
                     case 'mediaPurge.reconcile':return command('mediaPurge',()=>this.mediaPurge.reconcile(tx,actor));

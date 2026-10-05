@@ -33,8 +33,8 @@ export async function reviewTasks(tx:Tx,actor:Actor,input:unknown,clock:Clock,co
   }
   for(const s of submissions){
    if(s.state==='DRAFT'||s.state==='WITHDRAWN')continue;
-   try {if(s.principalKind==='MACHINE'){if(!config.ingestionEnabled)continue;await ingestion.access(tx,actor,s.id,true);}else await m.internalSubmission(tx,actor,s.id);}catch(e){if(hidden(e))continue;throw e;}
-   const pending=s.state==='SUBMITTED'&&Date.parse(s.expiresAt)>clock.now().getTime(),title=await name(tx,actor,s.personId,clock,graph);
+   try {if(s.principalKind==='MACHINE'){if(!config.ingestionEnabled)continue;await ingestion.reviewAccess(tx,actor,s.id);}else await m.internalSubmission(tx,actor,s.id);}catch(e){if(hidden(e)||s.principalKind==='MACHINE'&&e instanceof AppError&&e.code==='INGESTION_AUTHORIZATION_CHANGED')continue;throw e;}
+   const pending=s.state==='SUBMITTED'&&(s.principalKind==='MACHINE'||Date.parse(s.expiresAt)>clock.now().getTime()),title=await name(tx,actor,s.personId,clock,graph);
    const items=await tx.find('talentSubmissionItems',{workspaceId:actor.workspaceId,submissionId:s.id});
    out.push({id:s.id,kind:s.principalKind==='MACHINE'?'INGESTION':'SUBMISSION',title:title?title+' · 资料更新':s.principalKind==='MACHINE'?'外部材料投稿':'本人资料提交',state:pending?'SUBMITTED':s.state==='SUBMITTED'?'EXPIRED':s.state,updatedAt:s.updatedAt,view:pending?'TODO':'DONE',description:`${items.length} 项修改，采纳资料与资格核验分别处理`});
   }
@@ -52,7 +52,7 @@ export async function reviewTask(tx:Tx,actor:Actor,kind:string,id:string,clock:C
  requirePermission(actor,'records.read');const m=new TalentMaintenance(clock,config);
  if(kind==='SOURCE_REVIEW')return new SourceReviews(clock,config).get(tx,actor,id,meta);
  if(kind==='SUBMISSION')return m.submissionDto(tx,await m.internalSubmission(tx,actor,id),actor);
- if(kind==='INGESTION'){const ingestion=new Ingestion(clock,config);return ingestion.dto(tx,await ingestion.access(tx,actor,id,true),actor);}
+ if(kind==='INGESTION'){const ingestion=new Ingestion(clock,config);return ingestion.dto(tx,await ingestion.reviewAccess(tx,actor,id),actor);}
  if(kind==='CLAIM'){requirePermission(actor,'talent.review');const c=await workspaceRow(tx,'talentClaims',id,actor.workspaceId);if(!c)missing();await requireScope(tx,actor,c.scopeId);if(c.targetPersonId)await td2PersonFor(tx,actor,c.targetPersonId);const inv=await workspaceRow(tx,'talentInvitations',c.invitationId,actor.workspaceId),account=await workspaceRow(tx,'talentAccounts',c.talentAccountId,actor.workspaceId),workspace=await tx.get('workspaces',actor.workspaceId),state=claimState(c,clock,config,inv??undefined,account?.status,workspace?.recoveryEpoch);return {id:c.id,revision:c.revision,state,canApprove:state==='PENDING'&&c.kind==='CLAIM',canReject:c.state==='PENDING',admissionUntil:c.admissionUntil,kind:c.kind,relation:c.relation,adultDeclared:c.adultDeclared,targetName:await name(tx,actor,c.targetPersonId,clock)};}
  missing();
 }

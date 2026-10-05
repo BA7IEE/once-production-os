@@ -1,0 +1,19 @@
+{
+  "baseline": "bb8643d147a92c5611af2801a86bb640923958c0",
+  "branch": "codex/business-flow-review-fixes",
+  "phase": "IMPLEMENTED_CI_PENDING",
+  "local": {
+    "status": "CORE_MEMORY_TESTED",
+    "uniqueTargetedTests": 100,
+    "contractRoutes": 306,
+    "staticChecks": 12,
+    "fullTypes": "NOT_RUN",
+    "build": "NOT_RUN",
+    "postgres": "NOT_RUN",
+    "browser": "NOT_RUN",
+    "resourceReason": "macOS swap above 4096 MiB gate"
+  },
+  "ci": "PENDING",
+  "providerVerified": "NOT_RUN",
+  "deployed": false
+}

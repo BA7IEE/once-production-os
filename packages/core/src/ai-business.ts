@@ -52,7 +52,7 @@ export class AiBusiness {
         catch (e) {
             if (!(e instanceof AppError && e.status === 404))
                 throw e;
-        } return page(rows, query); }
+        } rows.sort((a,b)=>b.validUntil.localeCompare(a.validUntil)||a.id.localeCompare(b.id)); return page(rows, query); }
     private async capture(tx: Tx, actor: Actor, sourceId: string, taskId: string, grantId: string | null): Promise<AiDependency> {
         const s = await sourceFor(tx, actor, sourceId, this.clock), scope = await tx.get('scopes', s.scopeId);
         if (!scope)
@@ -231,13 +231,8 @@ export class AiBusiness {
             requirePermission(actor, 'records.write');
         if (row.taskType === 'extract_profile') {
             const domain = new TalentV2(this.clock, this.config);
-            const person = await domain.patchPerson(tx, actor, row.personId!, { schemaVersion: 'once-talent-v2.0.0', expectedRevision: row.targetRevision, ...patch });
-            for (const change of output.changes)
-                if (Object.hasOwn(patch, change.field))
-                    for (const sourceId of new Set(change.evidence.map(e => e.sourceId))) {
-                        const source = await sourceFor(tx, actor, sourceId, this.clock);
-                        await domain.evidenceFor(tx, actor, 'person', { ...person }, [change.field], sourceId, source.revision, false);
-                    }
+            const spec=S.create.parse(row.inputSpec);
+            await domain.applyAiIdentity(tx,actor,row.personId!,row.targetRevision!,output.changes.filter(change=>Object.hasOwn(patch,change.field)).map(change=>({field:change.field,value:change.value,sources:[...new Set(change.evidence.map(e=>e.sourceId))].map(id=>({id,revision:spec.sources.find(source=>source.sourceId===id)!.expectedRevision}))})));
         }
         if (row.taskType === 'suggest_tags')
             await new Portfolio(this.clock, new Talent(this.clock, this.config)).update(tx, actor, row.workId!, { expectedRevision: row.targetRevision, ...patch });
