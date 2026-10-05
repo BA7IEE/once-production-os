@@ -41,8 +41,20 @@ export class ResourceRun {
         const filters = ['--filter', `name=^/${name}$`, '--filter', `label=${label}`];
         const ids = await command('docker', ['ps', '-aq', ...filters], { capture: true, timeout: 10000 });
         if (!ids && creation==='ATTEMPTED') throw new Error('RESOURCE_UNKNOWN: creation response unknown; retain lock rather than assume absence.');
-        if (ids) await command('docker', ['stop', '--time', '5', ...ids.split(/\s+/)], { capture: true, timeout: 15000 });
-        if (await command('docker', ['ps', '-aq', ...filters], { capture: true, timeout: 10000 })) throw new Error('RESOURCE_LEAK: container remains');
+        if (ids) {
+          // --rm removal may complete after stop returns, or before its reply.
+          // A failed stop reply is resolved only by readback of this observed resource.
+          try { await command('docker', ['stop', '--time', '5', ...ids.split(/\s+/)], { capture: true, timeout: 15000 }); }
+          catch { /* absence below must still be proven; cancellation is not inherited */ }
+          const deadline=Date.now()+5000;
+          let remaining;
+          do {
+            remaining=await command('docker', ['ps', '-aq', ...filters], { capture: true, timeout: 10000 });
+            if(!remaining)break;
+            await new Promise(resolve=>setTimeout(resolve,100));
+          } while(Date.now()<deadline);
+          if(remaining)throw new Error('RESOURCE_LEAK: container remains');
+        }
       }
     } catch { failed = true; }
     // Nested supervisors publish process groups into this same journal.

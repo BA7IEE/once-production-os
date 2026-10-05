@@ -65,3 +65,16 @@ test('verification success cannot become PASS when final cleanup fails',async()=
  await assert.rejects(ownedPostgres({scope,guard:()=>{},lock:()=>()=>{unlocked=true;},cleanupCommand:async()=>{throw new Error('cleanup unknown');}}));
  assert.equal(scope.record.outcome,'CLEANUP_FAILED');assert.equal(unlocked,false);
 });
+
+for(const stopReply of ['success','unknown'])test(`observed --rm container ${stopReply} reply waits for verified async disappearance (simulated)`,async()=>{
+ const scope=new ResourceRun({simulation:true});let stopped=false,reads=0,unlocked=false;
+ scope.command=async(_cmd,args)=>args[0]==='port'?'127.0.0.1:55432':'';
+ const cleanupCommand=async(_cmd,args)=>{
+  assert.ok(args[0]==='stop'||args.includes(`label=io.once.test-run=${scope.id}`));
+  if(args[0]==='stop'){stopped=true;if(stopReply==='unknown')throw new Error('response lost after stop');return '';}
+  if(!stopped)return 'owned-id';
+  return ++reads<3?'owned-id':'';
+ };
+ await ownedPostgres({scope,guard:()=>{},lock:()=>()=>{unlocked=true;},cleanupCommand});
+ assert.equal(reads,3);assert.ok(unlocked);assert.equal(scope.record.status,'ZERO_RESIDUE');assert.equal(scope.record.outcome,'PASS');
+});

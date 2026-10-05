@@ -101,7 +101,7 @@ async function login(page, loginName, secret) {
     await page.locator('input[autocomplete=username]').fill(loginName);
     await page.locator('input[autocomplete=current-password]').fill(secret);
     await page.getByRole('button', { name: '登录', exact: true }).click();
-    await page.getByRole('button', { name: '工作台', exact:true }).waitFor();
+    await page.locator('.topbar').getByText('工作空间 / 工作台',{exact:true}).waitFor();
 }
 async function token(page) {
     const response = await page.context().request.get(base + '/api/v1/me');

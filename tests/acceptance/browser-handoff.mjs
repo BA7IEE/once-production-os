@@ -1,4 +1,4 @@
-import {navigateWorkspace} from './support/workspace-navigation.mjs';
+import {navigateWorkspace,openAdvancedPerson} from './support/workspace-navigation.mjs';
 import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {registeredBrowser} from '../../scripts/registered-browser.mjs';
 let browserOwner;
@@ -44,7 +44,7 @@ async function login(page, loginName) {
     await page.locator('input[autocomplete=username]').fill(loginName);
     await page.locator('input[autocomplete=current-password]').fill(password);
     await page.getByRole('button', { name: '登录', exact: true }).click();
-    await page.getByRole('button', { name: '工作台', exact:true }).waitFor();
+    await page.locator('.topbar').getByText('工作空间 / 工作台',{exact:true}).waitFor();
 }
 async function cmd(page, method, path, data, expected = 200) {
     const me = await page.context().request.get(base + '/api/v1/me'); assert.equal(me.status(), 200);
@@ -80,7 +80,7 @@ try {
     }
     const recipient = await prisma.user.findUniqueOrThrow({ where: { loginName: 'h1_receiver' } });
     const recipientMember = await prisma.membership.findFirstOrThrow({ where: { userId: recipient.id } });
-    await sender.getByRole('button', { name: '人才库', exact:true }).click();
+    await navigateWorkspace(sender,'人才库');
     await sender.getByRole('button', { name: /新增人才/ }).click();
     await sender.getByLabel('姓名 / 艺名 *').fill('H1浏览器私有人才');
     await sender.getByRole('checkbox', {name:'模特',exact:true}).check();
@@ -92,7 +92,7 @@ try {
     const sourceBefore = await prisma.sourceRecord.findUniqueOrThrow({ where: { id: person.sourceId } });
     const scopesBefore = await prisma.scopeMember.findMany({ orderBy: { id: 'asc' } });
     const sibling = await cmd(sender, 'POST', '/people', { displayName: 'H1同来源但未交接的人才', roles: ['model'], sourceId: person.sourceId }, 201);
-    await sender.locator('summary').filter({hasText:'高级管理：来源、依据、历史与权限'}).click();await sender.getByRole('button',{name:'打开高级管理',exact:true}).click();
+    await openAdvancedPerson(sender);
     await sender.getByRole('button', { name: '交给指定同事', exact: true }).click();
     await sender.getByLabel('接收同事').selectOption(recipientMember.id);
     await sender.getByRole('checkbox', { name: /我已检查基本字段/ }).check();

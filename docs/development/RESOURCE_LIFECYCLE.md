@@ -57,3 +57,5 @@ ONCE_TEST_LIFECYCLE_FAULT=SIGTERM pnpm test:postgres:owned
 后五项预期非零退出；每项必须在自己的 journal 中显示 ZERO_RESIDUE，containers/processes/networks/temporaryVolumes 均为0。故障注入只作用于本轮新建临时容器，发生在数据库就绪后、迁移前；正常项才执行迁移/真实业务测试。NOT_RUN 或 CLEANUP_FAILED 不能算故障验收通过。不要并发执行，也不需要重跑全机审计或构建全部业务模块。
 
 创建请求失败/超时且未曾观察到容器时，不能排除Docker守护进程晚于CLI完成创建；这条路径标记UNKNOWN、保留锁，不仅凭一次空查询认证零残留。已观察到本轮容器则按精确归属回收并核验。
+
+2026-10-05 CI收尾：已观察到的本轮容器在stop之后按精确名称/标签有界核对5秒，兼容`--rm`异步移除及停止响应丢失。仅实测查询为空才算回收完成；查询异常或持续存在保留锁。创建响应未知且从未观察到容器时仍保持UNKNOWN，不借一次空查询写PASS。
