@@ -1,6 +1,6 @@
-当前工作：[业务流修复与验收边界](docs/release/BUSINESS_FLOW_FIXES.md)，[Draft PR #36](https://github.com/BA7IEE/once-production-os/pull/36)。本轮完整类型、构建、778项Core、两条PG迁移与两组真实页面已通过CI，未合并、未部署。以下PR-04D记录属于上一基线。
+当前工作：[七项业务流程复核修复](docs/release/BUSINESS_FLOW_REVIEW_FIXES.md)，[Draft PR #38](https://github.com/BA7IEE/once-production-os/pull/38)。基于PR #37，在独立分支完成修复；本轮CI已通过完整类型/构建、806项Core、三组真实PG和六组浏览器，未合并、未部署。验证边界与首次失败记录见交付文档。以下PR-04D记录属于历史基线。
 
-当前 PR-04D 进度见 [同档接手与生命周期交付说明](docs/release/PR04_AGENT_INGESTION_D.md)，独立 stacked Draft PR35、未合并、未部署。A–C及迁移1–74冻结；本轮本地全量通过，最终head CI另绑定PR与交付回复，D等待代码级复核。
+历史 PR-04D 进度见 [同档接手与生命周期交付说明](docs/release/PR04_AGENT_INGESTION_D.md)，独立 stacked Draft PR35、未合并、未部署。A–C及迁移1–74冻结；本轮本地全量通过，最终head CI另绑定PR与交付回复，D等待代码级复核。
 
 # ONCE Production OS
 

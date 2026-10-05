@@ -1,8 +1,12 @@
-## 2026-10-05：业务流程复核修复（实施中）
+## 2026-10-05：七项业务流程修复完成开发验收（Draft PR #38）
 
-基于 PR #37 的 bb8643d147a92c5611af2801a86bb640923958c0，独立分支修复七项已复现问题：联系方式 DTO、本人草稿轮询保护、导入批次命令快照、typed 来源身份逐项建议与 AI 原子采纳、失效 Agent 提交拒绝、归档恢复、超过100条资料的维护分页。具体实现及验收边界见 [本轮修复记录](BUSINESS_FLOW_REVIEW_FIXES.md)。无 schema、迁移或依赖版本变更，1–75冻结，未合并、未部署。
+基于 PR #37 / `bb8643d147a92c5611af2801a86bb640923958c0`，本轮修复联系方式、本人草稿刷新、导入重预览、独立依据的身份修改与 AI 采纳、失效 Agent 投稿驳回、归档恢复及维护分页。实现代码 `01320cc3e165a1cc24a6ffeaf00d0a52a913639c` 的 [CI 37264594297](https://github.com/BA7IEE/once-production-os/actions/runs/37264594297) 全部通过：完整前后端类型/构建/306条契约/12项静态 PASS，Core **806/806 CORE_MEMORY_TESTED、零跳过**，生命周期 **29/29 PASS**，三组隔离 PostgreSQL 16 **DB_TESTED**，六组 Chromium 页面 **BROWSER_TESTED**。详见 [修复与证据记录](BUSINESS_FLOW_REVIEW_FIXES.md) 及 `artifacts/flow-review/verification.json`。
 
-本机只进行轻量指定核心回归；完整类型、构建、全量Core、真实PG和浏览器由本轮独立CI验证，结果待回填。旧PR绿色记录不作为本轮通过依据。PROVIDER_VERIFIED、人工无提示业务验收、正式迁移与部署继续 NOT_RUN。
+证据已分别记录Core原始JSON回读与验收完整日志回读；当前head的验收原始产物下载超时，截图/视频仍在CI，不能宣称本地已检查。
+
+无 schema、迁移或依赖升级，1–75保持基线字节；本地只跑100项相关轻量核心和4项编排模拟，Swap超过4GiB时未启动本地PG、浏览器或构建。九轮真实owned PG/浏览器均已核对零残留；Docker故障矩阵只做模拟。AI通过真实PG/Application/页面与受控模型适配器，本人认证使用受控HTTP通知网关，媒体轮询场景包含测试投影，不能据此声明真实供应商或媒体队列验收。
+
+[PR #38](https://github.com/BA7IEE/once-production-os/pull/38) 保持 Draft、未合并、未部署；本轮七项完成开发验收。PROVIDER_VERIFIED、COS、物理手机、人工无提示业务验收、生产迁移、正式镜像与恢复演练均为 NOT_RUN，M0/M1/M2/M3不关闭。收尾文档与受验代码由源文件指纹绑定，PR最新head的CI另在PR描述和交付回复确认。以下保留历史版本证据。
 
 ## 2026-10-04：业务流修复收尾（Draft PR #36）
 
