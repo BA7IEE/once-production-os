@@ -1,6 +1,6 @@
 import {navigateWorkspace,openAdvancedPerson,openFilters,selectPaged} from './support/workspace-navigation.mjs';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {buffer as readStreamBytes} from 'node:stream/consumers';
 export async function verifyLocaleBrowser({owner,prisma,cmd,writeUI,source,json,until}){
  const roots=[];
  const basisTitle='浏览器内部文本依据',sourceId=(await cmd(owner,'POST','/sources',source(basisTitle),201)).resourceId;
@@ -61,7 +61,7 @@ export async function verifyLocaleBrowser({owner,prisma,cmd,writeUI,source,json,
  }
  for(const id of permits)await owner.getByLabel('选择导出许可 '+id,{exact:true}).check();
  const exportId=(await writeUI(owner,'POST','/exports',()=>owner.getByRole('button',{name:'生成内部 JSON',exact:true}).click(),202)).resourceId;
- await until(async()=>await prisma.exportJob.count({where:{id:exportId,state:'READY'}})===1);await owner.getByRole('button',{name:'下载 JSON',exact:true}).waitFor();const downloading=owner.waitForEvent('download');await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();const file=await downloading,payload=JSON.parse(readFileSync(await file.path(),'utf8'));
+ await until(async()=>await prisma.exportJob.count({where:{id:exportId,state:'READY'}})===1);await owner.getByRole('button',{name:'下载 JSON',exact:true}).waitFor();const downloading=owner.waitForEvent('download');await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();const file=await downloading,payload=JSON.parse((await readStreamBytes(await file.createReadStream())).toString('utf8'));
  assert.equal(payload.schemaVersion,'once-export-v3-locale');assert.equal(payload.manifest.locales.texts.length,3);for(const text of payload.manifest.locales.texts){const row=await prisma.localeText.findUniqueOrThrow({where:{id:text.id}});assert.equal(text.text,row.text);assert.equal(text.originalReview?.membershipId??null,row.reviewedBy??row.originalReviewMembershipId);assert.equal(text.dependencies.length,2);assert.deepEqual(text.mergeHistory,row.mergeHistory??[]);}
  await cmd(owner,'POST','/use-permissions/'+permits.at(-1)+'/revoke',{expectedRevision:1});const denied=await writeUI(owner,'POST','/exports/'+exportId+'/download',()=>owner.getByRole('button',{name:'下载 JSON',exact:true}).click(),409);assert.equal(denied.error.code,'EXPORT_STALE');
  console.log('PASS internal locale v3 browser: explicit three owner grants and source grant -> real JSON download preserves typed dependencies and original review; source-only grant revocation blocks old download');

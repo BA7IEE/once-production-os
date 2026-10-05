@@ -1,6 +1,6 @@
 import {navigateWorkspace,selectPaged} from './support/workspace-navigation.mjs';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {buffer as readStreamBytes} from 'node:stream/consumers';
 /** The source was actually erased by the preceding UI flow; authorize only the live independent bases. */
 export async function verifyRetainedOriginExport({owner,prisma,writeUI,until,retained}) {
  const {personId,languageId,target,basis,originSourceId}=retained;
@@ -17,7 +17,7 @@ export async function verifyRetainedOriginExport({owner,prisma,writeUI,until,ret
  for(const id of permits)await owner.getByLabel('选择导出许可 '+id,{exact:true}).check();
  const exportId=(await writeUI(owner,'POST','/exports',()=>owner.getByRole('button',{name:'生成内部 JSON',exact:true}).click(),202)).resourceId;
  await until(async()=>await prisma.exportJob.count({where:{id:exportId,state:'READY'}})===1);await owner.getByRole('button',{name:'下载 JSON',exact:true}).waitFor();
- const downloading=owner.waitForEvent('download');await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();const file=await downloading,payload=JSON.parse(readFileSync(await file.path(),'utf8')),bundle=payload.manifest.talent;
+ const downloading=owner.waitForEvent('download');await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();const file=await downloading,payload=JSON.parse((await readStreamBytes(await file.createReadStream())).toString('utf8')),bundle=payload.manifest.talent;
  assert.equal(bundle.schemaVersion,'once-talent-transfer-v15');assert.equal(bundle.retainedOrigins.length,1);assert.equal(bundle.retainedOrigins[0].id,target.id);assert.equal(bundle.retainedOrigins[0].status,'ERASED');assert.deepEqual(Object.keys(bundle.retainedOrigins[0]).sort(),['id','protectionEpoch','revision','status']);assert.equal(payload.manifest.sources.some(s=>s.id===target.id),false);
  const language=bundle.tables.personLanguages.find(r=>r.id===languageId);assert.equal(language.sourceId,target.id);assert.equal(language.data.speakingLevelCode,'FLUENT');assert.ok(bundle.evidence.some(e=>e.ownerId===languageId&&e.sourceId===basis.id&&e.originalReview));
  assert.equal((await prisma.sourceRecord.findUniqueOrThrow({where:{id:target.id}})).status,'ERASED');

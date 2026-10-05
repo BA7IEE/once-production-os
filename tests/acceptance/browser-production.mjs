@@ -1,3 +1,4 @@
+import {buffer as readStreamBytes} from 'node:stream/consumers';
 import {navigateWorkspace,openAdvancedPerson,openFilters,chooseValues,retryOriginal,openShortlist,selectPaged} from './support/workspace-navigation.mjs';
 import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {registeredBrowser} from '../../scripts/registered-browser.mjs';
@@ -7,7 +8,7 @@ import { verifyTalentWorkbench } from './talent-workbench.mjs';
  * Never reads a .env target, resets a DB, or sends requests to a production host. */
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID, createHash } from 'node:crypto';
-import { existsSync, mkdtempSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
@@ -552,7 +553,7 @@ try {
  await until(async()=>await prisma.exportJob.count({where:{id:typedExport,state:'READY'}})===1);
  await owner.getByRole('button',{name:'下载 JSON',exact:true}).waitFor();
  const typedDownload=owner.waitForEvent('download');await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();
- const typedFile=await typedDownload,typedPayload=JSON.parse(readFileSync(await typedFile.path(),'utf8'));
+ const typedFile=await typedDownload,typedPayload=JSON.parse((await readStreamBytes(await typedFile.createReadStream())).toString('utf8'));
  assert.equal(typedPayload.schemaVersion,'once-export-v2-talent');
  assert.equal(typedPayload.manifest.talent.schemaVersion,'once-talent-transfer-v15');
  const exportedHistory=typedPayload.manifest.talent.mergeHistory;assert.equal(exportedHistory.people.length,1);assert.equal(exportedHistory.people[0].id,tdDuplicate);assert.equal(exportedHistory.people[0].status,'ARCHIVED');assert.equal(exportedHistory.aliases[0].oldPersonId,tdDuplicate);assert.equal(exportedHistory.aliases[0].canonicalPersonId,tdCanonical);
@@ -587,7 +588,7 @@ try {
  for(const [part,label] of [['original','下载图片原件'],['preview','下载图片预览']]) {
   const downloadedProof=owner.waitForEvent('download');await owner.getByRole('button',{name:label,exact:true}).click();const file=await downloadedProof;
   assert.equal(file.suggestedFilename(),tdUpload.resourceId+(part==='original'?'.original.bin':'.preview.jpg'));
-  const bytes=readFileSync(await file.path()),asset=typedPayload.manifest.talent.assets[0];assert.equal(hash(bytes),part==='original'?asset.sha256:asset.previewHash);
+  const bytes=await readStreamBytes(await file.createReadStream()),asset=typedPayload.manifest.talent.assets[0];assert.equal(hash(bytes),part==='original'?asset.sha256:asset.previewHash);
   if(part==='original')assert.deepEqual(bytes,tdBytes);
  }
 

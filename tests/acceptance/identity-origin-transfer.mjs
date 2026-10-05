@@ -1,6 +1,6 @@
 import {navigateWorkspace,selectPaged} from './support/workspace-navigation.mjs';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {buffer as readStreamBytes} from 'node:stream/consumers';
 export async function verifyIdentityOriginExport({owner,prisma,writeUI,until,retained}){
  const {personId,origin,basis}=retained,fields=['姓名 / 展示名','别名','简介','身份字段的来源证据与原核验记录'],sourceFields=['来源标题','来源类型','提供方说明','内部依据类型','依据说明','有效起点','有效截止','来源状态'];
  await navigateWorkspace(owner,'内部导出');
@@ -12,7 +12,7 @@ export async function verifyIdentityOriginExport({owner,prisma,writeUI,until,ret
  }
  const permission=await prisma.usePermission.findUniqueOrThrow({where:{id:permits[0]}});assert.equal(permission.sourceId,origin.id);assert.equal(permission.retentionBasisSourceId,basis.id);
  for(const id of permits)await owner.getByLabel('选择导出许可 '+id,{exact:true}).check();const jobId=(await writeUI(owner,'POST','/exports',()=>owner.getByRole('button',{name:'生成内部 JSON',exact:true}).click(),202)).resourceId;
- await until(async()=>await prisma.exportJob.count({where:{id:jobId,state:'READY'}})===1);await owner.getByRole('button',{name:'下载 JSON',exact:true}).waitFor();const downloading=owner.waitForEvent('download');await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();const file=await downloading,payload=JSON.parse(readFileSync(await file.path(),'utf8')),bundle=payload.manifest.talent;
+ await until(async()=>await prisma.exportJob.count({where:{id:jobId,state:'READY'}})===1);await owner.getByRole('button',{name:'下载 JSON',exact:true}).waitFor();const downloading=owner.waitForEvent('download');await owner.getByRole('button',{name:'下载 JSON',exact:true}).click();const file=await downloading,payload=JSON.parse((await readStreamBytes(await file.createReadStream())).toString('utf8')),bundle=payload.manifest.talent;
  assert.equal(bundle.schemaVersion,'once-talent-transfer-v15');assert.equal(bundle.retainedOrigins[0].id,origin.id);assert.equal(bundle.retainedOrigins[0].status,'ERASED');assert.deepEqual(Object.keys(bundle.retainedOrigins[0]).sort(),['id','protectionEpoch','revision','status']);assert.equal(payload.manifest.people[0].sourceId,origin.id);assert.equal(payload.manifest.sources.length,1);assert.equal(payload.manifest.sources[0].id,basis.id);assert.equal(bundle.identityEvidence.length,3);assert.ok(bundle.identityEvidence.every(e=>e.sourceId===basis.id&&e.originalReview));assert.equal(bundle.tables.talentProfiles.length,0);
  console.log('PASS retained identity v13 browser: explicit independent identity-basis approval, separate field/source grants, actual download preserves erased origin and all identity evidence without creating talent');
 }
