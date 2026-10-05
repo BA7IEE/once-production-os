@@ -21,7 +21,7 @@ jobs:
         run: sha256sum -c MANIFEST.sha256
       - name: Start fresh evidence for this head
         run: |
-          rm -rf artifacts/admin-ux artifacts/business-flow artifacts/talent-experience-pr02b artifacts/flow-review artifacts/business-flow-review
+          rm -rf artifacts/admin-ux artifacts/business-flow artifacts/talent-experience-pr02b artifacts/flow-review artifacts/business-flow-review artifacts/agent-ingestion-pr04a
           rm -f artifacts/core-test-report.json
       - uses: actions/setup-node@v6
         with:

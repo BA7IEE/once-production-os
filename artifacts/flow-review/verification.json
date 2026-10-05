@@ -30,6 +30,20 @@
         "identity PostgreSQL"
       ],
       "failure": "Rejection fixture attempted to alter frozen submission recoveryEpoch. Fixed by test-only read projection; DB immutable trigger assertion added.",
+      "core": "806/806 PASS"
+    },
+    {
+      "runId": 37263140202,
+      "head": "3f058d552edd4612d25f765046b21d71c27dc96f",
+      "acceptance": "FAIL",
+      "passed": [
+        "contract",
+        "static",
+        "build",
+        "lifecycle",
+        "all three PostgreSQL groups"
+      ],
+      "failure": "Existing contact edit/remove was blocked by a required source picker used only for adding a new row. Picker made optional; add still requires a selected source and domain validates every row.",
       "core": "IN_PROGRESS_AT_FIX"
     }
   ]
