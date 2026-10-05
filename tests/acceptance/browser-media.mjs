@@ -1,4 +1,4 @@
-import {navigateWorkspace,openAdvancedPerson} from './support/workspace-navigation.mjs';
+import {navigateWorkspace,beginMediaUpload} from './support/workspace-navigation.mjs';
 import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {registeredBrowser} from '../../scripts/registered-browser.mjs';
 let browserOwner;
@@ -81,24 +81,23 @@ try {
  const holdSource=async route=>{const response=await route.fetch();sourceEntered();await sourceGate;await route.fulfill({response});};await editor.route(sourceReadPath,holdSource);
  const createdResponse=editor.waitForResponse(r=>r.url().endsWith('/directory/talents')&&r.request().method()==='POST');await editor.getByRole('button',{name:'保存草稿',exact:true}).click();const created=await createdResponse;assert.equal(created.status(),201);
  const pid=(await created.json()).resourceId,person=await prisma.person.findUniqueOrThrow({where:{id:pid}});
- await openAdvancedPerson(editor);
- await sourceRequested;await editor.getByText('正在核对素材来源…',{exact:true}).waitFor();assert.equal(await editor.getByRole('heading',{name:'关联私有素材'}).count(),0,'source-backed upload must not render an unrelated required source selector while the profile source loads');releaseSource();
- await editor.getByRole('heading',{name:'关联私有素材'}).waitFor();await editor.unroute(sourceReadPath,holdSource);
+ await editor.getByRole('button',{name:'照片视频',exact:true}).click();
+ await sourceRequested;await editor.getByText('正在核对素材来源…',{exact:true}).waitFor();assert.equal(await editor.getByRole('region',{name:'照片视频与附件'}).count(),0,'source-backed upload must not render an unrelated required source selector while the profile source loads');releaseSource();
+ await editor.getByRole('region',{name:'照片视频与附件'}).waitFor();await editor.unroute(sourceReadPath,holdSource);
  const image=await sharp({create:{width:80,height:40,channels:3,background:'#336699'}}).png().withMetadata({orientation:6}).toBuffer();
  const sends=[];const path='**/api/v1/uploads/*/complete';
  editor.on('request',r=>{if(r.url().endsWith('/complete'))sends.push({key:r.headers()['idempotency-key'],body:r.postData()});});
  const lose=async route=>{const upstream=await route.fetch();assert.equal(upstream.status(),202);await route.abort('failed');};await editor.route(path,lose);
- await editor.locator('input[type=file]').setInputFiles({name:'M1-synthetic.png',mimeType:'image/png',buffer:image});
- await editor.getByRole('button',{name:'上传并检查',exact:true}).click();await editor.getByRole('alert').waitFor();
+ await beginMediaUpload(editor,{name:'M1-synthetic.png',mimeType:'image/png',buffer:image});await editor.getByRole('alert').waitFor();
  // QUEUED is already true after the first committed request; it cannot prove replay finished.
  assert.equal(sends.length,1);
  assert.equal(await prisma.mediaUpload.count({where:{state:'QUEUED'}}),1);
  await editor.unroute(path,lose);
  const replayResponse=editor.waitForResponse(r=>r.url().endsWith('/complete')&&r.request().method()==='POST');
- await editor.getByRole('button',{name:'核对上传状态并继续',exact:true}).click();
+ await editor.getByRole('button',{name:'只读核对上传状态',exact:true}).click();
  const replay=await replayResponse;assert.equal(replay.status(),202);
  assert.equal((await replay.json()).replayed,true,'must observe the actual replay receipt, not only old queue state');
- await editor.locator('[data-upload-state=QUEUED]').waitFor();
+ await editor.locator('.upload-queue').getByText('等待检查',{exact:true}).waitFor();
  await until(async()=>await prisma.mediaUpload.count({where:{state:'QUEUED'}})===1);
  assert.equal(sends.length,2);assert.deepEqual(sends[0],sends[1]);
  const upload=await prisma.mediaUpload.findFirstOrThrow();assert.equal(await prisma.commandReceipt.count({where:{operation:'upload.complete',resourceId:upload.id}}),1);
@@ -114,11 +113,9 @@ try {
  assert.equal(await getStatus(editor,'/assets/'+upload.id+'/original'),404);
  console.log('PASS M1 browser: upload/unknown-complete replay/worker/decoded preview; metadata stripped and private scope enforced');
  // PDF is stored without parsing; the real page must not suggest a rendered preview.
- await editor.getByRole('button',{name:'上传另一份',exact:true}).click();
  const pdf=Buffer.from('%PDF-1.7\nOpaque external Agent attachment');
- await editor.locator('input[type=file]').setInputFiles({name:'external-agent.pdf',mimeType:'application/pdf',buffer:pdf});
- await editor.getByRole('button',{name:'上传并检查',exact:true}).click();
- await editor.getByText('PDF附件 · 未解析，内容处理交给外部Agent',{exact:true}).waitFor();
+ await beginMediaUpload(editor,{name:'external-agent.pdf',mimeType:'application/pdf',buffer:pdf});
+ await editor.getByText('PDF附件 · 未解析',{exact:true}).waitFor();
  const pdfAsset=await prisma.mediaAsset.findFirstOrThrow({where:{mime:'application/pdf'}});
  assert.equal(pdfAsset.bytes,pdf.length);assert.equal(await getStatus(owner,'/assets/'+pdfAsset.id+'/preview'),404);
  assert.equal(await editor.locator('[data-asset-id="'+pdfAsset.id+'"] img').count(),0);
@@ -127,9 +124,7 @@ try {
  // PR-03 startup: actual H.264/AAC file, asynchronous worker, native video element and authorized ranges.
  const videoPath=join(tmp,'playable.mp4');run('ffmpeg',['-v','error','-f','lavfi','-i','testsrc2=size=160x120:duration=3:rate=24','-f','lavfi','-i','sine=frequency=440:duration=3','-c:v','libx264','-pix_fmt','yuv420p','-c:a','aac','-threads','1','-movflags','+faststart','-shortest',videoPath]);
  const videoBytes=readFileSync(videoPath);
- await editor.getByRole('button',{name:'上传另一份',exact:true}).click();
- await editor.locator('input[type=file]').setInputFiles({name:'playable.mp4',mimeType:'video/mp4',buffer:videoBytes});
- await editor.getByRole('button',{name:'上传并检查',exact:true}).click();
+ await beginMediaUpload(editor,{name:'playable.mp4',mimeType:'video/mp4',buffer:videoBytes});
  const video=editor.getByLabel('播放视频：playable.mp4');await video.waitFor();
  await video.evaluate(async element=>{element.muted=true;await element.play();});
  await editor.waitForFunction(()=>{const v=document.querySelector('video');return v && v.currentTime>0.1 && v.videoWidth===160;});
