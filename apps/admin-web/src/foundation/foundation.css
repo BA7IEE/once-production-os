@@ -3,7 +3,7 @@
 .once-foundation{min-height:100vh;background:#faf9f6;color:var(--ink);font-family:"Avenir Next","PingFang SC","Microsoft YaHei",sans-serif}
 .once-foundation button:hover:not(:disabled){background:#eaf0f8;border-color:#8ba0c0}
 .once-foundation button.primary:hover:not(:disabled){background:#294570;border-color:#294570;color:white}
-.once-foundation input:focus,.once-foundation select:focus,.once-foundation textarea:focus,.once-foundation button:focus-visible{outline:3px solid #9ab1d3;outline-offset:2px}
+.once-foundation input:focus,.once-foundation select:focus,.once-foundation textarea:focus,.once-foundation button:focus-visible{outline:3px solid #34558b;outline-offset:2px}
 .once-foundation .eyebrow{color:#565e69;letter-spacing:.09em}
 .once-foundation .muted,.once-foundation small{color:#565e69}
 .once-foundation .notice{background:#f0f3f8;border-color:#c5d0e0;color:#34465e}
@@ -85,3 +85,5 @@
 
 /* Domain footers may live inside the scroll body; never cover acknowledgement fields. */
 .once-modal .ant-modal-body .modal-footer{position:static;margin:16px 0 0;padding:16px 0}
+
+@media(max-width:760px){.once-shell .once-main,.once-shell.is-collapsed .once-main{transition:none;margin-left:0;width:100%}}

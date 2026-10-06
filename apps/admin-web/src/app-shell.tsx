@@ -1,4 +1,4 @@
-import {useState,type ReactNode} from 'react';
+import {useEffect,useState,type ReactNode} from 'react';
 import {Button,Menu,Breadcrumb,Tooltip} from 'antd';
 import {DashboardOutlined,TeamOutlined,UnorderedListOutlined,PictureOutlined,ProjectOutlined,CheckSquareOutlined,FolderOutlined,SettingOutlined,MenuFoldOutlined,MenuUnfoldOutlined} from '@ant-design/icons';
 import type {Me} from './dto.ts';
@@ -8,6 +8,7 @@ const groups:Array<[string,Array<[string,string,string]>]>=[['资料工具',[['s
 function BrandMark(){return <svg className="once-mark" viewBox="0 0 28 28" role="img" aria-label="ONCE 品牌图标"><rect x="2" y="2" width="24" height="24" rx="5" fill="none" stroke="currentColor" strokeWidth="2"/><circle cx="14" cy="14" r="6" fill="none" stroke="currentColor" strokeWidth="2"/><path d="M14 2v6M14 20v6" stroke="currentColor" strokeWidth="2"/></svg>;}
 export function AppShell({me,active,onNavigate,children}:{me:Me;active:string;onNavigate:(key:string)=>void;children:ReactNode}){
  const [collapsed,setCollapsed]=useState(()=>window.innerWidth<1100),[managementOpen,setManagementOpen]=useState(false);
+ useEffect(()=>{const media=window.matchMedia('(max-width:760px)');const enteringMobile=()=>{if(media.matches)setCollapsed(true);};media.addEventListener('change',enteringMobile);return()=>media.removeEventListener('change',enteringMobile);},[]);
  const management=groups.some(([,items])=>items.some(i=>i[0]===active));
  const navigate=(key:string)=>{onNavigate(key);if(window.innerWidth<760)setCollapsed(true);};
  const title=primary.find(p=>p[0]===active)?.[1]??groups.flatMap(([,items])=>items).find(i=>i[0]===active)?.[1]??'账号设置';
