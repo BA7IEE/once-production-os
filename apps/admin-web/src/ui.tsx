@@ -93,5 +93,5 @@ export function Pager({ page, pageSize, total, setPage }: {
     pageSize: number;
     total: number;
     setPage: (page: number) => void;
-}) { return <div className="pager"><Pagination current={page} pageSize={pageSize} total={total} showSizeChanger={false} showTotal={n=>`共 ${n} 条`} onChange={setPage} itemRender={(_n,type,original)=>type==='prev'?<button type="button" aria-label="上一页" disabled={page<=1}>‹</button>:type==='next'?<button type="button" aria-label="下一页" disabled={page*pageSize>=total}>›</button>:original}/></div>; }
+}) { return <div className="pager"><small>共 {total} 条 · 第 {page} 页</small><Pagination current={page} pageSize={pageSize} total={total} showSizeChanger={false} onChange={setPage} itemRender={(_n,type,original)=>type==='prev'?<button type="button" aria-label="上一页" disabled={page<=1}>‹</button>:type==='next'?<button type="button" aria-label="下一页" disabled={page*pageSize>=total}>›</button>:original}/></div>; }
 export function prevent(e: FormEvent) { e.preventDefault(); }
