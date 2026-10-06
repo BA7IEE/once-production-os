@@ -1,3 +1,4 @@
+import {AdminForm} from './foundation/patterns.tsx';
 import { useState } from 'react';
 import { ApiError, call, read } from './api.ts';
 import type { Handoff, HandoffRecipient, Page, Person, Receipt, Source } from './dto.ts';
@@ -20,7 +21,7 @@ export function HandoffOffer({ person, onClose, onSaved }: { person: Person; onC
     const load = useLoad(() => read<Page<HandoffRecipient>>('handoff.recipients', { id: person.id },
         { purpose, q, page: String(page), pageSize: '20' }), [person.id, purpose, q, page].join('|'));
     const close = () => { if (!action.busy && (!unknown(action.error) || confirm('提交结果未知。关闭后请到发出的交接列表核对，不能直接另发一份。确认关闭？'))) onClose(); };
-    return <Modal title="交给指定同事" onClose={close}><form onSubmit={e => { e.preventDefault(); void action.run(async () => {
+    return <Modal title="交给指定同事" onClose={close}><AdminForm onSubmit={e => { e.preventDefault(); void action.run(async () => {
         await call<'handoff.create', Receipt>('handoff.create', { expectedRevision: person.revision,
             expectedSourceRevision: person.source!.revision, recipientId, purpose,
             expiresAt: new Date(until).toISOString(), acknowledgeLimitedAccess: ack }, { id: person.id });
@@ -34,7 +35,7 @@ export function HandoffOffer({ person, onClose, onSaved }: { person: Person; onC
         <Field label="交接截止时点" hint="按设备时区填写；不得超过来源截止时点，最长 7 天。"><input required disabled={freeze} type="datetime-local" value={until} onChange={e => setUntil(e.target.value)}/></Field>
         <label className="check-chip"><input type="checkbox" required disabled={freeze} checked={ack} onChange={e => setAck(e.target.checked)}/>我已检查基本字段适合交给该同事，不含应放入受限字段的内容。</label>
         <p className="muted">“字段核验”仍需使用接收人本来就有权读取的独立证据，交接不会批准来源用途或延长期限。</p>
-    </div><footer className="modal-footer"><button type="button" disabled={action.busy} onClick={close}>取消</button><Submit busy={action.busy}>{unknown(action.error) ? '原样核对交接邀请' : '发送交接邀请'}</Submit></footer></form></Modal>;
+    </div><footer className="modal-footer"><button type="button" disabled={action.busy} onClick={close}>取消</button><Submit busy={action.busy}>{unknown(action.error) ? '原样核对交接邀请' : '发送交接邀请'}</Submit></footer></AdminForm></Modal>;
 }
 
 function HandoffActions({ item, refresh }: { item: Handoff; refresh: () => void }) {
@@ -82,7 +83,7 @@ export function FieldReview({ person, onClose, onSaved }: { person: Person; onCl
     const freeze = action.busy || unknown(action.error);
     const load = useLoad(() => read<Page<Source>>('source.list', {}, { page: String(page), pageSize: '20' }), page);
     const chosen = load.data?.items.find(s => s.id === sourceId);
-    return <Modal title="核验姓名字段" onClose={() => { if (!action.busy) onClose(); }}><form onSubmit={e => { e.preventDefault(); if (!chosen || !ack) return; void action.run(async () => {
+    return <Modal title="核验姓名字段" onClose={() => { if (!action.busy) onClose(); }}><AdminForm onSubmit={e => { e.preventDefault(); if (!chosen || !ack) return; void action.run(async () => {
         await call('evidence.confirm', { personId: person.id, expectedRevision: person.revision, fieldPath: 'displayName', sourceId: chosen.id, sourceRevision: chosen.revision }); onSaved();
     }); }}><div className="modal-body"><ErrorBox error={action.error ?? load.error}/><p>待核验姓名：<strong>{person.displayName}</strong></p>
         <p className="notice">交接只提供基本档案，不授予原文读取或来源核准权。请用你本来就有权读取的证据核验；没有独立证据时不要确认。</p>
@@ -90,5 +91,5 @@ export function FieldReview({ person, onClose, onSaved }: { person: Person; onCl
         {chosen && <p className="pre-line">{chosen.basisDescription}</p>}
         {!freeze && load.data && <Pager page={page} pageSize={20} total={load.data.total} setPage={p => { setPage(p); setSourceId(''); setAck(false); }}/>}
         <label><input type="checkbox" required disabled={freeze} checked={ack} onChange={e => setAck(e.target.checked)}/>我已在允许的证据范围内核对姓名；这不是专业资质认证。</label>
-    </div><footer className="modal-footer"><button type="button" onClick={onClose} disabled={action.busy}>取消</button><Submit busy={action.busy}>{unknown(action.error) ? '原样核对确认结果' : '确认姓名与证据一致'}</Submit></footer></form></Modal>;
+    </div><footer className="modal-footer"><button type="button" onClick={onClose} disabled={action.busy}>取消</button><Submit busy={action.busy}>{unknown(action.error) ? '原样核对确认结果' : '确认姓名与证据一致'}</Submit></footer></AdminForm></Modal>;
 }

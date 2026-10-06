@@ -1,0 +1,57 @@
+/* Shared typography and tokens apply to every admin route, including legacy controls. */
+:root{--ink:#20242a;--muted:#565e69;--line:#d7dbe1;--accent:#34558b;--paper:#fff;font-family:"Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;background:#faf9f6;color:var(--ink)}
+.once-foundation{min-height:100vh;background:#faf9f6;color:var(--ink);font-family:"Avenir Next","PingFang SC","Microsoft YaHei",sans-serif}
+.once-foundation button:hover:not(:disabled){background:#eaf0f8;border-color:#8ba0c0}
+.once-foundation button.primary:hover:not(:disabled){background:#294570;border-color:#294570;color:white}
+.once-foundation input:focus,.once-foundation select:focus,.once-foundation textarea:focus,.once-foundation button:focus-visible{outline:3px solid #9ab1d3;outline-offset:2px}
+.once-foundation .eyebrow{color:#565e69;letter-spacing:.09em}
+.once-foundation .muted,.once-foundation small{color:#565e69}
+.once-foundation .notice{background:#f0f3f8;border-color:#c5d0e0;color:#34465e}
+.once-foundation .check-chip.checked,.once-foundation .check-chip:has(input:checked){background:#eaf0f8;border-color:#8ba0c0;color:#294570}
+.once-foundation .tabs button.active{border-color:#34558b;color:#294570;background:#eaf0f8}
+.once-foundation .panel{box-shadow:none;border-color:#d7dbe1;border-radius:6px}
+.once-foundation .once-table .ant-pro-card-body{padding:0}
+.once-foundation .once-table .ant-table{border-radius:0}
+.once-foundation .once-table td{vertical-align:top;min-width:110px}
+.once-foundation .once-table th{white-space:nowrap;font-size:12px;letter-spacing:.02em}
+.once-foundation .once-table td:first-child{min-width:150px}
+.once-foundation .once-descriptions{display:block;margin:18px 0}
+.once-foundation .once-descriptions .ant-descriptions-item-label{color:#565e69;font-size:12px}
+.once-foundation .once-descriptions .ant-descriptions-item-content{color:#20242a;overflow-wrap:anywhere}
+.once-foundation .once-form .ant-form-item{margin-bottom:18px}
+.once-foundation .once-form label{color:#20242a}
+.once-foundation .page-title{margin-bottom:22px}
+.once-foundation .page-title h1{font-size:27px;font-weight:650;letter-spacing:-.4px}
+.once-foundation .page-title p{max-width:860px;color:#565e69;font-size:14px}
+.once-foundation .ant-page-header{padding:0}
+.once-foundation .ant-pro-page-container-children-container{padding:0}
+.once-foundation .ant-tag{font-size:12px;line-height:22px;font-weight:550}
+.once-foundation .ant-pagination button{min-height:32px;padding:0}
+.once-foundation .ant-modal-body .modal-body{padding:8px 0 20px;max-height:72vh;overflow:auto}
+.once-foundation .ant-modal-body .modal-footer{margin:0 -24px -20px;padding:16px 24px;background:#f7f8fa;border-top:1px solid #d7dbe1}
+.once-shell{display:flex;min-height:100vh}
+.once-shell .once-sidebar{background:#fff;border-right:1px solid #d7dbe1;position:fixed;inset:0 auto 0 0;width:228px;display:flex;flex-direction:column;padding:26px 12px 14px;z-index:30;transition:width .15s}
+.once-shell.is-collapsed .once-sidebar{width:72px;padding-inline:8px}
+.once-shell .brand{display:flex;align-items:center;gap:12px;padding:0 14px;font-size:28px;font-weight:750;letter-spacing:-1.5px;color:#20242a}
+.once-mark{width:28px;height:28px;flex:0 0 28px;display:block;color:#34558b}
+.once-shell .brand small{display:block;font-size:10px;letter-spacing:.12em;font-weight:500;margin-top:2px}
+.once-shell.is-collapsed .brand{padding:0 14px}
+.once-shell .workspace-label{margin:25px 16px 16px;font-size:12px;color:#565e69;overflow-wrap:anywhere}
+.once-shell .once-sidebar .ant-menu{border:0;background:transparent}
+.once-shell .once-sidebar .ant-menu-item{margin:3px 0;width:100%}
+.once-shell .once-sidebar nav{overflow-y:auto;min-height:0;flex:1}
+.once-shell .sidebar-foot{margin-top:18px;padding:14px 10px 0;border-top:1px solid #d7dbe1;display:flex;align-items:center;gap:10px}
+.once-shell .sidebar-foot strong{display:block;font-size:13px}
+.once-shell .avatar{background:#edf1f7;color:#34558b}
+.once-shell .once-main{margin-left:228px;width:calc(100% - 228px);transition:margin-left .15s,width .15s}
+.once-shell.is-collapsed .once-main{margin-left:72px;width:calc(100% - 72px)}
+.once-shell .topbar{position:sticky;top:0;background:#faf9f6f2;border-bottom:1px solid #d7dbe1;height:60px;padding:0 28px;display:flex;align-items:center;gap:18px;z-index:20}
+.once-shell .topbar .internal-chip{margin-left:auto;background:#eff1f3;color:#565e69;border-color:#d7dbe1}
+.once-shell .content{max-width:1600px;margin:auto;padding:28px 32px 100px;min-width:0}
+.once-shell .topbar .ant-btn{padding:0;min-height:32px;width:32px}
+.once-shell .ant-menu .ant-menu-title-content{font-size:14px}
+.once-shell .nav-group-label{letter-spacing:.06em;font-size:11px;color:#565e69}
+@media(min-width:1600px){.once-shell .content{padding-inline:48px}}
+@media(max-width:1100px){.once-shell .content{padding:24px 22px 100px}.once-shell .topbar{padding-inline:22px}}
+@media(max-width:760px){.once-shell .once-sidebar{box-shadow:12px 0 30px #20242a12}.once-shell .once-main,.once-shell.is-collapsed .once-main{margin-left:0;width:100%}.once-shell.is-collapsed .once-sidebar{display:none}.once-shell .content{padding:20px 16px 100px}.once-shell .topbar{padding-inline:16px}.once-shell .topbar .ant-breadcrumb{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.once-shell .once-sidebar,.once-shell .once-main{transition:none}}

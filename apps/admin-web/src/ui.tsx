@@ -1,3 +1,5 @@
+import {Alert,Button,Empty as AntEmpty,Modal as AntModal,Pagination,Tag as AntTag} from 'antd';
+import {PageContainer} from '@ant-design/pro-components';
 import { useEffect, useRef, useState, type ReactNode, type FormEvent } from 'react';
 import { ApiError } from './api.ts';
 export const labels: Record<string, string> = { DRAFT: '草稿', ACTIVE: '在库', ARCHIVED: '已归档', RECEIVED: '临时整理', CONFIRMED: '已核验', SUSPENDED: '已暂停', PENDING: '待激活', DISABLED: '已停用', ADMIN: '管理员', EDITOR: '资料维护', REVIEWER: '资料核验', VIEWER: '只读成员', QUEUED: '排队中', RUNNING: '处理中', SUCCEEDED: '已完成', READY: '可下载', REVOKED: '已撤销', ERASED: '已擦除', BLOCKED_FOR_USE: '已阻断使用', CLEANING: '清理中', COMPLETED: '已完成删除', RETAINED_WITH_BASIS: '有据保留后完成', FAILED: '失败', VALID: '可导入', INVALID: '需修正', IMPORTED: '已导入', VERIFIED: '已确认', STALE: '需重新确认' };
@@ -11,15 +13,15 @@ export function ErrorBox({ error }: {
 }) {
     if (!error)
         return null;
-    return <div className="error" role="alert"><strong>{error instanceof Error ? error.message : '操作未完成'}</strong>{error instanceof ApiError && error.requestId && <small>请求编号：{error.requestId}</small>}{error instanceof ApiError && error.code === 'REVISION_CONFLICT' && <p>其他人可能已经修改这条资料。当前表单不会被自动覆盖；请在另一窗口核对新版本后再决定如何保存。</p>}</div>;
+    return <Alert className="once-error" type="error" showIcon title={error instanceof Error ? error.message : '操作未完成'} description={<>{error instanceof ApiError && error.requestId && <small>请求编号：{error.requestId}</small>}{error instanceof ApiError && error.code === 'REVISION_CONFLICT' && <p>其他人可能已经修改这条资料。当前表单不会被自动覆盖；请在另一窗口核对新版本后再决定如何保存。</p>}</>} />;
 }
 export function Tag({ value }: {
     value: string;
-}) { return <span className={'tag tag-' + value.toLowerCase()}>{labels[value] ?? value}</span>; }
+}) { return <AntTag color={['FAILED','REVOKED','ERASED','DISABLED','BLOCKED_FOR_USE'].includes(value)?'error':['CONFIRMED','ACTIVE','SUCCEEDED','VERIFIED','COMPLETED'].includes(value)?'success':['PENDING','QUEUED','STALE','DRAFT','SUSPENDED'].includes(value)?'warning':undefined}>{labels[value] ?? value}</AntTag>; }
 export function Empty({ title, children }: {
     title: string;
     children?: ReactNode;
-}) { return <div className="empty"><div className="empty-glyph">◇</div><h3>{title}</h3>{children && <p>{children}</p>}</div>; }
+}) { return <AntEmpty className="empty" image={AntEmpty.PRESENTED_IMAGE_SIMPLE} description={<><h3>{title}</h3>{children && <p>{children}</p>}</>}/>; }
 export { Field } from './field.ts';
 export function Modal({ title, children, onClose, wide = false }: {
     title: string;
@@ -27,24 +29,7 @@ export function Modal({ title, children, onClose, wide = false }: {
     onClose: () => void;
     wide?: boolean;
 }) {
-    const root = useRef<HTMLDivElement>(null);
-    useEffect(() => { const old = document.activeElement as HTMLElement | null; const previous = document.body.style.overflow; document.body.style.overflow = 'hidden'; root.current?.querySelector<HTMLElement>('input,select,textarea,button')?.focus(); return () => { document.body.style.overflow = previous; old?.focus(); }; }, []);
-    return <div className="overlay"><div className={'modal' + (wide ? ' modal-wide' : '')} ref={root} role="dialog" aria-modal="true" aria-label={title} onKeyDown={e => {
-            if (e.key === 'Escape')
-                onClose();
-            if (e.key === 'Tab') {
-                const list = [...root.current!.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),summary,a[href],[tabindex="0"]')].filter(el=>el.getClientRects().length>0);
-                const first = list[0], last = list.at(-1);
-                if (e.shiftKey && document.activeElement === first) {
-                    e.preventDefault();
-                    last?.focus();
-                }
-                if (!e.shiftKey && document.activeElement === last) {
-                    e.preventDefault();
-                    first?.focus();
-                }
-            }
-        }}><header><div><span className="eyebrow">ONCE / INTERNAL</span><h2>{title}</h2></div><button className="icon-button" aria-label="关闭" onClick={onClose}>×</button></header>{children}</div></div>;
+    return <AntModal open title={title} onCancel={onClose} footer={null} width={wide?1040:640} maskClosable={false} destroyOnHidden>{children}</AntModal>;
 }
 export function useLoad<T>(load: () => Promise<T>, key: string | number) {
     const [data, setData] = useState<T | null>(null);
@@ -96,17 +81,17 @@ export function Submit({ busy, disabled = false, children = '保存' }: {
     busy: boolean;
     disabled?: boolean;
     children?: ReactNode;
-}) { return <button type="submit" className="primary" disabled={busy||disabled}>{busy ? '正在处理…' : children}</button>; }
+}) { return <Button htmlType="submit" type="primary" loading={busy} disabled={busy||disabled}>{busy ? '正在处理…' : children}</Button>; }
 export function PageTitle({ overline, title, description, action }: {
     overline: string;
     title: string;
     description: string;
     action?: ReactNode;
-}) { return <div className="page-title"><div><span className="eyebrow">{overline}</span><h1>{title}</h1><p>{description}</p></div>{action}</div>; }
+}) { return <PageContainer className="once-page-title" header={{title:false,breadcrumb:undefined}}><div className="page-title"><div><span className="eyebrow">{overline}</span><h1>{title}</h1><p>{description}</p></div>{action}</div></PageContainer>; }
 export function Pager({ page, pageSize, total, setPage }: {
     page: number;
     pageSize: number;
     total: number;
     setPage: (page: number) => void;
-}) { return <div className="pager"><small>共 {total} 条 · 第 {page} 页</small><div><button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>上一页</button><button type="button" disabled={page * pageSize >= total} onClick={() => setPage(page + 1)}>下一页</button></div></div>; }
+}) { return <div className="pager"><Pagination current={page} pageSize={pageSize} total={total} showSizeChanger={false} showTotal={n=>`共 ${n} 条`} onChange={setPage} itemRender={(_n,type,original)=>type==='prev'?<button type="button" aria-label="上一页" disabled={page<=1}>‹</button>:type==='next'?<button type="button" aria-label="下一页" disabled={page*pageSize>=total}>›</button>:original}/></div>; }
 export function prevent(e: FormEvent) { e.preventDefault(); }

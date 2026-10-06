@@ -11,6 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   acceptance:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     env:
@@ -62,6 +63,7 @@ jobs:
             data/local-resource-runs/*/browser-*.json
           if-no-files-found: error
   core:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

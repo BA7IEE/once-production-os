@@ -21,7 +21,7 @@ const evidence='artifacts/admin-ux';mkdirSync(evidence,{recursive:true});
 let api,worker,browserOwner,browser,base,stage='setup';const checks=[],errors=[];
 async function poll(predicate,label){const end=Date.now()+25000;while(!(await predicate())){assert.ok(Date.now()<end,label);await new Promise(r=>setTimeout(r,100));}}
 async function stop(child){if(!child||child.exitCode!==null||child.signalCode!==null)return;await new Promise(resolve=>{const timer=setTimeout(()=>{child.kill('SIGKILL');resolve();},5000);child.once('exit',()=>{clearTimeout(timer);resolve();});child.kill('SIGINT');});}
-async function login(page,name){await page.goto(base,{waitUntil:'networkidle'});await page.getByLabel('登录名',{exact:true}).fill(name);await page.getByLabel('密码',{exact:true}).fill(password);await page.getByRole('button',{name:'登录',exact:true}).click();await page.getByRole('button',{name:'工作台',exact:true}).waitFor();}
+async function login(page,name){await page.goto(base,{waitUntil:'networkidle'});await page.getByLabel('登录名',{exact:true}).fill(name);await page.getByLabel('密码',{exact:true}).fill(password);await page.getByRole('button',{name:'登录',exact:true}).click();await page.getByRole('menuitem',{name:'工作台',exact:true}).waitFor();}
 async function cmd(page,path,data,method='POST'){
  const me=await(await page.context().request.get(base+'/api/v1/me')).json();
  const response=await page.context().request.fetch(base+'/api/v1'+path,{method,data,headers:{Origin:base,'X-CSRF-Token':me.csrfToken,'X-ONCE-Membership':me.membershipId,'Idempotency-Key':randomUUID()}});
@@ -51,7 +51,9 @@ try{
  stage='task navigation and seeded directory';
  for(const path of ['/workspace/works/'+randomUUID(),'/workspace/projects/'+randomUUID(),'/workspace/shortlists/'+randomUUID(),'/workspace/review/CLAIM/'+randomUUID()]){const r=await fetch(base+path);assert.equal(r.status,200);assert.match(r.headers.get('content-type'),/text\/html/);}
  const unknownApi=await fetch(base+'/api/v1/not-a-route');assert.equal(unknownApi.status,404);assert.doesNotMatch(unknownApi.headers.get('content-type'),/text\/html/);
- assert.equal(await page.locator('nav[aria-label="日常业务"] button').count(),6);assert.equal(await page.locator('.management-nav[open]').count(),0);
+ assert.equal(await page.locator('nav[aria-label="工作空间"] .ant-menu-item').count(),6);assert.equal(await page.locator('.ant-menu-submenu-open').count(),0);
+ for(const width of [1024,1280,1440]){await page.setViewportSize({width,height:900});await page.getByRole('img',{name:'ONCE 品牌图标',exact:true}).waitFor();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);}
+ await page.getByRole('button',{name:'折叠导航',exact:true}).click();await page.getByRole('img',{name:'ONCE 品牌图标',exact:true}).waitFor();await page.getByRole('menuitem',{name:'人才库',exact:true}).waitFor();await page.getByRole('button',{name:'展开导航',exact:true}).click();record('Foundation brand remains visible and navigation stays available when collapsed; desktop 1024/1280/1440 has no page overflow');
  await page.screenshot({path:join(evidence,'workspace-desktop.png'),fullPage:true});
  const source=await cmd(page,'/sources',{title:'合成 UX 验收材料',type:'MANUAL',providerClaim:'仅用于自动化验收的合成记录',basisMode:'INTERNAL_USE',basisDescription:'合成测试内部使用依据',validUntil:new Date(Date.now()+30*86400000).toISOString()});
  const people=[];for(let i=1;i<=22;i++)people.push(await cmd(page,'/directory/talents',{schemaVersion:'once-talent-experience-v1',displayName:'合成 UX '+String(i).padStart(2,'0'),kind:'TALENT',roleCodes:['model','actor'],sourceId:source.resourceId,sourceRevision:1}));

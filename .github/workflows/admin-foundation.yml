@@ -1,0 +1,53 @@
+name: ONCE admin Foundation
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: once-foundation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  foundation:
+    if: github.head_ref == 'codex/once-admin-foundation'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      ONCE_ACCEPTANCE_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - run: sha256sum -c MANIFEST.sha256
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v6
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:generate
+      - name: Foundation admission, types and contract
+        run: pnpm review:foundation && pnpm contract:check && node scripts/heavy-task.mjs pnpm typecheck
+      - name: Targeted transport, selection, forms and lifecycle regressions
+        run: |
+          node --experimental-strip-types --test tests/core/admin-ux-inputs.test.ts tests/core/client-transport.test.ts tests/core/talent-directory-state.test.ts
+          pnpm test:lifecycle
+      - name: Build current API and admin
+        run: pnpm build
+      - run: docker pull postgres:16-bookworm
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Real PostgreSQL and browser journeys on synthetic records
+        run: pnpm test:postgres:owned --admin-ux-browser
+      - name: Preserve JSON checks only, never screenshots or business payloads
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: once-foundation-checks-${{ github.event.pull_request.head.sha }}
+          retention-days: 3
+          path: |
+            artifacts/admin-ux/browser.json
+            artifacts/admin-ux/browser-failure.json
+            artifacts/business-flow/browser.json
+            artifacts/talent-experience-pr02b/browser.json
+            data/local-resource-runs/*/run.json
+          if-no-files-found: warn

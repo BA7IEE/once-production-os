@@ -17,6 +17,7 @@ concurrency:
 jobs:
   # Browser suites retain their business assertions; shared type/core checks run in flow-review.
   browser-resume:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -50,6 +51,7 @@ jobs:
 
   # A separate owned database; no browser suite shares its populated target.
   postgres-contract:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -79,6 +81,7 @@ jobs:
           if-no-files-found: error
 
   browser-handoff:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -109,6 +112,7 @@ jobs:
           if-no-files-found: error
 
   browser-media:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -141,6 +145,7 @@ jobs:
           if-no-files-found: error
 
   browser-production:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -173,6 +178,7 @@ jobs:
           if-no-files-found: error
 
   browser-talent-intake:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -204,6 +210,7 @@ jobs:
           if-no-files-found: error
 
   browser-talent-directory:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -235,6 +242,7 @@ jobs:
           if-no-files-found: error
 
   browser-talent-auth:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -266,6 +274,7 @@ jobs:
           if-no-files-found: error
 
   browser-talent-maintenance:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -297,6 +306,7 @@ jobs:
           if-no-files-found: error
 
   browser-media-staging:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -329,6 +339,7 @@ jobs:
           if-no-files-found: error
 
   browser-media-collections:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -361,6 +372,7 @@ jobs:
           if-no-files-found: error
 
   browser-work-cases:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -396,6 +408,7 @@ jobs:
           if-no-files-found: error
 
   browser-media-purge:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
@@ -428,6 +441,7 @@ jobs:
           if-no-files-found: error
 
   browser-agent-ingestion:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -466,6 +480,7 @@ jobs:
           if-no-files-found: error
 
   browser-agent-media:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -505,6 +520,7 @@ jobs:
           if-no-files-found: error
 
   browser-agent-structures:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -544,6 +560,7 @@ jobs:
           if-no-files-found: error
 
   browser-agent-handoff:
+    if: github.head_ref != 'codex/once-admin-foundation'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:

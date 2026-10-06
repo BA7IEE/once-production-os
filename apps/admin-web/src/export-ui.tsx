@@ -1,3 +1,4 @@
+import {AdminTable,AdminForm,AdminDescriptions} from './foundation/patterns.tsx';
 import { useEffect, useState } from 'react';
 import { call, read } from './api.ts';
 import {ResourcePicker,type ResourceOption} from './paged-picker.tsx';
@@ -98,7 +99,7 @@ function PermissionForm({onClose,onDone}:{onClose:()=>void;onDone:()=>void}) {
         : kind === 'WORK' ? work.data?.sourceId ?? ''
         : project.data?.sourceId ?? '';
 
-    return <Modal title="批准内部导出用途" onClose={onClose} wide><form onSubmit={e => { e.preventDefault(); void action.run(async () => {
+    return <Modal title="批准内部导出用途" onClose={onClose} wide><AdminForm onSubmit={e => { e.preventDefault(); void action.run(async () => {
             if(kind==='PERSON'&&(person.busy||person.data?.id!==subjectId))throw new Error('人物身份仍在核对，请稍后再提交');
             if(retainedOrigin&&!retentionBasisSourceId)throw new Error('请选择已登记完整身份字段证据的独立依据');
             if(kind==='WORK'&&(work.busy||work.data?.id!==subjectId)||kind==='PROJECT'&&(project.busy||project.data?.id!==subjectId))throw new Error('对象来源仍在核对，请稍后再提交');
@@ -126,7 +127,7 @@ function PermissionForm({onClose,onDone}:{onClose:()=>void;onDone:()=>void}) {
                 {sourceId && <p className="muted">来源 ID：{sourceId}</p>}
             </div>
             <footer className="modal-footer"><button type="button" onClick={onClose} disabled={action.busy}>取消</button><Submit busy={action.busy} disabled={!subjectId||!sourceId||(kind==='PERSON'&&(person.busy||person.data?.id!==subjectId))||(kind==='WORK'&&(work.busy||work.data?.id!==subjectId))||(kind==='PROJECT'&&(project.busy||project.data?.id!==subjectId))}>批准用途</Submit></footer>
-        </form></Modal>;
+        </AdminForm></Modal>;
 }
 
 function ExportDetailPanel({ id, onChanged }: { id: string; onChanged: () => void }) {
@@ -163,14 +164,14 @@ function ExportDetailPanel({ id, onChanged }: { id: string; onChanged: () => voi
     return <section className="panel padded export-detail"><ErrorBox error={load.error ?? action.error}/>
         {load.busy && !load.data ? <p>正在核对导出依赖…</p> : load.data && <>
             <div className="panel-heading"><div><h2>导出状态</h2><p><code>{load.data.id}</code></p></div><Tag value={load.data.effectiveState}/></div>
-            <dl className="detail-grid">
+            <AdminDescriptions className="detail-grid">
                 <div><dt>Schema</dt><dd>{load.data.schemaVersion}</dd></div>
                 <div><dt>生成时间</dt><dd>{date(load.data.createdAt)}</dd></div>
                 <div><dt>截止时间</dt><dd>{date(load.data.expiresAt)}</dd></div>
                 <div><dt>内容后来有修改</dt><dd>{load.data.contentChanged ? '有；旧导出仍保持生成时快照' : '无'}</dd></div>
                 <div><dt>阻断原因</dt><dd>{exportErrorLabel(load.data.blockedReason)}</dd></div>
                 <div><dt>SHA-256</dt><dd><small>{load.data.payloadDigest ?? '尚未生成'}</small></dd></div>
-            </dl>
+            </AdminDescriptions>
             <p className="muted">普通内容修改不会重写旧快照；来源暂停、范围/保护版本变化、许可撤销/到期会整件阻断旧导出。</p>
             <div className="button-row"><button onClick={() => setTick(x => x + 1)}>刷新状态</button>{load.data.downloadable && <button className="primary" disabled={action.busy} onClick={() => void action.run(download)}>下载 JSON</button>}</div>
             {load.data.downloadable&&proofs.length>0&&<div><p>请将下列原件与预览全部保存到同一私有目录，供重建时校验。只保存 JSON 不能恢复这些证明。</p>{proofs.map(p=><div className="button-row" key={p.id}><span>{p.fileName}</span><button disabled={action.busy} onClick={()=>void action.run(()=>downloadProof(p.id,'original'))}>下载图片原件</button><button disabled={action.busy} onClick={()=>void action.run(()=>downloadProof(p.id,'preview'))}>下载图片预览</button></div>)}</div>}
@@ -208,10 +209,10 @@ function ExportContent({ me }: { me: Me }) {
         <div className="notice"><strong>内部语言文本</strong><p>请分别批准人物、作品或项目的语言文本字段，以及每份实际依据来源的相同字段。正文、依据和原复核记录一起迁移；在目标库保留为待复核文本，不会把导入人记作原复核人。</p></div><div className="notice"><strong>2.0 专业资料导出范围</strong><p>可选择主档案、职业、能力及所用字典、外部标识、代表关系及关联机构、语言、地点、外观、量尺历史和翻译资料；请同时选择必要关联；代表人须另行批准并一起选择导出。若需保留字段依据，请同时批准“所选专业字段的来源证据与原核验记录”，并批准每条证据来源及其对应专业资料；未选择时仍是旧版资料快照，不含字段证据。原核验仅保留历史归属，不等于新环境里的核验。包含每个来源的全部来源字段后，可用于隔离重建。无证明附件的资质可迁移；如有编号，必须另外批准加密编号并在隔离重建时提供原环境和目标环境密钥。带证明附件或已核验资质须同时批准图片及来源的“资质证明原件及预览”，下载 JSON 后再逐项保存原件和预览。媒体集合与内容标签可另行选择，必须同时批准集合引用的全部图片；类型、标签、顺序和说明分别保留。成年资格需单独批准，已核验记录还必须选择字段来源证据；原核验归属仅作历史记录，迁移不延长有效期。身份字段的来源证据可单独选择，普通联系人无需建立人才档案；须同时批准姓名、别名或简介以及各条证据的来源。合并保留资料可另行批准，包含旧身份、保留主档案、原合并决定及核验归属；须同时选择当前对应主档案、关联量尺及字段证据。原来源已删除而资料有独立依据保留时，必须一并选择字段证据；只迁移已删来源编号与删除状态，不恢复来源原文，也不把它重新变成可用依据。这份 JSON 不是完整备份。专业资料、所用能力定义或关联机构变化会使旧文件失效。</p></div>
         <section className="panel padded"><div className="panel-heading"><div><h2>可用导出许可</h2><p>先由资料核验人员批准对象、字段和截止时间。导出任务只能使用这里的现行许可。</p></div><button onClick={() => setRefresh(x => x + 1)}>刷新</button></div>
             <div className="filters"><select aria-label="许可对象类型" value={permissionKind} onChange={e=>{setPermissionKind(e.target.value);setPermissionPage(1);}}><option value="">全部类型</option>{Object.entries(kindNames).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select><select aria-label="许可状态" value={permissionStatus} onChange={e=>{setPermissionStatus(e.target.value);setPermissionPage(1);}}><option value="">全部状态</option><option value="ACTIVE">有效</option><option value="REVOKED">已撤销</option></select></div>
-            <div className="table-wrap"><table><thead><tr>{canExport && <th>用于本次导出</th>}<th>对象</th><th>允许字段</th><th>截止</th><th>状态</th>{canApprove && <th>操作</th>}</tr></thead>
+            <div className="table-wrap"><AdminTable><thead><tr>{canExport && <th>用于本次导出</th>}<th>对象</th><th>允许字段</th><th>截止</th><th>状态</th>{canApprove && <th>操作</th>}</tr></thead>
                 <tbody>{permissions.data?.items.map(p => <tr key={p.id}>{canExport && <td><input aria-label={'选择导出许可 ' + p.id} type="checkbox" disabled={p.status !== 'ACTIVE' || Date.parse(p.validUntil) <= Date.now()} checked={selectedPermissions.includes(p.id)} onChange={e => setChosen(rows=>e.target.checked?[...rows.filter(x=>x.id!==p.id),p]:rows.filter(x=>x.id!==p.id))}/></td>}<td><strong>{kindNames[p.subjectKind]} · <PermissionSubject permission={p}/></strong><small>{p.subjectId}</small></td><td>{p.fields.map(x => fieldGroups[p.subjectKind].find(([c]) => c === x)?.[1] ?? x).join(' / ')}</td><td>{date(p.validUntil)}</td><td>{p.status === 'ACTIVE' ? '有效' : '已撤销'}</td>{canApprove && <td>{p.status === 'ACTIVE' && <button className="danger-text" disabled={revoke.busy} onClick={() => {
                     if (confirm('撤销后，依赖此许可的旧导出会立即不可下载。确认撤销？')) void revoke.run(async () => { await call('usePermission.revoke', { expectedRevision: p.revision }, { id: p.id }); setRefresh(x => x + 1); });
-                }}>撤销</button>}</td>}</tr>)}</tbody></table></div>
+                }}>撤销</button>}</td>}</tr>)}</tbody></AdminTable></div>
             {permissions.data&&<Pager page={permissionPage} pageSize={20} total={permissions.data.total} setPage={setPermissionPage}/>}
             {chosen.length>0&&<div className="button-row" aria-label="本次所选许可">{chosen.map(p=><button key={p.id} type="button" disabled={create.busy} onClick={()=>setChosen(rows=>rows.filter(x=>x.id!==p.id))}>移除 {kindNames[p.subjectKind]}许可 {p.id}</button>)}</div>}
             {!permissions.data?.items.length && <p className="muted">暂无当前可见的导出许可。</p>}
@@ -219,7 +220,7 @@ function ExportContent({ me }: { me: Me }) {
         </section>
 
         {canExport && <section className="panel"><div className="panel-heading"><div><h2>我的导出任务</h2><p>导出文件最长保留 24 小时，下载前会再次复查全部依赖。</p></div></div>
-            <div className="table-wrap"><table><thead><tr><th>创建时间</th><th>状态</th><th>截止时间</th><th>字段数</th><th>操作</th></tr></thead><tbody>{exports.data?.items.map(x => <tr key={x.id}><td>{date(x.createdAt)}</td><td><Tag value={x.state}/></td><td>{date(x.expiresAt)}</td><td>{x.fields.length}</td><td><button onClick={() => setSelectedExport(x.id)}>查看</button></td></tr>)}</tbody></table></div>
+            <div className="table-wrap"><AdminTable><thead><tr><th>创建时间</th><th>状态</th><th>截止时间</th><th>字段数</th><th>操作</th></tr></thead><tbody>{exports.data?.items.map(x => <tr key={x.id}><td>{date(x.createdAt)}</td><td><Tag value={x.state}/></td><td>{date(x.expiresAt)}</td><td>{x.fields.length}</td><td><button onClick={() => setSelectedExport(x.id)}>查看</button></td></tr>)}</tbody></AdminTable></div>
             {exports.data && <Pager page={page} pageSize={20} total={exports.data.total} setPage={setPage}/>}
         </section>}
         {selectedExport && <ExportDetailPanel id={selectedExport} onChanged={() => setRefresh(x => x + 1)}/>}

@@ -43,17 +43,21 @@
     "build:sequential": "pnpm build:api && pnpm build:web",
     "test:postgres:owned": "node scripts/test-postgres-owned.mjs",
     "test:lifecycle": "node --test --test-concurrency=1 tests/lifecycle/*.test.mjs",
-    "test:business-flow": "node scripts/test-business-flow.mjs"
+    "test:business-flow": "node scripts/test-business-flow.mjs",
+    "review:foundation": "node scripts/check-admin-foundation.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "4.0.65",
     "@ai-sdk/openai": "4.0.78",
     "@ai-sdk/openai-compatible": "3.0.57",
+    "@ant-design/icons": "6.3.4",
+    "@ant-design/pro-components": "3.1.15-5",
     "@nestjs/common": "11.2.5",
     "@nestjs/core": "11.2.5",
     "@nestjs/platform-express": "11.2.5",
     "@prisma/client": "6.19.3",
     "ai": "7.0.118",
+    "antd": "6.6.5",
     "cos-nodejs-sdk-v5": "3.0.0",
     "express": "5.1.0",
     "fs-ext": "2.1.1",
