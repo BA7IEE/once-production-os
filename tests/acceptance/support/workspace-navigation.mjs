@@ -102,6 +102,6 @@ export async function verifyUnknownMeasurement(page) {
 export async function traceLayout(page,target,label) {
  console.log('UI_LAYOUT '+label+' '+JSON.stringify(await target.evaluate(el=>{
   const rect=e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {tag:e.tagName,cls:e.className,x:r.x,y:r.y,width:r.width,height:r.height,scroll:e.scrollWidth,client:e.clientWidth,z:s.zIndex,position:s.position,transform:s.transform,pointer:s.pointerEvents,overflow:s.overflow};};
-  const r=el.getBoundingClientRect();return {viewport:innerWidth,scrollX,documentWidth:document.documentElement.scrollWidth,target:rect(el),ancestors:(()=>{let a=el,p=[];for(let i=0;a&&i<8;i++,a=a.parentElement)p.push(rect(a));return p;})(),layers:[...document.querySelectorAll('.ant-modal-root,.ant-modal-wrap,.ant-modal,.once-main,.once-sidebar')].map(rect),hit:document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.className};
+  const r=el.getBoundingClientRect();return {viewport:innerWidth,scrollX,documentWidth:document.documentElement.scrollWidth,target:rect(el),ancestors:(()=>{let a=el,p=[];for(let i=0;a&&i<8;i++,a=a.parentElement)p.push(rect(a));return p;})(),overflowing:[...el.querySelectorAll('*')].filter(e=>{const a=e.getBoundingClientRect();return a.right>r.right+1||a.left<r.left-1;}).slice(0,20).map(rect),layers:[...document.querySelectorAll('.ant-modal-root,.ant-modal-wrap,.ant-modal,.once-main,.once-sidebar')].map(rect),hit:document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.className};
  })));
 }

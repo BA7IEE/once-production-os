@@ -66,8 +66,8 @@ try{
  const contrast=await page.locator('.directory-card .ant-tag,.directory-card small,.directory-card .directory-cover-placeholder').evaluateAll(nodes=>nodes.filter(n=>n.textContent?.trim()).map(n=>{
  const rgb=value=>(value.match(/[\d.]+/g)||[]).map(Number).slice(0,3),lum=values=>values.map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4).reduce((a,v,i)=>a+v*[.2126,.7152,.0722][i],0);
  let bg='rgb(250,249,246)';for(let el=n;el;el=el.parentElement){const value=getComputedStyle(el).backgroundColor;if(value!=='transparent'&&!value.endsWith(', 0)')){bg=value;break;}}
- const fg=lum(rgb(getComputedStyle(n).color)),back=lum(rgb(bg));return (Math.max(fg,back)+.05)/(Math.min(fg,back)+.05);
- }));assert.ok(contrast.length>0);assert.ok(contrast.every(r=>r>=4.5),'tag and note text contrast >=4.5');record('rendered directory tag and metadata text contrast meets 4.5:1');
+ const fg=lum(rgb(getComputedStyle(n).color)),back=lum(rgb(bg));return {ratio:(Math.max(fg,back)+.05)/(Math.min(fg,back)+.05),foreground:getComputedStyle(n).color,background:bg,cls:n.className};
+ }));assert.ok(contrast.length>0);assert.ok(contrast.every(r=>r.ratio>=4.5),'tag and note text contrast >=4.5: '+JSON.stringify(contrast.filter(r=>r.ratio<4.5)));record('rendered directory tag and metadata text contrast meets 4.5:1');
  stage='cross-page selection and detail return';
  const first=result.items[0];await page.getByRole('checkbox',{name:'选择 '+first.displayName,exact:true}).check();const secondPage=await writeUI(page,'/directory/talents/search',()=>page.getByRole('button',{name:'下一页',exact:true}).click(),'POST',body=>body.page===2);assert.equal(secondPage.items.length,2);
  const secondName=secondPage.items[0].displayName;await cards.first().getByRole('heading',{name:secondName,exact:true}).waitFor();await page.getByRole('checkbox',{name:'选择 '+secondName,exact:true}).check();await page.getByText('已选 2 人',{exact:true}).waitFor();

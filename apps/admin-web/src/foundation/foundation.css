@@ -72,3 +72,16 @@
 .once-modal .ant-modal-body{overflow-wrap:anywhere}
 
 @media(min-width:761px){.once-shell.ux-shell .page-title{margin-bottom:10px}.once-shell.ux-shell .content{padding-top:20px}}
+
+/* Explicit opaque status surfaces keep contrast stable across AntD palette derivation. */
+.once-foundation .ant-tag{color:#565e69;background:#eef0f3;border-color:#d7dbe1}
+.once-foundation .ant-tag.ant-tag-success:not(.ant-tag-disabled):is(.ant-tag-outlined,.ant-tag-filled,.ant-tag-solid){color:#27654b;background:#edf5f0;border-color:#bcd6c9}
+.once-foundation .ant-tag.ant-tag-warning:not(.ant-tag-disabled):is(.ant-tag-outlined,.ant-tag-filled,.ant-tag-solid){color:#805718;background:#fff4df;border-color:#e2c998}
+.once-foundation .ant-tag.ant-tag-error:not(.ant-tag-disabled):is(.ant-tag-outlined,.ant-tag-filled,.ant-tag-solid){color:#ab333b;background:#fff0f1;border-color:#e5b6bb}
+.once-foundation .auth-intro{background:#20242a;color:#faf9f6}
+.once-foundation .auth-intro p{color:#c5cbd3}
+.once-foundation .auth-intro .eyebrow,.once-foundation .auth-intro small{color:#9ab1d3}
+@media(max-width:760px){.once-foundation .pager{flex-wrap:wrap;gap:10px}.once-foundation .pager .ant-pagination{margin-left:auto}.once-foundation .page-title>div{min-width:0}}
+
+/* Domain footers may live inside the scroll body; never cover acknowledgement fields. */
+.once-modal .ant-modal-body .modal-footer{position:static;margin:16px 0 0;padding:16px 0}

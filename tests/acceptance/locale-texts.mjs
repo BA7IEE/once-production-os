@@ -29,7 +29,7 @@ export async function verifyLocaleBrowser({owner,prisma,cmd,writeUI,source,json,
    await owner.unroute(pattern);const replay=await writeUI(owner,'PATCH',path,()=>dialog.getByRole('button',{name:'原样重试保存',exact:true}).click());assert.equal(replay.replayed,true);assert.equal(requests.length,2);assert.deepEqual(requests[0],requests[1]);owner.off('request',observe);
    dialog=owner.getByRole('dialog',{name:'内部中英文文本',exact:true});await dialog.getByText('Synthetic text after uncertain response.',{exact:true}).waitFor();assert.equal((await json(owner,path)).needsReview,true);
   }
-  await dialog.getByRole('button',{name:'返回资料',exact:true}).click();if(kind==='PERSON')await owner.getByRole('dialog').getByLabel('关闭',{exact:true}).click();else await owner.getByRole('region',{name,exact:true}).getByRole('button',{name:'返回资料',exact:true}).click();
+  await dialog.getByRole('button',{name:'返回资料',exact:true}).click();if(kind==='PERSON')await owner.getByRole('dialog').getByRole('button',{name:'关闭',exact:true}).click();else await owner.getByRole('region',{name,exact:true}).getByRole('button',{name:'返回资料',exact:true}).click();
  }
  const duplicateName='浏览器语言合并重复档案',duplicateId=(await cmd(owner,'POST','/people',{displayName:duplicateName,roles:['photographer'],sourceId},201)).resourceId;
  await cmd(owner,'POST','/locale-texts',{subjectKind:'PERSON',subjectId:duplicateId,locale:'en',text:'Chosen browser merged English.',expectedSubjectRevision:1,sourceRefs:[{id:sourceId,expectedRevision:1}],confirmCurrentBasis:true},201);
@@ -48,7 +48,7 @@ export async function verifyLocaleBrowser({owner,prisma,cmd,writeUI,source,json,
  await owner.getByRole('button',{name:'内部中英文文本',exact:true}).click();const mergedDialog=owner.getByRole('dialog',{name:'内部中英文文本',exact:true});
  await mergedDialog.getByText('Chosen browser merged English.',{exact:true}).first().waitFor();await mergedDialog.getByText('合并保留原文（2）',{exact:true}).click();await mergedDialog.getByText('Synthetic text after uncertain response.',{exact:true}).waitFor();
  assert.equal(await mergedDialog.getByText('待复核',{exact:true}).count(),1);
- await mergedDialog.getByRole('button',{name:'返回资料',exact:true}).click();await owner.getByRole('dialog').getByLabel('关闭',{exact:true}).click();
+ await mergedDialog.getByRole('button',{name:'返回资料',exact:true}).click();await owner.getByRole('dialog').getByRole('button',{name:'关闭',exact:true}).click();
  console.log('PASS locale merge browser: explicit language choice, original text history, draft review state');
  await navigateWorkspace(owner,'内部导出',{fresh:true});
  const names={PERSON:'人物内部中英文文本、依据与原复核记录',WORK:'作品内部中英文文本、依据与原复核记录',PROJECT:'项目内部中英文文本、依据与原复核记录'},sourceLabels=['来源标题','来源类型','提供方说明','内部依据类型','依据说明','有效起点','有效截止','来源状态'],permits=[];
