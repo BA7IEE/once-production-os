@@ -57,7 +57,7 @@ export async function openShortlist(page,title,{finding=false}={}) {
 export async function selectPaged(page,root,label,id,{picker:explicitPicker}={}) {
   const picker=explicitPicker??root.getByRole('group',{name:label+'选择器',exact:true}),select=picker.getByLabel(label,{exact:true});
   await select.waitFor();
-  await page.waitForFunction(element=>!element.disabled,await select.elementHandle());
+  await page.waitForFunction(element=>!element.matches(':disabled'),await select.elementHandle());
   const previous=picker.getByRole('button',{name:'上一页',exact:true});
   for(let traversed=0;await previous.isEnabled();traversed++){
     if(traversed>=100)throw new Error('Visible '+label+' picker could not return to its first page');
@@ -66,7 +66,7 @@ export async function selectPaged(page,root,label,id,{picker:explicitPicker}={})
     const response=page.waitForResponse(r=>r.request().method()==='GET'&&r.url().includes('/api/v1/')&&new URL(r.url()).searchParams.get('page')===String(current-1));
     await previous.click();if((await response).status()!==200)throw new Error('Picker page failed');
     await picker.locator('.pager small').filter({hasText:new RegExp('第 '+(current-1)+' 页$')}).waitFor();
-    await page.waitForFunction(element=>!element.disabled,await select.elementHandle());
+    await page.waitForFunction(element=>!element.matches(':disabled'),await select.elementHandle());
   }
   for(let current=1;!await select.locator('option[value="'+id+'"]').count();current++){
     if(current>=100)throw new Error('Visible '+label+' picker exhausted its bounded pages');
@@ -75,7 +75,7 @@ export async function selectPaged(page,root,label,id,{picker:explicitPicker}={})
     const response=page.waitForResponse(r=>r.request().method()==='GET'&&r.url().includes('/api/v1/')&&new URL(r.url()).searchParams.get('page')===String(current+1));
     await next.click();if((await response).status()!==200)throw new Error('Picker page failed');
     await picker.locator('.pager small').filter({hasText:new RegExp('第 '+(current+1)+' 页$')}).waitFor();
-    await page.waitForFunction(element=>!element.disabled,await select.elementHandle());
+    await page.waitForFunction(element=>!element.matches(':disabled'),await select.elementHandle());
   }
   await select.selectOption(id);
 }
