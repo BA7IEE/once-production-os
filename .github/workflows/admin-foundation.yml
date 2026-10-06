@@ -31,6 +31,7 @@ jobs:
       - name: Targeted transport, selection, forms and lifecycle regressions
         run: |
           node --experimental-strip-types --test tests/core/admin-ux-inputs.test.ts tests/core/client-transport.test.ts tests/core/talent-directory-state.test.ts
+          node --test tests/ui/admin-foundation.test.mjs
           pnpm test:lifecycle
       - name: Build current API and admin
         run: pnpm build
