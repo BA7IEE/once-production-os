@@ -13,10 +13,10 @@
     "typecheck:core": "tsc -p packages/core/tsconfig.json",
     "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p apps/admin-web/tsconfig.json",
     "build:api": "tsc -p tsconfig.server.json",
-    "build:web": "vite build --config apps/admin-web/vite.config.ts",
+    "build:web": "NODE_ENV=production node scripts/generate-admin-styles.mjs && vite build --config apps/admin-web/vite.config.ts",
     "build": "node scripts/heavy-task.mjs pnpm build:sequential",
     "dev:api": "node --env-file=.env dist/apps/api/src/main.js",
-    "dev:web": "vite --config apps/admin-web/vite.config.ts",
+    "dev:web": "NODE_ENV=production node scripts/generate-admin-styles.mjs && vite --config apps/admin-web/vite.config.ts",
     "start": "node dist/apps/api/src/main.js",
     "worker": "node dist/apps/api/src/worker-main.js",
     "db:generate": "prisma generate",
@@ -78,7 +78,8 @@
     "playwright": "1.63.0",
     "prisma": "6.19.3",
     "typescript": "5.8.3",
-    "vite": "6.4.1"
+    "vite": "6.4.1",
+    "@ant-design/cssinjs": "2.1.2"
   },
   "type": "module",
   "pnpm": {

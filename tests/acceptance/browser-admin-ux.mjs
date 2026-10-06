@@ -49,6 +49,8 @@ try{
  browserOwner=await registeredBrowser(chromium,{headless:true,env:{...process.env,TMPDIR:temp.path}});browser=browserOwner.browser;
  const page=await browser.newPage({viewport:{width:1280,height:800}});page.setDefaultTimeout(12000);page.on('pageerror',e=>errors.push(e.message));await login(page,'owner');
  stage='task navigation and seeded directory';
+ assert.ok(await page.evaluate(()=>[...document.styleSheets].some(s=>s.href?.endsWith('/once-components.css')&&s.cssRules.length>100)),'baked component styles must load under the real CSP');
+ assert.equal(await page.locator('aside .ant-menu').first().evaluate(el=>getComputedStyle(el).listStyleType),'none','Menu must have actual component styles, not only semantic DOM');
  for(const path of ['/workspace/works/'+randomUUID(),'/workspace/projects/'+randomUUID(),'/workspace/shortlists/'+randomUUID(),'/workspace/review/CLAIM/'+randomUUID()]){const r=await fetch(base+path);assert.equal(r.status,200);assert.match(r.headers.get('content-type'),/text\/html/);}
  const unknownApi=await fetch(base+'/api/v1/not-a-route');assert.equal(unknownApi.status,404);assert.doesNotMatch(unknownApi.headers.get('content-type'),/text\/html/);
  assert.equal(await page.locator('nav[aria-label="工作空间"] .ant-menu-item').count(),6);assert.equal(await page.locator('.ant-menu-submenu-open').count(),0);

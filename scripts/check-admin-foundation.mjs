@@ -13,5 +13,6 @@ walk(root);
 const pkg=JSON.parse(readFileSync('package.json','utf8'));
 if(pkg.dependencies.antd!=='6.6.5'||pkg.dependencies['@ant-design/pro-components']!=='3.1.15-5')violations.push('Review dependency compatibility before changing pinned Foundation versions.');
 if(!readFileSync(join(root,'main.tsx'),'utf8').includes('<AdminProvider>'))violations.push('Admin entry must use AdminProvider.');
+if(!pkg.scripts['build:web'].includes('generate-admin-styles.mjs')||!readFileSync('apps/admin-web/index.html','utf8').includes('/once-components.css'))violations.push('Build and load baked component styles under the existing strict CSP.');
 console.log(JSON.stringify({status:violations.length?'FAIL':'PASS',coverage,violations},null,2));
 if(violations.length)process.exitCode=1;

@@ -1,3 +1,4 @@
+import {navigateWorkspace} from './support/workspace-navigation.mjs';
 /** Test-only approved adapter, real PostgreSQL + application + built UI. No paid HTTP. */
 import assert from 'node:assert/strict';
 import express from 'express';
@@ -18,7 +19,7 @@ export async function verifyAiBrowser({prisma,browser,env,password,storeOverride
  const context=await browser.newContext(),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  try{
   const owner=new Client(core);assert.equal((await owner.login('owner',password)).status,200);const t=await aiBusinessFixture({app:core,store,owner});
-  await page.goto(config.origin);await page.getByLabel('登录名').fill('owner');await page.locator('input[autocomplete=current-password]').fill(password);await page.getByRole('button',{name:'登录',exact:true}).click();await page.getByText('管理与设置',{exact:true}).click();await page.getByRole('button',{name:/AI 辅助整理/}).click();
+  await page.goto(config.origin);await page.getByLabel('登录名').fill('owner');await page.locator('input[autocomplete=current-password]').fill(password);await page.getByRole('button',{name:'登录',exact:true}).click();await navigateWorkspace(page,'AI 辅助整理');
   async function create(type){await page.getByRole('button',{name:'新建 AI 任务',exact:true}).click();const form=page.getByRole('dialog',{name:'确认本次 AI 输入',exact:true});await form.getByLabel('任务类型',{exact:true}).selectOption(type);return form;}
   async function submit(form){await form.getByLabel('我已检查，仅包含本次任务必要、允许外送的文字',{exact:true}).check();await form.getByRole('button',{name:'预览实际输入',exact:true}).click();await form.getByRole('heading',{name:'实际发送内容',exact:true}).waitFor();const response=page.waitForResponse(r=>r.url().endsWith('/api/v1/ai-jobs')&&r.request().method()==='POST');await form.getByRole('button',{name:'确认并创建任务',exact:true}).click();const r=await response;assert.equal(r.status(),202);return(await r.json()).resourceId;}
   let form=await create('parse_search');await form.getByLabel('检索句',{exact:true}).fill('Find the synthetic artist');let id=await submit(form);

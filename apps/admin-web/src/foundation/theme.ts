@@ -7,6 +7,7 @@ export const onceTokens = {
  font:'"Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif',
 } as const;
 export const onceTheme:ThemeConfig = {
+ hashed:false,cssVar:{key:'once-theme'},
  token:{colorPrimary:onceTokens.cobalt,colorInfo:onceTokens.cobalt,colorSuccess:onceTokens.success,
  colorWarning:onceTokens.warning,colorError:onceTokens.danger,colorText:onceTokens.ink,
  colorTextSecondary:onceTokens.secondary,colorBgLayout:onceTokens.paper,colorBgContainer:onceTokens.surface,

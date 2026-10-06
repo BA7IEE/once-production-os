@@ -42,3 +42,7 @@ Modal 使用 AntD 焦点管理、Escape 与关闭按钮；mask 不关闭。传�
 本机 Swap 超过项目 4GiB 门限，未运行本地 build/API/DB/浏览器，没有可用本地应用预览 URL。专用 Actions 使用标准 ubuntu-24.04，一个串行 job，原有适用工作流和门禁保持不变，专项不豁免完整回归；安装、完整类型、build、生命周期和真实 PG/Chromium 业务流程使用 synthetic 记录。超时35分钟，过时运行取消，JSON 证据保留3天。本分支的全部工作流 artifact 均排除截图，原有必需回归不跳过；其他分支 artifact 策略保持默认。截图在 runner 内留存，不上传；本机截图不上传 Library。
 
 浏览器需确认 1024/1280/1440 宽度、折叠品牌/菜单、标签和备注对比、筛选分页与跨页选择、校验保存、详情返回、加载空错状态。既有拒权、未知结果核对、部分字段不可读保存、响应丢失、未保存离开和本人端维护回归不删除。真人无提示使用、真实供应商、生产、持久开发库均 NOT_RUN。Draft 不等于验收完成。
+
+## 严格CSP与静态组件样式
+
+服务端现有 `style-src self` 保持不变。AntD运行时style标签会被该策略拒绝，不能只用无样式DOM验收。`build:web` / `dev:web` 先用官方cssinjs 2.1.2的 `createCache`、SSR与 `extractStyle` 烘焙Provider和共享AntD/Pro模式，再由同源 `/once-components.css` 加载。主题关闭随机hash并固定cssVar key为once-theme，确保构建与浏览器匹配；生成文件不入版本库。官方说明：[Server Side Rendering / Whole Export](https://ant.design/docs/react/server-side-rendering/)。新增组件必须加入烘焙清单并在真实CSP下验收。

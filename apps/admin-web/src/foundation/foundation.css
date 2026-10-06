@@ -70,3 +70,5 @@
 .once-modal{min-height:0;background:transparent}
 .once-modal .ant-modal-wrap{z-index:1000}
 .once-modal .ant-modal-body{overflow-wrap:anywhere}
+
+@media(min-width:761px){.once-shell.ux-shell .page-title{margin-bottom:10px}.once-shell.ux-shell .content{padding-top:20px}}
