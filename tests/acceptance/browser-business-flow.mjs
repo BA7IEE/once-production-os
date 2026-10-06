@@ -19,7 +19,7 @@ const evidence='artifacts/business-flow';mkdirSync(evidence,{recursive:true});
 let api,worker,browserOwner,browser,base,stage='setup';const checks=[],errors=[];
 async function poll(predicate,label){const end=Date.now()+25000;while(!(await predicate())){assert.ok(Date.now()<end,label);await new Promise(r=>setTimeout(r,100));}}
 async function stop(child){if(!child||child.exitCode!==null||child.signalCode!==null)return;await new Promise(resolve=>{const timer=setTimeout(()=>{child.kill('SIGKILL');resolve();},5000);child.once('exit',()=>{clearTimeout(timer);resolve();});child.kill('SIGINT');});}
-async function login(page,name){await page.goto(base,{waitUntil:'networkidle'});await page.getByLabel('登录名',{exact:true}).fill(name);await page.getByLabel('密码',{exact:true}).fill(password);await page.getByRole('button',{name:'登录',exact:true}).click();await page.getByRole('button',{name:'工作台',exact:true}).waitFor();}
+async function login(page,name){await page.goto(base,{waitUntil:'networkidle'});await page.getByLabel('登录名',{exact:true}).fill(name);await page.getByLabel('密码',{exact:true}).fill(password);await page.getByRole('button',{name:'登录',exact:true}).click();await page.getByRole('menuitem',{name:'工作台',exact:true}).waitFor();}
 async function cmd(page,path,data,method='POST'){
  const me=await(await page.context().request.get(base+'/api/v1/me')).json();
  const response=await page.context().request.fetch(base+'/api/v1'+path,{method,data,headers:{Origin:base,'X-CSRF-Token':me.csrfToken,'X-ONCE-Membership':me.membershipId,'Idempotency-Key':randomUUID()}});
@@ -51,7 +51,7 @@ try{
  await editor.page.goto(base+'/workspace/people',{waitUntil:'networkidle'});await editor.page.getByRole('button',{name:/新增人才/}).click();let form=editor.page.getByRole('dialog',{name:'新增人才',exact:true});await form.getByLabel('姓名 / 艺名 *').fill('合成团队流转人才');
  const intake=await writeUI(editor.page,'/directory/talents',()=>form.getByRole('button',{name:'保存草稿',exact:true}).click());await form.waitFor({state:'detached'});const personId=intake.resourceId;
  assert.equal((await admin.context().request.get(base+'/api/v1/directory/talents/'+personId)).status(),404);
- await editor.page.getByRole('button',{name:'审核',exact:true}).click();await editor.page.getByRole('button',{name:'发起团队核验',exact:true}).click();form=editor.page.getByRole('dialog',{name:'送交核验',exact:true});
+ await editor.page.getByRole('menuitem',{name:'审核',exact:true}).click();await editor.page.getByRole('button',{name:'发起团队核验',exact:true}).click();form=editor.page.getByRole('dialog',{name:'送交核验',exact:true});
  await form.getByLabel('本人维护的人才或过期草稿').selectOption(personId);await form.getByLabel('核验人',{exact:true}).selectOption(reviewer.id);
  const workspaceScope=await db.accessScope.findFirstOrThrow({where:{mode:'WORKSPACE'}});await form.getByLabel('核验通过后的目标范围').selectOption(workspaceScope.id);
  const owner=await(await admin.context().request.get(base+'/api/v1/me')).json();await form.getByLabel('确认共享的管理员').selectOption(owner.membershipId);await form.getByLabel('本次核验截止时点（最长七天）').fill(new Date(Date.now()+2*86400000).toISOString().slice(0,16));await form.getByRole('checkbox').check();

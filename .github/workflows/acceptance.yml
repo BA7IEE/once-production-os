@@ -45,7 +45,17 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-resume-${{ github.event.pull_request.head.sha || github.sha }}
-          path: data/local-resource-runs/**/*.json
+          path: |
+            data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   # A separate owned database; no browser suite shares its populated target.
@@ -75,7 +85,17 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: owned-postgres-contract-${{ github.event.pull_request.head.sha || github.sha }}
-          path: data/local-resource-runs/**/*.json
+          path: |
+            data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   browser-handoff:
@@ -105,7 +125,17 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-handoff-${{ github.event.pull_request.head.sha || github.sha }}
-          path: data/local-resource-runs/**/*.json
+          path: |
+            data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   browser-media:
@@ -137,7 +167,17 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-media-${{ github.event.pull_request.head.sha || github.sha }}
-          path: data/local-resource-runs/**/*.json
+          path: |
+            data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   browser-production:
@@ -169,7 +209,17 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-production-${{ github.event.pull_request.head.sha || github.sha }}
-          path: data/local-resource-runs/**/*.json
+          path: |
+            data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   browser-talent-intake:
@@ -200,7 +250,17 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-talent-intake-${{ github.event.pull_request.head.sha || github.sha }}
-          path: data/local-resource-runs/**/*.json
+          path: |
+            data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   browser-talent-directory:
@@ -231,7 +291,17 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-talent-directory-${{ github.event.pull_request.head.sha || github.sha }}
-          path: data/local-resource-runs/**/*.json
+          path: |
+            data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   browser-talent-auth:
@@ -262,7 +332,17 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-talent-auth-${{ github.event.pull_request.head.sha || github.sha }}
-          path: data/local-resource-runs/**/*.json
+          path: |
+            data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   browser-talent-maintenance:
@@ -293,7 +373,17 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-talent-maintenance-${{ github.event.pull_request.head.sha || github.sha }}
-          path: data/local-resource-runs/**/*.json
+          path: |
+            data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   browser-media-staging:
@@ -325,7 +415,17 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-media-staging-${{ github.event.pull_request.head.sha || github.sha }}
-          path: data/local-resource-runs/**/*.json
+          path: |
+            data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   browser-media-collections:
@@ -357,7 +457,17 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-media-collections-${{ github.event.pull_request.head.sha || github.sha }}
-          path: data/local-resource-runs/**/*.json
+          path: |
+            data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   browser-work-cases:
@@ -392,7 +502,17 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-work-cases-${{ github.event.pull_request.head.sha || github.sha }}
-          path: data/local-resource-runs/**/*.json
+          path: |
+            data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   browser-media-purge:
@@ -424,7 +544,17 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-media-purge-${{ github.event.pull_request.head.sha || github.sha }}
-          path: data/local-resource-runs/**/*.json
+          path: |
+            data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   browser-agent-ingestion:
@@ -456,13 +586,33 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: agent-ingestion-pr04a-${{ github.event.pull_request.head.sha || github.sha }}
-          path: artifacts/agent-ingestion-pr04a
+          path: |
+            artifacts/agent-ingestion-pr04a
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
       - name: Preserve owned resource evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-agent-ingestion-${{ github.event.pull_request.head.sha || github.sha }}
-          path: data/local-resource-runs/**/*.json
+          path: |
+            data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   browser-agent-media:
@@ -495,13 +645,33 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: agent-media-pr04b-${{ github.event.pull_request.head.sha || github.sha }}
-          path: artifacts/agent-media-pr04b
+          path: |
+            artifacts/agent-media-pr04b
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
       - name: Preserve owned resource evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-agent-media-${{ github.event.pull_request.head.sha || github.sha }}
-          path: data/local-resource-runs/**/*.json
+          path: |
+            data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   browser-agent-structures:
@@ -534,13 +704,33 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: agent-structures-pr04c-${{ github.event.pull_request.head.sha || github.sha }}
-          path: artifacts/agent-structures-pr04c
+          path: |
+            artifacts/agent-structures-pr04c
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
       - name: Preserve owned resource evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-agent-structures-${{ github.event.pull_request.head.sha || github.sha }}
-          path: data/local-resource-runs/**/*.json
+          path: |
+            data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   browser-agent-handoff:
@@ -573,11 +763,31 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: agent-handoff-pr04d-${{ github.event.pull_request.head.sha || github.sha }}
-          path: artifacts/agent-handoff-pr04d
+          path: |
+            artifacts/agent-handoff-pr04d
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
       - name: Preserve owned resource evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-agent-handoff-${{ github.event.pull_request.head.sha || github.sha }}
-          path: data/local-resource-runs/**/*.json
+          path: |
+            data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error

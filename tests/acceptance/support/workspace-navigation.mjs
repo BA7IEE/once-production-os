@@ -2,14 +2,12 @@
 export async function navigateWorkspace(page, name, {jsonImport=false,fresh=false}={}) {
   // Fixtures written by the API need a fresh visible form, not its previous page.
   if(fresh&&name!=='工作台')await navigateWorkspace(page,'工作台');
-  const button=page.locator('aside[aria-label="工作空间导航"]').getByRole('button',{name,exact:true});
-  const mobile=page.getByRole('button',{name:'打开导航',exact:true});
-  if(!await button.isVisible()&&await mobile.isVisible())await mobile.click();
-  if(!await button.isVisible()) {
-    const menu=page.locator('details.management-nav');
-    if(await menu.getAttribute('open')===null)await menu.locator('summary').click();
-  }
-  await button.click();
+  const aside=page.locator('aside[aria-label="工作空间导航"]');
+  const entry=aside.getByRole(name==='账号设置'?'button':'menuitem',{name,exact:true});
+  const expand=page.getByRole('button',{name:'展开导航',exact:true});
+  if(!await entry.isVisible()&&await expand.isVisible())await expand.click();
+  if(!await entry.isVisible())await aside.getByRole('menuitem',{name:'管理与设置',exact:true}).click();
+  await entry.click();
   if(jsonImport) {
     const panel=page.locator('details').filter({has:page.locator('summary').filter({hasText:'历史任务、旧档案补齐与高级 JSON 导入'})});
     if(await panel.getAttribute('open')===null)await panel.locator('summary').click();
@@ -56,10 +54,10 @@ export async function openShortlist(page,title,{finding=false}={}) {
 }
 
 /** Walk the visible picker, including later pages; never inject a missing option. */
-export async function selectPaged(page,root,label,id) {
-  const picker=root.getByRole('group',{name:label+'选择器',exact:true}),select=picker.getByLabel(label,{exact:true});
+export async function selectPaged(page,root,label,id,{picker:explicitPicker}={}) {
+  const picker=explicitPicker??root.getByRole('group',{name:label+'选择器',exact:true}),select=picker.getByLabel(label,{exact:true});
   await select.waitFor();
-  await page.waitForFunction(element=>!element.disabled,await select.elementHandle());
+  await page.waitForFunction(element=>!element.matches(':disabled'),await select.elementHandle());
   const previous=picker.getByRole('button',{name:'上一页',exact:true});
   for(let traversed=0;await previous.isEnabled();traversed++){
     if(traversed>=100)throw new Error('Visible '+label+' picker could not return to its first page');
@@ -68,7 +66,7 @@ export async function selectPaged(page,root,label,id) {
     const response=page.waitForResponse(r=>r.request().method()==='GET'&&r.url().includes('/api/v1/')&&new URL(r.url()).searchParams.get('page')===String(current-1));
     await previous.click();if((await response).status()!==200)throw new Error('Picker page failed');
     await picker.locator('.pager small').filter({hasText:new RegExp('第 '+(current-1)+' 页$')}).waitFor();
-    await page.waitForFunction(element=>!element.disabled,await select.elementHandle());
+    await page.waitForFunction(element=>!element.matches(':disabled'),await select.elementHandle());
   }
   for(let current=1;!await select.locator('option[value="'+id+'"]').count();current++){
     if(current>=100)throw new Error('Visible '+label+' picker exhausted its bounded pages');
@@ -77,7 +75,7 @@ export async function selectPaged(page,root,label,id) {
     const response=page.waitForResponse(r=>r.request().method()==='GET'&&r.url().includes('/api/v1/')&&new URL(r.url()).searchParams.get('page')===String(current+1));
     await next.click();if((await response).status()!==200)throw new Error('Picker page failed');
     await picker.locator('.pager small').filter({hasText:new RegExp('第 '+(current+1)+' 页$')}).waitFor();
-    await page.waitForFunction(element=>!element.disabled,await select.elementHandle());
+    await page.waitForFunction(element=>!element.matches(':disabled'),await select.elementHandle());
   }
   await select.selectOption(id);
 }
@@ -98,4 +96,12 @@ export async function verifyUnknownMeasurement(page) {
   const records=page.locator('.basic-section').filter({has:page.getByRole('heading',{name:'量尺记录',exact:true})});
   await records.getByText('已确认',{exact:true}).waitFor();
   await records.getByText('未知',{exact:true}).waitFor();
+}
+
+/** Geometry-only diagnostic: no record text or screenshots leave the runner. */
+export async function traceLayout(page,target,label) {
+ console.log('UI_LAYOUT '+label+' '+JSON.stringify(await target.evaluate(el=>{
+  const rect=e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {tag:e.tagName,cls:e.className,x:r.x,y:r.y,width:r.width,height:r.height,scroll:e.scrollWidth,client:e.clientWidth,z:s.zIndex,position:s.position,transform:s.transform,pointer:s.pointerEvents,overflow:s.overflow};};
+  const r=el.getBoundingClientRect();return {viewport:innerWidth,scrollX,documentWidth:document.documentElement.scrollWidth,target:rect(el),ancestors:(()=>{let a=el,p=[];for(let i=0;a&&i<8;i++,a=a.parentElement)p.push(rect(a));return p;})(),overflowing:[...el.querySelectorAll('*')].filter(e=>{const a=e.getBoundingClientRect();return a.right>r.right+1||a.left<r.left-1;}).slice(0,20).map(rect),layers:[...document.querySelectorAll('.ant-modal-root,.ant-modal-wrap,.ant-modal,.once-main,.once-sidebar')].map(rect),hit:document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.className};
+ })));
 }

@@ -1,3 +1,4 @@
+import {AdminTable,AdminForm,AdminDescriptions} from './foundation/patterns.tsx';
 import { useEffect, useState } from 'react';
 import { call, read } from './api.ts';
 import {ResourcePicker,type ResourceOption} from './paged-picker.tsx';
@@ -87,7 +88,7 @@ function DecisionModal({ request, item, canRetain, onClose, onDone }: {
     const action = useAction();
     const [retentionSource,setRetentionSource]=useState<ResourceOption|null>(null);
     return <Modal title="记录保留决定" onClose={onClose}>
-        <form onSubmit={e => { e.preventDefault(); void action.run(async () => {
+        <AdminForm onSubmit={e => { e.preventDefault(); void action.run(async () => {
             await call('deletion.decision', {
                 expectedRevision: request.revision,
                 entryId: item.id,
@@ -99,7 +100,7 @@ function DecisionModal({ request, item, canRetain, onClose, onDone }: {
         }); }}>
             <div className="modal-body"><ErrorBox error={action.error}/>
                 <div className="notice"><strong>{evidenceLabel[item.evidenceState] ?? item.evidenceState}</strong><p>{item.recordSummary}</p><p>{detailText(item.detailCode,item.dependencyKind)}</p></div>
-                <dl className="detail-grid"><div><dt>依赖类型</dt><dd><code>{partyLabels[item.dependencyKind]??item.dependencyKind}</code></dd></div><div><dt>系统建议</dt><dd>{actionLabel[item.proposedAction] ?? item.proposedAction}</dd></div></dl>
+                <AdminDescriptions className="detail-grid"><div><dt>依赖类型</dt><dd><code>{partyLabels[item.dependencyKind]??item.dependencyKind}</code></dd></div><div><dt>系统建议</dt><dd>{actionLabel[item.proposedAction] ?? item.proposedAction}</dd></div></AdminDescriptions>
                 <Field label="本项决定">
                     <select value={decision} onChange={e => { setDecision(e.target.value as 'APPLY_PROPOSED' | 'RETAIN_WITH_BASIS'); setRetentionSourceId('');setRetentionSource(null); }}>
                         <option value="APPLY_PROPOSED">{item.dependencyKind==='SOURCE_OTHER_IDENTITY_EVIDENCE'?'确认撤回该来源的身份依据':item.dependencyKind==='SOURCE_TALENT_FACT'?'删除这项专业资料':item.dependencyKind==='SOURCE_TALENT_FACT_GROUP'?'确认按逐项决定执行':'按系统建议处置'}</option>
@@ -112,7 +113,7 @@ function DecisionModal({ request, item, canRetain, onClose, onDone }: {
                 <Field label="决定说明" hint="记录为何按建议处置，或为何存在独立依据；不要粘贴完整敏感原文。"><textarea required minLength={4} maxLength={2000} rows={5} value={reason} onChange={e => setReason(e.target.value)}/></Field>
             </div>
             <footer className="modal-footer"><button type="button" disabled={action.busy} onClick={onClose}>取消</button><Submit busy={action.busy}>保存决定</Submit></footer>
-        </form>
+        </AdminForm>
     </Modal>;
 }
 
@@ -167,7 +168,7 @@ function RequestDetail({ id, canRetain, onChanged }: { id: string; canRetain: bo
     return <section className="panel padded deletion-request-detail"><ErrorBox error={load.error ?? items.error ?? block.error ?? freeze.error ?? cleanup.error}/>
         {load.busy && !load.data ? <p>正在读取删除申请摘要…</p> : load.data && <>
             <div className="panel-heading"><div><h2>删除申请</h2><p><code>{load.data.id}</code></p></div><Tag value={load.data.state}/></div>
-            <dl className="detail-grid">
+            <AdminDescriptions className="detail-grid">
                 <div><dt>目标类型</dt><dd>{kindLabel[load.data.targetKind]}</dd></div>
                 <div><dt>目标版本</dt><dd>{load.data.targetRevision}</dd></div>
                 <div><dt>冻结影响项</dt><dd>{load.data.impactCount}</dd></div>
@@ -179,7 +180,7 @@ function RequestDetail({ id, canRetain, onChanged }: { id: string; canRetain: bo
                 <div><dt>执行失败</dt><dd>{load.data.cleanupFailedCount}</dd></div>
                 <div><dt>未解析</dt><dd>{load.data.unresolvedCount}</dd></div>
                 <div><dt>创建时间</dt><dd>{date(load.data.createdAt)}</dd></div>
-            </dl>
+            </AdminDescriptions>
             <p className="pre-line">{load.data.reason}</p>
             <div className="notice"><strong>{load.data.state === 'DRAFT' ? '尚未阻断正常使用'
                 : load.data.state === 'BLOCKED_FOR_USE' ? (load.data.planFrozen ? '已阻断；清理计划已冻结' : '已阻断正常使用；正在做保留决定')
@@ -196,14 +197,14 @@ function RequestDetail({ id, canRetain, onChanged }: { id: string; canRetain: bo
             {load.data.state === 'BLOCKED_FOR_USE' && <div className="deletion-decision-workspace">
                 <div className="panel-heading"><div><h3>保留决定</h3><p>这里不显示被冻结依赖的底层对象 ID。PROVEN 项自动采用系统建议；只有 REVIEW_REQUIRED 项需要人工判断。</p></div></div>
                 {items.busy && !items.data ? <p>正在读取安全决策槽…</p> : items.data && <>
-                    <div className="table-wrap"><table><thead><tr><th>依赖类型</th><th>系统建议</th><th>证据</th><th>当前决定</th><th>说明</th><th/></tr></thead><tbody>{items.data.items.map(item => <tr key={item.id}>
+                    <div className="table-wrap"><AdminTable><thead><tr><th>依赖类型</th><th>系统建议</th><th>证据</th><th>当前决定</th><th>说明</th><th/></tr></thead><tbody>{items.data.items.map(item => <tr key={item.id}>
                         <td><code>{partyLabels[item.dependencyKind]??item.dependencyKind}</code>{item.recordSummary&&<p>{item.recordSummary}</p>}</td>
                         <td>{actionLabel[item.proposedAction] ?? item.proposedAction}</td>
                         <td>{evidenceLabel[item.evidenceState] ?? item.evidenceState}</td>
                         <td>{item.decision === 'PENDING' ? '待决定' : item.decision === 'RETAIN_WITH_BASIS' ? '有独立依据保留' : '按建议处置'}</td>
                         <td>{item.decisionReason || (item.retentionBasisPresent ? '已记录独立保留依据' : detailText(item.detailCode,item.dependencyKind))}</td>
                         <td>{item.decision === 'PENDING' && !load.data?.planFrozen && <button disabled={refreshing} onClick={() => { if (!refreshing) setEditing(item); }}>做决定</button>}</td>
-                    </tr>)}</tbody></table></div>
+                    </tr>)}</tbody></AdminTable></div>
                     <Pager page={itemPage} pageSize={20} total={items.data.total} setPage={setItemPage}/>
                 </>}
                 {!load.data.planFrozen && <div className="deletion-freeze-box">
@@ -228,7 +229,7 @@ function RequestDetail({ id, canRetain, onChanged }: { id: string; canRetain: bo
             </div>}
             {['COMPLETED','RETAINED_WITH_BASIS','FAILED'].includes(load.data.state) && <div className="deletion-cleanup-progress">
                 <h3>最终结果</h3>
-                <dl className="detail-grid"><div><dt>最终化时间</dt><dd>{date(load.data.finalizedAt)}</dd></div><div><dt>最终化尝试</dt><dd>{load.data.finalizationAttempts}</dd></div><div><dt>Finalization Digest</dt><dd><small>{load.data.finalizationDigest ?? '—'}</small></dd></div></dl>
+                <AdminDescriptions className="detail-grid"><div><dt>最终化时间</dt><dd>{date(load.data.finalizedAt)}</dd></div><div><dt>最终化尝试</dt><dd>{load.data.finalizationAttempts}</dd></div><div><dt>Finalization Digest</dt><dd><small>{load.data.finalizationDigest ?? '—'}</small></dd></div></AdminDescriptions>
                 <p className="muted">正常业务入口继续保持不可见；删除管理仅保留审计所需的最小头和清理证据。</p>
             </div>}
             {!load.data.cleanupAvailable && ['DRAFT','BLOCKED_FOR_USE'].includes(load.data.state) && <p className="muted">不可逆动作只会按冻结计划执行。</p>}
@@ -283,9 +284,9 @@ function DeletionImpactContent({ me, initialPerson }: { me: Me; initialPerson?: 
                 </div>
                 {!!preview.unresolved.length && <div className="error"><strong>影响图不完整</strong>{preview.unresolved.map(x => <p key={x.code}>{unresolvedLabel[x.code] ?? x.code}：{x.count} 项</p>)}</div>}
                 <h3>影响摘要</h3>
-                <div className="table-wrap"><table><thead><tr><th>依赖类型</th><th>建议动作</th><th>证据状态</th><th>数量</th></tr></thead><tbody>{preview.summary.map((x, i) => <tr key={i}><td><code>{partyLabels[x.dependencyKind]??x.dependencyKind}</code></td><td>{actionLabel[x.proposedAction] ?? x.proposedAction}</td><td>{evidenceLabel[x.evidenceState] ?? x.evidenceState}</td><td>{x.count}</td></tr>)}</tbody></table></div>
+                <div className="table-wrap"><AdminTable><thead><tr><th>依赖类型</th><th>建议动作</th><th>证据状态</th><th>数量</th></tr></thead><tbody>{preview.summary.map((x, i) => <tr key={i}><td><code>{partyLabels[x.dependencyKind]??x.dependencyKind}</code></td><td>{actionLabel[x.proposedAction] ?? x.proposedAction}</td><td>{evidenceLabel[x.evidenceState] ?? x.evidenceState}</td><td>{x.count}</td></tr>)}</tbody></AdminTable></div>
                 <h3>当前可见具体影响</h3>
-                <div className="table-wrap deletion-impact-table"><table><thead><tr><th>对象</th><th>依赖</th><th>建议动作</th><th>判断</th><th>原因</th></tr></thead><tbody>{preview.items.map(x => <tr key={[x.resourceKind,x.resourceId,x.dependencyKind,x.proposedAction].join(':')}><td><strong>{partyLabels[x.resourceKind]??x.resourceKind}</strong><small>{x.resourceId}</small></td><td><code>{partyLabels[x.dependencyKind]??x.dependencyKind}</code></td><td>{actionLabel[x.proposedAction] ?? x.proposedAction}</td><td>{evidenceLabel[x.evidenceState] ?? x.evidenceState}</td><td>{detailText(x.detailCode,x.resourceKind)}</td></tr>)}</tbody></table></div>
+                <div className="table-wrap deletion-impact-table"><AdminTable><thead><tr><th>对象</th><th>依赖</th><th>建议动作</th><th>判断</th><th>原因</th></tr></thead><tbody>{preview.items.map(x => <tr key={[x.resourceKind,x.resourceId,x.dependencyKind,x.proposedAction].join(':')}><td><strong>{partyLabels[x.resourceKind]??x.resourceKind}</strong><small>{x.resourceId}</small></td><td><code>{partyLabels[x.dependencyKind]??x.dependencyKind}</code></td><td>{actionLabel[x.proposedAction] ?? x.proposedAction}</td><td>{evidenceLabel[x.evidenceState] ?? x.evidenceState}</td><td>{detailText(x.detailCode,x.resourceKind)}</td></tr>)}</tbody></AdminTable></div>
                 <div className="deletion-freeze-box">
                     <h3>2. 冻结为 DRAFT 删除申请</h3>
                     <Field label="申请原因" hint="这里只说明为什么需要进入后续删除评估；本操作不会阻断或清理目标。"><textarea rows={4} required minLength={4} maxLength={2000} disabled={!preview.complete} value={reason} onChange={e => setReason(e.target.value)}/></Field>
@@ -295,7 +296,7 @@ function DeletionImpactContent({ me, initialPerson }: { me: Me; initialPerson?: 
         </section>
 
         <section className="panel"><div className="panel-heading"><div><h2>已有删除申请</h2><p>这里只显示当前仍有权看到目标的申请摘要；不会回显被冻结的依赖 ID。</p></div></div>
-            {requests.data?.items.length ? <div className="table-wrap"><table><thead><tr><th>时间</th><th>目标</th><th>影响项</th><th>需人工判断</th><th>状态</th><th/></tr></thead><tbody>{requests.data.items.map(x => <tr key={x.id}><td>{date(x.createdAt)}</td><td>{kindLabel[x.targetKind]}<small>{x.targetId}</small></td><td>{x.impactCount}</td><td>{x.reviewRequiredCount}</td><td><Tag value={x.state}/></td><td><button onClick={() => setSelectedRequest(x.id)}>查看摘要</button></td></tr>)}</tbody></table></div> : <Empty title="还没有删除申请">先完成影响预览；只有影响图完整时才能冻结 DRAFT。</Empty>}
+            {requests.data?.items.length ? <div className="table-wrap"><AdminTable><thead><tr><th>时间</th><th>目标</th><th>影响项</th><th>需人工判断</th><th>状态</th><th/></tr></thead><tbody>{requests.data.items.map(x => <tr key={x.id}><td>{date(x.createdAt)}</td><td>{kindLabel[x.targetKind]}<small>{x.targetId}</small></td><td>{x.impactCount}</td><td>{x.reviewRequiredCount}</td><td><Tag value={x.state}/></td><td><button onClick={() => setSelectedRequest(x.id)}>查看摘要</button></td></tr>)}</tbody></AdminTable></div> : <Empty title="还没有删除申请">先完成影响预览；只有影响图完整时才能冻结 DRAFT。</Empty>}
             {requests.data && <Pager page={page} pageSize={20} total={requests.data.total} setPage={setPage}/>}
         </section>
         {selectedRequest && <RequestDetail id={selectedRequest} canRetain={me.permissions.includes('sources.review')} onChanged={() => setRefresh(x => x + 1)}/>}

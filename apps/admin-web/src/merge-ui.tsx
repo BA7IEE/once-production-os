@@ -1,3 +1,4 @@
+import {AdminTable,AdminDescriptions} from './foundation/patterns.tsx';
 import { useMemo, useState } from 'react';
 import { call, read } from './api.ts';
 import type { Me, Page, Person, Receipt } from './dto.ts';
@@ -71,9 +72,9 @@ function ProfessionalValues({ value }: { value: unknown }) {
     if (!value || typeof value !== 'object') return <p>暂无可读内容</p>;
     const record = value as Record<string, unknown>;
     const hidden = Array.isArray(record.unavailableFields) ? record.unavailableFields : [];
-    return <dl className="detail-grid">{Object.entries(professionalFieldLabel).filter(([key]) => Object.hasOwn(record, key)).map(([key, label]) =>
+    return <AdminDescriptions className="detail-grid">{Object.entries(professionalFieldLabel).filter(([key]) => Object.hasOwn(record, key)).map(([key, label]) =>
         <div key={key}><dt>{label}</dt><dd>{hidden.includes(key) ? '当前不可读' : professionalValueLabel[String(record[key])] ?? valueText(record[key])}</dd></div>
-    )}</dl>;
+    )}</AdminDescriptions>;
 }
 
 function PersonPicker({ label, selected, excludeId, onSelect }: {
@@ -121,7 +122,7 @@ function PreviewPanel({ preview, fieldChoices, collisionChoices, setFieldChoice,
 
         <section className="panel padded">
             <h2>将发生的安全处置</h2>
-            <dl className="detail-grid">
+            <AdminDescriptions className="detail-grid">
                 <div><dt>外部人才维护授权撤销（两份档案需重新核对认领）</dt><dd>{preview.externalAccessRevocations??0}</dd></div><div><dt>旧交接撤销</dt><dd>{preview.revocations.handoffs}</dd></div>
                 <div><dt>旧用途许可撤销</dt><dd>{preview.revocations.usePermissions ?? '受限'}</dd></div>
                 <div><dt>联系方式重新加密</dt><dd>{preview.contactsToReencrypt ?? '受限'}</dd></div>
@@ -131,12 +132,12 @@ function PreviewPanel({ preview, fieldChoices, collisionChoices, setFieldChoice,
                 <div><dt>作品关系迁移</dt><dd>{preview.moves.workCredits}</dd></div>
                 <div><dt>项目关系迁移</dt><dd>{preview.moves.projectParticipants}</dd></div>
                 <div><dt>候选关系迁移</dt><dd>{preview.moves.shortlistItems}</dd></div>
-            </dl>
+            </AdminDescriptions>
         </section>
 
         {!!preview.fieldConflicts.length && <section className="panel">
             <div className="panel-heading"><div><h2>字段冲突</h2><p>每一项都必须由人明确决定；没有默认选择。</p></div></div>
-            <div className="table-wrap"><table><thead><tr><th>字段</th><th>主档案</th><th>重复档案</th><th>决定</th></tr></thead><tbody>{preview.fieldConflicts.map(x =>
+            <div className="table-wrap"><AdminTable><thead><tr><th>字段</th><th>主档案</th><th>重复档案</th><th>决定</th></tr></thead><tbody>{preview.fieldConflicts.map(x =>
                 <tr key={x.field}><td><strong>{fieldLabel[x.field] ?? x.field}</strong></td><td className="merge-value">{valueText(x.canonicalValue)}</td><td className="merge-value">{valueText(x.duplicateValue)}</td><td>
                     <select aria-label={'字段决定 ' + x.field} value={fieldChoices[x.field] ?? ''} onChange={e => setFieldChoice(x.field, (e.target.value || undefined) as PersonMergeFieldChoice | undefined)}>
                         <option value="">请选择</option>
@@ -145,18 +146,18 @@ function PreviewPanel({ preview, fieldChoices, collisionChoices, setFieldChoice,
                         {x.choices.includes('UNION') && <option value="UNION">合并去重</option>}
                     </select>
                 </td></tr>
-            )}</tbody></table></div>
+            )}</tbody></AdminTable></div>
         </section>}
 
         {!!preview.collisions.length && <section className="panel">
             <div className="panel-heading"><div><h2>关系冲突</h2><p>两条身份在同一业务对象上已有重复关系，必须保留其中一条。职业不明的候选合并后仍需复核；两边的复核记录都会保留，并记录原候选编号。</p></div></div>
-            <div className="table-wrap"><table><thead><tr><th>类型</th><th>对象</th><th>主档案关系</th><th>重复档案关系</th><th>决定</th></tr></thead><tbody>{preview.collisions.map(x =>
+            <div className="table-wrap"><AdminTable><thead><tr><th>类型</th><th>对象</th><th>主档案关系</th><th>重复档案关系</th><th>决定</th></tr></thead><tbody>{preview.collisions.map(x =>
                 <tr key={x.id}><td>{collisionLabel[x.kind] ?? x.kind}</td><td>{x.rootLabel}</td><td className="merge-value">{valueText(x.canonicalValue)}</td><td className="merge-value">{valueText(x.duplicateValue)}</td><td>
                     <select aria-label={'关系决定 ' + x.id} value={collisionChoices[x.id] ?? ''} onChange={e => setCollisionChoice(x.id, (e.target.value || undefined) as PersonMergeCollisionChoice | undefined)}>
                         <option value="">请选择</option><option value="KEEP_CANONICAL">保留主档案关系</option><option value="KEEP_DUPLICATE">采用重复档案关系</option>
                     </select>
                 </td></tr>
-            )}</tbody></table></div>
+            )}</tbody></AdminTable></div>
         </section>}
     </div>;
 }

@@ -1,3 +1,4 @@
+import {traceLayout} from './support/workspace-navigation.mjs';
 import {navigateWorkspace,openAdvancedPerson} from './support/workspace-navigation.mjs';
 import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {registeredBrowser} from '../../scripts/registered-browser.mjs';
@@ -44,7 +45,7 @@ async function login(page, loginName) {
     await page.locator('input[autocomplete=username]').fill(loginName);
     await page.locator('input[autocomplete=current-password]').fill(password);
     await page.getByRole('button', { name: '登录', exact: true }).click();
-    await page.locator('.topbar').getByText('工作空间 / 工作台',{exact:true}).waitFor();
+    await page.locator('.topbar').getByText('工作台',{exact:true}).waitFor();
 }
 async function cmd(page, method, path, data, expected = 200) {
     const me = await page.context().request.get(base + '/api/v1/me'); assert.equal(me.status(), 200);
@@ -93,7 +94,7 @@ try {
     const scopesBefore = await prisma.scopeMember.findMany({ orderBy: { id: 'asc' } });
     const sibling = await cmd(sender, 'POST', '/people', { displayName: 'H1同来源但未交接的人才', roles: ['model'], sourceId: person.sourceId }, 201);
     await openAdvancedPerson(sender);
-    await sender.getByRole('button', { name: '交给指定同事', exact: true }).click();
+    await traceLayout(sender,sender.getByRole('button', { name: '交给指定同事', exact: true }),'handoff-action');await sender.getByRole('button', { name: '交给指定同事', exact: true }).click();
     await sender.getByLabel('接收同事').selectOption(recipientMember.id);
     await sender.getByRole('checkbox', { name: /我已检查基本字段/ }).check();
     const invitedResponse = sender.waitForResponse(r => r.url().endsWith('/handoffs') && r.request().method() === 'POST');

@@ -1,3 +1,4 @@
+import {AdminForm,AdminDescriptions} from './foundation/patterns.tsx';
 import {TalentDirectory} from './talent-directory.tsx';
 import {navigateDirectoryPath} from './directory-state.ts';
 import {TalentDirectoryDetail} from './talent-directory-detail.tsx';
@@ -59,14 +60,14 @@ function CreateShortlist({ onClose, onDone }: { onClose: () => void; onDone: (id
     const [title, setTitle] = useState(''), [brief, setBrief] = useState(''), [scopeId, setScopeId] = useState('');
     const command = useCommand(r => onDone(r.resourceId));
     return <Modal title="新建内部候选清单" onClose={() => { if (!command.busy && !command.unknown) onClose(); }}>
-        <form onSubmit={e => { e.preventDefault(); void command.submit('shortlist.create', { title, brief: brief || undefined, scopeId }); }}>
+        <AdminForm onSubmit={e => { e.preventDefault(); void command.submit('shortlist.create', { title, brief: brief || undefined, scopeId }); }}>
             <div className="modal-body"><CommandState command={command}/><ErrorBox error={scopes.error}/><fieldset disabled={command.busy || command.unknown}>
                 <Field label="清单标题"><input required maxLength={160} value={title} onChange={e => setTitle(e.target.value)}/></Field>
                 <Field label="需求简述" hint="这里只记录内部筛选需求，不是客户确认、报价、档期或预订。"><textarea maxLength={5000} rows={5} value={brief} onChange={e => setBrief(e.target.value)}/></Field>
                 <Field label="协作范围"><select required value={scopeId} onChange={e => setScopeId(e.target.value)}><option value="">请选择</option>{scopes.data?.items.map(s => <option value={s.id} key={s.id}>{s.name} · {s.mode === 'WORKSPACE' ? '内部成员' : '限定成员'}</option>)}</select></Field>
             </fieldset></div>
             <footer className="modal-footer"><button type="button" disabled={command.busy || command.unknown} onClick={onClose}>取消</button><Submit busy={command.busy || scopes.busy}>建立清单</Submit></footer>
-        </form>
+        </AdminForm>
     </Modal>;
 }
 
@@ -87,7 +88,7 @@ export function AddCandidate({ person, list, catalog, onClose, onDone }: {
     const command = useCommand(() => onDone());
     const selectedWork = production.data?.works.items.find(w => w.id === workId);
     return <Modal title={'加入候选 · ' + person.displayName} onClose={() => { if (!command.busy && !command.unknown) onClose(); }} wide>
-        <form onSubmit={e => {
+        <AdminForm onSubmit={e => {
             e.preventDefault();
             if (!profile.data || (profile.data.isTalent && !role)) return;
             void command.submit('shortlist.itemAdd', {
@@ -102,7 +103,7 @@ export function AddCandidate({ person, list, catalog, onClose, onDone }: {
             <div className="modal-body"><CommandState command={command}/><ErrorBox error={profile.error ?? production.error ?? work.error}/>
                 <p className="muted">候选只引用当前内部事实。作品必须已有本人在本次职业下的署名；所选图片必须真实属于该作品。</p>
                 <fieldset disabled={command.busy || command.unknown}>
-                    <dl className="detail-grid"><div><dt>人才</dt><dd>{person.displayName}</dd></div><div><dt>角色</dt><dd>{person.roles.map(r => catalogLabel(catalog, 'role', r)).join(' / ')}</dd></div></dl>
+                    <AdminDescriptions className="detail-grid"><div><dt>人才</dt><dd>{person.displayName}</dd></div><div><dt>角色</dt><dd>{person.roles.map(r => catalogLabel(catalog, 'role', r)).join(' / ')}</dd></div></AdminDescriptions>
                     {profile.data?.isTalent && <Field label="本次入选职业" hint="同一人可以按不同职业分别入选；不把其他职业的作品算入本次候选。"><select required value={roleId} onChange={e => { setRoleId(e.target.value); setWorkId(''); setSelectedAssets([]); }}><option value="">请选择本次职业</option>{roles.map(r => <option key={r.id} value={r.id}>{catalogLabel(catalog, 'role', String(r.roleCode))}</option>)}</select></Field>}
                     <Field label="关联署名作品（可选）" hint="不选作品也可以先把人才加入清单。"><select value={workId} onChange={e => { setWorkId(e.target.value); setSelectedAssets([]); }}><option value="">暂不关联作品</option>{production.data?.works.items.filter(w => !profile.data?.isTalent || (!!role && w.roles.includes(String(role.roleCode)))).map(w => <option key={w.id} value={w.id}>{w.title} · {w.roles.map(r => catalogLabel(catalog, 'role', r)).join('/')}</option>)}</select></Field>
                     {production.busy && <p>正在读取该人才当前可见的署名作品…</p>}
@@ -120,7 +121,7 @@ export function AddCandidate({ person, list, catalog, onClose, onDone }: {
                 </fieldset>
             </div>
             <footer className="modal-footer"><button type="button" disabled={command.busy || command.unknown} onClick={onClose}>取消</button><Submit busy={command.busy || profile.busy || !profile.data || (profile.data.isTalent && !role)}>加入当前清单</Submit></footer>
-        </form>
+        </AdminForm>
     </Modal>;
 }
 
@@ -135,7 +136,7 @@ function ReviewCandidateRole({ list, item, catalog, onClose, onDone }: { list: S
     const [roleId, setRoleId] = useState(''), [ack, setAck] = useState(false);
     const command = useCommand(onDone), freeze = command.busy || command.unknown;
     const role = item.roleReview?.roles.find(r => r.id === roleId);
-    return <Modal title="核实候选职业" onClose={() => { if (!freeze) onClose(); }}><form onSubmit={e => { e.preventDefault(); if (role && ack) void command.submit('td2.shortlist.role', { schemaVersion: TALENT_VERSION, expectedRevision: list.revision, itemId: item.id, personRoleId: role.id, personRoleRevision: role.revision }, { id: list.id }); }}><div className="modal-body"><CommandState command={command}/><p>{item.roleReview?.person.displayName}：原候选尚未确认职业。请核对原需求，再明确本次职业。</p><fieldset disabled={freeze}><Field label="本次入选职业"><select required value={roleId} onChange={e => setRoleId(e.target.value)}><option value="">请选择</option>{item.roleReview?.roles.map(r => <option key={r.id} value={r.id}>{catalogLabel(catalog, 'role', r.roleCode)}</option>)}</select></Field>{!item.roleReview?.roles.length && <p>目前没有符合关联作品的可用职业，请先核对人物职业和作品署名。</p>}<label><input type="checkbox" checked={ack} onChange={e => setAck(e.target.checked)}/>我已核对本次候选需求与职业</label></fieldset></div><footer className="modal-footer"><button type="button" disabled={freeze} onClick={onClose}>取消</button><Submit busy={freeze || !role || !ack}>确认候选职业</Submit></footer></form></Modal>;
+    return <Modal title="核实候选职业" onClose={() => { if (!freeze) onClose(); }}><AdminForm onSubmit={e => { e.preventDefault(); if (role && ack) void command.submit('td2.shortlist.role', { schemaVersion: TALENT_VERSION, expectedRevision: list.revision, itemId: item.id, personRoleId: role.id, personRoleRevision: role.revision }, { id: list.id }); }}><div className="modal-body"><CommandState command={command}/><p>{item.roleReview?.person.displayName}：原候选尚未确认职业。请核对原需求，再明确本次职业。</p><fieldset disabled={freeze}><Field label="本次入选职业"><select required value={roleId} onChange={e => setRoleId(e.target.value)}><option value="">请选择</option>{item.roleReview?.roles.map(r => <option key={r.id} value={r.id}>{catalogLabel(catalog, 'role', r.roleCode)}</option>)}</select></Field>{!item.roleReview?.roles.length && <p>目前没有符合关联作品的可用职业，请先核对人物职业和作品署名。</p>}<label><input type="checkbox" checked={ack} onChange={e => setAck(e.target.checked)}/>我已核对本次候选需求与职业</label></fieldset></div><footer className="modal-footer"><button type="button" disabled={freeze} onClick={onClose}>取消</button><Submit busy={freeze || !role || !ack}>确认候选职业</Submit></footer></AdminForm></Modal>;
 }
 
 function EditShortlist({ list, onClose, onDone }: {
@@ -146,13 +147,13 @@ function EditShortlist({ list, onClose, onDone }: {
     const [title, setTitle] = useState(list.title), [brief, setBrief] = useState(list.brief);
     const command = useCommand(() => onDone());
     return <Modal title="编辑候选清单" onClose={() => { if (!command.busy && !command.unknown) onClose(); }}>
-        <form onSubmit={e => { e.preventDefault(); void command.submit('shortlist.update', { expectedRevision: list.revision, title, brief }, { id: list.id }); }}>
+        <AdminForm onSubmit={e => { e.preventDefault(); void command.submit('shortlist.update', { expectedRevision: list.revision, title, brief }, { id: list.id }); }}>
             <div className="modal-body"><CommandState command={command}/><fieldset disabled={command.busy || command.unknown}>
                 <Field label="清单标题"><input required maxLength={160} value={title} onChange={e => setTitle(e.target.value)}/></Field>
                 <Field label="需求简述" hint="只写内部筛选需求；报价、档期、客户确认和预订不属于本清单。"><textarea maxLength={5000} rows={6} value={brief} onChange={e => setBrief(e.target.value)}/></Field>
             </fieldset></div>
             <footer className="modal-footer"><button type="button" disabled={command.busy || command.unknown} onClick={onClose}>取消</button><Submit busy={command.busy}>保存清单</Submit></footer>
-        </form>
+        </AdminForm>
     </Modal>;
 }
 
@@ -165,10 +166,10 @@ function EditNote({ list, item, onClose, onDone }: {
     const [note, setNote] = useState(item.note);
     const command = useCommand(() => onDone());
     return <Modal title={'编辑备注 · ' + item.person.displayName} onClose={() => { if (!command.busy && !command.unknown) onClose(); }}>
-        <form onSubmit={e => { e.preventDefault(); void command.submit('shortlist.itemUpdate', { expectedRevision: list.revision, entryId: item.id, note }, { id: list.id }); }}>
+        <AdminForm onSubmit={e => { e.preventDefault(); void command.submit('shortlist.itemUpdate', { expectedRevision: list.revision, entryId: item.id, note }, { id: list.id }); }}>
             <div className="modal-body"><CommandState command={command}/><fieldset disabled={command.busy || command.unknown}><Field label="内部协作备注"><textarea maxLength={2000} rows={6} value={note} onChange={e => setNote(e.target.value)}/></Field></fieldset></div>
             <footer className="modal-footer"><button type="button" disabled={command.busy || command.unknown} onClick={onClose}>取消</button><Submit busy={command.busy}>保存备注</Submit></footer>
-        </form>
+        </AdminForm>
     </Modal>;
 }
 
@@ -214,7 +215,7 @@ export function ShortlistWorkbench({me,catalog}:{me:Me;catalog:CatalogItem[]}) {
  const lists=useLoad(()=>read<Page<ShortlistSummary>>('shortlist.list',{}, {page:String(page),pageSize:'20',q:search}),page+':'+search+':'+tick);
  const current=useLoad(()=>selectedListId?read<ShortlistDetail>('shortlist.get',{id:selectedListId}):Promise.resolve(null),String(selectedListId)+':'+tick);
  return <><PageTitle overline="候选" title={selectedListId?current.data?.title??'候选清单':'候选清单'} description={finding?'查找人才，勾选后加入当前清单。':'围绕一次工作组织候选人才、备注和精选作品。'} action={!selectedListId&&me.permissions.includes('records.write')?<button className="primary" onClick={()=>setCreating(true)}>＋ 新建清单</button>:undefined}/>
- {selectedListId?<><div className="detail-actions"><button onClick={()=>{setPersonId(null);open(null);}}>← 所有清单</button>{finding?<button onClick={()=>{setPersonId(null);open(selectedListId);}}>查看清单中的人才</button>:current.data?.canEdit&&<button className="primary" onClick={()=>open(selectedListId,true)}>继续找人</button>}</div><ErrorBox error={current.error}/>{finding?(personId?<TalentDirectoryDetail id={personId} me={me} catalog={catalog} onClose={()=>setPersonId(null)} onAdvanced={()=>setAdvanced(true)} onProduction={setProduction} onViewList={id=>open(id)}/>:<TalentDirectory surface="candidate" me={me} catalog={catalog} onOpen={setPersonId} targetListId={selectedListId} onAdded={()=>setTick(t=>t+1)} onViewList={id=>open(id)}/>):<ShortlistDetailPanel key={selectedListId} id={selectedListId} catalog={catalog} onChanged={()=>setTick(t=>t+1)}/>}</>:<><form className="inline-search" onSubmit={e=>{e.preventDefault();setSearch(q);setPage(1);}}><Field label="查找清单"><input value={q} onChange={e=>setQ(e.target.value)} maxLength={160} placeholder="按清单标题查找"/></Field><button type="submit">查找</button></form><ErrorBox error={lists.error}/>{lists.busy?<p role="status">正在读取清单…</p>:lists.data&&<><div className="shortlist-grid">{lists.data.items.map(list=><button className="panel shortlist-card" key={list.id} onClick={()=>open(list.id)}><h2>{list.title}</h2><p>{list.brief||'暂无需求简述'}</p><small>更新于 {date(list.updatedAt)}</small><span>打开清单 →</span></button>)}</div>{!lists.data.items.length&&<Empty title="暂无候选清单">先新建一份清单，记录这次工作的筛选需求。</Empty>}<Pager page={page} pageSize={20} total={lists.data.total} setPage={setPage}/></>}</>}
+ {selectedListId?<><div className="detail-actions"><button onClick={()=>{setPersonId(null);open(null);}}>← 所有清单</button>{finding?<button onClick={()=>{setPersonId(null);open(selectedListId);}}>查看清单中的人才</button>:current.data?.canEdit&&<button className="primary" onClick={()=>open(selectedListId,true)}>继续找人</button>}</div><ErrorBox error={current.error}/>{finding?(personId?<TalentDirectoryDetail id={personId} me={me} catalog={catalog} onClose={()=>setPersonId(null)} onAdvanced={()=>setAdvanced(true)} onProduction={setProduction} onViewList={id=>open(id)}/>:<TalentDirectory surface="candidate" me={me} catalog={catalog} onOpen={setPersonId} targetListId={selectedListId} onAdded={()=>setTick(t=>t+1)} onViewList={id=>open(id)}/>):<ShortlistDetailPanel key={selectedListId} id={selectedListId} catalog={catalog} onChanged={()=>setTick(t=>t+1)}/>}</>:<><AdminForm className="inline-search" onSubmit={e=>{e.preventDefault();setSearch(q);setPage(1);}}><Field label="查找清单"><input value={q} onChange={e=>setQ(e.target.value)} maxLength={160} placeholder="按清单标题查找"/></Field><button type="submit">查找</button></AdminForm><ErrorBox error={lists.error}/>{lists.busy?<p role="status">正在读取清单…</p>:lists.data&&<><div className="shortlist-grid">{lists.data.items.map(list=><button className="panel shortlist-card" key={list.id} onClick={()=>open(list.id)}><h2>{list.title}</h2><p>{list.brief||'暂无需求简述'}</p><small>更新于 {date(list.updatedAt)}</small><span>打开清单 →</span></button>)}</div>{!lists.data.items.length&&<Empty title="暂无候选清单">先新建一份清单，记录这次工作的筛选需求。</Empty>}<Pager page={page} pageSize={20} total={lists.data.total} setPage={setPage}/></>}</>}
  {creating&&<CreateShortlist onClose={()=>setCreating(false)} onDone={id=>{setCreating(false);setTick(t=>t+1);open(id);}}/>}
  {advanced&&personId&&<TalentWorkbench personId={personId} me={me} catalog={catalog} onClose={()=>setAdvanced(false)} onChange={()=>setTick(t=>t+1)}/>}
  {production&&<ProductionDetail selection={production} me={me} catalog={catalog} onClose={()=>setProduction(null)} onNavigate={setProduction}/>}
