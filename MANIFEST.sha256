@@ -27,7 +27,7 @@ f497e102e44cd6d7cf67698f00275bed32aee89142b0e5a29a515de846373929  apps/admin-web
 42790ce9aefaa751b016b9762ff9a97ec7e61c1c4207b46671731e491c352218  apps/admin-web/src/command-recovery.tsx
 669ac5a073bccf9db236cbdc171c23e1a0950a82a97318489bdb51a7352150e5  apps/admin-web/src/deletion-dto.ts
 26c6dd801b6fd674e8f90e0d989da379af3a7625dbe21fdf668accfe35faab0a  apps/admin-web/src/deletion-ui.tsx
-9ce9914e819b6e6590849b3a1db9adecb56268352e4cc55abd5ad7002988cab7  apps/admin-web/src/design-review.tsx
+b47e103eafdd3b6e0c24446631c1f7dabd6305bca7c4738228ab75a2b09803e8  apps/admin-web/src/design-review.tsx
 bd0af12dd65d2af7d34c1ac1e9655bafe29d79a2ae0304bd46a5e9bcc9b357a8  apps/admin-web/src/directory-state.ts
 926e6f152015c398664aa46ac949881267737b0cb52ce3d010b0667115c1f178  apps/admin-web/src/dto.ts
 1f475adfa9f1c252dedb066437dd89574927228ebc6f69e9d736f3d2fa7fd911  apps/admin-web/src/export-dto.ts

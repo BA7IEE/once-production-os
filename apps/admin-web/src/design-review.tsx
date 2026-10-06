@@ -11,7 +11,7 @@ import './style.css';
 import './admin-ux.css';
 import './foundation/foundation.css';
 const me:Me={membershipId:'fictional',displayName:'预览成员',workspaceName:'虚构制作工作空间',role:'ADMIN',permissions:['talent.review','sources.read','sources.review','assets.read','records.write','data.export','ai.use','records.read','members.manage','data.merge','data.delete','catalog.manage','audit.read'],csrfToken:'',version:'preview'};
-const records=Array.from({length:18},(_,i)=>({id:i+1,name:`示例人才 ${String(i+1).padStart(2,'0')}`,city:['上海','北京','深圳'][i%3],role:['演员','模特','摄影师'][i%3],status:i%4===0?'DRAFT':'ACTIVE'}));
+const records=Array.from({length:18},(_,i)=>({id:i+1,name:`示例人才 ${String(i+1).padStart(2,'0')}`,city:['上海','北京','深圳'][i%3]!,role:['演员','模特','摄影师'][i%3]!,status:i%4===0?'DRAFT':'ACTIVE'}));
 const titles:Record<string,string>={dashboard:'工作台',people:'人才库',shortlists:'候选清单',works:'作品库',projects:'项目',review:'审核',sources:'资料来源',media:'全局素材',imports:'导入资料',exports:'内部导出',ai:'AI 辅助整理',handoffs:'资料交接',members:'成员与范围',merges:'人才合并',deletions:'删除任务',catalog:'分类字典',audit:'操作记录',account:'账号设置'};
 function Preview(){
  const [active,setActive]=useState('people'),[page,setPage]=useState(1),[query,setQuery]=useState(''),[filter,setFilter]=useState(''),[detail,setDetail]=useState<typeof records[number]|null>(null),[edit,setEdit]=useState(false),[notice,setNotice]=useState(''),[state,setState]=useState('normal');
