@@ -60,3 +60,13 @@
 .once-foundation .directory-count button[aria-pressed=true],.once-foundation .review-types>button[aria-pressed=true],.once-foundation .choice-list>button[aria-pressed=true],.once-foundation .sl-list-bar button.selected,.once-foundation .sl-asset-picker label.selected{background:#eaf0f8;border-color:#8ba0c0;color:#294570}
 
 .once-foundation .once-page-title.ant-pro-page-container .ant-pro-page-container-children-container{padding:0;margin:0}
+
+.once-foundation .directory-cover-placeholder{background:#eef0f3;color:#565e69}
+@media(min-width:761px){.once-shell .content{padding-top:24px}.once-foundation .page-title{margin-bottom:18px}.once-foundation .page-title h1{margin:4px 0 8px}.once-foundation .view-tabs{margin-bottom:14px}}
+
+/* Flex children must shrink before tables and long domain identifiers can scroll. */
+.once-shell .once-main{min-width:0;flex:1}
+.once-foundation .panel,.once-foundation fieldset{min-width:0}
+.once-modal{min-height:0;background:transparent}
+.once-modal .ant-modal-wrap{z-index:1000}
+.once-modal .ant-modal-body{overflow-wrap:anywhere}

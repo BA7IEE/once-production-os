@@ -61,7 +61,7 @@ try{
  const result=await search(page,'合成 UX');assert.equal(result.total,22);assert.equal(result.items.length,20);
  const cards=page.locator('article.directory-card');await cards.first().waitFor();const rect=await cards.first().boundingBox();writeFileSync(join(evidence,'desktop-layout.json'),JSON.stringify({viewport:{width:1280,height:800},firstCard:rect},null,2)+'\n');assert.ok(rect&&rect.y<400&&rect.y+rect.height<=800,'first card must fit in initial desktop viewport: '+JSON.stringify(rect));
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.screenshot({path:join(evidence,'directory-desktop.png'),fullPage:false});
- const contrast=await page.locator('.directory-card .ant-tag,.directory-card small').evaluateAll(nodes=>nodes.filter(n=>n.textContent?.trim()).map(n=>{
+ const contrast=await page.locator('.directory-card .ant-tag,.directory-card small,.directory-card .directory-cover-placeholder').evaluateAll(nodes=>nodes.filter(n=>n.textContent?.trim()).map(n=>{
  const rgb=value=>(value.match(/[\d.]+/g)||[]).map(Number).slice(0,3),lum=values=>values.map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4).reduce((a,v,i)=>a+v*[.2126,.7152,.0722][i],0);
  let bg='rgb(250,249,246)';for(let el=n;el;el=el.parentElement){const value=getComputedStyle(el).backgroundColor;if(value!=='transparent'&&!value.endsWith(', 0)')){bg=value;break;}}
  const fg=lum(rgb(getComputedStyle(n).color)),back=lum(rgb(bg));return (Math.max(fg,back)+.05)/(Math.min(fg,back)+.05);

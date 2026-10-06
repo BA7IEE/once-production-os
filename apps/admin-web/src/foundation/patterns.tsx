@@ -31,11 +31,16 @@ export function AdminForm({children,...props}:(FormHTMLAttributes<HTMLFormElemen
 }
 /** Existing dl pairs become the common responsive details pattern. */
 export function AdminDescriptions({children,className,...props}:HTMLAttributes<HTMLDivElement>) {
- const pairs=elements(children).map((row,i)=>{
- const content=elements(row.props.children);
- return {key:String(row.key??i),title:content.find(c=>c.type==='dt')?.props.children,
- value:content.find(c=>c.type==='dd')?.props.children};
- });
+ const nodes=elements(children),pairs:Array<{key:string;title:ReactNode;value:ReactNode}>=[];
+ for(let i=0;i<nodes.length;i++){
+  const row=nodes[i]!;
+  if(row.type==='dt'&&nodes[i+1]?.type==='dd'){
+   pairs.push({key:String(row.key??i),title:row.props.children,value:nodes[++i]!.props.children});
+  }else{
+   const content=elements(row.props.children),title=content.find(c=>c.type==='dt'),value=content.find(c=>c.type==='dd');
+   if(title&&value)pairs.push({key:String(row.key??i),title:title.props.children,value:value.props.children});
+  }
+ }
  return <div {...props} className={'once-descriptions '+(className??'')}><ProDescriptions column={{xs:1,sm:2,md:3}}
  columns={pairs.map(p=>({key:p.key,title:p.title,render:()=>p.value}))} /></div>;
 }

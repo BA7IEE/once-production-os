@@ -65,6 +65,9 @@ jobs:
             !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
             !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
             !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
           retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
   core:
@@ -102,5 +105,8 @@ jobs:
             !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
             !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
             !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webm' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mp4' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.mov' || '__foundation_no_exclusion__' }}
           retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error

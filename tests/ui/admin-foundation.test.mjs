@@ -23,3 +23,8 @@ test('ProDescriptions retains visible labels and values',()=>{
  const html=renderToStaticMarkup(h(AdminDescriptions,null,h('div',null,h('dt',null,'来源说明'),h('dd',null,'只显示当前可见内容'))));
  assert.match(html,/来源说明/);assert.match(html,/只显示当前可见内容/);
 });
+
+test('ProDescriptions supports flat dt/dd pairs and retains a zero metric',()=>{
+ const html=renderToStaticMarkup(h(AdminDescriptions,null,h('dt',null,'清理中'),h('dd',null,0),h('dt',null,'待核对'),h('dd',null,7)));
+ assert.match(html,/清理中/);assert.match(html,/>0</);assert.match(html,/待核对/);assert.match(html,/>7</);
+});
