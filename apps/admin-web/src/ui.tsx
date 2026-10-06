@@ -29,7 +29,7 @@ export function Modal({ title, children, onClose, wide = false }: {
     onClose: () => void;
     wide?: boolean;
 }) {
-    return <AntModal open title={title} onCancel={onClose} footer={null} width={wide?1040:640} maskClosable={false} destroyOnHidden>{children}</AntModal>;
+    return <AntModal open title={<h2 style={{margin:0,fontSize:20}}>{title}</h2>} closable={{'aria-label':'关闭'}} onCancel={onClose} footer={null} width={wide?1040:640} maskClosable={false} destroyOnHidden>{children}</AntModal>;
 }
 export function useLoad<T>(load: () => Promise<T>, key: string | number) {
     const [data, setData] = useState<T | null>(null);
