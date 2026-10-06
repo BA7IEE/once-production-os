@@ -54,8 +54,8 @@ export async function openShortlist(page,title,{finding=false}={}) {
 }
 
 /** Walk the visible picker, including later pages; never inject a missing option. */
-export async function selectPaged(page,root,label,id) {
-  const picker=root.getByRole('group',{name:label+'选择器',exact:true}),select=picker.getByLabel(label,{exact:true});
+export async function selectPaged(page,root,label,id,{picker:explicitPicker}={}) {
+  const picker=explicitPicker??root.getByRole('group',{name:label+'选择器',exact:true}),select=picker.getByLabel(label,{exact:true});
   await select.waitFor();
   await page.waitForFunction(element=>!element.disabled,await select.elementHandle());
   const previous=picker.getByRole('button',{name:'上一页',exact:true});
