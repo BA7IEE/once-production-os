@@ -6,7 +6,7 @@
 - Foundation AST 准入：PASS。
 - Pro模式服务端渲染：3/3 PASS（不代表浏览器验收）。
 - 本地 build / API / PostgreSQL / browser / preview：NOT_RUN（Swap >4GiB）。
-- GitHub Actions：Draft PR #39，运行37404346115已开始；以最新 head 为准，不使用旧 head 的结果。
+- GitHub Actions：Draft PR #39；首次真实浏览器暴露 AntD 两字按钮自动空格，已修复。当前完整及专项工作流以最新 head 为准，旧 head 结果不作为完成证明。
 - API、业务模型、迁移：无改动。
 - 生产、供应商、真人验收：NOT_RUN；未合并、未部署。
 
