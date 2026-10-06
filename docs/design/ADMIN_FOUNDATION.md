@@ -46,3 +46,9 @@ Modal 使用 AntD 焦点管理、Escape 与关闭按钮；mask 不关闭。传�
 ## 严格CSP与静态组件样式
 
 服务端现有 `style-src self` 保持不变。AntD运行时style标签会被该策略拒绝，不能只用无样式DOM验收。`build:web` / `dev:web` 先用官方cssinjs 2.1.2的 `createCache`、SSR与 `extractStyle` 烘焙Provider和共享AntD/Pro模式，再由同源 `/once-components.css` 加载。主题关闭随机hash并固定cssVar key为once-theme，确保构建与浏览器匹配；生成文件不入版本库。官方说明：[Server Side Rendering / Whole Export](https://ant.design/docs/react/server-side-rendering/)。新增组件必须加入烘焙清单并在真实CSP下验收。
+
+## 离线设计评审预览
+
+`design-review.html` / `src/design-review.tsx` 为独立虚构预览入口，复用实际Shell、token和共享Pro模式，不打包进正式main入口。人才、作品、项目、审核等导航与表单/详情仅使用明确标注的内存虚构记录，不连接API、不写库、不代表权限或业务验收。正式应用仍需后端及登录。
+
+Foundation Actions额外云端构建此入口，与正式前端一起生成 `once-public-frontend-<SHA>`，仅HTML/JS/CSS和带逐文件SHA256的provenance JSON，保留1天，不含秘密、真实资料、截图或录像。下载核对SHA/摘要后可用单个回环静态服务查看 `/design-review/`；没有本地build。云端Chromium验证页面和样式可见、真实共享导航和内存交互，单独标记STATIC_REVIEW_VISIBLE，不能替代真实业务浏览器检查。

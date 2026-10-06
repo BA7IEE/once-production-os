@@ -35,8 +35,35 @@ jobs:
           pnpm test:lifecycle
       - name: Build current API and admin
         run: pnpm build
+      - name: Build explicitly fictional static design review
+        run: pnpm exec vite build --config apps/admin-web/design-review.config.ts
+      - name: Package public frontend only with commit provenance
+        run: |
+          mkdir -p dist/web/design-review
+          cp -R dist/design-review/assets dist/web/design-review/
+          cp dist/design-review/design-review.html dist/web/design-review/index.html
+          cp dist/design-review/once-components.css dist/web/design-review/once-components.css
+          python3 - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          root=Path('dist/web')
+          page=root/'design-review/index.html'
+          page.write_text(page.read_text().replace('/assets/','/design-review/assets/'))
+          files={str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for p in root.rglob('*') if p.is_file()}
+          assert all(Path(p).suffix in {'.html','.js','.css'} for p in files), files.keys()
+          (root/'preview-provenance.json').write_text(json.dumps({'head':os.environ['ONCE_ACCEPTANCE_SHA'],'data':'FICTIONAL_DESIGN_REVIEW_NO_BACKEND','files':files},indent=2))
+          PY
+      - name: Preserve public frontend build for loopback review
+        uses: actions/upload-artifact@v7
+        with:
+          name: once-public-frontend-${{ github.event.pull_request.head.sha }}
+          retention-days: 1
+          path: dist/web/
+          if-no-files-found: error
       - run: docker pull postgres:16-bookworm
       - run: pnpm exec playwright install --with-deps chromium
+      - name: Verify fictional preview is actually visible without a backend
+        run: node scripts/verify-design-preview.mjs
       - name: Real PostgreSQL and browser journeys on synthetic records
         run: pnpm test:postgres:owned --admin-ux-browser
       - name: Preserve JSON checks only, never screenshots or business payloads
@@ -46,6 +73,7 @@ jobs:
           name: once-foundation-checks-${{ github.event.pull_request.head.sha }}
           retention-days: 3
           path: |
+            artifacts/design-review/browser.json
             artifacts/admin-ux/browser.json
             artifacts/admin-ux/browser-failure.json
             artifacts/business-flow/browser.json
