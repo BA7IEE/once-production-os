@@ -20,7 +20,7 @@ const evidence='artifacts/flow-review';mkdirSync(evidence,{recursive:true});
 let api,worker,browserOwner,browser,base,stage='setup';const checks=[],errors=[];
 async function poll(predicate,label){const end=Date.now()+25000;while(!(await predicate())){assert.ok(Date.now()<end,label);await new Promise(r=>setTimeout(r,100));}}
 async function stop(child){if(!child||child.exitCode!==null||child.signalCode!==null)return;await new Promise(resolve=>{const timer=setTimeout(()=>{child.kill('SIGKILL');resolve();},5000);child.once('exit',()=>{clearTimeout(timer);resolve();});child.kill('SIGINT');});}
-async function login(page,name){await page.goto(base,{waitUntil:'networkidle'});await page.getByLabel('登录名',{exact:true}).fill(name);await page.getByLabel('密码',{exact:true}).fill(password);await page.getByRole('button',{name:'登录',exact:true}).click();await page.getByRole('button',{name:'工作台',exact:true}).waitFor();}
+async function login(page,name){await page.goto(base,{waitUntil:'networkidle'});await page.getByLabel('登录名',{exact:true}).fill(name);await page.getByLabel('密码',{exact:true}).fill(password);await page.getByRole('button',{name:'登录',exact:true}).click();await page.getByRole('menuitem',{name:'工作台',exact:true}).waitFor();}
 async function cmd(page,path,data,method='POST'){
  const me=await(await page.context().request.get(base+'/api/v1/me')).json();
  const response=await page.context().request.fetch(base+'/api/v1'+path,{method,data,headers:{Origin:base,'X-CSRF-Token':me.csrfToken,'X-ONCE-Membership':me.membershipId,'Idempotency-Key':randomUUID()}});
@@ -54,7 +54,7 @@ try {
   const p=await cmd(page,'/directory/talents',{schemaVersion:'once-talent-experience-v1',displayName:'分页人物 '+String(i).padStart(3,'0'),kind:'TALENT',roleCodes:['model'],sourceId:source.resourceId,sourceRevision:1});people.push(p.resourceId);
   await cmd(page,'/use-permissions',{sourceId:source.resourceId,subjectKind:'PERSON',subjectId:p.resourceId,fields:['person.displayName'],validUntil:'2026-11-30T00:00:00.000Z',evidenceNote:'Synthetic bounded export permission'});
  }
- async function navigate(name){const nav=page.locator('.management-nav');if(await nav.getAttribute('open')===null)await nav.locator('summary').click();await nav.getByRole('button',{name,exact:true}).click();}
+ async function navigate(name){const nav=page.locator('aside[aria-label="工作空间导航"]');if(!await nav.getByRole('menuitem',{name,exact:true}).isVisible())await nav.getByRole('menuitem',{name:'管理与设置',exact:true}).click();await nav.getByRole('menuitem',{name,exact:true}).click();}
  stage='export object final page and search';await navigate('内部导出');await page.getByRole('button',{name:'＋ 批准导出用途',exact:true}).click();
  const form=page.getByRole('dialog',{name:'批准内部导出用途',exact:true}),picker=form.getByRole('group',{name:'批准对象选择器',exact:true});
  for(let n=2;n<=6;n++){await picker.getByRole('button',{name:'下一页',exact:true}).click();await picker.getByText('第 '+n+' 页',{exact:false}).waitFor();}

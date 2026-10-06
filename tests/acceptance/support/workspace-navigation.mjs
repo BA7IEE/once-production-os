@@ -2,14 +2,12 @@
 export async function navigateWorkspace(page, name, {jsonImport=false,fresh=false}={}) {
   // Fixtures written by the API need a fresh visible form, not its previous page.
   if(fresh&&name!=='工作台')await navigateWorkspace(page,'工作台');
-  const button=page.locator('aside[aria-label="工作空间导航"]').getByRole('button',{name,exact:true});
-  const mobile=page.getByRole('button',{name:'打开导航',exact:true});
-  if(!await button.isVisible()&&await mobile.isVisible())await mobile.click();
-  if(!await button.isVisible()) {
-    const menu=page.locator('details.management-nav');
-    if(await menu.getAttribute('open')===null)await menu.locator('summary').click();
-  }
-  await button.click();
+  const aside=page.locator('aside[aria-label="工作空间导航"]');
+  const entry=aside.getByRole(name==='账号设置'?'button':'menuitem',{name,exact:true});
+  const expand=page.getByRole('button',{name:'展开导航',exact:true});
+  if(!await entry.isVisible()&&await expand.isVisible())await expand.click();
+  if(!await entry.isVisible())await aside.getByRole('menuitem',{name:'管理与设置',exact:true}).click();
+  await entry.click();
   if(jsonImport) {
     const panel=page.locator('details').filter({has:page.locator('summary').filter({hasText:'历史任务、旧档案补齐与高级 JSON 导入'})});
     if(await panel.getAttribute('open')===null)await panel.locator('summary').click();

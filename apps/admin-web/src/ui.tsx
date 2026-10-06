@@ -81,7 +81,7 @@ export function Submit({ busy, disabled = false, children = '保存' }: {
     busy: boolean;
     disabled?: boolean;
     children?: ReactNode;
-}) { return <Button htmlType="submit" type="primary" loading={busy} disabled={busy||disabled}>{busy ? '正在处理…' : children}</Button>; }
+}) { return <Button autoInsertSpace={false} htmlType="submit" type="primary" loading={busy} disabled={busy||disabled}>{busy ? '正在处理…' : children}</Button>; }
 export function PageTitle({ overline, title, description, action }: {
     overline: string;
     title: string;

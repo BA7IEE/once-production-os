@@ -445,7 +445,7 @@ try {
  }
  const tdCandidateBefore=await prisma.shortlistItem.findMany({where:{shortlistId:tdCandidateList},orderBy:{position:'asc'}});
  const tdCandidateLinksBefore=await prisma.shortlistItemAsset.findMany({where:{itemId:{in:tdCandidateBefore.map(r=>r.id)}},orderBy:{id:'asc'}});
- await owner.getByRole('button',{name:'工作台',exact:true}).click();
+ await owner.getByRole('menuitem',{name:'工作台',exact:true}).click();
  await navigateWorkspace(owner,'人才合并');
  for(const [index,label,name] of [[0,'主档案（保留）','TD2保留身份'],[1,'重复档案（归档并建立旧 ID 映射）','TD2专业重复']]){
   const picker=owner.locator('.merge-picker').nth(index);

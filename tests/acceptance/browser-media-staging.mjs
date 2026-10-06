@@ -44,14 +44,14 @@ try{
  }
  browserOwner=await registeredBrowser(chromium,{headless:true,...(process.env.CHROME_EXECUTABLE?{executablePath:process.env.CHROME_EXECUTABLE}:{})});browser=browserOwner.browser;
 
- const internal=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:1400,height:1000}}),admin=await internal.newPage();admin.on('pageerror',e=>errors.push(e.message));await admin.goto(base);await admin.getByLabel('登录名', {exact:true}).fill('owner');await admin.getByLabel('密码',{exact:true}).fill(readFileSync(env.BOOTSTRAP_PASSWORD_FILE,'utf8'));await admin.getByRole('button',{name:'登录',exact:true}).click();await admin.getByRole('button',{name:'人才库',exact:true}).waitFor();
+ const internal=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:1400,height:1000}}),admin=await internal.newPage();admin.on('pageerror',e=>errors.push(e.message));await admin.goto(base);await admin.getByLabel('登录名', {exact:true}).fill('owner');await admin.getByLabel('密码',{exact:true}).fill(readFileSync(env.BOOTSTRAP_PASSWORD_FILE,'utf8'));await admin.getByRole('button',{name:'登录',exact:true}).click();await admin.getByRole('menuitem',{name:'人才库',exact:true}).waitFor();
  const me=await (await internal.request.get(base+'/api/v1/me')).json(),csrf=me.csrfToken;
  async function cmd(path,body,method='POST'){const response=await internal.request.fetch(base+'/api/v1'+path,{method,headers:{Origin:base,'X-CSRF-Token':csrf,'Idempotency-Key':crypto.randomUUID()},data:body});const value=await response.json();assert.ok(response.ok(),JSON.stringify(value));return value;}
  async function employee(loginName){
   const added=await cmd('/memberships',{loginName,displayName:loginName,role:'ADMIN',extraPermissions:[]});
   const context=await browser.newContext({ignoreHTTPSErrors:true}),page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
   await page.goto(base+'/activate',{waitUntil:'networkidle'});await page.getByLabel('激活凭证').fill(added.activationToken);await page.getByLabel('设置密码（至少 12 个字符）').fill(readFileSync(env.BOOTSTRAP_PASSWORD_FILE,'utf8'));await page.getByRole('button',{name:'激活账号',exact:true}).click();await page.getByText('账号已激活').waitFor();
-  await page.goto(base);await page.getByLabel('登录名',{exact:true}).fill(loginName);await page.getByLabel('密码',{exact:true}).fill(readFileSync(env.BOOTSTRAP_PASSWORD_FILE,'utf8'));await page.getByRole('button',{name:'登录',exact:true}).click();await page.getByRole('button',{name:'人才库',exact:true}).waitFor();return {context,id:added.membershipId};
+  await page.goto(base);await page.getByLabel('登录名',{exact:true}).fill(loginName);await page.getByLabel('密码',{exact:true}).fill(readFileSync(env.BOOTSTRAP_PASSWORD_FILE,'utf8'));await page.getByRole('button',{name:'登录',exact:true}).click();await page.getByRole('menuitem',{name:'人才库',exact:true}).waitFor();return {context,id:added.membershipId};
  }
  const staffA=await employee('intake-only-a'),staffB=await employee('formal-only-b'),intake=staffA.context,formal=staffB.context;
  const scope=(await cmd('/scopes',{name:'人才申请测试审核范围 A',membershipIds:[me.membershipId,staffA.id]})).resourceId;
