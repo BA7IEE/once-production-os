@@ -49,6 +49,8 @@ Modal 使用 AntD 焦点管理、Escape 与关闭按钮；mask 不关闭。传�
 
 ## 离线设计评审预览
 
-`design-review.html` / `src/design-review.tsx` 为独立虚构预览入口，复用实际Shell、token和共享Pro模式，不打包进正式main入口。人才、作品、项目、审核等导航与表单/详情仅使用明确标注的内存虚构记录，不连接API、不写库、不代表权限或业务验收。正式应用仍需后端及登录。
+独立 `design-review.html` / `src/design-review.tsx` 直接复用实际WorkspaceHome、TalentDirectory/Detail、ProductionPanel、ReviewWorkspace，不打包进正式main入口。`design-review-data.ts` 只在此入口提供明确虚构的只读投影，拒绝所有写入/核验/凭证操作；正式API与transport契约未改。未覆盖的模块显示明确范围提示，不再用通用人才表冒充各业务页面。
 
-Foundation Actions额外云端构建此入口，与正式前端一起生成 `once-public-frontend-<SHA>`，仅HTML/JS/CSS和带逐文件SHA256的provenance JSON，保留1天，不含秘密、真实资料、截图或录像。下载核对SHA/摘要后可用单个回环静态服务查看 `/design-review/`；没有本地build。云端Chromium验证页面和样式可见、真实共享导航和内存交互，单独标记STATIC_REVIEW_VISIBLE，不能替代真实业务浏览器检查。
+Foundation Actions云端构建此入口，与正式前端一起生成 `once-public-frontend-<SHA>`，仅HTML/JS/CSS和逐文件SHA256 provenance JSON，保留1天，不含秘密、真实资料、截图或录像。下载核对SHA/摘要后可用一个回环静态服务查看 `/design-review/`；工作台、人才、作品、项目和审核使用实际组件、虚构只读数据。页面可在历史路由刷新，所有提交明确拒绝；不代表业务/权限/供应商验收。
+
+云端Chromium增加模块语义与整页断言：工作台必须有待办和最近入库，审核必须有任务分类和真实归属/更新详情，人才有目录/分区详情，作品/项目有对应列表；禁止所有菜单落到同一人才表。预览说明条高度<=64px，主标题在首250px内，覆盖用户截图比例推导的1512px桌面宽度以及窄屏。JSON注明视口来源和虚构投影边界；截图与录像不在云端生成或上传。

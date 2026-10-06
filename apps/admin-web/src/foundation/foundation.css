@@ -87,3 +87,11 @@
 .once-modal .ant-modal-body .modal-footer{position:static;margin:16px 0 0;padding:16px 0}
 
 @media(max-width:760px){.once-shell .once-main,.once-shell.is-collapsed .once-main{transition:none;margin-left:0;width:100%}}
+
+/* Compact, explicit preview context must not displace the actual business page. */
+.once-foundation .preview-context{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:9px 12px;margin-bottom:20px;border:1px solid #d7dbe1;border-radius:6px;background:#f0f3f8;color:#565e69;font-size:12px;line-height:1.5}
+.once-foundation .preview-context strong{color:#34558b;font-weight:600}
+.once-foundation .preview-context label{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.once-foundation .preview-context select{width:100px;padding:4px 8px;min-height:28px;font-size:12px}
+.once-foundation .filters{align-items:end}
+@media(max-width:760px){.once-foundation .preview-context{align-items:start;flex-direction:column;gap:8px}.once-foundation .preview-context label{align-self:flex-end}}
