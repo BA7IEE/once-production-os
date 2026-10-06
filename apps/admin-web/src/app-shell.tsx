@@ -9,7 +9,7 @@ function BrandMark(){return <svg className="once-mark" viewBox="0 0 28 28" role=
 export function AppShell({me,active,onNavigate,children}:{me:Me;active:string;onNavigate:(key:string)=>void;children:ReactNode}){
  const [collapsed,setCollapsed]=useState(()=>window.innerWidth<1100),[managementOpen,setManagementOpen]=useState(false);
  const management=groups.some(([,items])=>items.some(i=>i[0]===active));
- const navigate=(key:string)=>{onNavigate(key);};
+ const navigate=(key:string)=>{onNavigate(key);if(window.innerWidth<760)setCollapsed(true);};
  const title=primary.find(p=>p[0]===active)?.[1]??groups.flatMap(([,items])=>items).find(i=>i[0]===active)?.[1]??'账号设置';
  const managementItems=groups.flatMap(([group,items])=>{const allowed=items.filter(i=>me.permissions.includes(i[2])||i[0]==='exports'&&me.permissions.includes('sources.review')||i[0]==='ai'&&me.permissions.includes('sources.review'));return allowed.length?[{type:'group' as const,label:<span className="nav-group-label">{group}</span>,children:allowed.map(([key,label])=>({key,label,icon:<FolderOutlined/>}))}]:[];});
  return <div className={'once-shell '+(collapsed?'is-collapsed':'')}><a className="skip-link" href="#workspace-content">跳到工作内容</a><aside className="once-sidebar" aria-label="工作空间导航"><div className="brand"><BrandMark/>{!collapsed&&<div>ONCE<small>PRODUCTION DESK</small></div>}</div>{!collapsed&&<div className="workspace-label">{me.workspaceName??'内部工作空间'}</div>}<nav aria-label="工作空间"><Menu mode="inline" inlineCollapsed={collapsed} selectedKeys={[active]} openKeys={management||managementOpen?['management']:[]} onOpenChange={keys=>setManagementOpen(keys.includes('management'))} onClick={({key})=>navigate(key)} items={[

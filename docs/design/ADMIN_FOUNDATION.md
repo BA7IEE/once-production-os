@@ -29,7 +29,7 @@ Modal 使用 AntD 焦点管理、Escape 与关闭按钮；mask 不关闭。传�
 
 工作台、人才目录和详情、职业资料/量尺/联系方式/来源依据、候选清单、作品及项目、审核、交接、素材与上传、导入/补齐、导出、合并、删除、成员/范围、字典、审计、账号、语言和 AI 界面共享 Provider、Shell 和反馈。30 个原界面文件的原生 form/table/dl 已迁至适配入口。照片卡片和复杂专业编辑器保持既有交互，以统一 token 和组件容器呈现；此轮没有逐页重写业务交互。
 
-`pnpm review:foundation` 用 TypeScript AST 检查所有 TSX，拒绝 Foundation 目录之外新增原生 form/table/dl，并打印每个模块的组件覆盖。新模块应优先直接使用 ProTable/ProForm/ProDescriptions 或共享适配入口，不复制 Shell、颜色或反馈实现。新增例外须写明数据/权限原因和浏览器验证范围，不能靠 CSS 另起一套页面规范。
+`pnpm review:foundation`（同时接入常规 `review:static`，后续模块 CI 也必须执行）用 TypeScript AST 检查所有 TSX，拒绝 Foundation 目录之外新增原生 form/table/dl，并打印每个模块的组件覆盖。新模块应优先直接使用 ProTable/ProForm/ProDescriptions 或共享适配入口，不复制 Shell、颜色或反馈实现。新增例外须写明数据/权限原因和浏览器验证范围，不能靠 CSS 另起一套页面规范。
 
 ## 依赖兼容与风险
 

@@ -24,7 +24,7 @@
     "bootstrap": "node dist/apps/api/src/bootstrap.js",
     "contract:generate": "node --experimental-strip-types scripts/generate-contract.ts",
     "contract:check": "node --experimental-strip-types scripts/generate-contract.ts --check",
-    "review:static": "node scripts/static-review.mjs",
+    "review:static": "node scripts/check-admin-foundation.mjs && node scripts/static-review.mjs",
     "verify": "pnpm contract:check && pnpm typecheck && pnpm test:core && pnpm review:static && pnpm build",
     "verify:postgres": "node scripts/verify-postgres.mjs",
     "verify:browser": "node tests/acceptance/browser-resume.mjs",
