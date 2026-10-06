@@ -87,7 +87,7 @@ export function PageTitle({ overline, title, description, action }: {
     title: string;
     description: string;
     action?: ReactNode;
-}) { return <PageContainer className="once-page-title" header={{title:false,breadcrumb:undefined}}><div className="page-title"><div><span className="eyebrow">{overline}</span><h1>{title}</h1><p>{description}</p></div>{action}</div></PageContainer>; }
+}) { return <PageContainer pageHeaderRender={false} className="once-page-title" header={{title:false,breadcrumb:undefined}}><div className="page-title"><div><span className="eyebrow">{overline}</span><h1>{title}</h1><p>{description}</p></div>{action}</div></PageContainer>; }
 export function Pager({ page, pageSize, total, setPage }: {
     page: number;
     pageSize: number;

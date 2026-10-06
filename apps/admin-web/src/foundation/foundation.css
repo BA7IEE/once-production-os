@@ -58,3 +58,5 @@
 
 /* Preserve one brand accent across existing domain-specific selection controls. */
 .once-foundation .directory-count button[aria-pressed=true],.once-foundation .review-types>button[aria-pressed=true],.once-foundation .choice-list>button[aria-pressed=true],.once-foundation .sl-list-bar button.selected,.once-foundation .sl-asset-picker label.selected{background:#eaf0f8;border-color:#8ba0c0;color:#294570}
+
+.once-foundation .once-page-title.ant-pro-page-container .ant-pro-page-container-children-container{padding:0;margin:0}
