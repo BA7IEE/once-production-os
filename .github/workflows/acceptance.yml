@@ -456,13 +456,20 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: agent-ingestion-pr04a-${{ github.event.pull_request.head.sha || github.sha }}
-          path: artifacts/agent-ingestion-pr04a
+          path: |
+            artifacts/agent-ingestion-pr04a
       - name: Preserve owned resource evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-agent-ingestion-${{ github.event.pull_request.head.sha || github.sha }}
           path: data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   browser-agent-media:
@@ -495,13 +502,20 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: agent-media-pr04b-${{ github.event.pull_request.head.sha || github.sha }}
-          path: artifacts/agent-media-pr04b
+          path: |
+            artifacts/agent-media-pr04b
       - name: Preserve owned resource evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-agent-media-${{ github.event.pull_request.head.sha || github.sha }}
           path: data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   browser-agent-structures:
@@ -534,13 +548,20 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: agent-structures-pr04c-${{ github.event.pull_request.head.sha || github.sha }}
-          path: artifacts/agent-structures-pr04c
+          path: |
+            artifacts/agent-structures-pr04c
       - name: Preserve owned resource evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-agent-structures-${{ github.event.pull_request.head.sha || github.sha }}
           path: data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
 
   browser-agent-handoff:
@@ -573,11 +594,18 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: agent-handoff-pr04d-${{ github.event.pull_request.head.sha || github.sha }}
-          path: artifacts/agent-handoff-pr04d
+          path: |
+            artifacts/agent-handoff-pr04d
       - name: Preserve owned resource evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: owned-browser-agent-handoff-${{ github.event.pull_request.head.sha || github.sha }}
           path: data/local-resource-runs/**/*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error

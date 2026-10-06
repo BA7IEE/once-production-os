@@ -60,6 +60,12 @@ jobs:
             data/local-resource-runs/*/process-*.json
             data/local-resource-runs/*/temporary-*.json
             data/local-resource-runs/*/browser-*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
   core:
     runs-on: ubuntu-24.04
@@ -91,4 +97,10 @@ jobs:
             artifacts/core-test-report.json
             data/local-resource-runs/*/run.json
             data/local-resource-runs/*/process-*.json
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.png' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.jpeg' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.webp' || '__foundation_no_exclusion__' }}
+            !${{ github.head_ref == 'codex/once-admin-foundation' && '**/*.gif' || '__foundation_no_exclusion__' }}
+          retention-days: ${{ github.head_ref == 'codex/once-admin-foundation' && 3 || 0 }}
           if-no-files-found: error
