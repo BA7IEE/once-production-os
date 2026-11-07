@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-11-07 23:34:52 +08:00",
+  "generatedAt": "2026-11-07 23:44:28 +08:00",
   "scope": "supplier-field-catalog-and-professional-profiles",
   "branch": "codex/supplier-library-v1",
-  "baseHead": "09bc4a6e359595c266d42147d1ade65f4a6027c5",
+  "baseHead": "fadecb688f4855889497946802478c5579179ad2",
   "state": "CORE_IMPLEMENTED_AND_ISOLATED_TESTED",
   "committedAtVerification": false,
   "verificationScope": "Pre-commit working-tree snapshot; delivery commit is identified by Git history. Source hashes identify the verified files.",
@@ -65,6 +65,12 @@
       "passed": 1,
       "failed": 0,
       "evidence": "artifacts/supplier-field-templates/upgrade.log"
+    },
+    "historicalAgentMediaUpgrade": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "evidence": "artifacts/supplier-field-templates/agent-media-upgrade-local.log"
     },
     "browser": {
       "status": "PASSED",
@@ -584,9 +590,9 @@
   "resourceRuns": {
     "scope": "Only registered temporary verification resources in this implementation phase",
     "phaseStart": "2026-11-07T10:36:24.133Z",
-    "realRuns": 41,
-    "zeroResidue": 41,
-    "failedAttemptsRetained": 12,
+    "realRuns": 43,
+    "zeroResidue": 43,
+    "failedAttemptsRetained": 13,
     "ids": [
       "169595579811ae9ee6f54102",
       "1e795f6519d3a596d5bb897c",
@@ -619,11 +625,13 @@
       "b0c73a995a55b3b5263a9a54",
       "b92007203947cde028f83d22",
       "ba2247f1d7b77690f748f13c",
+      "ba6160c42bb4e674f984f13e",
       "bdbe7987e1f8bea09c7ee396",
       "bf037cd4e46b5a17bd77f435",
       "c22eeaf84b480ad0612fd861",
       "c2ca8a9f9da8b014f837096d",
       "c2d8f87c0f67c56110e12071",
+      "c7e8a0d36f53b57d112d48fd",
       "ccc91fe7715b2fa858249e5f",
       "d8cc5a3440b1318765fba371",
       "ebfc66678dfce9400f669af6",
@@ -645,7 +653,10 @@
     "artifacts/supplier-field-templates/core.tap",
     "artifacts/supplier-field-templates/core-source-fields.tap",
     "artifacts/supplier-field-templates/browser.log",
-    "artifacts/supplier-field-templates/static.log"
+    "artifacts/supplier-field-templates/static.log",
+    "artifacts/supplier-field-templates/agent-media-upgrade-first.log",
+    "artifacts/supplier-field-templates/github-first-postgres-failure.json",
+    "artifacts/supplier-field-templates/github-second-postgres-failure.json"
   ],
   "notRun": [
     "Real external model accuracy and billing",
@@ -839,7 +850,7 @@
     "docs/release/REVIEW.md": "dc3e809bf706f68081a224cb1b60193df02f581644d3c21dcad4f51781a30780",
     "docs/release/STAGING_EXECUTION.md": "e71e85d4656b679a997723095470343fe1263cebbbd294ba42ece46b559dad36",
     "docs/release/SUPPLIER_DOCUMENT_BATCHES.md": "0e8c48dab185a56da0f5d8817174e456861666ba9e89e669bb3e6528bcb6d55d",
-    "docs/release/SUPPLIER_FIELD_TEMPLATES.md": "3c7e44be72ffd386cc1c8ec2967143a08695857066b3282f4e7635646ff8d033",
+    "docs/release/SUPPLIER_FIELD_TEMPLATES.md": "f4d9baf9dee938d8fd91f3d154b352c5c0f52b60cc966c32bd6c0b00eca33165",
     "docs/release/SUPPLIER_LIBRARY_V1_IMPLEMENTATION.md": "54b8c32d02c5b975646c78fec6a5c65856582e5465b7354a22bbec77495657e7",
     "docs/release/SUPPLIER_WORK_GROUPING.md": "f348c294dedc358b0bdb3e1e19a64b1c3217a0ab1110f96a5126b9bd3b53a681",
     "docs/release/TALENT_EXPERIENCE.md": "a04e510c2b6929ecf3e4969f64e2b4effb3c0ebf423d37faccf9b75498b87d1e",
@@ -1191,10 +1202,10 @@
     "scripts/talent-experience-surface-policy.mjs": "926c5ea34237ce9e7cf0f1878420a718b03363ba5a5e50cfb37703dde8c6d30c",
     "scripts/test-business-flow.mjs": "d4e1f311afb4d2532e3d63b71bda18edf4a3a47e7fc3e79ea9b164c61928ccf6",
     "scripts/test-documents.mjs": "82e4868e2542ea1ec22b138aee588b2383d0315ce270c2a94f5ae8a898d411ae",
-    "scripts/test-postgres-owned.mjs": "f23faa81d523a7fa70943e77b8844816c0889eb4a6835c6b2aef50fb3e1bc072",
+    "scripts/test-postgres-owned.mjs": "6c143cd8db20637ff978bda950d1e82aef12a558e16f45190600251f36412ba1",
     "scripts/verify-a1-followup-local.sh": "7d999a6d34e35c242b78cfd6e41b223f4fee3e4ace5ed12bd56a86fe447ec379",
     "scripts/verify-postgres.mjs": "e2638b915f9e3ebd59ab2feca7405d832c910eaae8a6384fdcc63d3654e3979e",
-    "scripts/write-supplier-field-verification.mjs": "d962c53fc110ddb23fededf6b87fae3cb828c3681308dbca34377e91b4037ce5",
+    "scripts/write-supplier-field-verification.mjs": "ebaf44fc3cd14c3a98fba877d5af6b8a5220cc080d25e16ed0ef4c927aab751b",
     "tests/acceptance/ai-business.mjs": "58694c161b08608e2ba4ba158ecd1ff55e3c0140f88dd6bf67538c8fea7902ea",
     "tests/acceptance/browser-admin-ux.mjs": "25ad3b0571267df247cbb54d081972101a332a864f13f7bc1735cd519e4a2765",
     "tests/acceptance/browser-agent-handoff.mjs": "d465ff9e69db197475c06760a7ec3b8190de3cd0169d8df0a18fce71730aedb9",
@@ -1367,7 +1378,7 @@
     "tests/postgres/admin-ux.test.ts": "2e7e9966d2290b02c3144fc8b6ab31c3d5b35b106e207b9242649908129028ba",
     "tests/postgres/adult-transfer.test.ts": "f5591c9d827b8bcb7dfd974b4d0b9c4514518ad6b9055dd5c935114be6bd035b",
     "tests/postgres/agent-handoff.test.ts": "5b111bf8d9d40f5dc716d210e8b2386e0d1d62900b13d744a9db0cb37fd8ee96",
-    "tests/postgres/agent-media.test.ts": "d903cfc3563d0266cabce9e524a4ea2ce0cb697ec654f143dd8e4be71d1a9e0e",
+    "tests/postgres/agent-media.test.ts": "457c700c04d7c84cf6de169f74d4f0725d7b9e33823f25f1f66c39444b689d3c",
     "tests/postgres/agent-structures.test.ts": "6dd238ad5578ae4ab7f873ad14392664034ac0b4076a251fc8a5d9870601a76d",
     "tests/postgres/business-flow-identity.test.ts": "21c9c5d007d1c1459dc6ee27c9db49f16c81d9d1a10dbd706e378512c6e70f63",
     "tests/postgres/business-flow-rejection.test.ts": "891174011f1a1cfff05c4c9fc8be52e9287219910918e4e7c6e8dec865428a6b",

@@ -1,0 +1,14 @@
+{
+  "head": "fadecb688f4855889497946802478c5579179ad2",
+  "pullRequest": "https://github.com/BA7IEE/once-production-os/pull/40",
+  "workflowRun": "https://github.com/BA7IEE/once-production-os/actions/runs/42387090207",
+  "jobId": 128446652860,
+  "job": "postgres-contract",
+  "conclusion": "FAILURE",
+  "test": "tests/postgres/agent-media.test.ts",
+  "variant": "upgrade",
+  "observed": "The current application returned STORE_UNAVAILABLE while the fixture database was still on migration 72, before the upgrade under test.",
+  "correction": "Seed synthetic rows using only columns present on migration 72, reconnect the Prisma client after schema changes, then compare every original column and applied checksum after upgrading to the current schema.",
+  "localVerification": "artifacts/supplier-field-templates/agent-media-upgrade-local.log",
+  "productionMigration": false
+}
