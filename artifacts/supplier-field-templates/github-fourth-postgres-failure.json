@@ -1,0 +1,13 @@
+{
+  "head": "2124560d2c02b6a6131cf92c989c869092555d95",
+  "pullRequest": "https://github.com/BA7IEE/once-production-os/pull/40",
+  "workflowRun": "https://github.com/BA7IEE/once-production-os/actions/runs/42388634508",
+  "jobId": 128451297627,
+  "job": "postgres-contract",
+  "conclusion": "FAILURE",
+  "test": "tests/postgres/talent-baseline-upgrade.test.ts",
+  "observed": "The current Prisma AiRun model could not operate against the intermediate migration-52 schema while preparing an unresolved AI reservation.",
+  "correction": "Produce the unresolved ledger transition in MemoryStore, atomically persist only historical columns, and compare every original ledger column after upgrading. Check the new internal-task defaults and the nine expected supplier dictionary seeds explicitly.",
+  "localVerification": "artifacts/supplier-field-templates/pre-td2-upgrade-local.log",
+  "productionMigration": false
+}

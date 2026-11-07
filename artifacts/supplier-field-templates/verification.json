@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-11-07 23:54:22 +08:00",
+  "generatedAt": "2026-11-08 00:11:14 +08:00",
   "scope": "supplier-field-catalog-and-professional-profiles",
   "branch": "codex/supplier-library-v1",
-  "baseHead": "22c8845fa505c99accc734dcf6fcb97e4a447d5e",
+  "baseHead": "2124560d2c02b6a6131cf92c989c869092555d95",
   "state": "CORE_IMPLEMENTED_AND_ISOLATED_TESTED",
   "committedAtVerification": false,
   "verificationScope": "Pre-commit working-tree snapshot; delivery commit is identified by Git history. Source hashes identify the verified files.",
@@ -71,6 +71,12 @@
       "passed": 1,
       "failed": 0,
       "evidence": "artifacts/supplier-field-templates/agent-media-upgrade-local.log"
+    },
+    "historicalPreTd2Upgrade": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "evidence": "artifacts/supplier-field-templates/pre-td2-upgrade-local.log"
     },
     "historicalImportedReviewLocal": {
       "status": "PARTIAL",
@@ -596,9 +602,9 @@
   "resourceRuns": {
     "scope": "Only registered temporary verification resources in this implementation phase",
     "phaseStart": "2026-11-07T10:36:24.133Z",
-    "realRuns": 44,
-    "zeroResidue": 44,
-    "failedAttemptsRetained": 14,
+    "realRuns": 46,
+    "zeroResidue": 46,
+    "failedAttemptsRetained": 15,
     "ids": [
       "169595579811ae9ee6f54102",
       "1e795f6519d3a596d5bb897c",
@@ -618,6 +624,7 @@
       "60e77c78d1b96ec575350c11",
       "693b6b21c9122301cc1a234a",
       "7468ce063666b847c32b4807",
+      "7c5ffde26cb8a619f801140d",
       "7cfd9de0c2461f245267d9da",
       "7f160abcb2989880f411ced7",
       "84d432b417f0ca46a51a7d47",
@@ -627,6 +634,7 @@
       "9b018d2b16ca654feeba1648",
       "a11f45152888951e84685e06",
       "a13e81b0d8e398bebd72afaa",
+      "a2716fe05202125bc19aca2a",
       "ace8955fa87f8d22007bdf5b",
       "add93f4b0da62843d7547f38",
       "b0c73a995a55b3b5263a9a54",
@@ -663,9 +671,11 @@
     "artifacts/supplier-field-templates/static.log",
     "artifacts/supplier-field-templates/agent-media-upgrade-first.log",
     "artifacts/supplier-field-templates/imported-review-upgrade-local.log",
+    "artifacts/supplier-field-templates/pre-td2-upgrade-first.log",
     "artifacts/supplier-field-templates/github-first-postgres-failure.json",
     "artifacts/supplier-field-templates/github-second-postgres-failure.json",
-    "artifacts/supplier-field-templates/github-third-postgres-failure.json"
+    "artifacts/supplier-field-templates/github-third-postgres-failure.json",
+    "artifacts/supplier-field-templates/github-fourth-postgres-failure.json"
   ],
   "notRun": [
     "Real external model accuracy and billing",
@@ -859,7 +869,7 @@
     "docs/release/REVIEW.md": "dc3e809bf706f68081a224cb1b60193df02f581644d3c21dcad4f51781a30780",
     "docs/release/STAGING_EXECUTION.md": "e71e85d4656b679a997723095470343fe1263cebbbd294ba42ece46b559dad36",
     "docs/release/SUPPLIER_DOCUMENT_BATCHES.md": "0e8c48dab185a56da0f5d8817174e456861666ba9e89e669bb3e6528bcb6d55d",
-    "docs/release/SUPPLIER_FIELD_TEMPLATES.md": "caf9d2e52dce9ceba131effe55ea543098ca64a596fc5b657befbcf881f43e7c",
+    "docs/release/SUPPLIER_FIELD_TEMPLATES.md": "f4c74e02f05f770a0254cdbcbdaa1f0f8219d501d207ce962608d7cc75093592",
     "docs/release/SUPPLIER_LIBRARY_V1_IMPLEMENTATION.md": "54b8c32d02c5b975646c78fec6a5c65856582e5465b7354a22bbec77495657e7",
     "docs/release/SUPPLIER_WORK_GROUPING.md": "f348c294dedc358b0bdb3e1e19a64b1c3217a0ab1110f96a5126b9bd3b53a681",
     "docs/release/TALENT_EXPERIENCE.md": "a04e510c2b6929ecf3e4969f64e2b4effb3c0ebf423d37faccf9b75498b87d1e",
@@ -1211,10 +1221,10 @@
     "scripts/talent-experience-surface-policy.mjs": "926c5ea34237ce9e7cf0f1878420a718b03363ba5a5e50cfb37703dde8c6d30c",
     "scripts/test-business-flow.mjs": "d4e1f311afb4d2532e3d63b71bda18edf4a3a47e7fc3e79ea9b164c61928ccf6",
     "scripts/test-documents.mjs": "82e4868e2542ea1ec22b138aee588b2383d0315ce270c2a94f5ae8a898d411ae",
-    "scripts/test-postgres-owned.mjs": "d8a81d6d12902a64df5340b448d74c2408aa12ae6f494d63cbde85a7546e4cbd",
+    "scripts/test-postgres-owned.mjs": "afb70661e1ccc20df30f08fc6dab8cd78282c95e7cb800f77f068002a92100e6",
     "scripts/verify-a1-followup-local.sh": "7d999a6d34e35c242b78cfd6e41b223f4fee3e4ace5ed12bd56a86fe447ec379",
     "scripts/verify-postgres.mjs": "e2638b915f9e3ebd59ab2feca7405d832c910eaae8a6384fdcc63d3654e3979e",
-    "scripts/write-supplier-field-verification.mjs": "3f584e7bf6990d1e0aaf21ae027f43f42d884bc63240d8716b9d3f2ef1e24fdf",
+    "scripts/write-supplier-field-verification.mjs": "662ac90cc79e0bd13943d2c038c4a3d6243e3656a51bf41d8932b741860c6106",
     "tests/acceptance/ai-business.mjs": "58694c161b08608e2ba4ba158ecd1ff55e3c0140f88dd6bf67538c8fea7902ea",
     "tests/acceptance/browser-admin-ux.mjs": "25ad3b0571267df247cbb54d081972101a332a864f13f7bc1735cd519e4a2765",
     "tests/acceptance/browser-agent-handoff.mjs": "d465ff9e69db197475c06760a7ec3b8190de3cd0169d8df0a18fce71730aedb9",
@@ -1426,7 +1436,7 @@
     "tests/postgres/talent-asset-erasure.test.ts": "479305bb58d2514685ed5ed2e85fc12e2b3629cc7d9e7144f2db81f9cd43e156",
     "tests/postgres/talent-auth-upgrade.test.ts": "3ac8526869f0ba7b9410ff2ca73daf26ff3a05db741168c09ee83bf4332057af",
     "tests/postgres/talent-auth.test.ts": "e5c1e6104570d677eb76f408bacd9269a776fa079069cfee6397963304385b53",
-    "tests/postgres/talent-baseline-upgrade.test.ts": "3c036e19e7838e3ff115edf9bbf3c3d95088fed8cd5b1190f22cca56a701e631",
+    "tests/postgres/talent-baseline-upgrade.test.ts": "a71e86f02db505839b8dfde91e6af58932e4596b11f2d16cb99f50fb7eebc43f",
     "tests/postgres/talent-directory.test.ts": "02c85d6210b881535de02e20e19e39e3bcde88fe1707cf9e9b013e95095e55b5",
     "tests/postgres/talent-domain-gates.test.ts": "98cb91247a43a113b0841e9c1b5be5797732ba1242085822757f16fea5af97f4",
     "tests/postgres/talent-maintenance.test.ts": "ef40f383c7e30cd2a392c69bd7a446035ea738f2df53cb12b74f0cb0d655cc71",

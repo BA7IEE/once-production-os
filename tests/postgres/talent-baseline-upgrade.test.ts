@@ -13,13 +13,14 @@ import {spawnSync} from 'node:child_process';
 import {PrismaClient} from '@prisma/client';
 import {Application} from '../../packages/core/src/api.ts';
 import {PrismaStore} from '../../apps/api/src/prisma-store.ts';
+import {MemoryStore} from '../support/memory-store.ts';
 import {passwordHash} from '../../packages/core/src/crypto.ts';
 import {FakeClock,Client,SYNTHETIC_PASSWORD} from '../support/fixtures.ts';
 import {expectResponse as ok} from '../support/talent-v2-maintenance.ts';
 
 test('TD2-T17 populated frozen pre-TD2 baseline upgrades without rewriting business rows',async()=>{
  assert.equal(process.env.ALLOW_TD2_UPGRADE_TESTS,'yes');const raw=process.env.DATABASE_URL_TD2_UPGRADE_TEST;assert.ok(raw);const url=new URL(raw);
- assert.ok(['postgres:','postgresql:'].includes(url.protocol));assert.ok(['127.0.0.1','localhost','[::1]'].includes(url.hostname));assert.match(url.pathname,/^\/once_test_td2_upgrade_[a-z0-9_]+$/);assert.equal(url.search,'');assert.equal(url.hash,'');
+ assert.ok(['postgres:','postgresql:'].includes(url.protocol));assert.ok(['127.0.0.1','localhost','[::1]'].includes(url.hostname));assert.ok(process.env.ONCE_RESOURCE_RUN_DIR);assert.match(url.pathname,/^\/once_test_[a-z0-9_]+$/);assert.equal(url.search,'');assert.equal(url.hash,'');
  const db=new PrismaClient({datasources:{db:{url:raw}},log:[]}),temp=registeredTemp().path;
  const migrations=resolve('prisma/migrations'),names=readdirSync(migrations).filter(x=>/^\d/.test(x)).sort(),old=names.filter(x=>x<'202609270001_talent_domain_v2');
  const hash=(file:string)=>createHash('sha256').update(readFileSync(file)).digest('hex');const fingerprints=names.map(name=>[name,hash(join(migrations,name,'migration.sql'))]);
@@ -55,21 +56,29 @@ test('TD2-T17 populated frozen pre-TD2 baseline upgrades without rewriting busin
   const prior=names.filter(n=>n<'202609290004_project_party_export_fields');
   for(const name of prior.filter(n=>!old.includes(n))){mkdirSync(join(temp,'migrations',name));copyFileSync(join(migrations,name,'migration.sql'),join(temp,'migrations',name,'migration.sql'));}
   deploy(join(temp,'schema.prisma'));
-  const aiStore=new PrismaStore(db),aiClock=new FakeClock(),ledger=new AiLedger(aiClock),aiConfig={enabled:true,providerIdentityHash:digest('synthetic upgrade provider'),configRevision:1,recoveryEpoch:'synthetic-upgrade-epoch',currency:'USD',perTaskLimitUnits:50,dailyLimitUnits:1000,maxAttempts:3},meta={requestId:randomUUID(),ip:'test'};
-  const legacyAudits:object[]=[];
-  await aiStore.transaction(async current=>{const tx={...current,insert:async(table:any,row:any)=>{if(table==='audits'){const {principalKind,talentAccountId,...legacy}=row;legacyAudits.push(legacy);}else await current.insert(table,row);}};const r=await ledger.reserve(tx,workspaceId,membershipId,randomUUID(),digest('synthetic upgrade input'),50,aiConfig,meta);const a=await ledger.begin(tx,workspaceId,r.id,aiConfig,meta);await ledger.unknown(tx,workspaceId,a.id,meta);});
-  for(const row of legacyAudits)await db.$executeRawUnsafe('INSERT INTO "audits" SELECT * FROM jsonb_populate_record(NULL::"audits", $1::jsonb)',JSON.stringify(row));
-  const aiBefore=JSON.stringify({budgets:await db.aiBudget.findMany(),runs:await db.aiRun.findMany(),attempts:await db.aiAttempt.findMany()});
+  const aiStore=new MemoryStore(),aiClock=new FakeClock(),ledger=new AiLedger(aiClock),aiConfig={enabled:true,providerIdentityHash:digest('synthetic upgrade provider'),configRevision:1,recoveryEpoch:'synthetic-upgrade-epoch',currency:'USD',perTaskLimitUnits:50,dailyLimitUnits:1000,maxAttempts:3},meta={requestId:randomUUID(),ip:'test'};
+  // Preserve an actual unresolved ledger transition without asking today's
+  // Prisma AiRun model to select columns absent in the migration-52 database.
+  for(const table of ['workspaces','users','memberships'] as const){const rows=await db.$queryRawUnsafe<Array<{row:any}>>(`SELECT to_jsonb(t) AS row FROM "${table}" t`);for(const {row}of rows)await aiStore.transaction(tx=>tx.insert(table,row));}
+  await aiStore.transaction(async tx=>{const r=await ledger.reserve(tx,workspaceId,membershipId,randomUUID(),digest('synthetic upgrade input'),50,aiConfig,meta);const a=await ledger.begin(tx,workspaceId,r.id,aiConfig,meta);await ledger.unknown(tx,workspaceId,a.id,meta);});
+  const aiTables=['aiBudgets','aiRuns','aiAttempts'] as const;
+  await db.$transaction(async tx=>{await tx.$executeRawUnsafe('SET CONSTRAINTS ALL DEFERRED');
+  for(const table of [...aiTables,'audits'] as const){const columns=await tx.$queryRawUnsafe<Array<{column_name:string}>>("SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name=$1",table),allowedColumns=new Set(columns.map(c=>c.column_name));for(const row of aiStore.rows(table)){const data=Object.fromEntries(Object.entries(row).filter(([key])=>allowedColumns.has(key)));await tx.$executeRawUnsafe(`INSERT INTO "${table}" SELECT * FROM jsonb_populate_record(NULL::"${table}",$1::jsonb)`,JSON.stringify(data));}}
+  },{timeout:30000});
+  const aiBefore=new Map<string,any[]>();for(const table of aiTables)aiBefore.set(table,await db.$queryRawUnsafe(`SELECT to_jsonb(t) AS row FROM "${table}" t ORDER BY id`));
+  assert.equal(aiBefore.get('aiRuns')!.length,1);assert.equal(aiBefore.get('aiRuns')![0].row.state,'UNKNOWN');
   const brandId=randomUUID(),linkId=randomUUID(),projectId=(await db.project.findFirstOrThrow()).id;
   await db.brand.create({data:{...base(brandId),sourceId,scopeId,name:'升级保留品牌',organizationId:null,status:'ACTIVE'}});
   await db.projectParty.create({data:{...base(linkId),projectId,clientOrganizationId:null,brandId}});
   const partiesBefore=JSON.stringify({brands:await db.brand.findMany(),links:await db.projectParty.findMany()});
   deploy(resolve('prisma/schema.prisma'));
+  await db.$disconnect();await db.$connect();
   assert.equal(JSON.stringify({brands:await db.brand.findMany(),links:await db.projectParty.findMany()}),partiesBefore);
-  assert.equal(JSON.stringify({budgets:await db.aiBudget.findMany(),runs:await db.aiRun.findMany(),attempts:await db.aiAttempt.findMany()}),aiBefore);
+  for(const [table,rows]of aiBefore){const after=await db.$queryRawUnsafe<any[]>(`SELECT to_jsonb(t) AS row FROM "${table}" t ORDER BY id`);assert.equal(after.length,rows.length,table);for(let i=0;i<rows.length;i++)for(const [key,value]of Object.entries(rows[i].row))assert.deepEqual(after[i].row[key],value,table+'.'+key);}
+  const retainedRun=await db.aiRun.findFirstOrThrow();assert.equal(retainedRun.state,'UNKNOWN');assert.equal(retainedRun.actorId,membershipId);assert.equal(retainedRun.purpose,'INTERNAL_TASK');assert.equal(retainedRun.talentAccountId,null);assert.equal(retainedRun.actorEpoch,null);
   assert.equal(await db.aiConnection.count(),0);assert.equal(await db.aiResponseMetadata.count(),0);assert.equal(await db.aiApproval.count(),0);assert.equal(await db.aiReconciliation.count(),0);assert.equal(await db.aiBudgetRelease.count(),0);
 
-  for(const [table,rows]of before){const after=await db.$queryRawUnsafe<any[]>(`SELECT to_jsonb(t) AS row FROM "${table}" t ORDER BY id`);assert.equal(after.length,rows.length+(table==='dictionary'?14:0),table);const byId=new Map(after.map(r=>[r.row.id,r.row]));for(const previous of rows){assert.ok(byId.has(previous.row.id),table+' preserved ID');for(const [key,value]of Object.entries(previous.row))assert.deepEqual(byId.get(previous.row.id)[key],value,table+'.'+key);}if(table==='dictionary'){const original=new Set(rows.map(r=>r.row.id));const added=after.filter(r=>!original.has(r.row.id));assert.ok(added.every(r=>['nationality','roleStyle','roleService'].includes(r.row.namespace)));}}
+  for(const [table,rows]of before){const after=await db.$queryRawUnsafe<any[]>(`SELECT to_jsonb(t) AS row FROM "${table}" t ORDER BY id`);assert.equal(after.length,rows.length+(table==='dictionary'?23:0),table);const byId=new Map(after.map(r=>[r.row.id,r.row]));for(const previous of rows){assert.ok(byId.has(previous.row.id),table+' preserved ID');for(const [key,value]of Object.entries(previous.row))assert.deepEqual(byId.get(previous.row.id)[key],value,table+'.'+key);}if(table==='dictionary'){const original=new Set(rows.map(r=>r.row.id));const added=after.filter(r=>!original.has(r.row.id));const supplierSeeds=['role:screenwriter','role:lighting','role:colorist','role:sound','role:art_director','city:beijing','city:shanghai','city:hangzhou','city:chengdu'];assert.deepEqual(added.filter(r=>['role','city'].includes(r.row.namespace)).map(r=>r.row.namespace+':'+r.row.code).sort(),supplierSeeds.sort());assert.equal(added.filter(r=>['nationality','roleStyle','roleService'].includes(r.row.namespace)).length,14);}}
   const applied=await db.$queryRawUnsafe<any[]>('SELECT migration_name,checksum FROM "_prisma_migrations" WHERE finished_at IS NOT NULL ORDER BY migration_name');assert.deepEqual(applied.map(x=>[x.migration_name,x.checksum]),fingerprints);
   assert.equal(await db.talentProfile.count(),2);assert.equal(await db.personRole.count(),3);assert.equal(await db.personCapability.count(),2);assert.equal(await db.personLanguage.count(),4);assert.equal(await db.talentLocation.count(),2);assert.equal(await db.measurementSet.count(),0);assert.equal(await db.castingProfile.count(),0);
   for(const row of await db.personCapability.findMany()){assert.equal(row.personRoleId,null);assert.equal(row.levelCode,null);assert.equal(row.sourceId,sourceId);}
