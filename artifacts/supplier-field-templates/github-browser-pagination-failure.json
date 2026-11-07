@@ -1,0 +1,11 @@
+{
+  "head": "a8f8c82180fa255755efd4db7f7ef5e147af5bb0",
+  "workflowRun": "https://github.com/BA7IEE/once-production-os/actions/runs/42390020224",
+  "job": "browser-production",
+  "failedJobIds": [128455449505, 128460312322],
+  "observed": "Both attempts timed out selecting a source that was not on the visible first page, once in AI field correction and once in new-person enrollment.",
+  "correction": "Use one visible source-picker helper that waits for inherited fieldset locks, resets the pager, and walks real API-backed pages before selecting the expected source. No source option is injected and application behavior is unchanged.",
+  "localVerification": "artifacts/supplier-field-templates/browser-production-local.log",
+  "priorHeadFullPostgres": "PASSED on the same a8f8c82 head before the browser-only test correction",
+  "productionMigration": false
+}

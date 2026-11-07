@@ -1,25 +1,16 @@
-import {navigateWorkspace,openAdvancedPerson,openFilters,chooseValues,openShortlist,selectPaged} from './support/workspace-navigation.mjs';
+import {navigateWorkspace,openAdvancedPerson,openFilters,chooseValues,openShortlist,selectPaged,selectTalentSource} from './support/workspace-navigation.mjs';
 import {independentCollectionImage} from './collection-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {mkdirSync,existsSync} from 'node:fs';
 import {join} from 'node:path';
 /** Real visible form actions; API sets prerequisites and concurrent edits, and separately verifies retained advanced query contracts. */
 export async function verifyTalentWorkbench({owner,prisma,cmd,writeUI,source,assetId,prepare,binary,queue,until,mediaBytes,login,password,json,mediaRoot}) {
- const chooseSource=async(form,id)=>{
-  const picker=form.locator('.talent-source'),select=picker.getByLabel('资料来源',{exact:true});
-  await until(()=>select.isEnabled());
-  for(let page=1;!(await select.locator(`option[value="${id}"]`).count());page++){
-   const next=picker.getByRole('button',{name:'下一页',exact:true});assert.equal(await next.isEnabled(),true,'expected source must be available through the real paginated picker');assert.ok(page<100);
-   const response=owner.waitForResponse(r=>r.request().method()==='GET'&&r.url().includes('/api/v1/sources?'));
-   await next.click();assert.equal((await response).status(),200);await until(()=>select.isEnabled());
-  }
-  await select.selectOption(id);
- };
+ const chooseSource=(form,id)=>selectTalentSource(owner,form,id);
  const sid=(await cmd(owner,'POST','/sources',source('工作台验收独立来源'),201)).resourceId;
  let basis=await prisma.sourceRecord.findUniqueOrThrow({where:{id:sid}});
  if(basis.status!=='CONFIRMED'){await cmd(owner,'POST',`/sources/${sid}/review`,{expectedRevision:basis.revision,basisDescription:'合成工作台核验依据，不对应真实人物',validUntil:basis.validUntil.toISOString()});basis=await prisma.sourceRecord.findUniqueOrThrow({where:{id:sid}});}
  await navigateWorkspace(owner,'人才库');await owner.getByRole('button',{name:/新增人才/}).click();
- let dialog=owner.getByRole('dialog',{name:'新增人才',exact:true});await dialog.getByLabel('姓名 / 艺名 *',{exact:true}).fill('工作台模特兼翻译');await dialog.getByLabel('使用已有资料来源',{exact:true}).check();await dialog.getByLabel('资料来源',{exact:true}).selectOption(sid);
+ let dialog=owner.getByRole('dialog',{name:'新增人才',exact:true});await dialog.getByLabel('姓名 / 艺名 *',{exact:true}).fill('工作台模特兼翻译');await dialog.getByLabel('使用已有资料来源',{exact:true}).check();await chooseSource(dialog,sid);
  const pid=(await writeUI(owner,'POST','/directory/talents',()=>dialog.getByRole('button',{name:'保存草稿',exact:true}).click(),201)).resourceId;
  await openAdvancedPerson(owner);await owner.getByRole('button',{name:'打开专业工作台',exact:true}).click();
  const group=async name=>owner.getByRole('button',{name,exact:true}).click();

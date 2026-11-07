@@ -1,0 +1,62 @@
+{
+  "generatedAt": "2026-11-07T17:37:51.983544+08:00",
+  "scope": "Upgrade design and illustrative catalog only; no application code, API, migration or data writes.",
+  "status": "PROPOSAL_REVIEWABLE_NOT_IMPLEMENTED",
+  "branch": "codex/supplier-library-v1",
+  "baseHead": "3d117134f343ab382c52682bc57c1a1515472ec0",
+  "proposalCounts": {
+    "fields": 33,
+    "optionSetsOrAdapters": 18,
+    "commonTemplates": 1,
+    "roleTemplates": 7
+  },
+  "checks": {
+    "catalogJson": "PARSED",
+    "uniqueDefinitionsAndReferences": "PASSED",
+    "templateRoleApplicability": "PASSED",
+    "internalFieldExclusion": "PASSED",
+    "typesEmptyStatesAndOperators": "PASSED",
+    "boundedCollectionsAndTemplateComposition": "PASSED",
+    "templateCycleCheck": "PASSED",
+    "embeddedQueryJson": "PARSED",
+    "localLinks": "PASSED",
+    "previousApplicationSourceFingerprintDrift": [],
+    "intentionalDocumentationChanges": [
+      "README.md",
+      "docs/design/ONCE_SUPPLIER_LIBRARY_V1_20261106.md"
+    ]
+  },
+  "runtimeVerification": "NOT_RUN: proposal-only changes; historical runtime test results were not re-labeled as upgrade acceptance",
+  "newMigrations": 0,
+  "researchSources": [
+    {
+      "title": "FHIR R4 Questionnaire",
+      "url": "https://hl7.org/fhir/R4/questionnaire.html",
+      "use": "Separate item definitions, forms and responses; repeat and conditional collection; standardized facts remain separate"
+    },
+    {
+      "title": "W3C SKOS Reference",
+      "url": "https://www.w3.org/TR/skos-reference/",
+      "use": "Stable concepts, preferred and alternative labels, concept schemes and limited hierarchy"
+    },
+    {
+      "title": "JSON Schema enum and array",
+      "urls": [
+        "https://json-schema.org/understanding-json-schema/reference/enum",
+        "https://json-schema.org/understanding-json-schema/reference/array"
+      ],
+      "use": "Enumerated codes, item validation, bounds and uniqueness; domain authorization handled separately"
+    },
+    {
+      "title": "PostgreSQL 16 JSON types and indexing",
+      "url": "https://www.postgresql.org/docs/16/datatype-json.html#JSON-INDEXING",
+      "use": "Index tradeoffs for bounded JSON metadata; typed values and relations for operational search"
+    }
+  ],
+  "sourceSha256": {
+    "docs/design/ONCE_FIELD_TAG_TEMPLATE_UPGRADE_20261107.md": "60521ab5899e0ae8071045736af6558f52a10f4da093b9fceaaabda98ac40704",
+    "docs/design/examples/once-field-tag-catalog-v1.proposal.json": "9d70a86e52aa6eba9e855402a196eef8a4321e4949acddd877f6964d3ba646e9",
+    "README.md": "348c335fc53aa1d954684ed004d2cfdb76b7f1dfc1fcb775d5c42313449efa53",
+    "docs/design/ONCE_SUPPLIER_LIBRARY_V1_20261106.md": "61fefa186eb15e034df0f9c4079b75a0ccad2e3ae4901d34004c844c6f60f564"
+  }
+}

@@ -299,10 +299,10 @@ export class Deletions {
                 const graph = await previewTalentSourceErasure(tx, actor, targetId, this.clock);
                 const ids = new Set(graph.evidence.map(e => e.id));
                 for (const [key, impact] of impacts) if (impact.resourceKind === 'evidence' && ids.has(impact.resourceId)) impacts.delete(key);
-                if (people.size || graph.blocker === 'TD2_SOURCE_RETENTION_REVIEW_REQUIRED' || (!graph.blocker && assets.size > 0)) {
+                if (talent.counts.supplierFacts || people.size || graph.blocker === 'TD2_SOURCE_RETENTION_REVIEW_REQUIRED' || (!graph.blocker && assets.size > 0)) {
                     const facts = await sourceFactGraph(tx, actor, targetId, this.clock);
                     if (facts.blocker) miss(facts.blocker);
-                    else if (facts.ownedPeople.length || facts.rows.length || facts.proposals.length || facts.media.count) {
+                    else if (facts.supplier.count || facts.ownedPeople.length || facts.rows.length || facts.proposals.length || facts.media.count) {
                         const evidenceIds = new Set(facts.evidence.map(e => e.id));
                         for (const [key, impact] of impacts) if (impact.resourceKind === 'evidence' && evidenceIds.has(impact.resourceId)) impacts.delete(key);
                         for(const person of facts.ownedPeople)for(const impact of impacts.values())if(impact.resourceKind==='person'&&impact.resourceId===person.id){impact.dependencyKind=IDENTITY_RETENTION;impact.detailCode=identityItemCode(person as unknown as import('./model.ts').Person);}
@@ -431,7 +431,7 @@ export class Deletions {
         const factLabels = new Map<string,string>();
         if (items.some(i => i.resourceKind === SOURCE_FACT_GROUP) && ['DRAFT','BLOCKED_FOR_USE'].includes(row.state)) {
             const g = await sourceFactGraph(tx, actor, row.targetId, this.clock);
-            if (g.blocker === 'TD2_HIDDEN_DEPENDENCY') missing();
+            if (g.blocker === 'TD2_HIDDEN_DEPENDENCY'||g.blocker==='SUPPLIER_FIELD_HIDDEN_DEPENDENCY') missing();
             for(const withdrawal of g.identityWithdrawals)factLabels.set(withdrawal.personId,String(g.people.find(p=>p.id===withdrawal.personId)?.displayName??''));
             for (const o of g.rows) factLabels.set(o.row.id, [g.people.find(p => p.id === o.row.personId)?.displayName,
                 o.row.roleCode, o.row.languageCode, o.row.capabilityCode, o.row.title, o.row.locationCode, o.row.credentialTypeCode,
@@ -449,6 +449,7 @@ export class Deletions {
             decisionReason: item.decisionReason === 'AUTO_PROVEN' ? '' : item.decisionReason,
             retentionBasisPresent: item.retentionSourceId !== null,
             decidedAt: item.decidedAt,
+            ...(item.resourceKind===SOURCE_FACT_GROUP&&/:S(\d+)$/.test(item.detailCode??'')?{recordSummary:'此组包含 '+/:S(\d+)$/.exec(item.detailCode??'')![1]+' 项专业补充资料，将随来源一起清理。'}:{}),
             ...([SOURCE_FACT_ITEM,SOURCE_IDENTITY_EVIDENCE].includes(item.resourceKind) ? {recordSummary: factLabels.get(item.resourceId) ?? ''} : item.resourceKind==='talentGraph'&&historySummary ? {recordSummary:historySummary} : {})
         }));
         return page(safe, query);

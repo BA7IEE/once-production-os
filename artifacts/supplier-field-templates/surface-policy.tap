@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: field upgrade permits the reviewed internal catalog version publication while rejecting record publication and unreviewed variants
+ok 1 - field upgrade permits the reviewed internal catalog version publication while rejecting record publication and unreviewed variants
+  ---
+  duration_ms: 1.984683
+  type: 'test'
+  ...
+# Subtest: unreviewed external and legacy-named publishing routes remain blocked
+ok 2 - unreviewed external and legacy-named publishing routes remain blocked
+  ---
+  duration_ms: 0.339379
+  type: 'test'
+  ...
+# Subtest: internal directory acceptance never admits child paths or transactions/booking
+ok 3 - internal directory acceptance never admits child paths or transactions/booking
+  ---
+  duration_ms: 0.413348
+  type: 'test'
+  ...
+# Subtest: PR02b admits reviewed account and claim routes, never uploads
+ok 4 - PR02b admits reviewed account and claim routes, never uploads
+  ---
+  duration_ms: 0.155533
+  type: 'test'
+  ...
+# Subtest: PR04B admits only the exact reviewed MACHINE upload/read paths
+ok 5 - PR04B admits only the exact reviewed MACHINE upload/read paths
+  ---
+  duration_ms: 0.299583
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 62.92497

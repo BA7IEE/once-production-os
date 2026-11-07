@@ -4,7 +4,8 @@ export interface AiBudget extends Base {
  period:string;currency:string;reservedUnits:number;settledUnits:number;frozen:boolean;
 }
 export interface AiRun extends Base {
- actorId:string;budgetId:string;requestKey:string;requestDigest:string;inputDigest:string;
+ actorId:string|null;talentAccountId?:string|null;actorEpoch?:number|null;purpose?:'INTERNAL_TASK'|'SUPPLIER_DOCUMENT';
+ budgetId:string;requestKey:string;requestDigest:string;inputDigest:string;
  providerIdentityHash:string;configRevision:number;recoveryEpoch:string;
  state:'QUEUED'|'RUNNING'|'SUCCEEDED'|'FAILED'|'CANCELLED'|'UNKNOWN';
  reservedUnits:number;settledUnits:number|null;cancelRequested:boolean;

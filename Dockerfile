@@ -2,7 +2,9 @@
 # Build --target ops for maintenance; default target runs the API.
 FROM node:22-bookworm-slim@sha256:43ac6c60b8f89723f746e8a92ce91abd5017e627ce1ddfe4238355d3a30b772c AS build
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates openssl ffmpeg python3 make g++ && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates openssl ffmpeg python3 python3-venv make g++ && rm -rf /var/lib/apt/lists/*
+COPY workers/document-parser/requirements.txt /tmp/document-requirements.txt
+RUN python3 -m venv /opt/once-document-parser && /opt/once-document-parser/bin/pip install --no-cache-dir -r /tmp/document-requirements.txt
 RUN corepack enable
 COPY package.json pnpm-lock.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile
@@ -12,6 +14,7 @@ COPY tsconfig.server.json ./
 COPY packages ./packages
 COPY apps ./apps
 COPY scripts ./scripts
+COPY workers ./workers
 COPY artifacts/openapi.json ./artifacts/openapi.json
 RUN pnpm contract:check && pnpm typecheck && pnpm build:sequential
 
@@ -33,11 +36,14 @@ FROM build AS production-deps
 RUN pnpm prune --prod
 FROM node:22-bookworm-slim@sha256:43ac6c60b8f89723f746e8a92ce91abd5017e627ce1ddfe4238355d3a30b772c
 ENV NODE_ENV=production
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates openssl ffmpeg && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates openssl ffmpeg python3 && rm -rf /var/lib/apt/lists/*
+COPY --from=build /opt/once-document-parser /opt/once-document-parser
+ENV PATH="/opt/once-document-parser/bin:${PATH}"
 WORKDIR /app
 COPY --from=production-deps --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/package.json ./package.json
 COPY --from=build --chown=node:node /app/dist ./dist
+COPY --from=build --chown=node:node /app/workers ./workers
 USER node
 EXPOSE 4318
 # For a container, explicitly set HOST=0.0.0.0 and place it behind an authenticated/TLS boundary.

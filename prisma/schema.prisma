@@ -276,6 +276,8 @@ model ScopeMember {
 }
 
 model SourceRecord {
+  confirmedByTalentId String? @db.Uuid
+  selfConfirmedAt DateTime? @db.Timestamptz(3)
   SourceReviewRequest_sourceId SourceReviewRequest[] @relation("SourceReviewRequest_sourceId")
   internalUseUntil DateTime? @db.Timestamptz(3)
   brands Brand[] @relation("BrandSource")
@@ -628,6 +630,7 @@ model DurableJob {
 
 // Append-only protected source versions/decisions. SQL also enforces write-once history.
 model SourceHistory {
+  talentAccountId String? @db.Uuid
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -1690,6 +1693,7 @@ model PersonExternalRef {
 }
 
 model PersonCredential {
+  credentialName String? @db.Text
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -2094,7 +2098,10 @@ model AiRun {
   createdAt DateTime @db.Timestamptz(3)
   updatedAt DateTime @db.Timestamptz(3)
   revision Int
-  actorId String @db.Uuid
+  actorId String? @db.Uuid
+  talentAccountId String? @db.Uuid
+  actorEpoch Int?
+  purpose String @default("INTERNAL_TASK") @db.Text
   budgetId String @db.Uuid
   requestKey String @db.Text
   requestDigest String @db.Text
@@ -2109,7 +2116,7 @@ model AiRun {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
   @@unique([workspaceId,id])
   budget AiBudget @relation(fields: [workspaceId,budgetId], references: [workspaceId,id], onDelete: Restrict)
-  actor Membership @relation(fields: [workspaceId,actorId], references: [workspaceId,id], onDelete: Restrict)
+  actor Membership? @relation(fields: [workspaceId,actorId], references: [workspaceId,id], onDelete: Restrict)
   attempts AiAttempt[]
   @@unique([workspaceId,actorId,requestKey])
   @@map("aiRuns")
@@ -2509,6 +2516,7 @@ model TalentInvitationContext {
 }
 
 model TalentClaim {
+  confirmedByTalentId String? @db.Uuid
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -2534,6 +2542,7 @@ model TalentClaim {
 }
 
 model TalentAccessGrant {
+  confirmedByTalentId String? @db.Uuid
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -2547,7 +2556,7 @@ model TalentAccessGrant {
   actions String[]
   authorizationEpoch Int
   selfExposureManifest Json
-  approvedById String @db.Uuid
+  approvedById String? @db.Uuid
   approvalBasis String
   recoveryEpoch String
   @@unique([workspaceId, id])
@@ -2574,6 +2583,7 @@ model TalentConsent {
 }
 
 model TalentSubmission {
+  confirmedByTalentId String? @db.Uuid
   principalKind String @default("TALENT")
   servicePrincipalId String? @db.Uuid
   externalSubmissionKey String?
@@ -2633,6 +2643,7 @@ model TalentSubmissionItem {
 }
 
 model SourceAttribution {
+  confirmedByTalentId String? @db.Uuid
   principalKind String @default("TALENT")
   servicePrincipalId String? @db.Uuid
   id String @id @db.Uuid
@@ -2644,7 +2655,7 @@ model SourceAttribution {
   submissionId String? @db.Uuid
   talentAccountId String? @db.Uuid
   consentId String? @db.Uuid
-  reviewerId String @db.Uuid
+  reviewerId String? @db.Uuid
   materialDescription String
   @@unique([workspaceId, id])
   @@map("sourceAttributions")
@@ -2765,4 +2776,68 @@ model SourceReviewRequest {
   @@index([workspaceId,reviewerId,state])
   @@index([workspaceId,senderId,createdAt])
   @@map("sourceReviews")
+}
+
+// Forward 78. Composite ownership and typed-value constraints are in migration SQL.
+model SupplierCatalog {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  version Int
+  baseVersion Int?
+  state String @db.Text
+  definition Json @db.JsonB
+  definitionDigest String @db.Text
+  publishedById String? @db.Uuid
+  publishedAt DateTime? @db.Timestamptz(3)
+  publishReason String @db.Text
+  origin String @db.Text
+  @@unique([workspaceId, version])
+  @@unique([workspaceId, id])
+  @@map("supplierCatalogs")
+}
+model SupplierFact {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  personId String @db.Uuid
+  personRoleId String? @db.Uuid
+  roleCode String? @db.Text
+  sourceId String @db.Uuid
+  sourceRevision Int
+  catalogVersion Int
+  setId String @db.Uuid
+  fieldCode String @db.Text
+  recordKey String @db.Text
+  componentCode String @db.Text
+  valueType String @db.Text
+  valueState String @db.Text
+  numberValue Float?
+  booleanValue Boolean?
+  dateValue String? @db.Text
+  codeValue String? @db.Text
+  textCiphertext String? @db.Text
+  status String @db.Text
+  visibility String @db.Text
+  @@unique([workspaceId, id])
+  @@index([workspaceId, personId, status])
+  @@index([workspaceId, sourceId])
+  @@index([workspaceId, fieldCode, numberValue])
+  @@map("supplierFacts")
+}
+model SupplierFactChoice {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  factId String @db.Uuid
+  code String @db.Text
+  @@unique([workspaceId, factId, code])
+  @@index([workspaceId, code, factId])
+  @@map("supplierFactChoices")
 }

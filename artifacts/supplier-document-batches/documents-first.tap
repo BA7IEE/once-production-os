@@ -1,0 +1,117 @@
+
+> once-production-os@0.1.0-dev.1 test:documents /workspace/once-production-os
+> node scripts/test-documents.mjs
+
+TAP version 13
+# Subtest: whole PDF persists exact page batches, resumes only an explicitly approved failure, and preserves source evidence
+ok 1 - whole PDF persists exact page batches, resumes only an explicitly approved failure, and preserves source evidence
+  ---
+  duration_ms: 2933.441273
+  type: 'test'
+  ...
+# Subtest: whole native PDF survives worker restarts, suppresses duplicate submission and covers all ten pages
+ok 2 - whole native PDF survives worker restarts, suppresses duplicate submission and covers all ten pages
+  ---
+  duration_ms: 2162.413369
+  type: 'test'
+  ...
+# Subtest: cancelling a partially completed document keeps finished pages and permits confirmation without processing the rest
+ok 3 - cancelling a partially completed document keeps finished pages and permits confirmation without processing the rest
+  ---
+  duration_ms: 1207.52849
+  type: 'test'
+  ...
+# Subtest: expired chunk lease pauses the batch; a stale worker cannot publish and continuation needs no AI acknowledgement before dispatch
+ok 4 - expired chunk lease pauses the batch; a stale worker cannot publish and continuation needs no AI acknowledgement before dispatch
+  ---
+  duration_ms: 633.505144
+  type: 'test'
+  ...
+# Subtest: revoking consent between chunks stops all pending pages without another model call
+ok 5 - revoking consent between chunks stops all pending pages without another model call
+  ---
+  duration_ms: 1252.29846
+  type: 'test'
+  ...
+# Subtest: a document above the whole-file page limit fails discovery with no partial completion or model run
+ok 6 - a document above the whole-file page limit fails discovery with no partial completion or model run
+  ---
+  duration_ms: 610.398033
+  type: 'test'
+  ...
+# Subtest: real PDF produces native text, located regions and actual standalone images, including a rotated page
+ok 7 - real PDF produces native text, located regions and actual standalone images, including a rotated page
+  ---
+  duration_ms: 694.612179
+  type: 'test'
+  ...
+# Subtest: scanned PDF keeps its visual input without pretending native text was recognized
+ok 8 - scanned PDF keeps its visual input without pretending native text was recognized
+  ---
+  duration_ms: 623.861266
+  type: 'test'
+  ...
+# Subtest: selected pages are explicitly partial and retain original page numbers
+ok 9 - selected pages are explicitly partial and retain original page numbers
+  ---
+  duration_ms: 528.887308
+  type: 'test'
+  ...
+# Subtest: uploaded image yields a visual page and separately preserved image
+ok 10 - uploaded image yields a visual page and separately preserved image
+  ---
+  duration_ms: 428.383889
+  type: 'test'
+  ...
+# Subtest: password, damaged input, stale digest and invalid selection fail with fixed errors and no temporary files
+ok 11 - password, damaged input, stale digest and invalid selection fail with fixed errors and no temporary files
+  ---
+  duration_ms: 944.368374
+  type: 'test'
+  ...
+# Subtest: whole-document discovery counts pages without rendering and refuses more than 100 pages
+ok 12 - whole-document discovery counts pages without rendering and refuses more than 100 pages
+  ---
+  duration_ms: 807.022119
+  type: 'test'
+  ...
+# Subtest: actual uploaded PDF becomes protected text and image candidates, then self-confirmed formal material
+ok 13 - actual uploaded PDF becomes protected text and image candidates, then self-confirmed formal material
+  ---
+  duration_ms: 1522.781707
+  type: 'test'
+  ...
+# Subtest: actual page images reach multimodal boundary; selected AI fields prefill a draft and retain document provenance
+ok 14 - actual page images reach multimodal boundary; selected AI fields prefill a draft and retain document provenance
+  ---
+  duration_ms: 1481.287294
+  type: 'test'
+  ...
+# Subtest: AI request loss is not automatically retried and temp material is removed
+ok 15 - AI request loss is not automatically retried and temp material is removed
+  ---
+  duration_ms: 862.612299
+  type: 'test'
+  ...
+# Subtest: revoking consent before dispatch blocks extraction and prevents a model request
+ok 16 - revoking consent before dispatch blocks extraction and prevents a model request
+  ---
+  duration_ms: 511.196878
+  type: 'test'
+  ...
+# Subtest: AI prefill refuses a field edited after extraction started
+ok 17 - AI prefill refuses a field edited after extraction started
+  ---
+  duration_ms: 876.757444
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 19312.743962
+Document parser resources: ZERO_RESIDUE

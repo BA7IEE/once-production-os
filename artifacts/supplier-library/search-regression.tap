@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: supplier creates a multi-role person directly, with real self provenance, encrypted draft and replay
+ok 1 - supplier creates a multi-role person directly, with real self provenance, encrypted draft and replay
+  ---
+  duration_ms: 264.585374
+  type: 'test'
+  ...
+# Subtest: supplier confirmation rolls back every fact if atomic command audit fails
+ok 2 - supplier confirmation rolls back every fact if atomic command audit fails
+  ---
+  duration_ms: 213.035906
+  type: 'test'
+  ...
+# Subtest: parallel profile drafts cannot overwrite a newer confirmation, and explicit rebase can resolve it
+ok 3 - parallel profile drafts cannot overwrite a newer confirmation, and explicit rebase can resolve it
+  ---
+  duration_ms: 225.206233
+  type: 'test'
+  ...
+# Subtest: ONCE correction of a shared field is visible to its self account and blocks an old draft
+ok 4 - ONCE correction of a shared field is visible to its self account and blocks an old draft
+  ---
+  duration_ms: 212.824728
+  type: 'test'
+  ...
+# Subtest: full length profile text remains readable in an encrypted server draft
+ok 5 - full length profile text remains readable in an encrypted server draft
+  ---
+  duration_ms: 189.876028
+  type: 'test'
+  ...
+# Subtest: self-confirmed business export preserves the real confirming principal without creating accounts on rebuild
+ok 6 - self-confirmed business export preserves the real confirming principal without creating accounts on rebuild
+  ---
+  duration_ms: 498.041078
+  type: 'test'
+  ...
+# Subtest: revoked supplier consent immediately hides shared fields and the internal directory
+ok 7 - revoked supplier consent immediately hides shared fields and the internal directory
+  ---
+  duration_ms: 203.36488
+  type: 'test'
+  ...
+# Subtest: an incomplete exposure cannot silently clear or reveal unshared staff fields
+ok 8 - an incomplete exposure cannot silently clear or reveal unshared staff fields
+  ---
+  duration_ms: 210.528038
+  type: 'test'
+  ...
+# Subtest: a renewed self profile remains searchable when its older consent is revoked
+ok 9 - a renewed self profile remains searchable when its older consent is revoked
+  ---
+  duration_ms: 207.725087
+  type: 'test'
+  ...
+# Subtest: PR01b finalization OR/AND, complete facets, conservative presets and explicit candidate role
+ok 10 - PR01b finalization OR/AND, complete facets, conservative presets and explicit candidate role
+  ---
+  duration_ms: 452.75895
+  type: 'test'
+  ...
+# Subtest: PR01b new fields and cover survive controlled transfer, recovery and merge, then erase through the frozen asset graph
+ok 11 - PR01b new fields and cover survive controlled transfer, recovery and merge, then erase through the frozen asset graph
+  ---
+  duration_ms: 1030.879776
+  type: 'test'
+  ...
+# Subtest: PR01b composed maintenance persists attributes and shared filters, without nationality inference or fabricated measurement date
+ok 12 - PR01b composed maintenance persists attributes and shared filters, without nationality inference or fabricated measurement date
+  ---
+  duration_ms: 229.810603
+  type: 'test'
+  ...
+# Subtest: PR01b rejects contradictory birth branches, fake unknown dates, non-model labels and stale atomic commands
+ok 13 - PR01b rejects contradictory birth branches, fake unknown dates, non-model labels and stale atomic commands
+  ---
+  duration_ms: 195.573282
+  type: 'test'
+  ...
+# Subtest: PR01b complete birth date needs separate grants, safe derived ages remain available and hidden source cannot match
+ok 14 - PR01b complete birth date needs separate grants, safe derived ages remain available and hidden source cannot match
+  ---
+  duration_ms: 706.313839
+  type: 'test'
+  ...
+# Subtest: PR01b unknown and declared ages keep precision through time and v14 imports gain unknown defaults
+ok 15 - PR01b unknown and declared ages keep precision through time and v14 imports gain unknown defaults
+  ---
+  duration_ms: 0.500321
+  type: 'test'
+  ...
+# Subtest: PR01b POST query is strict, authenticated and read-only: no key, receipt or business audit
+ok 16 - PR01b POST query is strict, authenticated and read-only: no key, receipt or business audit
+  ---
+  duration_ms: 177.442294
+  type: 'test'
+  ...
+# Subtest: PR01b server receipt time cannot be forged and legacy writes refuse new fields
+ok 17 - PR01b server receipt time cannot be forged and legacy writes refuse new fields
+  ---
+  duration_ms: 183.295573
+  type: 'test'
+  ...
+# Subtest: PR01b birthday proposals stay restricted and export requires new exact grants on both person and source
+ok 18 - PR01b birthday proposals stay restricted and export requires new exact grants on both person and source
+  ---
+  duration_ms: 697.156183
+  type: 'test'
+  ...
+# Subtest: TD2-T15 result totals and all-page facets exclude hidden professional facts
+ok 19 - TD2-T15 result totals and all-page facets exclude hidden professional facts
+  ---
+  duration_ms: 463.608446
+  type: 'test'
+  ...
+# Subtest: TD2-T15 industry and work type must match the same work in the selected occupation
+ok 20 - TD2-T15 industry and work type must match the same work in the selected occupation
+  ---
+  duration_ms: 252.930473
+  type: 'test'
+  ...
+# Subtest: TD2-T15 actual collaboration and combined professional filters preserve role context
+ok 21 - TD2-T15 actual collaboration and combined professional filters preserve role context
+  ---
+  duration_ms: 228.964839
+  type: 'test'
+  ...
+# Subtest: TD2-T15 suspended sources remove search matches and orphan filter qualifiers are rejected
+ok 22 - TD2-T15 suspended sources remove search matches and orphan filter qualifiers are rejected
+  ---
+  duration_ms: 225.593711
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8923.56092

@@ -1,3 +1,4 @@
+import {supplierFieldSnapshot,supplierFieldScopeBlocker,eraseSupplierFields} from './supplier-field-lifecycle.ts';
 import {maintenanceSnapshot,maintenanceScopeBlocker,revokePersonMaintenance} from './talent-maintenance-lifecycle.ts';
 import {personHistoryErasure,historyErasureBlocker,recordPersonHistoryErasure,assertHistoryErasureComplete} from './merge-history-erasure.ts';
 import {deletionWorkerActor} from './deletion-worker-policy.ts';
@@ -40,8 +41,8 @@ async function personErasureGraph(tx: Tx, workspaceId: string, personId: string)
     const people = data.people.filter(r => personIds.has(r.id)).map(r => ({ id: r.id, scopeId: r.scopeId }));
     const scopeIds = new Set([...sources.map(r => r.scopeId), ...people.map(r => r.scopeId)]);
     const scopes = data.scopes.filter(r => scopeIds.has(r.id));
-    const maintenance=await maintenanceSnapshot(tx,workspaceId,[...erasePeople]);
-    return { data, selected, history,maintenance, digest: digest({maintenanceDigest:maintenance.digest, ...(history.aliases.length?{history:history.snapshot}:{}),graph, sources, people, scopes }), count: graph.reduce((n, x) => n + x.rows.length, 0)+history.count+maintenance.count,
+    const maintenance=await maintenanceSnapshot(tx,workspaceId,[...erasePeople]),supplier=await supplierFieldSnapshot(tx,workspaceId,[...erasePeople]);
+    return { data, selected, history,maintenance,supplier, digest: digest({...(supplier.count?{supplier:supplier.digest}:{}),maintenanceDigest:maintenance.digest, ...(history.aliases.length?{history:history.snapshot}:{}),graph, sources, people, scopes }), count: graph.reduce((n, x) => n + x.rows.length, 0)+history.count+maintenance.count+supplier.count,
         counts: Object.fromEntries(graph.map(x => [x.table, x.rows.length])) };
 }
 export async function previewTalentErasure(tx: Tx, actor: Actor, personId: string) {
@@ -60,7 +61,7 @@ export async function previewTalentErasure(tx: Tx, actor: Actor, personId: strin
     const historyBlocker=await historyErasureBlocker(tx,actor,personId,g.history,g.data);
     const sensitive = (g.selected.get('personCredentials') ?? []).some(r => !!r.identifierCiphertext);
     return { count: g.count, digest: g.digest, counts: visible ? g.counts : {},
-        historyIdentityCount:g.history.people.length,historySummary:!historyBlocker?g.history.people.map(p=>String(p.displayName)).join('、'):'', blocker:historyBlocker??await maintenanceScopeBlocker(tx,actor,g.maintenance.data)??(!visible ? 'TD2_HIDDEN_DEPENDENCY' : sensitive && !actor.permissions.includes('sensitive.write') ? 'TD2_SENSITIVE_WRITE_REQUIRED' : null) };
+        historyIdentityCount:g.history.people.length,historySummary:!historyBlocker?g.history.people.map(p=>String(p.displayName)).join('、'):'', blocker:historyBlocker??await supplierFieldScopeBlocker(tx,actor,g.supplier)??await maintenanceScopeBlocker(tx,actor,g.maintenance.data)??(!visible ? 'TD2_HIDDEN_DEPENDENCY' : sensitive && !actor.permissions.includes('sensitive.write') ? 'TD2_SENSITIVE_WRITE_REQUIRED' : null) };
 }
 
 /** The entire graph is removed in ONE short transaction, including dependent typed Evidence.
@@ -73,6 +74,7 @@ export async function eraseTalentPersonGraph(tx: Tx, request: DeletionRequest, i
     invariant(!current.blocker,current.blocker??'TD2_HISTORY_SCOPE_CHANGED','当前资格或关联范围已变化，拒绝执行旧人物清理计划',409);
     const g = await personErasureGraph(tx, request.workspaceId, item.resourceId);
     invariant(item.detailCode === `TD2_GRAPH_${g.digest}${g.history.people.length?':H'+g.history.people.length:''}`, 'TD2_ERASURE_GRAPH_STALE', '人才专业档案依赖发生变化，拒绝使用旧清理计划', 409);
+    await eraseSupplierFields(tx,request.workspaceId,[item.resourceId,...g.history.oldIds]);
     await revokePersonMaintenance(tx,request.workspaceId,[item.resourceId,...g.history.oldIds],clock,true);
     const roles = new Set((g.selected.get('personRoles') ?? []).map(r => r.id));
     for (const row of await tx.find('shortlistItems', { workspaceId: request.workspaceId, personId: item.resourceId })) {
@@ -99,6 +101,7 @@ export async function eraseTalentPersonGraph(tx: Tx, request: DeletionRequest, i
 /** Older persisted requests must not finalize a root while newly introduced dependencies survive. */
 export async function assertTalentFinalizationClean(tx: Tx, workspaceId: string, kind: string, id: string, clock: Clock) {
     if (kind !== 'PERSON' && kind !== 'SOURCE' && kind !== 'ASSET') return;
+    if(kind==='PERSON'||kind==='SOURCE'){const extra=await supplierFieldSnapshot(tx,workspaceId,kind==='PERSON'?[id]:undefined,kind==='SOURCE'?id:undefined);invariant(extra.count===0,'SUPPLIER_FIELD_CLEANUP_INCOMPLETE','专业补充资料尚未完成清理',409);}
     if(kind==='PERSON')await assertHistoryErasureComplete(tx,workspaceId,id);
     if (kind === 'SOURCE' && await assertSourceFactRetentionComplete(tx, workspaceId, id, clock)) return;
     const deps = await talentDependencyCounts(tx, workspaceId, kind, id);

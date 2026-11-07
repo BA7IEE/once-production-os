@@ -1,4 +1,5 @@
 import type { Actor, Clock, RequestMeta, Source, SourceHistory } from './model.ts';
+import type {CommandPrincipal} from './talent-auth-model.ts';
 import type { Tx } from './store.ts';
 import { invariant } from './errors.ts';
 import { audit, base, page } from './helpers.ts';
@@ -12,17 +13,21 @@ export function sourceSnapshot(source: Source): Source {
         providerClaim: source.providerClaim, textPayload: source.textPayload,
         basisMode: source.basisMode, basisDescription: source.basisDescription,
         validFrom: source.validFrom, validUntil: source.validUntil,...(source.internalUseUntil?{internalUseUntil:source.internalUseUntil}:{}), status: source.status,
-        protectionEpoch: source.protectionEpoch, reviewedBy: source.reviewedBy, reviewedAt: source.reviewedAt };
+        protectionEpoch: source.protectionEpoch, reviewedBy: source.reviewedBy, reviewedAt: source.reviewedAt,
+        ...(source.confirmedByTalentId?{confirmedByTalentId:source.confirmedByTalentId,selfConfirmedAt:source.selfConfirmedAt}: {}) };
 }
-export async function appendSourceHistory(tx: Tx, actor: Actor, source: Source,
+export async function appendSourceHistory(tx: Tx, actor: CommandPrincipal, source: Source,
     action: Exclude<SourceHistory['action'], 'BASELINE'>, clock: Clock, decisionReason: string | null = null): Promise<void> {
     const previous = action === 'CREATED' ? null : (await tx.find('sourceHistory', {
         workspaceId: source.workspaceId, sourceId: source.id, sourceRevision: source.revision - 1 }))[0];
     invariant(action === 'CREATED' || previous, 'HISTORY_BASELINE_MISSING', '来源历史存在缺口，请先核对迁移和旧版本进程', 409);
     // A legacy pause reason must not turn into a reliable basis merely through a title/scope edit.
     const basisAmbiguous = action === 'CREATED' || action === 'REVIEWED' ? false : previous!.basisAmbiguous;
+    if(actor.actorKind==='TALENT')invariant(action==='CREATED'&&source.confirmedByTalentId===actor.talentAccountId,
+        'SELF_SOURCE_INVALID','本人确认来源与当前账号不一致',403);
     await tx.insert('sourceHistory', { ...base(source.workspaceId, clock), sourceId: source.id,
-        sourceRevision: source.revision, scopeId: source.scopeId, actorId: actor.membershipId,
+        sourceRevision: source.revision, scopeId: source.scopeId, actorId:actor.actorKind==='TALENT'?null:actor.membershipId,
+        ...(actor.actorKind==='TALENT'?{talentAccountId:actor.talentAccountId}:{}),
         action, decisionReason, baselineOnly: false, basisAmbiguous, snapshot: sourceSnapshot(source) });
 }
 
@@ -43,7 +48,7 @@ export async function readSourceHistory(tx: Tx, actor: Actor, id: string, query:
         if (!scopes.has(row.scopeId)) scopes.set(row.scopeId, await scopeVisible(tx, actor, row.scopeId));
         if (!scopes.get(row.scopeId)) continue;
         visible.push({ id: row.id, sourceRevision: row.sourceRevision, action: row.action,
-            actorId: row.actorId, recordedAt: row.createdAt, decisionReason: row.decisionReason,
+            actorId: row.actorId,...(row.talentAccountId?{talentAccountId:row.talentAccountId}:{}), recordedAt: row.createdAt, decisionReason: row.decisionReason,
             baselineOnly: row.baselineOnly,
             legacyBasisAmbiguous: row.basisAmbiguous,
             snapshot: 'erased' in row.snapshot ? row.snapshot : sourceSnapshot(row.snapshot) });

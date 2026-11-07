@@ -1,0 +1,17 @@
+{
+  "status": "PASSED",
+  "providerVerified": "NOT_RUN",
+  "provider": "controlled local notification gateway; local PDF worker; AI off",
+  "checks": [
+    "catalog-manager-publishes-new-role-specific-multiselect-without-code-changes",
+    "upload-first-entry-creates-an-empty-draft-without-fabricating-person-facts",
+    "mobile-self-enrollment-multi-role-encrypted-server-draft",
+    "mobile-template-driven-fields-and-unverified-qualification-survive-server-draft",
+    "refresh-before-receipt-readback-reconciles-original-command-without-a-second-plan",
+    "whole-ten-page-PDF-three-durable-batches-survive-page-reload",
+    "real-upload-native-pdf-text-and-photo-extraction-work-case-self-confirmation",
+    "returning-account-loads-current-profile-and-three-mobile-widths",
+    "self-confirmed-dynamic-field-search-all-options-on-one-career-and-no-browser-fact-storage"
+  ],
+  "errors": []
+}

@@ -1,3 +1,4 @@
+import {SupplierDocumentSchemas as D} from './supplier-documents.ts';
 import {handoffExposureSchema} from './talent-handoff.ts';
 import {WorkCaseSchemas} from './work-case-schema.ts';
 import {mediaExposureSchema} from './talent-media-exposure.ts';
@@ -5,7 +6,24 @@ import {CollectionSchemas} from './media-collections.ts';
 import {TalentMediaSchemas,MediaSchemas} from './media-validation.ts';
 import type {RouteDefinition} from './routes.ts';
 import {MaintenanceSchemas as S} from './talent-maintenance-schema.ts';
+import {SupplierProfileSchemas as P} from './supplier-profile-schema.ts';
 export const TALENT_MAINTENANCE_ROUTES:RouteDefinition[]=[
+ {method:'POST',path:'/portal/profile-drafts/{id}/documents/batch',operation:'portal.supplier.documentBatch',mode:'COMMAND',schema:D.batch},
+ {method:'POST',path:'/portal/profile-drafts/{id}/documents/work-group',operation:'portal.supplier.documentWorkGroup',mode:'COMMAND',schema:D.workGroup},
+ {method:'POST',path:'/portal/profile-drafts/{id}/documents/work',operation:'portal.supplier.documentWork',mode:'COMMAND',schema:D.work},
+ {method:'POST',path:'/portal/profile-drafts/{id}/documents/images',operation:'portal.supplier.documentImages',mode:'COMMAND',schema:D.images},
+ {method:'GET',path:'/portal/profile-drafts/{id}/documents',operation:'portal.supplier.documents',mode:'READ'},
+ {method:'POST',path:'/portal/profile-drafts/{id}/documents',operation:'portal.supplier.documentStart',mode:'COMMAND',schema:D.start},
+ {method:'POST',path:'/portal/profile-drafts/{id}/documents/apply',operation:'portal.supplier.documentApply',mode:'COMMAND',schema:D.apply},
+ {method:'POST',path:'/portal/profile-drafts/{id}/documents/cancel',operation:'portal.supplier.documentCancel',mode:'COMMAND',schema:D.cancel},
+ {method:'GET',path:'/portal/profile-schema',operation:'portal.supplier.schema',mode:'READ'},
+ {method:'GET',path:'/portal/supplier-profiles/{id}',operation:'portal.supplier.profile',mode:'READ'},
+ {method:'GET',path:'/portal/profile-drafts',operation:'portal.supplier.list',mode:'READ'},
+ {method:'GET',path:'/portal/profile-drafts/{id}',operation:'portal.supplier.get',mode:'READ'},
+ {method:'POST',path:'/portal/profile-drafts',operation:'portal.supplier.create',mode:'COMMAND',schema:P.create},
+ {method:'PATCH',path:'/portal/profile-drafts/{id}',operation:'portal.supplier.save',mode:'COMMAND',schema:P.save},
+ {method:'POST',path:'/portal/profile-drafts/{id}/rebase',operation:'portal.supplier.rebase',mode:'COMMAND',schema:P.rebase},
+ {method:'POST',path:'/portal/profile-drafts/{id}/confirm',operation:'portal.supplier.confirm',mode:'COMMAND',schema:P.confirm},
  {method:'GET',path:'/portal/commands/{id}',operation:'portal.command.get',mode:'READ'},
  {method:'GET',path:'/talent-handoff/people/{id}',operation:'talent.handoff.get',mode:'READ',permission:'talent.review'},
  {method:'POST',path:'/talent-grants/{id}/exposure',operation:'talent.grant.exposure',mode:'COMMAND',permission:'talent.review',schema:handoffExposureSchema},

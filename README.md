@@ -1,26 +1,38 @@
-当前交付：[主分支合并收尾](docs/release/MERGE_CLOSEOUT_20261005.md)（随 [PR #38](https://github.com/BA7IEE/once-production-os/pull/38) 合并生效）。PR #31–#38一次整合到main；旧CI已改接受控数据库/浏览器入口，原业务回归保留，当前SHA验收以Actions为准。未部署，供应商及人工业务验收仍待完成。下方Draft状态均为历史记录。
+# ONCE 供应商库
 
-当前工作：[七项业务流程复核修复](docs/release/BUSINESS_FLOW_REVIEW_FIXES.md)，[Draft PR #38](https://github.com/BA7IEE/once-production-os/pull/38)。基于PR #37，在独立分支完成修复；本轮CI已通过完整类型/构建、806项Core、三组真实PG和六组浏览器，未合并、未部署。验证边界与首次失败记录见交付文档。以下PR-04D记录属于历史基线。
+当前重点是把模特、导演、编剧、摄影师、灯光师、剪辑师、调色师等人的资料管理起来。沿用 ONCE Production OS 的人物、作品、来源、权限和私有文件底座，新增本人维护与材料解析流程。
 
-历史 PR-04D 进度见 [同档接手与生命周期交付说明](docs/release/PR04_AGENT_INGESTION_D.md)，独立 stacked Draft PR35、未合并、未部署。A–C及迁移1–74冻结；本轮本地全量通过，最终head CI另绑定PR与交付回复，D等待代码级复核。
+**邀请登录 → 上传 PDF/图片 → 提取内容和 AI 预填 → 本人调整确认 → 直接入库 → ONCE 查找和整理。**
 
-# ONCE Production OS
+## 当前开发版本
 
-人才与制作资料系统，当前按 [Talent Experience v1.1](docs/spec/15_TALENT_EXPERIENCE_V1_1.md) 扩展。PR-01、PR-02已合并并开发冻结；PR-03 A–E全部开发冻结，PR #31已转Ready for Review，未合并、未部署。冻结SHA、精确head CI和实测边界见 [PR-03冻结记录](docs/release/PR03_DEVELOPMENT_FREEZE.md)。外部Agent摄取的 PR-04A 已由用户冻结，PR #32保持Draft；PR-04B 已由用户冻结，PR #33保持Draft；PR-04C已由用户冻结，PR #34保持Draft；PR-04D接通同档邀请认领、明确exposure和本人后续维护，完成生命周期全量回归，[本轮交付与实测边界](docs/release/PR04_AGENT_INGESTION_D.md)明确无新迁移、真实页面和最终head CI，D仍待代码级复核。真实供应商、COS、物理手机及生产迁移继续NOT_RUN。
+2026-11-07（北京时间），工作分支 `codex/supplier-library-v1`。H5 入口为 `/talent/login`，本人使用独立账号；现有管理端继续维护同一人物库。小程序可复用接口，本轮交付 H5。
 
-内部底座：当前开发分支已接通来源/权限、人才2.0、作品项目、专业检索、候选清单、受控合并/导出重建/删除、内部语言文本，以及四类文字AI辅助。
+- 基础资料支持多职业、城市、语言、技能、联系方式和模特量尺，保存服务器草稿并检查更新冲突。
+- PDFium 实际提取 PDF 文字、页码、页图和嵌入图片。模型可识别扫描页并提出字段、作品及图片区域建议，供本人选择和调整。
+- 识别出的作品可以跨页、跨批次、跨文件归入一个可编辑案例，保留图片和各处来源。
+- 本人确认后直接建立或更新档案、素材和作品；记录真实本人主体与来源，不冒充员工审核。
+- ONCE 可以继续检索、纠正资料。旧有归属认领和代理/监护人流程保留在 `?legacy=1`。
+- 职业模板支持可配置字段、多选标签和成组经历；新字段可先配置发布，再用于本人填写、AI 预填和后台筛选。
 
-模型连接由管理员填写URL、协议、模型名称和密钥，保存、测试后批准启用，无需独立网关。AI只提供待确认建议。
+详细范围、架构、运行方式和测试证据见 [实施记录](docs/release/SUPPLIER_LIBRARY_V1_IMPLEMENTATION.md)，产品目标见 [供应商库第一版方案](docs/design/ONCE_SUPPLIER_LIBRARY_V1_20261106.md)。
 
-媒体支持私有图片、PDF附件和受控MP4播放。**PDF不在系统内解析，内容处理交给外部Agent。** 本地开发使用Local Provider；COS使用私有专用桶与共享隔离目录，原件仍通过受控导出获取。存储配置见 `.env.example` 和下方交付说明。
+首阶段核心回归 827/827、真实 PostgreSQL、原生文件处理和 H5 浏览器已通过隔离验收。本次继续增加整份 PDF 自动分批：最多 100 页、每批不超过 4 页，失败暂停后可明确续做，详见[整份材料续做记录](docs/release/SUPPLIER_DOCUMENT_BATCHES.md)。作品候选整理的最新实现见[作品整理记录](docs/release/SUPPLIER_WORK_GROUPING.md)。真实模型、通知服务、COS、物理手机及业务试点尚未验收；万人合成查询 P95 约 3.2 秒，尚未达到 1 秒目标。未执行生产迁移、合并或部署。
 
-当前不是完整一期验收或正式部署声明。真实供应商、性能/运维及生产接管待验；品牌、所属机构和项目客户／品牌关联已接通，当前提交的集中验收结果见 PR。
+字段升级的最终验收为 Core 839/839、文档 21/21、生命周期 34/34，数据库升级及 9 条浏览器流程通过；代码与匿名证据以本地提交交付。真实材料已用于结构校准，尚未自动入库。PPTX 摄取、外部模型准确率、含新扩展字段的档案合并和业务迁移导出仍待完善，详见[交付边界](docs/release/SUPPLIER_FIELD_TEMPLATES.md#交付边界)。
 
-- [本轮快速建档与迁移/验收计划](docs/release/TALENT_EXPERIENCE.md)
-- [当前交付与剩余清单](docs/release/CURRENT_DELIVERY.md)
-- [媒体处理、COS配置与边界](docs/release/MEDIA_COMPLETION.md)
-- [模型连接](docs/release/AI_MODEL_CONNECTION.md)
-- [历史交付证据](docs/release/README_HISTORY.md)
+## 开发入口
+
+- [产品与范围](docs/spec/00_README.md)
 - [开发契约](docs/spec/06_DEVELOPMENT.md)
+- [字段、标签与职业模板升级设计](docs/design/ONCE_FIELD_TAG_TEMPLATE_UPGRADE_20261107.md)
+- [字段模板实施与验收](docs/release/SUPPLIER_FIELD_TEMPLATES.md)
+- [真实材料对字段设计的校准](docs/design/REAL_MATERIAL_FIELD_CALIBRATION_20261107.md)
+- [模型连接配置](docs/release/AI_MODEL_CONNECTION.md)
+- [资源登记与清理规则](docs/development/RESOURCE_LIFECYCLE.md)
 
-正式入口使用PrismaStore，不提供生产内存回退；已应用迁移只允许追加。开发和检查使用锁定依赖，常用命令见package.json。
+使用 Node 22、pnpm 10 和锁定依赖。解析依赖及复测命令见实施记录。正式入口使用 PrismaStore，不提供生产内存回退；已经应用的迁移只追加，不改写历史。
+
+## 历史记录
+
+[2026-10-05 主分支合并收尾](docs/release/MERGE_CLOSEOUT_20261005.md)、[业务流程复核修复](docs/release/BUSINESS_FLOW_REVIEW_FIXES.md)、[同档接手与生命周期](docs/release/PR04_AGENT_INGESTION_D.md) 和 [更早交付证据](docs/release/README_HISTORY.md) 保留各轮事实。历史的“PDF 仅附件”和“本人文字投稿必须员工审核”范围不适用于当前供应商库增量。

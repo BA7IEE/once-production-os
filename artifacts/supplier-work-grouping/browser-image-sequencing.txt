@@ -1,0 +1,24 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite supplier-library
+
+{"alerts":[],"sections":1,"labels":["<label><input type=\"checkbox\" checked=\"\" style=\"\">使用 AI 识别和整理字段</label>"],"errors":[]}
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.waitFor: Timeout 20000ms exceeded.
+Call log:
+[2m  - waiting for locator('.supplier-document-result').filter({ has: getByRole('heading', { name: 'long-portfolio.pdf · 第 9、10 页', exact: true }) }).getByText('已加入 2 张图片，可在材料区查看。', { exact: true }) to be visible[22m
+
+    at browserWorkGrouping (/workspace/once-production-os/tests/acceptance/supplier-work-grouping.mjs:21:86)
+    at async file:///workspace/once-production-os/tests/acceptance/browser-supplier-library.mjs:50:54 {
+  log: [
+    "  - waiting for locator('.supplier-document-result').filter({ has: getByRole('heading', { name: 'long-portfolio.pdf · 第 9、10 页', exact: true }) }).getByText('已加入 2 张图片，可在材料区查看。', { exact: true }) to be visible"
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.22.3
+Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+ ELIFECYCLE  Command failed with exit code 1.

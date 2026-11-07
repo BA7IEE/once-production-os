@@ -1,0 +1,16 @@
+{
+  "head": "09bc4a6e359595c266d42147d1ade65f4a6027c5",
+  "pullRequest": "https://github.com/BA7IEE/once-production-os/pull/40",
+  "workflowRun": "https://github.com/BA7IEE/once-production-os/actions/runs/42386629844",
+  "jobId": 128445307121,
+  "job": "postgres-contract",
+  "conclusion": "FAILURE",
+  "failedStep": "PostgreSQL contracts, migrations and real rebuild CLI",
+  "test": "tests/postgres/agent-handoff.test.ts",
+  "variant": "export-recovery",
+  "observedMigrations": 78,
+  "obsoleteExpectedCount": 75,
+  "migrationExecution": "All migrations were successfully applied before the obsolete assertion failed.",
+  "correction": "Compare the complete ordered migration-name list to the repository, retain before/after checksum and business-row comparisons, and read actual counts for evidence reports.",
+  "productionMigration": false
+}

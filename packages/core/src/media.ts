@@ -314,10 +314,10 @@ export class Media {
         invariant(m?.status === 'ACTIVE' && user?.status === 'ACTIVE', 'MEDIA_CONTEXT_CHANGED', '上传人已停用', 409);
         return { userId: user.id, membershipId: m.id, workspaceId: u.workspaceId, role: m.role, permissions: permissionsFor(m), displayName: user.displayName, userEpoch: user.sessionEpoch, sessionId: '' };
     }
-    async claim(): Promise<MediaUpload | null> {
+    async claim(onlyId?:string): Promise<MediaUpload | null> {
         this.enabled();
         return this.store.transaction(async (tx) => {
-            const rows = (await tx.find('uploads')).sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
+            const rows = (await tx.find('uploads',onlyId?{id:onlyId}:{})).sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
             for (const u of rows) {
                 const now = this.clock.now().getTime();
                 if (u.state !== 'QUEUED' && !(u.state === 'PROCESSING' && Date.parse(u.leaseUntil!) <= now))

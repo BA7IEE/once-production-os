@@ -2,7 +2,7 @@ import {useState,type ReactNode} from 'react';
 import type {Me} from './dto.ts';
 import {labels} from './ui.tsx';
 const primary=[['dashboard','工作台','◈'],['people','人才库','◎'],['shortlists','候选清单','◇'],['works','作品库','▧'],['projects','项目','▦'],['review','审核','✓']];
-const groups:Array<[string,Array<[string,string,string]>]>=[['资料工具',[['sources','资料来源','sources.read'],['media','全局素材','assets.read'],['imports','导入资料','records.write'],['exports','内部导出','data.export'],['ai','AI 辅助整理','ai.use']]],['协作与权限',[['handoffs','资料交接','records.read'],['members','成员与范围','members.manage']]],['系统维护',[['merges','人才合并','data.merge'],['deletions','删除任务','data.delete'],['catalog','分类字典','catalog.manage'],['audit','操作记录','audit.read']]]];
+const groups:Array<[string,Array<[string,string,string]>]>=[['资料工具',[['sources','资料来源','sources.read'],['media','全局素材','assets.read'],['imports','导入资料','records.write'],['exports','内部导出','data.export'],['ai','AI 辅助整理','ai.use']]],['协作与权限',[['handoffs','资料交接','records.read'],['members','成员与范围','members.manage']]],['系统维护',[['merges','人才合并','data.merge'],['deletions','删除任务','data.delete'],['catalog','字段与分类','catalog.manage'],['audit','操作记录','audit.read']]]];
 export function AppShell({me,active,onNavigate,children}:{me:Me;active:string;onNavigate:(key:string)=>void;children:ReactNode}){
  const management=groups.some(([,items])=>items.some(i=>i[0]===active)),[mobile,setMobile]=useState(false);
  const navigate=(key:string)=>{onNavigate(key);setMobile(false);};

@@ -1,0 +1,5 @@
+
+> once-production-os@0.1.0-dev.1 contract:check /workspace/once-production-os
+> node --experimental-strip-types scripts/generate-contract.ts --check
+
+Contract verified: 329 routes; request schemas only

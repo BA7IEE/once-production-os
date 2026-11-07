@@ -4,7 +4,7 @@ const scope = new ResourceRun();
 let release;
 try {
   // Hosted Actions jobs own isolated Linux runners; the shared-Mac gate stays mandatory locally.
-  if(process.platform==='darwin'){release = acquireLock(); preflight();}
+  if(process.platform==='darwin'||process.platform==='linux'&&process.env.ONCE_RUNNER==='managed-linux'){release = acquireLock(); preflight();}
   else if(!hostedActionsRunner())throw new Error('Use a supported owned runner.');
   scope.check();
   const [command, ...args] = process.argv.slice(2);

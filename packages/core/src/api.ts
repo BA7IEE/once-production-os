@@ -1,3 +1,5 @@
+import {catalogView,publishedCatalog,SupplierFieldCatalogs} from './supplier-field-catalog.ts';
+import {SupplierProfessional} from './supplier-professional.ts';
 import {handoffOverview,approveHandoffExposure} from './talent-handoff.ts';
 import {Ingestion} from './ingestion.ts';
 import {authorizeAgentReceive} from './agent-media.ts';
@@ -519,6 +521,13 @@ export class Application {
                         const kind = params.kind;
                         return command(kind, () => this.talent.changeScope(tx, actor, kind, id, data), kind + ':' + id);
                     }
+                    case 'supplier.fields.schema':return {...catalogView(await publishedCatalog(tx,actor.workspaceId),true),capabilities:(await tx.find('capabilityDefinitions',{workspaceId:actor.workspaceId,status:'ACTIVE'})).map(c=>({code:c.code,label:c.labelZh,roles:c.applicableRoleCodes,levelScheme:c.levelSchemeCode}))};
+                    case 'supplier.catalog.list':return new SupplierFieldCatalogs(this.clock).list(tx,actor);
+                    case 'supplier.catalog.create':return command('catalog',()=>new SupplierFieldCatalogs(this.clock).create(tx,actor,data));
+                    case 'supplier.catalog.save':return command('catalog',()=>new SupplierFieldCatalogs(this.clock).save(tx,actor,id,data));
+                    case 'supplier.catalog.publish':return command('catalog',()=>new SupplierFieldCatalogs(this.clock).publish(tx,actor,id,data));
+                    case 'supplier.professional.get':return new SupplierProfessional(this.clock,this.config).internal(tx,actor,id);
+                    case 'supplier.professional.update':return command('person',()=>new SupplierProfessional(this.clock,this.config).update(tx,actor,id,data));
                     case 'catalog.list': return this.talent.catalog(tx, actor);
                     case 'catalog.create': return command('catalog', () => this.talent.createCatalog(tx, actor, data));
                     case 'catalog.update': return command('catalog', () => this.talent.updateCatalog(tx, actor, id, data));
@@ -582,7 +591,7 @@ export class Application {
             if (['ai.create', 'import.commit', 'job.resume', 'upload.complete', 'ingestion.upload.complete', 'export.create'].includes(route.operation))
                 response.status = 202;
             else if (route.operation==='directory.talent.create' || route.operation.startsWith('td2.') && route.operation.endsWith('.create')) response.status = 201;
-            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['sourceReview.create','brand.create', 'ai.grant', 'locale.create', 'deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create', 'ingestion.upload.create'].includes(route.operation)))
+            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['supplier.catalog.create','sourceReview.create','brand.create', 'ai.grant', 'locale.create', 'deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create', 'ingestion.upload.create'].includes(route.operation)))
                 response.status = 201;
             return response;
         }

@@ -1,0 +1,141 @@
+
+> once-production-os@0.1.0-dev.1 test:documents /workspace/once-production-os
+> node scripts/test-documents.mjs
+
+TAP version 13
+# Subtest: whole PDF persists exact page batches, resumes only an explicitly approved failure, and preserves source evidence
+ok 1 - whole PDF persists exact page batches, resumes only an explicitly approved failure, and preserves source evidence
+  ---
+  duration_ms: 2988.489273
+  type: 'test'
+  ...
+# Subtest: whole native PDF survives worker restarts, suppresses duplicate submission and covers all ten pages
+ok 2 - whole native PDF survives worker restarts, suppresses duplicate submission and covers all ten pages
+  ---
+  duration_ms: 2186.298937
+  type: 'test'
+  ...
+# Subtest: cancelling a partially completed document keeps finished pages and permits confirmation without processing the rest
+ok 3 - cancelling a partially completed document keeps finished pages and permits confirmation without processing the rest
+  ---
+  duration_ms: 1225.761198
+  type: 'test'
+  ...
+# Subtest: expired chunk lease pauses the batch; a stale worker cannot publish and continuation needs no AI acknowledgement before dispatch
+ok 4 - expired chunk lease pauses the batch; a stale worker cannot publish and continuation needs no AI acknowledgement before dispatch
+  ---
+  duration_ms: 642.405967
+  type: 'test'
+  ...
+# Subtest: cancellation after AI dispatch rejects late output and never schedules the remaining pages
+ok 5 - cancellation after AI dispatch rejects late output and never schedules the remaining pages
+  ---
+  duration_ms: 1271.504604
+  type: 'test'
+  ...
+# Subtest: revoking consent between chunks stops all pending pages without another model call
+ok 6 - revoking consent between chunks stops all pending pages without another model call
+  ---
+  duration_ms: 1250.193602
+  type: 'test'
+  ...
+# Subtest: a document above the whole-file page limit fails discovery with no partial completion or model run
+ok 7 - a document above the whole-file page limit fails discovery with no partial completion or model run
+  ---
+  duration_ms: 631.294039
+  type: 'test'
+  ...
+# Subtest: PDF AI prefill appends and explicitly replaces controlled tags, and populates existing native records with page provenance
+ok 8 - PDF AI prefill appends and explicitly replaces controlled tags, and populates existing native records with page provenance
+  ---
+  duration_ms: 1398.80587
+  type: 'test'
+  ...
+# Subtest: real PDF produces native text, located regions and actual standalone images, including a rotated page
+ok 9 - real PDF produces native text, located regions and actual standalone images, including a rotated page
+  ---
+  duration_ms: 698.822034
+  type: 'test'
+  ...
+# Subtest: scanned PDF keeps its visual input without pretending native text was recognized
+ok 10 - scanned PDF keeps its visual input without pretending native text was recognized
+  ---
+  duration_ms: 622.568857
+  type: 'test'
+  ...
+# Subtest: selected pages are explicitly partial and retain original page numbers
+ok 11 - selected pages are explicitly partial and retain original page numbers
+  ---
+  duration_ms: 550.935475
+  type: 'test'
+  ...
+# Subtest: uploaded image yields a visual page and separately preserved image
+ok 12 - uploaded image yields a visual page and separately preserved image
+  ---
+  duration_ms: 417.209277
+  type: 'test'
+  ...
+# Subtest: password, damaged input, stale digest and invalid selection fail with fixed errors and no temporary files
+ok 13 - password, damaged input, stale digest and invalid selection fail with fixed errors and no temporary files
+  ---
+  duration_ms: 946.076509
+  type: 'test'
+  ...
+# Subtest: whole-document discovery counts pages without rendering and refuses more than 100 pages
+ok 14 - whole-document discovery counts pages without rendering and refuses more than 100 pages
+  ---
+  duration_ms: 802.371636
+  type: 'test'
+  ...
+# Subtest: cross-page, cross-batch and cross-file cases preserve edited facts, de-duplicated images, all origins and one-send receipts
+ok 15 - cross-page, cross-batch and cross-file cases preserve edited facts, de-duplicated images, all origins and one-send receipts
+  ---
+  duration_ms: 7537.650507
+  type: 'test'
+  ...
+# Subtest: grouping refuses a removed image and a missing destination without partial writes, and respects consent withdrawal
+ok 16 - grouping refuses a removed image and a missing destination without partial writes, and respects consent withdrawal
+  ---
+  duration_ms: 5815.117722
+  type: 'test'
+  ...
+# Subtest: actual uploaded PDF becomes protected text and image candidates, then self-confirmed formal material
+ok 17 - actual uploaded PDF becomes protected text and image candidates, then self-confirmed formal material
+  ---
+  duration_ms: 1543.060185
+  type: 'test'
+  ...
+# Subtest: actual page images reach multimodal boundary; selected AI fields prefill a draft and retain document provenance
+ok 18 - actual page images reach multimodal boundary; selected AI fields prefill a draft and retain document provenance
+  ---
+  duration_ms: 1543.542171
+  type: 'test'
+  ...
+# Subtest: AI request loss is not automatically retried and temp material is removed
+ok 19 - AI request loss is not automatically retried and temp material is removed
+  ---
+  duration_ms: 872.491992
+  type: 'test'
+  ...
+# Subtest: revoking consent before dispatch blocks extraction and prevents a model request
+ok 20 - revoking consent before dispatch blocks extraction and prevents a model request
+  ---
+  duration_ms: 508.994059
+  type: 'test'
+  ...
+# Subtest: AI prefill refuses a field edited after extraction started
+ok 21 - AI prefill refuses a field edited after extraction started
+  ---
+  duration_ms: 911.158694
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 36732.94548
+Document parser resources: ZERO_RESIDUE

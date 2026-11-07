@@ -1,0 +1,757 @@
+{
+  "scope": "Real ResourceRun journals in this execution workspace, excluding lifecycle fault simulations. Persistent services and other workspaces were not cleaned.",
+  "actualRuns": [
+    {
+      "id": "fa7b83814bc17ab62f6be546",
+      "started": "2026-10-13T20:05:23.272Z",
+      "finished": "2026-10-13T20:05:25.459Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "2d3274d0a51556f4cff67b64",
+      "started": "2026-10-13T20:06:31.980Z",
+      "finished": "2026-10-13T20:06:33.897Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "757312d2a68d534b4e614765",
+      "started": "2026-10-13T20:06:57.900Z",
+      "finished": "2026-10-13T20:07:10.898Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "6e8def8aad01cdffb17a7e1f",
+      "started": "2026-10-13T20:08:27.596Z",
+      "finished": "2026-10-13T20:12:42.714Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "STOPPED",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "4973b936e019c00ca52994dd",
+      "started": "2026-10-13T20:11:28.357Z",
+      "finished": "2026-10-13T20:11:41.258Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "77ef1bf7ab8a174c6c9ba7e7",
+      "started": "2026-10-13T20:12:48.879Z",
+      "finished": "2026-10-13T20:17:51.878Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "STOPPED",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "67319f49d237b5ddc31fbd88",
+      "started": "2026-10-13T20:14:38.688Z",
+      "finished": "2026-10-13T20:14:43.987Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "3c79e6a23143b1e5ec10aa24",
+      "started": "2026-11-06T12:20:54.527Z",
+      "finished": "2026-11-06T12:20:56.607Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "f8617052319fcdc7d1697919",
+      "started": "2026-11-06T12:21:15.391Z",
+      "finished": "2026-11-06T12:21:18.355Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "3b9bd0ad0791d591181f8f79",
+      "started": "2026-11-06T12:49:38.913Z",
+      "finished": "2026-11-06T12:49:44.555Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "55a9a4a932abdfddfcdce116",
+      "started": "2026-11-06T12:50:55.912Z",
+      "finished": "2026-11-06T12:51:03.385Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "03b201c09aba9346869f7e85",
+      "started": "2026-11-06T12:53:45.724Z",
+      "finished": "2026-11-06T12:53:55.491Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "5e5a7ea9f5b775fd69a9e630",
+      "started": "2026-11-06T13:03:13.318Z",
+      "finished": "2026-11-06T13:03:19.086Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "c227f3f0eb06559558b8b666",
+      "started": "2026-11-06T13:04:28.460Z",
+      "finished": "2026-11-06T13:04:34.234Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "42e2152f6c7b7d27eccae169",
+      "started": "2026-11-06T13:11:36.153Z",
+      "finished": "2026-11-06T13:11:42.463Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "6d7db88ef1f2582029af55f0",
+      "started": "2026-11-06T13:16:53.268Z",
+      "finished": "2026-11-06T13:21:41.395Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "38eaae1e4ff0e9feef8ca96a",
+      "started": "2026-11-06T13:25:22.010Z",
+      "finished": "2026-11-06T13:25:28.700Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "0200e932aae36d6e5f65e527",
+      "started": "2026-11-06T13:26:48.850Z",
+      "finished": "2026-11-06T13:26:55.125Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "750b0a9dd89c1178d5cbd366",
+      "started": "2026-11-06T13:28:34.265Z",
+      "finished": "2026-11-06T13:28:49.739Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "bb470fd6b042c090a4bdf001",
+      "started": "2026-11-06T13:30:09.239Z",
+      "finished": "2026-11-06T13:30:25.214Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "57eced48828eecf64d3c1a7d",
+      "started": "2026-11-06T13:31:54.320Z",
+      "finished": "2026-11-06T13:33:53.270Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "3d1ab71e3f74d6aa6b983f59",
+      "started": "2026-11-06T13:33:56.412Z",
+      "finished": "2026-11-06T13:34:13.128Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "33a5600a422a0390c6c3896e",
+      "started": "2026-11-06T13:35:28.747Z",
+      "finished": "2026-11-06T13:35:45.321Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "a47f30118dad60bf6b669f93",
+      "started": "2026-11-06T13:36:13.652Z",
+      "finished": "2026-11-06T13:36:29.797Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "93e6f28468e6218a144bc04f",
+      "started": "2026-11-06T13:36:44.238Z",
+      "finished": "2026-11-06T13:37:25.176Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "d8fa71cf5088f38d7123f9f3",
+      "started": "2026-11-06T13:37:14.497Z",
+      "finished": "2026-11-06T13:37:14.638Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": null,
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "9066306fa55479b04729dc7c",
+      "started": "2026-11-06T13:37:14.682Z",
+      "finished": "2026-11-06T13:37:21.785Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": null,
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "d4f8200c49084685938d71d9",
+      "started": "2026-11-06T13:37:18.142Z",
+      "finished": "2026-11-06T13:37:21.506Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": null,
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "114c0c12820a8681b1e61d78",
+      "started": "2026-11-06T13:37:21.507Z",
+      "finished": "2026-11-06T13:37:21.678Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": null,
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "d906234f8dbcb0357c9574a7",
+      "started": "2026-11-06T13:39:07.401Z",
+      "finished": "2026-11-06T13:39:24.420Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "b952c7558f7ae2a511cf538b",
+      "started": "2026-11-06T13:40:41.040Z",
+      "finished": "2026-11-06T13:41:21.852Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "749ed641d2359530a51f1416",
+      "started": "2026-11-06T13:40:45.046Z",
+      "finished": "2026-11-06T13:40:45.189Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": null,
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "3742220158ac8d34bda113f1",
+      "started": "2026-11-06T13:40:45.237Z",
+      "finished": "2026-11-06T13:40:52.379Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": null,
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "96f760af4d158b07c446aeb7",
+      "started": "2026-11-06T13:40:48.732Z",
+      "finished": "2026-11-06T13:40:52.094Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": null,
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "0a553fc755d145a5c482faaf",
+      "started": "2026-11-06T13:40:52.096Z",
+      "finished": "2026-11-06T13:40:52.268Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": null,
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "4efe8150d4d43a9862822cec",
+      "started": "2026-11-06T13:42:29.944Z",
+      "finished": "2026-11-06T13:42:50.040Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "7c55fe4d8e93f4bea9131728",
+      "started": "2026-11-06T13:43:41.516Z",
+      "finished": "2026-11-06T13:43:57.624Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "636c97e96b57519d1936b1a0",
+      "started": "2026-11-06T13:44:36.638Z",
+      "finished": "2026-11-06T13:45:19.365Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "8db67673aaaafd7a07132678",
+      "started": "2026-11-06T13:46:27.198Z",
+      "finished": "2026-11-06T13:46:43.520Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "0a534bb11ddd784d15d4c344",
+      "started": "2026-11-06T13:47:35.587Z",
+      "finished": "2026-11-06T13:47:57.550Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "6a9604f7539befa697d3a396",
+      "started": "2026-11-06T13:49:31.506Z",
+      "finished": "2026-11-06T13:49:47.689Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "73546fa8c18784653be7c082",
+      "started": "2026-11-06T13:51:40.516Z",
+      "finished": "2026-11-06T13:51:48.576Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "33023b68de939a59eb914066",
+      "started": "2026-11-06T13:52:11.326Z",
+      "finished": "2026-11-06T13:52:20.766Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "c5943dd9bff88682d4efcea7",
+      "started": "2026-11-06T13:53:33.691Z",
+      "finished": "2026-11-06T13:53:51.229Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "8d8b9b009258654b0f94db25",
+      "started": "2026-11-06T13:54:37.663Z",
+      "finished": "2026-11-06T13:55:01.012Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "24625ed0504809a7ec1b0677",
+      "started": "2026-11-06T13:55:49.843Z",
+      "finished": "2026-11-06T13:58:19.296Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "9f78224af27fd3fe1f4b598c",
+      "started": "2026-11-06T13:58:49.075Z",
+      "finished": "2026-11-06T14:00:26.000Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "147f6c87fe19262ed9eaebe1",
+      "started": "2026-11-06T14:03:19.082Z",
+      "finished": "2026-11-06T14:04:22.165Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "f7a95f55f1a940daf984f6ba",
+      "started": "2026-11-06T14:07:04.587Z",
+      "finished": "2026-11-06T14:11:57.377Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "b7bc21880dd2f38931bf6a99",
+      "started": "2026-11-06T14:16:18.474Z",
+      "finished": "2026-11-06T14:16:36.305Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "76ca178822b5afbd470fa29e",
+      "started": "2026-11-06T14:16:58.097Z",
+      "finished": "2026-11-06T14:17:20.067Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "ea644f6c884eecc198031416",
+      "started": "2026-11-06T14:17:17.288Z",
+      "finished": "2026-11-06T14:17:17.390Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "NOT_RUN",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "ec6ece8c9046840d3ee42b62",
+      "started": "2026-11-06T14:17:41.168Z",
+      "finished": "2026-11-06T14:18:28.695Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "c7e7c99bf897f5a919032fcd",
+      "started": "2026-11-06T14:18:42.063Z",
+      "finished": "2026-11-06T14:19:05.774Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "ecb55fbb595ab68607299376",
+      "started": "2026-11-06T14:19:34.647Z",
+      "finished": "2026-11-06T14:19:43.960Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    }
+  ],
+  "simulationRuns": 32,
+  "simulationCleanupFailureCases": 8,
+  "liveOwnedContainers": 0,
+  "heavyLockPresent": false
+}

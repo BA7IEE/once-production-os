@@ -136,6 +136,7 @@ export interface PersonExternalRef extends Base {
     verifiedAt: string | null;
 }
 export interface PersonCredential extends Base {
+    credentialName?:string|null;
     personId: string;
     sourceId: string;
     personRoleId: string | null;

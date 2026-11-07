@@ -1,5 +1,6 @@
 import { mkdirSync, writeFileSync, readdirSync, readFileSync, rmSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import {tmpdir} from 'node:os';
 import { randomBytes } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { run } from './resource-lifecycle.mjs';
@@ -77,7 +78,9 @@ export class ResourceRun {
     let directories=0;const temporaryRecords=readdirSync(this.directory).filter(n=>/^temporary-[a-f0-9-]+\.json$/.test(n));
     for(const name of temporaryRecords){
       const item=JSON.parse(readFileSync(join(this.directory,name),'utf8'));
-      if(typeof item.path!=='string'||!item.path.startsWith(this.directory+'/temp-')||resolve(item.path)!==item.path){failed=true;continue;}
+      const id=name.slice('temporary-'.length,-'.json'.length);
+      const owned= item.kind==='SHORT_TEMP' ? item.path===join(tmpdir(),'once-'+id) : typeof item.path==='string'&&item.path.startsWith(this.directory+'/temp-');
+      if(typeof item.path!=='string'||!owned||resolve(item.path)!==item.path){failed=true;continue;}
       try{rmSync(item.path,{recursive:true,force:true});if(existsSync(item.path)){directories++;failed=true;}else writeFileSync(join(this.directory,name),JSON.stringify({...item,status:'REMOVED'}),{mode:0o600});}catch{directories++;failed=true;}
     }
     this.record.status = failed ? 'CLEANUP_FAILED' : 'ZERO_RESIDUE';

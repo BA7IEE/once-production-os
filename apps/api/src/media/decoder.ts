@@ -13,7 +13,7 @@ async function decode() {
     sharp.cache(false);
     sharp.concurrency(1);
     if(mime==='application/pdf'){
-        // Opaque attachment: deliberately no PDF interpreter, OCR, metadata or text extraction.
+        // Storage thumbnail only. Authorized PDF content extraction runs separately in the document worker.
         const preview=await sharp({create:{width:240,height:320,channels:3,background:'#e7e9ed'}}).jpeg().toBuffer();
         const {writeFile}=await import('node:fs/promises');await writeFile(output,preview,{flag:'wx',mode:0o600});
         console.log(JSON.stringify({width:240,height:320,previewBytes:preview.length,previewHash:createHash('sha256').update(preview).digest('hex'),bytes:(await stat(input)).size}));return;

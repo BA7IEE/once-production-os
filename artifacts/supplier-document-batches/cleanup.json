@@ -1,0 +1,226 @@
+{
+  "scope": "Non-simulated ResourceRuns since the phase-1 report; failed browser attempts remain marked FAIL but their owned resources were cleaned. Persistent data and other workspaces were preserved.",
+  "runs": [
+    {
+      "id": "3da01a44bc2549d4a80700e4",
+      "started": "2026-11-06T14:58:06.866Z",
+      "finished": "2026-11-06T14:58:29.688Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "6f56aeffe047b0b66ad3c304",
+      "started": "2026-11-06T15:00:46.291Z",
+      "finished": "2026-11-06T15:01:06.229Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "3a4bc81715c390d8dc9ecdba",
+      "started": "2026-11-06T15:00:46.643Z",
+      "finished": "2026-11-06T15:01:06.107Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "6ea198b0d6313837b1f6fea2",
+      "started": "2026-11-06T15:02:31.582Z",
+      "finished": "2026-11-06T15:02:43.984Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "cc10b2402f591e9c7e771d1a",
+      "started": "2026-11-06T15:03:36.259Z",
+      "finished": "2026-11-06T15:03:57.994Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "bf048a24a3b8998257cfc108",
+      "started": "2026-11-06T15:03:36.606Z",
+      "finished": "2026-11-06T15:03:57.874Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "516ef2c6a4e3830d33c0a9d3",
+      "started": "2026-11-06T15:04:34.253Z",
+      "finished": "2026-11-06T15:04:56.406Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "abb0140e6d8fd665f8155586",
+      "started": "2026-11-06T15:07:24.222Z",
+      "finished": "2026-11-06T15:07:40.577Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "641588801d0a5e2957ea919c",
+      "started": "2026-11-06T15:08:19.368Z",
+      "finished": "2026-11-06T15:08:52.252Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "d9c265158df2a0a1e49de1e5",
+      "started": "2026-11-06T15:10:29.869Z",
+      "finished": "2026-11-06T15:10:46.188Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "27faafed21da770f68e9527a",
+      "started": "2026-11-06T15:11:52.939Z",
+      "finished": "2026-11-06T15:12:33.583Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "27eea7779601b845d6cc0b26",
+      "started": "2026-11-06T15:13:53.930Z",
+      "finished": "2026-11-06T15:14:17.247Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "19fdcd118334c3b0ec2b5e41",
+      "started": "2026-11-06T15:15:34.709Z",
+      "finished": "2026-11-06T15:15:51.222Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "a15a685bbd549f8157dbfa74",
+      "started": "2026-11-06T15:16:34.138Z",
+      "finished": "2026-11-06T15:16:50.915Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "5ec517a909b922da1c9a30dd",
+      "started": "2026-11-06T15:17:20.576Z",
+      "finished": "2026-11-06T15:17:48.941Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "5b25467fb14c8e61dbd9652a",
+      "started": "2026-11-06T15:18:45.861Z",
+      "finished": "2026-11-06T15:23:57.947Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    }
+  ],
+  "liveOwnedContainers": 0,
+  "heavyLockPresent": false
+}

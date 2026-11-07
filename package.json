@@ -2,7 +2,7 @@
   "name": "once-production-os",
   "version": "0.1.0-dev.1",
   "private": true,
-  "description": "ONCE 内部生产资源系统：首个账号、来源、人才建档开发切片",
+  "description": "ONCE 多职业供应商资料库：本人维护、PDF/图片解析与内部管理",
   "license": "UNLICENSED",
   "packageManager": "pnpm@10.14.0",
   "engines": {
@@ -10,6 +10,7 @@
   },
   "scripts": {
     "test:core": "node scripts/run-core-tests.mjs",
+    "test:documents": "node scripts/test-documents.mjs",
     "typecheck:core": "tsc -p packages/core/tsconfig.json",
     "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p apps/admin-web/tsconfig.json",
     "build:api": "tsc -p tsconfig.server.json",

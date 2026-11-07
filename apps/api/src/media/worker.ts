@@ -18,7 +18,7 @@ async function decode(path: string, preview: string, mime: string, signal: Abort
     previewHash: string;
     bytes: number;
 }> {
-    const module = fileURLToPath(new URL('./decoder.js', import.meta.url));
+        const module = fileURLToPath(new URL(import.meta.url.endsWith('.ts')?'./decoder.ts':'./decoder.js', import.meta.url));
     return new Promise((resolve, reject) => {
         const child = spawn(process.execPath, ['--max-old-space-size=128', module, path, preview, mime], {
             detached:process.platform!=='win32', env: { PATH: process.env.PATH ?? '/usr/bin:/bin', LANG: 'C.UTF-8', VIPS_CONCURRENCY: '1' }, stdio: ['ignore', 'pipe', 'ignore']

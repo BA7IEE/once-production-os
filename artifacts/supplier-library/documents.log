@@ -1,0 +1,71 @@
+TAP version 13
+# Subtest: real PDF produces native text, located regions and actual standalone images, including a rotated page
+ok 1 - real PDF produces native text, located regions and actual standalone images, including a rotated page
+  ---
+  duration_ms: 569.698452
+  type: 'test'
+  ...
+# Subtest: scanned PDF keeps its visual input without pretending native text was recognized
+ok 2 - scanned PDF keeps its visual input without pretending native text was recognized
+  ---
+  duration_ms: 507.784712
+  type: 'test'
+  ...
+# Subtest: selected pages are explicitly partial and retain original page numbers
+ok 3 - selected pages are explicitly partial and retain original page numbers
+  ---
+  duration_ms: 406.760197
+  type: 'test'
+  ...
+# Subtest: uploaded image yields a visual page and separately preserved image
+ok 4 - uploaded image yields a visual page and separately preserved image
+  ---
+  duration_ms: 293.105776
+  type: 'test'
+  ...
+# Subtest: password, damaged input, stale digest and invalid selection fail with fixed errors and no temporary files
+ok 5 - password, damaged input, stale digest and invalid selection fail with fixed errors and no temporary files
+  ---
+  duration_ms: 832.079794
+  type: 'test'
+  ...
+# Subtest: actual uploaded PDF becomes protected text and image candidates, then self-confirmed formal material
+ok 6 - actual uploaded PDF becomes protected text and image candidates, then self-confirmed formal material
+  ---
+  duration_ms: 1399.623039
+  type: 'test'
+  ...
+# Subtest: actual page images reach multimodal boundary; selected AI fields prefill a draft and retain document provenance
+ok 7 - actual page images reach multimodal boundary; selected AI fields prefill a draft and retain document provenance
+  ---
+  duration_ms: 1362.006534
+  type: 'test'
+  ...
+# Subtest: AI request loss is not automatically retried and temp material is removed
+ok 8 - AI request loss is not automatically retried and temp material is removed
+  ---
+  duration_ms: 734.464081
+  type: 'test'
+  ...
+# Subtest: revoking consent before dispatch blocks extraction and prevents a model request
+ok 9 - revoking consent before dispatch blocks extraction and prevents a model request
+  ---
+  duration_ms: 389.780859
+  type: 'test'
+  ...
+# Subtest: AI prefill refuses a field edited after extraction started
+ok 10 - AI prefill refuses a field edited after extraction started
+  ---
+  duration_ms: 742.437476
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7908.027771
+Document parser resources: ZERO_RESIDUE

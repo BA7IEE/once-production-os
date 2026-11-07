@@ -1,0 +1,4996 @@
+TAP version 13
+# Subtest: table import handles quoted delimiters, BOM, escaped quotes, embedded newlines and exact mappings
+ok 1 - table import handles quoted delimiters, BOM, escaped quotes, embedded newlines and exact mappings
+  ---
+  duration_ms: 2.322879
+  type: 'test'
+  ...
+# Subtest: table import preserves unknown and duplicate facts for correction without guessing or merging
+ok 2 - table import preserves unknown and duplicate facts for correction without guessing or merging
+  ---
+  duration_ms: 0.681892
+  type: 'test'
+  ...
+# Subtest: table import rejects oversized batches and invalid table structure with actionable errors
+ok 3 - table import rejects oversized batches and invalid table structure with actionable errors
+  ---
+  duration_ms: 0.534926
+  type: 'test'
+  ...
+# Subtest: review group selection closes transitive dependencies and deselection removes dependent groups
+ok 4 - review group selection closes transitive dependencies and deselection removes dependent groups
+  ---
+  duration_ms: 0.55853
+  type: 'test'
+  ...
+# Subtest: admin UX batch command validates the whole selection, returns numeric outcomes and supports readonly recovery
+ok 5 - admin UX batch command validates the whole selection, returns numeric outcomes and supports readonly recovery
+  ---
+  duration_ms: 240.937587
+  type: 'test'
+  ...
+# Subtest: admin UX batch audit failure rolls back all items and can replay the exact original request
+ok 6 - admin UX batch audit failure rolls back all items and can replay the exact original request
+  ---
+  duration_ms: 181.914027
+  type: 'test'
+  ...
+# Subtest: admin UX recovery and batch writes remain bound to current actor, scope and permission
+ok 7 - admin UX recovery and batch writes remain bound to current actor, scope and permission
+  ---
+  duration_ms: 568.887554
+  type: 'test'
+  ...
+# Subtest: admin UX new case keeps exact attribution and validates all media before writes
+ok 8 - admin UX new case keeps exact attribution and validates all media before writes
+  ---
+  duration_ms: 202.114633
+  type: 'test'
+  ...
+# Subtest: admin UX source review TODO/SENT/DONE counts follow the active participant and cannot leak private objects
+ok 9 - admin UX source review TODO/SENT/DONE counts follow the active participant and cannot leak private objects
+  ---
+  duration_ms: 537.980229
+  type: 'test'
+  ...
+# Subtest: admin UX EXPIRED claim has consistent list/detail eligibility and can be explicitly rejected
+ok 10 - admin UX EXPIRED claim has consistent list/detail eligibility and can be explicitly rejected
+  ---
+  duration_ms: 285.771467
+  type: 'test'
+  ...
+# Subtest: admin UX INVALIDATED claim has consistent list/detail eligibility and can be explicitly rejected
+ok 11 - admin UX INVALIDATED claim has consistent list/detail eligibility and can be explicitly rejected
+  ---
+  duration_ms: 195.239996
+  type: 'test'
+  ...
+# Subtest: adult transfer retains original reviewer without creating an account; re-export and local re-verification preserve attribution boundaries
+ok 12 - adult transfer retains original reviewer without creating an account; re-export and local re-verification preserve attribution boundaries
+  ---
+  duration_ms: 978.093429
+  type: 'test'
+  ...
+# Subtest: expired and inactive adult verifications retain history but cannot satisfy the adult filter; quarantining proof removes eligibility
+ok 13 - expired and inactive adult verifications retain history but cannot satisfy the adult filter; quarantining proof removes eligibility
+  ---
+  duration_ms: 1350.601535
+  type: 'test'
+  ...
+# Subtest: adult origin, verification time, active uniqueness and proof omission cannot be forged in a rebuild
+ok 14 - adult origin, verification time, active uniqueness and proof omission cannot be forged in a rebuild
+  ---
+  duration_ms: 850.2996
+  type: 'test'
+  ...
+# Subtest: adult export requires reviewer access and its own source grant; changing origin attribution stales old exports
+ok 15 - adult export requires reviewer access and its own source grant; changing origin attribution stales old exports
+  ---
+  duration_ms: 686.514271
+  type: 'test'
+  ...
+# Subtest: adult verification uses one event timestamp even when the clock advances between persistence calls
+ok 16 - adult verification uses one event timestamp even when the clock advances between persistence calls
+  ---
+  duration_ms: 682.255529
+  type: 'test'
+  ...
+# Subtest: same Person MACHINE → CLAIM → explicit exposure → true Talent maintenance independent provenance
+ok 17 - same Person MACHINE → CLAIM → explicit exposure → true Talent maintenance independent provenance
+  ---
+  duration_ms: 385.14457
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample rollback
+ok 18 - same Person handoff counterexample rollback
+  ---
+  duration_ms: 259.998548
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample revoke
+ok 19 - same Person handoff counterexample revoke
+  ---
+  duration_ms: 284.044842
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample basis
+ok 20 - same Person handoff counterexample basis
+  ---
+  duration_ms: 234.987337
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample revision
+ok 21 - same Person handoff counterexample revision
+  ---
+  duration_ms: 235.495006
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample delete
+ok 22 - same Person handoff counterexample delete
+  ---
+  duration_ms: 259.605705
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample machine-revoke
+ok 23 - same Person handoff counterexample machine-revoke
+  ---
+  duration_ms: 230.078942
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample integrity
+ok 24 - same Person handoff counterexample integrity
+  ---
+  duration_ms: 242.459201
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample claim-race
+ok 25 - same Person handoff counterexample claim-race
+  ---
+  duration_ms: 248.709386
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample merge
+ok 26 - same Person handoff counterexample merge
+  ---
+  duration_ms: 274.481623
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample scope
+ok 27 - same Person handoff counterexample scope
+  ---
+  duration_ms: 398.985962
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample other-credit
+ok 28 - same Person handoff counterexample other-credit
+  ---
+  duration_ms: 256.534532
+  type: 'test'
+  ...
+# Subtest: same Person handoff counterexample basis-scope
+ok 29 - same Person handoff counterexample basis-scope
+  ---
+  duration_ms: 225.021729
+  type: 'test'
+  ...
+# Subtest: same Person mixed provenance business JSON export/rebuild no authorization recreated
+ok 30 - same Person mixed provenance business JSON export/rebuild no authorization recreated
+  ---
+  duration_ms: 633.446227
+  type: 'test'
+  ...
+# Subtest: MACHINE upload ownership, atomic adoption and formal authorization transition
+ok 31 - MACHINE upload ownership, atomic adoption and formal authorization transition
+  ---
+  duration_ms: 713.758026
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing quota
+ok 32 - MACHINE upload fencing quota
+  ---
+  duration_ms: 188.579738
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing missing
+ok 33 - MACHINE upload fencing missing
+  ---
+  duration_ms: 187.817293
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing permission
+ok 34 - MACHINE upload fencing permission
+  ---
+  duration_ms: 192.91453
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing scope
+ok 35 - MACHINE upload fencing scope
+  ---
+  duration_ms: 191.509427
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing scopeRevision
+ok 36 - MACHINE upload fencing scopeRevision
+  ---
+  duration_ms: 194.48833
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing revoke
+ok 37 - MACHINE upload fencing revoke
+  ---
+  duration_ms: 196.156217
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing maintainer
+ok 38 - MACHINE upload fencing maintainer
+  ---
+  duration_ms: 276.215543
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing disable
+ok 39 - MACHINE upload fencing disable
+  ---
+  duration_ms: 188.343864
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing recovery
+ok 40 - MACHINE upload fencing recovery
+  ---
+  duration_ms: 188.990541
+  type: 'test'
+  ...
+# Subtest: MACHINE upload fencing withdraw
+ok 41 - MACHINE upload fencing withdraw
+  ---
+  duration_ms: 188.558591
+  type: 'test'
+  ...
+# Subtest: MACHINE retention/purge draft1
+ok 42 - MACHINE retention/purge draft1
+  ---
+  duration_ms: 192.765079
+  type: 'test'
+  ...
+# Subtest: MACHINE retention/purge draft30
+ok 43 - MACHINE retention/purge draft30
+  ---
+  duration_ms: 189.466001
+  type: 'test'
+  ...
+# Subtest: MACHINE retention/purge withdraw
+ok 44 - MACHINE retention/purge withdraw
+  ---
+  duration_ms: 197.335263
+  type: 'test'
+  ...
+# Subtest: MACHINE retention/purge reject
+ok 45 - MACHINE retention/purge reject
+  ---
+  duration_ms: 197.375399
+  type: 'test'
+  ...
+# Subtest: MACHINE retention/purge partial
+ok 46 - MACHINE retention/purge partial
+  ---
+  duration_ms: 205.211675
+  type: 'test'
+  ...
+# Subtest: MACHINE retention/purge adopted
+ok 47 - MACHINE retention/purge adopted
+  ---
+  duration_ms: 196.49828
+  type: 'test'
+  ...
+# Subtest: MACHINE quota env is complete, independently bounded and never implicit
+ok 48 - MACHINE quota env is complete, independently bounded and never implicit
+  ---
+  duration_ms: 0.711668
+  type: 'test'
+  ...
+# Subtest: MACHINE receive authorization is one-time, expiring and bytes-bound
+ok 49 - MACHINE receive authorization is one-time, expiring and bytes-bound
+  ---
+  duration_ms: 190.518855
+  type: 'test'
+  ...
+# Subtest: MACHINE text+media review uses one measurement report timestamp on an advancing real clock
+ok 50 - MACHINE text+media review uses one measurement report timestamp on an advancing real clock
+  ---
+  duration_ms: 196.660454
+  type: 'test'
+  ...
+# Subtest: MACHINE media actual merge keeps STAGED unbound and moves only formal relationships
+ok 51 - MACHINE media actual merge keeps STAGED unbound and moves only formal relationships
+  ---
+  duration_ms: 239.556244
+  type: 'test'
+  ...
+# Subtest: MACHINE media Person deletion blocks staged and formal bytes without premature capacity release
+ok 52 - MACHINE media Person deletion blocks staged and formal bytes without premature capacity release
+  ---
+  duration_ms: 227.640725
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work atomic adoption, explicit update, shared Work LINK and exact Credit reuse
+ok 53 - MACHINE Collection/Work atomic adoption, explicit update, shared Work LINK and exact Credit reuse
+  ---
+  duration_ms: 466.239781
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed asset-id
+ok 54 - MACHINE Collection/Work fail-closed asset-id
+  ---
+  duration_ms: 211.346246
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed role-id
+ok 55 - MACHINE Collection/Work fail-closed role-id
+  ---
+  duration_ms: 192.219798
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed source-id
+ok 56 - MACHINE Collection/Work fail-closed source-id
+  ---
+  duration_ms: 196.999726
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed collection-id
+ok 57 - MACHINE Collection/Work fail-closed collection-id
+  ---
+  duration_ms: 196.980436
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed work-id
+ok 58 - MACHINE Collection/Work fail-closed work-id
+  ---
+  duration_ms: 195.841919
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed scope-id
+ok 59 - MACHINE Collection/Work fail-closed scope-id
+  ---
+  duration_ms: 197.354688
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed missing-media
+ok 60 - MACHINE Collection/Work fail-closed missing-media
+  ---
+  duration_ms: 193.887934
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed not-ready
+ok 61 - MACHINE Collection/Work fail-closed not-ready
+  ---
+  duration_ms: 186.684198
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed type
+ok 62 - MACHINE Collection/Work fail-closed type
+  ---
+  duration_ms: 200.263915
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed mime
+ok 63 - MACHINE Collection/Work fail-closed mime
+  ---
+  duration_ms: 189.189755
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed role-key
+ok 64 - MACHINE Collection/Work fail-closed role-key
+  ---
+  duration_ms: 193.19991
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed graph
+ok 65 - MACHINE Collection/Work fail-closed graph
+  ---
+  duration_ms: 183.961467
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed partial
+ok 66 - MACHINE Collection/Work fail-closed partial
+  ---
+  duration_ms: 202.578958
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed decision
+ok 67 - MACHINE Collection/Work fail-closed decision
+  ---
+  duration_ms: 195.24688
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed duplicate
+ok 68 - MACHINE Collection/Work fail-closed duplicate
+  ---
+  duration_ms: 234.153215
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed role
+ok 69 - MACHINE Collection/Work fail-closed role
+  ---
+  duration_ms: 254.04883
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed tag
+ok 70 - MACHINE Collection/Work fail-closed tag
+  ---
+  duration_ms: 231.95474
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed order
+ok 71 - MACHINE Collection/Work fail-closed order
+  ---
+  duration_ms: 235.069657
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed collection-cover
+ok 72 - MACHINE Collection/Work fail-closed collection-cover
+  ---
+  duration_ms: 234.670037
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed cover
+ok 73 - MACHINE Collection/Work fail-closed cover
+  ---
+  duration_ms: 230.423771
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed work-facts
+ok 74 - MACHINE Collection/Work fail-closed work-facts
+  ---
+  duration_ms: 234.356758
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed work-assets
+ok 75 - MACHINE Collection/Work fail-closed work-assets
+  ---
+  duration_ms: 226.889836
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed credit
+ok 76 - MACHINE Collection/Work fail-closed credit
+  ---
+  duration_ms: 234.854313
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed source
+ok 77 - MACHINE Collection/Work fail-closed source
+  ---
+  duration_ms: 228.075817
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work fail-closed legacy
+ok 78 - MACHINE Collection/Work fail-closed legacy
+  ---
+  duration_ms: 278.929108
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work actual business JSON export and verified rebuild preserve provenance without rebuilding auth
+ok 79 - MACHINE Collection/Work actual business JSON export and verified rebuild preserve provenance without rebuilding auth
+  ---
+  duration_ms: 670.123024
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work lifecycle PERSON
+ok 80 - MACHINE Collection/Work lifecycle PERSON
+  ---
+  duration_ms: 300.087257
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work lifecycle MERGE
+ok 81 - MACHINE Collection/Work lifecycle MERGE
+  ---
+  duration_ms: 290.444702
+  type: 'test'
+  ...
+# Subtest: MACHINE Collection/Work valid closed partial approval and cross-Agent isolation
+ok 82 - MACHINE Collection/Work valid closed partial approval and cross-Agent isolation
+  ---
+  duration_ms: 204.647587
+  type: 'test'
+  ...
+# Subtest: MACHINE INTERNAL_REVIEW basis revoke invalidates formal projections
+ok 83 - MACHINE INTERNAL_REVIEW basis revoke invalidates formal projections
+  ---
+  duration_ms: 204.454696
+  type: 'test'
+  ...
+# Subtest: MACHINE full-length batch and Work review bases remain complete and export/rebuild compatible
+ok 84 - MACHINE full-length batch and Work review bases remain complete and export/rebuild compatible
+  ---
+  duration_ms: 447.019629
+  type: 'test'
+  ...
+# Subtest: AI extraction produces a reviewable proposal and applies selected fields exactly once
+ok 85 - AI extraction produces a reviewable proposal and applies selected fields exactly once
+  ---
+  duration_ms: 220.427766
+  type: 'test'
+  ...
+# Subtest: AI strict source permission and minimum input checks precede reservation
+ok 86 - AI strict source permission and minimum input checks precede reservation
+  ---
+  duration_ms: 192.697126
+  type: 'test'
+  ...
+# Subtest: AI source changes prevent dispatch and stale proposals cannot write facts
+ok 87 - AI source changes prevent dispatch and stale proposals cannot write facts
+  ---
+  duration_ms: 184.226396
+  type: 'test'
+  ...
+# Subtest: AI parse search confirms a restricted filter object and never writes facts
+ok 88 - AI parse search confirms a restricted filter object and never writes facts
+  ---
+  duration_ms: 188.132581
+  type: 'test'
+  ...
+# Subtest: AI locale creates an unreviewed draft and work tags stay within the approved dictionary
+ok 89 - AI locale creates an unreviewed draft and work tags stay within the approved dictionary
+  ---
+  duration_ms: 209.73112
+  type: 'test'
+  ...
+# Subtest: AI selected fields and proposal state roll back together on audit failure
+ok 90 - AI selected fields and proposal state roll back together on audit failure
+  ---
+  duration_ms: 187.622593
+  type: 'test'
+  ...
+# Subtest: AI malformed output and invented quotations never become proposals or verified facts
+ok 91 - AI malformed output and invented quotations never become proposals or verified facts
+  ---
+  duration_ms: 365.943152
+  type: 'test'
+  ...
+# Subtest: AI source-linked proposals and grant evidence erase together without releasing unknown fees
+ok 92 - AI source-linked proposals and grant evidence erase together without releasing unknown fees
+  ---
+  duration_ms: 194.31615
+  type: 'test'
+  ...
+# Subtest: AI explicit permission and current source scope govern content, counts and replay
+ok 93 - AI explicit permission and current source scope govern content, counts and replay
+  ---
+  duration_ms: 195.509364
+  type: 'test'
+  ...
+# Subtest: AI recovery revokes grants, rejects pending proposals and retains unresolved charges
+ok 94 - AI recovery revokes grants, rejects pending proposals and retains unresolved charges
+  ---
+  duration_ms: 179.853803
+  type: 'test'
+  ...
+# Subtest: AI person deletion uses the normal impact, decision, freeze and cleanup workflow
+ok 95 - AI person deletion uses the normal impact, decision, freeze and cleanup workflow
+  ---
+  duration_ms: 209.265274
+  type: 'test'
+  ...
+# Subtest: AI may report no supported fields without guessing or treating confirmed usage as unknown
+ok 96 - AI may report no supported fields without guessing or treating confirmed usage as unknown
+  ---
+  duration_ms: 181.890518
+  type: 'test'
+  ...
+# Subtest: model connection flows through encrypted storage, one-send SDK worker and human proposal despite unknown cost
+ok 97 - model connection flows through encrypted storage, one-send SDK worker and human proposal despite unknown cost
+  ---
+  duration_ms: 282.791637
+  type: 'test'
+  ...
+# Subtest: connection writes require current admin, strict fields and atomic audit; unknown response uses the original key
+ok 98 - connection writes require current admin, strict fields and atomic audit; unknown response uses the original key
+  ---
+  duration_ms: 359.191555
+  type: 'test'
+  ...
+# Subtest: recovery disables saved connection approvals and cancels queued work without deleting encrypted configuration
+ok 99 - recovery disables saved connection approvals and cancels queued work without deleting encrypted configuration
+  ---
+  duration_ms: 190.661819
+  type: 'test'
+  ...
+# Subtest: business and connection test dispatch both honor the saved 120 second deadline
+ok 100 - business and connection test dispatch both honor the saved 120 second deadline
+  ---
+  duration_ms: 201.045155
+  type: 'test'
+  ...
+# Subtest: document openai-chat sends actual page image bytes and accepts grounded structured works
+ok 101 - document openai-chat sends actual page image bytes and accepts grounded structured works
+  ---
+  duration_ms: 42.219899
+  type: 'test'
+  ...
+# Subtest: document openai-responses sends actual page image bytes and accepts grounded structured works
+ok 102 - document openai-responses sends actual page image bytes and accepts grounded structured works
+  ---
+  duration_ms: 13.266899
+  type: 'test'
+  ...
+# Subtest: document anthropic-messages sends actual page image bytes and accepts grounded structured works
+ok 103 - document anthropic-messages sends actual page image bytes and accepts grounded structured works
+  ---
+  duration_ms: 10.712006
+  type: 'test'
+  ...
+# Subtest: document transport rejects wrong bytes and excessive page batches before sending anything
+ok 104 - document transport rejects wrong bytes and excessive page batches before sending anything
+  ---
+  duration_ms: 1.438475
+  type: 'test'
+  ...
+# Subtest: document responses with fabricated evidence retain usage but cannot become candidates
+ok 105 - document responses with fabricated evidence retain usage but cannot become candidates
+  ---
+  duration_ms: 5.723824
+  type: 'test'
+  ...
+# Subtest: document timeout or provider error does not auto retry and does not expose provider content
+ok 106 - document timeout or provider error does not auto retry and does not expose provider content
+  ---
+  duration_ms: 4.520901
+  type: 'test'
+  ...
+# Subtest: AI reservations serialize and uncertain/cancelled attempts retain funds until reconciliation
+ok 107 - AI reservations serialize and uncertain/cancelled attempts retain funds until reconciliation
+  ---
+  duration_ms: 197.752904
+  type: 'test'
+  ...
+# Subtest: AI accounting and dispatch authorization roll back when audit fails
+ok 108 - AI accounting and dispatch authorization roll back when audit fails
+  ---
+  duration_ms: 181.959017
+  type: 'test'
+  ...
+# Subtest: AI sends fail closed on changed provider, recovery epoch, disabled actor or midnight reservation
+ok 109 - AI sends fail closed on changed provider, recovery epoch, disabled actor or midnight reservation
+  ---
+  duration_ms: 176.643344
+  type: 'test'
+  ...
+# Subtest: AI known not executed has a bounded attempt count; cancellation releases only unsent funds
+ok 110 - AI known not executed has a bounded attempt count; cancellation releases only unsent funds
+  ---
+  duration_ms: 176.079034
+  type: 'test'
+  ...
+# Subtest: AI request identity rejects reuse with different payload and invalid money/configuration
+ok 111 - AI request identity rejects reuse with different payload and invalid money/configuration
+  ---
+  duration_ms: 181.772661
+  type: 'test'
+  ...
+# Subtest: AI uncertain funds survive date rollover and an overrun freezes subsequent days too
+ok 112 - AI uncertain funds survive date rollover and an overrun freezes subsequent days too
+  ---
+  duration_ms: 175.503952
+  type: 'test'
+  ...
+# Subtest: AI in-flight settlement remains possible after actor disable and restoration, but never sends again
+ok 113 - AI in-flight settlement remains possible after actor disable and restoration, but never sends again
+  ---
+  duration_ms: 175.019461
+  type: 'test'
+  ...
+# Subtest: AI dispatcher commits its unique attempt before network and never repeats an uncertain request
+ok 114 - AI dispatcher commits its unique attempt before network and never repeats an uncertain request
+  ---
+  duration_ms: 179.429946
+  type: 'test'
+  ...
+# Subtest: AI dispatcher times out with reserved cost; late provider completion cannot create a proposal
+ok 115 - AI dispatcher times out with reserved cost; late provider completion cannot create a proposal
+  ---
+  duration_ms: 186.44574
+  type: 'test'
+  ...
+# Subtest: AI dispatcher checks input again before send and cancellation during HTTP suppresses proposals
+ok 116 - AI dispatcher checks input again before send and cancellation during HTTP suppresses proposals
+  ---
+  duration_ms: 174.360653
+  type: 'test'
+  ...
+# Subtest: AI proposal and settlement share a transaction; failed proposal does not create settled success
+ok 117 - AI proposal and settlement share a transaction; failed proposal does not create settled success
+  ---
+  duration_ms: 176.825327
+  type: 'test'
+  ...
+# Subtest: AI recovery inspection includes unresolved attempts and detects accounting or request-identity damage
+ok 118 - AI recovery inspection includes unresolved attempts and detects accounting or request-identity damage
+  ---
+  duration_ms: 183.481224
+  type: 'test'
+  ...
+# Subtest: SDK openai-chat uses the configured endpoint/model/key and returns normalized usage
+ok 119 - SDK openai-chat uses the configured endpoint/model/key and returns normalized usage
+  ---
+  duration_ms: 43.144447
+  type: 'test'
+  ...
+# Subtest: SDK openai-responses uses the configured endpoint/model/key and returns normalized usage
+ok 120 - SDK openai-responses uses the configured endpoint/model/key and returns normalized usage
+  ---
+  duration_ms: 13.14418
+  type: 'test'
+  ...
+# Subtest: SDK anthropic-messages uses the configured endpoint/model/key and returns normalized usage
+ok 121 - SDK anthropic-messages uses the configured endpoint/model/key and returns normalized usage
+  ---
+  duration_ms: 10.043287
+  type: 'test'
+  ...
+# Subtest: missing usage remains unknown; malformed suggestions retain returned usage
+ok 122 - missing usage remains unknown; malformed suggestions retain returned usage
+  ---
+  duration_ms: 15.910301
+  type: 'test'
+  ...
+# Subtest: HTTP throttling and provider errors never retry or expose raw error bodies
+ok 123 - HTTP throttling and provider errors never retry or expose raw error bodies
+  ---
+  duration_ms: 5.585023
+  type: 'test'
+  ...
+# Subtest: expired and cancelled requests are rejected before HTTP; in-flight abort propagates
+ok 124 - expired and cancelled requests are rejected before HTTP; in-flight abort propagates
+  ---
+  duration_ms: 1.736907
+  type: 'test'
+  ...
+# Subtest: untrusted configuration and oversized provider responses are rejected
+ok 125 - untrusted configuration and oversized provider responses are rejected
+  ---
+  duration_ms: 3.501686
+  type: 'test'
+  ...
+# Subtest: actual HTTP timeout leaves outcome unknown and never retries
+ok 126 - actual HTTP timeout leaves outcome unknown and never retries
+  ---
+  duration_ms: 1013.960748
+  type: 'test'
+  ...
+# Subtest: actual HTTP partial-body leaves outcome unknown and never retries
+ok 127 - actual HTTP partial-body leaves outcome unknown and never retries
+  ---
+  duration_ms: 1005.254823
+  type: 'test'
+  ...
+# Subtest: actual HTTP reset leaves outcome unknown and never retries
+ok 128 - actual HTTP reset leaves outcome unknown and never retries
+  ---
+  duration_ms: 7.556592
+  type: 'test'
+  ...
+# Subtest: actual HTTP redirect leaves outcome unknown and never retries
+ok 129 - actual HTTP redirect leaves outcome unknown and never retries
+  ---
+  duration_ms: 6.033086
+  type: 'test'
+  ...
+# Subtest: actual HTTP 429 leaves outcome unknown and never retries
+ok 130 - actual HTTP 429 leaves outcome unknown and never retries
+  ---
+  duration_ms: 9.131643
+  type: 'test'
+  ...
+# Subtest: actual HTTP 500 leaves outcome unknown and never retries
+ok 131 - actual HTTP 500 leaves outcome unknown and never retries
+  ---
+  duration_ms: 6.130469
+  type: 'test'
+  ...
+# Subtest: AI approval binds the exact candidate and active human approver; disable is atomic and replayable
+ok 132 - AI approval binds the exact candidate and active human approver; disable is atomic and replayable
+  ---
+  duration_ms: 399.995615
+  type: 'test'
+  ...
+# Subtest: AI worker serializes send authority across concurrent workers and ignores cancelled sources
+ok 133 - AI worker serializes send authority across concurrent workers and ignores cancelled sources
+  ---
+  duration_ms: 214.88682
+  type: 'test'
+  ...
+# Subtest: AI worker restart isolates abandoned attempts even without an adapter and preserves reserved cost
+ok 134 - AI worker restart isolates abandoned attempts even without an adapter and preserves reserved cost
+  ---
+  duration_ms: 190.099503
+  type: 'test'
+  ...
+# Subtest: AI shutdown during provider work aborts and never creates a proposal or resend
+ok 135 - AI shutdown during provider work aborts and never creates a proposal or resend
+  ---
+  duration_ms: 195.838976
+  type: 'test'
+  ...
+# Subtest: AI reconciliation verifies original request evidence, rolls back with audit and never resends
+ok 136 - AI reconciliation verifies original request evidence, rolls back with audit and never resends
+  ---
+  duration_ms: 194.881946
+  type: 'test'
+  ...
+# Subtest: AI confirmed nonexecution releases funds but requires a new human task; unresolved cost blocks unfreeze
+ok 137 - AI confirmed nonexecution releases funds but requires a new human task; unresolved cost blocks unfreeze
+  ---
+  duration_ms: 203.406468
+  type: 'test'
+  ...
+# Subtest: AI approval is invalidated by approver qualification and recovery isolation
+ok 138 - AI approval is invalidated by approver qualification and recovery isolation
+  ---
+  duration_ms: 182.996765
+  type: 'test'
+  ...
+# Subtest: AI global egress and maintenance switches block queued sends without blocking reconciliation
+ok 139 - AI global egress and maintenance switches block queued sends without blocking reconciliation
+  ---
+  duration_ms: 194.036618
+  type: 'test'
+  ...
+# Subtest: AI approval rejects invalid limits and still permits stopping while global egress is off
+ok 140 - AI approval rejects invalid limits and still permits stopping while global egress is off
+  ---
+  duration_ms: 185.327238
+  type: 'test'
+  ...
+# Subtest: DEV-09D backup manifest binds dump, recovery/key/migration and journal anchor
+ok 141 - DEV-09D backup manifest binds dump, recovery/key/migration and journal anchor
+  ---
+  duration_ms: 10.4432
+  type: 'test'
+  ...
+# Subtest: DEV-09D backup manifest detects JSON tampering and unsafe permissions
+ok 142 - DEV-09D backup manifest detects JSON tampering and unsafe permissions
+  ---
+  duration_ms: 5.013368
+  type: 'test'
+  ...
+# Subtest: storage exception accepts only the fixed boolean marker; business payloads and aliases remain blocked
+ok 143 - storage exception accepts only the fixed boolean marker; business payloads and aliases remain blocked
+  ---
+  duration_ms: 14.192482
+  type: 'test'
+  ...
+# Subtest: portal storage exception is limited to a dedicated fixed marker encoder
+ok 144 - portal storage exception is limited to a dedicated fixed marker encoder
+  ---
+  duration_ms: 4.068392
+  type: 'test'
+  ...
+# Subtest: typed-origin identity updates and narrow archive restore retain provenance with atomic receipts
+ok 145 - typed-origin identity updates and narrow archive restore retain provenance with atomic receipts
+  ---
+  duration_ms: 340.425816
+  type: 'test'
+  ...
+# Subtest: editor private intake -> reviewer accepts evidence -> designated publisher shares; native endpoints stay closed until publish
+ok 146 - editor private intake -> reviewer accepts evidence -> designated publisher shares; native endpoints stay closed until publish
+  ---
+  duration_ms: 589.387469
+  type: 'test'
+  ...
+# Subtest: review revocation closes limited material access, outsider cannot read task; changes invalidate accepted task
+ok 147 - review revocation closes limited material access, outsider cannot read task; changes invalidate accepted task
+  ---
+  duration_ms: 720.776688
+  type: 'test'
+  ...
+# Subtest: expired owner draft can enter a fresh limited review, but expiry never renews itself
+ok 148 - expired owner draft can enter a fresh limited review, but expiry never renews itself
+  ---
+  duration_ms: 710.832366
+  type: 'test'
+  ...
+# Subtest: an invalidated review does not block a fresh authorized review and retains a revoked audit header
+ok 149 - an invalidated review does not block a fresh authorized review and retains a revoked audit header
+  ---
+  duration_ms: 541.958742
+  type: 'test'
+  ...
+# Subtest: typed import creates searchable talent roles and city; ordinary contact stays a contact
+ok 150 - typed import creates searchable talent roles and city; ordinary contact stays a contact
+  ---
+  duration_ms: 203.278179
+  type: 'test'
+  ...
+# Subtest: legacy batch semantics remain stable, explicit repair is bounded, replayable and works after preview expiry
+ok 151 - legacy batch semantics remain stable, explicit repair is bounded, replayable and works after preview expiry
+  ---
+  duration_ms: 272.212398
+  type: 'test'
+  ...
+# Subtest: multi-source core correction uses individual bases, preserves atomic rollback and rejects stale selected facts
+ok 152 - multi-source core correction uses individual bases, preserves atomic rollback and rejects stale selected facts
+  ---
+  duration_ms: 188.465742
+  type: 'test'
+  ...
+# Subtest: shared source cannot enter single-person review or silently reveal another identity
+ok 153 - shared source cannot enter single-person review or silently reveal another identity
+  ---
+  duration_ms: 534.858356
+  type: 'test'
+  ...
+# Subtest: raw evidence requires a qualified reviewer, and grant invalidates when membership changes
+ok 154 - raw evidence requires a qualified reviewer, and grant invalidates when membership changes
+  ---
+  duration_ms: 888.098975
+  type: 'test'
+  ...
+# Subtest: restored workspace epoch invalidates an accepted source review
+ok 155 - restored workspace epoch invalidates an accepted source review
+  ---
+  duration_ms: 612.791024
+  type: 'test'
+  ...
+# Subtest: core city correction targets the selected period instead of the first historical BASE row
+ok 156 - core city correction targets the selected period instead of the first historical BASE row
+  ---
+  duration_ms: 180.797799
+  type: 'test'
+  ...
+# Subtest: unsupported import worker format fails before creating records
+ok 157 - unsupported import worker format fails before creating records
+  ---
+  duration_ms: 180.026081
+  type: 'test'
+  ...
+# Subtest: portal receipt lookup is account-bound and returns only the authorized command result
+ok 158 - portal receipt lookup is account-bound and returns only the authorized command result
+  ---
+  duration_ms: 189.352562
+  type: 'test'
+  ...
+# Subtest: client preserves exact key after network uncertainty and replays only original payload
+ok 159 - client preserves exact key after network uncertainty and replays only original payload
+  ---
+  duration_ms: 25.959137
+  type: 'test'
+  ...
+# Subtest: HTTP 500 followed by 409 retains the original unresolved key
+ok 160 - HTTP 500 followed by 409 retains the original unresolved key
+  ---
+  duration_ms: 2.030358
+  type: 'test'
+  ...
+# Subtest: unknown activation issuance is not silently repeated
+ok 161 - unknown activation issuance is not silently repeated
+  ---
+  duration_ms: 1.757155
+  type: 'test'
+  ...
+# Subtest: transport uses same-origin cookies, no cache and rejects redirects
+ok 162 - transport uses same-origin cookies, no cache and rejects redirects
+  ---
+  duration_ms: 1.734042
+  type: 'test'
+  ...
+# Subtest: malformed success response keeps command unresolved
+ok 163 - malformed success response keeps command unresolved
+  ---
+  duration_ms: 1.027863
+  type: 'test'
+  ...
+# Subtest: server session failure notifies UI and never exposes server secrets
+ok 164 - server session failure notifies UI and never exposes server secrets
+  ---
+  duration_ms: 1.783194
+  type: 'test'
+  ...
+# Subtest: job.resume retains the exact job revision and key across unknown response
+ok 165 - job.resume retains the exact job revision and key across unknown response
+  ---
+  duration_ms: 1.188425
+  type: 'test'
+  ...
+# Subtest: lost committed response then 401 retains original key and one domain write
+ok 166 - lost committed response then 401 retains original key and one domain write
+  ---
+  duration_ms: 414.752647
+  type: 'test'
+  ...
+# Subtest: lost committed response then 403 retains original key and one domain write
+ok 167 - lost committed response then 403 retains original key and one domain write
+  ---
+  duration_ms: 180.506224
+  type: 'test'
+  ...
+# Subtest: lost committed response then 404 retains original key and one domain write
+ok 168 - lost committed response then 404 retains original key and one domain write
+  ---
+  duration_ms: 182.612533
+  type: 'test'
+  ...
+# Subtest: lost committed response then 409 retains original key and one domain write
+ok 169 - lost committed response then 409 retains original key and one domain write
+  ---
+  duration_ms: 180.237127
+  type: 'test'
+  ...
+# Subtest: lost committed response then 429 retains original key and one domain write
+ok 170 - lost committed response then 429 retains original key and one domain write
+  ---
+  duration_ms: 176.481204
+  type: 'test'
+  ...
+# Subtest: parseable invalid command receipt remains unknown: {}
+ok 171 - parseable invalid command receipt remains unknown: {}
+  ---
+  duration_ms: 0.72866
+  type: 'test'
+  ...
+# Subtest: parseable invalid command receipt remains unknown: null
+ok 172 - parseable invalid command receipt remains unknown: null
+  ---
+  duration_ms: 0.558761
+  type: 'test'
+  ...
+# Subtest: parseable invalid command receipt remains unknown: {"operationId":"12345678-1234-4234-8234-123456789abc","resourceId":"12345678-1234-4234-8234-123456789abc","revision":"1","state":"SUCCEEDED"}
+ok 173 - parseable invalid command receipt remains unknown: {"operationId":"12345678-1234-4234-8234-123456789abc","resourceId":"12345678-1234-4234-8234-123456789abc","revision":"1","state":"SUCCEEDED"}
+  ---
+  duration_ms: 0.410382
+  type: 'test'
+  ...
+# Subtest: parseable invalid command receipt remains unknown: {"operationId":"12345678-1234-4234-8234-123456789abc","resourceId":"12345678-1234-4234-8234-123456789abc","revision":1,"state":"FAILED"}
+ok 174 - parseable invalid command receipt remains unknown: {"operationId":"12345678-1234-4234-8234-123456789abc","resourceId":"12345678-1234-4234-8234-123456789abc","revision":1,"state":"FAILED"}
+  ---
+  duration_ms: 0.452411
+  type: 'test'
+  ...
+# Subtest: another membership cannot replay the original request; original membership can recover after logout
+ok 175 - another membership cannot replay the original request; original membership can recover after logout
+  ---
+  duration_ms: 1.066476
+  type: 'test'
+  ...
+# Subtest: first definitive rejection permits a corrected new command
+ok 176 - first definitive rejection permits a corrected new command
+  ---
+  duration_ms: 0.465345
+  type: 'test'
+  ...
+# Subtest: server rejects stale membership binding after another tab switches identity
+ok 177 - server rejects stale membership binding after another tab switches identity
+  ---
+  duration_ms: 355.271439
+  type: 'test'
+  ...
+# Subtest: reload stores only a pending marker and requires explicit inspection before new commands
+ok 178 - reload stores only a pending marker and requires explicit inspection before new commands
+  ---
+  duration_ms: 3.909642
+  type: 'test'
+  ...
+# Subtest: readonly inspection confirms the original form without another domain write or receipt
+ok 179 - readonly inspection confirms the original form without another domain write or receipt
+  ---
+  duration_ms: 184.875982
+  type: 'test'
+  ...
+# Subtest: global explicit replay leaves an acknowledged result for the original form to consume once
+ok 180 - global explicit replay leaves an acknowledged result for the original form to consume once
+  ---
+  duration_ms: 1.040256
+  type: 'test'
+  ...
+# Subtest: missing readonly receipt keeps the unknown request and does not silently create a new command
+ok 181 - missing readonly receipt keeps the unknown request and does not silently create a new command
+  ---
+  duration_ms: 0.665491
+  type: 'test'
+  ...
+# Subtest: authenticated reads carry the current membership binding and clear stale UI identity on account switch
+ok 182 - authenticated reads carry the current membership binding and clear stale UI identity on account switch
+  ---
+  duration_ms: 0.620046
+  type: 'test'
+  ...
+# Subtest: collections preserve typed UUIDs, source tags, archived state, featured captions and one shared original across credentials and collections
+ok 183 - collections preserve typed UUIDs, source tags, archived state, featured captions and one shared original across credentials and collections
+  ---
+  duration_ms: 865.659311
+  type: 'test'
+  ...
+# Subtest: collection references, duplicate tags/items, ordering and unselected owners are rejected before writes
+ok 184 - collection references, duplicate tags/items, ordering and unselected owners are rejected before writes
+  ---
+  duration_ms: 756.325269
+  type: 'test'
+  ...
+# Subtest: collection source permit, original grant, and media-read permission cannot be replaced by person approval
+ok 185 - collection source permit, original grant, and media-read permission cannot be replaced by person approval
+  ---
+  duration_ms: 592.13189
+  type: 'test'
+  ...
+# Subtest: collection-only exports need no credential selection or encryption keys, and changed captions stale the file
+ok 186 - collection-only exports need no credential selection or encryption keys, and changed captions stale the file
+  ---
+  duration_ms: 762.210676
+  type: 'test'
+  ...
+# Subtest: ten concurrent same-key creates produce one identity, source and receipt
+ok 187 - ten concurrent same-key creates produce one identity, source and receipt
+  ---
+  duration_ms: 222.309122
+  type: 'test'
+  ...
+# Subtest: same key plus different request or target returns conflict
+ok 188 - same key plus different request or target returns conflict
+  ---
+  duration_ms: 187.227219
+  type: 'test'
+  ...
+# Subtest: exact replay is checked before original CAS, and never reapplies old write
+ok 189 - exact replay is checked before original CAS, and never reapplies old write
+  ---
+  duration_ms: 189.537457
+  type: 'test'
+  ...
+# Subtest: current record scope is checked before returning even minimal old receipt
+ok 190 - current record scope is checked before returning even minimal old receipt
+  ---
+  duration_ms: 362.136351
+  type: 'test'
+  ...
+# Subtest: command without idempotency key does not write
+ok 191 - command without idempotency key does not write
+  ---
+  duration_ms: 172.977206
+  type: 'test'
+  ...
+# Subtest: audit failure rolls back source, person and receipt, then same key may succeed
+ok 192 - audit failure rolls back source, person and receipt, then same key may succeed
+  ---
+  duration_ms: 184.241331
+  type: 'test'
+  ...
+# Subtest: receipt schema contains only operation metadata, not person text
+ok 193 - receipt schema contains only operation metadata, not person text
+  ---
+  duration_ms: 185.603309
+  type: 'test'
+  ...
+# Subtest: preview reports errors per row and never creates people
+ok 194 - preview reports errors per row and never creates people
+  ---
+  duration_ms: 179.375013
+  type: 'test'
+  ...
+# Subtest: preview rejects over 100 rows and duplicate selected indices
+ok 195 - preview rejects over 100 rows and duplicate selected indices
+  ---
+  duration_ms: 176.966945
+  type: 'test'
+  ...
+# Subtest: preview is private to initiating member, including other administrators
+ok 196 - preview is private to initiating member, including other administrators
+  ---
+  duration_ms: 352.29056
+  type: 'test'
+  ...
+# Subtest: commit only enqueues; worker creates selected people with row-level result
+ok 197 - commit only enqueues; worker creates selected people with row-level result
+  ---
+  duration_ms: 181.123452
+  type: 'test'
+  ...
+# Subtest: exact commit replay returns original job; new key cannot change selected rows
+ok 198 - exact commit replay returns original job; new key cannot change selected rows
+  ---
+  duration_ms: 180.601521
+  type: 'test'
+  ...
+# Subtest: source revision change between preview and commit blocks stale batch
+ok 199 - source revision change between preview and commit blocks stale batch
+  ---
+  duration_ms: 187.754363
+  type: 'test'
+  ...
+# Subtest: source suspension after enqueue stops worker without importing
+ok 200 - source suspension after enqueue stops worker without importing
+  ---
+  duration_ms: 179.051384
+  type: 'test'
+  ...
+# Subtest: worker rechecks initiating member role after enqueue
+ok 201 - worker rechecks initiating member role after enqueue
+  ---
+  duration_ms: 356.910649
+  type: 'test'
+  ...
+# Subtest: expired claim cannot write or mark a newly claimed job successful
+ok 202 - expired claim cannot write or mark a newly claimed job successful
+  ---
+  duration_ms: 190.094063
+  type: 'test'
+  ...
+# Subtest: concurrent claims have one owner
+ok 203 - concurrent claims have one owner
+  ---
+  duration_ms: 199.384015
+  type: 'test'
+  ...
+# Subtest: job audit failure cannot leave unaccounted person
+ok 204 - job audit failure cannot leave unaccounted person
+  ---
+  duration_ms: 175.302696
+  type: 'test'
+  ...
+# Subtest: import preview expiry is enforced at access boundary
+ok 205 - import preview expiry is enforced at access boundary
+  ---
+  duration_ms: 260.999424
+  type: 'test'
+  ...
+# Subtest: three abandoned leases exhaust retry budget
+ok 206 - three abandoned leases exhaust retry budget
+  ---
+  duration_ms: 187.950891
+  type: 'test'
+  ...
+# Subtest: 202 import receipt is ACCEPTED, never confused with job completion
+ok 207 - 202 import receipt is ACCEPTED, never confused with job completion
+  ---
+  duration_ms: 175.03944
+  type: 'test'
+  ...
+# Subtest: an expired preview receipt cannot revive preview access even when source remains valid
+ok 208 - an expired preview receipt cannot revive preview access even when source remains valid
+  ---
+  duration_ms: 261.809937
+  type: 'test'
+  ...
+# Subtest: COS stores private objects, verifies retries and round-trips original and preview
+ok 209 - COS stores private objects, verifies retries and round-trips original and preview
+  ---
+  duration_ms: 25.187959
+  type: 'test'
+  ...
+# Subtest: COS refuses public or versioned buckets and detects changed or oversized objects
+ok 210 - COS refuses public or versioned buckets and detects changed or oversized objects
+  ---
+  duration_ms: 9.461915
+  type: 'test'
+  ...
+# Subtest: COS failed purge stays incomplete and never leaks SDK errors
+ok 211 - COS failed purge stays incomplete and never leaks SDK errors
+  ---
+  duration_ms: 7.593731
+  type: 'test'
+  ...
+# Subtest: COS purge blocks on an uncertain publication and prevents later publishing
+ok 212 - COS purge blocks on an uncertain publication and prevents later publishing
+  ---
+  duration_ms: 7.164215
+  type: 'test'
+  ...
+# Subtest: proof transfer requires original asset and source permits, refuses unrelated assets, and stales on quarantine
+ok 213 - proof transfer requires original asset and source permits, refuses unrelated assets, and stales on quarantine
+  ---
+  duration_ms: 581.530263
+  type: 'test'
+  ...
+# Subtest: proof bytes rebuild verifies all files, preserves verified credential, and audit rollback leaves files reusable
+ok 214 - proof bytes rebuild verifies all files, preserves verified credential, and audit rollback leaves files reusable
+  ---
+  duration_ms: 674.069047
+  type: 'test'
+  ...
+# Subtest: missing, corrupt and linked proof files refuse preparation without creating a target
+ok 215 - missing, corrupt and linked proof files refuse preparation without creating a target
+  ---
+  duration_ms: 436.140735
+  type: 'test'
+  ...
+# Subtest: HTTP original download audits, rejects revoked permission and rechecks permission after file IO
+ok 216 - HTTP original download audits, rejects revoked permission and rechecks permission after file IO
+  ---
+  duration_ms: 541.438531
+  type: 'test'
+  ...
+# Subtest: DEV-07B preview is zero-write and DRAFT request does not block the target
+ok 217 - DEV-07B preview is zero-write and DRAFT request does not block the target
+  ---
+  duration_ms: 218.468976
+  type: 'test'
+  ...
+# Subtest: DEV-07B stale preview is rejected when a new dependency appears
+ok 218 - DEV-07B stale preview is rejected when a new dependency appears
+  ---
+  duration_ms: 197.519566
+  type: 'test'
+  ...
+# Subtest: DEV-07B hidden dependency is counted but not enumerated, and request creation is refused
+ok 219 - DEV-07B hidden dependency is counted but not enumerated, and request creation is refused
+  ---
+  duration_ms: 364.917265
+  type: 'test'
+  ...
+# Subtest: DEV-07B visible source does not enumerate child records whose own scope is hidden
+ok 220 - DEV-07B visible source does not enumerate child records whose own scope is hidden
+  ---
+  duration_ms: 354.269901
+  type: 'test'
+  ...
+# Subtest: DEV-07B source preview reaches owned records, relations, permissions and frozen exports
+ok 221 - DEV-07B source preview reaches owned records, relations, permissions and frozen exports
+  ---
+  duration_ms: 189.310118
+  type: 'test'
+  ...
+# Subtest: DEV-07B persisted request returns only summary, not frozen dependency ids
+ok 222 - DEV-07B persisted request returns only summary, not frozen dependency ids
+  ---
+  duration_ms: 176.667641
+  type: 'test'
+  ...
+# Subtest: DEV-07B non-delete member cannot preview or enumerate draft deletion requests
+ok 223 - DEV-07B non-delete member cannot preview or enumerate draft deletion requests
+  ---
+  duration_ms: 364.559141
+  type: 'test'
+  ...
+# Subtest: DEV-07C blocking a person removes normal reads/search/handoff but preserves underlying data
+ok 224 - DEV-07C blocking a person removes normal reads/search/handoff but preserves underlying data
+  ---
+  duration_ms: 371.583631
+  type: 'test'
+  ...
+# Subtest: DEV-07C blocking a source cascades to normal source/person/work reads and appends protected history
+ok 225 - DEV-07C blocking a source cascades to normal source/person/work reads and appends protected history
+  ---
+  duration_ms: 195.76138
+  type: 'test'
+  ...
+# Subtest: DEV-07C block is refused when the frozen preview changed after DRAFT creation
+ok 226 - DEV-07C block is refused when the frozen preview changed after DRAFT creation
+  ---
+  duration_ms: 187.535971
+  type: 'test'
+  ...
+# Subtest: DEV-07C blocked person invalidates old export and shortlist item while preserving their records
+ok 227 - DEV-07C blocked person invalidates old export and shortlist item while preserving their records
+  ---
+  duration_ms: 192.823345
+  type: 'test'
+  ...
+# Subtest: DEV-07C already blocked target cannot create another deletion request
+ok 228 - DEV-07C already blocked target cannot create another deletion request
+  ---
+  duration_ms: 183.386367
+  type: 'test'
+  ...
+# Subtest: DEV-07D pending review decisions block plan freeze; safe review slots expose no underlying resource ids
+ok 229 - DEV-07D pending review decisions block plan freeze; safe review slots expose no underlying resource ids
+  ---
+  duration_ms: 183.878504
+  type: 'test'
+  ...
+# Subtest: DEV-07D manual proposed-action decision completes and freezes a non-executing cleanup plan
+ok 230 - DEV-07D manual proposed-action decision completes and freezes a non-executing cleanup plan
+  ---
+  duration_ms: 193.166198
+  type: 'test'
+  ...
+# Subtest: DEV-07D retain-with-basis requires independent current source and freezes its revision/epoch
+ok 231 - DEV-07D retain-with-basis requires independent current source and freezes its revision/epoch
+  ---
+  duration_ms: 193.370374
+  type: 'test'
+  ...
+# Subtest: DEV-07D delete-only member may apply proposed action but cannot authorize retain-with-basis
+ok 232 - DEV-07D delete-only member may apply proposed action but cannot authorize retain-with-basis
+  ---
+  duration_ms: 363.118632
+  type: 'test'
+  ...
+# Subtest: DEV-07D source reviewer may approve retention and delete-only operator may freeze the completed plan
+ok 233 - DEV-07D source reviewer may approve retention and delete-only operator may freeze the completed plan
+  ---
+  duration_ms: 375.169606
+  type: 'test'
+  ...
+# Subtest: DEV-07E cleanup gate is independent and disabled mode cannot enter CLEANING
+ok 234 - DEV-07E cleanup gate is independent and disabled mode cannot enter CLEANING
+  ---
+  duration_ms: 189.018821
+  type: 'test'
+  ...
+# Subtest: DEV-07E worker irreversibly cleans registered DB dependencies but preserves blocked root
+ok 235 - DEV-07E worker irreversibly cleans registered DB dependencies but preserves blocked root
+  ---
+  duration_ms: 231.657599
+  type: 'test'
+  ...
+# Subtest: DEV-07E source cleanup stops at explicit external/specialized work instead of claiming completion
+ok 236 - DEV-07E source cleanup stops at explicit external/specialized work instead of claiming completion
+  ---
+  duration_ms: 230.377321
+  type: 'test'
+  ...
+# Subtest: DEV-07E cleanup start rechecks retained-basis revision after plan freeze
+ok 237 - DEV-07E cleanup start rechecks retained-basis revision after plan freeze
+  ---
+  duration_ms: 213.092083
+  type: 'test'
+  ...
+# Subtest: DEV-07F finalizes a source to an erased root and redacted history only after specialized cleanup proves completion
+ok 238 - DEV-07F finalizes a source to an erased root and redacted history only after specialized cleanup proves completion
+  ---
+  duration_ms: 202.328211
+  type: 'test'
+  ...
+# Subtest: DEV-07F retained source-owned person requires complete field evidence and preserves original origin
+ok 239 - DEV-07F retained source-owned person requires complete field evidence and preserves original origin
+  ---
+  duration_ms: 225.595118
+  type: 'test'
+  ...
+# Subtest: document proposal preserves separate facts, images, work credits and original evidence
+ok 240 - document proposal preserves separate facts, images, work credits and original evidence
+  ---
+  duration_ms: 3.262796
+  type: 'test'
+  ...
+# Subtest: shape-correct proposals cannot cite unprocessed pages, fabricated quotes or nonexistent images
+ok 241 - shape-correct proposals cannot cite unprocessed pages, fabricated quotes or nonexistent images
+  ---
+  duration_ms: 1.256693
+  type: 'test'
+  ...
+# Subtest: visual text requires a usable location; unsupported dictionary wording stays an explicit unknown
+ok 242 - visual text requires a usable location; unsupported dictionary wording stays an explicit unknown
+  ---
+  duration_ms: 0.398078
+  type: 'test'
+  ...
+# Subtest: typed field values, dictionary codes, region bounds and unique candidate keys are enforced
+ok 243 - typed field values, dictionary codes, region bounds and unique candidate keys are enforced
+  ---
+  duration_ms: 1.085942
+  type: 'test'
+  ...
+# Subtest: partial and failed page coverage cannot be presented as a complete document
+ok 244 - partial and failed page coverage cannot be presented as a complete document
+  ---
+  duration_ms: 0.511342
+  type: 'test'
+  ...
+# Subtest: new document schema does not admit arbitrary nested values or future schema versions
+ok 245 - new document schema does not admit arbitrary nested values or future schema versions
+  ---
+  duration_ms: 0.238639
+  type: 'test'
+  ...
+# Subtest: DEV-07A export needs explicit action permission and deployment egress gate
+ok 246 - DEV-07A export needs explicit action permission and deployment egress gate
+  ---
+  duration_ms: 392.998805
+  type: 'test'
+  ...
+# Subtest: DEV-07A export-only member can read minimal permission summaries without gaining source-read access
+ok 247 - DEV-07A export-only member can read minimal permission summaries without gaining source-read access
+  ---
+  duration_ms: 377.484581
+  type: 'test'
+  ...
+# Subtest: DEV-07A TEMP_ORGANIZE never becomes INTERNAL_EXPORT permission
+ok 248 - DEV-07A TEMP_ORGANIZE never becomes INTERNAL_EXPORT permission
+  ---
+  duration_ms: 197.185332
+  type: 'test'
+  ...
+# Subtest: DEV-07A frozen JSON excludes unselected/sensitive fields and survives ordinary content edits
+ok 249 - DEV-07A frozen JSON excludes unselected/sensitive fields and survives ordinary content edits
+  ---
+  duration_ms: 204.772156
+  type: 'test'
+  ...
+# Subtest: DEV-07A source suspension invalidates the entire old export download
+ok 250 - DEV-07A source suspension invalidates the entire old export download
+  ---
+  duration_ms: 184.741275
+  type: 'test'
+  ...
+# Subtest: DEV-07A permission revocation invalidates old export and same-key create replay cannot bypass it
+ok 251 - DEV-07A permission revocation invalidates old export and same-key create replay cannot bypass it
+  ---
+  duration_ms: 190.298977
+  type: 'test'
+  ...
+# Subtest: DEV-07A relations export only when both selected endpoints are explicitly included
+ok 252 - DEV-07A relations export only when both selected endpoints are explicitly included
+  ---
+  duration_ms: 198.391846
+  type: 'test'
+  ...
+# Subtest: H1 pending invitations reveal no profile; acceptance grants only the exact basic profile
+ok 253 - H1 pending invitations reveal no profile; acceptance grants only the exact basic profile
+  ---
+  duration_ms: 566.396628
+  type: 'test'
+  ...
+# Subtest: H1 delegated edit changes basic fields, not ownership, status or private permissions
+ok 254 - H1 delegated edit changes basic fields, not ownership, status or private permissions
+  ---
+  duration_ms: 546.781239
+  type: 'test'
+  ...
+# Subtest: H1 grant of one record never reveals sibling people from the same source
+ok 255 - H1 grant of one record never reveals sibling people from the same source
+  ---
+  duration_ms: 540.661426
+  type: 'test'
+  ...
+# Subtest: H1 even a sensitive ADMIN recipient gains no contacts, raw source, history or scope authority
+ok 256 - H1 even a sensitive ADMIN recipient gains no contacts, raw source, history or scope authority
+  ---
+  duration_ms: 542.884027
+  type: 'test'
+  ...
+# Subtest: H1 received access cannot be delegated again or used to import extra people from the source
+ok 257 - H1 received access cannot be delegated again or used to import extra people from the source
+  ---
+  duration_ms: 533.13916
+  type: 'test'
+  ...
+# Subtest: H1 unscoped ADMIN cannot offer or accept someone else's private handoff
+ok 258 - H1 unscoped ADMIN cannot offer or accept someone else's private handoff
+  ---
+  duration_ms: 535.82983
+  type: 'test'
+  ...
+# Subtest: H1 only the joint person/source maintainer may offer; native scope alone is insufficient
+ok 259 - H1 only the joint person/source maintainer may offer; native scope alone is insufficient
+  ---
+  duration_ms: 523.715343
+  type: 'test'
+  ...
+# Subtest: H1 REVIEW access cannot write basic profile even when target globally has records.write
+ok 260 - H1 REVIEW access cannot write basic profile even when target globally has records.write
+  ---
+  duration_ms: 524.611902
+  type: 'test'
+  ...
+# Subtest: H1 field review still needs an independently readable evidence source; no raw-source shortcut
+ok 261 - H1 field review still needs an independently readable evidence source; no raw-source shortcut
+  ---
+  duration_ms: 538.816718
+  type: 'test'
+  ...
+# Subtest: H1 EDIT does not confer field review when target has reviewer permission by another role
+ok 262 - H1 EDIT does not confer field review when target has reviewer permission by another role
+  ---
+  duration_ms: 528.098892
+  type: 'test'
+  ...
+# Subtest: H1 revoke removes access on next read/write/list, but retains minimal participant receipt
+ok 263 - H1 revoke removes access on next read/write/list, but retains minimal participant receipt
+  ---
+  duration_ms: 539.716679
+  type: 'test'
+  ...
+# Subtest: H1 recipient can decline pending or release accepted access without changing original records
+ok 264 - H1 recipient can decline pending or release accepted access without changing original records
+  ---
+  duration_ms: 535.018284
+  type: 'test'
+  ...
+# Subtest: H1 immutable invite identity: malformed, self, excessive expiry and missing acknowledgment rejected
+ok 265 - H1 immutable invite identity: malformed, self, excessive expiry and missing acknowledgment rejected
+  ---
+  duration_ms: 527.00827
+  type: 'test'
+  ...
+# Subtest: H1 directory is scoped to an owned record and reveals only eligible active member labels
+ok 266 - H1 directory is scoped to an owned record and reveals only eligible active member labels
+  ---
+  duration_ms: 762.06644
+  type: 'test'
+  ...
+# Subtest: H1 same-key creation/accept replays; different-key duplicate and stale accept fail
+ok 267 - H1 same-key creation/accept replays; different-key duplicate and stale accept fail
+  ---
+  duration_ms: 616.542391
+  type: 'test'
+  ...
+# Subtest: H1 current facts invalidate access: person-before-accept
+ok 268 - H1 current facts invalidate access: person-before-accept
+  ---
+  duration_ms: 554.121865
+  type: 'test'
+  ...
+# Subtest: H1 current facts invalidate access: source-before-accept
+ok 269 - H1 current facts invalidate access: source-before-accept
+  ---
+  duration_ms: 531.013948
+  type: 'test'
+  ...
+# Subtest: H1 current facts invalidate access: source-after-accept
+ok 270 - H1 current facts invalidate access: source-after-accept
+  ---
+  duration_ms: 528.879924
+  type: 'test'
+  ...
+# Subtest: H1 current facts invalidate access: scope-after-accept
+ok 271 - H1 current facts invalidate access: scope-after-accept
+  ---
+  duration_ms: 526.397966
+  type: 'test'
+  ...
+# Subtest: H1 current facts invalidate access: archive-after-accept
+ok 272 - H1 current facts invalidate access: archive-after-accept
+  ---
+  duration_ms: 529.77746
+  type: 'test'
+  ...
+# Subtest: H1 current facts invalidate access: recipient-role
+ok 273 - H1 current facts invalidate access: recipient-role
+  ---
+  duration_ms: 626.656154
+  type: 'test'
+  ...
+# Subtest: H1 current facts invalidate access: sender-role
+ok 274 - H1 current facts invalidate access: sender-role
+  ---
+  duration_ms: 542.84665
+  type: 'test'
+  ...
+# Subtest: H1 current facts invalidate access: expiry
+ok 275 - H1 current facts invalidate access: expiry
+  ---
+  duration_ms: 650.649263
+  type: 'test'
+  ...
+# Subtest: H1 roles restored later do not resurrect a previously invalidated grant
+ok 276 - H1 roles restored later do not resurrect a previously invalidated grant
+  ---
+  duration_ms: 632.4445
+  type: 'test'
+  ...
+# Subtest: H1 grant never reduces independently held native access after revocation
+ok 277 - H1 grant never reduces independently held native access after revocation
+  ---
+  duration_ms: 544.204759
+  type: 'test'
+  ...
+# Subtest: H1 handoff insert/audit/receipt faults roll back completely; same key then succeeds
+ok 278 - H1 handoff insert/audit/receipt faults roll back completely; same key then succeeds
+  ---
+  duration_ms: 548.703311
+  type: 'test'
+  ...
+# Subtest: H1 sender and recipient concurrent close/accept cannot both apply stale revisions
+ok 279 - H1 sender and recipient concurrent close/accept cannot both apply stale revisions
+  ---
+  duration_ms: 532.999812
+  type: 'test'
+  ...
+# Subtest: loopback HTTP journey: csrf, login, typed create, detail, replay, Origin rejection, logout
+ok 280 - loopback HTTP journey: csrf, login, typed create, detail, replay, Origin rejection, logout
+  ---
+  duration_ms: 257.452724
+  type: 'test'
+  ...
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# PASS retained identity v13: separately approved current basis, erased original header, actual identity evidence and original reviewers, audit rollback and rebuild without restoring old permissions
+# Subtest: TD2 v13 identity export and rebuild preserve erased origin and current independent proof
+ok 281 - TD2 v13 identity export and rebuild preserve erased origin and current independent proof
+  ---
+  duration_ms: 576.635597
+  type: 'test'
+  ...
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# Subtest: TD2 v13 rebuild rejects missing, stale or forged identity provenance before any writes
+ok 282 - TD2 v13 rebuild rejects missing, stale or forged identity provenance before any writes
+  ---
+  duration_ms: 501.179894
+  type: 'test'
+  ...
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# Subtest: TD2 retained identity permissions and command replays recheck the independent basis
+ok 283 - TD2 retained identity permissions and command replays recheck the independent basis
+  ---
+  duration_ms: 308.834028
+  type: 'test'
+  ...
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# PASS retained identity v13: separately approved current basis, erased original header, actual identity evidence and original reviewers, audit rollback and rebuild without restoring old permissions
+# Subtest: TD2 v13 jointly rebuilds retained identity and its typed professional records from the same erased origin
+ok 284 - TD2 v13 jointly rebuilds retained identity and its typed professional records from the same erased origin
+  ---
+  duration_ms: 589.208985
+  type: 'test'
+  ...
+# Subtest: ordinary contact identity evidence rebuild keeps IDs and original review; audit failure rolls back then retry succeeds
+ok 285 - ordinary contact identity evidence rebuild keeps IDs and original review; audit failure rolls back then retry succeeds
+  ---
+  duration_ms: 434.9147
+  type: 'test'
+  ...
+# Subtest: identity evidence needs person, field and actual source permission; review rights and current scope are rechecked
+ok 286 - identity evidence needs person, field and actual source permission; review rights and current scope are rechecked
+  ---
+  duration_ms: 213.903599
+  type: 'test'
+  ...
+# Subtest: missing identity owner or selected field, bad source version, duplicate ID and review metadata fail before writes
+ok 287 - missing identity owner or selected field, bad source version, duplicate ID and review metadata fail before writes
+  ---
+  duration_ms: 376.544185
+  type: 'test'
+  ...
+# Subtest: identity evidence changes and evidence-only source grant revocation stale queued and ready files
+ok 288 - identity evidence changes and evidence-only source grant revocation stale queued and ready files
+  ---
+  duration_ms: 409.028801
+  type: 'test'
+  ...
+# Subtest: identity transfer preserves previous value digests and excludes unselected fields; old formats reject new identity sections
+ok 289 - identity transfer preserves previous value digests and excludes unselected fields; old formats reject new identity sections
+  ---
+  duration_ms: 378.746187
+  type: 'test'
+  ...
+# Subtest: v10 identity evidence can accompany verified adult, credential and shared collection media without downgrading them
+ok 290 - v10 identity evidence can accompany verified adult, credential and shared collection media without downgrading them
+  ---
+  duration_ms: 848.447994
+  type: 'test'
+  ...
+# Subtest: bootstrap is CLI-only and rejects a second initialization
+ok 291 - bootstrap is CLI-only and rejects a second initialization
+  ---
+  duration_ms: 271.289809
+  type: 'test'
+  ...
+# Subtest: failed bootstrap audit rolls the entire installation back
+ok 292 - failed bootstrap audit rolls the entire installation back
+  ---
+  duration_ms: 86.496688
+  type: 'test'
+  ...
+# Subtest: anonymous business reads rejected
+ok 293 - anonymous business reads rejected
+  ---
+  duration_ms: 178.566128
+  type: 'test'
+  ...
+# Subtest: login cookie is host-only Secure HttpOnly SameSite
+ok 294 - login cookie is host-only Secure HttpOnly SameSite
+  ---
+  duration_ms: 260.113999
+  type: 'test'
+  ...
+# Subtest: login requires server-issued preauth token
+ok 295 - login requires server-issued preauth token
+  ---
+  duration_ms: 175.228672
+  type: 'test'
+  ...
+# Subtest: cross-origin writes rejected even with a valid session and CSRF
+ok 296 - cross-origin writes rejected even with a valid session and CSRF
+  ---
+  duration_ms: 176.822228
+  type: 'test'
+  ...
+# Subtest: missing CSRF rejected
+ok 297 - missing CSRF rejected
+  ---
+  duration_ms: 171.845499
+  type: 'test'
+  ...
+# Subtest: non-JSON write rejected
+ok 298 - non-JSON write rejected
+  ---
+  duration_ms: 174.231807
+  type: 'test'
+  ...
+# Subtest: invalid login is uniform and eventually rate-limited
+ok 299 - invalid login is uniform and eventually rate-limited
+  ---
+  duration_ms: 872.060807
+  type: 'test'
+  ...
+# Subtest: activation is single-use and secret is never recoverable from list
+ok 300 - activation is single-use and secret is never recoverable from list
+  ---
+  duration_ms: 369.928322
+  type: 'test'
+  ...
+# Subtest: activation expires at the exact boundary
+ok 301 - activation expires at the exact boundary
+  ---
+  duration_ms: 261.037683
+  type: 'test'
+  ...
+# Subtest: reset invalidates the previous activation and active sessions
+ok 302 - reset invalidates the previous activation and active sessions
+  ---
+  duration_ms: 533.476857
+  type: 'test'
+  ...
+# Subtest: self-reset is refused in favor of password change
+ok 303 - self-reset is refused in favor of password change
+  ---
+  duration_ms: 181.990489
+  type: 'test'
+  ...
+# Subtest: pending admin does not allow deleting last active admin
+ok 304 - pending admin does not allow deleting last active admin
+  ---
+  duration_ms: 178.3438
+  type: 'test'
+  ...
+# Subtest: VIEWER cannot write or list members
+ok 305 - VIEWER cannot write or list members
+  ---
+  duration_ms: 363.521477
+  type: 'test'
+  ...
+# Subtest: permission change revokes old sessions
+ok 306 - permission change revokes old sessions
+  ---
+  duration_ms: 470.896984
+  type: 'test'
+  ...
+# Subtest: disabled member cannot replay a previously valid command
+ok 307 - disabled member cannot replay a previously valid command
+  ---
+  duration_ms: 373.656624
+  type: 'test'
+  ...
+# Subtest: idle timeout is checked without a worker
+ok 308 - idle timeout is checked without a worker
+  ---
+  duration_ms: 178.264971
+  type: 'test'
+  ...
+# Subtest: absolute expiry is not extended by activity
+ok 309 - absolute expiry is not extended by activity
+  ---
+  duration_ms: 196.960252
+  type: 'test'
+  ...
+# Subtest: password change invalidates all previous sessions
+ok 310 - password change invalidates all previous sessions
+  ---
+  duration_ms: 440.790164
+  type: 'test'
+  ...
+# Subtest: recovery epoch mismatch isolates old sessions
+ok 311 - recovery epoch mismatch isolates old sessions
+  ---
+  duration_ms: 174.123713
+  type: 'test'
+  ...
+# Subtest: maintenance mode blocks business and claims
+ok 312 - maintenance mode blocks business and claims
+  ---
+  duration_ms: 171.683314
+  type: 'test'
+  ...
+# Subtest: pending administrator can be disabled without removing the sole active administrator
+ok 313 - pending administrator can be disabled without removing the sole active administrator
+  ---
+  duration_ms: 178.488052
+  type: 'test'
+  ...
+# Subtest: recovery isolation also blocks activation rather than only ordinary API reads
+ok 314 - recovery isolation also blocks activation rather than only ordinary API reads
+  ---
+  duration_ms: 178.692901
+  type: 'test'
+  ...
+# Subtest: access reset has a per-member issuance rate limit
+ok 315 - access reset has a per-member issuance rate limit
+  ---
+  duration_ms: 179.697356
+  type: 'test'
+  ...
+# Subtest: definite import rejection releases the old batch selection and next preview sends its current rows
+ok 316 - definite import rejection releases the old batch selection and next preview sends its current rows
+  ---
+  duration_ms: 25.275645
+  type: 'test'
+  ...
+# Subtest: GET success and GET failure cannot unlock an unknown import or change its batch, selection and key
+ok 317 - GET success and GET failure cannot unlock an unknown import or change its batch, selection and key
+  ---
+  duration_ms: 2.046739
+  type: 'test'
+  ...
+# Subtest: confirmed import with failed result read only rereads; unknown followed by denial remains frozen
+ok 318 - confirmed import with failed result read only rereads; unknown followed by denial remains frozen
+  ---
+  duration_ms: 2.638492
+  type: 'test'
+  ...
+# Subtest: rebuild rejects malformed imported review provenance and retains both legitimate branches
+ok 319 - rebuild rejects malformed imported review provenance and retains both legitimate branches
+  ---
+  duration_ms: 4.704177
+  type: 'test'
+  ...
+# Subtest: MACHINE stale intake rejection is metadata-only, currently authorized, atomic and retention-safe
+ok 320 - MACHINE stale intake rejection is metadata-only, currently authorized, atomic and retention-safe
+  ---
+  duration_ms: 860.631773
+  type: 'test'
+  ...
+# Subtest: external Agent ingestion shares guarded submission and atomic human review
+ok 321 - external Agent ingestion shares guarded submission and atomic human review
+  ---
+  duration_ms: 1328.359866
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects {"a":1,"a":2}
+ok 322 - strict JSON rejects {"a":1,"a":2}
+  ---
+  duration_ms: 1.779627
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects {"a":1,"\\u0061":2}
+ok 323 - strict JSON rejects {"a":1,"\\u0061":2}
+  ---
+  duration_ms: 0.522693
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects {"__proto__":{}}
+ok 324 - strict JSON rejects {"__proto__":{}}
+  ---
+  duration_ms: 0.180209
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects {"constructor":1}
+ok 325 - strict JSON rejects {"constructor":1}
+  ---
+  duration_ms: 0.129404
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects [1,]
+ok 326 - strict JSON rejects [1,]
+  ---
+  duration_ms: 0.133752
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects 01
+ok 327 - strict JSON rejects 01
+  ---
+  duration_ms: 0.214683
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects 1e400
+ok 328 - strict JSON rejects 1e400
+  ---
+  duration_ms: 0.130936
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects 9007199254740992
+ok 329 - strict JSON rejects 9007199254740992
+  ---
+  duration_ms: 0.117552
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects {"a":"\\ud800"}
+ok 330 - strict JSON rejects {"a":"\\ud800"}
+  ---
+  duration_ms: 0.612051
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects {}x
+ok 331 - strict JSON rejects {}x
+  ---
+  duration_ms: 0.610548
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects {"a":NaN}
+ok 332 - strict JSON rejects {"a":NaN}
+  ---
+  duration_ms: 1.506403
+  type: 'test'
+  ...
+# Subtest: strict JSON accepts escaped strings and supplementary characters
+ok 333 - strict JSON accepts escaped strings and supplementary characters
+  ---
+  duration_ms: 0.43598
+  type: 'test'
+  ...
+# Subtest: canonical field order does not change digest
+ok 334 - canonical field order does not change digest
+  ---
+  duration_ms: 0.559192
+  type: 'test'
+  ...
+# Subtest: canonical rejects integers outside safe range
+ok 335 - canonical rejects integers outside safe range
+  ---
+  duration_ms: 0.140855
+  type: 'test'
+  ...
+# Subtest: canonical subset vector
+ok 336 - canonical subset vector
+  ---
+  duration_ms: 0.11691
+  type: 'test'
+  ...
+# Subtest: canonical does not normalize Unicode or trim source content
+ok 337 - canonical does not normalize Unicode or trim source content
+  ---
+  duration_ms: 0.158568
+  type: 'test'
+  ...
+# Subtest: strict JSON rejects excessive nesting
+ok 338 - strict JSON rejects excessive nesting
+  ---
+  duration_ms: 0.288091
+  type: 'test'
+  ...
+# Subtest: body size cap is bytes
+ok 339 - body size cap is bytes
+  ---
+  duration_ms: 1.511563
+  type: 'test'
+  ...
+# Subtest: DTO rejects contact injection in normal person fields
+ok 340 - DTO rejects contact injection in normal person fields
+  ---
+  duration_ms: 0.265279
+  type: 'test'
+  ...
+# Subtest: DTO rejects caller-supplied workspace
+ok 341 - DTO rejects caller-supplied workspace
+  ---
+  duration_ms: 0.18098
+  type: 'test'
+  ...
+# Subtest: date validation rejects normalized invalid date
+ok 342 - date validation rejects normalized invalid date
+  ---
+  duration_ms: 0.337415
+  type: 'test'
+  ...
+# Subtest: explicit null height remains null
+ok 343 - explicit null height remains null
+  ---
+  duration_ms: 0.215034
+  type: 'test'
+  ...
+# Subtest: omitted keys are not emitted
+ok 344 - omitted keys are not emitted
+  ---
+  duration_ms: 1.597004
+  type: 'test'
+  ...
+# Subtest: AES-GCM roundtrip, random ciphertext and wrong-key rejection
+ok 345 - AES-GCM roundtrip, random ciphertext and wrong-key rejection
+  ---
+  duration_ms: 1.845381
+  type: 'test'
+  ...
+# Subtest: scrypt verifies only correct password
+ok 346 - scrypt verifies only correct password
+  ---
+  duration_ms: 358.98683
+  type: 'test'
+  ...
+# Subtest: contact decryption rejects trailing ciphertext components and malformed encoding
+ok 347 - contact decryption rejects trailing ciphertext components and malformed encoding
+  ---
+  duration_ms: 0.655022
+  type: 'test'
+  ...
+# Subtest: password verifier rejects a valid hash with trailing serialized components
+ok 348 - password verifier rejects a valid hash with trailing serialized components
+  ---
+  duration_ms: 179.845822
+  type: 'test'
+  ...
+# Subtest: local initializer creates private random files, never emits their values
+ok 349 - local initializer creates private random files, never emits their values
+  ---
+  duration_ms: 70.989018
+  type: 'test'
+  ...
+# Subtest: local initializer refuses an existing environment without overwriting keys
+ok 350 - local initializer refuses an existing environment without overwriting keys
+  ---
+  duration_ms: 65.499915
+  type: 'test'
+  ...
+# Subtest: config loader accepts valid file references and rejects malformed secrets and modes
+ok 351 - config loader accepts valid file references and rejects malformed secrets and modes
+  ---
+  duration_ms: 35.083319
+  type: 'test'
+  ...
+# Subtest: staging/production INTERNAL config requires an absolute safety journal path
+ok 352 - staging/production INTERNAL config requires an absolute safety journal path
+  ---
+  duration_ms: 33.108999
+  type: 'test'
+  ...
+# Subtest: production core refuses insecure origin and cookies before any database access
+ok 353 - production core refuses insecure origin and cookies before any database access
+  ---
+  duration_ms: 3.471699
+  type: 'test'
+  ...
+# Subtest: staging requires HTTPS and Secure cookies just like production
+ok 354 - staging requires HTTPS and Secure cookies just like production
+  ---
+  duration_ms: 0.545526
+  type: 'test'
+  ...
+# Subtest: locale merge preserves both originals, forces re-review, rolls back audit failures and replays exact requests
+ok 355 - locale merge preserves both originals, forces re-review, rolls back audit failures and replays exact requests
+  ---
+  duration_ms: 267.491086
+  type: 'test'
+  ...
+# Subtest: locale merge rejects changed auxiliary sources and hides restricted text from preview
+ok 356 - locale merge rejects changed auxiliary sources and hides restricted text from preview
+  ---
+  duration_ms: 203.400661
+  type: 'test'
+  ...
+# Subtest: merged originals survive controlled export and rebuild; unrelated history sources are rejected
+ok 357 - merged originals survive controlled export and rebuild; unrelated history sources are rejected
+  ---
+  duration_ms: 419.90095
+  type: 'test'
+  ...
+# Subtest: a later merge retains prior originals without nesting, and old identity deletion includes dependent text
+ok 358 - a later merge retains prior originals without nesting, and old identity deletion includes dependent text
+  ---
+  duration_ms: 229.787136
+  type: 'test'
+  ...
+# Subtest: language choices are explicit even for one-sided text and cannot select another language
+ok 359 - language choices are explicit even for one-sided text and cannot select another language
+  ---
+  duration_ms: 197.271053
+  type: 'test'
+  ...
+# Subtest: review timestamps use one event instant even when the clock advances between calls
+ok 360 - review timestamps use one event instant even when the clock advances between calls
+  ---
+  duration_ms: 181.762968
+  type: 'test'
+  ...
+# Subtest: internal locale texts retain current typed dependencies and roll back audit failures for people, works and projects
+ok 361 - internal locale texts retain current typed dependencies and roll back audit failures for people, works and projects
+  ---
+  duration_ms: 290.694544
+  type: 'test'
+  ...
+# Subtest: source erasure clears locale text and dependencies atomically while preserving its person
+ok 362 - source erasure clears locale text and dependencies atomically while preserving its person
+  ---
+  duration_ms: 213.914916
+  type: 'test'
+  ...
+# Subtest: locale protection changes restrict content until explicit re-review; current scope and replay permissions apply
+ok 363 - locale protection changes restrict content until explicit re-review; current scope and replay permissions apply
+  ---
+  duration_ms: 375.292966
+  type: 'test'
+  ...
+# Subtest: locale recovery inspection rejects missing roots, altered source digest and cross-workspace dependencies
+ok 364 - locale recovery inspection rejects missing roots, altered source digest and cross-workspace dependencies
+  ---
+  duration_ms: 195.017846
+  type: 'test'
+  ...
+# Subtest: PERSON erasure clears its locale derivatives and rolls back failed cleanup audits
+ok 365 - PERSON erasure clears its locale derivatives and rolls back failed cleanup audits
+  ---
+  duration_ms: 200.350605
+  type: 'test'
+  ...
+# Subtest: WORK erasure clears its locale derivatives and rolls back failed cleanup audits
+ok 366 - WORK erasure clears its locale derivatives and rolls back failed cleanup audits
+  ---
+  duration_ms: 194.870739
+  type: 'test'
+  ...
+# Subtest: PROJECT erasure clears its locale derivatives and rolls back failed cleanup audits
+ok 367 - PROJECT erasure clears its locale derivatives and rolls back failed cleanup audits
+  ---
+  duration_ms: 198.320147
+  type: 'test'
+  ...
+# Subtest: locale transfer uses actual permissions and rebuilds typed dependencies without inventing local review
+ok 368 - locale transfer uses actual permissions and rebuilds typed dependencies without inventing local review
+  ---
+  duration_ms: 442.182374
+  type: 'test'
+  ...
+# Subtest: locale edit without a parent revision change and evidence-only permission revocation both stale a ready export
+ok 369 - locale edit without a parent revision change and evidence-only permission revocation both stale a ready export
+  ---
+  duration_ms: 419.206082
+  type: 'test'
+  ...
+# Subtest: locale rebuild rejects broken roots, forged original review association, missing source and omitted digest before any writes
+ok 370 - locale rebuild rejects broken roots, forged original review association, missing source and omitted digest before any writes
+  ---
+  duration_ms: 392.984007
+  type: 'test'
+  ...
+# Subtest: a second locale export retains original review and bounded original basis, while edits distinguish earlier reviewed text
+ok 371 - a second locale export retains original review and bounded original basis, while edits distinguish earlier reviewed text
+  ---
+  duration_ms: 607.08309
+  type: 'test'
+  ...
+# Subtest: source cleanup erases imported locale provenance along with bodies and current dependencies
+ok 372 - source cleanup erases imported locale provenance along with bodies and current dependencies
+  ---
+  duration_ms: 427.017653
+  type: 'test'
+  ...
+# Subtest: maintenance lists reach records beyond 100 and export rechecks every selected permission
+ok 373 - maintenance lists reach records beyond 100 and export rechecks every selected permission
+  ---
+  duration_ms: 1474.70852
+  type: 'test'
+  ...
+# Subtest: AI grant paging has deterministic ordering and keeps the older grant reachable
+ok 374 - AI grant paging has deterministic ordering and keeps the older grant reachable
+  ---
+  duration_ms: 427.808673
+  type: 'test'
+  ...
+# Subtest: real HTTP storage protocol: only exact 206 identity/length/range accepted; ignores and redirects rejected
+ok 375 - real HTTP storage protocol: only exact 206 identity/length/range accepted; ignores and redirects rejected
+  ---
+  duration_ms: 39.828835
+  type: 'test'
+  ...
+# Subtest: bounded stream detects truncated/oversized bodies and cancels upstream without buffering full object
+ok 376 - bounded stream detects truncated/oversized bodies and cancels upstream without buffering full object
+  ---
+  duration_ms: 3.860761
+  type: 'test'
+  ...
+# Subtest: PR03C collection draft, adoption, cover, ordering, existing reference and rollback
+ok 377 - PR03C collection draft, adoption, cover, ordering, existing reference and rollback
+  ---
+  duration_ms: 343.076939
+  type: 'test'
+  ...
+# Subtest: PR03C current formal ownership, MIME, purpose, concurrency and revocation
+ok 378 - PR03C current formal ownership, MIME, purpose, concurrency and revocation
+  ---
+  duration_ms: 350.715184
+  type: 'test'
+  ...
+# Subtest: PR03C unbound ENROLL collection and actual Person deletion protection
+ok 379 - PR03C unbound ENROLL collection and actual Person deletion protection
+  ---
+  duration_ms: 252.043063
+  type: 'test'
+  ...
+# Subtest: PR03C actual JSON export worker preserves formal collections and excludes drafts
+ok 380 - PR03C actual JSON export worker preserves formal collections and excludes drafts
+  ---
+  duration_ms: 319.855126
+  type: 'test'
+  ...
+# Subtest: PR03C actual Person merge moves safe collections and blocks old talent authority
+ok 381 - PR03C actual Person merge moves safe collections and blocks old talent authority
+  ---
+  duration_ms: 285.239485
+  type: 'test'
+  ...
+# Subtest: PR03C JSON rebuild preserves collections with no external accounts/grants/drafts
+ok 382 - PR03C JSON rebuild preserves collections with no external accounts/grants/drafts
+  ---
+  duration_ms: 646.039476
+  type: 'test'
+  ...
+# Subtest: PR03C versioned tag catalog rejects inactive, unknown and duplicate authoring values
+ok 383 - PR03C versioned tag catalog rejects inactive, unknown and duplicate authoring values
+  ---
+  duration_ms: 0.668878
+  type: 'test'
+  ...
+# Subtest: PR03C finalization explicit grant exposure, tag provenance/CAS, stale current and type identity
+ok 384 - PR03C finalization explicit grant exposure, tag provenance/CAS, stale current and type identity
+  ---
+  duration_ms: 631.621591
+  type: 'test'
+  ...
+# Subtest: playback HTTP ranges: exact, open, suffix, oversized, invalid and ignored multi-range
+ok 385 - playback HTTP ranges: exact, open, suffix, oversized, invalid and ignored multi-range
+  ---
+  duration_ms: 1.890265
+  type: 'test'
+  ...
+# Subtest: playback quota: per actor/workspace, no session bypass, idempotent release, rate and byte caps
+ok 386 - playback quota: per actor/workspace, no session bypass, idempotent release, rate and byte caps
+  ---
+  duration_ms: 0.953523
+  type: 'test'
+  ...
+# Subtest: real local bounded stream: identity mismatch, writeable file and abort are rejected
+ok 387 - real local bounded stream: identity mismatch, writeable file and abort are rejected
+  ---
+  duration_ms: 218.259196
+  type: 'test'
+  ...
+# Subtest: real HTTP playback: 200/206/416, privacy/authentication, current source and audit
+ok 388 - real HTTP playback: 200/206/416, privacy/authentication, current source and audit
+  ---
+  duration_ms: 282.973534
+  type: 'test'
+  ...
+# Subtest: revocation while opening stream denies first byte
+ok 389 - revocation while opening stream denies first byte
+  ---
+  duration_ms: 193.104619
+  type: 'test'
+  ...
+# Subtest: playback audit failure rolls back and sends no video bytes
+ok 390 - playback audit failure rolls back and sends no video bytes
+  ---
+  duration_ms: 197.602077
+  type: 'test'
+  ...
+# Subtest: storage mismatch quarantines exact asset with SYSTEM audit, without revealing storage path
+ok 391 - storage mismatch quarantines exact asset with SYSTEM audit, without revealing storage path
+  ---
+  duration_ms: 195.682237
+  type: 'test'
+  ...
+# Subtest: PR03E local exact immutable deletion, missing is idempotent
+ok 392 - PR03E local exact immutable deletion, missing is idempotent
+  ---
+  duration_ms: 25.164988
+  type: 'test'
+  ...
+# Subtest: PR03E local mismatch, symlink and path escape reject without touching target
+ok 393 - PR03E local mismatch, symlink and path escape reject without touching target
+  ---
+  duration_ms: 9.454361
+  type: 'test'
+  ...
+# Subtest: PR03E controlled COS success
+ok 394 - PR03E controlled COS success
+  ---
+  duration_ms: 8.639658
+  type: 'test'
+  ...
+# Subtest: PR03E controlled COS 404
+ok 395 - PR03E controlled COS 404
+  ---
+  duration_ms: 9.069998
+  type: 'test'
+  ...
+# Subtest: PR03E controlled COS unknown
+ok 396 - PR03E controlled COS unknown
+  ---
+  duration_ms: 8.988154
+  type: 'test'
+  ...
+# Subtest: PR03E controlled COS redirect
+ok 397 - PR03E controlled COS redirect
+  ---
+  duration_ms: 3.621621
+  type: 'test'
+  ...
+# Subtest: PR03E controlled COS identity
+ok 398 - PR03E controlled COS identity
+  ---
+  duration_ms: 4.19549
+  type: 'test'
+  ...
+# Subtest: PR03E exclusive upload namespace removes bounded abandoned copies but rejects unknown names
+ok 399 - PR03E exclusive upload namespace removes bounded abandoned copies but rejects unknown names
+  ---
+  duration_ms: 14.018925
+  type: 'test'
+  ...
+# Subtest: PR03E COS exclusive namespace rejects redirect and unknown keys before deletion
+ok 400 - PR03E COS exclusive namespace rejects redirect and unknown keys before deletion
+  ---
+  duration_ms: 11.684275
+  type: 'test'
+  ...
+# Subtest: PR03E exact deadline, independent READY lifecycle and physical confirmation quota
+ok 401 - PR03E exact deadline, independent READY lifecycle and physical confirmation quota
+  ---
+  duration_ms: 259.180596
+  type: 'test'
+  ...
+# Subtest: PR03E two owners, crash lease fencing and UNKNOWN reconciliation
+ok 402 - PR03E two owners, crash lease fencing and UNKNOWN reconciliation
+  ---
+  duration_ms: 213.75137
+  type: 'test'
+  ...
+# Subtest: PR03E confirmed deletion with audit rollback stays unreadable and retains quota until retry
+ok 403 - PR03E confirmed deletion with audit rollback stays unreadable and retains quota until retry
+  ---
+  duration_ms: 216.005575
+  type: 'test'
+  ...
+# Subtest: PR03E DELETE timeout preserves UNKNOWN and backoff; next HEAD missing finalizes
+ok 404 - PR03E DELETE timeout preserves UNKNOWN and backoff; next HEAD missing finalizes
+  ---
+  duration_ms: 220.553891
+  type: 'test'
+  ...
+# Subtest: PR03E real review command vs purge true
+ok 405 - PR03E real review command vs purge true
+  ---
+  duration_ms: 220.669889
+  type: 'test'
+  ...
+# Subtest: PR03E real review command vs purge false
+ok 406 - PR03E real review command vs purge false
+  ---
+  duration_ms: 206.256516
+  type: 'test'
+  ...
+# Subtest: PR03E full withdrawal lifecycle
+ok 407 - PR03E full withdrawal lifecycle
+  ---
+  duration_ms: 215.835886
+  type: 'test'
+  ...
+# Subtest: PR03E retention config can only tighten
+ok 408 - PR03E retention config can only tighten
+  ---
+  duration_ms: 0.477969
+  type: 'test'
+  ...
+# Subtest: PR03E retention DRAFT
+ok 409 - PR03E retention DRAFT
+  ---
+  duration_ms: 201.131967
+  type: 'test'
+  ...
+# Subtest: PR03E retention SUBMITTED
+ok 410 - PR03E retention SUBMITTED
+  ---
+  duration_ms: 206.532465
+  type: 'test'
+  ...
+# Subtest: PR03E retention REJECTED
+ok 411 - PR03E retention REJECTED
+  ---
+  duration_ms: 210.631205
+  type: 'test'
+  ...
+# Subtest: PR03E retention PARTIALLY_APPROVED
+ok 412 - PR03E retention PARTIALLY_APPROVED
+  ---
+  duration_ms: 201.531899
+  type: 'test'
+  ...
+# Subtest: PR03E retention APPROVED
+ok 413 - PR03E retention APPROVED
+  ---
+  duration_ms: 201.720814
+  type: 'test'
+  ...
+# Subtest: PR03E retention WITHDRAWN
+ok 414 - PR03E retention WITHDRAWN
+  ---
+  duration_ms: 203.381657
+  type: 'test'
+  ...
+# Subtest: PR03E retention EXPIRED
+ok 415 - PR03E retention EXPIRED
+  ---
+  duration_ms: 199.222936
+  type: 'test'
+  ...
+# Subtest: PR03E formal source or any placement prevents purge even after usage retirement
+ok 416 - PR03E formal source or any placement prevents purge even after usage retirement
+  ---
+  duration_ms: 208.892635
+  type: 'test'
+  ...
+# Subtest: PR03E cleanup fence, recovery epoch and data gates
+ok 417 - PR03E cleanup fence, recovery epoch and data gates
+  ---
+  duration_ms: 208.266306
+  type: 'test'
+  ...
+# Subtest: PR03E maintenance status and reconciliation require internal maintenance permission
+ok 418 - PR03E maintenance status and reconciliation require internal maintenance permission
+  ---
+  duration_ms: 213.988601
+  type: 'test'
+  ...
+# Subtest: PR03E final-audit-fault recovery contract
+ok 419 - PR03E final-audit-fault recovery contract
+  ---
+  duration_ms: 205.544997
+  type: 'test'
+  ...
+# Subtest: PR03E explicit deletion competition true
+ok 420 - PR03E explicit deletion competition true
+  ---
+  duration_ms: 255.02674
+  type: 'test'
+  ...
+# Subtest: PR03E explicit deletion competition false
+ok 421 - PR03E explicit deletion competition false
+  ---
+  duration_ms: 247.693289
+  type: 'test'
+  ...
+# Subtest: PR03E bounded scheduler with transient dependencies
+ok 422 - PR03E bounded scheduler with transient dependencies
+  ---
+  duration_ms: 798.142819
+  type: 'test'
+  ...
+# Subtest: PR03E actual decision retention true
+ok 423 - PR03E actual decision retention true
+  ---
+  duration_ms: 221.707951
+  type: 'test'
+  ...
+# Subtest: PR03E actual decision retention false
+ok 424 - PR03E actual decision retention false
+  ---
+  duration_ms: 224.324325
+  type: 'test'
+  ...
+# Subtest: PR03E write-ahead failure never starts DELETE or claims confirmation
+ok 425 - PR03E write-ahead failure never starts DELETE or claims confirmation
+  ---
+  duration_ms: 197.175203
+  type: 'test'
+  ...
+# Subtest: PR03E upload respects configured draft days 1
+ok 426 - PR03E upload respects configured draft days 1
+  ---
+  duration_ms: 205.454297
+  type: 'test'
+  ...
+# Subtest: PR03E upload respects configured draft days 30
+ok 427 - PR03E upload respects configured draft days 30
+  ---
+  duration_ms: 199.761939
+  type: 'test'
+  ...
+# Subtest: PR03E explicit finalizer ownership eligible
+ok 428 - PR03E explicit finalizer ownership eligible
+  ---
+  duration_ms: 249.68353
+  type: 'test'
+  ...
+# Subtest: PR03E explicit finalizer ownership claimed
+ok 429 - PR03E explicit finalizer ownership claimed
+  ---
+  duration_ms: 262.286687
+  type: 'test'
+  ...
+# Subtest: PR03E explicit finalizer ownership live
+ok 430 - PR03E explicit finalizer ownership live
+  ---
+  duration_ms: 245.398719
+  type: 'test'
+  ...
+# Subtest: PR03E explicit finalizer ownership slow
+ok 431 - PR03E explicit finalizer ownership slow
+  ---
+  duration_ms: 35240.858614
+  type: 'test'
+  ...
+# Subtest: PR03E explicit ownership does not starve bounded candidate window
+ok 432 - PR03E explicit ownership does not starve bounded candidate window
+  ---
+  duration_ms: 693.603745
+  type: 'test'
+  ...
+# Subtest: PR03 bound talent staged media and atomic multi-source adoption
+ok 433 - PR03 bound talent staged media and atomic multi-source adoption
+  ---
+  duration_ms: 286.688959
+  type: 'test'
+  ...
+# Subtest: PR03 unbound ENROLL owns new media and adopts without fake membership/source
+ok 434 - PR03 unbound ENROLL owns new media and adopts without fake membership/source
+  ---
+  duration_ms: 225.838772
+  type: 'test'
+  ...
+# Subtest: PR03 review scope, rollback, source isolation and revoked worker
+ok 435 - PR03 review scope, rollback, source isolation and revoked worker
+  ---
+  duration_ms: 419.678795
+  type: 'test'
+  ...
+# Subtest: PR03 business JSON keeps adopted source/relation but never reconstructs external authorization
+ok 436 - PR03 business JSON keeps adopted source/relation but never reconstructs external authorization
+  ---
+  duration_ms: 444.059506
+  type: 'test'
+  ...
+# Subtest: PR03 media lifecycle merge
+ok 437 - PR03 media lifecycle merge
+  ---
+  duration_ms: 217.008132
+  type: 'test'
+  ...
+# Subtest: PR03 media lifecycle adopted-merge
+ok 438 - PR03 media lifecycle adopted-merge
+  ---
+  duration_ms: 227.867217
+  type: 'test'
+  ...
+# Subtest: PR03 media lifecycle delete
+ok 439 - PR03 media lifecycle delete
+  ---
+  duration_ms: 207.763503
+  type: 'test'
+  ...
+# Subtest: PR03 media lifecycle expiry
+ok 440 - PR03 media lifecycle expiry
+  ---
+  duration_ms: 198.352942
+  type: 'test'
+  ...
+# Subtest: PR03 worker revalidates grant
+ok 441 - PR03 worker revalidates grant
+  ---
+  duration_ms: 213.594771
+  type: 'test'
+  ...
+# Subtest: PR03 worker revalidates withdraw
+ok 442 - PR03 worker revalidates withdraw
+  ---
+  duration_ms: 210.785807
+  type: 'test'
+  ...
+# Subtest: PR03 worker revalidates consent
+ok 443 - PR03 worker revalidates consent
+  ---
+  duration_ms: 216.76795
+  type: 'test'
+  ...
+# Subtest: PR03 worker revalidates recovery
+ok 444 - PR03 worker revalidates recovery
+  ---
+  duration_ms: 205.364811
+  type: 'test'
+  ...
+# Subtest: PR03 concurrent upload commands use stable principal and submission CAS
+ok 445 - PR03 concurrent upload commands use stable principal and submission CAS
+  ---
+  duration_ms: 200.938125
+  type: 'test'
+  ...
+# Subtest: PR03 exact Role cannot borrow another person and pinned Role merge fails closed
+ok 446 - PR03 exact Role cannot borrow another person and pinned Role merge fails closed
+  ---
+  duration_ms: 215.07176
+  type: 'test'
+  ...
+# Subtest: PR03 retiring a draft file revokes read but never fakes failure or releases bytes
+ok 447 - PR03 retiring a draft file revokes read but never fakes failure or releases bytes
+  ---
+  duration_ms: 205.116013
+  type: 'test'
+  ...
+# Subtest: PR03 formal media authorization replaces historical intake bound
+ok 448 - PR03 formal media authorization replaces historical intake bound
+  ---
+  duration_ms: 647.194252
+  type: 'test'
+  ...
+# Subtest: PR03 formal media authorization replaces historical intake ENROLL
+ok 449 - PR03 formal media authorization replaces historical intake ENROLL
+  ---
+  duration_ms: 608.465615
+  type: 'test'
+  ...
+# Subtest: PR03 formal media requires the exact active Role after adoption
+ok 450 - PR03 formal media requires the exact active Role after adoption
+  ---
+  duration_ms: 648.648316
+  type: 'test'
+  ...
+# Subtest: M1 disabled provider rejects creation; no hidden memory storage
+ok 451 - M1 disabled provider rejects creation; no hidden memory storage
+  ---
+  duration_ms: 191.678561
+  type: 'test'
+  ...
+# Subtest: M1 upload create same-key replay consumes one reservation and minimal receipts
+ok 452 - M1 upload create same-key replay consumes one reservation and minimal receipts
+  ---
+  duration_ms: 198.435797
+  type: 'test'
+  ...
+# Subtest: M1 strict MIME, filename, size and unknown field input fail without writes
+ok 453 - M1 strict MIME, filename, size and unknown field input fail without writes
+  ---
+  duration_ms: 191.097026
+  type: 'test'
+  ...
+# Subtest: M1 actor active reservation cap includes expired rows until worker expiry
+ok 454 - M1 actor active reservation cap includes expired rows until worker expiry
+  ---
+  duration_ms: 188.504631
+  type: 'test'
+  ...
+# Subtest: M1 source CAS and person/source mismatch denied
+ok 455 - M1 source CAS and person/source mismatch denied
+  ---
+  duration_ms: 188.801459
+  type: 'test'
+  ...
+# Subtest: M1 private upload metadata and bytes require owning/native scope; administrator is not bypass
+ok 456 - M1 private upload metadata and bytes require owning/native scope; administrator is not bypass
+  ---
+  duration_ms: 370.59349
+  type: 'test'
+  ...
+# Subtest: M1 receive is one-shot and cannot overwrite UPLOADED bytes
+ok 457 - M1 receive is one-shot and cannot overwrite UPLOADED bytes
+  ---
+  duration_ms: 188.004972
+  type: 'test'
+  ...
+# Subtest: M1 length mismatch does not claim reservation
+ok 458 - M1 length mismatch does not claim reservation
+  ---
+  duration_ms: 180.763832
+  type: 'test'
+  ...
+# Subtest: M1 digest mismatch never marks file uploaded
+ok 459 - M1 digest mismatch never marks file uploaded
+  ---
+  duration_ms: 183.018853
+  type: 'test'
+  ...
+# Subtest: M1 complete same-key unknown response replays original 202 without a second job
+ok 460 - M1 complete same-key unknown response replays original 202 without a second job
+  ---
+  duration_ms: 185.80055
+  type: 'test'
+  ...
+# Subtest: M1 late receive cannot revive cancellation
+ok 461 - M1 late receive cannot revive cancellation
+  ---
+  duration_ms: 181.504309
+  type: 'test'
+  ...
+# Subtest: M1 worker lease replacement denies stale result and gives unique final identity
+ok 462 - M1 worker lease replacement denies stale result and gives unique final identity
+  ---
+  duration_ms: 182.366466
+  type: 'test'
+  ...
+# Subtest: M1 two workers cannot concurrently claim one upload
+ok 463 - M1 two workers cannot concurrently claim one upload
+  ---
+  duration_ms: 181.222244
+  type: 'test'
+  ...
+# Subtest: M1 worker cannot publish after source edits
+ok 464 - M1 worker cannot publish after source edits
+  ---
+  duration_ms: 179.875431
+  type: 'test'
+  ...
+# Subtest: M1 cancel during decode denies publication without removing others
+ok 465 - M1 cancel during decode denies publication without removing others
+  ---
+  duration_ms: 186.441771
+  type: 'test'
+  ...
+# Subtest: M1 preview DTO never exposes storage path, token, original URL or digest
+ok 466 - M1 preview DTO never exposes storage path, token, original URL or digest
+  ---
+  duration_ms: 180.764753
+  type: 'test'
+  ...
+# Subtest: M1 quarantine denies next preview but preserves explicit asset state
+ok 467 - M1 quarantine denies next preview but preserves explicit asset state
+  ---
+  duration_ms: 177.988993
+  type: 'test'
+  ...
+# Subtest: M1 source suspension hides ready assets immediately
+ok 468 - M1 source suspension hides ready assets immediately
+  ---
+  duration_ms: 180.949781
+  type: 'test'
+  ...
+# Subtest: M1 renewed OPEN session remains one reservation and caps renewal count
+ok 469 - M1 renewed OPEN session remains one reservation and caps renewal count
+  ---
+  duration_ms: 178.918977
+  type: 'test'
+  ...
+# Subtest: M1 maintenance or recovery mismatch prevents cleanup and processing
+ok 470 - M1 maintenance or recovery mismatch prevents cleanup and processing
+  ---
+  duration_ms: 178.101895
+  type: 'test'
+  ...
+# Subtest: M1 only aged failed/cancelled sessions can be purged; READY never eligible
+ok 471 - M1 only aged failed/cancelled sessions can be purged; READY never eligible
+  ---
+  duration_ms: 193.227344
+  type: 'test'
+  ...
+# Subtest: M1 failed receive remains bounded and cannot be automatically sent again
+ok 472 - M1 failed receive remains bounded and cannot be automatically sent again
+  ---
+  duration_ms: 178.124012
+  type: 'test'
+  ...
+# Subtest: M1 accepted basic profile handoff does not grant its media or sources
+ok 473 - M1 accepted basic profile handoff does not grant its media or sources
+  ---
+  duration_ms: 549.323972
+  type: 'test'
+  ...
+# Subtest: PDF and selected MP4 have independent byte limits without widening image limits
+ok 474 - PDF and selected MP4 have independent byte limits without widening image limits
+  ---
+  duration_ms: 380.63362
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# PASS v14 erased history rebuild: minimal erased identity, original alias/merge choice, distinct original erasure attribution, no deleted profile resurrection, audit rollback and retry
+# Subtest: TD2 v14 export and rebuild explicitly preserve historical erasure without restoring deleted profiles or old identity payload
+ok 475 - TD2 v14 export and rebuild explicitly preserve historical erasure without restoring deleted profiles or old identity payload
+  ---
+  duration_ms: 767.838734
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# Subtest: TD2 v14 rejects incomplete erasure lineage, payload resurrection, fabricated reason or old format before writes
+ok 476 - TD2 v14 rejects incomplete erasure lineage, payload resurrection, fabricated reason or old format before writes
+  ---
+  duration_ms: 640.997217
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# PASS source after separately reviewed old identity erasure: exact prior aliases/decisions/markers preserved, remaining source facts removed atomically with audit rollback/retry, canonical identity remains readable
+# PASS v14 erased history rebuild: minimal erased identity, original alias/merge choice, distinct original erasure attribution, no deleted profile resurrection, audit rollback and retry
+# Subtest: TD2 source cleanup after reviewed history erasure exports and rebuilds both minimal erased origin and old identity
+ok 477 - TD2 source cleanup after reviewed history erasure exports and rebuilds both minimal erased origin and old identity
+  ---
+  duration_ms: 855.292165
+  type: 'test'
+  ...
+# PASS merged history erasure: whole merged identity clears all historical payload, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# Subtest: TD2 erases whole merged identity and retained profiles while retaining explicit immutable lineage
+ok 478 - TD2 erases whole merged identity and retained profiles while retaining explicit immutable lineage
+  ---
+  duration_ms: 487.902484
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# Subtest: TD2 old merged identity erasure leaves canonical professional facts and measurements unchanged
+ok 479 - TD2 old merged identity erasure leaves canonical professional facts and measurements unchanged
+  ---
+  duration_ms: 393.896394
+  type: 'test'
+  ...
+# Subtest: TD2 historical erasure requires merge permission and never reveals a hidden old identity to administrators
+ok 480 - TD2 historical erasure requires merge permission and never reveals a hidden old identity to administrators
+  ---
+  duration_ms: 694.200584
+  type: 'test'
+  ...
+# Subtest: TD2 archived identity content changed after blocking invalidates its frozen erasure plan
+ok 481 - TD2 archived identity content changed after blocking invalidates its frozen erasure plan
+  ---
+  duration_ms: 344.705954
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# Subtest: TD2 cleared history markers still require the old identity scope and merge permission
+ok 482 - TD2 cleared history markers still require the old identity scope and merge permission
+  ---
+  duration_ms: 758.429685
+  type: 'test'
+  ...
+# Subtest: merge history rebuild preserves immutable alias, archived identity, retained profiles and original actor without replaying a merge
+ok 483 - merge history rebuild preserves immutable alias, archived identity, retained profiles and original actor without replaying a merge
+  ---
+  duration_ms: 483.762396
+  type: 'test'
+  ...
+# Subtest: merge history rejects cross-identity mapping, missing current profile or retired measurement, forged actor and unknown manifest payload
+ok 484 - merge history rejects cross-identity mapping, missing current profile or retired measurement, forged actor and unknown manifest payload
+  ---
+  duration_ms: 416.238533
+  type: 'test'
+  ...
+# Subtest: historical identity scope and explicit history or evidence grant remain required
+ok 485 - historical identity scope and explicit history or evidence grant remain required
+  ---
+  duration_ms: 240.872557
+  type: 'test'
+  ...
+# Subtest: DEV-07G merge preview is zero-write and same-name people remain distinct until explicit execution
+ok 486 - DEV-07G merge preview is zero-write and same-name people remain distinct until explicit execution
+  ---
+  duration_ms: 216.684255
+  type: 'test'
+  ...
+# Subtest: DEV-07G merge preview needs data.merge and never exposes restricted contact plaintext
+ok 487 - DEV-07G merge preview needs data.merge and never exposes restricted contact plaintext
+  ---
+  duration_ms: 551.175543
+  type: 'test'
+  ...
+# Subtest: DEV-07G explicit merge creates one decision, hides duplicate from lists and resolves old id read-only
+ok 488 - DEV-07G explicit merge creates one decision, hides duplicate from lists and resolves old id read-only
+  ---
+  duration_ms: 191.764318
+  type: 'test'
+  ...
+# Subtest: DEV-07G same-source merge may explicitly adopt duplicate values or union arrays without losing provenance
+ok 489 - DEV-07G same-source merge may explicitly adopt duplicate values or union arrays without losing provenance
+  ---
+  duration_ms: 184.941996
+  type: 'test'
+  ...
+# Subtest: DEV-07G preview digest becomes stale when a relation appears after preview
+ok 490 - DEV-07G preview digest becomes stale when a relation appears after preview
+  ---
+  duration_ms: 190.316544
+  type: 'test'
+  ...
+# Subtest: DEV-07G merge audit failure rolls the entire merge back and exact retry succeeds
+ok 491 - DEV-07G merge audit failure rolls the entire merge back and exact retry succeeds
+  ---
+  duration_ms: 185.202106
+  type: 'test'
+  ...
+# Subtest: DEV-07G active purpose permission is revoked, never transferred to the canonical identity
+ok 492 - DEV-07G active purpose permission is revoked, never transferred to the canonical identity
+  ---
+  duration_ms: 187.16736
+  type: 'test'
+  ...
+# Subtest: DEV-07G scope mismatch blocks execution and keeps both identities intact
+ok 493 - DEV-07G scope mismatch blocks execution and keeps both identities intact
+  ---
+  duration_ms: 184.590806
+  type: 'test'
+  ...
+# Subtest: DEV-07G shortlist rebind uses canonical pre-merge baseline so identity change is never reported as unchanged
+ok 494 - DEV-07G shortlist rebind uses canonical pre-merge baseline so identity change is never reported as unchanged
+  ---
+  duration_ms: 193.862655
+  type: 'test'
+  ...
+# Subtest: DEV-07G merged-id resolution does not reveal an alias outside the old identity scope
+ok 495 - DEV-07G merged-id resolution does not reveal an alias outside the old identity scope
+  ---
+  duration_ms: 367.032654
+  type: 'test'
+  ...
+# Subtest: portal deterministic rejection allows correction and a new request key
+ok 496 - portal deterministic rejection allows correction and a new request key
+  ---
+  duration_ms: 3.509441
+  type: 'test'
+  ...
+# Subtest: portal unknown followed by denial retains exact body, key and original identity
+ok 497 - portal unknown followed by denial retains exact body, key and original identity
+  ---
+  duration_ms: 1.161194
+  type: 'test'
+  ...
+# Subtest: portal success remains known when refresh fails and never repeats the write
+ok 498 - portal success remains known when refresh fails and never repeats the write
+  ---
+  duration_ms: 0.257084
+  type: 'test'
+  ...
+# Subtest: portal malformed receipts retain original request
+ok 499 - portal malformed receipts retain original request
+  ---
+  duration_ms: 0.418808
+  type: 'test'
+  ...
+# Subtest: reload stores only minimal marker and queries receipt without replaying a request body
+ok 500 - reload stores only minimal marker and queries receipt without replaying a request body
+  ---
+  duration_ms: 0.816856
+  type: 'test'
+  ...
+# Subtest: a missing receipt after reload stays unknown and never unlocks a second write
+ok 501 - a missing receipt after reload stays unknown and never unlocks a second write
+  ---
+  duration_ms: 0.453203
+  type: 'test'
+  ...
+# Subtest: an unreadable reload marker blocks writes in the transport itself
+ok 502 - an unreadable reload marker blocks writes in the transport itself
+  ---
+  duration_ms: 1.273184
+  type: 'test'
+  ...
+# Subtest: portal media polling and consent readback update revision without replacing editable identity
+ok 503 - portal media polling and consent readback update revision without replacing editable identity
+  ---
+  duration_ms: 1.748599
+  type: 'test'
+  ...
+# Subtest: portal late reads cannot return a switched draft, older revision or previous owner view
+ok 504 - portal late reads cannot return a switched draft, older revision or previous owner view
+  ---
+  duration_ms: 0.296889
+  type: 'test'
+  ...
+# Subtest: portal unknown save and failed readback keep text until explicit same-request recovery succeeds
+ok 505 - portal unknown save and failed readback keep text until explicit same-request recovery succeeds
+  ---
+  duration_ms: 2.512495
+  type: 'test'
+  ...
+# Subtest: new draft ignores previous view reads and attaches only the confirmed draft identity
+ok 506 - new draft ignores previous view reads and attaches only the confirmed draft identity
+  ---
+  duration_ms: 0.317277
+  type: 'test'
+  ...
+# Subtest: remote identity changes preserve local text and block save until explicit discard and review
+ok 507 - remote identity changes preserve local text and block save until explicit discard and review
+  ---
+  duration_ms: 0.309733
+  type: 'test'
+  ...
+# Subtest: journal kernel lock excludes a live process and releases after SIGKILL without deleting evidence
+ok 508 - journal kernel lock excludes a live process and releases after SIGKILL without deleting evidence
+  ---
+  duration_ms: 2126.204254
+  type: 'test'
+  ...
+# Media cleanup deferred; object remains unconfirmed and other tasks may continue.
+# Subtest: journal lock survives exceptions and serializes independent handles
+ok 509 - journal lock survives exceptions and serializes independent handles
+  ---
+  duration_ms: 190.202579
+  type: 'test'
+  ...
+# Subtest: unresolved cleanup does not mark purge or starve later cleanup and new uploads; retries are delayed
+ok 510 - unresolved cleanup does not mark purge or starve later cleanup and new uploads; retries are delayed
+  ---
+  duration_ms: 1.65949
+  type: 'test'
+  ...
+# Subtest: WP1 works creates source/root/receipt atomically without files or commercial objects
+ok 511 - WP1 works creates source/root/receipt atomically without files or commercial objects
+  ---
+  duration_ms: 194.938106
+  type: 'test'
+  ...
+# Subtest: WP1 works private source does not grant administrator or colleagues access, counts or audit identities
+ok 512 - WP1 works private source does not grant administrator or colleagues access, counts or audit identities
+  ---
+  duration_ms: 364.785846
+  type: 'test'
+  ...
+# Subtest: WP1 works expiry and suspended source block fresh reads and same-key replay
+ok 513 - WP1 works expiry and suspended source block fresh reads and same-key replay
+  ---
+  duration_ms: 179.045237
+  type: 'test'
+  ...
+# Subtest: WP1 works rejects forged owner/scope, invalid root and cross-workspace source
+ok 514 - WP1 works rejects forged owner/scope, invalid root and cross-workspace source
+  ---
+  duration_ms: 181.150115
+  type: 'test'
+  ...
+# Subtest: WP1 works archives are readable but require separate unarchive before editing
+ok 515 - WP1 works archives are readable but require separate unarchive before editing
+  ---
+  duration_ms: 182.459318
+  type: 'test'
+  ...
+# Subtest: WP1 works audit failure rolls back inline source, root and receipt
+ok 516 - WP1 works audit failure rolls back inline source, root and receipt
+  ---
+  duration_ms: 174.673174
+  type: 'test'
+  ...
+# Subtest: WP1 projects creates source/root/receipt atomically without files or commercial objects
+ok 517 - WP1 projects creates source/root/receipt atomically without files or commercial objects
+  ---
+  duration_ms: 175.05934
+  type: 'test'
+  ...
+# Subtest: WP1 projects private source does not grant administrator or colleagues access, counts or audit identities
+ok 518 - WP1 projects private source does not grant administrator or colleagues access, counts or audit identities
+  ---
+  duration_ms: 352.339448
+  type: 'test'
+  ...
+# Subtest: WP1 projects expiry and suspended source block fresh reads and same-key replay
+ok 519 - WP1 projects expiry and suspended source block fresh reads and same-key replay
+  ---
+  duration_ms: 184.096036
+  type: 'test'
+  ...
+# Subtest: WP1 projects rejects forged owner/scope, invalid root and cross-workspace source
+ok 520 - WP1 projects rejects forged owner/scope, invalid root and cross-workspace source
+  ---
+  duration_ms: 174.631446
+  type: 'test'
+  ...
+# Subtest: WP1 projects archives are readable but require separate unarchive before editing
+ok 521 - WP1 projects archives are readable but require separate unarchive before editing
+  ---
+  duration_ms: 180.089422
+  type: 'test'
+  ...
+# Subtest: WP1 projects audit failure rolls back inline source, root and receipt
+ok 522 - WP1 projects audit failure rolls back inline source, root and receipt
+  ---
+  duration_ms: 180.38683
+  type: 'test'
+  ...
+# Subtest: DEV-06 work facts use stable catalogs; inactive values remain historical but cannot be newly assigned
+ok 523 - DEV-06 work facts use stable catalogs; inactive values remain historical but cannot be newly assigned
+  ---
+  duration_ms: 198.416799
+  type: 'test'
+  ...
+# Subtest: WP1 ONCE attribution requires explicit basis; uploader never becomes a credit
+ok 524 - WP1 ONCE attribution requires explicit basis; uploader never becomes a credit
+  ---
+  duration_ms: 235.541792
+  type: 'test'
+  ...
+# Subtest: WP1 order/cover updates are whole-work CAS, same-key replay and exact permutations
+ok 525 - WP1 order/cover updates are whole-work CAS, same-key replay and exact permutations
+  ---
+  duration_ms: 216.360581
+  type: 'test'
+  ...
+# Subtest: WP1 cover and child IDs from another work cannot be used, removed or reordered
+ok 526 - WP1 cover and child IDs from another work cannot be used, removed or reordered
+  ---
+  duration_ms: 195.897714
+  type: 'test'
+  ...
+# Subtest: WP1 active work requires usable image; removal clears last cover without deleting asset
+ok 527 - WP1 active work requires usable image; removal clears last cover without deleting asset
+  ---
+  duration_ms: 186.317613
+  type: 'test'
+  ...
+# Subtest: WP1 disabled/missing/foreign assets fail linking without changing the parent
+ok 528 - WP1 disabled/missing/foreign assets fail linking without changing the parent
+  ---
+  duration_ms: 203.13407
+  type: 'test'
+  ...
+# Subtest: WP1 source suspension redacts asset identity while local reference can be removed
+ok 529 - WP1 source suspension redacts asset identity while local reference can be removed
+  ---
+  duration_ms: 190.470915
+  type: 'test'
+  ...
+# Subtest: WP1 multi-role credits have one person, no duplicate pair, no generated participation
+ok 530 - WP1 multi-role credits have one person, no duplicate pair, no generated participation
+  ---
+  duration_ms: 189.633341
+  type: 'test'
+  ...
+# Subtest: WP1 credit source loss redacts person, role and note; other credentials do not bypass it
+ok 531 - WP1 credit source loss redacts person, role and note; other credentials do not bypass it
+  ---
+  duration_ms: 176.844827
+  type: 'test'
+  ...
+# Subtest: WP1 H1 acceptance does not confer credit, project participation or production-history access
+ok 532 - WP1 H1 acceptance does not confer credit, project participation or production-history access
+  ---
+  duration_ms: 543.818538
+  type: 'test'
+  ...
+# Subtest: WP1 only ACTUAL contributes to distinct visible project count, with correctable facts
+ok 533 - WP1 only ACTUAL contributes to distinct visible project count, with correctable facts
+  ---
+  duration_ms: 201.734117
+  type: 'test'
+  ...
+# Subtest: WP1 ACTUAL needs evidence note; participant updates reject wrong parent, stale CAS and spoofed IDs
+ok 534 - WP1 ACTUAL needs evidence note; participant updates reject wrong parent, stale CAS and spoofed IDs
+  ---
+  duration_ms: 184.213255
+  type: 'test'
+  ...
+# Subtest: WP1 EXTERNAL delivery/reference changes do not rewrite ownership, attribution or personnel
+ok 535 - WP1 EXTERNAL delivery/reference changes do not rewrite ownership, attribution or personnel
+  ---
+  duration_ms: 176.957862
+  type: 'test'
+  ...
+# Subtest: WP1 hidden linked works and participants reveal neither identity nor note and can be detached
+ok 536 - WP1 hidden linked works and participants reveal neither identity nor note and can be detached
+  ---
+  duration_ms: 198.742788
+  type: 'test'
+  ...
+# Subtest: WP1 inactive dictionary role remains visible but new credit/participant is denied
+ok 537 - WP1 inactive dictionary role remains visible but new credit/participant is denied
+  ---
+  duration_ms: 186.913228
+  type: 'test'
+  ...
+# Subtest: WP1 root/child/audit/receipt rollback together on failed credit command then same key succeeds
+ok 538 - WP1 root/child/audit/receipt rollback together on failed credit command then same key succeeds
+  ---
+  duration_ms: 193.022726
+  type: 'test'
+  ...
+# Subtest: WP1 viewer cannot mutate visible root, and current permissions apply before replay
+ok 539 - WP1 viewer cannot mutate visible root, and current permissions apply before replay
+  ---
+  duration_ms: 353.433307
+  type: 'test'
+  ...
+# Subtest: WP1 stable pagination, explicit filters, hidden projects excluded from production count
+ok 540 - WP1 stable pagination, explicit filters, hidden projects excluded from production count
+  ---
+  duration_ms: 361.532597
+  type: 'test'
+  ...
+# Subtest: WP1 storage failures must not masquerade as redacted dependencies
+ok 541 - WP1 storage failures must not masquerade as redacted dependencies
+  ---
+  duration_ms: 0.624624
+  type: 'test'
+  ...
+# Subtest: project parties current-source redaction, CAS, replay and audit rollback
+ok 542 - project parties current-source redaction, CAS, replay and audit rollback
+  ---
+  duration_ms: 224.52802
+  type: 'test'
+  ...
+# Subtest: project parties explicit multi-source export, stale protection and complete isolated rebuild
+ok 543 - project parties explicit multi-source export, stale protection and complete isolated rebuild
+  ---
+  duration_ms: 411.92454
+  type: 'test'
+  ...
+# Subtest: source erasure removes its brand and preserves independently sourced project client
+ok 544 - source erasure removes its brand and preserves independently sourced project client
+  ---
+  duration_ms: 224.76243
+  type: 'test'
+  ...
+# Subtest: brand write rejects viewer, hidden sources and unknown fields
+ok 545 - brand write rejects viewer, hidden sources and unknown fields
+  ---
+  duration_ms: 369.056961
+  type: 'test'
+  ...
+# Subtest: organization source cleanup detaches both references but retains an independently sourced brand
+ok 546 - organization source cleanup detaches both references but retains an independently sourced brand
+  ---
+  duration_ms: 262.871538
+  type: 'test'
+  ...
+# Subtest: private brands are absent from administrator list, replay and audit
+ok 547 - private brands are absent from administrator list, replay and audit
+  ---
+  duration_ms: 361.190354
+  type: 'test'
+  ...
+# Subtest: deletion preview does not expose a brand after only its source scope becomes private
+ok 548 - deletion preview does not expose a brand after only its source scope becomes private
+  ---
+  duration_ms: 378.916775
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 preview is zero-write and accepts a closed 10 people / 3 works / 1 project graph
+ok 549 - DEV-07H T29 preview is zero-write and accepts a closed 10 people / 3 works / 1 project graph
+  ---
+  duration_ms: 193.884707
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 apply preserves exported business ids and relations while rebinding target ownership/scope
+ok 550 - DEV-07H T29 apply preserves exported business ids and relations while rebinding target ownership/scope
+  ---
+  duration_ms: 196.230249
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 rejects non-rebuildable missing or unknown fields before any write
+ok 551 - DEV-07H T29 rejects non-rebuildable missing or unknown fields before any write
+  ---
+  duration_ms: 429.471104
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 rejects missing source closure, unknown target catalog codes, ACTUAL-without-note and ACTIVE work without bytes
+ok 552 - DEV-07H T29 rejects missing source closure, unknown target catalog codes, ACTUAL-without-note and ACTIVE work without bytes
+  ---
+  duration_ms: 810.218392
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 refuses to merge into an already-used target
+ok 553 - DEV-07H T29 refuses to merge into an already-used target
+  ---
+  duration_ms: 188.270458
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 cannot bypass normal per-work or per-project relationship limits
+ok 554 - DEV-07H T29 cannot bypass normal per-work or per-project relationship limits
+  ---
+  duration_ms: 361.545053
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 rejects states normal record APIs would not create
+ok 555 - DEV-07H T29 rejects states normal record APIs would not create
+  ---
+  duration_ms: 927.6185
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 media identity permits cross-work reuse but rejects duplicate links and order gaps
+ok 556 - DEV-07H T29 media identity permits cross-work reuse but rejects duplicate links and order gaps
+  ---
+  duration_ms: 729.232892
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 allows target-local catalog preparation through normal commands
+ok 557 - DEV-07H T29 allows target-local catalog preparation through normal commands
+  ---
+  duration_ms: 193.866613
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 audit failure rolls the complete rebuild transaction back
+ok 558 - DEV-07H T29 audit failure rolls the complete rebuild transaction back
+  ---
+  duration_ms: 199.102197
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 cannot be replayed into the same target after a successful rebuild
+ok 559 - DEV-07H T29 cannot be replayed into the same target after a successful rebuild
+  ---
+  duration_ms: 267.61862
+  type: 'test'
+  ...
+# Subtest: DEV-09E a different request cannot borrow a same-resource commit marker
+ok 560 - DEV-09E a different request cannot borrow a same-resource commit marker
+  ---
+  duration_ms: 20.1368
+  type: 'test'
+  ...
+# Subtest: DEV-09E an audit cannot borrow another workspace commit marker
+ok 561 - DEV-09E an audit cannot borrow another workspace commit marker
+  ---
+  duration_ms: 9.37983
+  type: 'test'
+  ...
+# Subtest: DEV-09E a commit marker can account for only one distinct audit event
+ok 562 - DEV-09E a commit marker can account for only one distinct audit event
+  ---
+  duration_ms: 13.810974
+  type: 'test'
+  ...
+# Subtest: DEV-09E an orphan abort is not evidence of NO_COMMIT
+ok 563 - DEV-09E an orphan abort is not evidence of NO_COMMIT
+  ---
+  duration_ms: 4.218043
+  type: 'test'
+  ...
+# Subtest: DEV-09E a pre-backup orphan commit cannot explain a delayed audit
+ok 564 - DEV-09E a pre-backup orphan commit cannot explain a delayed audit
+  ---
+  duration_ms: 7.892934
+  type: 'test'
+  ...
+# Subtest: DEV-09E contradictory pre-backup markers are still validated before using delayed evidence
+ok 565 - DEV-09E contradictory pre-backup markers are still validated before using delayed evidence
+  ---
+  duration_ms: 15.743467
+  type: 'test'
+  ...
+# Subtest: DEV-09E contained commit must identify the resource named by its write-ahead intent
+ok 566 - DEV-09E contained commit must identify the resource named by its write-ahead intent
+  ---
+  duration_ms: 4.962703
+  type: 'test'
+  ...
+# Subtest: DEV-09E aborted multi-transaction worker is not proven side-effect free
+ok 567 - DEV-09E aborted multi-transaction worker is not proven side-effect free
+  ---
+  duration_ms: 6.920677
+  type: 'test'
+  ...
+# Subtest: DEV-09E same request and valid marker pair still resolves a delayed audit
+ok 568 - DEV-09E same request and valid marker pair still resolves a delayed audit
+  ---
+  duration_ms: 9.039077
+  type: 'test'
+  ...
+# Subtest: DEV-09E legacy v1 journal stays readable but cannot invent request correlation
+ok 569 - DEV-09E legacy v1 journal stays readable but cannot invent request correlation
+  ---
+  duration_ms: 9.117907
+  type: 'test'
+  ...
+# Subtest: DEV-09E legacy abort markers are not proof that a transaction never started
+ok 570 - DEV-09E legacy abort markers are not proof that a transaction never started
+  ---
+  duration_ms: 5.640888
+  type: 'test'
+  ...
+# Subtest: DEV-09E unproven abort and malformed v2 request identity cannot be appended as evidence
+ok 571 - DEV-09E unproven abort and malformed v2 request identity cannot be appended as evidence
+  ---
+  duration_ms: 3.703465
+  type: 'test'
+  ...
+# Subtest: DEV-09E aborted intent resolves as NO_COMMIT and covers every post-backup journal row
+ok 572 - DEV-09E aborted intent resolves as NO_COMMIT and covers every post-backup journal row
+  ---
+  duration_ms: 18.891988
+  type: 'test'
+  ...
+# Subtest: DEV-09E committed prepare-contained delta plus delayed audit is fully resolved
+ok 573 - DEV-09E committed prepare-contained delta plus delayed audit is fully resolved
+  ---
+  duration_ms: 7.77951
+  type: 'test'
+  ...
+# Subtest: DEV-09E committed non-contained mutation remains blocker
+ok 574 - DEV-09E committed non-contained mutation remains blocker
+  ---
+  duration_ms: 10.192065
+  type: 'test'
+  ...
+# Subtest: DEV-09E missing completion marker and missing write-ahead intent are blockers
+ok 575 - DEV-09E missing completion marker and missing write-ahead intent are blockers
+  ---
+  duration_ms: 6.801521
+  type: 'test'
+  ...
+# Subtest: DEV-09E pre-backup intent with post-backup contained commit is resolved
+ok 576 - DEV-09E pre-backup intent with post-backup contained commit is resolved
+  ---
+  duration_ms: 4.868174
+  type: 'test'
+  ...
+# Subtest: DEV-09E delayed audit after pre-backup commit is supplemental, not a false delta
+ok 577 - DEV-09E delayed audit after pre-backup commit is supplemental, not a false delta
+  ---
+  duration_ms: 10.288632
+  type: 'test'
+  ...
+# Subtest: DEV-09E completion marker cannot precede its write-ahead intent
+ok 578 - DEV-09E completion marker cannot precede its write-ahead intent
+  ---
+  duration_ms: 4.710368
+  type: 'test'
+  ...
+# Subtest: DEV-09E unmatched audit and contradictory commit+abort markers are rejected conservatively
+ok 579 - DEV-09E unmatched audit and contradictory commit+abort markers are rejected conservatively
+  ---
+  duration_ms: 13.13354
+  type: 'test'
+  ...
+# Subtest: DEV-09E finalizer journal failure cannot mutate failure state or touch media
+ok 580 - DEV-09E finalizer journal failure cannot mutate failure state or touch media
+  ---
+  duration_ms: 2.444487
+  type: 'test'
+  ...
+# Subtest: DEV-09E physical purge followed by database failure must keep intent unresolved
+ok 581 - DEV-09E physical purge followed by database failure must keep intent unresolved
+  ---
+  duration_ms: 0.749289
+  type: 'test'
+  ...
+# Subtest: DEV-09A recovery preview is zero-write and requires a rotated deployment epoch
+ok 582 - DEV-09A recovery preview is zero-write and requires a rotated deployment epoch
+  ---
+  duration_ms: 379.57573
+  type: 'test'
+  ...
+# Subtest: DEV-09A prepare revokes old capabilities but deliberately does not approve workspace epoch
+ok 583 - DEV-09A prepare revokes old capabilities but deliberately does not approve workspace epoch
+  ---
+  duration_ms: 380.940127
+  type: 'test'
+  ...
+# Subtest: DEV-09A wrong source epoch digest and open execution gates fail before writes
+ok 584 - DEV-09A wrong source epoch digest and open execution gates fail before writes
+  ---
+  duration_ms: 371.40317
+  type: 'test'
+  ...
+# Subtest: DEV-09A audit failure rolls every recovery quarantine write back
+ok 585 - DEV-09A audit failure rolls every recovery quarantine write back
+  ---
+  duration_ms: 362.735559
+  type: 'test'
+  ...
+# Subtest: DEV-09B restore check is zero-write; record persists an allowlisted INSPECTED report
+ok 586 - DEV-09B restore check is zero-write; record persists an allowlisted INSPECTED report
+  ---
+  duration_ms: 375.621012
+  type: 'test'
+  ...
+# Subtest: DEV-09B wrong contact key and media/migration gaps become explicit blockers
+ok 587 - DEV-09B wrong contact key and media/migration gaps become explicit blockers
+  ---
+  duration_ms: 366.348224
+  type: 'test'
+  ...
+# Subtest: DEV-09B stale media evidence is rejected and DB safety changes produce a new blocker/digest
+ok 588 - DEV-09B stale media evidence is rejected and DB safety changes produce a new blocker/digest
+  ---
+  duration_ms: 369.537861
+  type: 'test'
+  ...
+# Subtest: DEV-09C zero-delta approval changes only recovery epoch and preserves conservative quarantines
+ok 589 - DEV-09C zero-delta approval changes only recovery epoch and preserves conservative quarantines
+  ---
+  duration_ms: 358.408677
+  type: 'test'
+  ...
+# Subtest: DEV-09E unresolved post-backup safety journal entry blocks approval
+ok 590 - DEV-09E unresolved post-backup safety journal entry blocks approval
+  ---
+  duration_ms: 376.573548
+  type: 'test'
+  ...
+# Subtest: DEV-09E non-zero but fully prepare-contained delta may approve
+ok 591 - DEV-09E non-zero but fully prepare-contained delta may approve
+  ---
+  duration_ms: 382.629617
+  type: 'test'
+  ...
+# Subtest: DEV-09E incomplete or forged delta resolution is rejected before epoch approval
+ok 592 - DEV-09E incomplete or forged delta resolution is rejected before epoch approval
+  ---
+  duration_ms: 372.917121
+  type: 'test'
+  ...
+# Subtest: DEV-09C stale inspection or mismatched backup evidence cannot approve
+ok 593 - DEV-09C stale inspection or mismatched backup evidence cannot approve
+  ---
+  duration_ms: 365.562383
+  type: 'test'
+  ...
+# Subtest: DEV-09C approval audit failure rolls workspace epoch and approval evidence back
+ok 594 - DEV-09C approval audit failure rolls workspace epoch and approval evidence back
+  ---
+  duration_ms: 359.643677
+  type: 'test'
+  ...
+# Subtest: TD2 retained-origin export and rebuild keep erased source inert and preserve independently reviewed language, with audit rollback and repeat transfer
+ok 595 - TD2 retained-origin export and rebuild keep erased source inert and preserve independently reviewed language, with audit rollback and repeat transfer
+  ---
+  duration_ms: 685.900222
+  type: 'test'
+  ...
+# Subtest: TD2 retained-origin rebuild rejects missing or altered independent proof and active or colliding origin headers before writes
+ok 596 - TD2 retained-origin rebuild rejects missing or altered independent proof and active or colliding origin headers before writes
+  ---
+  duration_ms: 589.727409
+  type: 'test'
+  ...
+# Subtest: TD2 retained-origin transfer still requires evidence selection and current basis grant; erased origin scope changes invalidate ready exports
+ok 597 - TD2 retained-origin transfer still requires evidence selection and current basis grant; erased origin scope changes invalidate ready exports
+  ---
+  duration_ms: 810.551941
+  type: 'test'
+  ...
+# Subtest: TD2 retained-origin rebuild preserves explicitly unreviewed evidence without inventing reviewer attribution
+ok 598 - TD2 retained-origin rebuild preserves explicitly unreviewed evidence without inventing reviewer attribution
+  ---
+  duration_ms: 568.556103
+  type: 'test'
+  ...
+# Subtest: R1 resume uses the same checkpoints; replay and two workers create exactly two people
+ok 599 - R1 resume uses the same checkpoints; replay and two workers create exactly two people
+  ---
+  duration_ms: 218.971085
+  type: 'test'
+  ...
+# Subtest: R1 resume rejects changed payload under an existing command key
+ok 600 - R1 resume rejects changed payload under an existing command key
+  ---
+  duration_ms: 213.319595
+  type: 'test'
+  ...
+# Subtest: R1 resume rechecks suspended
+ok 601 - R1 resume rechecks suspended
+  ---
+  duration_ms: 369.976552
+  type: 'test'
+  ...
+# Subtest: R1 resume rechecks source-revision
+ok 602 - R1 resume rechecks source-revision
+  ---
+  duration_ms: 353.073079
+  type: 'test'
+  ...
+# Subtest: R1 resume rechecks preview-expired
+ok 603 - R1 resume rechecks preview-expired
+  ---
+  duration_ms: 441.852273
+  type: 'test'
+  ...
+# Subtest: R1 resume rechecks maintenance
+ok 604 - R1 resume rechecks maintenance
+  ---
+  duration_ms: 350.405372
+  type: 'test'
+  ...
+# Subtest: R1 resume rechecks scope-revoked
+ok 605 - R1 resume rechecks scope-revoked
+  ---
+  duration_ms: 360.686746
+  type: 'test'
+  ...
+# Subtest: R1 another administrator cannot resume someone else's job
+ok 606 - R1 another administrator cannot resume someone else's job
+  ---
+  duration_ms: 354.658791
+  type: 'test'
+  ...
+# Subtest: R1 role revocation prevents resuming and also old receipt replay
+ok 607 - R1 role revocation prevents resuming and also old receipt replay
+  ---
+  duration_ms: 453.699515
+  type: 'test'
+  ...
+# Subtest: R1 non-transient failure is not blindly resumable
+ok 608 - R1 non-transient failure is not blindly resumable
+  ---
+  duration_ms: 181.497576
+  type: 'test'
+  ...
+# Subtest: R1 explicit resume preserves the lifetime attempt cap
+ok 609 - R1 explicit resume preserves the lifetime attempt cap
+  ---
+  duration_ms: 182.298612
+  type: 'test'
+  ...
+# Subtest: R1 resume requires CSRF and an idempotency key
+ok 610 - R1 resume requires CSRF and an idempotency key
+  ---
+  duration_ms: 182.511833
+  type: 'test'
+  ...
+# Subtest: R1 source edit/review/pause/re-review preserve distinct immutable versions and decision reasons
+ok 611 - R1 source edit/review/pause/re-review preserve distinct immutable versions and decision reasons
+  ---
+  duration_ms: 186.614759
+  type: 'test'
+  ...
+# Subtest: R1 history is denied without BOTH review and sensitive-read, even to ADMIN
+ok 612 - R1 history is denied without BOTH review and sensitive-read, even to ADMIN
+  ---
+  duration_ms: 545.319193
+  type: 'test'
+  ...
+# Subtest: R1 history widening does not expose previously restricted snapshots
+ok 613 - R1 history widening does not expose previously restricted snapshots
+  ---
+  duration_ms: 362.42735
+  type: 'test'
+  ...
+# Subtest: R1 historical review is audited and source-history cannot be overwritten or removed through Store
+ok 614 - R1 historical review is audited and source-history cannot be overwritten or removed through Store
+  ---
+  duration_ms: 180.528776
+  type: 'test'
+  ...
+# Subtest: R1 baseline flags never present old overwritten pause text as verified original basis
+ok 615 - R1 baseline flags never present old overwritten pause text as verified original basis
+  ---
+  duration_ms: 185.167192
+  type: 'test'
+  ...
+# Subtest: R1 command replay and failed audit never duplicate or orphan source history
+ok 616 - R1 command replay and failed audit never duplicate or orphan source history
+  ---
+  duration_ms: 184.475327
+  type: 'test'
+  ...
+# Subtest: R1 field evidence becomes stale after a new source version, history remains
+ok 617 - R1 field evidence becomes stale after a new source version, history remains
+  ---
+  duration_ms: 180.582165
+  type: 'test'
+  ...
+# Subtest: R1 batch visibility agrees with original point checks for restricted/current/expired sources
+ok 618 - R1 batch visibility agrees with original point checks for restricted/current/expired sources
+  ---
+  duration_ms: 359.919685
+  type: 'test'
+  ...
+# {"metric":"R1-preview-100x100","storeReads":20,"backend":"MemoryStore instrumentation; not PG latency"}
+# Subtest: R1 100 existing people + 100 import rows use bounded Store reads, not N times M queries
+ok 619 - R1 100 existing people + 100 import rows use bounded Store reads, not N times M queries
+  ---
+  duration_ms: 183.078921
+  type: 'test'
+  ...
+# Subtest: R1 duplicate-name hints neither leak private names nor miss an exact match behind five prefix matches
+ok 620 - R1 duplicate-name hints neither leak private names nor miss an exact match behind five prefix matches
+  ---
+  duration_ms: 367.724377
+  type: 'test'
+  ...
+# Subtest: R1 an old-binary history gap blocks further mutation instead of manufacturing missing evidence
+ok 621 - R1 an old-binary history gap blocks further mutation instead of manufacturing missing evidence
+  ---
+  duration_ms: 179.78738
+  type: 'test'
+  ...
+# Subtest: DEV-09D safety-critical API fails closed before DB mutation when intent fsync fails
+ok 622 - DEV-09D safety-critical API fails closed before DB mutation when intent fsync fails
+  ---
+  duration_ms: 200.707868
+  type: 'test'
+  ...
+# Subtest: DEV-09D every authenticated COMMAND/SECRET mutation is write-ahead protected by default
+ok 623 - DEV-09D every authenticated COMMAND/SECRET mutation is write-ahead protected by default
+  ---
+  duration_ms: 191.381378
+  type: 'test'
+  ...
+# Subtest: DEV-09D idempotent command retries derive the same write-ahead intent id
+ok 624 - DEV-09D idempotent command retries derive the same write-ahead intent id
+  ---
+  duration_ms: 185.108088
+  type: 'test'
+  ...
+# Subtest: DEV-09D two journal writers serialize concurrent write-ahead intents into one valid chain
+ok 625 - DEV-09D two journal writers serialize concurrent write-ahead intents into one valid chain
+  ---
+  duration_ms: 35.845721
+  type: 'test'
+  ...
+# Subtest: DEV-09E a transaction acknowledgement failure must not claim the write was aborted
+ok 626 - DEV-09E a transaction acknowledgement failure must not claim the write was aborted
+  ---
+  duration_ms: 181.910624
+  type: 'test'
+  ...
+# Subtest: DEV-09C safety journal is private, ordered, append-idempotent and excludes noisy reads
+ok 627 - DEV-09C safety journal is private, ordered, append-idempotent and excludes noisy reads
+  ---
+  duration_ms: 28.023036
+  type: 'test'
+  ...
+# Subtest: DEV-09D concurrent first open is race-safe and never overwrites the journal header
+ok 628 - DEV-09D concurrent first open is race-safe and never overwrites the journal header
+  ---
+  duration_ms: 57.179787
+  type: 'test'
+  ...
+# Subtest: DEV-09C safety journal detects line tampering, truncation and duplicate audit ids
+ok 629 - DEV-09C safety journal detects line tampering, truncation and duplicate audit ids
+  ---
+  duration_ms: 6.537947
+  type: 'test'
+  ...
+# Subtest: DEV-09C safety journal refuses public parent/file permissions
+ok 630 - DEV-09C safety journal refuses public parent/file permissions
+  ---
+  duration_ms: 2.578289
+  type: 'test'
+  ...
+# Subtest: DEV-09F approval barrier excludes append until commit and releases after failure
+ok 631 - DEV-09F approval barrier excludes append until commit and releases after failure
+  ---
+  duration_ms: 86.793157
+  type: 'test'
+  ...
+# Subtest: typed UUID/hash/count/time OTP collisions never mask genuine payload strings
+ok 632 - typed UUID/hash/count/time OTP collisions never mask genuine payload strings
+  ---
+  duration_ms: 4.913561
+  type: 'test'
+  ...
+# Subtest: real tokens and authorization/signed URL leaks fail even when they look like UUID metadata
+ok 633 - real tokens and authorization/signed URL leaks fail even when they look like UUID metadata
+  ---
+  duration_ms: 2.11602
+  type: 'test'
+  ...
+# Subtest: stored guard joins log chunks, parses metadata, and scans receipt/audit bodies without printing secrets
+ok 634 - stored guard joins log chunks, parses metadata, and scans receipt/audit bodies without printing secrets
+  ---
+  duration_ms: 1.523485
+  type: 'test'
+  ...
+# Subtest: DEV-06 structured search combines deterministic facts and visible ACTUAL participation without scores
+ok 635 - DEV-06 structured search combines deterministic facts and visible ACTUAL participation without scores
+  ---
+  duration_ms: 214.12257
+  type: 'test'
+  ...
+# Subtest: DEV-06 industry and work type come only from current visible credited works
+ok 636 - DEV-06 industry and work type come only from current visible credited works
+  ---
+  duration_ms: 380.402786
+  type: 'test'
+  ...
+# Subtest: DEV-06 verification freshness uses current field evidence and never treats unknown as a match
+ok 637 - DEV-06 verification freshness uses current field evidence and never treats unknown as a match
+  ---
+  duration_ms: 270.221022
+  type: 'test'
+  ...
+# Subtest: DEV-06 shortlist is CAS-owned, supports notes/order and rejects wrong-parent child IDs
+ok 638 - DEV-06 shortlist is CAS-owned, supports notes/order and rejects wrong-parent child IDs
+  ---
+  duration_ms: 207.908324
+  type: 'test'
+  ...
+# Subtest: DEV-06 shortlist work must actually credit the candidate and changed facts are flagged
+ok 639 - DEV-06 shortlist work must actually credit the candidate and changed facts are flagged
+  ---
+  duration_ms: 192.336985
+  type: 'test'
+  ...
+# Subtest: DEV-06 source loss redacts the whole shortlist item but list-authorized member can remove placeholder
+ok 640 - DEV-06 source loss redacts the whole shortlist item but list-authorized member can remove placeholder
+  ---
+  duration_ms: 196.431015
+  type: 'test'
+  ...
+# Subtest: DEV-06 H1 profile handoff never expands into candidate search or shortlist association
+ok 641 - DEV-06 H1 profile handoff never expands into candidate search or shortlist association
+  ---
+  duration_ms: 375.269842
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# Subtest: TD2 source cleanup still blocks unreviewed merged payload and requires merge permission after separate historical cleanup
+ok 642 - TD2 source cleanup still blocks unreviewed merged payload and requires merge permission after separate historical cleanup
+  ---
+  duration_ms: 1029.776041
+  type: 'test'
+  ...
+# PASS merged history erasure: old identity only preserves current facts, append-only lineage, original merge choices/actor, atomic audit rollback and retry
+# PASS source after separately reviewed old identity erasure: exact prior aliases/decisions/markers preserved, remaining source facts removed atomically with audit rollback/retry, canonical identity remains readable
+# Subtest: TD2 source freeze rechecks separately cleared old identity scopes and its exact prior history
+ok 643 - TD2 source freeze rechecks separately cleared old identity scopes and its exact prior history
+  ---
+  duration_ms: 821.730085
+  type: 'test'
+  ...
+# Subtest: supplier creates a multi-role person directly, with real self provenance, encrypted draft and replay
+ok 644 - supplier creates a multi-role person directly, with real self provenance, encrypted draft and replay
+  ---
+  duration_ms: 267.01462
+  type: 'test'
+  ...
+# Subtest: supplier confirmation rolls back every fact if atomic command audit fails
+ok 645 - supplier confirmation rolls back every fact if atomic command audit fails
+  ---
+  duration_ms: 252.832832
+  type: 'test'
+  ...
+# Subtest: parallel profile drafts cannot overwrite a newer confirmation, and explicit rebase can resolve it
+ok 646 - parallel profile drafts cannot overwrite a newer confirmation, and explicit rebase can resolve it
+  ---
+  duration_ms: 230.455329
+  type: 'test'
+  ...
+# Subtest: ONCE correction of a shared field is visible to its self account and blocks an old draft
+ok 647 - ONCE correction of a shared field is visible to its self account and blocks an old draft
+  ---
+  duration_ms: 211.402482
+  type: 'test'
+  ...
+# Subtest: full length profile text remains readable in an encrypted server draft
+ok 648 - full length profile text remains readable in an encrypted server draft
+  ---
+  duration_ms: 227.165744
+  type: 'test'
+  ...
+# Subtest: self-confirmed business export preserves the real confirming principal without creating accounts on rebuild
+ok 649 - self-confirmed business export preserves the real confirming principal without creating accounts on rebuild
+  ---
+  duration_ms: 613.409907
+  type: 'test'
+  ...
+# Subtest: revoked supplier consent immediately hides shared fields and the internal directory
+ok 650 - revoked supplier consent immediately hides shared fields and the internal directory
+  ---
+  duration_ms: 216.509273
+  type: 'test'
+  ...
+# Subtest: an incomplete exposure cannot silently clear or reveal unshared staff fields
+ok 651 - an incomplete exposure cannot silently clear or reveal unshared staff fields
+  ---
+  duration_ms: 223.566462
+  type: 'test'
+  ...
+# Subtest: a renewed self profile remains searchable when its older consent is revoked
+ok 652 - a renewed self profile remains searchable when its older consent is revoked
+  ---
+  duration_ms: 218.461868
+  type: 'test'
+  ...
+# Subtest: TD2 shared proof deletion removes only affected collection links, revokes current qualifications, preserves review history and rolls back audit failure
+ok 653 - TD2 shared proof deletion removes only affected collection links, revokes current qualifications, preserves review history and rolls back audit failure
+  ---
+  duration_ms: 455.90508
+  type: 'test'
+  ...
+# Subtest: TD2 frozen shared proof plan rejects changed collection contents before touching qualifications
+ok 654 - TD2 frozen shared proof plan rejects changed collection contents before touching qualifications
+  ---
+  duration_ms: 328.029135
+  type: 'test'
+  ...
+# Subtest: TD2 shared asset preview blocks when a proof owner moves outside the requester scope
+ok 655 - TD2 shared asset preview blocks when a proof owner moves outside the requester scope
+  ---
+  duration_ms: 308.704679
+  type: 'test'
+  ...
+# Subtest: central talent config is closed by default and rejects unsafe provider/key/limit settings
+ok 656 - central talent config is closed by default and rejects unsafe provider/key/limit settings
+  ---
+  duration_ms: 4.514602
+  type: 'test'
+  ...
+# Subtest: HTTP notification gateway distinguishes accepted, delivered and unknown without retry
+ok 657 - HTTP notification gateway distinguishes accepted, delivered and unknown without retry
+  ---
+  duration_ms: 126.872418
+  type: 'test'
+  ...
+# Subtest: identity rate cumulative across explicit challenges; workspace and IP ceilings
+ok 658 - identity rate cumulative across explicit challenges; workspace and IP ceilings
+  ---
+  duration_ms: 202.72573
+  type: 'test'
+  ...
+# Subtest: expired challenge cleanup removes queued ciphertext and never sends
+ok 659 - expired challenge cleanup removes queued ciphertext and never sends
+  ---
+  duration_ms: 180.72521
+  type: 'test'
+  ...
+# Subtest: account erasure retains only minimal identity tombstone and revokes sessions
+ok 660 - account erasure retains only minimal identity tombstone and revokes sessions
+  ---
+  duration_ms: 179.357639
+  type: 'test'
+  ...
+# Subtest: changed identity lookup key fails closed rather than creating a duplicate account
+ok 661 - changed identity lookup key fails closed rather than creating a duplicate account
+  ---
+  duration_ms: 182.324409
+  type: 'test'
+  ...
+# Subtest: PHONE challenge verifies into independent talent identity and account
+ok 662 - PHONE challenge verifies into independent talent identity and account
+  ---
+  duration_ms: 177.344734
+  type: 'test'
+  ...
+# Subtest: recovery inspection blocks live talent credentials and binds all new state
+ok 663 - recovery inspection blocks live talent credentials and binds all new state
+  ---
+  duration_ms: 179.035149
+  type: 'test'
+  ...
+# Subtest: PR02a authentication, isolation, stable principal, uncertainty and recovery
+ok 664 - PR02a authentication, isolation, stable principal, uncertainty and recovery
+  ---
+  duration_ms: 290.696707
+  type: 'test'
+  ...
+# Subtest: PR02a Talent command rolls back on audit failure
+ok 665 - PR02a Talent command rolls back on audit failure
+  ---
+  duration_ms: 177.955536
+  type: 'test'
+  ...
+# Subtest: TD2 candidate creation, visibility and human role review require matching current occupational credits and all visible dependencies
+ok 666 - TD2 candidate creation, visibility and human role review require matching current occupational credits and all visible dependencies
+  ---
+  duration_ms: 334.374602
+  type: 'test'
+  ...
+# Subtest: TD2 runtime enrollment makes old candidate occupations explicitly pending with atomic rollback and replay
+ok 667 - TD2 runtime enrollment makes old candidate occupations explicitly pending with atomic rollback and replay
+  ---
+  duration_ms: 203.925274
+  type: 'test'
+  ...
+# Subtest: TD2 enrollment refuses hidden shortlist dependencies without creating a partial professional profile
+ok 668 - TD2 enrollment refuses hidden shortlist dependencies without creating a partial professional profile
+  ---
+  duration_ms: 177.596066
+  type: 'test'
+  ...
+# Subtest: TD2 pending candidate review exposes no person or role details to a shared read-only member
+ok 669 - TD2 pending candidate review exposes no person or role details to a shared read-only member
+  ---
+  duration_ms: 378.12853
+  type: 'test'
+  ...
+# Subtest: TD2 identity merge preserves separate role candidates, notes and inactive role context with atomic retry
+ok 670 - TD2 identity merge preserves separate role candidates, notes and inactive role context with atomic retry
+  ---
+  duration_ms: 468.676079
+  type: 'test'
+  ...
+# Subtest: TD2 shortlist scope loss hides candidate acknowledgements and shortlist changes stale previews
+ok 671 - TD2 shortlist scope loss hides candidate acknowledgements and shortlist changes stale previews
+  ---
+  duration_ms: 1040.577459
+  type: 'test'
+  ...
+# Subtest: TD2 unknown-role collisions preserve both pending reviews with explicit choice, atomic retry and later human role binding
+ok 672 - TD2 unknown-role collisions preserve both pending reviews with explicit choice, atomic retry and later human role binding
+  ---
+  duration_ms: 770.951799
+  type: 'test'
+  ...
+# Subtest: TD2 selected media requires current asset permission and its links bind the merge preview
+ok 673 - TD2 selected media requires current asset permission and its links bind the merge preview
+  ---
+  duration_ms: 356.295756
+  type: 'test'
+  ...
+# Subtest: TD2 candidate review changes stale merge plans and oversized lineage blocks the merge
+ok 674 - TD2 candidate review changes stale merge plans and oversized lineage blocks the merge
+  ---
+  duration_ms: 343.835541
+  type: 'test'
+  ...
+# Subtest: revoked credential survives explicit secret clearance and source erasure as history only
+ok 675 - revoked credential survives explicit secret clearance and source erasure as history only
+  ---
+  duration_ms: 318.401585
+  type: 'test'
+  ...
+# Subtest: TD2 credential identifiers require separate record/source grants and current sensitive read permission
+ok 676 - TD2 credential identifiers require separate record/source grants and current sensitive read permission
+  ---
+  duration_ms: 478.248437
+  type: 'test'
+  ...
+# Subtest: TD2 credential key, context, mask, ciphertext and target permission failures leave the target empty
+ok 677 - TD2 credential key, context, mask, ciphertext and target permission failures leave the target empty
+  ---
+  duration_ms: 576.300464
+  type: 'test'
+  ...
+# Subtest: TD2 credential attachment, verified status, invalid issuer, dates and private evidence cannot be smuggled into rebuild
+ok 678 - TD2 credential attachment, verified status, invalid issuer, dates and private evidence cannot be smuggled into rebuild
+  ---
+  duration_ms: 558.604329
+  type: 'test'
+  ...
+# Subtest: TD2 changed identifiers, revoked identifier grants and lost sensitive permission stale queued and ready exports
+ok 679 - TD2 changed identifiers, revoked identifier grants and lost sensitive permission stale queued and ready exports
+  ---
+  duration_ms: 1160.645448
+  type: 'test'
+  ...
+# Subtest: TD2 rebuild key files reject missing, public, symlink and malformed keys without disclosing contents
+ok 680 - TD2 rebuild key files reject missing, public, symlink and malformed keys without disclosing contents
+  ---
+  duration_ms: 375.052222
+  type: 'test'
+  ...
+# Subtest: TD2 current evidence-only export rebuilds without key files or unrelated credentials
+ok 681 - TD2 current evidence-only export rebuilds without key files or unrelated credentials
+  ---
+  duration_ms: 558.672837
+  type: 'test'
+  ...
+# Subtest: TD2 credentials with no identifier export and rebuild without granting sensitive fields or providing keys
+ok 682 - TD2 credentials with no identifier export and rebuild without granting sensitive fields or providing keys
+  ---
+  duration_ms: 382.139171
+  type: 'test'
+  ...
+# Subtest: PR01b finalization OR/AND, complete facets, conservative presets and explicit candidate role
+ok 683 - PR01b finalization OR/AND, complete facets, conservative presets and explicit candidate role
+  ---
+  duration_ms: 458.338246
+  type: 'test'
+  ...
+# Subtest: PR01b new fields and cover survive controlled transfer, recovery and merge, then erase through the frozen asset graph
+ok 684 - PR01b new fields and cover survive controlled transfer, recovery and merge, then erase through the frozen asset graph
+  ---
+  duration_ms: 1037.127176
+  type: 'test'
+  ...
+# Subtest: safe history state persists only strict filters, pagination and person-role IDs, never DTO or secrets
+ok 685 - safe history state persists only strict filters, pagination and person-role IDs, never DTO or secrets
+  ---
+  duration_ms: 2.569214
+  type: 'test'
+  ...
+# Subtest: logout, expiry, different member and same-member new session reject all historic state
+ok 686 - logout, expiry, different member and same-member new session reject all historic state
+  ---
+  duration_ms: 0.667286
+  type: 'test'
+  ...
+# Subtest: role choice may stay pending across pages, but cannot carry arbitrary data or contradict a chosen role
+ok 687 - role choice may stay pending across pages, but cannot carry arbitrary data or contradict a chosen role
+  ---
+  duration_ms: 0.333337
+  type: 'test'
+  ...
+# Subtest: PR01b composed maintenance persists attributes and shared filters, without nationality inference or fabricated measurement date
+ok 688 - PR01b composed maintenance persists attributes and shared filters, without nationality inference or fabricated measurement date
+  ---
+  duration_ms: 234.968004
+  type: 'test'
+  ...
+# Subtest: PR01b rejects contradictory birth branches, fake unknown dates, non-model labels and stale atomic commands
+ok 689 - PR01b rejects contradictory birth branches, fake unknown dates, non-model labels and stale atomic commands
+  ---
+  duration_ms: 213.174121
+  type: 'test'
+  ...
+# Subtest: PR01b complete birth date needs separate grants, safe derived ages remain available and hidden source cannot match
+ok 690 - PR01b complete birth date needs separate grants, safe derived ages remain available and hidden source cannot match
+  ---
+  duration_ms: 731.831883
+  type: 'test'
+  ...
+# Subtest: PR01b unknown and declared ages keep precision through time and v14 imports gain unknown defaults
+ok 691 - PR01b unknown and declared ages keep precision through time and v14 imports gain unknown defaults
+  ---
+  duration_ms: 0.490283
+  type: 'test'
+  ...
+# Subtest: PR01b POST query is strict, authenticated and read-only: no key, receipt or business audit
+ok 692 - PR01b POST query is strict, authenticated and read-only: no key, receipt or business audit
+  ---
+  duration_ms: 178.918391
+  type: 'test'
+  ...
+# Subtest: PR01b server receipt time cannot be forged and legacy writes refuse new fields
+ok 693 - PR01b server receipt time cannot be forged and legacy writes refuse new fields
+  ---
+  duration_ms: 187.234207
+  type: 'test'
+  ...
+# Subtest: PR01b birthday proposals stay restricted and export requires new exact grants on both person and source
+ok 694 - PR01b birthday proposals stay restricted and export requires new exact grants on both person and source
+  ---
+  duration_ms: 719.101638
+  type: 'test'
+  ...
+# Subtest: TD2 field evidence history separates current basis, changed values, suspended sources and original review attribution without exposing digests
+ok 695 - TD2 field evidence history separates current basis, changed values, suspended sources and original review attribution without exposing digests
+  ---
+  duration_ms: 301.658466
+  type: 'test'
+  ...
+# Subtest: TD2 field evidence pages and totals omit hidden sources; ordinary readers cannot access review history
+ok 696 - TD2 field evidence pages and totals omit hidden sources; ordinary readers cannot access review history
+  ---
+  duration_ms: 605.795995
+  type: 'test'
+  ...
+# Subtest: TD2 evidence export requires explicit person, original field group and every evidence source grant
+ok 697 - TD2 evidence export requires explicit person, original field group and every evidence source grant
+  ---
+  duration_ms: 454.384703
+  type: 'test'
+  ...
+# Subtest: TD2 evidence changes and evidence-only source permission or scope loss stale queued and ready exports
+ok 698 - TD2 evidence changes and evidence-only source permission or scope loss stale queued and ready exports
+  ---
+  duration_ms: 1063.373202
+  type: 'test'
+  ...
+# Subtest: TD2 malformed evidence owner, field, source revision, identity, review timestamp or unknown secret fails before writes
+ok 699 - TD2 malformed evidence owner, field, source revision, identity, review timestamp or unknown secret fails before writes
+  ---
+  duration_ms: 497.986662
+  type: 'test'
+  ...
+# Subtest: TD2 repeat transfer retains original reviewer attribution without creating target accounts or new approval
+ok 700 - TD2 repeat transfer retains original reviewer attribution without creating target accounts or new approval
+  ---
+  duration_ms: 506.535925
+  type: 'test'
+  ...
+# Subtest: TD2 historical field digests remain unchanged and excluded professional evidence does not enter the bundle
+ok 701 - TD2 historical field digests remain unchanged and excluded professional evidence does not enter the bundle
+  ---
+  duration_ms: 532.069452
+  type: 'test'
+  ...
+# Subtest: TD2 external identity export requires issuing-source permission and remains fail-closed on organization changes
+ok 702 - TD2 external identity export requires issuing-source permission and remains fail-closed on organization changes
+  ---
+  duration_ms: 1287.641784
+  type: 'test'
+  ...
+# Subtest: TD2 external rebuild rejects ambiguous identities, missing or unrelated organizations, missing sources and fabricated verification
+ok 703 - TD2 external rebuild rejects ambiguous identities, missing or unrelated organizations, missing sources and fabricated verification
+  ---
+  duration_ms: 459.891073
+  type: 'test'
+  ...
+# Subtest: TD2 external roundtrip preserves revoked and observed identities without letting them resolve as verified
+ok 704 - TD2 external roundtrip preserves revoked and observed identities without letting them resolve as verified
+  ---
+  duration_ms: 457.305177
+  type: 'test'
+  ...
+# Subtest: TD2 current capability export excludes unrelated external identities and organizations
+ok 705 - TD2 current capability export excludes unrelated external identities and organizations
+  ---
+  duration_ms: 436.681676
+  type: 'test'
+  ...
+# Subtest: shoe-only confirmation preserves ambiguous old height review; actual height resolves atomically
+ok 706 - shoe-only confirmation preserves ambiguous old height review; actual height resolves atomically
+  ---
+  duration_ms: 235.501835
+  type: 'test'
+  ...
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# Subtest: TD2 retained identity and professional facts preserve original source and independently checked field evidence
+ok 707 - TD2 retained identity and professional facts preserve original source and independently checked field evidence
+  ---
+  duration_ms: 453.106589
+  type: 'test'
+  ...
+# PASS TD2 identity retention: original source unchanged, complete independent evidence, atomic audit rollback/retry, basis expiry at finalization and suspended-basis access checks
+# Subtest: TD2 ordinary identity remains accessible on independent evidence without becoming talent
+ok 708 - TD2 ordinary identity remains accessible on independent evidence without becoming talent
+  ---
+  duration_ms: 282.684935
+  type: 'test'
+  ...
+# Subtest: TD2 persisted legacy person-rebind cleanup cannot rewrite the original source
+ok 709 - TD2 persisted legacy person-rebind cleanup cannot rewrite the original source
+  ---
+  duration_ms: 205.398533
+  type: 'test'
+  ...
+# Subtest: TE intake: name-only creates one typed model and a real restricted temporary source
+ok 710 - TE intake: name-only creates one typed model and a real restricted temporary source
+  ---
+  duration_ms: 388.944309
+  type: 'test'
+  ...
+# Subtest: TE intake: multiple roles share one person; contact enrollment preserves its identity
+ok 711 - TE intake: multiple roles share one person; contact enrollment preserves its identity
+  ---
+  duration_ms: 187.427154
+  type: 'test'
+  ...
+# Subtest: TE intake: original key replay creates no duplicate; changed body conflicts; expired source blocks replay
+ok 712 - TE intake: original key replay creates no duplicate; changed body conflicts; expired source blocks replay
+  ---
+  duration_ms: 267.353908
+  type: 'test'
+  ...
+# Subtest: TE intake: existing source CAS and role validation produce no orphan records
+ok 713 - TE intake: existing source CAS and role validation produce no orphan records
+  ---
+  duration_ms: 188.709392
+  type: 'test'
+  ...
+# Subtest: TE intake: audit failure rolls back scope/source/person/profile/roles/receipt; same key can retry
+ok 714 - TE intake: audit failure rolls back scope/source/person/profile/roles/receipt; same key can retry
+  ---
+  duration_ms: 191.243518
+  type: 'test'
+  ...
+# Subtest: TE intake: viewer cannot create and suspended source cannot be borrowed
+ok 715 - TE intake: viewer cannot create and suspended source cannot be borrowed
+  ---
+  duration_ms: 365.888517
+  type: 'test'
+  ...
+# Subtest: Phase C legacy reads use current typed facts and reject stale professional writes/evidence
+ok 716 - Phase C legacy reads use current typed facts and reject stale professional writes/evidence
+  ---
+  duration_ms: 283.522079
+  type: 'test'
+  ...
+# Subtest: Phase C basic handoff never exposes typed professional facts outside current native scope
+ok 717 - Phase C basic handoff never exposes typed professional facts outside current native scope
+  ---
+  duration_ms: 372.58909
+  type: 'test'
+  ...
+# Subtest: PR02b finalization: exact terminal replay, complete ENROLL rejection and scoped source text
+ok 718 - PR02b finalization: exact terminal replay, complete ENROLL rejection and scoped source text
+  ---
+  duration_ms: 897.937593
+  type: 'test'
+  ...
+# Subtest: PR02b invitation, grant, account-bound reads, draft, batch review and consent
+ok 719 - PR02b invitation, grant, account-bound reads, draft, batch review and consent
+  ---
+  duration_ms: 322.139091
+  type: 'test'
+  ...
+# Subtest: PR02b review audit rollback, source expiry, revocation and recovery isolation
+ok 720 - PR02b review audit rollback, source expiry, revocation and recovery isolation
+  ---
+  duration_ms: 389.684393
+  type: 'test'
+  ...
+# Subtest: PR02b lifecycle erases server mirrors and revokes both merge roots without transferring accounts
+ok 721 - PR02b lifecycle erases server mirrors and revokes both merge roots without transferring accounts
+  ---
+  duration_ms: 267.195393
+  type: 'test'
+  ...
+# Subtest: PR02b real business export and JSON rebuild preserve purpose provenance without restoring accounts or grants
+ok 722 - PR02b real business export and JSON rebuild preserve purpose provenance without restoring accounts or grants
+  ---
+  duration_ms: 567.286832
+  type: 'test'
+  ...
+# Subtest: PR02b actual Person merge and deletion include external grants and server mirrors
+ok 723 - PR02b actual Person merge and deletion include external grants and server mirrors
+  ---
+  duration_ms: 468.541162
+  type: 'test'
+  ...
+# Subtest: PR02b per-field conflict, partial batch and fork preserve approved facts
+ok 724 - PR02b per-field conflict, partial batch and fork preserve approved facts
+  ---
+  duration_ms: 394.438896
+  type: 'test'
+  ...
+# Subtest: PR02b unknown age and known minors require explicit relationship review
+ok 725 - PR02b unknown age and known minors require explicit relationship review
+  ---
+  duration_ms: 383.352262
+  type: 'test'
+  ...
+# Subtest: manual height dismissal and credential identifier erasure require human confirmation, scope and atomic audit
+ok 726 - manual height dismissal and credential identifier erasure require human confirmation, scope and atomic audit
+  ---
+  duration_ms: 429.908364
+  type: 'test'
+  ...
+# Subtest: TD2 representatives require explicit person selection and grants plus the actual organization source group
+ok 727 - TD2 representatives require explicit person selection and grants plus the actual organization source group
+  ---
+  duration_ms: 407.186795
+  type: 'test'
+  ...
+# Subtest: TD2 representation rebuild rejects ambiguous subjects, absent agents, foreign roles, and invalid periods atomically
+ok 728 - TD2 representation rebuild rejects ambiguous subjects, absent agents, foreign roles, and invalid periods atomically
+  ---
+  duration_ms: 495.797761
+  type: 'test'
+  ...
+# Subtest: TD2 representative grant or visibility loss and relationship changes invalidate queued and ready files
+ok 729 - TD2 representative grant or visibility loss and relationship changes invalidate queued and ready files
+  ---
+  duration_ms: 930.457903
+  type: 'test'
+  ...
+# Subtest: TD2 current external export excludes unselected representatives
+ok 730 - TD2 current external export excludes unselected representatives
+  ---
+  duration_ms: 474.201736
+  type: 'test'
+  ...
+# Subtest: TD2 source asset batch clears both originals from shared collections and proofs atomically, preserving independent original and field history
+ok 731 - TD2 source asset batch clears both originals from shared collections and proofs atomically, preserving independent original and field history
+  ---
+  duration_ms: 493.054458
+  type: 'test'
+  ...
+# Subtest: TD2 source asset batch rejects changed original metadata before clearing any proof or shared collection
+ok 732 - TD2 source asset batch rejects changed original metadata before clearing any proof or shared collection
+  ---
+  duration_ms: 418.254941
+  type: 'test'
+  ...
+# Subtest: TD2 combined source cleanup retains independently supported facts and collection, erases role and shared originals with atomic audit rollback
+ok 733 - TD2 combined source cleanup retains independently supported facts and collection, erases role and shared originals with atomic audit rollback
+  ---
+  duration_ms: 734.331453
+  type: 'test'
+  ...
+# Subtest: TD2 combined source plan refuses retained proof pointing at an original scheduled for erasure
+ok 734 - TD2 combined source plan refuses retained proof pointing at an original scheduled for erasure
+  ---
+  duration_ms: 505.237918
+  type: 'test'
+  ...
+# Subtest: TD2 independent evidence source erasure retains exact other facts and provenance, rolls back audit failure and finishes after retry
+ok 735 - TD2 independent evidence source erasure retains exact other facts and provenance, rolls back audit failure and finishes after retry
+  ---
+  duration_ms: 334.415828
+  type: 'test'
+  ...
+# Subtest: TD2 independent source cannot erase the only basis of the current value or rewrite its reviewer to another source
+ok 736 - TD2 independent source cannot erase the only basis of the current value or rewrite its reviewer to another source
+  ---
+  duration_ms: 244.332105
+  type: 'test'
+  ...
+# Subtest: TD2 frozen independent source cleanup rechecks surviving basis and rejects a suspended source
+ok 737 - TD2 frozen independent source cleanup rechecks surviving basis and rejects a suspended source
+  ---
+  duration_ms: 260.745369
+  type: 'test'
+  ...
+# Subtest: TD2 source preview blocks when its professional owner is outside the current operator scope
+ok 738 - TD2 source preview blocks when its professional owner is outside the current operator scope
+  ---
+  duration_ms: 413.659247
+  type: 'test'
+  ...
+# Subtest: TD2 source facts independently retain or erase with atomic graph rollback and preserve candidate history pending explicit role review
+ok 739 - TD2 source facts independently retain or erase with atomic graph rollback and preserve candidate history pending explicit role review
+  ---
+  duration_ms: 457.361917
+  type: 'test'
+  ...
+# Subtest: TD2 source plan cannot retain a child while erasing its parent role
+ok 740 - TD2 source plan cannot retain a child while erasing its parent role
+  ---
+  duration_ms: 354.383594
+  type: 'test'
+  ...
+# Subtest: TD2 source fact retention requires actual field coverage and later changes invalidate a frozen plan
+ok 741 - TD2 source fact retention requires actual field coverage and later changes invalidate a frozen plan
+  ---
+  duration_ms: 346.81619
+  type: 'test'
+  ...
+# PASS combined source/other-identity withdrawal: explicit field item, unchanged other identity and independent evidence, whole-group audit rollback/retry, final basis expiry refuses completion
+# Subtest: TD2 source fact deletion withdraws other identity evidence atomically and rechecks the frozen surviving proof at completion
+ok 742 - TD2 source fact deletion withdraws other identity evidence atomically and rechecks the frozen surviving proof at completion
+  ---
+  duration_ms: 496.667047
+  type: 'test'
+  ...
+# Subtest: TD2 combined source identity withdrawal rejects the last basis before making a deletion plan
+ok 743 - TD2 combined source identity withdrawal rejects the last basis before making a deletion plan
+  ---
+  duration_ms: 290.001928
+  type: 'test'
+  ...
+# Subtest: TD2 combined source identity withdrawal hides an out-of-scope independent basis from administrators
+ok 744 - TD2 combined source identity withdrawal hides an out-of-scope independent basis from administrators
+  ---
+  duration_ms: 477.827201
+  type: 'test'
+  ...
+# Subtest: TD2 combined source identity withdrawal binds independent source changes before freeze
+ok 745 - TD2 combined source identity withdrawal binds independent source changes before freeze
+  ---
+  duration_ms: 361.040806
+  type: 'test'
+  ...
+# PASS TD2 source identity: full professional and identity evidence graph rollback/retry, external representation cleanup, hidden-owner finalization rollback/retry, source-owned original purge, independent people and original files retained
+# Subtest: TD2 source-owned identities and complete professional graphs erase atomically, preserving independent people and original files
+ok 746 - TD2 source-owned identities and complete professional graphs erase atomically, preserving independent people and original files
+  ---
+  duration_ms: 815.166618
+  type: 'test'
+  ...
+# Subtest: legacy structured search shares current occupations, same-work matching, current reviews and complete facets
+ok 747 - legacy structured search shares current occupations, same-work matching, current reviews and complete facets
+  ---
+  duration_ms: 287.119938
+  type: 'test'
+  ...
+# Subtest: TD2 explicit person and fact-source permits export a typed whitelist and atomically rebuild stable relationships
+ok 748 - TD2 explicit person and fact-source permits export a typed whitelist and atomically rebuild stable relationships
+  ---
+  duration_ms: 640.44612
+  type: 'test'
+  ...
+# Subtest: TD2 frozen professional downloads fail closed after fact changes, source revocation, or disabled requestor
+ok 749 - TD2 frozen professional downloads fail closed after fact changes, source revocation, or disabled requestor
+  ---
+  duration_ms: 759.775696
+  type: 'test'
+  ...
+# Subtest: TD2 selected dependencies are explicit and unsupported typed fields cannot be smuggled into export
+ok 750 - TD2 selected dependencies are explicit and unsupported typed fields cannot be smuggled into export
+  ---
+  duration_ms: 438.418056
+  type: 'test'
+  ...
+# Subtest: TD2 foreign-source field evidence cannot be silently flattened and worker rechecks revoked grants
+ok 751 - TD2 foreign-source field evidence cannot be silently flattened and worker rechecks revoked grants
+  ---
+  duration_ms: 517.480595
+  type: 'test'
+  ...
+# Subtest: TD2 capability transfer preserves only referenced definitions and stales queued or ready exports when meaning changes
+ok 752 - TD2 capability transfer preserves only referenced definitions and stales queued or ready exports when meaning changes
+  ---
+  duration_ms: 268.747056
+  type: 'test'
+  ...
+# Subtest: TD2 capability rebuild rejects omitted, unrelated, duplicate, invalid-role and invalid-level definitions before writes
+ok 753 - TD2 capability rebuild rejects omitted, unrelated, duplicate, invalid-role and invalid-level definitions before writes
+  ---
+  duration_ms: 435.333589
+  type: 'test'
+  ...
+# Subtest: TD2 selected eight groups use current format without exporting unselected capabilities
+ok 754 - TD2 selected eight groups use current format without exporting unselected capabilities
+  ---
+  duration_ms: 430.371496
+  type: 'test'
+  ...
+# Subtest: TD2 shared inactive capability definitions and nullable role or level survive rebuild without reactivation
+ok 755 - TD2 shared inactive capability definitions and nullable role or level survive rebuild without reactivation
+  ---
+  duration_ms: 438.64055
+  type: 'test'
+  ...
+# Subtest: TD2 retired development formats v1-v13 are rejected before any rebuild write
+ok 756 - TD2 retired development formats v1-v13 are rejected before any rebuild write
+  ---
+  duration_ms: 425.059544
+  type: 'test'
+  ...
+# Subtest: TD2-T16 Person graph erasure previews, rolls back on audit failure, retries and preserves independent identities
+ok 757 - TD2-T16 Person graph erasure previews, rolls back on audit failure, retries and preserves independent identities
+  ---
+  duration_ms: 349.419107
+  type: 'test'
+  ...
+# Subtest: TD2-T17 recovery revokes machine credentials, invalidates proposals, checks credential encryption and detects graph drift
+ok 758 - TD2-T17 recovery revokes machine credentials, invalidates proposals, checks credential encryption and detects graph drift
+  ---
+  duration_ms: 270.771602
+  type: 'test'
+  ...
+# Subtest: TD2-T17 integrity inspector detects missing or cross-person typed references without leaking identifiers
+ok 759 - TD2-T17 integrity inspector detects missing or cross-person typed references without leaking identifiers
+  ---
+  duration_ms: 227.322808
+  type: 'test'
+  ...
+# Subtest: TD2-T16 source-owned identities require explicit full erasure while singleton merge requires history resolution
+ok 760 - TD2-T16 source-owned identities require explicit full erasure while singleton merge requires history resolution
+  ---
+  duration_ms: 241.88629
+  type: 'test'
+  ...
+# Subtest: TD2-T16 legacy export cannot serialize stale flat professional fields for an upgraded person
+ok 761 - TD2-T16 legacy export cannot serialize stale flat professional fields for an upgraded person
+  ---
+  duration_ms: 224.4217
+  type: 'test'
+  ...
+# Subtest: TD2 typed merge preserves IDs, sources, role links and credentials; audit failure rolls back; exact retry/replay succeed
+ok 762 - TD2 typed merge preserves IDs, sources, role links and credentials; audit failure rolls back; exact retry/replay succeed
+  ---
+  duration_ms: 336.156886
+  type: 'test'
+  ...
+# Subtest: TD2 typed merge binds fact content, evidence and proposal revisions, not only root revisions
+ok 763 - TD2 typed merge binds fact content, evidence and proposal revisions, not only root revisions
+  ---
+  duration_ms: 268.120641
+  type: 'test'
+  ...
+# Subtest: TD2 hidden or sensitive dependencies expose no typed IDs, proposal values or secret data
+ok 764 - TD2 hidden or sensitive dependencies expose no typed IDs, proposal values or secret data
+  ---
+  duration_ms: 413.155291
+  type: 'test'
+  ...
+# Subtest: TD2 singleton collisions are enumerated and cannot be bypassed by explicit migration acknowledgements
+ok 765 - TD2 singleton collisions are enumerated and cannot be bypassed by explicit migration acknowledgements
+  ---
+  duration_ms: 233.318076
+  type: 'test'
+  ...
+# Subtest: TD2 overlapping language facts remain a conflict, and duplicate or invented acknowledgements fail
+ok 766 - TD2 overlapping language facts remain a conflict, and duplicate or invented acknowledgements fail
+  ---
+  duration_ms: 252.98445
+  type: 'test'
+  ...
+# Subtest: TD2 merging an independent agent rebinds inbound representation without moving the represented talent
+ok 767 - TD2 merging an independent agent rebinds inbound representation without moving the represented talent
+  ---
+  duration_ms: 238.679411
+  type: 'test'
+  ...
+# Subtest: TD2 source revocation for a professional fact invalidates preview while both identity sources remain readable
+ok 768 - TD2 source revocation for a professional fact invalidates preview while both identity sources remain readable
+  ---
+  duration_ms: 251.408424
+  type: 'test'
+  ...
+# Subtest: TD2 explicit conflict decisions retain source facts, immutable history and atomic retry
+ok 769 - TD2 explicit conflict decisions retain source facts, immutable history and atomic retry
+  ---
+  duration_ms: 386.884224
+  type: 'test'
+  ...
+# Subtest: TD2 contradictory interval decisions cannot deactivate a record selected as active elsewhere
+ok 770 - TD2 contradictory interval decisions cannot deactivate a record selected as active elsewhere
+  ---
+  duration_ms: 0.888852
+  type: 'test'
+  ...
+# Subtest: TD2 retained history requires merge permission and rechecks the original identity scope
+ok 771 - TD2 retained history requires merge permission and rechecks the original identity scope
+  ---
+  duration_ms: 596.048324
+  type: 'test'
+  ...
+# Subtest: TD2-T15 result totals and all-page facets exclude hidden professional facts
+ok 772 - TD2-T15 result totals and all-page facets exclude hidden professional facts
+  ---
+  duration_ms: 470.741073
+  type: 'test'
+  ...
+# Subtest: TD2-T15 industry and work type must match the same work in the selected occupation
+ok 773 - TD2-T15 industry and work type must match the same work in the selected occupation
+  ---
+  duration_ms: 253.921402
+  type: 'test'
+  ...
+# Subtest: TD2-T15 actual collaboration and combined professional filters preserve role context
+ok 774 - TD2-T15 actual collaboration and combined professional filters preserve role context
+  ---
+  duration_ms: 233.368571
+  type: 'test'
+  ...
+# Subtest: TD2-T15 suspended sources remove search matches and orphan filter qualifiers are rejected
+ok 775 - TD2-T15 suspended sources remove search matches and orphan filter qualifiers are rejected
+  ---
+  duration_ms: 232.008663
+  type: 'test'
+  ...
+# Subtest: TD2-T01 contact identity is independent from talent enrollment and preserves UUID
+ok 776 - TD2-T01 contact identity is independent from talent enrollment and preserves UUID
+  ---
+  duration_ms: 206.496163
+  type: 'test'
+  ...
+# Subtest: TD2-T02 one identity has model and translator roles; overlapping duplicate role rejected
+ok 777 - TD2-T02 one identity has model and translator roles; overlapping duplicate role rejected
+  ---
+  duration_ms: 189.34559
+  type: 'test'
+  ...
+# Subtest: TD2-T03 source-bound claims stay independent; origin suspension does not authorize or erase other-source facts
+ok 778 - TD2-T03 source-bound claims stay independent; origin suspension does not authorize or erase other-source facts
+  ---
+  duration_ms: 196.446197
+  type: 'test'
+  ...
+# Subtest: TD2-T04 exact external reference resolves only after human verification; same names do not merge
+ok 779 - TD2-T04 exact external reference resolves only after human verification; same names do not merge
+  ---
+  duration_ms: 186.736834
+  type: 'test'
+  ...
+# Subtest: TD2-T06 capability registry is separate from occupational roles and validates applicable roles and levels
+ok 780 - TD2-T06 capability registry is separate from occupational roles and validates applicable roles and levels
+  ---
+  duration_ms: 197.045204
+  type: 'test'
+  ...
+# Subtest: TD2-T07 unknown language level never satisfies a minimum; base and service locations remain separate
+ok 781 - TD2-T07 unknown language level never satisfies a minimum; base and service locations remain separate
+  ---
+  duration_ms: 187.205996
+  type: 'test'
+  ...
+# Subtest: TD2-T08 confirmed measurements are immutable and require real dates and paired size systems
+ok 782 - TD2-T08 confirmed measurements are immutable and require real dates and paired size systems
+  ---
+  duration_ms: 192.535362
+  type: 'test'
+  ...
+# Subtest: TD2-T09 adult unknown is fail-closed; generic fields cannot forge verification
+ok 783 - TD2-T09 adult unknown is fail-closed; generic fields cannot forge verification
+  ---
+  duration_ms: 187.834556
+  type: 'test'
+  ...
+# Subtest: TD2-T10 representation is scoped to role and territory; agent can be non-talent contact
+ok 784 - TD2-T10 representation is scoped to role and territory; agent can be non-talent contact
+  ---
+  duration_ms: 182.797644
+  type: 'test'
+  ...
+# Subtest: TD2-T11 collections separate type and content tag; reused assets are never deleted when unlinked
+ok 785 - TD2-T11 collections separate type and content tag; reused assets are never deleted when unlinked
+  ---
+  duration_ms: 189.248969
+  type: 'test'
+  ...
+# Subtest: TD2-T13 translation source/target and on-set service mode are tied to translator role
+ok 786 - TD2-T13 translation source/target and on-set service mode are tied to translator role
+  ---
+  duration_ms: 184.004855
+  type: 'test'
+  ...
+# Subtest: TD2-T14 qualification verification and encrypted identifier are separate from skills and public metadata
+ok 787 - TD2-T14 qualification verification and encrypted identifier are separate from skills and public metadata
+  ---
+  duration_ms: 181.636779
+  type: 'test'
+  ...
+# Subtest: TD2-T18 conflicts create proposals, stale proposals do not overwrite and revoked supporting evidence masks adopted values
+ok 788 - TD2-T18 conflicts create proposals, stale proposals do not overwrite and revoked supporting evidence masks adopted values
+  ---
+  duration_ms: 188.198274
+  type: 'test'
+  ...
+# Subtest: TD2-T18 unknown schema, unknown field and stale parent CAS reject before mutating facts
+ok 789 - TD2-T18 unknown schema, unknown field and stale parent CAS reject before mutating facts
+  ---
+  duration_ms: 177.373321
+  type: 'test'
+  ...
+# Subtest: TD2-T12 shortlist keeps the selected occupation and does not silently fall back after role deactivation
+ok 790 - TD2-T12 shortlist keeps the selected occupation and does not silently fall back after role deactivation
+  ---
+  duration_ms: 194.627236
+  type: 'test'
+  ...
+# Subtest: TD2-T05 machine principal has real audit/receipt identity, bounded permissions and immediate rotation/revocation
+ok 791 - TD2-T05 machine principal has real audit/receipt identity, bounded permissions and immediate rotation/revocation
+  ---
+  duration_ms: 185.763793
+  type: 'test'
+  ...
+# Subtest: minimal talent journey: no media file, one identity and multiple roles
+ok 792 - minimal talent journey: no media file, one identity and multiple roles
+  ---
+  duration_ms: 195.144885
+  type: 'test'
+  ...
+# Subtest: ordinary editor receives temporary self-only source, not permanent permission
+ok 793 - ordinary editor receives temporary self-only source, not permanent permission
+  ---
+  duration_ms: 367.785085
+  type: 'test'
+  ...
+# Subtest: temporary source cannot exceed 7 days or use workspace scope
+ok 794 - temporary source cannot exceed 7 days or use workspace scope
+  ---
+  duration_ms: 184.331254
+  type: 'test'
+  ...
+# Subtest: expiry blocks person read and search without a worker
+ok 795 - expiry blocks person read and search without a worker
+  ---
+  duration_ms: 271.33538
+  type: 'test'
+  ...
+# Subtest: suspension immediately blocks dependent person and replay
+ok 796 - suspension immediately blocks dependent person and replay
+  ---
+  duration_ms: 197.008366
+  type: 'test'
+  ...
+# Subtest: source review requires current revision and does not automatically widen scope
+ok 797 - source review requires current revision and does not automatically widen scope
+  ---
+  duration_ms: 364.578406
+  type: 'test'
+  ...
+# Subtest: unknown source, simultaneous source inputs and missing source are rejected
+ok 798 - unknown source, simultaneous source inputs and missing source are rejected
+  ---
+  duration_ms: 179.296459
+  type: 'test'
+  ...
+# Subtest: invalid dictionary code rolls back inline source and person together
+ok 799 - invalid dictionary code rolls back inline source and person together
+  ---
+  duration_ms: 179.759139
+  type: 'test'
+  ...
+# Subtest: duplicate role is rejected, not silently multiplied
+ok 800 - duplicate role is rejected, not silently multiplied
+  ---
+  duration_ms: 180.597912
+  type: 'test'
+  ...
+# Subtest: same-name people remain separate identities
+ok 801 - same-name people remain separate identities
+  ---
+  duration_ms: 190.986493
+  type: 'test'
+  ...
+# Subtest: partial update preserves omitted fields and can explicitly clear optional height
+ok 802 - partial update preserves omitted fields and can explicitly clear optional height
+  ---
+  duration_ms: 182.503456
+  type: 'test'
+  ...
+# Subtest: CAS conflict rejects stale write and empty patch
+ok 803 - CAS conflict rejects stale write and empty patch
+  ---
+  duration_ms: 187.509964
+  type: 'test'
+  ...
+# Subtest: contacts stored encrypted, never included in person or generic receipt
+ok 804 - contacts stored encrypted, never included in person or generic receipt
+  ---
+  duration_ms: 182.603233
+  type: 'test'
+  ...
+# Subtest: ordinary editor can edit profile but cannot read or replace contacts
+ok 805 - ordinary editor can edit profile but cannot read or replace contacts
+  ---
+  duration_ms: 360.612136
+  type: 'test'
+  ...
+# Subtest: sensitive text is absent from list and requires explicit read/write permission
+ok 806 - sensitive text is absent from list and requires explicit read/write permission
+  ---
+  duration_ms: 376.167084
+  type: 'test'
+  ...
+# Subtest: field evidence binds exact value and becomes stale when value changes
+ok 807 - field evidence binds exact value and becomes stale when value changes
+  ---
+  duration_ms: 199.139409
+  type: 'test'
+  ...
+# Subtest: evidence also becomes stale after source text revision changes
+ok 808 - evidence also becomes stale after source text revision changes
+  ---
+  duration_ms: 194.045436
+  type: 'test'
+  ...
+# Subtest: inactive dictionary retains old references but rejects new use
+ok 809 - inactive dictionary retains old references but rejects new use
+  ---
+  duration_ms: 190.111096
+  type: 'test'
+  ...
+# Subtest: catalog cannot mutate stable code, duplicate namespace+code denied
+ok 810 - catalog cannot mutate stable code, duplicate namespace+code denied
+  ---
+  duration_ms: 185.079351
+  type: 'test'
+  ...
+# Subtest: scope shrink hides detail, rows and count from other members
+ok 811 - scope shrink hides detail, rows and count from other members
+  ---
+  duration_ms: 405.862884
+  type: 'test'
+  ...
+# Subtest: source and person scopes intersect, never union
+ok 812 - source and person scopes intersect, never union
+  ---
+  duration_ms: 388.942134
+  type: 'test'
+  ...
+# Subtest: inaccessible source cannot be smuggled into new profile
+ok 813 - inaccessible source cannot be smuggled into new profile
+  ---
+  duration_ms: 411.408803
+  type: 'test'
+  ...
+# Subtest: pagination caps, duplicate filters and malformed URI reject
+ok 814 - pagination caps, duplicate filters and malformed URI reject
+  ---
+  duration_ms: 195.242418
+  type: 'test'
+  ...
+# Subtest: contact ciphertext cannot be transplanted between people
+ok 815 - contact ciphertext cannot be transplanted between people
+  ---
+  duration_ms: 185.724525
+  type: 'test'
+  ...
+# Subtest: later field confirmation does not overwrite previous confirmation evidence
+ok 816 - later field confirmation does not overwrite previous confirmation evidence
+  ---
+  duration_ms: 189.739758
+  type: 'test'
+  ...
+# Subtest: editor and reviewer complete internal review through an explicitly assigned restricted scope
+ok 817 - editor and reviewer complete internal review through an explicitly assigned restricted scope
+  ---
+  duration_ms: 581.661755
+  type: 'test'
+  ...
+# Subtest: PR03D exact-role external case, draft freeze, atomic review, replay and self projection
+ok 818 - PR03D exact-role external case, draft freeze, atomic review, replay and self projection
+  ---
+  duration_ms: 309.799605
+  type: 'test'
+  ...
+# Subtest: PR03D source separation, sharing, role history and dependent/nondependent CAS
+ok 819 - PR03D source separation, sharing, role history and dependent/nondependent CAS
+  ---
+  duration_ms: 348.161085
+  type: 'test'
+  ...
+# Subtest: PR03D ENROLL creates Person, Role, Work, Credit, media and Grant atomically
+ok 820 - PR03D ENROLL creates Person, Role, Work, Credit, media and Grant atomically
+  ---
+  duration_ms: 232.271461
+  type: 'test'
+  ...
+# Subtest: PR03D export worker and physical-original JSON rebuild preserve formal cases without external authority
+ok 821 - PR03D export worker and physical-original JSON rebuild preserve formal cases without external authority
+  ---
+  duration_ms: 629.784323
+  type: 'test'
+  ...
+# Subtest: PR03D PERSON case lifecycle protection
+ok 822 - PR03D PERSON case lifecycle protection
+  ---
+  duration_ms: 262.164669
+  type: 'test'
+  ...
+# Subtest: PR03D WORK case lifecycle protection
+ok 823 - PR03D WORK case lifecycle protection
+  ---
+  duration_ms: 248.126504
+  type: 'test'
+  ...
+# Subtest: PR03D MERGE case lifecycle protection
+ok 824 - PR03D MERGE case lifecycle protection
+  ---
+  duration_ms: 282.03252
+  type: 'test'
+  ...
+# Subtest: PR03D internal explicit shared Work link adds only own Credit and keeps public facts
+ok 825 - PR03D internal explicit shared Work link adds only own Credit and keeps public facts
+  ---
+  duration_ms: 307.948827
+  type: 'test'
+  ...
+# Subtest: PR03D finalization consent and exact takeover
+ok 826 - PR03D finalization consent and exact takeover
+  ---
+  duration_ms: 339.687247
+  type: 'test'
+  ...
+# Subtest: PR03D finalization consent and legacy upgrade
+ok 827 - PR03D finalization consent and legacy upgrade
+  ---
+  duration_ms: 340.543277
+  type: 'test'
+  ...
+1..827
+# tests 827
+# suites 0
+# pass 827
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 292909.82402

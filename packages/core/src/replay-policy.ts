@@ -107,7 +107,7 @@ export async function authorizeReceipt(tx: Tx, actor: CommandPrincipal, receipt:
             return;
         case 'person':
             if(['directory.talent.create','directory.talent.update'].includes(receipt.operation)){requirePermission(actor,'records.write');const person=await td2PersonFor(tx,actor,id);await sourceFor(tx,actor,person.sourceId,clock);return;}
-            if(receipt.operation.startsWith('td2.')){await td2PersonFor(tx,actor,id);return;}
+            if(receipt.operation.startsWith('td2.')||receipt.operation.startsWith('supplier.professional.')){await td2PersonFor(tx,actor,id);return;}
             if (['person.update', 'evidence.confirm'].includes(receipt.operation)) {
                 await profileAccess(tx, actor, id, clock, receipt.operation === 'person.update' ? 'edit' : 'review');
                 return;
@@ -129,6 +129,7 @@ export async function authorizeReceipt(tx: Tx, actor: CommandPrincipal, receipt:
                 missing();
             return;
         case 'catalog':
+            if(receipt.operation.startsWith('supplier.catalog.')){requirePermission(actor,'catalog.manage');if(!await workspaceRow(tx,'supplierCatalogs',id,actor.workspaceId))missing();return;}
             requirePermission(actor, 'records.read');
             if (!(await workspaceRow(tx, 'dictionary', id, actor.workspaceId)))
                 missing();

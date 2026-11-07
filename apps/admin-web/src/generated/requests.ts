@@ -1,5 +1,12 @@
 // Generated from packages/core/src/routes.ts and validation.ts. Do not edit.
 export interface Inputs {
+  "supplier.fields.schema": undefined;
+  "supplier.catalog.list": undefined;
+  "supplier.catalog.create": { "baseVersion": number; "definition": { "schemaVersion": "once-supplier-fields-v1"; "fields": Array<{ "code": string; "label": string; "required": boolean; "unit"?: string; "min"?: number; "max"?: number; "maxLength"?: number; "options"?: Array<{ "code": string; "label": string; "aliases": Array<string>; "status": "ACTIVE" | "DEPRECATED"; "replacedBy"?: string }>; "type": "TEXT" | "NUMBER" | "BOOLEAN" | "DATE" | "CODE" | "CODE_SET" | "RECORDS"; "owner": "PERSON" | "ROLE"; "roles": Array<string>; "visibility": "SELF_SHARED" | "INTERNAL"; "description": string; "searchable": boolean; "ai": "SUGGEST" | "NEVER"; "components"?: Array<{ "code": string; "label": string; "required": boolean; "unit"?: string; "min"?: number; "max"?: number; "maxLength"?: number; "options"?: Array<{ "code": string; "label": string; "aliases": Array<string>; "status": "ACTIVE" | "DEPRECATED"; "replacedBy"?: string }>; "type": "TEXT" | "NUMBER" | "BOOLEAN" | "DATE" | "CODE" | "CODE_SET" }>; "maxItems"?: number }>; "templates": Array<{ "code": string; "label": string; "roleCode": string | null; "fieldCodes": Array<string> }> } };
+  "supplier.catalog.save": { "expectedRevision": number; "definition": { "schemaVersion": "once-supplier-fields-v1"; "fields": Array<{ "code": string; "label": string; "required": boolean; "unit"?: string; "min"?: number; "max"?: number; "maxLength"?: number; "options"?: Array<{ "code": string; "label": string; "aliases": Array<string>; "status": "ACTIVE" | "DEPRECATED"; "replacedBy"?: string }>; "type": "TEXT" | "NUMBER" | "BOOLEAN" | "DATE" | "CODE" | "CODE_SET" | "RECORDS"; "owner": "PERSON" | "ROLE"; "roles": Array<string>; "visibility": "SELF_SHARED" | "INTERNAL"; "description": string; "searchable": boolean; "ai": "SUGGEST" | "NEVER"; "components"?: Array<{ "code": string; "label": string; "required": boolean; "unit"?: string; "min"?: number; "max"?: number; "maxLength"?: number; "options"?: Array<{ "code": string; "label": string; "aliases": Array<string>; "status": "ACTIVE" | "DEPRECATED"; "replacedBy"?: string }>; "type": "TEXT" | "NUMBER" | "BOOLEAN" | "DATE" | "CODE" | "CODE_SET" }>; "maxItems"?: number }>; "templates": Array<{ "code": string; "label": string; "roleCode": string | null; "fieldCodes": Array<string> }> } };
+  "supplier.catalog.publish": { "expectedRevision": number; "reason": string };
+  "supplier.professional.get": undefined;
+  "supplier.professional.update": { "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "professional": { "catalogVersion": number; "catalogDigest": string; "answers": Array<{ "fieldCode": string; "roleCode": string | null; "state": "KNOWN" | "DECLARED_NONE" | "UNKNOWN" | "NOT_PROVIDED"; "value"?: unknown }> }; "replace": Array<{ "id": string; "revision": number }> };
   "review.search": { "view": "TODO" | "SENT" | "DONE"; "kind": "ALL" | "CLAIM" | "SUBMISSION" | "SOURCE_REVIEW" | "INGESTION"; "page": number; "pageSize": number };
   "review.get": undefined;
   "command.inspect": { "operation": string; "commandKey": string };
@@ -36,6 +43,22 @@ export interface Inputs {
   "portal.sessions.revoke": {  };
   "talent.account.disable": { "expectedRevision": number };
   "talent.account.erase": { "expectedRevision": number };
+  "portal.supplier.documentBatch": { "expectedRevision": number; "batchId": string; "expectedBatchRevision": number; "action": "CANCEL" | "RESUME"; "aiRetryAccepted": boolean };
+  "portal.supplier.documentWorkGroup": { "expectedRevision": number; "targetClientItemKey": string | null; "candidates": Array<{ "jobId": string; "expectedJobRevision": number; "workKey": string }> };
+  "portal.supplier.documentWork": { "expectedRevision": number; "jobId": string; "expectedJobRevision": number; "workKey": string };
+  "portal.supplier.documentImages": { "expectedRevision": number; "jobId": string; "expectedJobRevision": number; "imageKeys": Array<string> };
+  "portal.supplier.documents": undefined;
+  "portal.supplier.documentStart": { "expectedRevision": number; "assetId": string; "mode"?: "SELECTED" | "ALL"; "pages"?: Array<number>; "useAi": boolean; "aiAccepted": boolean };
+  "portal.supplier.documentApply": { "expectedRevision": number; "jobId": string; "expectedJobRevision": number; "selectedKeys": Array<string>; "professionalActions"?: Array<{ "key": string; "action": "ADD" | "REPLACE" }> };
+  "portal.supplier.documentCancel": { "expectedRevision": number; "jobId": string };
+  "portal.supplier.schema": undefined;
+  "portal.supplier.profile": undefined;
+  "portal.supplier.list": undefined;
+  "portal.supplier.get": undefined;
+  "portal.supplier.create": { "schemaVersion": "once-supplier-profile-v1"; "claimId"?: string; "grantId"?: string; "consentTextVersion": "internal-directory-profile-media-work-2026-11-v1"; "consentAccepted": boolean; "profile": { "displayName": string; "aliases": Array<string>; "intro": string; "roleCodes": Array<string>; "locationCodes": Array<string>; "languageCodes": Array<string>; "skillCodes": Array<string>; "contacts": Array<{ "kind": "PHONE" | "EMAIL" | "WECHAT" | "OTHER"; "value": string }>; "measurements": { "heightCm": number | null; "bustCm": number | null; "waistCm": number | null; "hipsCm": number | null; "shoeSizeValue"?: string | null; "shoeSizeSystem"?: "EU" | "US" | "UK" | "CN" | null; "clothingSizeValue"?: string | null; "clothingSizeSystem"?: "INTL" | "EU" | "US" | "UK" | "CN" | null; "measuredOn"?: string | null; "datePrecision"?: "EXACT_DAY" | "APPROXIMATE" | "UNKNOWN" }; "professional"?: { "catalogVersion": number; "catalogDigest": string; "answers": Array<{ "fieldCode": string; "roleCode": string | null; "state": "KNOWN" | "DECLARED_NONE" | "UNKNOWN" | "NOT_PROVIDED"; "value"?: unknown }> }; "capabilityDetails"?: Array<{ "roleCode": string; "capabilityCode": string; "levelCode": "BASIC" | "WORKING" | "PROFESSIONAL" | "FLUENT" | "NATIVE" | null }>; "credentials"?: Array<{ "roleCode": string | null; "credentialTypeCode": "DRONE_LICENSE" | "TRANSLATION_CERTIFICATE" | "DIVING_CERTIFICATE" | "EQUIPMENT_CERTIFICATE" | "OTHER"; "credentialName": string; "issuerName": string | null; "issuedOn": string | null; "expiresOn": string | null }>; "translation"?: { "pairs": Array<{ "sourceLanguageCode": string; "targetLanguageCode": string }>; "modeCodes": Array<"BUSINESS_MEETING" | "ON_SET" | "ESCORT" | "CONSECUTIVE" | "SIMULTANEOUS" | "WRITTEN"> } | null } };
+  "portal.supplier.save": { "expectedRevision": number; "profile": { "displayName": string; "aliases": Array<string>; "intro": string; "roleCodes": Array<string>; "locationCodes": Array<string>; "languageCodes": Array<string>; "skillCodes": Array<string>; "contacts": Array<{ "kind": "PHONE" | "EMAIL" | "WECHAT" | "OTHER"; "value": string }>; "measurements": { "heightCm": number | null; "bustCm": number | null; "waistCm": number | null; "hipsCm": number | null; "shoeSizeValue"?: string | null; "shoeSizeSystem"?: "EU" | "US" | "UK" | "CN" | null; "clothingSizeValue"?: string | null; "clothingSizeSystem"?: "INTL" | "EU" | "US" | "UK" | "CN" | null; "measuredOn"?: string | null; "datePrecision"?: "EXACT_DAY" | "APPROXIMATE" | "UNKNOWN" }; "professional"?: { "catalogVersion": number; "catalogDigest": string; "answers": Array<{ "fieldCode": string; "roleCode": string | null; "state": "KNOWN" | "DECLARED_NONE" | "UNKNOWN" | "NOT_PROVIDED"; "value"?: unknown }> }; "capabilityDetails"?: Array<{ "roleCode": string; "capabilityCode": string; "levelCode": "BASIC" | "WORKING" | "PROFESSIONAL" | "FLUENT" | "NATIVE" | null }>; "credentials"?: Array<{ "roleCode": string | null; "credentialTypeCode": "DRONE_LICENSE" | "TRANSLATION_CERTIFICATE" | "DIVING_CERTIFICATE" | "EQUIPMENT_CERTIFICATE" | "OTHER"; "credentialName": string; "issuerName": string | null; "issuedOn": string | null; "expiresOn": string | null }>; "translation"?: { "pairs": Array<{ "sourceLanguageCode": string; "targetLanguageCode": string }>; "modeCodes": Array<"BUSINESS_MEETING" | "ON_SET" | "ESCORT" | "CONSECUTIVE" | "SIMULTANEOUS" | "WRITTEN"> } | null } };
+  "portal.supplier.rebase": { "expectedRevision": number; "expectedPersonRevision": number; "profile": { "displayName": string; "aliases": Array<string>; "intro": string; "roleCodes": Array<string>; "locationCodes": Array<string>; "languageCodes": Array<string>; "skillCodes": Array<string>; "contacts": Array<{ "kind": "PHONE" | "EMAIL" | "WECHAT" | "OTHER"; "value": string }>; "measurements": { "heightCm": number | null; "bustCm": number | null; "waistCm": number | null; "hipsCm": number | null; "shoeSizeValue"?: string | null; "shoeSizeSystem"?: "EU" | "US" | "UK" | "CN" | null; "clothingSizeValue"?: string | null; "clothingSizeSystem"?: "INTL" | "EU" | "US" | "UK" | "CN" | null; "measuredOn"?: string | null; "datePrecision"?: "EXACT_DAY" | "APPROXIMATE" | "UNKNOWN" }; "professional"?: { "catalogVersion": number; "catalogDigest": string; "answers": Array<{ "fieldCode": string; "roleCode": string | null; "state": "KNOWN" | "DECLARED_NONE" | "UNKNOWN" | "NOT_PROVIDED"; "value"?: unknown }> }; "capabilityDetails"?: Array<{ "roleCode": string; "capabilityCode": string; "levelCode": "BASIC" | "WORKING" | "PROFESSIONAL" | "FLUENT" | "NATIVE" | null }>; "credentials"?: Array<{ "roleCode": string | null; "credentialTypeCode": "DRONE_LICENSE" | "TRANSLATION_CERTIFICATE" | "DIVING_CERTIFICATE" | "EQUIPMENT_CERTIFICATE" | "OTHER"; "credentialName": string; "issuerName": string | null; "issuedOn": string | null; "expiresOn": string | null }>; "translation"?: { "pairs": Array<{ "sourceLanguageCode": string; "targetLanguageCode": string }>; "modeCodes": Array<"BUSINESS_MEETING" | "ON_SET" | "ESCORT" | "CONSECUTIVE" | "SIMULTANEOUS" | "WRITTEN"> } | null }; "conflictsAcknowledged": boolean };
+  "portal.supplier.confirm": { "expectedRevision": number; "accepted": boolean };
   "portal.command.get": undefined;
   "talent.handoff.get": undefined;
   "talent.grant.exposure": { "expectedRevision": number; "decision": "ALLOW" | "REVOKE"; "fields": Array<{ "field": "displayName" | "aliases" | "intro"; "expectedValueDigest": string }>; "assets": Array<{ "id": string; "expectedRevision": number }>; "collections": Array<{ "id": string; "expectedRevision": number }>; "credits": Array<{ "id": string; "expectedRevision": number }>; "approvalBasis": string };
@@ -47,7 +70,7 @@ export interface Inputs {
   "talent.asset.attachment": undefined;
   "portal.submission.collections": { "expectedRevision": number; "collections": Array<{ "clientItemKey": string; "targetCollectionId": string | null; "expectedCollectionRevision": number | null; "personRoleId": string | null; "collectionTypeCode": "MODEL_CARD" | "POLAROIDS" | "PORTFOLIO" | "SHOWREEL" | "INTRO_VIDEO" | "OTHER"; "title": string; "isCurrent": boolean; "coverAssetId": string | null; "tagCodes": Array<"FASHION" | "BEAUTY" | "COMMERCIAL" | "LINGERIE" | "RUNWAY" | "LIFESTYLE" | "INDUSTRIAL" | "PRODUCT">; "items": Array<{ "referenceKind": "SUBMISSION_STAGED_ASSET" | "EXISTING_ADOPTED_ASSET_REFERENCE"; "assetId": string; "caption": string; "featured": boolean }> }> };
   "portal.collection.list": undefined;
-  "portal.submission.mediaConsent": { "expectedRevision": number; "textVersion": "internal-directory-media-2026-10-v1" | "internal-directory-media-work-2026-10-v1"; "accepted": boolean };
+  "portal.submission.mediaConsent": { "expectedRevision": number; "textVersion": "internal-directory-media-2026-10-v1" | "internal-directory-media-work-2026-10-v1" | "internal-directory-profile-media-work-2026-11-v1"; "accepted": boolean };
   "portal.upload.create": { "context": { "kind": "TALENT_SUBMISSION"; "submissionId": string; "personRoleId"?: string }; "expectedSubmissionRevision": number; "fileName": string; "mime": "image/jpeg" | "image/png" | "image/webp" | "application/pdf" | "video/mp4"; "expectedBytes": number; "sha256": string };
   "portal.upload.get": undefined;
   "portal.upload.complete": { "expectedRevision": number };
@@ -112,7 +135,7 @@ export interface Inputs {
   "locale.create": { "subjectKind": "PERSON" | "WORK" | "PROJECT"; "subjectId": string; "locale": "zh" | "en"; "text": string; "sourceRefs": Array<{ "id": string; "expectedRevision": number }>; "expectedSubjectRevision": number; "confirmCurrentBasis": boolean };
   "locale.update": { "expectedRevision": number; "text": string; "sourceRefs": Array<{ "id": string; "expectedRevision": number }>; "expectedSubjectRevision": number; "confirmCurrentBasis": boolean };
   "directory.talent.update": { "schemaVersion": "once-talent-experience-v1"; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "bases"?: { "profile"?: { "sourceId": string; "sourceRevision": number; "recordId"?: string; "expectedRevision"?: number }; "model"?: { "sourceId": string; "sourceRevision": number; "recordId"?: string; "expectedRevision"?: number }; "location"?: { "sourceId": string; "sourceRevision": number; "recordId"?: string; "expectedRevision"?: number }; "measurement"?: { "sourceId": string; "sourceRevision": number; "recordId"?: string; "expectedRevision"?: number } }; "profile"?: { "internalSummary"?: string; "status"?: "ACTIVE" | "ARCHIVED"; "genderCode"?: "FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | null; "birthPrecision"?: "UNKNOWN" | "EXACT_DATE" | "YEAR_ONLY" | "DECLARED_RANGE"; "birthDate"?: string | null; "birthYear"?: number | null; "minAgeYears"?: number | null; "maxAgeYears"?: number | null; "ageAsOfDate"?: string | null; "nationalityCodes"?: Array<string>; "coverAssetId"?: string | null }; "model"?: { "validFrom"?: string | null; "validUntil"?: string | null; "status"?: "ACTIVE" | "INACTIVE"; "castingMarketCode"?: "UNCLASSIFIED" | "DOMESTIC" | "INTERNATIONAL"; "experienceCode"?: "UNSPECIFIED" | "AMATEUR" | "PROFESSIONAL"; "styleCodes"?: Array<string>; "serviceCodes"?: Array<string> }; "locationCode"?: string | null; "measurement"?: { "measuredOn": string | null; "datePrecision": "EXACT_DAY" | "APPROXIMATE" | "UNKNOWN"; "heightCm"?: number | null; "bustCm"?: number | null; "waistCm"?: number | null; "hipsCm"?: number | null; "shoeSizeValue"?: string | null; "shoeSizeSystem"?: "EU" | "US" | "UK" | "CN" | null; "clothingSizeValue"?: string | null; "clothingSizeSystem"?: "INTL" | "EU" | "US" | "UK" | "CN" | null; "supersedesId"?: string | null }; "confirmMeasurement"?: boolean };
-  "directory.talent.search": { "q"?: string; "mode"?: "ALL" | "TALENT" | "CONTACT"; "role"?: string | Array<string>; "gender"?: "FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | "UNKNOWN" | Array<"FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | "UNKNOWN">; "nationality"?: string | Array<string>; "market"?: "DOMESTIC" | "INTERNATIONAL" | "UNCLASSIFIED" | Array<"DOMESTIC" | "INTERNATIONAL" | "UNCLASSIFIED">; "experience"?: "AMATEUR" | "PROFESSIONAL" | "UNSPECIFIED" | Array<"AMATEUR" | "PROFESSIONAL" | "UNSPECIFIED">; "style"?: string | Array<string>; "service"?: string | Array<string>; "location"?: string | Array<string>; "language"?: string | Array<string>; "industryCode"?: string | Array<string>; "workTypeCode"?: string | Array<string>; "status"?: "DRAFT" | "ACTIVE" | "ARCHIVED"; "ageMin"?: number; "ageMax"?: number; "ageUnknown"?: boolean; "heightMin"?: number; "heightMax"?: number; "page"?: number; "pageSize"?: number };
+  "directory.talent.search": { "professional"?: { "roleCode"?: string; "fields": Array<{ "fieldCode": string; "state"?: "KNOWN" | "DECLARED_NONE" | "UNKNOWN" | "NOT_PROVIDED"; "match"?: "ANY" | "ALL"; "codes"?: Array<string>; "min"?: number; "max"?: number; "from"?: string; "until"?: string; "boolean"?: boolean }>; "capabilities"?: Array<{ "capabilityCode": string; "minLevel"?: "BASIC" | "WORKING" | "PROFESSIONAL" }> }; "q"?: string; "mode"?: "ALL" | "TALENT" | "CONTACT"; "role"?: string | Array<string>; "gender"?: "FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | "UNKNOWN" | Array<"FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | "UNKNOWN">; "nationality"?: string | Array<string>; "market"?: "DOMESTIC" | "INTERNATIONAL" | "UNCLASSIFIED" | Array<"DOMESTIC" | "INTERNATIONAL" | "UNCLASSIFIED">; "experience"?: "AMATEUR" | "PROFESSIONAL" | "UNSPECIFIED" | Array<"AMATEUR" | "PROFESSIONAL" | "UNSPECIFIED">; "style"?: string | Array<string>; "service"?: string | Array<string>; "location"?: string | Array<string>; "language"?: string | Array<string>; "industryCode"?: string | Array<string>; "workTypeCode"?: string | Array<string>; "status"?: "DRAFT" | "ACTIVE" | "ARCHIVED"; "ageMin"?: number; "ageMax"?: number; "ageUnknown"?: boolean; "heightMin"?: number; "heightMax"?: number; "page"?: number; "pageSize"?: number };
   "directory.talent.get": undefined;
   "directory.talent.create": { "schemaVersion": "once-talent-experience-v1"; "displayName": string; "kind": "TALENT" | "CONTACT"; "roleCodes"?: Array<string>; "sourceId"?: string; "sourceRevision"?: number };
   "td2.principal.authorization": { "expectedRevision": number; "scopeId": string; "defaultMaintainerMembershipId": string; "permissionCodes": Array<"records.read" | "sources.read" | "talent.propose" | "talent.fact.write" | "ingestion.schema.read" | "ingestion.submit" | "ingestion.read.own" | "ingestion.withdraw.own" | "ingestion.media.upload"> };
@@ -171,8 +194,8 @@ export interface Inputs {
   "td2.fact.representations.patch": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "relationCode"?: "AGENT" | "AGENCY" | "MANAGER"; "territoryCode"?: string | null; "validFrom"?: string | null; "validUntil"?: string | null; "status"?: "ACTIVE" | "INACTIVE" } };
   "td2.fact.personExternalRefs.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "providerCode": "WECHAT" | "XIAOHONGSHU" | "INSTAGRAM" | "AGENCY_INTERNAL" | "SUPPLIER_SYSTEM"; "namespaceCode": string; "issuerOrganizationId"?: string | null; "externalKey": string } };
   "td2.fact.personExternalRefs.patch": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": {  } };
-  "td2.fact.personCredentials.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "personRoleId"?: string | null; "credentialTypeCode": "DRONE_LICENSE" | "TRANSLATION_CERTIFICATE" | "DIVING_CERTIFICATE" | "EQUIPMENT_CERTIFICATE" | "OTHER"; "issuerOrganizationId"?: string | null; "issuerName"?: string | null; "issuedOn"?: string | null; "expiresOn"?: string | null; "evidenceAssetId"?: string | null } };
-  "td2.fact.personCredentials.patch": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "credentialTypeCode"?: "DRONE_LICENSE" | "TRANSLATION_CERTIFICATE" | "DIVING_CERTIFICATE" | "EQUIPMENT_CERTIFICATE" | "OTHER"; "issuerName"?: string | null; "issuedOn"?: string | null; "expiresOn"?: string | null } };
+  "td2.fact.personCredentials.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "personRoleId"?: string | null; "credentialName"?: string | null; "credentialTypeCode": "DRONE_LICENSE" | "TRANSLATION_CERTIFICATE" | "DIVING_CERTIFICATE" | "EQUIPMENT_CERTIFICATE" | "OTHER"; "issuerOrganizationId"?: string | null; "issuerName"?: string | null; "issuedOn"?: string | null; "expiresOn"?: string | null; "evidenceAssetId"?: string | null } };
+  "td2.fact.personCredentials.patch": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "credentialName"?: string | null; "credentialTypeCode"?: "DRONE_LICENSE" | "TRANSLATION_CERTIFICATE" | "DIVING_CERTIFICATE" | "EQUIPMENT_CERTIFICATE" | "OTHER"; "issuerName"?: string | null; "issuedOn"?: string | null; "expiresOn"?: string | null } };
   "td2.fact.translatorLanguagePairs.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "personRoleId": string; "sourceLanguageCode": string; "targetLanguageCode": string; "status"?: "ACTIVE" | "INACTIVE" } };
   "td2.fact.translatorLanguagePairs.patch": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "expectedRevision": number; "sourceId": string; "sourceRevision": number; "values": { "status"?: "ACTIVE" | "INACTIVE" } };
   "td2.fact.translatorServiceModes.create": { "schemaVersion": "once-talent-v2.1.0" | "once-talent-v2.0.0"; "expectedPersonRevision": number; "sourceId": string; "sourceRevision": number; "values": { "personRoleId": string; "modeCode": "BUSINESS_MEETING" | "ON_SET" | "ESCORT" | "CONSECUTIVE" | "SIMULTANEOUS" | "WRITTEN"; "status"?: "ACTIVE" | "INACTIVE" } };
@@ -308,6 +331,41 @@ export interface Inputs {
   "shortlist.reorder": { "expectedRevision": number; "entryIds": Array<string> };
 }
 export const ENDPOINTS = {
+  "supplier.fields.schema": {
+    "method": "GET",
+    "path": "/supplier-field-schema",
+    "mode": "READ"
+  },
+  "supplier.catalog.list": {
+    "method": "GET",
+    "path": "/supplier-field-catalog",
+    "mode": "READ"
+  },
+  "supplier.catalog.create": {
+    "method": "POST",
+    "path": "/supplier-field-catalog",
+    "mode": "COMMAND"
+  },
+  "supplier.catalog.save": {
+    "method": "PATCH",
+    "path": "/supplier-field-catalog/{id}",
+    "mode": "COMMAND"
+  },
+  "supplier.catalog.publish": {
+    "method": "POST",
+    "path": "/supplier-field-catalog/{id}/publish",
+    "mode": "COMMAND"
+  },
+  "supplier.professional.get": {
+    "method": "GET",
+    "path": "/people/{id}/professional",
+    "mode": "READ"
+  },
+  "supplier.professional.update": {
+    "method": "POST",
+    "path": "/people/{id}/professional",
+    "mode": "COMMAND"
+  },
   "review.search": {
     "method": "POST",
     "path": "/review/search",
@@ -486,6 +544,86 @@ export const ENDPOINTS = {
   "talent.account.erase": {
     "method": "POST",
     "path": "/talent-accounts/{id}/erase",
+    "mode": "COMMAND"
+  },
+  "portal.supplier.documentBatch": {
+    "method": "POST",
+    "path": "/portal/profile-drafts/{id}/documents/batch",
+    "mode": "COMMAND"
+  },
+  "portal.supplier.documentWorkGroup": {
+    "method": "POST",
+    "path": "/portal/profile-drafts/{id}/documents/work-group",
+    "mode": "COMMAND"
+  },
+  "portal.supplier.documentWork": {
+    "method": "POST",
+    "path": "/portal/profile-drafts/{id}/documents/work",
+    "mode": "COMMAND"
+  },
+  "portal.supplier.documentImages": {
+    "method": "POST",
+    "path": "/portal/profile-drafts/{id}/documents/images",
+    "mode": "COMMAND"
+  },
+  "portal.supplier.documents": {
+    "method": "GET",
+    "path": "/portal/profile-drafts/{id}/documents",
+    "mode": "READ"
+  },
+  "portal.supplier.documentStart": {
+    "method": "POST",
+    "path": "/portal/profile-drafts/{id}/documents",
+    "mode": "COMMAND"
+  },
+  "portal.supplier.documentApply": {
+    "method": "POST",
+    "path": "/portal/profile-drafts/{id}/documents/apply",
+    "mode": "COMMAND"
+  },
+  "portal.supplier.documentCancel": {
+    "method": "POST",
+    "path": "/portal/profile-drafts/{id}/documents/cancel",
+    "mode": "COMMAND"
+  },
+  "portal.supplier.schema": {
+    "method": "GET",
+    "path": "/portal/profile-schema",
+    "mode": "READ"
+  },
+  "portal.supplier.profile": {
+    "method": "GET",
+    "path": "/portal/supplier-profiles/{id}",
+    "mode": "READ"
+  },
+  "portal.supplier.list": {
+    "method": "GET",
+    "path": "/portal/profile-drafts",
+    "mode": "READ"
+  },
+  "portal.supplier.get": {
+    "method": "GET",
+    "path": "/portal/profile-drafts/{id}",
+    "mode": "READ"
+  },
+  "portal.supplier.create": {
+    "method": "POST",
+    "path": "/portal/profile-drafts",
+    "mode": "COMMAND"
+  },
+  "portal.supplier.save": {
+    "method": "PATCH",
+    "path": "/portal/profile-drafts/{id}",
+    "mode": "COMMAND"
+  },
+  "portal.supplier.rebase": {
+    "method": "POST",
+    "path": "/portal/profile-drafts/{id}/rebase",
+    "mode": "COMMAND"
+  },
+  "portal.supplier.confirm": {
+    "method": "POST",
+    "path": "/portal/profile-drafts/{id}/confirm",
     "mode": "COMMAND"
   },
   "portal.command.get": {

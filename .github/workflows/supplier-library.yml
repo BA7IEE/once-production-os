@@ -1,0 +1,60 @@
+name: ONCE supplier library acceptance
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: once-supplier-library-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v6
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:generate
+      - name: Install isolated document parser and synthetic fixture dependencies
+        run: |
+          python3 -m venv "$RUNNER_TEMP/once-document-python"
+          "$RUNNER_TEMP/once-document-python/bin/pip" install -r tests/documents/requirements.txt
+          echo "$RUNNER_TEMP/once-document-python/bin" >> "$GITHUB_PATH"
+      - run: sha256sum -c MANIFEST.sha256
+      - run: pnpm contract:check && pnpm typecheck && pnpm review:static
+      - run: pnpm test:documents
+      - run: pnpm test:lifecycle
+      - run: docker pull postgres:16-bookworm
+      - run: pnpm test:postgres:owned --supplier-fields
+      - run: pnpm test:postgres:owned --supplier-library
+      - run: pnpm test:postgres:owned --supplier-document-batches
+      - run: pnpm test:postgres:owned --supplier-work-grouping
+      - run: pnpm test:postgres:owned --supplier-upgrade
+      - run: pnpm test:postgres:owned --supplier-scale
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/supplier-document-batches/browser pnpm test:postgres:owned --browser-suite supplier-library
+      - run: ONCE_ACCEPTANCE_FIELDS=1 ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/supplier-field-templates/browser pnpm test:postgres:owned --browser-suite supplier-library
+      - run: ONCE_ACCEPTANCE_WORK_GROUPING=1 ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/supplier-work-grouping/browser pnpm test:postgres:owned --browser-suite supplier-library
+      - name: Keep synthetic evidence and cleanup records
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: supplier-library-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            artifacts/supplier-library/
+            artifacts/supplier-document-batches/
+            artifacts/supplier-work-grouping/
+            artifacts/supplier-field-templates/
+            data/local-resource-runs/*/run.json
+            data/local-resource-runs/*/process-*.json
+            data/local-resource-runs/*/temporary-*.json
+            data/local-resource-runs/*/browser-*.json
+          if-no-files-found: error

@@ -1,4 +1,27 @@
 /** Historical contract journeys use the current visible navigation and advanced JSON panel. */
+/** Select an existing source through the visible pager, including inherited fieldset locks. */
+export async function selectTalentSource(page,root,id) {
+  const picker=root.locator('.talent-source'),select=picker.getByLabel('资料来源',{exact:true});
+  await select.waitFor();
+  const ready=async()=>page.waitForFunction(element=>!element.matches(':disabled'),await select.elementHandle());
+  const current=async()=>Number((await picker.locator('.pager small').innerText()).match(/第 (\d+) 页$/)?.[1]);
+  const turn=async(button,number)=>{
+    const response=page.waitForResponse(r=>r.request().method()==='GET'&&new URL(r.url()).pathname==='/api/v1/sources'&&new URL(r.url()).searchParams.get('page')===String(number));
+    await button.click();if((await response).status()!==200)throw new Error('Source picker page failed to load');await ready();
+  };
+  await ready();
+  const previous=picker.getByRole('button',{name:'上一页',exact:true});
+  for(let traversed=0;await previous.isEnabled();traversed++){
+    const number=await current();if(traversed>=100||!number||number<=1)throw new Error('Source picker could not return to its first page');
+    await turn(previous,number-1);
+  }
+  for(let traversed=0;!(await select.locator(`option[value="${id}"]`).count());traversed++){
+    const next=picker.getByRole('button',{name:'下一页',exact:true}),number=await current();
+    if(traversed>=100||!number||!await next.isEnabled())throw new Error('Expected source is unavailable through the visible paginated picker');
+    await turn(next,number+1);
+  }
+  await select.selectOption(id);
+}
 export async function navigateWorkspace(page, name, {jsonImport=false,fresh=false}={}) {
   // Fixtures written by the API need a fresh visible form, not its previous page.
   if(fresh&&name!=='工作台')await navigateWorkspace(page,'工作台');

@@ -1,0 +1,18 @@
+{
+  "head": "22c8845fa505c99accc734dcf6fcb97e4a447d5e",
+  "pullRequest": "https://github.com/BA7IEE/once-production-os/pull/40",
+  "workflowRun": "https://github.com/BA7IEE/once-production-os/actions/runs/42387858340",
+  "jobId": 128448973846,
+  "job": "postgres-contract",
+  "conclusion": "FAILURE",
+  "test": "tests/postgres/imported-review-basis.test.ts",
+  "observed": "The current source-creation API returned 503 while the fixture database still had migration 71 columns.",
+  "correction": "Prepare synthetic sources and history using columns present in the historical schema; preserve all malformed-input SQL checks, migration checksums, and physical dump/restore checks.",
+  "localVerification": {
+    "status": "PARTIAL",
+    "evidence": "artifacts/supplier-field-templates/imported-review-upgrade-local.log",
+    "sqlChecks": "Passed through all retained-data and SQL constraint checks",
+    "physicalRestore": "NOT_RUN: local pg_dump and pg_restore executables are unavailable; full verification is required in GitHub CI."
+  },
+  "productionMigration": false
+}
