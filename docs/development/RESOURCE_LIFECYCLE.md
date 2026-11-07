@@ -59,3 +59,9 @@ ONCE_TEST_LIFECYCLE_FAULT=SIGTERM pnpm test:postgres:owned
 创建请求失败/超时且未曾观察到容器时，不能排除Docker守护进程晚于CLI完成创建；这条路径标记UNKNOWN、保留锁，不仅凭一次空查询认证零残留。已观察到本轮容器则按精确归属回收并核验。
 
 2026-10-05 CI收尾：已观察到的本轮容器在stop之后按精确名称/标签有界核对5秒，兼容`--rm`异步移除及停止响应丢失。仅实测查询为空才算回收完成；查询异常或持续存在保留锁。创建响应未知且从未观察到容器时仍保持UNKNOWN，不借一次空查询写PASS。
+
+## 2026-11-06：受限 Linux 执行环境
+
+本轮增加显式 `ONCE_RUNNER=managed-linux` 入口，读取实际 cgroup：必须是有限内存上限、可用余量至少 4 GiB、当前 Swap 不超过 4 GiB，且 Docker 为本地 Unix socket。缺失或无法判定仍拒绝；不伪造 GitHub Actions 环境，不改变共享 Mac 门槛。PG/构建/浏览器仍串行并持有同一 heavy lock。
+
+Chromium 的 Unix socket 有路径长度限制。`registeredTemp({short:true})` 可在系统临时目录创建短路径，其 UUID 与当前 ResourceRun 的登记文件精确对应；cleanup 只接受这个精确路径。未知浏览器启动继续保留锁，核实 PID、进程组和临时 profile 后才能手动收口，不按时间自动清锁。

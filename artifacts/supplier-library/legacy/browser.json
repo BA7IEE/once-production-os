@@ -1,0 +1,19 @@
+{
+  "status": "PASSED",
+  "providerVerified": "NOT_RUN",
+  "provider": "controlled local HTTP gateway",
+  "checks": [
+    "real-422-rejection-unlocks-correction-and-clears-only-uncommitted-marker",
+    "controlled-media-poll-and-real-consent-preserve-dirty-intro; real-concurrent-text-edit-requires-explicit-review; explicit-save-clears-dirty-after-readback",
+    "360px-invitation-auth-claim-server-draft-refresh-submit-review-same-person",
+    "known-write-refresh-network-fault-only-rereads-current-profile",
+    "390px-invitation-auth-claim-server-draft-refresh-submit-review-same-person",
+    "lost-draft-response-reload-queries-owned-receipt-and-does-not-create-again",
+    "430px-invitation-auth-claim-server-draft-refresh-submit-review-same-person",
+    "two-tabs-account-switch-clears-old-view-and-rejects-old-read-write",
+    "enroll-unbound-own-draft-no-fake-person-until-explicit-atomic-approval",
+    "structured-secret-leak-guard-OTP-receipt-audit-log-and-provider-secrets",
+    "real-https-origin-cookies-current-account-read-header-and-command-replay"
+  ],
+  "errors": []
+}

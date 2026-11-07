@@ -1,0 +1,191 @@
+{
+  "generatedAt": "2026-11-06T14:23:39.240997+00:00",
+  "scope": "Local uncommitted working-tree verification of the supplier-library core flow. Synthetic materials and controlled services; no remote CI or production acceptance.",
+  "branch": "codex/supplier-library-v1",
+  "baseHead": "3d117134f343ab382c52682bc57c1a1515472ec0",
+  "checks": {
+    "core": {
+      "passed": 827,
+      "failed": 0,
+      "skipped": 0,
+      "evidence": "core.tap"
+    },
+    "documents": {
+      "passed": 10,
+      "failed": 0,
+      "evidence": "documents.tap"
+    },
+    "lifecycle": {
+      "passed": 34,
+      "failed": 0,
+      "evidence": "lifecycle.tap"
+    },
+    "postgres": {
+      "status": "PASSED",
+      "evidence": "postgres.txt"
+    },
+    "upgrade75To77": {
+      "status": "PASSED",
+      "evidence": "upgrade.tap",
+      "originalMigrationFilesUnchanged": 75
+    },
+    "browser": {
+      "status": "PASSED",
+      "evidence": "browser.json",
+      "mobileWidths": [
+        360,
+        390,
+        430
+      ],
+      "physicalDevice": false
+    },
+    "legacyBrowser": {
+      "status": "PASSED",
+      "evidence": "legacy/browser.json"
+    },
+    "typecheck": {
+      "status": "PASSED",
+      "evidence": "typecheck.txt"
+    },
+    "contract": {
+      "status": "PASSED",
+      "routes": 320,
+      "evidence": "contract.txt"
+    },
+    "static": {
+      "status": "PASSED",
+      "passed": 12,
+      "evidence": "static.txt"
+    },
+    "build": {
+      "status": "PASSED",
+      "evidence": "build.txt",
+      "existingWarning": "Web bundle exceeds 500 kB minified; mobile first-load performance not certified"
+    },
+    "scale": {
+      "functionalStatus": "PASSED",
+      "performanceGate": "NOT_MET",
+      "targetP95Ms": 1000,
+      "observed10000PeopleP95Ms": 3212.57,
+      "sampleCount": 5,
+      "evidence": "scale.json"
+    },
+    "resourceCleanup": {
+      "status": "ZERO_RESIDUE",
+      "evidence": "cleanup.json"
+    }
+  },
+  "notRun": [
+    "real model provider and OCR accuracy on ONCE samples",
+    "real notification provider",
+    "COS",
+    "physical phone",
+    "Docker image build",
+    "remote CI",
+    "production migration",
+    "deployment"
+  ],
+  "remaining": [
+    "automatic whole-PDF chunk planning and cross-batch grouping; currently up to four selected pages per task",
+    "richer profession-specific fields and external portfolio links",
+    "ONCE bulk PDF intake and duplicate review workbench",
+    "target-machine concurrent capacity and directory P95 <= 1 second",
+    "real business pilot"
+  ],
+  "sourceSha256": {
+    ".github/workflows/business-flow.yml": "f81d0448303a914a5d0247afbbbbc49f392b3591c20740e956d5192961d0669c",
+    ".github/workflows/supplier-library.yml": "faeaf6ea849f8fe8be2628e75a99f0ca522674ee9a4085644a0e8c60c6419a2e",
+    "AGENTS.md": "52d24d857f4cc147aa4c1286c624788f0f3bbbbac586a2475330cffe268e6ea1",
+    "Dockerfile": "6ad27190d16a3ee0adbb0d4c93eab9abad3a788a10e86fd81d4cfd0034212920",
+    "README.md": "011d67b71337d8ec79aabf2c82bdadc7a5273b4adf8e1951ccc83af7e14f907f",
+    "apps/admin-web/src/generated/requests.ts": "155c11b6abbb93d68f8881f6e8f6e248817962e273e67d7937443073090ed3a5",
+    "apps/admin-web/src/portal-command.ts": "4294098a32d0222fc96f80e450f4851d4116518d01afea7acb51084f3ca27396",
+    "apps/admin-web/src/supplier-document-ui.tsx": "903c087ea207bff30b7a9555872d1f559b96e1a7679b2b53e00cf52e37014b4c",
+    "apps/admin-web/src/supplier-profile-ui.tsx": "28220f59f11ef00a302263ada3e168efda9a8e2639c7f041e13de13cdcfa0dde",
+    "apps/admin-web/src/supplier-profile.css": "67341ff45d961c1b53e4605ac074813fbc1e31ff904634b3014a23d4173fdd2b",
+    "apps/admin-web/src/talent-login.tsx": "84f847f9b1b1bea8715c59d2846c847a45d5d030e69875525f16075e5a221f5b",
+    "apps/admin-web/src/talent-media-staging.tsx": "46f69d998698d5868fc12c8cad13c81853ed3ccf59c65e10fc612976634143be",
+    "apps/admin-web/src/work-case-ui.tsx": "034d032be7699ff82a1a5669fdc770abafb8a94e030e7393451e0eebe3eba9bc",
+    "apps/api/src/ai/model-client.ts": "2cc526afca747230fa1336823db699c4cee7d04eda8141d13584578ee9a91220",
+    "apps/api/src/ai/worker.ts": "631b35fc346835a8d89bd1d25056fd0e2ed6a0f597c7b33d17eab206be3263df",
+    "apps/api/src/documents/parser.ts": "ac148ba52f80c2593028000c7931a8dd1234cdd459ac77add21bf90e184d93ae",
+    "apps/api/src/documents/worker.ts": "caea7b373a258cb0feb68924aa37b4315c7ac250b2ec46f1f5793344411bd54e",
+    "apps/api/src/media/decoder.ts": "3706ff98c66f9eecdb3c1f3f87e2cb6a7e0307279aa0e378ddc2cbc7376e1a2a",
+    "apps/api/src/media/worker.ts": "af9dd44b214ffb01bd770d0d8fbb0e071b18b33ddf26f5d29be97e9437f32ee4",
+    "apps/api/src/prisma-store.ts": "ab948cc4018d4fd0d0e6c24730aef30aa47661e3f2738c2263ce2a6d60ac1d4e",
+    "apps/api/src/worker-main.ts": "8b506d7affd323ad346b0a958fcc1fa2a807ec8c2e620407e4ec89f9aa4371dc",
+    "docs/design/ONCE_SUPPLIER_LIBRARY_V1_20261106.md": "9cb476d8c9339541fa3d5971df31320c31271abdf3362f96a96005a7a9f19518",
+    "docs/development/RESOURCE_LIFECYCLE.md": "299c016a8927d0b833a73346a17d271bbab84798c0dae6dc51b2a10c6699957c",
+    "docs/release/SUPPLIER_LIBRARY_V1_IMPLEMENTATION.md": "a33be95627cc049f3af47addf28f97c95ac74caf213b8d69bf38d3d2b0ab3f9c",
+    "docs/spec/00_README.md": "a192249443246506c801025d28ab7c5fe7eb3b7e82f8f42904e0ff5696fe37cf",
+    "docs/spec/04_PRD.md": "429b1a1dbc20cc951924a85c591b7a7266a93547a29b2a323b222c27192ba015",
+    "docs/spec/06_DEVELOPMENT.md": "7b1d3a3f02417a814080c9a0d549034ebbec162ddaf9909146ef199e8310942b",
+    "docs/spec/15_TALENT_EXPERIENCE_V1_1.md": "aa0bcc6af4626ee5654c2005e29543857ce58cc6c1f0b0c45165001264fad595",
+    "docs/spec/AGENTS.md": "effa572da9bab4110017fd73b12aa2d4e2e144384d059af99e8a7fdc4a878e2d",
+    "package.json": "2a47a69953aadaf0048c76caeb040cbbc18abec978744214a37d99ee7ffe7bdf",
+    "packages/core/src/ai-ledger-integrity.ts": "7cb3ce1b217b8ab64a67874d3f7f751a2734b49541d547b338160342ffc27324",
+    "packages/core/src/ai-ledger-model.ts": "8a7fc94d2c63a76f8bff8d58f12a5979a63030613496c59ed52f045132d39440",
+    "packages/core/src/ai-ledger.ts": "b42b88274c3c6454d27bc486ab4b00277c8c46de075484b66705656171fd2ea9",
+    "packages/core/src/deletion-finalization.ts": "4d137df3223905afab46bf3ae17e44eb57af2f8e38be0a57dd81a629b19f431f",
+    "packages/core/src/document-schema.ts": "a1732f24c43ae6271a11a4e1f9448b41292a4a7abce019f3195a9bb2913231da",
+    "packages/core/src/exports.ts": "5da9c9600a23abe6d64d70e8f59ab25dfdf5d3a4ccc89567f5e33b83de671b3d",
+    "packages/core/src/identity.ts": "20abf509bf0b733bd4b2715bde508a97e3fa0cf2b43f0ff0565e81f3c4c97b51",
+    "packages/core/src/media-adoption.ts": "93a92c60814945102e10b97a935582f9503dc0c518d18b530aab58fe589a82e7",
+    "packages/core/src/media-validation.ts": "98b37f856381b1010d2bc94b91d8143714bd293ae5c55451b52de6321474b39a",
+    "packages/core/src/media.ts": "9c8aacd8acee9103b51dae79872bb193a6e726da56f896b1fffa65cca6fce1e5",
+    "packages/core/src/model.ts": "39f2964f433b992dfd36a63a5033cae8d20de4bba3adfcfbd3f9eff2eebfd443",
+    "packages/core/src/private-draft-payload.ts": "5d3a93797cc48dcbe7d753aab37b20e898bf1a3fc27d8c982b092568ab446ecd",
+    "packages/core/src/rebuild-validation.ts": "a66e3b3031ea82a0323a3e173cee52b326395afe39cc6413bb0f813b5e684e97",
+    "packages/core/src/rebuild.ts": "c3c85b97a8909039116ef196412b20ef1c0cd91fa7e551d7da41590e3bd14f26",
+    "packages/core/src/source-history.ts": "8eb8216662cf1b04d4ebdafb0a04ef7d8e4a7867df9089df9b2a5412f240ed30",
+    "packages/core/src/supplier-documents.ts": "5d65b01bb6381d737395e44fc206c36d909e395c5e2c08a1e7758292864b5470",
+    "packages/core/src/supplier-profile-contract.ts": "fbaeec5b2078f6887b3dda2e42bbaae3211261cb07d3eff3b33016633eb5be78",
+    "packages/core/src/supplier-profile-schema.ts": "f927c77a2cc75afbc16bd3cbee25b79a96ca92a2f15e0bf193d40dfa92342449",
+    "packages/core/src/supplier-profiles.ts": "bb8d4be311a9c5ecb78ff32b31aa7a9011cc8b4f3e9e82bb17742c8a0d1aea21",
+    "packages/core/src/supplier-work-cases.ts": "c284511a862723805ec521f52a101f740dc01b39515306ac9b99f276a0ba9be2",
+    "packages/core/src/talent-directory-query.ts": "6ae4bb57a8329ac4b9a57ef6962a2a62589d7d9bce73d92c56b7a63d56be7bf8",
+    "packages/core/src/talent-maintenance-model.ts": "b446c1379b995c682f23a69a83af7a93586c345722b8f7b887a82d727849a381",
+    "packages/core/src/talent-maintenance-routes.ts": "00b82212591f47a1e6594ac72c4877c6361aefdac26612c6c8a7395b77983d7e",
+    "packages/core/src/talent-maintenance.ts": "18eef35b401e336f8200dd9d34ec22d7d69984a5e0b8817f6209b5666da3ff5a",
+    "packages/core/src/talent-portal.ts": "bb4bfa49a45db1b6f7cf1e8e4ad24312c4929e85cffa4cd4c434aaea59959b03",
+    "packages/core/src/talent-v2-graph.ts": "1ce3d2b7ecb4a6f37bbe059ea312f13a7ab2f7e4e2deaf613d4f3889a66e043a",
+    "packages/core/src/talent-v2-search.ts": "6cddf57c9114e9fcf9c0b0c1b807f8945cbe2d4e927bdac035e91ddaa1b65539",
+    "packages/core/src/talent-v2.ts": "0d923c35903dea36c932acc5fd7e818eb42444f009ee32bbf1fe4ed4c795e33f",
+    "packages/core/src/talent-work-cases.ts": "a46c4c5f4ecc7d914ddede380d818007afa800d5f03ebd8bda0d86f65086e5a4",
+    "packages/core/src/work-consent.ts": "96b6d2867922cbd47902e4ce3c009e861a62a4572e6de8de218ede9f77ba9c41",
+    "prisma/migrations/202611060001_supplier_self_confirmation/migration.sql": "13d59572f5072e269a4f2aa73b8faa0b8b5efde9a26fc2326ac62aacbd1f55b0",
+    "prisma/migrations/202611060002_supplier_document_ai/migration.sql": "5c79a0bbb55dbf8c422b5c64d01d478047669fbaa7f32f34fac7eab3fa3b02c7",
+    "prisma/schema.prisma": "49f110a090356280f83a4745e7892060cd425f52009624cbd6b6c4e56509f1c6",
+    "scripts/heavy-task.mjs": "935065691d5fc47449b167b49a83005cc830da80298f3620db9e320d3e4fc53e",
+    "scripts/registered-temp.mjs": "ea5406a42b0d84261fb6a3b4b0118e1c44b441bb9a8b0655c644d072cb8b43a6",
+    "scripts/resource-lifecycle.mjs": "3e7a4de1d1123a9f9f1ec1c82977951e3dcda24eb26eb82a7a50e2b617634792",
+    "scripts/resource-run.mjs": "9130cd9589144b0518250df9ab737e76339143af2e2a2c9aff3a0beaa7af5ee8",
+    "scripts/talent-experience-surface-policy.mjs": "e40a9abf84f29073e768ec1061e32058ab68f22357afd822c71a86a6a39d3342",
+    "scripts/test-documents.mjs": "dd9c7734c28e31aabffe418fb1a743853caa76e31c58a0fe50a78da24c61e507",
+    "scripts/test-postgres-owned.mjs": "2807f315718cfe3e1097ea9836515e974afbecaea5e89e8bdea87c52dbbf59bd",
+    "tests/acceptance/browser-agent-handoff.mjs": "d465ff9e69db197475c06760a7ec3b8190de3cd0169d8df0a18fce71730aedb9",
+    "tests/acceptance/browser-media-collections.mjs": "edde1db5ca97d2ff54b154a75811a992dc6700242ee3ddc89ea72c66de7d5928",
+    "tests/acceptance/browser-media-staging.mjs": "ebbd21c5436020fbf4205994e4bd03b153d7f475c2b0126b43f28f441a6beffd",
+    "tests/acceptance/browser-supplier-library.mjs": "80ddb2de12624e00340fc91e3b7d0c5717e242ffd04e74c91ebcde287b74d660",
+    "tests/acceptance/browser-talent-maintenance.mjs": "4327660512cf696d18730a8ef81be5aed0b7e423a3515ee8beb564e07d5e6f96",
+    "tests/core/ai-document-model.test.ts": "9add914afe6bce25ab38b113ea7b0d7d5aeeba521f8caf1e8cbef1b8c53a1959",
+    "tests/core/document-schema.test.ts": "1c59c4b6896f1ee11c1c7f41008fb69714bfe1153342a4979c4a05e882a9d85b",
+    "tests/core/supplier-profiles.test.ts": "750ae0a654ce6856e1f73c2a405aa71f6177f0c2070ae3f5541e4730f616277c",
+    "tests/documents/fixtures.py": "f3b6ba45ca45efd1362464b4d210c9fca188dc202e3bfb810c5c8be7dd620145",
+    "tests/documents/parser.test.mjs": "640b3cd369bace405e0ee685d659528f3383a6ba0919a0abc0f85aa3e0ba1d9a",
+    "tests/documents/requirements.txt": "9fbc470c239107d04e4e735829cc7cbf6db8859c328172397db08caec255454c",
+    "tests/documents/workflow.test.mjs": "361db2a04f093af838f3c3611765ac92a12c1f8813dcdec3ed4ba70c196c444b",
+    "tests/lifecycle/preflight.test.mjs": "37a600c59202bb277f0ed63fe7fa62460bae50c5dffe1667a856944086a3f85f",
+    "tests/lifecycle/registered-short-temp.test.mjs": "d86d03755face4765d3ad1178c5d278b4b2081c19f93b4ab86087321774252a5",
+    "tests/lifecycle/supervisor.test.mjs": "c47db643a4428ed7ffddfc2955b04e5c2144fd693bd1dc0b1f0c2a2ca66e87cb",
+    "tests/postgres/business-flow.test.ts": "85c0a092c1e619e87aa0f276dccdbfe2f3cab425c202e367fc0b168d5e2b919e",
+    "tests/postgres/supplier-profiles.test.ts": "9fa69dcc63d32f23b19aebb54b2926cf47c0f6e6acd75340ecdec21ae79be45f",
+    "tests/postgres/supplier-scale.test.ts": "a3269dc332dc4a876ad0f07da19f38b67675f2d75730df2ddf1fa9071ea980bb",
+    "tests/postgres/supplier-upgrade.test.ts": "175168ac764771142c70115f823d888f2029eafa03d1e30c3ba3992bac2567db",
+    "tests/support/documents.ts": "191887b9d4d67731db1d315acc1455cce462dc15c2d8361e808c0cbbf7d92f18",
+    "tests/support/legacy-portal.mjs": "78108448b99291fa2d7a63b98b51d6f978ec8b702d465e26c9c1ef06558e5c50",
+    "tests/support/supplier-profiles.ts": "8af1db60979c18ec8d1529224a5cba883f0b312d8e8f5c0be04e26cd0f592d20",
+    "workers/document-parser/parser.py": "08a3187505c06f32cd46b38ffc2d69f9d4c0a5c758ad38ebce19d204c5ffeac7",
+    "workers/document-parser/requirements.txt": "f5f56ec44fd63935563978527584875f91c46858dc82f86b8b907e190ee9e6ea"
+  }
+}

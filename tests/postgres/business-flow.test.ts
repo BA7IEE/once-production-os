@@ -17,7 +17,7 @@ test('business flow on PostgreSQL: populated 74 migration upgrade or new empty i
  const db=new PrismaClient({datasources:{db:{url:raw}},log:[]}),temp=registeredTemp();
  try{
   assert.equal((await db.$queryRawUnsafe<any[]>("SELECT tablename FROM pg_tables WHERE schemaname='public'")).length,0);
-  const names=readdirSync('prisma/migrations').filter(n=>/^\d/.test(n)).sort();assert.equal(names.at(-1),'202610030001_business_flow');assert.equal(names.length,75);
+  const names=readdirSync('prisma/migrations').filter(n=>/^\d/.test(n)).sort();assert.equal(names[74],'202610030001_business_flow');assert.ok(names.length>=75);
   const deploy=async(schema:string)=>run('pnpm',['exec','prisma','migrate','deploy','--schema',schema],{env:{...process.env,DATABASE_URL:raw},timeout:120000,capture:true});
   const upgrade=process.env.BUSINESS_FLOW_BASELINE==='74';
   if(upgrade){copyFileSync('prisma/schema.prisma',join(temp.path,'schema.prisma'));mkdirSync(join(temp.path,'migrations'));copyFileSync('prisma/migrations/migration_lock.toml',join(temp.path,'migrations/migration_lock.toml'));for(const name of names.slice(0,74)){mkdirSync(join(temp.path,'migrations',name));copyFileSync(join('prisma/migrations',name,'migration.sql'),join(temp.path,'migrations',name,'migration.sql'));}await deploy(join(temp.path,'schema.prisma'));}
@@ -51,6 +51,6 @@ test('business flow on PostgreSQL: populated 74 migration upgrade or new empty i
   assert.equal((await f.owner.raw('GET',`/directory/talents/${personId}`)).status,404);ok(await reviewer.client.cmd('POST',`/source-reviews/${task}/accept`,{expectedRevision:1}),200);
   ok(await reviewer.client.cmd('POST',`/source-reviews/${task}/review`,{expectedRevision:2,basisDescription:'合成团队内部使用核验',validUntil:'2026-12-31T00:00:00.000Z'}),200);
   const key=randomUUID(),body={expectedRevision:3,confirmScope:true};ok(await f.owner.cmd('POST',`/source-reviews/${task}/publish`,body,key),200);assert.equal(result(await f.owner.cmd('POST',`/source-reviews/${task}/publish`,body,key)).replayed,true);assert.equal((await f.owner.raw('GET',`/directory/talents/${personId}`)).status,200);
-  mkdirSync('artifacts/business-flow',{recursive:true});writeFileSync(`artifacts/business-flow/postgres-${upgrade?'upgrade':'fresh'}.json`,JSON.stringify({status:'DB_TESTED',baseline:upgrade?74:0,migrations:75,checks:['legacy-columns-and-checkpoints-preserved','explicit-legacy-enrollment','typed-import-directory-filters','contact-distinction','private-review-publish','receipt-replay']},null,2)+'\n');
+  mkdirSync('artifacts/business-flow',{recursive:true});writeFileSync(`artifacts/business-flow/postgres-${upgrade?'upgrade':'fresh'}.json`,JSON.stringify({status:'DB_TESTED',baseline:upgrade?74:0,migrations:names.length,checks:['legacy-columns-and-checkpoints-preserved','explicit-legacy-enrollment','typed-import-directory-filters','contact-distinction','private-review-publish','receipt-replay']},null,2)+'\n');
  }finally{await db.$disconnect();temp.cleanup();}
 });

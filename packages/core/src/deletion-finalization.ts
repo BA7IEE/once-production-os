@@ -171,7 +171,8 @@ export class DeletionFinalization {
             const row = await tx.get('sources', id); if (!row) missing();
             const next = { ...touch(row, this.clock), title: '[ERASED]', type: 'MANUAL' as const, providerClaim: '', textPayload: '',
                 basisMode: 'INTERNAL_USE' as const, basisDescription: '[ERASED]', status: 'ERASED' as const,
-                protectionEpoch: row.protectionEpoch + 1, reviewedBy: null, reviewedAt: null };
+                protectionEpoch: row.protectionEpoch + 1, reviewedBy: null, reviewedAt: null,
+                ...(row.confirmedByTalentId?{confirmedByTalentId:null,selfConfirmedAt:null}: {}) };
             await tx.replace('sources', next);
             return { kind, id, revision: next.revision, status: next.status, protectionEpoch: next.protectionEpoch };
         }

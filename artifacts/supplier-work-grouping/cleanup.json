@@ -1,0 +1,273 @@
+{
+  "scope": "Non-simulated ResourceRuns since the whole-document report; failed attempts retain FAIL. Only owned temporary resources were cleaned; persistent data preserved.",
+  "runs": [
+    {
+      "id": "7482b40634e7c476df20cb21",
+      "started": "2026-11-07T07:27:00.031Z",
+      "finished": "2026-11-07T07:27:21.587Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "c70f9e9c641c588261c1b1e2",
+      "started": "2026-11-07T07:29:00.001Z",
+      "finished": "2026-11-07T07:29:34.505Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "668b945cd6993032c9b95267",
+      "started": "2026-11-07T07:29:00.427Z",
+      "finished": "2026-11-07T07:29:34.371Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "2ad14231b8343c64feb58932",
+      "started": "2026-11-07T07:30:29.762Z",
+      "finished": "2026-11-07T07:31:05.884Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "030378a02bd17bbec68fff8b",
+      "started": "2026-11-07T07:30:30.092Z",
+      "finished": "2026-11-07T07:31:05.757Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "fd9cc26c02cd9cf9e303c258",
+      "started": "2026-11-07T07:31:27.707Z",
+      "finished": "2026-11-07T07:31:50.954Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "cd09b72cfa2703d7d5e954ea",
+      "started": "2026-11-07T07:32:01.565Z",
+      "finished": "2026-11-07T07:32:17.386Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "fdc9a1205ed19bd6ee4a2f3f",
+      "started": "2026-11-07T07:32:57.535Z",
+      "finished": "2026-11-07T07:33:53.782Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "f00470715625e11ba88f4710",
+      "started": "2026-11-07T07:34:46.400Z",
+      "finished": "2026-11-07T07:35:02.688Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "915da137409dfe233ec42225",
+      "started": "2026-11-07T07:35:21.683Z",
+      "finished": "2026-11-07T07:35:34.872Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "8f39e25776193a6a401111bd",
+      "started": "2026-11-07T07:36:34.407Z",
+      "finished": "2026-11-07T07:36:50.276Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "ce888eb9c1f6aea03b4113b3",
+      "started": "2026-11-07T07:37:22.079Z",
+      "finished": "2026-11-07T07:38:11.683Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "c8f20dcc221e669446ee4e3f",
+      "started": "2026-11-07T07:39:57.918Z",
+      "finished": "2026-11-07T07:40:15.418Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "60b45839bc1d339630023c38",
+      "started": "2026-11-07T07:40:58.023Z",
+      "finished": "2026-11-07T07:41:37.359Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "585c7215b3477402a3026c40",
+      "started": "2026-11-07T07:41:50.855Z",
+      "finished": "2026-11-07T07:47:19.923Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "a3d57a175b910f9accb708e0",
+      "started": "2026-11-07T07:42:19.548Z",
+      "finished": "2026-11-07T07:42:19.690Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": null,
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "df8a246abaf090192d08f1c3",
+      "started": "2026-11-07T07:42:19.737Z",
+      "finished": "2026-11-07T07:42:26.849Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": null,
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "9c37c3af598d50640dfeb451",
+      "started": "2026-11-07T07:42:23.217Z",
+      "finished": "2026-11-07T07:42:26.578Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": null,
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "6e1b2f03038eae9af72514c9",
+      "started": "2026-11-07T07:42:26.579Z",
+      "finished": "2026-11-07T07:42:26.743Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": null,
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    }
+  ],
+  "excludedSimulatedRuns": 16,
+  "remainingAcrossRuns": {
+    "containers": 0,
+    "processes": 0,
+    "networks": 0,
+    "temporaryVolumes": 0,
+    "temporaryDirectories": 0,
+    "unresolvedBrowserLaunches": 0
+  }
+}

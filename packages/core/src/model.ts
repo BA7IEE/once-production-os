@@ -1,3 +1,4 @@
+import type {SupplierFieldTables} from './supplier-field-model.ts';
 import type {MediaPurgeIntent} from './media-purge-model.ts';
 import type {TalentMaintenanceTables} from './talent-maintenance-model.ts';
 import type {TalentAuthTables,TalentAuthConfig} from './talent-auth-model.ts';
@@ -73,6 +74,8 @@ export interface ScopeMember extends Base {
     membershipId: string;
 }
 export interface Source extends Base {
+    confirmedByTalentId?: string | null;
+    selfConfirmedAt?: string | null;
     internalUseUntil?:string|null;
     scopeId: string;
     maintainerId: string;
@@ -92,6 +95,7 @@ export interface Source extends Base {
 /** Immutable source state + decision, separate from the mutable Source record.
  * BASELINE preserves only the state observed during migration, not an invented history. */
 export interface SourceHistory extends Base {
+    talentAccountId?: string | null;
     sourceId: string;
     sourceRevision: number;
     scopeId: string;
@@ -236,7 +240,7 @@ export interface RecordHandoff extends Base {
     closedById: string | null;
 }
 import type {SourceReviewRequest} from './source-review.ts';
-export interface TableMap extends TalentV2Tables, TalentAuthTables, TalentMaintenanceTables {
+export interface TableMap extends TalentV2Tables, TalentAuthTables, TalentMaintenanceTables, SupplierFieldTables {
     mediaPurgeIntents:MediaPurgeIntent;
     brands:Brand;projectParties:ProjectParty;
     aiResponseMetadata: AiResponseMetadata;

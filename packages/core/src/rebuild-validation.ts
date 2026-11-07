@@ -1,4 +1,5 @@
 import {PartyTransferSchema} from './project-parties.ts';
+import {invariant} from './errors.ts';
 import {LOCALE_EXPORT_VERSION,LocaleTransferSchema} from './locale-transfer.ts';
 import { TALENT_EXPORT_VERSION, TransferSchema } from './talent-transfer.ts';
 import { v, uuid, revision, code, dateIso } from './validation.ts';
@@ -46,8 +47,9 @@ const projectData = v.object({
 });
 
 const ConsentBasisTransferSchema=v.object({version:v.enum(['talent-basis-v1','talent-basis-v2']),providerAccountId:uuid,submissionId:uuid,consentId:uuid,consentRevision:revision,textVersion:v.string(100,1),purpose:v.enum(['INTERNAL_DIRECTORY']),fieldScope:v.array(v.enum(['displayName','aliases','intro','media','work']),5,1),validUntil:dateIso,reviewerId:uuid});
+const SelfBasisTransferSchema=v.object({version:v.enum(['talent-self-basis-v1']),providerAccountId:uuid,submissionId:uuid,consentId:uuid,consentRevision:revision,textVersion:v.string(100,1),purpose:v.enum(['INTERNAL_DIRECTORY']),fieldScope:v.array(v.enum(['displayName','aliases','intro','profile','roles','locations','languages','capabilities','contacts','measurements','media','work']),12,1),validUntil:dateIso,confirmedByTalentId:uuid});
 const ReviewBasisTransferSchema=v.object({version:v.enum(['internal-review-basis-v1']),basisKind:v.enum(['INTERNAL_REVIEW']),providerServicePrincipalId:uuid,submissionId:uuid,sourceAttributionId:uuid,reviewerId:uuid,reviewBasisDigest:v.string(64,64,/^[a-f0-9]{64}$/),purpose:v.enum(['INTERNAL_DIRECTORY']),fieldScope:v.array(v.string(120,1,/^[^\u0000]+$/),50,1),validUntil:dateIso});
-export const TalentBasisTransferSchema={json:{oneOf:[ConsentBasisTransferSchema.json,ReviewBasisTransferSchema.json]},parse(value:unknown){return value&&typeof value==='object'&&'version' in value&&value.version==='internal-review-basis-v1'?ReviewBasisTransferSchema.parse(value):ConsentBasisTransferSchema.parse(value);}};
+export const TalentBasisTransferSchema={json:{oneOf:[ConsentBasisTransferSchema.json,ReviewBasisTransferSchema.json,SelfBasisTransferSchema.json]},parse(value:unknown){if(value&&typeof value==='object'&&'version' in value){if(value.version==='internal-review-basis-v1')return ReviewBasisTransferSchema.parse(value);if(value.version==='talent-self-basis-v1'){const r=SelfBasisTransferSchema.parse(value);invariant(r.confirmedByTalentId===r.providerAccountId,'SELF_BASIS_INVALID','本人确认必须引用原提供者',422);return r;}}return ConsentBasisTransferSchema.parse(value);}};
 const source = v.object({ id: uuid, revision, protectionEpoch: revision, data: sourceData,talentBasis:v.optional(TalentBasisTransferSchema) });
 const person = v.object({ id: uuid, sourceId: uuid, revision, data: personData });
 const work = v.object({ id: uuid, sourceId: uuid, revision, data: workData });

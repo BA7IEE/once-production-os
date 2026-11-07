@@ -1,0 +1,11 @@
+{
+  "status": "PASSED",
+  "providerVerified": "NOT_RUN",
+  "provider": "controlled local notification gateway; local PDF worker; AI off",
+  "checks": [
+    "mobile-self-enrollment-multi-role-encrypted-server-draft",
+    "real-upload-native-pdf-text-and-photo-extraction-work-case-self-confirmation",
+    "returning-account-loads-current-profile-and-three-mobile-widths"
+  ],
+  "errors": []
+}

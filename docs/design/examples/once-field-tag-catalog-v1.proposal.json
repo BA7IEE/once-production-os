@@ -1,0 +1,1802 @@
+{
+  "schemaVersion": "once-field-catalog-design-v1",
+  "catalogVersion": "0.1.0-proposal",
+  "status": "PROPOSAL_NOT_LOADED",
+  "purpose": "升级设计示例，未写入业务数据库，不是现有 API 合同或完整字段清单。既有字典代码与软件能力需要实施前逐项核对。",
+  "valueStates": [
+    "KNOWN",
+    "DECLARED_NONE",
+    "UNKNOWN",
+    "NOT_PROVIDED"
+  ],
+  "selectionSemantics": {
+    "multiValueStorage": "UNORDERED_UNIQUE_CODES",
+    "defaultWithinField": "ANY_OF",
+    "defaultAcrossFields": "AND",
+    "unknownDoesNotMatchNegativeSelection": true,
+    "roleConditionsBindSamePersonRole": true,
+    "repeatedConditionsBindSameRecord": true,
+    "internalTermsExcludedFromSupplierAndExternalAI": true
+  },
+  "defaultPolicies": {
+    "newFieldRequired": false,
+    "hiddenIsNotDelete": true,
+    "catalogPublishDoesNotRewriteFacts": true,
+    "newFieldCannotExpandExistingGrantAutomatically": true,
+    "unknownOption": "PRESERVE_ORIGINAL_AND_PROPOSE",
+    "noAutomaticHistoricalAIResend": true,
+    "sameMeaningUsesSameStableCode": true
+  },
+  "optionSets": [
+    {
+      "id": "roles",
+      "source": "EXISTING_DICTIONARY",
+      "namespace": "role"
+    },
+    {
+      "id": "cities",
+      "source": "EXISTING_DICTIONARY",
+      "namespace": "city"
+    },
+    {
+      "id": "languages",
+      "source": "EXISTING_DICTIONARY",
+      "namespace": "language"
+    },
+    {
+      "id": "model_styles",
+      "source": "EXISTING_DICTIONARY",
+      "namespace": "roleStyle"
+    },
+    {
+      "id": "model_services",
+      "source": "EXISTING_DICTIONARY",
+      "namespace": "roleService"
+    },
+    {
+      "id": "industries",
+      "source": "EXISTING_DICTIONARY",
+      "namespace": "industry"
+    },
+    {
+      "id": "work_types",
+      "source": "EXISTING_DICTIONARY",
+      "namespace": "workType"
+    },
+    {
+      "id": "capabilities",
+      "source": "EXISTING_CAPABILITY_REGISTRY"
+    },
+    {
+      "id": "narrative_styles",
+      "source": "NEW_PROPOSED_OPTION_SET",
+      "terms": [
+        {
+          "code": "documentary",
+          "label": "纪实",
+          "aliases": [
+            "纪实风格"
+          ],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "narrative",
+          "label": "叙事",
+          "aliases": [
+            "剧情叙事"
+          ],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "comedic",
+          "label": "喜剧",
+          "aliases": [
+            "幽默"
+          ],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "experimental",
+          "label": "实验",
+          "aliases": [
+            "实验影像"
+          ],
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    {
+      "id": "story_genres",
+      "source": "NEW_PROPOSED_OPTION_SET",
+      "terms": [
+        {
+          "code": "drama",
+          "label": "剧情",
+          "aliases": [],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "comedy",
+          "label": "喜剧",
+          "aliases": [],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "suspense",
+          "label": "悬疑",
+          "aliases": [],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "science_fiction",
+          "label": "科幻",
+          "aliases": [
+            "Sci-Fi"
+          ],
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    {
+      "id": "photography_techniques",
+      "source": "NEW_PROPOSED_OPTION_SET",
+      "terms": [
+        {
+          "code": "still_life",
+          "label": "静物布光",
+          "aliases": [],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "portrait",
+          "label": "人像摄影",
+          "aliases": [],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "macro",
+          "label": "微距摄影",
+          "aliases": [],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "aerial",
+          "label": "航拍",
+          "aliases": [],
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    {
+      "id": "camera_systems",
+      "source": "NEW_PROPOSED_OPTION_SET",
+      "terms": [
+        {
+          "code": "arri_alexa",
+          "label": "ARRI ALEXA 摄影机系统",
+          "aliases": [
+            "ALEXA"
+          ],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "red_digital",
+          "label": "RED 摄影机系统",
+          "aliases": [
+            "RED"
+          ],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "sony_cinealta",
+          "label": "Sony CineAlta 摄影机系统",
+          "aliases": [
+            "CineAlta"
+          ],
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    {
+      "id": "lighting_services",
+      "source": "NEW_PROPOSED_OPTION_SET",
+      "terms": [
+        {
+          "code": "lighting_design",
+          "label": "灯光设计",
+          "aliases": [],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "gaffer",
+          "label": "现场灯光执行",
+          "aliases": [
+            "Gaffer"
+          ],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "lighting_console",
+          "label": "灯光控制台操作",
+          "aliases": [],
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    {
+      "id": "lighting_protocols",
+      "source": "NEW_PROPOSED_OPTION_SET",
+      "terms": [
+        {
+          "code": "dmx512",
+          "label": "DMX512",
+          "aliases": [
+            "DMX"
+          ],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "artnet",
+          "label": "Art-Net",
+          "aliases": [
+            "Artnet"
+          ],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "sacn",
+          "label": "sACN",
+          "aliases": [
+            "E1.31"
+          ],
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    {
+      "id": "editing_workflows",
+      "source": "NEW_PROPOSED_OPTION_SET",
+      "terms": [
+        {
+          "code": "offline_edit",
+          "label": "离线剪辑",
+          "aliases": [],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "online_conform",
+          "label": "在线套底",
+          "aliases": [
+            "Conform"
+          ],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "multicam",
+          "label": "多机位剪辑",
+          "aliases": [],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "subtitle",
+          "label": "字幕制作",
+          "aliases": [],
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    {
+      "id": "color_management",
+      "source": "NEW_PROPOSED_OPTION_SET",
+      "terms": [
+        {
+          "code": "aces",
+          "label": "ACES",
+          "aliases": [],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "resolve_color_management",
+          "label": "Resolve 色彩管理",
+          "aliases": [
+            "RCM"
+          ],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "davinci_yrgb",
+          "label": "DaVinci YRGB",
+          "aliases": [],
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    {
+      "id": "delivery_standards",
+      "source": "NEW_PROPOSED_OPTION_SET",
+      "terms": [
+        {
+          "code": "rec709",
+          "label": "Rec.709",
+          "aliases": [
+            "BT.709"
+          ],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "hdr10",
+          "label": "HDR10",
+          "aliases": [],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "hlg",
+          "label": "HLG",
+          "aliases": [],
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    {
+      "id": "internal_operations",
+      "source": "NEW_PROPOSED_OPTION_SET",
+      "visibility": "INTERNAL_ONLY",
+      "terms": [
+        {
+          "code": "priority_followup",
+          "label": "优先回访",
+          "aliases": [],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "season_shortlist",
+          "label": "本季备选",
+          "aliases": [],
+          "status": "ACTIVE"
+        },
+        {
+          "code": "watchlist",
+          "label": "重点关注",
+          "aliases": [],
+          "status": "ACTIVE"
+        }
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "code": "person.display_name",
+      "label": "展示名",
+      "owner": "PERSON",
+      "valueType": "TEXT",
+      "storage": "CORE:Person.displayName",
+      "applicableRoles": [],
+      "requiredOnConfirmation": true,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "text",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "TEXT_MATCH"
+        ]
+      },
+      "maxLength": 120,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED"
+      ]
+    },
+    {
+      "code": "person.aliases",
+      "label": "别名",
+      "owner": "PERSON",
+      "valueType": "TEXT_LIST",
+      "storage": "CORE:Person.aliases",
+      "applicableRoles": [],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "list",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "TEXT_MATCH"
+        ]
+      },
+      "maxItems": 20,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED"
+      ]
+    },
+    {
+      "code": "person.intro",
+      "label": "个人介绍",
+      "owner": "PERSON",
+      "valueType": "TEXT",
+      "storage": "CORE:Person.intro",
+      "applicableRoles": [],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "textarea",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "TEXT_MATCH"
+        ]
+      },
+      "maxLength": 5000,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED"
+      ]
+    },
+    {
+      "code": "person.roles",
+      "label": "职业",
+      "owner": "PERSON",
+      "valueType": "CODE_SET",
+      "storage": "CORE:PersonRole",
+      "applicableRoles": [],
+      "requiredOnConfirmation": true,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "chips",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "ANY_OF",
+          "ALL_OF",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "optionSet": "roles",
+      "minItemsOnConfirmation": 1,
+      "maxItems": 20,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED"
+      ],
+      "uniqueItems": true,
+      "canonicalOrder": "SORTED_STABLE_CODES"
+    },
+    {
+      "code": "person.base_cities",
+      "label": "常驻城市",
+      "owner": "PERSON",
+      "valueType": "CODE_SET",
+      "storage": "CORE:TalentLocation.BASE",
+      "applicableRoles": [],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "chips",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "ANY_OF",
+          "ALL_OF",
+          "KNOWN_NONE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "optionSet": "cities",
+      "maxItems": 20,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED",
+        "DECLARED_NONE"
+      ],
+      "uniqueItems": true,
+      "canonicalOrder": "SORTED_STABLE_CODES"
+    },
+    {
+      "code": "person.service_cities",
+      "label": "可服务城市",
+      "owner": "PERSON",
+      "valueType": "CODE_SET",
+      "storage": "CORE:TalentLocation.SERVICE",
+      "applicableRoles": [],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "chips",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "ANY_OF",
+          "ALL_OF",
+          "KNOWN_NONE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "optionSet": "cities",
+      "maxItems": 20,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED",
+        "DECLARED_NONE"
+      ],
+      "uniqueItems": true,
+      "canonicalOrder": "SORTED_STABLE_CODES"
+    },
+    {
+      "code": "person.languages",
+      "label": "工作语言",
+      "owner": "PERSON",
+      "valueType": "CODE_SET",
+      "storage": "CORE:PersonLanguage",
+      "applicableRoles": [],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "chips",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "ANY_OF",
+          "ALL_OF",
+          "KNOWN_NONE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "optionSet": "languages",
+      "maxItems": 20,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED",
+        "DECLARED_NONE"
+      ],
+      "uniqueItems": true,
+      "canonicalOrder": "SORTED_STABLE_CODES"
+    },
+    {
+      "code": "person.contacts",
+      "label": "联系方式",
+      "owner": "PERSON",
+      "valueType": "CONTACT_LIST",
+      "storage": "CORE:Contact",
+      "applicableRoles": [],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EXPLICIT_TEXT_AND_CURRENT_CONSENT_ONLY",
+      "widget": "contacts",
+      "search": {
+        "enabled": false,
+        "operators": []
+      },
+      "maxItems": 10,
+      "sensitive": true,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED"
+      ]
+    },
+    {
+      "code": "person.additional_info",
+      "label": "其他补充",
+      "owner": "PERSON",
+      "valueType": "TEXT",
+      "storage": "EXTENSION:ProfileFact",
+      "applicableRoles": [],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "textarea",
+      "search": {
+        "enabled": false,
+        "operators": []
+      },
+      "maxLength": 2000,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED"
+      ]
+    },
+    {
+      "code": "person.portfolio_links",
+      "label": "作品链接",
+      "owner": "PERSON",
+      "valueType": "LINK_LIST",
+      "storage": "EXTENSION:ProfileLinkRecord",
+      "applicableRoles": [],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EXPLICIT_URL_ONLY",
+      "widget": "links",
+      "search": {
+        "enabled": false,
+        "operators": []
+      },
+      "maxItems": 10,
+      "allowedSchemes": [
+        "https",
+        "http"
+      ],
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED"
+      ]
+    },
+    {
+      "code": "role.practice_industries",
+      "label": "本人声明的服务方向",
+      "owner": "PERSON_ROLE",
+      "valueType": "CODE_SET",
+      "storage": "EXTENSION:ProfileFactOption",
+      "applicableRoles": [
+        "model",
+        "director",
+        "screenwriter",
+        "photographer",
+        "lighting",
+        "editor",
+        "colorist"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "chips",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "ANY_OF",
+          "ALL_OF",
+          "KNOWN_NONE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "optionSet": "industries",
+      "maxItems": 20,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED",
+        "DECLARED_NONE"
+      ],
+      "uniqueItems": true,
+      "canonicalOrder": "SORTED_STABLE_CODES"
+    },
+    {
+      "code": "role.work_formats",
+      "label": "本人声明的作品类型方向",
+      "owner": "PERSON_ROLE",
+      "valueType": "CODE_SET",
+      "storage": "EXTENSION:ProfileFactOption",
+      "applicableRoles": [
+        "model",
+        "director",
+        "screenwriter",
+        "photographer",
+        "lighting",
+        "editor",
+        "colorist"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "chips",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "ANY_OF",
+          "ALL_OF",
+          "KNOWN_NONE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "optionSet": "work_types",
+      "maxItems": 20,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED",
+        "DECLARED_NONE"
+      ],
+      "uniqueItems": true,
+      "canonicalOrder": "SORTED_STABLE_CODES"
+    },
+    {
+      "code": "role.capabilities",
+      "label": "专业能力",
+      "owner": "PERSON_ROLE",
+      "valueType": "REPEATABLE_CAPABILITY",
+      "storage": "CORE:PersonCapability",
+      "applicableRoles": [
+        "model",
+        "director",
+        "screenwriter",
+        "photographer",
+        "lighting",
+        "editor",
+        "colorist"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "capability_rows",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "EXISTS_SAME_ROW"
+        ]
+      },
+      "optionSet": "capabilities",
+      "maxItems": 30,
+      "rowKey": "clientItemKey",
+      "rowFiltersMustMatchSameRecord": true,
+      "levelScheme": "PER_CAPABILITY_SCHEME",
+      "recordIdentity": "PersonCapability.id (source-specific)",
+      "softwareViewUsesSameRecords": true,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED",
+        "DECLARED_NONE"
+      ],
+      "semanticGroupingKey": "personRoleId + capabilityCode",
+      "groupingDoesNotCollapseSources": true
+    },
+    {
+      "code": "model.styles",
+      "label": "本人声明的风格",
+      "owner": "PERSON_ROLE",
+      "valueType": "CODE_SET",
+      "storage": "CORE:PersonRole.styleCodes",
+      "applicableRoles": [
+        "model"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EXPLICIT_SELF_DESCRIPTION_ONLY",
+      "widget": "chips",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "ANY_OF",
+          "ALL_OF",
+          "KNOWN_NONE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "optionSet": "model_styles",
+      "maxItems": 20,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED",
+        "DECLARED_NONE"
+      ],
+      "uniqueItems": true,
+      "canonicalOrder": "SORTED_STABLE_CODES"
+    },
+    {
+      "code": "model.services",
+      "label": "愿意提供的服务类型",
+      "owner": "PERSON_ROLE",
+      "valueType": "CODE_SET",
+      "storage": "CORE:PersonRole.serviceCodes",
+      "applicableRoles": [
+        "model"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EXPLICIT_SELF_DECLARATION_ONLY",
+      "widget": "chips",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "ANY_OF",
+          "ALL_OF",
+          "KNOWN_NONE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "optionSet": "model_services",
+      "maxItems": 20,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED",
+        "DECLARED_NONE"
+      ],
+      "uniqueItems": true,
+      "canonicalOrder": "SORTED_STABLE_CODES"
+    },
+    {
+      "code": "measurement.height_cm",
+      "label": "身高",
+      "owner": "MEASUREMENT",
+      "valueType": "NUMBER",
+      "storage": "CORE:MeasurementSet.heightCm",
+      "applicableRoles": [
+        "model"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EXPLICIT_MEASUREMENT_TEXT_ONLY",
+      "widget": "number",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "BETWEEN",
+          "GTE",
+          "LTE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "unit": "cm",
+      "minimum": 50,
+      "maximum": 250,
+      "recordGroup": "body_measurements",
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED"
+      ]
+    },
+    {
+      "code": "measurement.bust_cm",
+      "label": "胸围",
+      "owner": "MEASUREMENT",
+      "valueType": "NUMBER",
+      "storage": "CORE:MeasurementSet.bustCm",
+      "applicableRoles": [
+        "model"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EXPLICIT_MEASUREMENT_TEXT_ONLY",
+      "widget": "number",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "BETWEEN",
+          "GTE",
+          "LTE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "unit": "cm",
+      "minimum": 20,
+      "maximum": 250,
+      "recordGroup": "body_measurements",
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED"
+      ]
+    },
+    {
+      "code": "measurement.waist_cm",
+      "label": "腰围",
+      "owner": "MEASUREMENT",
+      "valueType": "NUMBER",
+      "storage": "CORE:MeasurementSet.waistCm",
+      "applicableRoles": [
+        "model"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EXPLICIT_MEASUREMENT_TEXT_ONLY",
+      "widget": "number",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "BETWEEN",
+          "GTE",
+          "LTE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "unit": "cm",
+      "minimum": 20,
+      "maximum": 250,
+      "recordGroup": "body_measurements",
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED"
+      ]
+    },
+    {
+      "code": "measurement.hips_cm",
+      "label": "臀围",
+      "owner": "MEASUREMENT",
+      "valueType": "NUMBER",
+      "storage": "CORE:MeasurementSet.hipsCm",
+      "applicableRoles": [
+        "model"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EXPLICIT_MEASUREMENT_TEXT_ONLY",
+      "widget": "number",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "BETWEEN",
+          "GTE",
+          "LTE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "unit": "cm",
+      "minimum": 20,
+      "maximum": 250,
+      "recordGroup": "body_measurements",
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED"
+      ]
+    },
+    {
+      "code": "measurement.shoulder_width_cm",
+      "label": "肩宽",
+      "owner": "MEASUREMENT",
+      "valueType": "NUMBER",
+      "storage": "EXTENSION:ProfileFact",
+      "applicableRoles": [
+        "model"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EXPLICIT_MEASUREMENT_TEXT_ONLY",
+      "widget": "number",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "BETWEEN",
+          "GTE",
+          "LTE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "unit": "cm",
+      "minimumExclusive": 0,
+      "maximum": 200,
+      "recordGroup": "body_measurements",
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED"
+      ]
+    },
+    {
+      "code": "measurement.measured_on",
+      "label": "量尺日期",
+      "owner": "MEASUREMENT",
+      "valueType": "DATE_WITH_PRECISION",
+      "storage": "CORE:MeasurementSet.measuredOn+datePrecision",
+      "applicableRoles": [
+        "model"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EXPLICIT_DATE_ONLY",
+      "widget": "date_with_precision",
+      "search": {
+        "enabled": false,
+        "operators": []
+      },
+      "recordGroup": "body_measurements",
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED"
+      ]
+    },
+    {
+      "code": "measurement.shoe_size",
+      "label": "鞋码及尺码体系",
+      "owner": "MEASUREMENT",
+      "valueType": "SIZE_PAIR",
+      "storage": "CORE:MeasurementSet.shoeSizeValue+shoeSizeSystem",
+      "applicableRoles": [
+        "model"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "size_pair",
+      "search": {
+        "enabled": false,
+        "operators": []
+      },
+      "allowedSystems": [
+        "EU",
+        "US",
+        "UK",
+        "CN"
+      ],
+      "recordGroup": "body_measurements",
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED"
+      ]
+    },
+    {
+      "code": "measurement.clothing_size",
+      "label": "服装尺码及尺码体系",
+      "owner": "MEASUREMENT",
+      "valueType": "SIZE_PAIR",
+      "storage": "CORE:MeasurementSet.clothingSizeValue+clothingSizeSystem",
+      "applicableRoles": [
+        "model"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "size_pair",
+      "search": {
+        "enabled": false,
+        "operators": []
+      },
+      "allowedSystems": [
+        "INTL",
+        "EU",
+        "US",
+        "UK",
+        "CN"
+      ],
+      "recordGroup": "body_measurements",
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED"
+      ]
+    },
+    {
+      "code": "role.narrative_styles",
+      "label": "创作风格",
+      "owner": "PERSON_ROLE",
+      "valueType": "CODE_SET",
+      "storage": "EXTENSION:ProfileFactOption",
+      "applicableRoles": [
+        "director"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "chips",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "ANY_OF",
+          "ALL_OF",
+          "KNOWN_NONE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "optionSet": "narrative_styles",
+      "maxItems": 10,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED",
+        "DECLARED_NONE"
+      ],
+      "uniqueItems": true,
+      "canonicalOrder": "SORTED_STABLE_CODES"
+    },
+    {
+      "code": "role.story_genres",
+      "label": "擅长题材",
+      "owner": "PERSON_ROLE",
+      "valueType": "CODE_SET",
+      "storage": "EXTENSION:ProfileFactOption",
+      "applicableRoles": [
+        "screenwriter"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "chips",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "ANY_OF",
+          "ALL_OF",
+          "KNOWN_NONE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "optionSet": "story_genres",
+      "maxItems": 20,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED",
+        "DECLARED_NONE"
+      ],
+      "uniqueItems": true,
+      "canonicalOrder": "SORTED_STABLE_CODES"
+    },
+    {
+      "code": "role.photo_techniques",
+      "label": "本人声明的摄影技能",
+      "owner": "PERSON_ROLE",
+      "valueType": "CODE_SET",
+      "storage": "EXTENSION:ProfileFactOption",
+      "applicableRoles": [
+        "photographer"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "chips",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "ANY_OF",
+          "ALL_OF",
+          "KNOWN_NONE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "optionSet": "photography_techniques",
+      "maxItems": 20,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED",
+        "DECLARED_NONE"
+      ],
+      "uniqueItems": true,
+      "canonicalOrder": "SORTED_STABLE_CODES"
+    },
+    {
+      "code": "role.camera_systems",
+      "label": "熟悉的摄影机系统",
+      "owner": "PERSON_ROLE",
+      "valueType": "CODE_SET",
+      "storage": "EXTENSION:ProfileFactOption",
+      "applicableRoles": [
+        "director",
+        "photographer"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "chips",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "ANY_OF",
+          "ALL_OF",
+          "KNOWN_NONE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "optionSet": "camera_systems",
+      "maxItems": 20,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED",
+        "DECLARED_NONE"
+      ],
+      "uniqueItems": true,
+      "canonicalOrder": "SORTED_STABLE_CODES"
+    },
+    {
+      "code": "role.lighting_services",
+      "label": "灯光服务能力",
+      "owner": "PERSON_ROLE",
+      "valueType": "CODE_SET",
+      "storage": "EXTENSION:ProfileFactOption",
+      "applicableRoles": [
+        "lighting"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "chips",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "ANY_OF",
+          "ALL_OF",
+          "KNOWN_NONE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "optionSet": "lighting_services",
+      "maxItems": 10,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED",
+        "DECLARED_NONE"
+      ],
+      "uniqueItems": true,
+      "canonicalOrder": "SORTED_STABLE_CODES"
+    },
+    {
+      "code": "role.lighting_protocols",
+      "label": "熟悉的灯光控制协议",
+      "owner": "PERSON_ROLE",
+      "valueType": "CODE_SET",
+      "storage": "EXTENSION:ProfileFactOption",
+      "applicableRoles": [
+        "lighting"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "chips",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "ANY_OF",
+          "ALL_OF",
+          "KNOWN_NONE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "optionSet": "lighting_protocols",
+      "maxItems": 10,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED",
+        "DECLARED_NONE"
+      ],
+      "uniqueItems": true,
+      "canonicalOrder": "SORTED_STABLE_CODES"
+    },
+    {
+      "code": "role.editing_workflows",
+      "label": "熟悉的剪辑流程",
+      "owner": "PERSON_ROLE",
+      "valueType": "CODE_SET",
+      "storage": "EXTENSION:ProfileFactOption",
+      "applicableRoles": [
+        "editor"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "chips",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "ANY_OF",
+          "ALL_OF",
+          "KNOWN_NONE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "optionSet": "editing_workflows",
+      "maxItems": 10,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED",
+        "DECLARED_NONE"
+      ],
+      "uniqueItems": true,
+      "canonicalOrder": "SORTED_STABLE_CODES"
+    },
+    {
+      "code": "role.color_management",
+      "label": "熟悉的色彩管理流程",
+      "owner": "PERSON_ROLE",
+      "valueType": "CODE_SET",
+      "storage": "EXTENSION:ProfileFactOption",
+      "applicableRoles": [
+        "colorist"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "chips",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "ANY_OF",
+          "ALL_OF",
+          "KNOWN_NONE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "optionSet": "color_management",
+      "maxItems": 10,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED",
+        "DECLARED_NONE"
+      ],
+      "uniqueItems": true,
+      "canonicalOrder": "SORTED_STABLE_CODES"
+    },
+    {
+      "code": "role.delivery_standards",
+      "label": "熟悉的交付色彩标准",
+      "owner": "PERSON_ROLE",
+      "valueType": "CODE_SET",
+      "storage": "EXTENSION:ProfileFactOption",
+      "applicableRoles": [
+        "editor",
+        "colorist"
+      ],
+      "requiredOnConfirmation": false,
+      "visibility": "SUPPLIER_SHARED",
+      "aiPolicy": "EVIDENCED_SUGGESTION_ONLY",
+      "widget": "chips",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "ANY_OF",
+          "ALL_OF",
+          "KNOWN_NONE",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "optionSet": "delivery_standards",
+      "maxItems": 10,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED",
+        "DECLARED_NONE"
+      ],
+      "uniqueItems": true,
+      "canonicalOrder": "SORTED_STABLE_CODES"
+    },
+    {
+      "code": "ops.organizing_tags",
+      "label": "ONCE 整理标签",
+      "owner": "PERSON_INTERNAL",
+      "valueType": "CODE_SET",
+      "storage": "INTERNAL:InternalTagAssignment",
+      "applicableRoles": [],
+      "requiredOnConfirmation": false,
+      "visibility": "INTERNAL_ONLY",
+      "aiPolicy": "FORBIDDEN",
+      "widget": "chips",
+      "search": {
+        "enabled": true,
+        "operators": [
+          "ANY_OF",
+          "ALL_OF",
+          "IS_UNKNOWN",
+          "IS_NOT_PROVIDED"
+        ]
+      },
+      "optionSet": "internal_operations",
+      "maxItems": 20,
+      "supplierEditable": false,
+      "allowedValueStates": [
+        "KNOWN",
+        "UNKNOWN",
+        "NOT_PROVIDED"
+      ],
+      "uniqueItems": true,
+      "canonicalOrder": "SORTED_STABLE_CODES"
+    }
+  ],
+  "templates": [
+    {
+      "id": "common",
+      "version": 1,
+      "roleCode": null,
+      "fields": [
+        {
+          "fieldCode": "person.display_name",
+          "displayOrder": 1
+        },
+        {
+          "fieldCode": "person.aliases",
+          "displayOrder": 2
+        },
+        {
+          "fieldCode": "person.intro",
+          "displayOrder": 3
+        },
+        {
+          "fieldCode": "person.roles",
+          "displayOrder": 4
+        },
+        {
+          "fieldCode": "person.base_cities",
+          "displayOrder": 5
+        },
+        {
+          "fieldCode": "person.service_cities",
+          "displayOrder": 6
+        },
+        {
+          "fieldCode": "person.languages",
+          "displayOrder": 7
+        },
+        {
+          "fieldCode": "person.contacts",
+          "displayOrder": 8
+        },
+        {
+          "fieldCode": "person.additional_info",
+          "displayOrder": 9
+        },
+        {
+          "fieldCode": "person.portfolio_links",
+          "displayOrder": 10
+        }
+      ],
+      "state": "PROPOSED"
+    },
+    {
+      "id": "model",
+      "label": "模特",
+      "version": 1,
+      "roleCode": "model",
+      "includes": [
+        "common"
+      ],
+      "fields": [
+        {
+          "fieldCode": "role.practice_industries",
+          "displayOrder": 1
+        },
+        {
+          "fieldCode": "role.work_formats",
+          "displayOrder": 2
+        },
+        {
+          "fieldCode": "role.capabilities",
+          "displayOrder": 3
+        },
+        {
+          "fieldCode": "model.styles",
+          "displayOrder": 4
+        },
+        {
+          "fieldCode": "model.services",
+          "displayOrder": 5
+        },
+        {
+          "fieldCode": "measurement.height_cm",
+          "displayOrder": 6
+        },
+        {
+          "fieldCode": "measurement.bust_cm",
+          "displayOrder": 7
+        },
+        {
+          "fieldCode": "measurement.waist_cm",
+          "displayOrder": 8
+        },
+        {
+          "fieldCode": "measurement.hips_cm",
+          "displayOrder": 9
+        },
+        {
+          "fieldCode": "measurement.shoulder_width_cm",
+          "displayOrder": 10
+        },
+        {
+          "fieldCode": "measurement.measured_on",
+          "displayOrder": 11
+        },
+        {
+          "fieldCode": "measurement.shoe_size",
+          "displayOrder": 12
+        },
+        {
+          "fieldCode": "measurement.clothing_size",
+          "displayOrder": 13
+        }
+      ],
+      "state": "PROPOSED"
+    },
+    {
+      "id": "director",
+      "label": "导演",
+      "version": 1,
+      "roleCode": "director",
+      "includes": [
+        "common"
+      ],
+      "fields": [
+        {
+          "fieldCode": "role.practice_industries",
+          "displayOrder": 1
+        },
+        {
+          "fieldCode": "role.work_formats",
+          "displayOrder": 2
+        },
+        {
+          "fieldCode": "role.capabilities",
+          "displayOrder": 3
+        },
+        {
+          "fieldCode": "role.narrative_styles",
+          "displayOrder": 4
+        },
+        {
+          "fieldCode": "role.camera_systems",
+          "displayOrder": 5
+        }
+      ],
+      "state": "PROPOSED"
+    },
+    {
+      "id": "screenwriter",
+      "label": "编剧",
+      "version": 1,
+      "roleCode": "screenwriter",
+      "includes": [
+        "common"
+      ],
+      "fields": [
+        {
+          "fieldCode": "role.practice_industries",
+          "displayOrder": 1
+        },
+        {
+          "fieldCode": "role.work_formats",
+          "displayOrder": 2
+        },
+        {
+          "fieldCode": "role.capabilities",
+          "displayOrder": 3
+        },
+        {
+          "fieldCode": "role.story_genres",
+          "displayOrder": 4
+        }
+      ],
+      "state": "PROPOSED"
+    },
+    {
+      "id": "photographer",
+      "label": "摄影师",
+      "version": 1,
+      "roleCode": "photographer",
+      "includes": [
+        "common"
+      ],
+      "fields": [
+        {
+          "fieldCode": "role.practice_industries",
+          "displayOrder": 1
+        },
+        {
+          "fieldCode": "role.work_formats",
+          "displayOrder": 2
+        },
+        {
+          "fieldCode": "role.capabilities",
+          "displayOrder": 3,
+          "views": [
+            {
+              "capabilityKind": "SOFTWARE",
+              "label": "软件与熟练度",
+              "levelScheme": "SOFTWARE_3_PROPOSED"
+            },
+            {
+              "capabilityKind": "OTHER",
+              "label": "其他专业能力",
+              "includeUnclassified": true
+            }
+          ]
+        },
+        {
+          "fieldCode": "role.photo_techniques",
+          "displayOrder": 4
+        },
+        {
+          "fieldCode": "role.camera_systems",
+          "displayOrder": 5
+        }
+      ],
+      "state": "PROPOSED"
+    },
+    {
+      "id": "lighting",
+      "label": "灯光师",
+      "version": 1,
+      "roleCode": "lighting",
+      "includes": [
+        "common"
+      ],
+      "fields": [
+        {
+          "fieldCode": "role.practice_industries",
+          "displayOrder": 1
+        },
+        {
+          "fieldCode": "role.work_formats",
+          "displayOrder": 2
+        },
+        {
+          "fieldCode": "role.capabilities",
+          "displayOrder": 3
+        },
+        {
+          "fieldCode": "role.lighting_services",
+          "displayOrder": 4
+        },
+        {
+          "fieldCode": "role.lighting_protocols",
+          "displayOrder": 5
+        }
+      ],
+      "state": "PROPOSED"
+    },
+    {
+      "id": "editor",
+      "label": "剪辑师",
+      "version": 1,
+      "roleCode": "editor",
+      "includes": [
+        "common"
+      ],
+      "fields": [
+        {
+          "fieldCode": "role.practice_industries",
+          "displayOrder": 1
+        },
+        {
+          "fieldCode": "role.work_formats",
+          "displayOrder": 2
+        },
+        {
+          "fieldCode": "role.capabilities",
+          "displayOrder": 3,
+          "views": [
+            {
+              "capabilityKind": "SOFTWARE",
+              "label": "软件与熟练度",
+              "levelScheme": "SOFTWARE_3_PROPOSED"
+            },
+            {
+              "capabilityKind": "OTHER",
+              "label": "其他专业能力",
+              "includeUnclassified": true
+            }
+          ]
+        },
+        {
+          "fieldCode": "role.editing_workflows",
+          "displayOrder": 4
+        },
+        {
+          "fieldCode": "role.delivery_standards",
+          "displayOrder": 5
+        }
+      ],
+      "state": "PROPOSED"
+    },
+    {
+      "id": "colorist",
+      "label": "调色师",
+      "version": 1,
+      "roleCode": "colorist",
+      "includes": [
+        "common"
+      ],
+      "fields": [
+        {
+          "fieldCode": "role.practice_industries",
+          "displayOrder": 1
+        },
+        {
+          "fieldCode": "role.work_formats",
+          "displayOrder": 2
+        },
+        {
+          "fieldCode": "role.capabilities",
+          "displayOrder": 3,
+          "views": [
+            {
+              "capabilityKind": "SOFTWARE",
+              "label": "软件与熟练度",
+              "levelScheme": "SOFTWARE_3_PROPOSED"
+            },
+            {
+              "capabilityKind": "OTHER",
+              "label": "其他专业能力",
+              "includeUnclassified": true
+            }
+          ]
+        },
+        {
+          "fieldCode": "role.color_management",
+          "displayOrder": 4
+        },
+        {
+          "fieldCode": "role.delivery_standards",
+          "displayOrder": 5
+        }
+      ],
+      "state": "PROPOSED"
+    }
+  ],
+  "levelSchemes": [
+    {
+      "code": "SOFTWARE_3_PROPOSED",
+      "options": [
+        {
+          "code": "FAMILIAR",
+          "label": "了解",
+          "rank": 1
+        },
+        {
+          "code": "WORKING",
+          "label": "能独立完成常规工作",
+          "rank": 2
+        },
+        {
+          "code": "ADVANCED",
+          "label": "能处理复杂工作",
+          "rank": 3
+        }
+      ],
+      "legacyMapping": "BASIC/WORKING/PROFESSIONAL 可经确认后映射；FLUENT/NATIVE 保留旧值并进入核对，不自动改为高级。"
+    }
+  ],
+  "capabilityRegistryUpgrade": {
+    "classification": "SOFTWARE or OTHER",
+    "defaultUnknownKind": "UNCLASSIFIED",
+    "softwareSpecificView": "Explicitly classified SOFTWARE entries only",
+    "canonicalFieldCode": "role.capabilities",
+    "duplicateVirtualFieldsForbidden": true
+  },
+  "writeActions": {
+    "KEEP": "不提交该项则保持原值",
+    "ADD": "追加明确选项及其出处",
+    "REMOVE": "移除明确获准编辑的成员，移除最后一项不自动声明没有",
+    "REPLACE": "明确替换为非空集合",
+    "CLEAR": "撤去本次可编辑值，结果为本视图未提供",
+    "SET_NONE": "本人明确声明没有该集合项",
+    "SET_UNKNOWN": "本人明确表示不知道"
+  },
+  "defaultLimits": {
+    "fieldsPerRoleTemplate": 50,
+    "fieldsPerComposedForm": 80,
+    "maxSelectionsPerCodeSet": 30,
+    "maxCapabilityRowsPerRole": 30,
+    "maxRepeatGroupDepth": 1,
+    "maxValuePayloadBytes": 1048576,
+    "catalogChoicesUsePagination": true
+  }
+}

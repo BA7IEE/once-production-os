@@ -26,8 +26,14 @@ export class AiLedger {
   invariant(run.providerIdentityHash===c.providerIdentityHash&&run.configRevision===c.configRevision,'AI_CONFIG_CHANGED','AI 配置已变化，请重新确认任务',409);
   const workspace=await tx.get('workspaces',run.workspaceId);
   invariant(workspace?.recoveryEpoch===run.recoveryEpoch&&run.recoveryEpoch===c.recoveryEpoch,'AI_RECOVERY_CHANGED','恢复前的 AI 任务不能继续发送',409);
-  const member=await workspaceRow(tx,'memberships',run.actorId,run.workspaceId),user=member?await workspaceRow(tx,'users',member.userId,run.workspaceId):null;
-  invariant(member?.status==='ACTIVE'&&user?.status==='ACTIVE','AI_ACTOR_INACTIVE','发起成员已失效，不能继续调用',403);
+  if(run.talentAccountId){
+   const account=await workspaceRow(tx,'talentAccounts',run.talentAccountId,run.workspaceId);
+   invariant(!run.actorId&&run.purpose==='SUPPLIER_DOCUMENT'&&account?.status==='ACTIVE'&&account.sessionEpoch===run.actorEpoch,'AI_ACTOR_INACTIVE','发起账号已失效，不能继续调用',403);
+  }else{
+   invariant(run.actorId,'AI_ACTOR_INACTIVE','发起主体不可用',403);
+   const member=await workspaceRow(tx,'memberships',run.actorId,run.workspaceId),user=member?await workspaceRow(tx,'users',member.userId,run.workspaceId):null;
+   invariant(member?.status==='ACTIVE'&&user?.status==='ACTIVE','AI_ACTOR_INACTIVE','发起成员已失效，不能继续调用',403);
+  }
   const budget=await workspaceRow(tx,'aiBudgets',run.budgetId,run.workspaceId);if(!budget)missing();
   invariant(budget.currency===c.currency,'AI_CONFIG_CHANGED','费用币种已变化',409);
   return budget;
@@ -35,19 +41,20 @@ export class AiLedger {
  private async record(tx:Tx,run:AiRun,action:string,meta:RequestMeta){
   await audit(tx,null,run.workspaceId,action,'aiRun',run.id,['state','reservedUnits','settledUnits'],meta,this.clock);
  }
- async reserve(tx:Tx,workspaceId:string,actorId:string,key:string,inputDigest:string,reservedUnits:number,c:AiLedgerConfig,meta:RequestMeta){
+ async reserve(tx:Tx,workspaceId:string,actorId:string|null,key:string,inputDigest:string,reservedUnits:number,c:AiLedgerConfig,meta:RequestMeta,talent?:{talentAccountId:string;actorEpoch:number}){
   validateAiConfig(c);hash(inputDigest);units(reservedUnits);
   invariant(/^[A-Za-z0-9_-]{8,128}$/.test(key),'INVALID_COMMAND_KEY','请求键无效',400);
   invariant(reservedUnits>0&&reservedUnits<=c.perTaskLimitUnits,'BUDGET_NOT_AVAILABLE','任务预留费用超过上限',409);
   const requestDigest=digest({inputDigest,reservedUnits,providerIdentityHash:c.providerIdentityHash,configRevision:c.configRevision,currency:c.currency,recoveryEpoch:c.recoveryEpoch});
-  const old=(await tx.find('aiRuns',{workspaceId,actorId,requestKey:key}))[0];
+  invariant(talent?!actorId:!!actorId,'AI_ACTOR_INVALID','AI 请求须有唯一真实主体',422);
+  const old=(await tx.find('aiRuns',{workspaceId,...talent?{talentAccountId:talent.talentAccountId}:{actorId},requestKey:key}))[0];
   if(old){invariant(old.requestDigest===requestDigest,'IDEMPOTENCY_CONFLICT','请求键已用于不同的 AI 请求',409);await this.current(tx,old,c);return old;}
   invariant(!(await tx.find('aiBudgets',{workspaceId})).some(b=>b.frozen),'AI_BUDGET_FROZEN','AI 费用待核对，暂停新增调用',409);
   const period=this.clock.now().toISOString().slice(0,10);
   let budget=(await tx.find('aiBudgets',{workspaceId,period,currency:c.currency}))[0];
   if(!budget){budget={...base(workspaceId,this.clock),period,currency:c.currency,reservedUnits:0,settledUnits:0,frozen:false};await tx.insert('aiBudgets',budget);}
   invariant(budget.reservedUnits+budget.settledUnits+reservedUnits<=c.dailyLimitUnits,'BUDGET_NOT_AVAILABLE','当天 AI 预算不足',409);
-  const run:AiRun={...base(workspaceId,this.clock),actorId,budgetId:budget.id,requestKey:key,requestDigest,inputDigest,providerIdentityHash:c.providerIdentityHash,configRevision:c.configRevision,recoveryEpoch:c.recoveryEpoch,state:'QUEUED',reservedUnits,settledUnits:null,cancelRequested:false};
+  const run:AiRun={...base(workspaceId,this.clock),actorId,...talent?{...talent,purpose:'SUPPLIER_DOCUMENT' as const}:{},budgetId:budget.id,requestKey:key,requestDigest,inputDigest,providerIdentityHash:c.providerIdentityHash,configRevision:c.configRevision,recoveryEpoch:c.recoveryEpoch,state:'QUEUED',reservedUnits,settledUnits:null,cancelRequested:false};
   await this.current(tx,run,c);
   await tx.replace('aiBudgets',{...touch(budget,this.clock),reservedUnits:budget.reservedUnits+reservedUnits});await tx.insert('aiRuns',run);await this.record(tx,run,'ai.reserve',meta);return run;
  }

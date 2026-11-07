@@ -9,6 +9,8 @@ secrets/
 data/
 *.log
 !artifacts/*.log
+!artifacts/supplier-library/*.log
+!artifacts/supplier-field-templates/*.log
 artifacts/local-*
 *.zip
 

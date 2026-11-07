@@ -1,0 +1,157 @@
+
+> once-production-os@0.1.0-dev.1 test:documents /workspace/once-production-os
+> node scripts/test-documents.mjs
+
+TAP version 13
+# Subtest: whole PDF persists exact page batches, resumes only an explicitly approved failure, and preserves source evidence
+ok 1 - whole PDF persists exact page batches, resumes only an explicitly approved failure, and preserves source evidence
+  ---
+  duration_ms: 3369.399507
+  type: 'test'
+  ...
+# Subtest: whole native PDF survives worker restarts, suppresses duplicate submission and covers all ten pages
+ok 2 - whole native PDF survives worker restarts, suppresses duplicate submission and covers all ten pages
+  ---
+  duration_ms: 2192.14389
+  type: 'test'
+  ...
+# Subtest: cancelling a partially completed document keeps finished pages and permits confirmation without processing the rest
+ok 3 - cancelling a partially completed document keeps finished pages and permits confirmation without processing the rest
+  ---
+  duration_ms: 1198.761171
+  type: 'test'
+  ...
+# Subtest: expired chunk lease pauses the batch; a stale worker cannot publish and continuation needs no AI acknowledgement before dispatch
+ok 4 - expired chunk lease pauses the batch; a stale worker cannot publish and continuation needs no AI acknowledgement before dispatch
+  ---
+  duration_ms: 615.083511
+  type: 'test'
+  ...
+# Subtest: cancellation after AI dispatch rejects late output and never schedules the remaining pages
+ok 5 - cancellation after AI dispatch rejects late output and never schedules the remaining pages
+  ---
+  duration_ms: 1241.941778
+  type: 'test'
+  ...
+# Subtest: revoking consent between chunks stops all pending pages without another model call
+ok 6 - revoking consent between chunks stops all pending pages without another model call
+  ---
+  duration_ms: 1240.218138
+  type: 'test'
+  ...
+# Subtest: a document above the whole-file page limit fails discovery with no partial completion or model run
+ok 7 - a document above the whole-file page limit fails discovery with no partial completion or model run
+  ---
+  duration_ms: 609.304039
+  type: 'test'
+  ...
+# Subtest: real PDF produces native text, located regions and actual standalone images, including a rotated page
+ok 8 - real PDF produces native text, located regions and actual standalone images, including a rotated page
+  ---
+  duration_ms: 680.512532
+  type: 'test'
+  ...
+# Subtest: scanned PDF keeps its visual input without pretending native text was recognized
+ok 9 - scanned PDF keeps its visual input without pretending native text was recognized
+  ---
+  duration_ms: 588.318075
+  type: 'test'
+  ...
+# Subtest: selected pages are explicitly partial and retain original page numbers
+ok 10 - selected pages are explicitly partial and retain original page numbers
+  ---
+  duration_ms: 514.991653
+  type: 'test'
+  ...
+# Subtest: uploaded image yields a visual page and separately preserved image
+ok 11 - uploaded image yields a visual page and separately preserved image
+  ---
+  duration_ms: 405.943272
+  type: 'test'
+  ...
+# Subtest: password, damaged input, stale digest and invalid selection fail with fixed errors and no temporary files
+ok 12 - password, damaged input, stale digest and invalid selection fail with fixed errors and no temporary files
+  ---
+  duration_ms: 942.914668
+  type: 'test'
+  ...
+# Subtest: whole-document discovery counts pages without rendering and refuses more than 100 pages
+ok 13 - whole-document discovery counts pages without rendering and refuses more than 100 pages
+  ---
+  duration_ms: 774.524342
+  type: 'test'
+  ...
+# Subtest: cross-page, cross-batch and cross-file cases preserve edited facts, de-duplicated images, all origins and one-send receipts
+not ok 14 - cross-page, cross-batch and cross-file cases preserve edited facts, de-duplicated images, all origins and one-send receipts
+  ---
+  duration_ms: 6347.801836
+  type: 'test'
+  location: '/workspace/once-production-os/tests/documents/work-grouping.test.mjs:10:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"DOCUMENT_PROPOSAL_CLOSED","message":"请先完成材料提取","requestId":"0757f56d-ee14-405f-83e2-0330dc4b0d9b"}}
+    
+    409 !== 200
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 200
+  actual: 409
+  operator: 'strictEqual'
+  stack: |-
+    Object.ok (file:///workspace/once-production-os/tests/support/supplier-profiles.ts:11:85)
+    importImages (file:///workspace/once-production-os/tests/support/supplier-work-grouping.mjs:16:35)
+    async verifyWorkGrouping (file:///workspace/once-production-os/tests/support/supplier-work-grouping.mjs:50:70)
+    async uploadedDocumentFixture.fileName (file:///workspace/once-production-os/tests/documents/work-grouping.test.mjs:11:2)
+    async uploadedDocumentFixture (file:///workspace/once-production-os/tests/support/supplier-document-fixture.mjs:47:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: grouping refuses a removed image and a missing destination without partial writes, and respects consent withdrawal
+ok 15 - grouping refuses a removed image and a missing destination without partial writes, and respects consent withdrawal
+  ---
+  duration_ms: 5709.374327
+  type: 'test'
+  ...
+# Subtest: actual uploaded PDF becomes protected text and image candidates, then self-confirmed formal material
+ok 16 - actual uploaded PDF becomes protected text and image candidates, then self-confirmed formal material
+  ---
+  duration_ms: 1534.982942
+  type: 'test'
+  ...
+# Subtest: actual page images reach multimodal boundary; selected AI fields prefill a draft and retain document provenance
+ok 17 - actual page images reach multimodal boundary; selected AI fields prefill a draft and retain document provenance
+  ---
+  duration_ms: 1573.584851
+  type: 'test'
+  ...
+# Subtest: AI request loss is not automatically retried and temp material is removed
+ok 18 - AI request loss is not automatically retried and temp material is removed
+  ---
+  duration_ms: 872.720676
+  type: 'test'
+  ...
+# Subtest: revoking consent before dispatch blocks extraction and prevents a model request
+ok 19 - revoking consent before dispatch blocks extraction and prevents a model request
+  ---
+  duration_ms: 545.292499
+  type: 'test'
+  ...
+# Subtest: AI prefill refuses a field edited after extraction started
+ok 20 - AI prefill refuses a field edited after extraction started
+  ---
+  duration_ms: 880.315585
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 19
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 33775.967868
+Document parser resources: ZERO_RESIDUE
+ ELIFECYCLE  Command failed with exit code 1.
+Heavy task refused, failed or interrupted; inspect private resource journal.

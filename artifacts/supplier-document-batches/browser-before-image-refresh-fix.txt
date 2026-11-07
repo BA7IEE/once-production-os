@@ -1,0 +1,25 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite supplier-library
+
+{"alerts":["记录已被更新，请刷新后重新检查修改"],"sections":1,"labels":["<label><input type=\"checkbox\" checked=\"\" style=\"\">使用 AI 识别和整理字段</label>"],"errors":[]}
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: {"error":{"code":"REVISION_CONFLICT","message":"记录已被更新，请刷新后重新检查修改","requestId":"86f88ac6-c0d6-413f-8bca-c7545ec3af93"}}
+
+409 !== 200
+
+    at file:///workspace/once-production-os/tests/acceptance/browser-supplier-library.mjs:49:738 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 409,
+  expected: 200,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.3
+Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+ ELIFECYCLE  Command failed with exit code 1.

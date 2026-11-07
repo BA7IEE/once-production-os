@@ -1,3 +1,4 @@
+import {SupplierDocumentWorker} from './documents/worker.ts';
 import {MediaPurgeWorker} from './media/purge-worker.ts';
 import {cleanupTalentAuth} from '../../../packages/core/src/talent-auth.ts';
 import {installedModelClient} from './ai/installed-client.ts';
@@ -25,6 +26,7 @@ async function run() {
     const core = new Application(store, config, undefined, safetyJournal);
     const mediaProvider = config.mediaEnabled ? await configuredMediaProvider() : null;
     const purge=mediaProvider?new MediaPurgeWorker(core,mediaProvider,safetyJournal):null;
+    const documents=mediaProvider?new SupplierDocumentWorker(core,mediaProvider):null;
     const media = mediaProvider ? new MediaWorker(core, mediaProvider) : null;
     const deletionFinalizer = new DeletionFinalizer(core, mediaProvider, safetyJournal);
     // Model credentials are resolved server-side for the current workspace.
@@ -59,6 +61,7 @@ async function run() {
                         throw error;
                     }
                 }
+                const didDocuments=documents?await documents.cycle(stopController.signal):false;
                 const didAi = await ai.cycle(stopController.signal);
                 const didFinalize = await deletionFinalizer.cycle(stopController.signal);
                 const didPurge=purge?await purge.cycle(stopController.signal):false;
@@ -75,7 +78,7 @@ async function run() {
                     }
                     nextJournalSync = Date.now() + 5000;
                 }
-                if (!claim && !exportClaim && !deletionClaim && !didFinalize && !didMedia && !didAi && !didPurge)
+                if (!claim && !exportClaim && !deletionClaim && !didFinalize && !didMedia && !didAi && !didPurge && !didDocuments)
                     await sleep(1000);
             }
             catch {

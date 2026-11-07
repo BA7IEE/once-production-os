@@ -1,4 +1,6 @@
+import {SupplierDocuments} from './supplier-documents.ts';
 import {principalFields} from './principal.ts';
+import {SupplierProfiles} from './supplier-profiles.ts';
 import {saveWorkDrafts} from './talent-work-cases.ts';
 import {saveCollectionDrafts} from './media-collections.ts';
 import {Media,uploadFor} from './media.ts';
@@ -55,10 +57,21 @@ export class TalentPortal {
  if(route.operation==='portal.me'){res.body=await this.auth.store.transaction(async tx=>{const actor=await authenticate(tx);const a=(await tx.get('talentAccounts',actor.talentAccountId))!;return {talentAccountId:a.id,status:a.status,revision:a.revision,csrfToken:csrfFor(token,c.csrfKey)};});return res;}
  if(route.operation==='portal.auth.logout'){await this.auth.store.transaction(async tx=>{const actor=await authenticate(tx);await this.auth.logout(tx,actor,meta);});res.cookies.push(this.cookie(sessionName,'',0));res.body={loggedOut:true};return res;}
  if(TALENT_MAINTENANCE_ROUTES.includes(route)){
- if(route.mode==='READ'){res.body=await this.auth.store.transaction(async tx=>{const actor=await authenticate(tx);if(route.operation==='portal.command.get'){const rows=await tx.find('receipts',{workspaceId:actor.workspaceId,...principalFields(actor),commandKey:resourceId});invariant(rows.length===1&&rows[0]!.operation.startsWith('portal.'),'NOT_FOUND','当前未找到可确认的原请求，请保留核对标记',404);await authorizeReceipt(tx,actor,rows[0]!,this.auth.clock,this.auth.config);return rows[0]!.result;}if(route.operation==='portal.upload.get'){const u=await uploadFor(tx,actor,resourceId);await maintenance.submissionAccess(tx,actor,u.submissionId!,true);return new Media(this.auth.store,this.auth.clock,this.auth.config).get(tx,actor,resourceId);}return maintenance.portalRead(tx,actor,route.operation,resourceId,browser);});return res;}
+ if(route.mode==='READ'){res.body=await this.auth.store.transaction(async tx=>{const actor=await authenticate(tx);if(route.operation.startsWith('portal.supplier.')){const profiles=new SupplierProfiles(this.auth.clock,this.auth.config);switch(route.operation){case 'portal.supplier.documents':return new SupplierDocuments(this.auth.clock,this.auth.config).list(tx,actor,resourceId);case 'portal.supplier.schema':return profiles.schema(tx,actor);case 'portal.supplier.profile':return profiles.profile(tx,actor,resourceId);case 'portal.supplier.list':return profiles.list(tx,actor);case 'portal.supplier.get':return profiles.read(tx,actor,resourceId);}}if(route.operation==='portal.command.get'){const rows=await tx.find('receipts',{workspaceId:actor.workspaceId,...principalFields(actor),commandKey:resourceId});invariant(rows.length===1&&rows[0]!.operation.startsWith('portal.'),'NOT_FOUND','当前未找到可确认的原请求，请保留核对标记',404);await authorizeReceipt(tx,actor,rows[0]!,this.auth.clock,this.auth.config);return rows[0]!.result;}if(route.operation==='portal.upload.get'){const u=await uploadFor(tx,actor,resourceId);await maintenance.submissionAccess(tx,actor,u.submissionId!,true);return new Media(this.auth.store,this.auth.clock,this.auth.config).get(tx,actor,resourceId);}return maintenance.portalRead(tx,actor,route.operation,resourceId,browser);});return res;}
  const actor=await this.auth.store.transaction(authenticate),key=req.headers['idempotency-key']??'';const intent=await this.writeAhead(actor,route.operation,meta.requestId,resourceId||actor.talentAccountId,key);
  const kind=route.operation.startsWith('portal.upload.')?'upload':route.operation.startsWith('portal.asset.')?'asset':route.operation.startsWith('portal.claim.')?'talentClaim':route.operation==='portal.consent.revoke'?'talentConsent':'talentSubmission';
  res.body=await this.auth.store.transaction(async tx=>{const current=await authenticate(tx);return new Commands(this.auth.clock).execute(tx,current,route.operation,key,resourceId||null,data,kind,meta,async()=>{switch(route.operation){
+ case 'portal.supplier.documentBatch':return new SupplierDocuments(this.auth.clock,this.auth.config).controlBatch(tx,current,resourceId,data);
+ case 'portal.supplier.documentImages':return new SupplierDocuments(this.auth.clock,this.auth.config).images(tx,current,resourceId,data);
+ case 'portal.supplier.documentWorkGroup':return new SupplierDocuments(this.auth.clock,this.auth.config).workGroup(tx,current,resourceId,data);
+ case 'portal.supplier.documentWork':return new SupplierDocuments(this.auth.clock,this.auth.config).work(tx,current,resourceId,data);
+ case 'portal.supplier.documentStart':return new SupplierDocuments(this.auth.clock,this.auth.config).start(tx,current,resourceId,data);
+ case 'portal.supplier.documentApply':return new SupplierDocuments(this.auth.clock,this.auth.config).apply(tx,current,resourceId,data);
+ case 'portal.supplier.documentCancel':return new SupplierDocuments(this.auth.clock,this.auth.config).cancel(tx,current,resourceId,data);
+ case 'portal.supplier.create':return new SupplierProfiles(this.auth.clock,this.auth.config).create(tx,current,data);
+ case 'portal.supplier.save':return new SupplierProfiles(this.auth.clock,this.auth.config).save(tx,current,resourceId,data);
+ case 'portal.supplier.rebase':return new SupplierProfiles(this.auth.clock,this.auth.config).rebase(tx,current,resourceId,data);
+ case 'portal.supplier.confirm':return new SupplierProfiles(this.auth.clock,this.auth.config).confirm(tx,current,resourceId,data);
  case 'portal.submission.mediaConsent':return maintenance.mediaConsent(tx,current,resourceId,data);
  case 'portal.upload.create':return new Media(this.auth.store,this.auth.clock,this.auth.config).createTalent(tx,current,data);
  case 'portal.upload.complete':return new Media(this.auth.store,this.auth.clock,this.auth.config).complete(tx,current,resourceId,data);

@@ -20,11 +20,11 @@ export class PortalCommands {
     constructor(request:PortalCommands['request'],changed:()=>void,storage?:PortalMarkerStorage){this.request=request;this.changed=changed;this.storage=storage;}
     get hasPending(){return !!(this.pending||this.orphan||this.restorationError);}
     get confirmed(){return this.pending?.receipt??this.orphan?.receipt;}
-    get draftResourceId(){return this.confirmed&&(this.orphan?.draft||this.pending?.method==='POST'&&(this.pending.path==='/submissions'||this.pending.path.endsWith('/fork')))?this.confirmed.resourceId:null;}
+    get draftResourceId(){return this.confirmed&&(this.orphan?.draft||this.pending?.method==='POST'&&(this.pending.path==='/submissions'||this.pending.path==='/profile-drafts'||this.pending.path.endsWith('/fork')))?this.confirmed.resourceId:null;}
     restore(owner:string){if(this.hasPending||!this.storage)return;try{const r=this.storage.read(owner);if(!r)return;this.orphan={owner:r.owner,key:r.key,draft:r.draft};this.changed();}catch(error){this.restorationError=error instanceof Error?error:new Error('无法读取待确认标记');this.changed();throw this.restorationError;}}
     async submit(owner:string,path:string,body:unknown,method='POST'):Promise<PortalReceipt>{
         if(this.hasPending)throw new Error('上次操作尚未核对，请先核对原请求或刷新已保存的资料。');
-        const key=crypto.randomUUID();this.storage?.write({owner,key,draft:method==='POST'&&(path==='/submissions'||path.endsWith('/fork'))});
+        const key=crypto.randomUUID();this.storage?.write({owner,key,draft:method==='POST'&&(path==='/submissions'||path==='/profile-drafts'||path.endsWith('/fork'))});
         this.pending={path,method,body:JSON.stringify(body),key,owner,uncertain:false};this.changed();
         return this.replay(owner);
     }

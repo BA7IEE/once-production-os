@@ -34,8 +34,8 @@ export async function insertFact(tx:Tx,table:FactTable,row:FactRow){await tx.ins
 export async function replaceFact(tx:Tx,table:FactTable,row:FactRow){await tx.replace(table,row as unknown as TableMap[FactTable]);}
 
 /** A single bounded snapshot feeds detail, search, facets, shortlists and export projections. */
-export async function loadTalentGraph(tx:Tx,actor:Actor,clock:Clock,personIds?:string[]){
-    const visibility=await loadVisibility(tx,actor,clock);
+export async function loadTalentGraph(tx:Tx,actor:Actor,clock:Clock,personIds?:string[],preloadedVisibility?:Awaited<ReturnType<typeof loadVisibility>>){
+    const visibility=preloadedVisibility??await loadVisibility(tx,actor,clock);
     const tables=[...TD2_TABLES,'people','organizations','capabilityDefinitions','mediaCollectionItems','personMedia','assets','evidence','personAliases','deletionRequests','workCredits','works','projectParticipants','projects','dictionary'] as const;
     const data:Partial<Record<Table,unknown[]>>={};
     for(const table of tables){
@@ -73,7 +73,9 @@ export async function loadTalentGraph(tx:Tx,actor:Actor,clock:Clock,personIds?:s
     const collectionItems=new Map<string,TableMap['mediaCollectionItems'][]>();for(const item of rows('mediaCollectionItems')){const group=collectionItems.get(item.collectionId)??[];group.push(item);collectionItems.set(item.collectionId,group);}
     const personMap=new Map(rows('people').map(p=>[p.id,p]));
     const source=(id:string):Source|null=>visibility.source(id)??null;
-    const sourceUsable=(id:string)=>visibility.sourceVisible(id) && (!actor.machineScopeId || source(id)?.scopeId===actor.machineScopeId);
+    // This graph belongs to one read transaction; never reuse it after a write.
+    const visibleSources=new Set(visibility.visibleSourceIds);
+    const sourceUsable=(id:string)=>visibleSources.has(id) && (!actor.machineScopeId || source(id)?.scopeId===actor.machineScopeId);
     const identityReadable=(p:Person)=>p.workspaceId===actor.workspaceId && p.status!=='ERASED' && visibility.scopeVisible(p.scopeId)
         && (!actor.machineScopeId || p.scopeId===actor.machineScopeId)
         && !aliases.has(p.id)

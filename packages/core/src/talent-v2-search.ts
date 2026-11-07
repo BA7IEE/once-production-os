@@ -8,7 +8,9 @@ import { v, code } from './validation.ts';
 import { loadTalentGraph, asRow } from './talent-v2-graph.ts';
 import { type FactRow } from './talent-v2-schema.ts';
 export const TD2_SEARCH_KEYS=['q','mode','role','capability','language','languageLevel','location','locationRelation','collectionType','collectionTag','translationSource','translationTarget','translationMode','credentialType','adultState','heightMin','heightMax','industryCode','workTypeCode','actualProject','status','gender','nationality','market','experience','style','service','ageMin','ageMax','ageUnknown'] as const;
-export async function searchTalentV2(tx:Tx,actor:Actor,clock:Clock,input:TalentQuery,options?:{graph?:Awaited<ReturnType<typeof loadTalentGraph>>;all?:boolean;facets?:boolean}):Promise<Record<string,any>>{
+type DirectoryGraph=Awaited<ReturnType<typeof loadTalentGraph>>;
+type DirectoryView=ReturnType<DirectoryGraph['get']>;
+export async function searchTalentV2(tx:Tx,actor:Actor,clock:Clock,input:TalentQuery,options?:{graph?:Awaited<ReturnType<typeof loadTalentGraph>>;all?:boolean;facets?:boolean;facetOnly?:boolean;views?:Map<string,DirectoryView|null>}):Promise<Record<string,any>>{
     const query:Record<string,string>=Object.fromEntries(Object.entries(input).map(([k,v])=>[k,Array.isArray(v)?v[0]!:v]));
     const matches=(key:string,value:unknown)=>!input[key]||queryValues(input[key]).includes(String(value));
     const overlaps=(key:string,value:unknown)=>!input[key]||(value as string[]??[]).some(v=>matches(key,v));
@@ -25,12 +27,15 @@ export async function searchTalentV2(tx:Tx,actor:Actor,clock:Clock,input:TalentQ
     for(const key of ['style','service'])if(query[key]!==undefined)for(const value of queryValues(input[key]))code.parse(value);
     if(query.nationality!==undefined)for(const value of queryValues(input.nationality))v.string(2,2,/^[A-Z]{2}$/).parse(value);
     const ageMin=query.ageMin===undefined?null:Number(query.ageMin),ageMax=query.ageMax===undefined?null:Number(query.ageMax);for(const x of [ageMin,ageMax])if(x!==null)v.number(0,130).parse(x);invariant(ageMin==null||ageMax==null||ageMin<=ageMax,'AGE_RANGE_INVALID','年龄范围不正确',400);invariant(!query.ageUnknown||ageMin==null&&ageMax==null,'AGE_FILTER_CONFLICT','未知年龄不能同时选择年龄范围',400);
-    const g=options?.graph??await loadTalentGraph(tx,actor,clock),items:Record<string,unknown>[]=[];
+    const g=options?.graph??await loadTalentGraph(tx,actor,clock),views=options?.views??new Map<string,DirectoryView|null>(),items:Record<string,unknown>[]=[];
     const current=(facts:Record<string,Record<string,unknown>[]>,table:string)=>(facts[table]??[]).filter(r=>r.usable===true);
     const ranks=['BASIC','WORKING','PROFESSIONAL','FLUENT','NATIVE'];
     for(const person of g.rows('people')){
         if(!g.identityReadable(person)||person.status==='ARCHIVED'&&!query.status)continue;
-        let view:ReturnType<typeof g.get>;try{view=g.get(person.id);}catch(e){if(e instanceof AppError&&e.status===404)continue;throw e;}
+        // Reuse projections only inside this read and its facet calculations.
+        // Every new request builds a fresh graph and rechecks current permissions.
+        if(!views.has(person.id)){try{views.set(person.id,g.get(person.id));}catch(e){if(e instanceof AppError&&e.status===404)views.set(person.id,null);else throw e;}}
+        const view=views.get(person.id);if(!view)continue;
         const facts=view.facts as Record<string,Record<string,unknown>[]>,roles=current(facts,'personRoles'),languages=current(facts,'personLanguages'),locations=current(facts,'talentLocations');
         const demographics=current(facts,'talentProfiles')[0],modelRoles=roles.filter(r=>r.roleCode==='model'&&(!query.role||matches('role',r.roleCode)));
         const available=(r:Record<string,unknown>|undefined,key:string)=>!!r&&!(r.unavailableFields as string[]??[]).includes(key);
@@ -66,20 +71,23 @@ export async function searchTalentV2(tx:Tx,actor:Actor,clock:Clock,input:TalentQ
             &&(!query.workTypeCode||overlaps('workTypeCode',w?.workTypeCodes))))continue;
         const projects=g.personRows('projectParticipants',person.id).filter(r=>r.state==='ACTUAL'&&(!query.role||matches('role',r.roleCode))).map(r=>g.record('projects',r.projectId)).filter(p=>!!p&&g.visibility.scopeVisible(p.scopeId)&&g.sourceUsable(p.sourceId)&&!g.visibility.blocked('PROJECT',p.id)&&p.status!=='ERASED');
         if(query.actualProject&&!!projects.length!==(query.actualProject==='true'))continue;
+        if(options?.facetOnly){items.push({_facetWorks:visibleWorks,genderCode:demographics?.genderCode??null,nationalityCodes:demographics?.nationalityCodes??[],
+            roles:roles.map(r=>({roleCode:r.roleCode,castingMarketCode:r.castingMarketCode??'UNCLASSIFIED',experienceCode:r.experienceCode??'UNSPECIFIED',styleCodes:r.styleCodes??[],serviceCodes:r.serviceCodes??[]})),languages,locations});continue;}
         items.push({_facetWorks:visibleWorks,...g.personHeader(person),isTalent:view.isTalent,genderCode:demographics?.genderCode??null,nationalityCodes:demographics?.nationalityCodes??[],ageRange:view.ageRange,coverAssetId:demographics?.coverAssetId??null,matchingRoleIds:selectedRoles.filter(r=>!(query.industryCode||query.workTypeCode)||g.personRows('workCredits',person.id).some(c=>(c.personRoleId?c.personRoleId===r.id:c.roleCode===r.roleCode)&&visibleWorks.some(w=>w?.id===c.workId&&matches('industryCode',w.industryCode)&&overlaps('workTypeCode',w.workTypeCodes)))).map(r=>r.id),roles:roles.map(r=>({id:r.id,roleCode:r.roleCode,revision:r.revision,castingMarketCode:r.castingMarketCode??'UNCLASSIFIED',experienceCode:r.experienceCode??'UNSPECIFIED',styleCodes:r.styleCodes??[],serviceCodes:r.serviceCodes??[]})),languages:languages.map(r=>({languageCode:r.languageCode,speakingLevelCode:r.speakingLevelCode})),locations:locations.map(r=>({locationCode:r.locationCode,relationCode:r.relationCode})),heightCm:typeof height==='number'?height:null,adultState:view.adultState,collectionCount:collections.length,matchedBy:Object.entries(input).filter(([key])=>!(key==='page'||key==='pageSize')).map(([field,value])=>({field,value}))});
     }
-    items.sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt))||String(a.id).localeCompare(String(b.id)));
+    if(!options?.facetOnly)items.sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt))||String(a.id).localeCompare(String(b.id)));
     const counts=(field:string,key:string)=>{const result:Record<string,number>=Object.create(null);for(const item of items){const codes=new Set((item[field] as Record<string,unknown>[]).filter(r=>!['castingMarketCode','experienceCode'].includes(key)||r.roleCode==='model').map(x=>String(x[key])));for(const c of codes)result[c]=(result[c]??0)+1;}return result;};
     const scalarCounts=(field:string)=>{const result:Record<string,number>={};for(const item of items){const code=String(item[field]??'UNKNOWN');result[code]=(result[code]??0)+1;}return result;};
     const facets={genders:scalarCounts('genderCode'),markets:counts('roles','castingMarketCode'),experiences:counts('roles','experienceCode'),roles:counts('roles','roleCode'),languages:counts('languages','languageCode'),locations:counts('locations','locationCode')};
     const arrayCounts=(values:(item:Record<string,any>)=>string[])=>{const result:Record<string,number>={};for(const item of items)for(const value of new Set(values(item)))result[value]=(result[value]??0)+1;return result;};
     const allFacets:Record<string,Record<string,number>>={...facets,nationalities:arrayCounts(p=>p.nationalityCodes),styles:arrayCounts(p=>p.roles.flatMap((r:any)=>r.styleCodes)),services:arrayCounts(p=>p.roles.flatMap((r:any)=>r.serviceCodes)),industries:arrayCounts(p=>p._facetWorks.map((w:any)=>w.industryCode).filter(Boolean)),workTypes:arrayCounts(p=>p._facetWorks.flatMap((w:any)=>w.workTypeCodes))};
+    const baseFacets={...allFacets};
     if(options?.facets)for(const [key,dimension] of Object.entries(DIRECTORY_DIMENSIONS)){
       const rest={...input};delete rest[key];if(key==='language')delete rest.languageLevel;if(key==='location')delete rest.locationRelation;
-      const reference=await searchTalentV2(tx,actor,clock,rest,{graph:g,all:true}),exact:Record<string,number>={};
-      for(const value of Object.keys(reference.facets[dimension]))exact[value]=(await searchTalentV2(tx,actor,clock,{...rest,[key]:value},{graph:g,all:true})).total;
+      const reference=input[key]===undefined?{facets:baseFacets}:await searchTalentV2(tx,actor,clock,rest,{graph:g,all:true,views,facetOnly:true}),exact:Record<string,number>={};
+      for(const value of Object.keys(reference.facets[dimension]))exact[value]=(await searchTalentV2(tx,actor,clock,{...rest,[key]:value},{graph:g,all:true,views,facetOnly:true})).total;
       allFacets[dimension]=exact;
     }
     for(const item of items)delete item._facetWorks;
-    return {...(options?.all?{items,total:items.length}:page(items,query,[...TD2_SEARCH_KEYS])),schemaVersion:'once-talent-v2.1.0',facets:allFacets,selectionRule:'VISIBLE_FACTS_ONLY'};
+    return {...(options?.facetOnly?{items:[],total:items.length}:options?.all?{items,total:items.length}:page(items,query,[...TD2_SEARCH_KEYS])),schemaVersion:'once-talent-v2.1.0',facets:allFacets,selectionRule:'VISIBLE_FACTS_ONLY'};
 }

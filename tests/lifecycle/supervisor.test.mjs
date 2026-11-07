@@ -42,7 +42,9 @@ test('spawn exception and pre-aborted task create no live child', async () => {
 });
 test('leader exit with inherited pipes reclaims descendant promptly', async () => {
   const result=await run(process.execPath,['-e',"const {spawn}=require('node:child_process');const c=spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{stdio:['ignore','inherit','inherit']});console.log(c.pid);c.unref();"],{capture:true,timeout:2000});
-  assert.throws(()=>process.kill(Number(result),0),{code:'ESRCH'});
+  // Linux containers may retain a dead zombie until PID 1 reaps it. No live process or inherited pipe may remain.
+  const line=execFileSync('ps',['-axo','pid=,stat='],{encoding:'utf8'}).split('\n').find(row=>Number(row.trim().split(/\s+/)[0])===Number(result));
+  assert.ok(!line||line.trim().split(/\s+/)[1].startsWith('Z'));
 });
 test('nested supervisor cancellation reclaims registered independent groups', async () => {
   const {ResourceRun}=await import('../../scripts/resource-run.mjs');

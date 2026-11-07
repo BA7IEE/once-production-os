@@ -1,0 +1,23 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {uploadedDocumentFixture as fixture} from '../support/supplier-document-fixture.mjs';
+import {SupplierDocumentWorker} from '../../apps/api/src/documents/worker.ts';
+import {DOCUMENT_PROPOSAL_VERSION} from '../../packages/core/src/document-schema.ts';
+test('PDF AI prefill appends and explicitly replaces controlled tags, and populates existing native records with page provenance',async()=>fixture(async f=>{
+ await f.approve();f.ok(await f.owner.cmd('POST','/td2/capability-definitions',{schemaVersion:'once-talent-v2.1.0',code:'synthetic_tool',labelZh:'合成工具',labelEn:'',aliases:[],applicableRoleCodes:['director'],levelSchemeCode:'ABILITY_5',semanticVersion:'1.0.0'}),201);
+ const schema=f.ok(await f.a.client.raw('GET','/portal/profile-schema',undefined,f.headers()));
+ const profile=(await f.read(f.draft.resourceId)).profile;profile.professional={catalogVersion:1,catalogDigest:schema.fieldCatalog.digest,answers:[{fieldCode:'production.focus',roleCode:'director',state:'KNOWN',value:['commercial']}]};
+ f.ok(await f.a.client.raw('PATCH','/portal/profile-drafts/'+f.draft.resourceId,{expectedRevision:await f.rev(),profile},f.headers()));
+ let calls=0;
+ const worker=new SupplierDocumentWorker(f.app,f.provider,async()=>({callDocument:async input=>{calls++;assert.ok(input.pages[0].bytes.length>100);assert.ok(!JSON.stringify(input.dictionary).includes('needs_followup'));const evidence=[{page:1,bbox:null,kind:'TEXT',quote:'Lin He'}];
+  return {output:{schemaVersion:DOCUMENT_PROPOSAL_VERSION,documentKind:'PERSON_PROFILE',subjectAssociation:'EXPLICIT_AUTHOR',fields:[{key:'roles',field:'roleCodes',value:['photographer'],evidence}],images:[],works:[],unknowns:[],professionalFields:[{key:'focus',fieldCode:'production.focus',roleCode:'director',value:['fashion'],evidence}],nativeFields:[{key:'tool',field:'capabilityDetails',value:[{roleCode:'director',capabilityCode:'synthetic_tool',levelCode:'WORKING'}],evidence},{key:'qualification',field:'credentials',value:[{roleCode:'director',credentialTypeCode:'OTHER',credentialName:'Synthetic training claim',issuerName:'Synthetic issuer',issuedOn:null,expiresOn:null}],evidence}]},usage:{inputTokens:80,outputTokens:30,cacheReadTokens:null,cacheWriteTokens:null,reasoningTokens:null},providerResponseId:'synthetic-fields-'+calls,outputStatus:'VALID_JSON'};}}));
+ await f.start(true);await worker.cycle(new AbortController().signal);const job=(await f.jobs()).at(-1);assert.equal(job.state,'READY',JSON.stringify(job));
+ f.ok(await f.a.client.raw('POST','/portal/profile-drafts/'+f.draft.resourceId+'/documents/apply',{expectedRevision:await f.rev(),jobId:job.id,expectedJobRevision:job.revision,selectedKeys:['roles','focus','tool','qualification'],professionalActions:[{key:'focus',action:'ADD'},{key:'tool',action:'ADD'},{key:'qualification',action:'ADD'}]},f.headers()));
+ const added=(await f.read(f.draft.resourceId)).profile;assert.deepEqual(added.roleCodes,['director','photographer']);assert.deepEqual(added.professional.answers[0].value,['commercial','fashion']);assert.equal(added.capabilityDetails[0].levelCode,'WORKING');assert.equal(added.credentials[0].credentialName,'Synthetic training claim');
+ await f.start(true);await worker.cycle(new AbortController().signal);const next=(await f.jobs()).find(j=>j.id!==job.id);assert.equal(next.state,'READY',JSON.stringify(next));
+ f.ok(await f.a.client.raw('POST','/portal/profile-drafts/'+f.draft.resourceId+'/documents/apply',{expectedRevision:await f.rev(),jobId:next.id,expectedJobRevision:next.revision,selectedKeys:['focus'],professionalActions:[{key:'focus',action:'REPLACE'}]},f.headers()));
+ assert.deepEqual((await f.read(f.draft.resourceId)).profile.professional.answers[0].value,['fashion']);assert.equal(calls,2);
+ f.ok(await f.a.client.raw('POST','/portal/profile-drafts/'+f.draft.resourceId+'/confirm',{expectedRevision:await f.rev(),accepted:true},f.headers()));const saved=await f.read(f.draft.resourceId);
+ const rows=await f.store.transaction(async tx=>({facts:await tx.find('supplierFacts',{personId:saved.personId}),credentials:await tx.find('personCredentials',{personId:saved.personId}),attrs:await tx.find('sourceAttributions')}));
+ assert.ok(rows.facts.length>0);assert.equal(rows.credentials[0].status,'UNVERIFIED');assert.ok(rows.attrs.some(a=>a.materialDescription.includes('production.focus')&&a.materialDescription.includes('capabilityDetails')));
+}));

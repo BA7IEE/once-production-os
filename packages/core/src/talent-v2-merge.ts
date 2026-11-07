@@ -31,6 +31,7 @@ export async function scanTalentMerge(tx: Tx, actor: Actor, clock: Clock, canoni
     const selected = new Map<Table, Row[]>();
     const ownerIds = new Set<string>();
     const blockers = new Set<string>();
+    if((await tx.findIn('supplierFacts',actor.workspaceId,'personId',[canonicalId,duplicateId])).length)blockers.add('SUPPLIER_FIELD_MERGE_REVIEW_REQUIRED');
     const items: TalentMergeItem[] = [];
     const conflicts: TalentMergeConflict[] = [];
     const addConflict = (table: FactTable, a: Row, b: Row, code: string, choices: TalentConflictChoice[]) => {

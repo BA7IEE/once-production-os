@@ -205,6 +205,7 @@ export const TD2_FACTS = {
     "ownerKey": "personCredentialId",
     "fields": {
       "personRoleId": "uuid?",
+      "credentialName": "text?",
       "credentialTypeCode": "enum:DRONE_LICENSE,TRANSLATION_CERTIFICATE,DIVING_CERTIFICATE,EQUIPMENT_CERTIFICATE,OTHER",
       "issuerOrganizationId": "uuid?",
       "issuerName": "text?",

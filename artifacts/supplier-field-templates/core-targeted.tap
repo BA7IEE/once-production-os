@@ -1,0 +1,202 @@
+TAP version 13
+# Subtest: document openai-chat sends actual page image bytes and accepts grounded structured works
+ok 1 - document openai-chat sends actual page image bytes and accepts grounded structured works
+  ---
+  duration_ms: 43.547284
+  type: 'test'
+  ...
+# Subtest: document openai-responses sends actual page image bytes and accepts grounded structured works
+ok 2 - document openai-responses sends actual page image bytes and accepts grounded structured works
+  ---
+  duration_ms: 16.25366
+  type: 'test'
+  ...
+# Subtest: document anthropic-messages sends actual page image bytes and accepts grounded structured works
+ok 3 - document anthropic-messages sends actual page image bytes and accepts grounded structured works
+  ---
+  duration_ms: 10.694424
+  type: 'test'
+  ...
+# Subtest: document transport rejects wrong bytes and excessive page batches before sending anything
+ok 4 - document transport rejects wrong bytes and excessive page batches before sending anything
+  ---
+  duration_ms: 1.373974
+  type: 'test'
+  ...
+# Subtest: document responses with fabricated evidence retain usage but cannot become candidates
+ok 5 - document responses with fabricated evidence retain usage but cannot become candidates
+  ---
+  duration_ms: 6.006517
+  type: 'test'
+  ...
+# Subtest: document timeout or provider error does not auto retry and does not expose provider content
+ok 6 - document timeout or provider error does not auto retry and does not expose provider content
+  ---
+  duration_ms: 8.271307
+  type: 'test'
+  ...
+# Subtest: document proposal preserves separate facts, images, work credits and original evidence
+ok 7 - document proposal preserves separate facts, images, work credits and original evidence
+  ---
+  duration_ms: 4.461551
+  type: 'test'
+  ...
+# Subtest: company brochures and shoot briefs cannot become people, credentials, work authorship or supplier portraits
+ok 8 - company brochures and shoot briefs cannot become people, credentials, work authorship or supplier portraits
+  ---
+  duration_ms: 0.770809
+  type: 'test'
+  ...
+# Subtest: AI maps controlled professional fields while preserving career boundaries and rejecting invented or internal terms
+ok 9 - AI maps controlled professional fields while preserving career boundaries and rejecting invented or internal terms
+  ---
+  duration_ms: 1.902499
+  type: 'test'
+  ...
+# Subtest: native AI suggestions preserve explicit units, registered levels and unverified qualification claims
+ok 10 - native AI suggestions preserve explicit units, registered levels and unverified qualification claims
+  ---
+  duration_ms: 1.293603
+  type: 'test'
+  ...
+# Subtest: shape-correct proposals cannot cite unprocessed pages, fabricated quotes or nonexistent images
+ok 11 - shape-correct proposals cannot cite unprocessed pages, fabricated quotes or nonexistent images
+  ---
+  duration_ms: 1.119535
+  type: 'test'
+  ...
+# Subtest: visual text requires a usable location; unsupported dictionary wording stays an explicit unknown
+ok 12 - visual text requires a usable location; unsupported dictionary wording stays an explicit unknown
+  ---
+  duration_ms: 0.362742
+  type: 'test'
+  ...
+# Subtest: typed field values, dictionary codes, region bounds and unique candidate keys are enforced
+ok 13 - typed field values, dictionary codes, region bounds and unique candidate keys are enforced
+  ---
+  duration_ms: 0.8876
+  type: 'test'
+  ...
+# Subtest: partial and failed page coverage cannot be presented as a complete document
+ok 14 - partial and failed page coverage cannot be presented as a complete document
+  ---
+  duration_ms: 0.493287
+  type: 'test'
+  ...
+# Subtest: new document schema does not admit arbitrary nested values or future schema versions
+ok 15 - new document schema does not admit arbitrary nested values or future schema versions
+  ---
+  duration_ms: 0.564141
+  type: 'test'
+  ...
+# Subtest: dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person
+ok 16 - dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person
+  ---
+  duration_ms: 257.72951
+  type: 'test'
+  ...
+# Subtest: published catalogs preserve old drafts and reject type reinterpretation and deleted option codes
+ok 17 - published catalogs preserve old drafts and reject type reinterpretation and deleted option codes
+  ---
+  duration_ms: 239.597054
+  type: 'test'
+  ...
+# Subtest: ONCE corrections update explicitly shared professional facts and fence stale self drafts
+ok 18 - ONCE corrections update explicitly shared professional facts and fence stale self drafts
+  ---
+  duration_ms: 235.681168
+  type: 'test'
+  ...
+# Subtest: new fields reject cross-role data, invented options, fake dates and empty multi selections
+ok 19 - new fields reject cross-role data, invented options, fake dates and empty multi selections
+  ---
+  duration_ms: 207.2003
+  type: 'test'
+  ...
+# Subtest: confirmation audit failure rolls professional facts and choices back with the rest of the profile
+ok 20 - confirmation audit failure rolls professional facts and choices back with the rest of the profile
+  ---
+  duration_ms: 205.452224
+  type: 'test'
+  ...
+# Subtest: structured tag search supports ANY and ALL on the same role, with no missing-as-negative or private source leakage
+ok 21 - structured tag search supports ANY and ALL on the same role, with no missing-as-negative or private source leakage
+  ---
+  duration_ms: 229.14017
+  type: 'test'
+  ...
+# Subtest: native professional details reuse capability, credential, translation and dated measurement tables
+ok 22 - native professional details reuse capability, credential, translation and dated measurement tables
+  ---
+  duration_ms: 215.365669
+  type: 'test'
+  ...
+# Subtest: catalogs and typed fields participate in recovery integrity and explicit person cleanup
+ok 23 - catalogs and typed fields participate in recovery integrity and explicit person cleanup
+  ---
+  duration_ms: 206.05624
+  type: 'test'
+  ...
+# Subtest: supplier creates a multi-role person directly, with real self provenance, encrypted draft and replay
+ok 24 - supplier creates a multi-role person directly, with real self provenance, encrypted draft and replay
+  ---
+  duration_ms: 288.159633
+  type: 'test'
+  ...
+# Subtest: supplier confirmation rolls back every fact if atomic command audit fails
+ok 25 - supplier confirmation rolls back every fact if atomic command audit fails
+  ---
+  duration_ms: 199.086699
+  type: 'test'
+  ...
+# Subtest: parallel profile drafts cannot overwrite a newer confirmation, and explicit rebase can resolve it
+ok 26 - parallel profile drafts cannot overwrite a newer confirmation, and explicit rebase can resolve it
+  ---
+  duration_ms: 248.683223
+  type: 'test'
+  ...
+# Subtest: ONCE correction of a shared field is visible to its self account and blocks an old draft
+ok 27 - ONCE correction of a shared field is visible to its self account and blocks an old draft
+  ---
+  duration_ms: 224.245941
+  type: 'test'
+  ...
+# Subtest: full length profile text remains readable in an encrypted server draft
+ok 28 - full length profile text remains readable in an encrypted server draft
+  ---
+  duration_ms: 206.744575
+  type: 'test'
+  ...
+# Subtest: self-confirmed business export preserves the real confirming principal without creating accounts on rebuild
+ok 29 - self-confirmed business export preserves the real confirming principal without creating accounts on rebuild
+  ---
+  duration_ms: 531.995526
+  type: 'test'
+  ...
+# Subtest: revoked supplier consent immediately hides shared fields and the internal directory
+ok 30 - revoked supplier consent immediately hides shared fields and the internal directory
+  ---
+  duration_ms: 218.787717
+  type: 'test'
+  ...
+# Subtest: an incomplete exposure cannot silently clear or reveal unshared staff fields
+ok 31 - an incomplete exposure cannot silently clear or reveal unshared staff fields
+  ---
+  duration_ms: 226.314684
+  type: 'test'
+  ...
+# Subtest: a renewed self profile remains searchable when its older consent is revoked
+ok 32 - a renewed self profile remains searchable when its older consent is revoked
+  ---
+  duration_ms: 227.165092
+  type: 'test'
+  ...
+1..32
+# tests 32
+# suites 0
+# pass 32
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5364.864882

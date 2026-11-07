@@ -13,12 +13,21 @@ export function acquireLock() {
 export function hostedActionsRunner(platform = process.platform, env = process.env) {
   return platform === 'linux' && env.CI === 'true' && env.GITHUB_ACTIONS === 'true';
 }
-export function preflight({ platform = process.platform, env = process.env, exec = execFileSync } = {}) {
+export function boundedLinuxPreflight(read=readFileSync) {
+  const value=path=>Number(read(path,'utf8').trim());
+  const limit=value('/sys/fs/cgroup/memory.max'),used=value('/sys/fs/cgroup/memory.current');
+  const swap=value('/sys/fs/cgroup/memory.swap.current');
+  if(![limit,used,swap].every(Number.isSafeInteger)||limit<=0||used<0||swap<0||limit-used<4*1024**3||swap>4*1024**3)
+    throw new Error('Heavy task refused: bounded Linux cgroup needs 4GiB free memory and at most 4GiB Swap.');
+}
+export function preflight({ platform = process.platform, env = process.env, exec = execFileSync, read = readFileSync } = {}) {
   if (env.DOCKER_HOST && env.DOCKER_CONTEXT) throw new Error('Ambiguous Docker target.');
   const endpoint = env.DOCKER_HOST || exec('docker', ['context', 'inspect', '--format', '{{.Endpoints.docker.Host}}'], { encoding: 'utf8', timeout: 5000 }).trim();
   if (!endpoint.startsWith('unix://')) throw new Error('Only local Unix-socket Docker is permitted.');
   // A disposable Actions runner has its own memory; never bypass the shared-Mac gate.
   if (hostedActionsRunner(platform, env)) return;
+  // Explicit managed-Linux mode verifies real kernel limits; it does not impersonate CI.
+  if(platform==='linux'&&env.ONCE_RUNNER==='managed-linux'){boundedLinuxPreflight(read);return;}
   if (platform !== 'darwin') throw new Error('Use macOS or an isolated GitHub Actions runner.');
   const swap = exec('sysctl', ['vm.swapusage'], { encoding: 'utf8', timeout: 5000 });
   const used = Number(/used = ([\d.]+)M/.exec(swap)?.[1]);

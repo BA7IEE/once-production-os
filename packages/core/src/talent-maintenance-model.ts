@@ -25,6 +25,7 @@ export interface TalentInvitationContext extends Base {
  expiresAt:string;
 }
 export interface TalentClaim extends Base {
+ confirmedByTalentId?:string|null;
  invitationId:string;
  talentAccountId:string;
  targetPersonId:string|null;
@@ -42,6 +43,7 @@ export interface TalentClaim extends Base {
  decidedAt:string|null;
 }
 export interface TalentAccessGrant extends Base {
+ confirmedByTalentId?:string|null;
  talentAccountId:string;
  personId:string;
  claimId:string;
@@ -50,7 +52,7 @@ export interface TalentAccessGrant extends Base {
  actions:string[];
  authorizationEpoch:number;
  selfExposureManifest:Exposure[];
- approvedById:string;
+ approvedById:string|null;
  approvalBasis:string;
  recoveryEpoch:string;
 }
@@ -66,6 +68,7 @@ export interface TalentConsent extends Base {
  revokedAt:string|null;
 }
 export interface StoredSubmission extends Base {
+ confirmedByTalentId?:string|null;
  principalKind?:'TALENT'|'MACHINE';
  servicePrincipalId?:string|null;
  externalSubmissionKey?:string|null;
@@ -110,13 +113,14 @@ export interface TalentSubmissionItem extends Base {
  appliedId:string|null;
 }
 export interface SourceAttribution extends Base {
+ confirmedByTalentId?:string|null;
  principalKind?:'TALENT'|'MACHINE';
  servicePrincipalId?:string|null;
  sourceId:string;
  submissionId:string|null;
  talentAccountId:string|null;
  consentId:string|null;
- reviewerId:string;
+ reviewerId:string|null;
  materialDescription:string;
  importedBasis?:Record<string,unknown>|null;
 }

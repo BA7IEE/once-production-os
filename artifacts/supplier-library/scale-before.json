@@ -1,0 +1,30 @@
+{
+  "status": "PASSED",
+  "scope": "Synthetic records, two roles and one independent synthetic employee source per person, single caller, warm reads; PostgreSQL limited to 1 CPU/512 MiB. No concurrent upload/model workload or production capacity claim.",
+  "metrics": [
+    {
+      "people": 1000,
+      "roles": 2000,
+      "samplesMs": [
+        1404.18,
+        1316.59,
+        1401.89,
+        1289.76,
+        2121.27
+      ],
+      "p95Ms": 2121.27
+    },
+    {
+      "people": 10000,
+      "roles": 20000,
+      "samplesMs": [
+        13491.8,
+        13493.62,
+        13395.72,
+        13335.91,
+        13326.79
+      ],
+      "p95Ms": 13493.62
+    }
+  ]
+}

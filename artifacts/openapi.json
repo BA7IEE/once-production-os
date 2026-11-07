@@ -6,6 +6,1195 @@
     "description": "Paths and strict request schemas are generated from runtime routes. Response shapes are currently TypeScript DTOs; this is not a complete response-schema validator."
   },
   "paths": {
+    "/api/v1/supplier-field-schema": {
+      "get": {
+        "operationId": "supplier.fields.schema",
+        "parameters": [],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.read",
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/supplier-field-catalog": {
+      "get": {
+        "operationId": "supplier.catalog.list",
+        "parameters": [],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "catalog.manage",
+        "x-mode": "READ"
+      },
+      "post": {
+        "operationId": "supplier.catalog.create",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "baseVersion": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "definition": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "schemaVersion": {
+                        "type": "string",
+                        "enum": [
+                          "once-supplier-fields-v1"
+                        ]
+                      },
+                      "fields": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "code": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 60,
+                              "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*){0,3}$"
+                            },
+                            "label": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 100
+                            },
+                            "required": {
+                              "type": "boolean"
+                            },
+                            "unit": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 30
+                            },
+                            "min": {
+                              "type": "number",
+                              "minimum": -1000000000,
+                              "maximum": 1000000000
+                            },
+                            "max": {
+                              "type": "number",
+                              "minimum": -1000000000,
+                              "maximum": 1000000000
+                            },
+                            "maxLength": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 5000
+                            },
+                            "options": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "code": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 60,
+                                    "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                  },
+                                  "label": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                  },
+                                  "aliases": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 100
+                                    },
+                                    "minItems": 0,
+                                    "maxItems": 20
+                                  },
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "ACTIVE",
+                                      "DEPRECATED"
+                                    ]
+                                  },
+                                  "replacedBy": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 60,
+                                    "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                  }
+                                },
+                                "required": [
+                                  "code",
+                                  "label",
+                                  "aliases",
+                                  "status"
+                                ]
+                              },
+                              "minItems": 0,
+                              "maxItems": 300
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "TEXT",
+                                "NUMBER",
+                                "BOOLEAN",
+                                "DATE",
+                                "CODE",
+                                "CODE_SET",
+                                "RECORDS"
+                              ]
+                            },
+                            "owner": {
+                              "type": "string",
+                              "enum": [
+                                "PERSON",
+                                "ROLE"
+                              ]
+                            },
+                            "roles": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 60,
+                                "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                              },
+                              "minItems": 0,
+                              "maxItems": 30
+                            },
+                            "visibility": {
+                              "type": "string",
+                              "enum": [
+                                "SELF_SHARED",
+                                "INTERNAL"
+                              ]
+                            },
+                            "description": {
+                              "type": "string",
+                              "minLength": 0,
+                              "maxLength": 1000
+                            },
+                            "searchable": {
+                              "type": "boolean"
+                            },
+                            "ai": {
+                              "type": "string",
+                              "enum": [
+                                "SUGGEST",
+                                "NEVER"
+                              ]
+                            },
+                            "components": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "code": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 60,
+                                    "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*){0,3}$"
+                                  },
+                                  "label": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                  },
+                                  "required": {
+                                    "type": "boolean"
+                                  },
+                                  "unit": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 30
+                                  },
+                                  "min": {
+                                    "type": "number",
+                                    "minimum": -1000000000,
+                                    "maximum": 1000000000
+                                  },
+                                  "max": {
+                                    "type": "number",
+                                    "minimum": -1000000000,
+                                    "maximum": 1000000000
+                                  },
+                                  "maxLength": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 5000
+                                  },
+                                  "options": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "additionalProperties": false,
+                                      "properties": {
+                                        "code": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 60,
+                                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                        },
+                                        "label": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 100
+                                        },
+                                        "aliases": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "maxLength": 100
+                                          },
+                                          "minItems": 0,
+                                          "maxItems": 20
+                                        },
+                                        "status": {
+                                          "type": "string",
+                                          "enum": [
+                                            "ACTIVE",
+                                            "DEPRECATED"
+                                          ]
+                                        },
+                                        "replacedBy": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 60,
+                                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                        }
+                                      },
+                                      "required": [
+                                        "code",
+                                        "label",
+                                        "aliases",
+                                        "status"
+                                      ]
+                                    },
+                                    "minItems": 0,
+                                    "maxItems": 300
+                                  },
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "TEXT",
+                                      "NUMBER",
+                                      "BOOLEAN",
+                                      "DATE",
+                                      "CODE",
+                                      "CODE_SET"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "code",
+                                  "label",
+                                  "required",
+                                  "type"
+                                ]
+                              },
+                              "minItems": 1,
+                              "maxItems": 12
+                            },
+                            "maxItems": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 30
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "label",
+                            "required",
+                            "type",
+                            "owner",
+                            "roles",
+                            "visibility",
+                            "description",
+                            "searchable",
+                            "ai"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 150
+                      },
+                      "templates": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "code": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 60,
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                            },
+                            "label": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 100
+                            },
+                            "roleCode": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 60,
+                                  "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "fieldCodes": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 60,
+                                "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*){0,3}$"
+                              },
+                              "minItems": 0,
+                              "maxItems": 50
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "label",
+                            "roleCode",
+                            "fieldCodes"
+                          ]
+                        },
+                        "minItems": 1,
+                        "maxItems": 50
+                      }
+                    },
+                    "required": [
+                      "schemaVersion",
+                      "fields",
+                      "templates"
+                    ]
+                  }
+                },
+                "required": [
+                  "baseVersion",
+                  "definition"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "catalog.manage",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/supplier-field-catalog/{id}": {
+      "patch": {
+        "operationId": "supplier.catalog.save",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "definition": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "schemaVersion": {
+                        "type": "string",
+                        "enum": [
+                          "once-supplier-fields-v1"
+                        ]
+                      },
+                      "fields": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "code": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 60,
+                              "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*){0,3}$"
+                            },
+                            "label": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 100
+                            },
+                            "required": {
+                              "type": "boolean"
+                            },
+                            "unit": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 30
+                            },
+                            "min": {
+                              "type": "number",
+                              "minimum": -1000000000,
+                              "maximum": 1000000000
+                            },
+                            "max": {
+                              "type": "number",
+                              "minimum": -1000000000,
+                              "maximum": 1000000000
+                            },
+                            "maxLength": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 5000
+                            },
+                            "options": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "code": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 60,
+                                    "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                  },
+                                  "label": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                  },
+                                  "aliases": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 100
+                                    },
+                                    "minItems": 0,
+                                    "maxItems": 20
+                                  },
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "ACTIVE",
+                                      "DEPRECATED"
+                                    ]
+                                  },
+                                  "replacedBy": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 60,
+                                    "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                  }
+                                },
+                                "required": [
+                                  "code",
+                                  "label",
+                                  "aliases",
+                                  "status"
+                                ]
+                              },
+                              "minItems": 0,
+                              "maxItems": 300
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "TEXT",
+                                "NUMBER",
+                                "BOOLEAN",
+                                "DATE",
+                                "CODE",
+                                "CODE_SET",
+                                "RECORDS"
+                              ]
+                            },
+                            "owner": {
+                              "type": "string",
+                              "enum": [
+                                "PERSON",
+                                "ROLE"
+                              ]
+                            },
+                            "roles": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 60,
+                                "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                              },
+                              "minItems": 0,
+                              "maxItems": 30
+                            },
+                            "visibility": {
+                              "type": "string",
+                              "enum": [
+                                "SELF_SHARED",
+                                "INTERNAL"
+                              ]
+                            },
+                            "description": {
+                              "type": "string",
+                              "minLength": 0,
+                              "maxLength": 1000
+                            },
+                            "searchable": {
+                              "type": "boolean"
+                            },
+                            "ai": {
+                              "type": "string",
+                              "enum": [
+                                "SUGGEST",
+                                "NEVER"
+                              ]
+                            },
+                            "components": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "code": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 60,
+                                    "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*){0,3}$"
+                                  },
+                                  "label": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                  },
+                                  "required": {
+                                    "type": "boolean"
+                                  },
+                                  "unit": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 30
+                                  },
+                                  "min": {
+                                    "type": "number",
+                                    "minimum": -1000000000,
+                                    "maximum": 1000000000
+                                  },
+                                  "max": {
+                                    "type": "number",
+                                    "minimum": -1000000000,
+                                    "maximum": 1000000000
+                                  },
+                                  "maxLength": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 5000
+                                  },
+                                  "options": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "additionalProperties": false,
+                                      "properties": {
+                                        "code": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 60,
+                                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                        },
+                                        "label": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 100
+                                        },
+                                        "aliases": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "maxLength": 100
+                                          },
+                                          "minItems": 0,
+                                          "maxItems": 20
+                                        },
+                                        "status": {
+                                          "type": "string",
+                                          "enum": [
+                                            "ACTIVE",
+                                            "DEPRECATED"
+                                          ]
+                                        },
+                                        "replacedBy": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 60,
+                                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                        }
+                                      },
+                                      "required": [
+                                        "code",
+                                        "label",
+                                        "aliases",
+                                        "status"
+                                      ]
+                                    },
+                                    "minItems": 0,
+                                    "maxItems": 300
+                                  },
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "TEXT",
+                                      "NUMBER",
+                                      "BOOLEAN",
+                                      "DATE",
+                                      "CODE",
+                                      "CODE_SET"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "code",
+                                  "label",
+                                  "required",
+                                  "type"
+                                ]
+                              },
+                              "minItems": 1,
+                              "maxItems": 12
+                            },
+                            "maxItems": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 30
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "label",
+                            "required",
+                            "type",
+                            "owner",
+                            "roles",
+                            "visibility",
+                            "description",
+                            "searchable",
+                            "ai"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 150
+                      },
+                      "templates": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "code": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 60,
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                            },
+                            "label": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 100
+                            },
+                            "roleCode": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 60,
+                                  "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "fieldCodes": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 60,
+                                "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*){0,3}$"
+                              },
+                              "minItems": 0,
+                              "maxItems": 50
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "label",
+                            "roleCode",
+                            "fieldCodes"
+                          ]
+                        },
+                        "minItems": 1,
+                        "maxItems": 50
+                      }
+                    },
+                    "required": [
+                      "schemaVersion",
+                      "fields",
+                      "templates"
+                    ]
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "definition"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "catalog.manage",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/supplier-field-catalog/{id}/publish": {
+      "post": {
+        "operationId": "supplier.catalog.publish",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "catalog.manage",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/people/{id}/professional": {
+      "get": {
+        "operationId": "supplier.professional.get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.read",
+        "x-mode": "READ"
+      },
+      "post": {
+        "operationId": "supplier.professional.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedPersonRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "sourceRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "professional": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "catalogVersion": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 9007199254740991
+                      },
+                      "catalogDigest": {
+                        "type": "string",
+                        "minLength": 64,
+                        "maxLength": 64,
+                        "pattern": "^[a-f0-9]{64}$"
+                      },
+                      "answers": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "fieldCode": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 60,
+                              "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*){0,3}$"
+                            },
+                            "roleCode": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 60,
+                                  "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "state": {
+                              "type": "string",
+                              "enum": [
+                                "KNOWN",
+                                "DECLARED_NONE",
+                                "UNKNOWN",
+                                "NOT_PROVIDED"
+                              ]
+                            },
+                            "value": {}
+                          },
+                          "required": [
+                            "fieldCode",
+                            "roleCode",
+                            "state"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 300
+                      }
+                    },
+                    "required": [
+                      "catalogVersion",
+                      "catalogDigest",
+                      "answers"
+                    ]
+                  },
+                  "replace": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                        },
+                        "revision": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "revision"
+                      ]
+                    },
+                    "minItems": 0,
+                    "maxItems": 300
+                  }
+                },
+                "required": [
+                  "expectedPersonRevision",
+                  "sourceId",
+                  "sourceRevision",
+                  "professional",
+                  "replace"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.write",
+        "x-mode": "COMMAND"
+      }
+    },
     "/api/v1/review/search": {
       "post": {
         "operationId": "review.search",
@@ -2952,6 +4141,2743 @@
         "x-mode": "COMMAND"
       }
     },
+    "/api/v1/portal/profile-drafts/{id}/documents/batch": {
+      "post": {
+        "operationId": "portal.supplier.documentBatch",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "batchId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "expectedBatchRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "CANCEL",
+                      "RESUME"
+                    ]
+                  },
+                  "aiRetryAccepted": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "batchId",
+                  "expectedBatchRevision",
+                  "action",
+                  "aiRetryAccepted"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/portal/profile-drafts/{id}/documents/work-group": {
+      "post": {
+        "operationId": "portal.supplier.documentWorkGroup",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "targetClientItemKey": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64,
+                        "pattern": "^[A-Za-z0-9_-]+$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "candidates": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "jobId": {
+                          "type": "string",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                        },
+                        "expectedJobRevision": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 9007199254740991
+                        },
+                        "workKey": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        }
+                      },
+                      "required": [
+                        "jobId",
+                        "expectedJobRevision",
+                        "workKey"
+                      ]
+                    },
+                    "minItems": 1,
+                    "maxItems": 60
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "targetClientItemKey",
+                  "candidates"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/portal/profile-drafts/{id}/documents/work": {
+      "post": {
+        "operationId": "portal.supplier.documentWork",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "jobId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "expectedJobRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "workKey": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "jobId",
+                  "expectedJobRevision",
+                  "workKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/portal/profile-drafts/{id}/documents/images": {
+      "post": {
+        "operationId": "portal.supplier.documentImages",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "jobId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "expectedJobRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "imageKeys": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "minItems": 1,
+                    "maxItems": 10
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "jobId",
+                  "expectedJobRevision",
+                  "imageKeys"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/portal/profile-drafts/{id}/documents": {
+      "get": {
+        "operationId": "portal.supplier.documents",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "READ"
+      },
+      "post": {
+        "operationId": "portal.supplier.documentStart",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "assetId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "SELECTED",
+                      "ALL"
+                    ]
+                  },
+                  "pages": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 1000000
+                    },
+                    "minItems": 1,
+                    "maxItems": 4
+                  },
+                  "useAi": {
+                    "type": "boolean"
+                  },
+                  "aiAccepted": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "assetId",
+                  "useAi",
+                  "aiAccepted"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/portal/profile-drafts/{id}/documents/apply": {
+      "post": {
+        "operationId": "portal.supplier.documentApply",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "jobId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "expectedJobRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "selectedKeys": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "minItems": 1,
+                    "maxItems": 60
+                  },
+                  "professionalActions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "key": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "action": {
+                          "type": "string",
+                          "enum": [
+                            "ADD",
+                            "REPLACE"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "key",
+                        "action"
+                      ]
+                    },
+                    "minItems": 0,
+                    "maxItems": 60
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "jobId",
+                  "expectedJobRevision",
+                  "selectedKeys"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/portal/profile-drafts/{id}/documents/cancel": {
+      "post": {
+        "operationId": "portal.supplier.documentCancel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "jobId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "jobId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/portal/profile-schema": {
+      "get": {
+        "operationId": "portal.supplier.schema",
+        "parameters": [],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/portal/supplier-profiles/{id}": {
+      "get": {
+        "operationId": "portal.supplier.profile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/portal/profile-drafts": {
+      "get": {
+        "operationId": "portal.supplier.list",
+        "parameters": [],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "READ"
+      },
+      "post": {
+        "operationId": "portal.supplier.create",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "schemaVersion": {
+                    "type": "string",
+                    "enum": [
+                      "once-supplier-profile-v1"
+                    ]
+                  },
+                  "claimId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "grantId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "consentTextVersion": {
+                    "type": "string",
+                    "enum": [
+                      "internal-directory-profile-media-work-2026-11-v1"
+                    ]
+                  },
+                  "consentAccepted": {
+                    "type": "boolean"
+                  },
+                  "profile": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "displayName": {
+                        "type": "string",
+                        "minLength": 0,
+                        "maxLength": 120
+                      },
+                      "aliases": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "minItems": 0,
+                        "maxItems": 20
+                      },
+                      "intro": {
+                        "type": "string",
+                        "minLength": 0,
+                        "maxLength": 5000
+                      },
+                      "roleCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 0,
+                        "maxItems": 20
+                      },
+                      "locationCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 0,
+                        "maxItems": 20
+                      },
+                      "languageCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 0,
+                        "maxItems": 20
+                      },
+                      "skillCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 0,
+                        "maxItems": 30
+                      },
+                      "contacts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "PHONE",
+                                "EMAIL",
+                                "WECHAT",
+                                "OTHER"
+                              ]
+                            },
+                            "value": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 200
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "value"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 10
+                      },
+                      "measurements": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "heightCm": {
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "minimum": 50,
+                                "maximum": 250
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "bustCm": {
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "minimum": 20,
+                                "maximum": 250
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "waistCm": {
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "minimum": 20,
+                                "maximum": 250
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "hipsCm": {
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "minimum": 20,
+                                "maximum": 250
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "shoeSizeValue": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 30
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "shoeSizeSystem": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "EU",
+                                  "US",
+                                  "UK",
+                                  "CN"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "clothingSizeValue": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 30
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "clothingSizeSystem": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "INTL",
+                                  "EU",
+                                  "US",
+                                  "UK",
+                                  "CN"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "measuredOn": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "date"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "datePrecision": {
+                            "type": "string",
+                            "enum": [
+                              "EXACT_DAY",
+                              "APPROXIMATE",
+                              "UNKNOWN"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "heightCm",
+                          "bustCm",
+                          "waistCm",
+                          "hipsCm"
+                        ]
+                      },
+                      "professional": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "catalogVersion": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 9007199254740991
+                          },
+                          "catalogDigest": {
+                            "type": "string",
+                            "minLength": 64,
+                            "maxLength": 64,
+                            "pattern": "^[a-f0-9]{64}$"
+                          },
+                          "answers": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "fieldCode": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 60,
+                                  "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*){0,3}$"
+                                },
+                                "roleCode": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 60,
+                                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "KNOWN",
+                                    "DECLARED_NONE",
+                                    "UNKNOWN",
+                                    "NOT_PROVIDED"
+                                  ]
+                                },
+                                "value": {}
+                              },
+                              "required": [
+                                "fieldCode",
+                                "roleCode",
+                                "state"
+                              ]
+                            },
+                            "minItems": 0,
+                            "maxItems": 300
+                          }
+                        },
+                        "required": [
+                          "catalogVersion",
+                          "catalogDigest",
+                          "answers"
+                        ]
+                      },
+                      "capabilityDetails": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "roleCode": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 60,
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                            },
+                            "capabilityCode": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 80,
+                              "pattern": "^[a-z0-9_]+$"
+                            },
+                            "levelCode": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "BASIC",
+                                    "WORKING",
+                                    "PROFESSIONAL",
+                                    "FLUENT",
+                                    "NATIVE"
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "roleCode",
+                            "capabilityCode",
+                            "levelCode"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 100
+                      },
+                      "credentials": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "roleCode": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 60,
+                                  "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "credentialTypeCode": {
+                              "type": "string",
+                              "enum": [
+                                "DRONE_LICENSE",
+                                "TRANSLATION_CERTIFICATE",
+                                "DIVING_CERTIFICATE",
+                                "EQUIPMENT_CERTIFICATE",
+                                "OTHER"
+                              ]
+                            },
+                            "credentialName": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 200
+                            },
+                            "issuerName": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "issuedOn": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "date"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "expiresOn": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "date"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "roleCode",
+                            "credentialTypeCode",
+                            "credentialName",
+                            "issuerName",
+                            "issuedOn",
+                            "expiresOn"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 30
+                      },
+                      "translation": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "pairs": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "sourceLanguageCode": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 60,
+                                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                    },
+                                    "targetLanguageCode": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 60,
+                                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                    }
+                                  },
+                                  "required": [
+                                    "sourceLanguageCode",
+                                    "targetLanguageCode"
+                                  ]
+                                },
+                                "minItems": 0,
+                                "maxItems": 30
+                              },
+                              "modeCodes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "BUSINESS_MEETING",
+                                    "ON_SET",
+                                    "ESCORT",
+                                    "CONSECUTIVE",
+                                    "SIMULTANEOUS",
+                                    "WRITTEN"
+                                  ]
+                                },
+                                "minItems": 0,
+                                "maxItems": 6
+                              }
+                            },
+                            "required": [
+                              "pairs",
+                              "modeCodes"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "displayName",
+                      "aliases",
+                      "intro",
+                      "roleCodes",
+                      "locationCodes",
+                      "languageCodes",
+                      "skillCodes",
+                      "contacts",
+                      "measurements"
+                    ]
+                  }
+                },
+                "required": [
+                  "schemaVersion",
+                  "consentTextVersion",
+                  "consentAccepted",
+                  "profile"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/portal/profile-drafts/{id}": {
+      "get": {
+        "operationId": "portal.supplier.get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "READ"
+      },
+      "patch": {
+        "operationId": "portal.supplier.save",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "profile": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "displayName": {
+                        "type": "string",
+                        "minLength": 0,
+                        "maxLength": 120
+                      },
+                      "aliases": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "minItems": 0,
+                        "maxItems": 20
+                      },
+                      "intro": {
+                        "type": "string",
+                        "minLength": 0,
+                        "maxLength": 5000
+                      },
+                      "roleCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 0,
+                        "maxItems": 20
+                      },
+                      "locationCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 0,
+                        "maxItems": 20
+                      },
+                      "languageCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 0,
+                        "maxItems": 20
+                      },
+                      "skillCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 0,
+                        "maxItems": 30
+                      },
+                      "contacts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "PHONE",
+                                "EMAIL",
+                                "WECHAT",
+                                "OTHER"
+                              ]
+                            },
+                            "value": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 200
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "value"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 10
+                      },
+                      "measurements": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "heightCm": {
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "minimum": 50,
+                                "maximum": 250
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "bustCm": {
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "minimum": 20,
+                                "maximum": 250
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "waistCm": {
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "minimum": 20,
+                                "maximum": 250
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "hipsCm": {
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "minimum": 20,
+                                "maximum": 250
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "shoeSizeValue": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 30
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "shoeSizeSystem": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "EU",
+                                  "US",
+                                  "UK",
+                                  "CN"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "clothingSizeValue": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 30
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "clothingSizeSystem": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "INTL",
+                                  "EU",
+                                  "US",
+                                  "UK",
+                                  "CN"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "measuredOn": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "date"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "datePrecision": {
+                            "type": "string",
+                            "enum": [
+                              "EXACT_DAY",
+                              "APPROXIMATE",
+                              "UNKNOWN"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "heightCm",
+                          "bustCm",
+                          "waistCm",
+                          "hipsCm"
+                        ]
+                      },
+                      "professional": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "catalogVersion": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 9007199254740991
+                          },
+                          "catalogDigest": {
+                            "type": "string",
+                            "minLength": 64,
+                            "maxLength": 64,
+                            "pattern": "^[a-f0-9]{64}$"
+                          },
+                          "answers": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "fieldCode": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 60,
+                                  "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*){0,3}$"
+                                },
+                                "roleCode": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 60,
+                                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "KNOWN",
+                                    "DECLARED_NONE",
+                                    "UNKNOWN",
+                                    "NOT_PROVIDED"
+                                  ]
+                                },
+                                "value": {}
+                              },
+                              "required": [
+                                "fieldCode",
+                                "roleCode",
+                                "state"
+                              ]
+                            },
+                            "minItems": 0,
+                            "maxItems": 300
+                          }
+                        },
+                        "required": [
+                          "catalogVersion",
+                          "catalogDigest",
+                          "answers"
+                        ]
+                      },
+                      "capabilityDetails": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "roleCode": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 60,
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                            },
+                            "capabilityCode": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 80,
+                              "pattern": "^[a-z0-9_]+$"
+                            },
+                            "levelCode": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "BASIC",
+                                    "WORKING",
+                                    "PROFESSIONAL",
+                                    "FLUENT",
+                                    "NATIVE"
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "roleCode",
+                            "capabilityCode",
+                            "levelCode"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 100
+                      },
+                      "credentials": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "roleCode": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 60,
+                                  "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "credentialTypeCode": {
+                              "type": "string",
+                              "enum": [
+                                "DRONE_LICENSE",
+                                "TRANSLATION_CERTIFICATE",
+                                "DIVING_CERTIFICATE",
+                                "EQUIPMENT_CERTIFICATE",
+                                "OTHER"
+                              ]
+                            },
+                            "credentialName": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 200
+                            },
+                            "issuerName": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "issuedOn": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "date"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "expiresOn": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "date"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "roleCode",
+                            "credentialTypeCode",
+                            "credentialName",
+                            "issuerName",
+                            "issuedOn",
+                            "expiresOn"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 30
+                      },
+                      "translation": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "pairs": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "sourceLanguageCode": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 60,
+                                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                    },
+                                    "targetLanguageCode": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 60,
+                                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                    }
+                                  },
+                                  "required": [
+                                    "sourceLanguageCode",
+                                    "targetLanguageCode"
+                                  ]
+                                },
+                                "minItems": 0,
+                                "maxItems": 30
+                              },
+                              "modeCodes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "BUSINESS_MEETING",
+                                    "ON_SET",
+                                    "ESCORT",
+                                    "CONSECUTIVE",
+                                    "SIMULTANEOUS",
+                                    "WRITTEN"
+                                  ]
+                                },
+                                "minItems": 0,
+                                "maxItems": 6
+                              }
+                            },
+                            "required": [
+                              "pairs",
+                              "modeCodes"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "displayName",
+                      "aliases",
+                      "intro",
+                      "roleCodes",
+                      "locationCodes",
+                      "languageCodes",
+                      "skillCodes",
+                      "contacts",
+                      "measurements"
+                    ]
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "profile"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/portal/profile-drafts/{id}/rebase": {
+      "post": {
+        "operationId": "portal.supplier.rebase",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "expectedPersonRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "profile": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "displayName": {
+                        "type": "string",
+                        "minLength": 0,
+                        "maxLength": 120
+                      },
+                      "aliases": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "minItems": 0,
+                        "maxItems": 20
+                      },
+                      "intro": {
+                        "type": "string",
+                        "minLength": 0,
+                        "maxLength": 5000
+                      },
+                      "roleCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 0,
+                        "maxItems": 20
+                      },
+                      "locationCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 0,
+                        "maxItems": 20
+                      },
+                      "languageCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 0,
+                        "maxItems": 20
+                      },
+                      "skillCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60,
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                        },
+                        "minItems": 0,
+                        "maxItems": 30
+                      },
+                      "contacts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "PHONE",
+                                "EMAIL",
+                                "WECHAT",
+                                "OTHER"
+                              ]
+                            },
+                            "value": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 200
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "value"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 10
+                      },
+                      "measurements": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "heightCm": {
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "minimum": 50,
+                                "maximum": 250
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "bustCm": {
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "minimum": 20,
+                                "maximum": 250
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "waistCm": {
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "minimum": 20,
+                                "maximum": 250
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "hipsCm": {
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "minimum": 20,
+                                "maximum": 250
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "shoeSizeValue": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 30
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "shoeSizeSystem": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "EU",
+                                  "US",
+                                  "UK",
+                                  "CN"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "clothingSizeValue": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 30
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "clothingSizeSystem": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "INTL",
+                                  "EU",
+                                  "US",
+                                  "UK",
+                                  "CN"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "measuredOn": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "date"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "datePrecision": {
+                            "type": "string",
+                            "enum": [
+                              "EXACT_DAY",
+                              "APPROXIMATE",
+                              "UNKNOWN"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "heightCm",
+                          "bustCm",
+                          "waistCm",
+                          "hipsCm"
+                        ]
+                      },
+                      "professional": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "catalogVersion": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 9007199254740991
+                          },
+                          "catalogDigest": {
+                            "type": "string",
+                            "minLength": 64,
+                            "maxLength": 64,
+                            "pattern": "^[a-f0-9]{64}$"
+                          },
+                          "answers": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "fieldCode": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 60,
+                                  "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*){0,3}$"
+                                },
+                                "roleCode": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 60,
+                                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "KNOWN",
+                                    "DECLARED_NONE",
+                                    "UNKNOWN",
+                                    "NOT_PROVIDED"
+                                  ]
+                                },
+                                "value": {}
+                              },
+                              "required": [
+                                "fieldCode",
+                                "roleCode",
+                                "state"
+                              ]
+                            },
+                            "minItems": 0,
+                            "maxItems": 300
+                          }
+                        },
+                        "required": [
+                          "catalogVersion",
+                          "catalogDigest",
+                          "answers"
+                        ]
+                      },
+                      "capabilityDetails": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "roleCode": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 60,
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                            },
+                            "capabilityCode": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 80,
+                              "pattern": "^[a-z0-9_]+$"
+                            },
+                            "levelCode": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "BASIC",
+                                    "WORKING",
+                                    "PROFESSIONAL",
+                                    "FLUENT",
+                                    "NATIVE"
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "roleCode",
+                            "capabilityCode",
+                            "levelCode"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 100
+                      },
+                      "credentials": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "roleCode": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 60,
+                                  "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "credentialTypeCode": {
+                              "type": "string",
+                              "enum": [
+                                "DRONE_LICENSE",
+                                "TRANSLATION_CERTIFICATE",
+                                "DIVING_CERTIFICATE",
+                                "EQUIPMENT_CERTIFICATE",
+                                "OTHER"
+                              ]
+                            },
+                            "credentialName": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 200
+                            },
+                            "issuerName": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "issuedOn": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "date"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "expiresOn": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "date"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "roleCode",
+                            "credentialTypeCode",
+                            "credentialName",
+                            "issuerName",
+                            "issuedOn",
+                            "expiresOn"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 30
+                      },
+                      "translation": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "pairs": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "sourceLanguageCode": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 60,
+                                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                    },
+                                    "targetLanguageCode": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 60,
+                                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                                    }
+                                  },
+                                  "required": [
+                                    "sourceLanguageCode",
+                                    "targetLanguageCode"
+                                  ]
+                                },
+                                "minItems": 0,
+                                "maxItems": 30
+                              },
+                              "modeCodes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "BUSINESS_MEETING",
+                                    "ON_SET",
+                                    "ESCORT",
+                                    "CONSECUTIVE",
+                                    "SIMULTANEOUS",
+                                    "WRITTEN"
+                                  ]
+                                },
+                                "minItems": 0,
+                                "maxItems": 6
+                              }
+                            },
+                            "required": [
+                              "pairs",
+                              "modeCodes"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "displayName",
+                      "aliases",
+                      "intro",
+                      "roleCodes",
+                      "locationCodes",
+                      "languageCodes",
+                      "skillCodes",
+                      "contacts",
+                      "measurements"
+                    ]
+                  },
+                  "conflictsAcknowledged": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "expectedPersonRevision",
+                  "profile",
+                  "conflictsAcknowledged"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/portal/profile-drafts/{id}/confirm": {
+      "post": {
+        "operationId": "portal.supplier.confirm",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "talentSessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "accepted": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "accepted"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": null,
+        "x-mode": "COMMAND"
+      }
+    },
     "/api/v1/portal/commands/{id}": {
       "get": {
         "operationId": "portal.command.get",
@@ -4112,7 +8038,8 @@
                     "type": "string",
                     "enum": [
                       "internal-directory-media-2026-10-v1",
-                      "internal-directory-media-work-2026-10-v1"
+                      "internal-directory-media-work-2026-10-v1",
+                      "internal-directory-profile-media-work-2026-11-v1"
                     ]
                   },
                   "accepted": {
@@ -9239,6 +13166,116 @@
                 "type": "object",
                 "additionalProperties": false,
                 "properties": {
+                  "professional": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "roleCode": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 60,
+                        "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                      },
+                      "fields": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "fieldCode": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 60
+                            },
+                            "state": {
+                              "type": "string",
+                              "enum": [
+                                "KNOWN",
+                                "DECLARED_NONE",
+                                "UNKNOWN",
+                                "NOT_PROVIDED"
+                              ]
+                            },
+                            "match": {
+                              "type": "string",
+                              "enum": [
+                                "ANY",
+                                "ALL"
+                              ]
+                            },
+                            "codes": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 60,
+                                "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                              },
+                              "minItems": 1,
+                              "maxItems": 30
+                            },
+                            "min": {
+                              "type": "number",
+                              "minimum": -1000000000,
+                              "maximum": 1000000000
+                            },
+                            "max": {
+                              "type": "number",
+                              "minimum": -1000000000,
+                              "maximum": 1000000000
+                            },
+                            "from": {
+                              "type": "string",
+                              "format": "date"
+                            },
+                            "until": {
+                              "type": "string",
+                              "format": "date"
+                            },
+                            "boolean": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "fieldCode"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 10
+                      },
+                      "capabilities": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "capabilityCode": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 60,
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                            },
+                            "minLevel": {
+                              "type": "string",
+                              "enum": [
+                                "BASIC",
+                                "WORKING",
+                                "PROFESSIONAL"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "capabilityCode"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 10
+                      }
+                    },
+                    "required": [
+                      "fields"
+                    ]
+                  },
                   "q": {
                     "type": "string",
                     "minLength": 0,
@@ -16995,6 +21032,18 @@
                           }
                         ]
                       },
+                      "credentialName": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 0,
+                            "maxLength": 1000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
                       "credentialTypeCode": {
                         "type": "string",
                         "enum": [
@@ -17183,6 +21232,18 @@
                     "type": "object",
                     "additionalProperties": false,
                     "properties": {
+                      "credentialName": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 0,
+                            "maxLength": 1000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
                       "credentialTypeCode": {
                         "type": "string",
                         "enum": [

@@ -1,6 +1,11 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {unsupportedExperienceSurfaces,forbiddenNonGoalSurfaces} from '../../scripts/talent-experience-surface-policy.mjs';
+test('field upgrade permits the reviewed internal catalog version publication while rejecting record publication and unreviewed variants',()=>{
+ assert.deepEqual(unsupportedExperienceSurfaces(['/supplier-field-catalog/{id}/publish','/api/v1/supplier-field-catalog/{id}/publish']),[]);
+ const denied=['/supplier-field-catalog/{id}/publish/force','/portal/profile-drafts/{id}/publish','/supplier-field-catalog/{id}/share'];
+ assert.deepEqual(unsupportedExperienceSurfaces(denied),denied);
+});
 test('unreviewed external and legacy-named publishing routes remain blocked',()=>{
  const routes=['/portal/profiles/{id}/upload','/casting/access/exchange','/casting-shares','/talent-invitations/{id}/send','/ingestion/uploads/arbitrary','/talent-publications','/works/{id}/publish','/anqicms/sync','/quotes'];
  assert.deepEqual(unsupportedExperienceSurfaces(routes),routes);

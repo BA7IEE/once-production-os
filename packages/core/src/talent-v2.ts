@@ -1,4 +1,5 @@
 import {assertCollectionTags,collectionAssetFor} from './media-collections.ts';
+import type {CommandPrincipal} from './talent-auth-model.ts';
 import {sourceAllowsInternalAuthoring} from './talent-maintenance-policy.ts';
 import { validateDemographics, PROFILE_DEFAULTS, ROLE_DEFAULTS, MODEL_ROLE_FIELDS } from './talent-demographics.ts';
 import { shortlistFor } from './shortlists.ts';
@@ -148,6 +149,7 @@ export class TalentV2 {
             invariant(duplicates.length===0,'EXTERNAL_REF_CONFLICT','该外部标识已登记，需要人工核对；不会自动合并人物',409);
         }
         if(table==='personCredentials'){
+            invariant(row.credentialName==null||typeof row.credentialName==='string'&&row.credentialName.trim().length>0&&row.credentialName.length<=200,'CREDENTIAL_NAME_INVALID','资格名称须在 200 字以内',422);
             invariant(!!row.issuerOrganizationId||!!row.issuerName,'CREDENTIAL_ISSUER_REQUIRED','资质必须注明颁发方',422);
             invariant(!row.issuedOn||!row.expiresOn||String(row.issuedOn)<=String(row.expiresOn),'CREDENTIAL_DATE_INVALID','资质起止日期不正确',422);
         }
@@ -163,14 +165,32 @@ export class TalentV2 {
         if(table==='mediaCollectionTags'&&row.status!=='ARCHIVED')assertCollectionTags([String(row.tagCode)]);
         if(table==='mediaCollectionTags')invariant(!same.some(x=>x.collectionId===row.collectionId&&x.tagCode===row.tagCode),'COLLECTION_TAG_EXISTS','此集合已使用该内容标签',409);
     }
-    async evidenceFor(tx:Tx,actor:Actor,table:string,row:Record<string,unknown>,fields:string[],sourceId:string,sourceRevision:number,reviewed=false,eventClock:Clock=this.clock){
+    async evidenceFor(tx:Tx,actor:CommandPrincipal,table:string,row:Record<string,unknown>,fields:string[],sourceId:string,sourceRevision:number,reviewed=false,eventClock:Clock=this.clock){
+        invariant(!reviewed||actor.actorKind!=='TALENT','INTERNAL_REVIEW_REQUIRED','本人声明不能标记为内部核验',403);
         const recordedAt=eventClock.now();const evidenceClock:Clock={now:()=>recordedAt};
         for(const field of fields){
             if(field.includes('Ciphertext')||field==='maskedIdentifier')continue;
             const owner=OWNER_KEYS[table];invariant(!!owner,'EVIDENCE_OWNER_INVALID','证据归属类型不正确',422);
             const evidence={...base(actor.workspaceId,evidenceClock),personId:null,[owner]:row.id,fieldPath:field,valueDigest:digest(row[field]??null),sourceId,sourceRevision,
-                reviewerId:reviewed?actor.membershipId:null,reviewedAt:reviewed?recordedAt.toISOString():null};
+                reviewerId:reviewed&&actor.actorKind!=='TALENT'?actor.membershipId:null,reviewedAt:reviewed?recordedAt.toISOString():null};
             await tx.insert('evidence',evidence as FieldEvidence);
+        }
+        // ONCE corrections to an already shared supplier field remain visible to
+        // that same self account. This never exposes new fields or internal notes.
+        if(actor.actorKind!=='TALENT'&&actor.actorKind!=='MACHINE'){
+            const personId=table==='person'?String(row.id):typeof row.personId==='string'?row.personId:null;
+            const source=await tx.get('sources',sourceId);
+            if(personId&&source?.status==='CONFIRMED'&&source.reviewedBy&&!source.internalUseUntil){
+                for(const grant of await tx.find('talentAccessGrants',{workspaceId:actor.workspaceId,personId,relation:'SELF',state:'ACTIVE'})){
+                    if(!grant.confirmedByTalentId)continue;
+                    let changed=false;
+                    const manifest=grant.selfExposureManifest.map(e=>{
+                        if(e.kind!==table||e.targetId!==row.id||!fields.includes(e.field))return e;
+                        changed=true;return {...e,valueDigest:digest(row[e.field]??null),sourceId,sourceRevision};
+                    });
+                    if(changed)await tx.replace('talentAccessGrants',{...touch(grant,eventClock),selfExposureManifest:manifest});
+                }
+            }
         }
     }
     async bumpCollectionForTag(tx:Tx,row:Record<string,unknown>){const c=await tx.get('mediaCollections',String(row.collectionId));if(!c)missing();await tx.replace('mediaCollections',touch(c,this.clock));}

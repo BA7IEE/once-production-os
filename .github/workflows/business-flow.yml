@@ -33,7 +33,7 @@ jobs:
         run: pnpm test:lifecycle
       - name: Fetch the test image on this isolated runner
         run: docker pull postgres:16-bookworm
-      - name: Owned PG16 upgrade 74 to 75 and fresh install 1 to 75
+      - name: Owned PG16 upgrade from 74 and fresh install to current schema
         run: pnpm test:postgres:owned --business-flow
       - name: Install this runner's Chromium
         run: pnpm exec playwright install --with-deps chromium

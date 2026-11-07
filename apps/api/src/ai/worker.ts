@@ -27,7 +27,7 @@ export class AiWorker {
   });
   if(!this.adapter)return swept>0;
   const candidates=await this.core.store.transaction(async tx=>{
-   const queued=await tx.find('aiRuns',{state:'QUEUED'}),tasks=await tx.find('aiTasks');
+   const queued=(await tx.find('aiRuns',{state:'QUEUED'})).filter(r=>!r.talentAccountId),tasks=await tx.find('aiTasks');
    return queued.sort((a,b)=>a.createdAt.localeCompare(b.createdAt)||a.id.localeCompare(b.id)).slice(0,20).map(r=>({run:r,task:tasks.find(t=>t.runId===r.id&&t.workspaceId===r.workspaceId)}));
   });
   for(const {run,task} of candidates){
@@ -42,7 +42,7 @@ export class AiWorker {
     if(isTest){
      await dispatchAi(this.core.store,this.core.clock,c,run.workspaceId,run.id,meta,adapter,{
       authorize:async tx=>{
-       const member=await tx.get('memberships',run.actorId),user=member?await tx.get('users',member.userId):null;
+       const member=run.actorId?await tx.get('memberships',run.actorId):null,user=member?await tx.get('users',member.userId):null;
        invariant(member?.workspaceId===run.workspaceId&&member.status==='ACTIVE'&&user?.status==='ACTIVE'&&permissionsFor(member).includes('members.manage'),'FORBIDDEN','测试发起者资格已变化',403);
        invariant(this.core.config.accessMode==='INTERNAL'&&this.core.config.dataEgressMode==='INTERNAL_APPROVED'&&(await tx.get('workspaces',run.workspaceId))?.recoveryEpoch===this.core.config.recoveryEpoch,'AI_EGRESS_DISABLED','当前不允许外部调用',409);
        invariant(digest(await currentAiConfig(tx,run.workspaceId,this.core.config))===digest(c),'AI_CONFIG_CHANGED','连接配置已变化',409);
