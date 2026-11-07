@@ -1,0 +1,330 @@
+TAP version 13
+# (node:803) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: every replacement needs its own role-specific answer and invalid batches leave facts, exposure and person unchanged
+not ok 1 - every replacement needs its own role-specific answer and invalid batches leave facts, exposure and person unchanged
+  ---
+  duration_ms: 314.217311
+  type: 'test'
+  location: '/workspace/once-production-os/tests/core/supplier-fields.test.ts:21:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"operationId":"f94fa9b6-89ca-47b6-9d2e-ca70f5f0b384","resourceId":"b7aa864d-f715-4734-9049-ba7bc9c56fd1","revision":2,"state":"SUCCEEDED","replayed":false}
+    
+    200 !== 422
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 422
+  actual: 200
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/once-production-os/tests/core/supplier-fields.test.ts:34:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: replacement rejects withdrawn source without retiring current facts or changing exposure
+ok 2 - replacement rejects withdrawn source without retiring current facts or changing exposure
+  ---
+  duration_ms: 274.561949
+  type: 'test'
+  ...
+# Subtest: dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person
+ok 3 - dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person
+  ---
+  duration_ms: 228.70526
+  type: 'test'
+  ...
+# Subtest: published catalogs preserve old drafts and reject type reinterpretation and deleted option codes
+ok 4 - published catalogs preserve old drafts and reject type reinterpretation and deleted option codes
+  ---
+  duration_ms: 264.350273
+  type: 'test'
+  ...
+# Subtest: ONCE corrections update explicitly shared professional facts and fence stale self drafts
+ok 5 - ONCE corrections update explicitly shared professional facts and fence stale self drafts
+  ---
+  duration_ms: 248.12781
+  type: 'test'
+  ...
+# Subtest: new fields reject cross-role data, invented options, fake dates and empty multi selections
+ok 6 - new fields reject cross-role data, invented options, fake dates and empty multi selections
+  ---
+  duration_ms: 232.474298
+  type: 'test'
+  ...
+# Subtest: confirmation audit failure rolls professional facts and choices back with the rest of the profile
+ok 7 - confirmation audit failure rolls professional facts and choices back with the rest of the profile
+  ---
+  duration_ms: 217.022838
+  type: 'test'
+  ...
+# Subtest: structured tag search supports ANY and ALL on the same role, with no missing-as-negative or private source leakage
+ok 8 - structured tag search supports ANY and ALL on the same role, with no missing-as-negative or private source leakage
+  ---
+  duration_ms: 261.134129
+  type: 'test'
+  ...
+# Subtest: native professional details reuse capability, credential, translation and dated measurement tables
+ok 9 - native professional details reuse capability, credential, translation and dated measurement tables
+  ---
+  duration_ms: 259.988502
+  type: 'test'
+  ...
+# Subtest: catalogs and typed fields participate in recovery integrity and explicit person cleanup
+ok 10 - catalogs and typed fields participate in recovery integrity and explicit person cleanup
+  ---
+  duration_ms: 289.961227
+  type: 'test'
+  ...
+# Subtest: a source holding only new professional facts receives a complete deletion plan and cleans without deleting the Person
+ok 11 - a source holding only new professional facts receives a complete deletion plan and cleans without deleting the Person
+  ---
+  duration_ms: 283.870519
+  type: 'test'
+  ...
+# (node:814) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: safe history state persists only strict filters, pagination and person-role IDs, never DTO or secrets
+ok 12 - safe history state persists only strict filters, pagination and person-role IDs, never DTO or secrets
+  ---
+  duration_ms: 2.249016
+  type: 'test'
+  ...
+# Subtest: logout, expiry, different member and same-member new session reject all historic state
+ok 13 - logout, expiry, different member and same-member new session reject all historic state
+  ---
+  duration_ms: 0.582336
+  type: 'test'
+  ...
+# Subtest: role choice may stay pending across pages, but cannot carry arbitrary data or contradict a chosen role
+ok 14 - role choice may stay pending across pages, but cannot carry arbitrary data or contradict a chosen role
+  ---
+  duration_ms: 0.284986
+  type: 'test'
+  ...
+# Subtest: professional applied conditions and unfinished edits survive detail return, history and reload within one identity
+not ok 15 - professional applied conditions and unfinished edits survive detail return, history and reload within one identity
+  ---
+  duration_ms: 3.480625
+  type: 'test'
+  location: '/workspace/once-production-os/tests/core/talent-directory-state.test.ts:25:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        draft: {
+          mode: 'TALENT'
+        },
+    +   page: 1,
+    -   page: 2,
+    -   professionalDraft: {
+    -     capabilities: [
+    -       {
+    -         capabilityCode: ''
+    -       }
+    -     ],
+    -     fields: [
+    -       {
+    -         fieldCode: 'role.started_year',
+    -         min: 2020
+    -       }
+    -     ],
+    -     roleCode: 'director'
+    -   },
+    -   professionalQuery: {
+    -     capabilities: [
+    -       {
+    -         capabilityCode: 'resolve',
+    -         minLevel: 'WORKING'
+    -       }
+    -     ],
+    -     fields: [
+    -       {
+    -         codes: [
+    -           'steadicam',
+    -           'trinity'
+    -         ],
+    -         fieldCode: 'camera.specialties',
+    -         match: 'ALL'
+    -       }
+    -     ],
+    -     roleCode: 'photographer'
+    -   },
+        query: {
+    +     mode: 'TALENT'
+    -     role: [
+    -       'photographer'
+    -     ]
+        },
+    +   roleChoices: {},
+    +   selected: []
+    -   roleChoices: {
+    -     '00000000-0000-4000-8000-000000000001': '00000000-0000-4000-8000-000000000002'
+    -   },
+    -   selected: [
+    -     {
+    -       personId: '00000000-0000-4000-8000-000000000001',
+    -       personRoleId: '00000000-0000-4000-8000-000000000002'
+    -     },
+    -     {
+    -       personId: '00000000-0000-4000-8000-000000000002',
+    -       personRoleId: '00000000-0000-4000-8000-000000000001'
+    -     }
+    -   ]
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    query:
+      role:
+        0: 'photographer'
+    draft:
+      mode: 'TALENT'
+    page: 2
+    selected:
+      0:
+        personId: '00000000-0000-4000-8000-000000000001'
+        personRoleId: '00000000-0000-4000-8000-000000000002'
+      1:
+        personId: '00000000-0000-4000-8000-000000000002'
+        personRoleId: '00000000-0000-4000-8000-000000000001'
+    roleChoices:
+      00000000-0000-4000-8000-000000000001: '00000000-0000-4000-8000-000000000002'
+    professionalQuery:
+      roleCode: 'photographer'
+      fields:
+        0:
+          fieldCode: 'camera.specialties'
+          codes:
+            0: 'steadicam'
+            1: 'trinity'
+          match: 'ALL'
+      capabilities:
+        0:
+          capabilityCode: 'resolve'
+          minLevel: 'WORKING'
+    professionalDraft:
+      roleCode: 'director'
+      fields:
+        0:
+          fieldCode: 'role.started_year'
+          min: 2020
+      capabilities:
+        0:
+          capabilityCode: ''
+  actual:
+    query:
+      mode: 'TALENT'
+    draft:
+      mode: 'TALENT'
+    page: 1
+    selected:
+    roleChoices:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/once-production-os/tests/core/talent-directory-state.test.ts:31:9)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: professional history rejects payloads, invalid fields, unbounded values and old versions
+not ok 16 - professional history rejects payloads, invalid fields, unbounded values and old versions
+  ---
+  duration_ms: 0.725274
+  type: 'test'
+  location: '/workspace/once-production-os/tests/core/talent-directory-state.test.ts:40:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   onceDirectory: {
+    +     membershipId: '00000000-0000-4000-8000-000000000001',
+    +     scope: 'schema-version',
+    +     version: 1,
+    +     views: {
+    +       library: {
+    +         draft: {
+    +           mode: 'TALENT'
+    +         },
+    +         page: 1,
+    +         professionalDraft: {
+    +           fields: []
+    +         },
+    +         professionalQuery: {
+    +           fields: [
+    +             {
+    +               codes: [
+    +                 'steadicam'
+    +               ],
+    +               fieldCode: 'camera.specialties',
+    +               match: 'ALL'
+    +             }
+    +           ],
+    +           roleCode: 'photographer'
+    +         },
+    +         query: {
+    +           mode: 'TALENT'
+    +         },
+    +         roleChoices: {},
+    +         selected: []
+    +       }
+    +     }
+    +   }
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    onceDirectory:
+      version: 1
+      membershipId: '00000000-0000-4000-8000-000000000001'
+      scope: 'schema-version'
+      views:
+        library:
+          query:
+            mode: 'TALENT'
+          draft:
+            mode: 'TALENT'
+          page: 1
+          selected:
+          roleChoices:
+          professionalQuery:
+            roleCode: 'photographer'
+            fields:
+              0:
+                fieldCode: 'camera.specialties'
+                codes:
+                  0: 'steadicam'
+                match: 'ALL'
+          professionalDraft:
+            fields:
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/once-production-os/tests/core/talent-directory-state.test.ts:45:38)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 13
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3676.082537

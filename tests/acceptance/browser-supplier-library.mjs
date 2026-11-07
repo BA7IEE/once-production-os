@@ -1,4 +1,5 @@
 import {browserCatalogFields,browserFillProfessional,browserVerifyProfessional} from './supplier-fields.mjs';
+import {browserProfessionalHistory} from './supplier-upgrade-reliability.mjs';
 import {registeredTemp} from '../../scripts/registered-temp.mjs';
 import {registeredBrowser} from '../../scripts/registered-browser.mjs';
 let browserOwner;
@@ -61,5 +62,7 @@ try{
  await admin.goto(base+'/talents/'+person.id);await admin.getByText('合成导演林光',{exact:true}).first().waitFor();await admin.screenshot({path:join(evidence,'internal-supplier.png'),fullPage:true});
  assert.deepEqual(errors,[]);await assertStoredSecretsAbsent(prisma,logs,[...sent.map(message=>secretMatcher('OTP',message.code)),secretMatcher('AUTH_SECRET',readFileSync(env.TALENT_AUTH_CREDENTIAL_FILE,'utf8'))]);
  if(process.env.ONCE_ACCEPTANCE_FIELDS==='1'){await browserVerifyProfessional({admin,page,prisma,person,evidence});checks.push('self-confirmed-dynamic-field-search-all-options-on-one-career-and-no-browser-fact-storage');}
+ if(process.env.ONCE_ACCEPTANCE_UPGRADE==='1'){await browserProfessionalHistory({admin,cmd,internal,base,evidence,loginName:'owner',password:readFileSync(env.BOOTSTRAP_PASSWORD_FILE,'utf8')});checks.push('professional-applied-and-draft-conditions-two-selected-people-second-page-detail-back-forward-reload-and-new-session-isolation');}
+ assert.deepEqual(errors,[]);
  writeFileSync(join(evidence,'browser.json'),JSON.stringify({status:'PASSED',providerVerified:'NOT_RUN',provider:process.env.ONCE_ACCEPTANCE_WORK_GROUPING==='1'?'controlled local notification gateway; actual native PDF worker; seeded controlled AI suggestions (no external model)':'controlled local notification gateway; local PDF worker; AI off',checks,errors},null,2)+'\n');console.log('PASS '+checks.join('; '));await ctx.close();await internal.close();
 }catch(error){if(portalPage){await portalPage.screenshot({path:join(evidence,'browser-failure.png'),fullPage:true});console.error(JSON.stringify({documentJobs:(await prisma.talentSubmissionItem.findMany({where:{kind:'DOCUMENT_PARSE'}})).map(j=>({state:j.state,pages:j.values.pages,errorCode:j.values.errorCode,images:Object.keys(j.values.imageImports??{}).length})),alerts:await portalPage.getByRole('alert').allTextContents(),sections:await portalPage.locator('.supplier-documents').count(),labels:await portalPage.locator('label').evaluateAll(nodes=>nodes.filter(n=>n.textContent.includes('使用 AI 识别和整理字段')).map(n=>n.outerHTML.slice(0,1000))),errors}));}throw error;}finally{await browserOwner?.close();await stop(worker);await stop(api);if(proxy)await new Promise(r=>proxy.close(r));await prisma.$disconnect();await new Promise(r=>gateway.close(r));ownedTemp.cleanup();}

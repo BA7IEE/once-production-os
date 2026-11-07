@@ -6,7 +6,7 @@
 
 ## 当前开发版本
 
-2026-11-07（北京时间），工作分支 `codex/supplier-library-v1`。H5 入口为 `/talent/login`，本人使用独立账号；现有管理端继续维护同一人物库。小程序可复用接口，本轮交付 H5。
+2026-11-08（北京时间），供应商库 PR [#40](https://github.com/BA7IEE/once-production-os/pull/40) 已合并到 `main`，基线为 `ea5bceaf41a33be87e8bf0aee3f9dca006d20a43`。本轮升级分支为 `codex/once-upgrade-20261108`，分包进度见[升级实施记录](docs/release/ONCE_UPGRADE_20261108.md)。H5 入口为 `/talent/login`，本人使用独立账号；现有管理端继续维护同一人物库。
 
 - 基础资料支持多职业、城市、语言、技能、联系方式和模特量尺，保存服务器草稿并检查更新冲突。
 - PDFium 实际提取 PDF 文字、页码、页图和嵌入图片。模型可识别扫描页并提出字段、作品及图片区域建议，供本人选择和调整。
@@ -17,9 +17,9 @@
 
 详细范围、架构、运行方式和测试证据见 [实施记录](docs/release/SUPPLIER_LIBRARY_V1_IMPLEMENTATION.md)，产品目标见 [供应商库第一版方案](docs/design/ONCE_SUPPLIER_LIBRARY_V1_20261106.md)。
 
-首阶段核心回归 827/827、真实 PostgreSQL、原生文件处理和 H5 浏览器已通过隔离验收。本次继续增加整份 PDF 自动分批：最多 100 页、每批不超过 4 页，失败暂停后可明确续做，详见[整份材料续做记录](docs/release/SUPPLIER_DOCUMENT_BATCHES.md)。作品候选整理的最新实现见[作品整理记录](docs/release/SUPPLIER_WORK_GROUPING.md)。真实模型、通知服务、COS、物理手机及业务试点尚未验收；万人合成查询 P95 约 3.2 秒，尚未达到 1 秒目标。未执行生产迁移、合并或部署。
+PR 40 交付包含整份 PDF 自动分批：最多 100 页、每批不超过 4 页，失败暂停后可明确续做，详见[整份材料续做记录](docs/release/SUPPLIER_DOCUMENT_BATCHES.md)。跨页、跨批与跨文件的作品候选整理见[作品整理记录](docs/release/SUPPLIER_WORK_GROUPING.md)。真实模型准确性与费用、通知服务、COS、物理手机及业务试点尚未验收；万人合成查询约 3.2 秒来自单调用者、预热后五次采样，其中 P95 等于样本最大值，不是完整容量承诺。未执行生产迁移或部署。
 
-字段升级的最终验收为 Core 839/839、文档 21/21、生命周期 34/34，数据库升级及 9 条浏览器流程通过；代码与匿名证据以本地提交交付。真实材料已用于结构校准，尚未自动入库。PPTX 摄取、外部模型准确率、含新扩展字段的档案合并和业务迁移导出仍待完善，详见[交付边界](docs/release/SUPPLIER_FIELD_TEMPLATES.md#交付边界)。
+PR 40 字段升级的隔离验收为 Core 839/839、文档 21/21、生命周期 34/34，数据库升级及 9 条浏览器流程通过；这些数字只说明当时的交付版本。真实材料已用于结构校准，尚未自动入库。员工材料收件箱、PPTX 摄取、含新扩展字段的档案合并和业务迁移导出仍待完善，详见[历史交付边界](docs/release/SUPPLIER_FIELD_TEMPLATES.md#交付边界)与[本轮分包状态](docs/release/ONCE_UPGRADE_20261108.md)。
 
 ## 开发入口
 

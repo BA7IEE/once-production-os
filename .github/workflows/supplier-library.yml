@@ -41,7 +41,7 @@ jobs:
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/supplier-document-batches/browser pnpm test:postgres:owned --browser-suite supplier-library
-      - run: ONCE_ACCEPTANCE_FIELDS=1 ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/supplier-field-templates/browser pnpm test:postgres:owned --browser-suite supplier-library
+      - run: ONCE_ACCEPTANCE_FIELDS=1 ONCE_ACCEPTANCE_UPGRADE=1 ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/p01/browser pnpm test:postgres:owned --browser-suite supplier-library
       - run: ONCE_ACCEPTANCE_WORK_GROUPING=1 ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/supplier-work-grouping/browser pnpm test:postgres:owned --browser-suite supplier-library
       - name: Keep synthetic evidence and cleanup records
         if: always()
@@ -53,6 +53,7 @@ jobs:
             artifacts/supplier-document-batches/
             artifacts/supplier-work-grouping/
             artifacts/supplier-field-templates/
+            artifacts/once-upgrade/
             data/local-resource-runs/*/run.json
             data/local-resource-runs/*/process-*.json
             data/local-resource-runs/*/temporary-*.json

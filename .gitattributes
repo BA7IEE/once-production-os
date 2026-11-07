@@ -3,3 +3,5 @@
 artifacts/supplier-*/*.log -whitespace
 artifacts/supplier-*/*.tap -whitespace
 artifacts/supplier-*/*.txt -whitespace
+artifacts/once-upgrade/p01/*.tap -whitespace
+artifacts/once-upgrade/p01/*.txt -whitespace
