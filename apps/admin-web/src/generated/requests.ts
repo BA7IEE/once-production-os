@@ -1,5 +1,15 @@
 // Generated from packages/core/src/routes.ts and validation.ts. Do not edit.
 export interface Inputs {
+  "supplier.inbox.list": undefined;
+  "supplier.inbox.create": { "source": { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string }; "receivedAt": string };
+  "supplier.inbox.get": undefined;
+  "supplier.inbox.add": { "expectedRevision": number; "assetId": string | null; "url": string | null; "note": string };
+  "supplier.inbox.start": { "expectedRevision": number; "materialId": string; "expectedMaterialRevision": number; "useAi": boolean; "aiAccepted": boolean };
+  "supplier.inbox.save": { "expectedRevision": number; "materialId": string; "expectedMaterialRevision": number; "materialKind": "UNKNOWN" | "PERSON_PROFILE" | "PORTFOLIO" | "MULTI_PERSON" | "COMPANY_PROFILE" | "SHOOT_BRIEF" | "OTHER"; "subjects": Array<{ "id": string; "decision": "CREATE" | "LINK" | "HOLD" | "IGNORE"; "personId": string | null; "expectedPersonRevision": number | null; "profile": unknown; "evidencePages": Array<number>; "professionalReplace": Array<{ "id": string; "revision": number }>; "works": Array<{ "id": string; "title": string; "description": string; "roleCode": string; "brandDisplayName": string; "dateText": string; "assetIds": Array<string>; "origins": Array<{ "chunkId": string; "workKey": string }> }> }> };
+  "supplier.inbox.apply": { "expectedRevision": number; "materialId": string; "expectedMaterialRevision": number; "subjectId": string; "confirmOwnership": boolean };
+  "supplier.inbox.control": { "expectedRevision": number; "materialId": string; "expectedMaterialRevision": number; "action": "RESUME" | "HOLD" | "IGNORE" | "ERASE"; "aiRetryAccepted": boolean };
+  "supplier.inbox.images": { "expectedRevision": number; "materialId": string; "expectedMaterialRevision": number; "imageKeys": Array<string> };
+  "supplier.inbox.close": { "expectedRevision": number; "closed": boolean };
   "supplier.fields.schema": undefined;
   "supplier.catalog.list": undefined;
   "supplier.catalog.create": { "baseVersion": number; "definition": { "schemaVersion": "once-supplier-fields-v1"; "fields": Array<{ "code": string; "label": string; "required": boolean; "unit"?: string; "min"?: number; "max"?: number; "maxLength"?: number; "options"?: Array<{ "code": string; "label": string; "aliases": Array<string>; "status": "ACTIVE" | "DEPRECATED"; "replacedBy"?: string }>; "type": "TEXT" | "NUMBER" | "BOOLEAN" | "DATE" | "CODE" | "CODE_SET" | "RECORDS"; "owner": "PERSON" | "ROLE"; "roles": Array<string>; "visibility": "SELF_SHARED" | "INTERNAL"; "description": string; "searchable": boolean; "ai": "SUGGEST" | "NEVER"; "components"?: Array<{ "code": string; "label": string; "required": boolean; "unit"?: string; "min"?: number; "max"?: number; "maxLength"?: number; "options"?: Array<{ "code": string; "label": string; "aliases": Array<string>; "status": "ACTIVE" | "DEPRECATED"; "replacedBy"?: string }>; "type": "TEXT" | "NUMBER" | "BOOLEAN" | "DATE" | "CODE" | "CODE_SET" }>; "maxItems"?: number }>; "templates": Array<{ "code": string; "label": string; "roleCode": string | null; "fieldCodes": Array<string> }> } };
@@ -331,6 +341,56 @@ export interface Inputs {
   "shortlist.reorder": { "expectedRevision": number; "entryIds": Array<string> };
 }
 export const ENDPOINTS = {
+  "supplier.inbox.list": {
+    "method": "GET",
+    "path": "/supplier-inbox",
+    "mode": "READ"
+  },
+  "supplier.inbox.create": {
+    "method": "POST",
+    "path": "/supplier-inbox",
+    "mode": "COMMAND"
+  },
+  "supplier.inbox.get": {
+    "method": "GET",
+    "path": "/supplier-inbox/{id}",
+    "mode": "READ"
+  },
+  "supplier.inbox.add": {
+    "method": "POST",
+    "path": "/supplier-inbox/{id}/materials",
+    "mode": "COMMAND"
+  },
+  "supplier.inbox.start": {
+    "method": "POST",
+    "path": "/supplier-inbox/{id}/parse",
+    "mode": "COMMAND"
+  },
+  "supplier.inbox.save": {
+    "method": "POST",
+    "path": "/supplier-inbox/{id}/review",
+    "mode": "COMMAND"
+  },
+  "supplier.inbox.apply": {
+    "method": "POST",
+    "path": "/supplier-inbox/{id}/adopt",
+    "mode": "COMMAND"
+  },
+  "supplier.inbox.control": {
+    "method": "POST",
+    "path": "/supplier-inbox/{id}/control",
+    "mode": "COMMAND"
+  },
+  "supplier.inbox.images": {
+    "method": "POST",
+    "path": "/supplier-inbox/{id}/images",
+    "mode": "COMMAND"
+  },
+  "supplier.inbox.close": {
+    "method": "POST",
+    "path": "/supplier-inbox/{id}/close",
+    "mode": "COMMAND"
+  },
   "supplier.fields.schema": {
     "method": "GET",
     "path": "/supplier-field-schema",

@@ -1,5 +1,6 @@
 import {catalogView,publishedCatalog,SupplierFieldCatalogs} from './supplier-field-catalog.ts';
 import {SupplierProfessional} from './supplier-professional.ts';
+import {SupplierInbox} from './supplier-inbox.ts';
 import {handoffOverview,approveHandoffExposure} from './talent-handoff.ts';
 import {Ingestion} from './ingestion.ts';
 import {authorizeAgentReceive} from './agent-media.ts';
@@ -342,6 +343,16 @@ export class Application {
                 const maintenance=new TalentMaintenance(this.clock,this.config);
                 const ingestion=new Ingestion(this.clock,this.config);
                 switch (route.operation) {
+                    case 'supplier.inbox.list':return new SupplierInbox(this.clock,this.config).list(tx,actor,query);
+                    case 'supplier.inbox.get':return new SupplierInbox(this.clock,this.config).read(tx,actor,id);
+                    case 'supplier.inbox.create':return command('source',()=>new SupplierInbox(this.clock,this.config).create(tx,actor,data));
+                    case 'supplier.inbox.add':return command('source',()=>new SupplierInbox(this.clock,this.config).add(tx,actor,id,data));
+                    case 'supplier.inbox.start':return command('source',()=>new SupplierInbox(this.clock,this.config).start(tx,actor,id,data));
+                    case 'supplier.inbox.save':return command('source',()=>new SupplierInbox(this.clock,this.config).save(tx,actor,id,data));
+                    case 'supplier.inbox.apply':return command('source',()=>new SupplierInbox(this.clock,this.config).apply(tx,actor,id,data));
+                    case 'supplier.inbox.control':return command('source',()=>new SupplierInbox(this.clock,this.config).control(tx,actor,id,data));
+                    case 'supplier.inbox.images':return command('source',()=>new SupplierInbox(this.clock,this.config).images(tx,actor,id,data));
+                    case 'supplier.inbox.close':return command('source',()=>new SupplierInbox(this.clock,this.config).close(tx,actor,id,data));
                     case 'review.search': return reviewTasks(tx,actor,data,this.clock,this.config);
                     case 'review.get': return reviewTask(tx,actor,params.kind??'',id,this.clock,this.config,meta);
                     case 'command.inspect': return inspectCommand(tx, actor, data, this.clock, this.config);
@@ -591,7 +602,7 @@ export class Application {
             if (['ai.create', 'import.commit', 'job.resume', 'upload.complete', 'ingestion.upload.complete', 'export.create'].includes(route.operation))
                 response.status = 202;
             else if (route.operation==='directory.talent.create' || route.operation.startsWith('td2.') && route.operation.endsWith('.create')) response.status = 201;
-            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['supplier.catalog.create','sourceReview.create','brand.create', 'ai.grant', 'locale.create', 'deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create', 'ingestion.upload.create'].includes(route.operation)))
+            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['supplier.inbox.create','supplier.catalog.create','sourceReview.create','brand.create', 'ai.grant', 'locale.create', 'deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create', 'ingestion.upload.create'].includes(route.operation)))
                 response.status = 201;
             return response;
         }

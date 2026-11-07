@@ -1,4 +1,5 @@
 import type {SupplierFieldTables} from './supplier-field-model.ts';
+import type {SupplierInboxTables} from './supplier-inbox-model.ts';
 import type {MediaPurgeIntent} from './media-purge-model.ts';
 import type {TalentMaintenanceTables} from './talent-maintenance-model.ts';
 import type {TalentAuthTables,TalentAuthConfig} from './talent-auth-model.ts';
@@ -240,7 +241,7 @@ export interface RecordHandoff extends Base {
     closedById: string | null;
 }
 import type {SourceReviewRequest} from './source-review.ts';
-export interface TableMap extends TalentV2Tables, TalentAuthTables, TalentMaintenanceTables, SupplierFieldTables {
+export interface TableMap extends TalentV2Tables, TalentAuthTables, TalentMaintenanceTables, SupplierFieldTables, SupplierInboxTables {
     mediaPurgeIntents:MediaPurgeIntent;
     brands:Brand;projectParties:ProjectParty;
     aiResponseMetadata: AiResponseMetadata;

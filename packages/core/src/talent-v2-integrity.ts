@@ -20,7 +20,7 @@ import { touch } from './helpers.ts';
 
 /** All TD2 rows and their security-relevant endpoints participate in one recovery digest.
  * Do not return raw rows, encrypted identifiers or machine credential hashes in a report. */
-export const TD2_INTEGRITY_TABLES = [...TALENT_V2_TABLES, 'supplierCatalogs','supplierFacts','supplierFactChoices','contacts','sourceReviews', 'people', 'sources', 'scopes',
+export const TD2_INTEGRITY_TABLES = ['supplierInboxBatches','supplierInboxMaterials',...TALENT_V2_TABLES, 'supplierCatalogs','supplierFacts','supplierFactChoices','contacts','sourceReviews', 'people', 'sources', 'scopes',
     'memberships', 'works','workCredits','workAssets','talentSubmissionItems', 'mediaPurgeIntents','personMedia','uploads','talentSubmissions','sourceAttributions','sourceUseBases','talentConsents','talentAccounts','talentClaims','talentAccessGrants','talentInvitations','talentInvitationContexts','assets', 'evidence', 'shortlistItemAssets', 'shortlistItems', 'personAliases', 'personMerges', 'mergeHistoryErasures'] as const;
 export type IntegrityTable = typeof TD2_INTEGRITY_TABLES[number];
 type Row = { id: string; workspaceId: string; [key: string]: unknown };
@@ -220,6 +220,12 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
     }
     for(const r of data.personMedia){if(r.usageState==='STAGED')check(!!r.retainUntil);if(r.usageState==='ADOPTED')check(r.retainUntil===null&&!r.purgedAt);}
     for(const c of data.supplierCatalogs){try{check(digest(validateFieldCatalog(c.definition))===c.definitionDigest);if(c.publishedById)ref(c,'publishedById','memberships',false,true);}catch{professionalFactFailures++;}}
+    for(const b of data.supplierInboxBatches){ref(b,'sourceId','sources',false,true);ref(b,'scopeId','scopes',false,true);ref(b,'maintainerId','memberships',false,true);check(b.id===b.sourceId);}
+    for(const m of data.supplierInboxMaterials){ref(m,'batchId','supplierInboxBatches',false,true);ref(m,'actorId','memberships',false,true);ref(m,'createdById','memberships',false,true);ref(m,'assetId','assets');if(m.runId){const run=await tx.get('aiRuns',String(m.runId));check(!!run&&run.workspaceId===workspaceId);}check((m.state==='ERASED')===(m.ciphertext===null));
+      if(m.ciphertext)try{const payload=JSON.parse(decryptDraftPayload(String(m.ciphertext),contactKey,`supplier-inbox:${workspaceId}:${m.batchId}:${m.id}`));
+       check(Array.isArray(payload.subjects)&&Array.isArray(payload.chunks));for(const subject of payload.subjects){for(const id of [subject.personId,subject.appliedPersonId].filter(Boolean))check(!!maps.people.get(id));for(const id of subject.appliedWorkIds)check(!!maps.works.get(id));}
+       for(const id of m.personIds as string[])check(!!maps.people.get(id));for(const id of m.workIds as string[])check(!!maps.works.get(id));for(const id of m.assetIds as string[])check(!!maps.assets.get(id)||!!maps.uploads.get(id));
+      }catch{professionalFactFailures++;}}
     for(const f of data.supplierFacts){ref(f,'personId','people',false,true);ref(f,'sourceId','sources',false,true);ref(f,'personRoleId','personRoles',true);const catalog=data.supplierCatalogs.find(c=>c.version===f.catalogVersion&&c.state==='PUBLISHED');check(!!catalog);
       try{const definition=(catalog?.definition as import('./supplier-field-contract.ts').SupplierFieldCatalog|undefined),field=definition?.fields.find(c=>c.code===f.fieldCode),component=f.recordKey==='single'?field:field?.components?.find(c=>c.code===f.componentCode);check(!!component&&field?.visibility===f.visibility);
        if(f.valueType==='TEXT'){const value=JSON.parse(decryptDraftPayload(String(f.textCiphertext),contactKey,`supplier-fact:${workspaceId}:${f.personId}:${f.id}`));if(component)validateScalar(value,component as import('./supplier-field-contract.ts').FieldComponent,value);}

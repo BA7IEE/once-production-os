@@ -5,3 +5,8 @@ artifacts/supplier-*/*.tap -whitespace
 artifacts/supplier-*/*.txt -whitespace
 artifacts/once-upgrade/p01/*.tap -whitespace
 artifacts/once-upgrade/p01/*.txt -whitespace
+
+artifacts/once-upgrade/p02/**/*.tap -whitespace
+artifacts/once-upgrade/p02/**/*.txt -whitespace
+artifacts/once-upgrade/p02/*.tap -whitespace
+artifacts/once-upgrade/p02/*.txt -whitespace

@@ -6,6 +6,1085 @@
     "description": "Paths and strict request schemas are generated from runtime routes. Response shapes are currently TypeScript DTOs; this is not a complete response-schema validator."
   },
   "paths": {
+    "/api/v1/supplier-inbox": {
+      "get": {
+        "operationId": "supplier.inbox.list",
+        "parameters": [],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.read",
+        "x-mode": "READ"
+      },
+      "post": {
+        "operationId": "supplier.inbox.create",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "source": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "title": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "MANUAL",
+                          "TEXT"
+                        ]
+                      },
+                      "providerClaim": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "textPayload": {
+                        "type": "string",
+                        "minLength": 0,
+                        "maxLength": 30000
+                      },
+                      "basisMode": {
+                        "type": "string",
+                        "enum": [
+                          "TEMP_ORGANIZE",
+                          "INTERNAL_USE"
+                        ]
+                      },
+                      "basisDescription": {
+                        "type": "string",
+                        "minLength": 4,
+                        "maxLength": 2000
+                      },
+                      "validUntil": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "scopeId": {
+                        "type": "string",
+                        "minLength": 36,
+                        "maxLength": 36,
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "type",
+                      "providerClaim",
+                      "basisMode",
+                      "basisDescription"
+                    ]
+                  },
+                  "receivedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "source",
+                  "receivedAt"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.write",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/supplier-inbox/{id}": {
+      "get": {
+        "operationId": "supplier.inbox.get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "responses": {
+          "200": {
+            "description": "Allowlisted response DTO; see src/dto.ts"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.read",
+        "x-mode": "READ"
+      }
+    },
+    "/api/v1/supplier-inbox/{id}/materials": {
+      "post": {
+        "operationId": "supplier.inbox.add",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "assetId": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 36,
+                        "maxLength": 36,
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "url": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 2000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "note": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 2000
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "assetId",
+                  "url",
+                  "note"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.write",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/supplier-inbox/{id}/parse": {
+      "post": {
+        "operationId": "supplier.inbox.start",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "materialId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "expectedMaterialRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "useAi": {
+                    "type": "boolean"
+                  },
+                  "aiAccepted": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "materialId",
+                  "expectedMaterialRevision",
+                  "useAi",
+                  "aiAccepted"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.write",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/supplier-inbox/{id}/review": {
+      "post": {
+        "operationId": "supplier.inbox.save",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "materialId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "expectedMaterialRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "materialKind": {
+                    "type": "string",
+                    "enum": [
+                      "UNKNOWN",
+                      "PERSON_PROFILE",
+                      "PORTFOLIO",
+                      "MULTI_PERSON",
+                      "COMPANY_PROFILE",
+                      "SHOOT_BRIEF",
+                      "OTHER"
+                    ]
+                  },
+                  "subjects": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 36,
+                          "maxLength": 36,
+                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                        },
+                        "decision": {
+                          "type": "string",
+                          "enum": [
+                            "CREATE",
+                            "LINK",
+                            "HOLD",
+                            "IGNORE"
+                          ]
+                        },
+                        "personId": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 36,
+                              "maxLength": 36,
+                              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "expectedPersonRevision": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "profile": {},
+                        "evidencePages": {
+                          "type": "array",
+                          "items": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                          },
+                          "minItems": 0,
+                          "maxItems": 100
+                        },
+                        "professionalReplace": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "minLength": 36,
+                                "maxLength": 36,
+                                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                              },
+                              "revision": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "revision"
+                            ]
+                          },
+                          "minItems": 0,
+                          "maxItems": 300
+                        },
+                        "works": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "minLength": 36,
+                                "maxLength": 36,
+                                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                              },
+                              "title": {
+                                "type": "string",
+                                "minLength": 0,
+                                "maxLength": 160
+                              },
+                              "description": {
+                                "type": "string",
+                                "minLength": 0,
+                                "maxLength": 5000
+                              },
+                              "roleCode": {
+                                "type": "string",
+                                "minLength": 0,
+                                "maxLength": 60
+                              },
+                              "brandDisplayName": {
+                                "type": "string",
+                                "minLength": 0,
+                                "maxLength": 200
+                              },
+                              "dateText": {
+                                "type": "string",
+                                "minLength": 0,
+                                "maxLength": 100
+                              },
+                              "assetIds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 36,
+                                  "maxLength": 36,
+                                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                                },
+                                "minItems": 0,
+                                "maxItems": 30
+                              },
+                              "origins": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "chunkId": {
+                                      "type": "string",
+                                      "minLength": 36,
+                                      "maxLength": 36,
+                                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                                    },
+                                    "workKey": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 100
+                                    }
+                                  },
+                                  "required": [
+                                    "chunkId",
+                                    "workKey"
+                                  ]
+                                },
+                                "minItems": 0,
+                                "maxItems": 30
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "title",
+                              "description",
+                              "roleCode",
+                              "brandDisplayName",
+                              "dateText",
+                              "assetIds",
+                              "origins"
+                            ]
+                          },
+                          "minItems": 0,
+                          "maxItems": 20
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "decision",
+                        "personId",
+                        "expectedPersonRevision",
+                        "profile",
+                        "evidencePages",
+                        "professionalReplace",
+                        "works"
+                      ]
+                    },
+                    "minItems": 0,
+                    "maxItems": 20
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "materialId",
+                  "expectedMaterialRevision",
+                  "materialKind",
+                  "subjects"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.write",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/supplier-inbox/{id}/adopt": {
+      "post": {
+        "operationId": "supplier.inbox.apply",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "materialId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "expectedMaterialRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "subjectId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "confirmOwnership": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "materialId",
+                  "expectedMaterialRevision",
+                  "subjectId",
+                  "confirmOwnership"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.write",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/supplier-inbox/{id}/control": {
+      "post": {
+        "operationId": "supplier.inbox.control",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "materialId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "expectedMaterialRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "RESUME",
+                      "HOLD",
+                      "IGNORE",
+                      "ERASE"
+                    ]
+                  },
+                  "aiRetryAccepted": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "materialId",
+                  "expectedMaterialRevision",
+                  "action",
+                  "aiRetryAccepted"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.write",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/supplier-inbox/{id}/images": {
+      "post": {
+        "operationId": "supplier.inbox.images",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "materialId": {
+                    "type": "string",
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "expectedMaterialRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "imageKeys": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160
+                    },
+                    "minItems": 1,
+                    "maxItems": 10
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "materialId",
+                  "expectedMaterialRevision",
+                  "imageKeys"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.write",
+        "x-mode": "COMMAND"
+      }
+    },
+    "/api/v1/supplier-inbox/{id}/close": {
+      "post": {
+        "operationId": "supplier.inbox.close",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-machine-boundary": null,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "closed": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "expectedRevision",
+                  "closed"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimal command receipt; import commit/resume acknowledge enqueue only"
+          },
+          "default": {
+            "description": "Sanitized error with code, message, requestId"
+          }
+        },
+        "x-permission": "records.write",
+        "x-mode": "COMMAND"
+      }
+    },
     "/api/v1/supplier-field-schema": {
       "get": {
         "operationId": "supplier.fields.schema",

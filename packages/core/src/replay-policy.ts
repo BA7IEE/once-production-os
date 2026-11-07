@@ -1,4 +1,5 @@
 import {Ingestion} from './ingestion.ts';
+import {SupplierInbox} from './supplier-inbox.ts';
 import {TalentMaintenance} from './talent-maintenance.ts';
 import type {CommandPrincipal} from './talent-auth-model.ts';
 import {invariant} from './errors.ts';
@@ -115,6 +116,7 @@ export async function authorizeReceipt(tx: Tx, actor: CommandPrincipal, receipt:
             await personFor(tx, actor, id, clock);
             return;
         case 'source': {
+            if(receipt.operation.startsWith('supplier.inbox.')){if(!config)missing();await new SupplierInbox(clock,config).access(tx,actor,id);return;}
             const source = await sourceFor(tx, actor, id, clock, false);
             if (!sourceCurrent(source, clock) && !actor.permissions.includes('sources.review'))
                 missing();

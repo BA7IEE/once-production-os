@@ -1,4 +1,5 @@
 import {SUPPLIER_FIELD_ROUTES} from './supplier-field-routes.ts';
+import {SUPPLIER_INBOX_ROUTES} from './supplier-inbox-routes.ts';
 import {SourceReviewSchemas} from './source-review.ts';
 import {CommandInspectionSchema,ReviewQuerySchema} from './admin-ux-schema.ts';
 import {INGESTION_ROUTES} from './ingestion-routes.ts';
@@ -27,7 +28,7 @@ export interface RouteDefinition {
     permission?: Permission;
     schema?: Schema<unknown>;
 }
-export const ROUTES: RouteDefinition[] = [...SUPPLIER_FIELD_ROUTES,
+export const ROUTES: RouteDefinition[] = [...SUPPLIER_INBOX_ROUTES,...SUPPLIER_FIELD_ROUTES,
     {method:'POST',path:'/review/search',operation:'review.search',mode:'READ',permission:'records.read',schema:ReviewQuerySchema},
     {method:'GET',path:'/review/{kind}/{id}',operation:'review.get',mode:'READ',permission:'records.read'},
     {method:'POST',path:'/commands/inspect',operation:'command.inspect',mode:'READ',permission:'records.read',schema:CommandInspectionSchema},

@@ -37,8 +37,9 @@ const detailLabel: Record<string, string> = {
     EXPORT_PAYLOAD_DEPENDS_ON_TARGET: '旧导出 payload 依赖目标',
     EXPORT_PAYLOAD_DEPENDS_ON_SOURCE: '旧导出 payload 依赖来源'
 };
-const partyLabels:Record<string,string>={brand:'品牌资料',organization:'机构资料',brandOrganization:'品牌所属机构关联',projectParty:'项目客户与品牌关联',SOURCE_BRAND:'来源拥有的品牌',SOURCE_ORGANIZATION:'来源拥有的机构',BRAND_ORGANIZATION:'品牌所属机构关联',PROJECT_PARTY:'项目客户与品牌关联'};
+const partyLabels:Record<string,string>={supplierInboxMaterial:'收件材料派生内容',SUPPLIER_INBOX_DERIVATIVE:'收件归属与解析草稿',brand:'品牌资料',organization:'机构资料',brandOrganization:'品牌所属机构关联',projectParty:'项目客户与品牌关联',SOURCE_BRAND:'来源拥有的品牌',SOURCE_ORGANIZATION:'来源拥有的机构',BRAND_ORGANIZATION:'品牌所属机构关联',PROJECT_PARTY:'项目客户与品牌关联'};
 function detailText(code: string,kind?:string) {
+    if(code.startsWith('INBOX_'))return '清除相关材料的加密草稿、页图建议和主体归属记录。原件及已保存事实按各自来源和删除计划分别处理。';
     if(kind&&partyLabels[kind])return ['brand','organization','SOURCE_BRAND','SOURCE_ORGANIZATION'].includes(kind)?'按本来源清理该主体资料；独立来源的其他主体不会被一并删除。':'仅解除本次目标涉及的关联，保留独立来源的机构、品牌和项目。';
     if(code.startsWith('TD2_SOURCE_IDENTITY_')){const mask=Number(code.split(':')[0]!.replace('TD2_SOURCE_IDENTITY_','')),fields=['姓名','别名','简介','旧职业','旧语言','旧技能','旧城市','旧身高'].filter((_,i)=>(mask&(1<<i))!==0);return `撤回本来源对另一个人物身份字段的依据（${fields.join('、')}）。人物内容、最初来源及其他现成核验保持不变；若独立依据失效，清理不能完成。`;}
     if(code.startsWith('TD2_SOURCE_PERSON:'))return '逐项决定删除或保留人物身份。保留须已有姓名、别名、简介的完整独立依据；最初来源编号不改变，专业资料需分别决定。';

@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: every replacement needs its own role-specific answer and invalid batches leave facts, exposure and person unchanged
+ok 1 - every replacement needs its own role-specific answer and invalid batches leave facts, exposure and person unchanged
+  ---
+  duration_ms: 321.037337
+  type: 'test'
+  ...
+# Subtest: replacement rejects withdrawn source without retiring current facts or changing exposure
+ok 2 - replacement rejects withdrawn source without retiring current facts or changing exposure
+  ---
+  duration_ms: 237.716284
+  type: 'test'
+  ...
+# Subtest: dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person
+ok 3 - dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person
+  ---
+  duration_ms: 235.881555
+  type: 'test'
+  ...
+# Subtest: published catalogs preserve old drafts and reject type reinterpretation and deleted option codes
+ok 4 - published catalogs preserve old drafts and reject type reinterpretation and deleted option codes
+  ---
+  duration_ms: 260.340963
+  type: 'test'
+  ...
+# Subtest: ONCE corrections update explicitly shared professional facts and fence stale self drafts
+ok 5 - ONCE corrections update explicitly shared professional facts and fence stale self drafts
+  ---
+  duration_ms: 259.787971
+  type: 'test'
+  ...
+# Subtest: new fields reject cross-role data, invented options, fake dates and empty multi selections
+ok 6 - new fields reject cross-role data, invented options, fake dates and empty multi selections
+  ---
+  duration_ms: 233.036534
+  type: 'test'
+  ...
+# Subtest: confirmation audit failure rolls professional facts and choices back with the rest of the profile
+ok 7 - confirmation audit failure rolls professional facts and choices back with the rest of the profile
+  ---
+  duration_ms: 226.170253
+  type: 'test'
+  ...
+# Subtest: structured tag search supports ANY and ALL on the same role, with no missing-as-negative or private source leakage
+ok 8 - structured tag search supports ANY and ALL on the same role, with no missing-as-negative or private source leakage
+  ---
+  duration_ms: 253.101089
+  type: 'test'
+  ...
+# Subtest: native professional details reuse capability, credential, translation and dated measurement tables
+ok 9 - native professional details reuse capability, credential, translation and dated measurement tables
+  ---
+  duration_ms: 239.716374
+  type: 'test'
+  ...
+# Subtest: catalogs and typed fields participate in recovery integrity and explicit person cleanup
+ok 10 - catalogs and typed fields participate in recovery integrity and explicit person cleanup
+  ---
+  duration_ms: 232.198375
+  type: 'test'
+  ...
+# Subtest: a source holding only new professional facts receives a complete deletion plan and cleans without deleting the Person
+ok 11 - a source holding only new professional facts receives a complete deletion plan and cleans without deleting the Person
+  ---
+  duration_ms: 281.735395
+  type: 'test'
+  ...
+# Subtest: employee inbox records true employee provenance, encrypted drafts and explicit multiple-person ownership atomically
+ok 12 - employee inbox records true employee provenance, encrypted drafts and explicit multiple-person ownership atomically
+  ---
+  duration_ms: 278.976106
+  type: 'test'
+  ...
+# Subtest: company introductions cannot be adopted as a person and audit failure rolls back the entire employee adoption
+ok 13 - company introductions cannot be adopted as a person and audit failure rolls back the entire employee adoption
+  ---
+  duration_ms: 237.116252
+  type: 'test'
+  ...
+# Subtest: multiple materials explicitly supplement one current Person, preserve identity and reject stale revisions
+ok 14 - multiple materials explicitly supplement one current Person, preserve identity and reject stale revisions
+  ---
+  duration_ms: 236.321638
+  type: 'test'
+  ...
+# Subtest: employee scope and source withdrawal fence inbox reads
+ok 15 - employee scope and source withdrawal fence inbox reads
+  ---
+  duration_ms: 401.961489
+  type: 'test'
+  ...
+# Subtest: recovery invalidates old employee inbox commands, including receipt replay
+ok 16 - recovery invalidates old employee inbox commands, including receipt replay
+  ---
+  duration_ms: 212.885672
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4893.064958

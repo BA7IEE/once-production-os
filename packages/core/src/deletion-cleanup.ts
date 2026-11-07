@@ -1,4 +1,5 @@
 import {irreversiblePurge} from './media-purge-model.ts';
+import {checkInboxErasure,eraseInboxItem} from './supplier-inbox-lifecycle.ts';
 import {authorizePartyCleanup} from './project-parties.ts';
 import {eraseAi,validateAiErasure} from './ai-maintenance.ts';
 import {eraseLocale,validateLocaleErasurePlan} from './locale-maintenance.ts';
@@ -96,6 +97,7 @@ export class DeletionCleanup {
         const executionPlanDigest = digest(executionPlan(row, prepared));
         for (const item of prepared) await tx.replace('deletionItems', item);
         await validateLocaleErasurePlan(tx,actor,items);await validateAiErasure(tx,actor,items);
+        await checkInboxErasure(tx,actor,items,this.clock);
         await validatePersonErasurePlan(tx,actor,row,items);
         await validateSourceFactPlan(tx, actor, row, items, this.clock);
         const next: DeletionRequest = { ...touch(row, this.clock), state: 'CLEANING', executionPlanDigest,
@@ -262,6 +264,7 @@ export class DeletionCleanup {
             return { outcome: 'DONE' };
         }
         if (action === 'ERASE_PAYLOAD') {
+            if(item.resourceKind==='supplierInboxMaterial'){await eraseInboxItem(tx,await deletionWorkerActor(tx,request),item,this.clock,this.config);return {outcome:'DONE'};}
             if (item.resourceKind === SOURCE_FACT_GROUP) { await eraseSourceFacts(tx, request, item, this.clock); return { outcome: 'DONE' }; }
             if (item.resourceKind === 'talentSourceEvidenceGraph') {
                 await eraseTalentSourceEvidence(tx, request, item, this.clock);

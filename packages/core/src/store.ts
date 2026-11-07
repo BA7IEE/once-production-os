@@ -4,6 +4,8 @@ import type { TalentQueryFilters, TalentQueryResult } from './search-query-model
 /** A short database transaction. All implementations must atomically commit or roll back. */
 export interface PurgeOverview {pending:number;cleaning:number;unknown:number;recentFailures:number;oldestDue:string|null;pendingBytes:number;reconcileIds:string[]}
 export interface Tx {
+    /** Bounded employee document scheduling, including expired leases for reconciliation. */
+    inboxCandidates(now:string,limit:number):Promise<string[]>;
     mediaPurgeOverview(workspaceId:string,now:string):Promise<PurgeOverview>;
     /** Indexed bounded scheduling query; does not load the workspace into memory. */
     mediaPurgeCandidates(now:string,limit:number):Promise<string[]>;

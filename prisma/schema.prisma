@@ -2841,3 +2841,52 @@ model SupplierFactChoice {
   @@index([workspaceId, code, factId])
   @@map("supplierFactChoices")
 }
+
+model SupplierInboxBatch {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  sourceId String @db.Uuid
+  scopeId String @db.Uuid
+  maintainerId String @db.Uuid
+  sourceRevision Int
+  scopeRevision Int
+  receivedAt DateTime @db.Timestamptz(3)
+  recoveryEpoch String @db.Text
+  state String @db.Text
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, sourceId])
+  @@index([workspaceId, createdAt, id], map: "supplier_inbox_batch_order")
+  @@map("supplierInboxBatches")
+}
+model SupplierInboxMaterial {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  batchId String @db.Uuid
+  assetId String? @db.Uuid
+  actorId String @db.Uuid
+  createdById String @db.Uuid
+  actorRevision Int
+  userEpoch Int
+  recoveryEpoch String @db.Text
+  state String @db.Text
+  materialKind String @db.Text
+  useAi Boolean
+  personIds String[] @db.Uuid
+  workIds String[] @db.Uuid
+  assetIds String[] @db.Uuid
+  leaseToken String? @db.Uuid
+  leaseUntil DateTime? @db.Timestamptz(3)
+  runId String? @db.Uuid
+  errorCode String? @db.Text
+  ciphertext String? @db.Text
+  @@unique([workspaceId, id])
+  @@index([workspaceId, batchId, state], map: "supplier_inbox_material_batch")
+  @@index([state, leaseUntil, createdAt, id], map: "supplier_inbox_material_claim")
+  @@map("supplierInboxMaterials")
+}

@@ -33,6 +33,7 @@ jobs:
       - run: pnpm test:lifecycle
       - run: docker pull postgres:16-bookworm
       - run: pnpm test:postgres:owned --supplier-fields
+      - run: pnpm test:postgres:owned --supplier-inbox
       - run: pnpm test:postgres:owned --supplier-library
       - run: pnpm test:postgres:owned --supplier-document-batches
       - run: pnpm test:postgres:owned --supplier-work-grouping
@@ -40,6 +41,7 @@ jobs:
       - run: pnpm test:postgres:owned --supplier-scale
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
+      - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/p02/browser pnpm test:postgres:owned --browser-suite supplier-inbox
       - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/supplier-document-batches/browser pnpm test:postgres:owned --browser-suite supplier-library
       - run: ONCE_ACCEPTANCE_FIELDS=1 ONCE_ACCEPTANCE_UPGRADE=1 ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/p01/browser pnpm test:postgres:owned --browser-suite supplier-library
       - run: ONCE_ACCEPTANCE_WORK_GROUPING=1 ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/supplier-work-grouping/browser pnpm test:postgres:owned --browser-suite supplier-library
