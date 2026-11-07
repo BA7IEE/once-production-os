@@ -63,6 +63,8 @@ AI 使用发起任务时的字段目录快照。新增材料先区分个人履�
 
 本轮 41 次真实 ResourceRun 均为 `ZERO_RESIDUE`，本地 heavy lock 不存在，项目临时容器标签查询为空。原始 PDF/PPTX、私有盘点、密钥及持久数据保留在原处，没有纳入提交。已通过的验收不因单纯文档收尾而重复执行；最终补做指纹核对与 `git diff --check`。
 
+GitHub 推送创建 [PR #40](https://github.com/BA7IEE/once-production-os/pull/40)。首轮完整 PostgreSQL 回归发现历史同档接手测试仍断言总共 75 次迁移，实际 78 次迁移已成功执行；失败记录见 [github-first-postgres-failure.json](../../artifacts/supplier-field-templates/github-first-postgres-failure.json)。同档接手和机器作品生命周期测试现逐项比较实际迁移名称与当前全部迁移目录，再检查重复部署前后的 checksum 和业务数据原样保留；不修改任何冻结迁移。同类旧报告的迁移数量也改为从实际数据库读取。该修正由后续最终 head 的远端完整检查验收，首轮失败不记为通过。
+
 ## 交付边界
 
 常规字段可以配置；新的复杂业务规则、资格核验流程、权限规则或新型业务实体仍需代码和测试。目录配置不会直接获得核验或授权的权力。
