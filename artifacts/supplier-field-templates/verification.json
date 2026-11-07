@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-11-08 00:11:14 +08:00",
+  "generatedAt": "2026-11-08 00:43:59 +08:00",
   "scope": "supplier-field-catalog-and-professional-profiles",
   "branch": "codex/supplier-library-v1",
-  "baseHead": "2124560d2c02b6a6131cf92c989c869092555d95",
+  "baseHead": "a8f8c82180fa255755efd4db7f7ef5e147af5bb0",
   "state": "CORE_IMPLEMENTED_AND_ISOLATED_TESTED",
   "committedAtVerification": false,
   "verificationScope": "Pre-commit working-tree snapshot; delivery commit is identified by Git history. Source hashes identify the verified files.",
@@ -83,6 +83,20 @@
       "sqlChecks": "Passed through all SQL constraint checks before physical restore",
       "physicalRestore": "NOT_RUN: pg_dump and pg_restore are not installed in the local execution environment",
       "evidence": "artifacts/supplier-field-templates/imported-review-upgrade-local.log"
+    },
+    "productionBrowser": {
+      "status": "PASSED",
+      "scope": "Full production browser suite in an isolated worktree with the current built application; real visible source pagination",
+      "passedMarkers": 39,
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      },
+      "evidence": "artifacts/supplier-field-templates/browser-production-local.log"
     },
     "browser": {
       "status": "PASSED",
@@ -602,8 +616,8 @@
   "resourceRuns": {
     "scope": "Only registered temporary verification resources in this implementation phase",
     "phaseStart": "2026-11-07T10:36:24.133Z",
-    "realRuns": 46,
-    "zeroResidue": 46,
+    "realRuns": 47,
+    "zeroResidue": 47,
     "failedAttemptsRetained": 15,
     "ids": [
       "169595579811ae9ee6f54102",
@@ -622,6 +636,7 @@
       "53f9ddf5c2038ba318f2adab",
       "5dd86518e508ed1f74990f9c",
       "60e77c78d1b96ec575350c11",
+      "674169cb0d103c0b7ede5d3f",
       "693b6b21c9122301cc1a234a",
       "7468ce063666b847c32b4807",
       "7c5ffde26cb8a619f801140d",
@@ -675,7 +690,8 @@
     "artifacts/supplier-field-templates/github-first-postgres-failure.json",
     "artifacts/supplier-field-templates/github-second-postgres-failure.json",
     "artifacts/supplier-field-templates/github-third-postgres-failure.json",
-    "artifacts/supplier-field-templates/github-fourth-postgres-failure.json"
+    "artifacts/supplier-field-templates/github-fourth-postgres-failure.json",
+    "artifacts/supplier-field-templates/github-browser-pagination-failure.json"
   ],
   "notRun": [
     "Real external model accuracy and billing",
@@ -869,7 +885,7 @@
     "docs/release/REVIEW.md": "dc3e809bf706f68081a224cb1b60193df02f581644d3c21dcad4f51781a30780",
     "docs/release/STAGING_EXECUTION.md": "e71e85d4656b679a997723095470343fe1263cebbbd294ba42ece46b559dad36",
     "docs/release/SUPPLIER_DOCUMENT_BATCHES.md": "0e8c48dab185a56da0f5d8817174e456861666ba9e89e669bb3e6528bcb6d55d",
-    "docs/release/SUPPLIER_FIELD_TEMPLATES.md": "f4c74e02f05f770a0254cdbcbdaa1f0f8219d501d207ce962608d7cc75093592",
+    "docs/release/SUPPLIER_FIELD_TEMPLATES.md": "f271c62ab6334817708aa0b499c02a9123d6aa7d4caf8d6965b96539916ad5b1",
     "docs/release/SUPPLIER_LIBRARY_V1_IMPLEMENTATION.md": "54b8c32d02c5b975646c78fec6a5c65856582e5465b7354a22bbec77495657e7",
     "docs/release/SUPPLIER_WORK_GROUPING.md": "f348c294dedc358b0bdb3e1e19a64b1c3217a0ab1110f96a5126b9bd3b53a681",
     "docs/release/TALENT_EXPERIENCE.md": "a04e510c2b6929ecf3e4969f64e2b4effb3c0ebf423d37faccf9b75498b87d1e",
@@ -1224,8 +1240,8 @@
     "scripts/test-postgres-owned.mjs": "afb70661e1ccc20df30f08fc6dab8cd78282c95e7cb800f77f068002a92100e6",
     "scripts/verify-a1-followup-local.sh": "7d999a6d34e35c242b78cfd6e41b223f4fee3e4ace5ed12bd56a86fe447ec379",
     "scripts/verify-postgres.mjs": "e2638b915f9e3ebd59ab2feca7405d832c910eaae8a6384fdcc63d3654e3979e",
-    "scripts/write-supplier-field-verification.mjs": "662ac90cc79e0bd13943d2c038c4a3d6243e3656a51bf41d8932b741860c6106",
-    "tests/acceptance/ai-business.mjs": "58694c161b08608e2ba4ba158ecd1ff55e3c0140f88dd6bf67538c8fea7902ea",
+    "scripts/write-supplier-field-verification.mjs": "51af069f3698c3d2a278ae31d09146cf2dd872a46cfec3d5142d8710d7973b9b",
+    "tests/acceptance/ai-business.mjs": "5392f1c4bbf9b15c89521c6ce47c9c25ce89326bfa70d5c896fda2e60d18663a",
     "tests/acceptance/browser-admin-ux.mjs": "25ad3b0571267df247cbb54d081972101a332a864f13f7bc1735cd519e4a2765",
     "tests/acceptance/browser-agent-handoff.mjs": "d465ff9e69db197475c06760a7ec3b8190de3cd0169d8df0a18fce71730aedb9",
     "tests/acceptance/browser-agent-ingestion.mjs": "a14556f093b493908552296a7c04f056f58303d9502b59c1cace17ed5b8b5366",
@@ -1262,14 +1278,14 @@
     "tests/acceptance/supplier-fields.mjs": "33850c9b72317028df85ecc43d451651a50b01a48a73e9779325c34f8b9e2458",
     "tests/acceptance/supplier-work-grouping.mjs": "247c9e8fe69cc48e1384ea8a22c45c1352b6eec3d5f86abdea772a300ee4993d",
     "tests/acceptance/support/import-checkpoint.mjs": "4b6136ecca0fe205a3066b4981fbd8e75892e477c225470bcc910d89d60fa864",
-    "tests/acceptance/support/workspace-navigation.mjs": "01ea88fed1b8cc104918bb66e330fbf02ebee4b81c4b725df568c84b2955086a",
+    "tests/acceptance/support/workspace-navigation.mjs": "f476888100c6fa59fe4c2bb8596d558f0640ccf63f8f6f8121464c1b9218b129",
     "tests/acceptance/talent-directory-finalization.mjs": "0a856e549cbc2a9213c9222d2acae811af0d0debd27d1a727b1c3eaf1e6f0943",
     "tests/acceptance/talent-experience-surface-policy.test.mjs": "b3d18d34731cd7f126e3cc462c22e89b2b02d5f41caf7ec0ecd9904479480918",
     "tests/acceptance/talent-identity-retention.mjs": "19e8a9e0b7447b9b0b3dc41ea522fb8eed9c668cd4d4e667f6682a1f5c1b4411",
     "tests/acceptance/talent-source-assets.mjs": "58a576061d25c4e49e3a8febbe08684d0e86570380f885ecf710a4b4526b3bf1",
     "tests/acceptance/talent-source-facts.mjs": "47e2af2b0fcb1028722bd4bde1fe6d74583a1b65a2077419ee2993a95549ef97",
     "tests/acceptance/talent-source-person.mjs": "b431fd4cb818031693d4aafd5ac28069acefefa8f03fb471a1dbdccc8ced51d0",
-    "tests/acceptance/talent-workbench.mjs": "2733400131a9173b6e9fe7fad1a6110191d85395e468247aeacd6f6b25234427",
+    "tests/acceptance/talent-workbench.mjs": "0693bac844c8f1ee23a3139827779104e6bcf2d88e670cbc53427559c75f71c6",
     "tests/acceptance/work-case-journey.mjs": "82be31dfcd55b7afd919e4dcd25dffed55d28dba8cf841ae7215dd95831d48e4",
     "tests/acceptance/work-credit-upgrade-journey.mjs": "3434a6a62458e148e42f23edd25ded3709f2e37a482c4811856c393786cf0717",
     "tests/core/admin-ux-inputs.test.ts": "139e732763ba8056b269a8969246e580c460b1908f29e13d7368eb0e4484616e",
