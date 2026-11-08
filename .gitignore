@@ -17,3 +17,6 @@ artifacts/local-*
 .secrets/
 
 .local-media/
+
+# Baked from the pinned Foundation dependencies at build time.
+apps/admin-web/public/once-components.css

@@ -1,0 +1,22 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite supplier-directory
+
+{ errors: [], alerts: [] }
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: mobile paging touch area 上一页 360
+    at file:///workspace/once-production-os/tests/acceptance/browser-supplier-directory.mjs:57:831 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.22.3
+Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+ ELIFECYCLE  Command failed with exit code 1.

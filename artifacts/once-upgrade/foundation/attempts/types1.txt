@@ -1,0 +1,26 @@
+
+> once-production-os@0.1.0-dev.1 typecheck /workspace/once-production-os
+> tsc -p tsconfig.server.json --noEmit && tsc -p apps/admin-web/tsconfig.json
+
+apps/admin-web/src/app-shell.tsx(1,33): error TS2307: Cannot find module 'antd' or its corresponding type declarations.
+apps/admin-web/src/foundation/patterns.tsx(2,48): error TS2307: Cannot find module '@ant-design/pro-components' or its corresponding type declarations.
+apps/admin-web/src/foundation/patterns.tsx(3,31): error TS2307: Cannot find module '@ant-design/pro-components' or its corresponding type declarations.
+apps/admin-web/src/foundation/patterns.tsx(21,10): error TS7006: Parameter '_text' implicitly has an 'any' type.
+apps/admin-web/src/foundation/patterns.tsx(21,16): error TS7006: Parameter 'row' implicitly has an 'any' type.
+apps/admin-web/src/foundation/patterns.tsx(22,9): error TS7006: Parameter 'row' implicitly has an 'any' type.
+apps/admin-web/src/foundation/patterns.tsx(25,56): error TS7006: Parameter 'row' implicitly has an 'any' type.
+apps/admin-web/src/foundation/patterns.tsx(41,124): error TS2322: Type '{ children: ReactNode; className: string | undefined; "data-foundation-exception": string; defaultChecked?: boolean | undefined; defaultValue?: string | number | readonly string[] | undefined; ... 273 more ...; onTransitionStartCapture?: TransitionEventHandler<...> | undefined; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDListElement>, HTMLDListElement>'.
+  Type '{ children: ReactNode; className: string | undefined; "data-foundation-exception": string; defaultChecked?: boolean | undefined; defaultValue?: string | number | readonly string[] | undefined; ... 273 more ...; onTransitionStartCapture?: TransitionEventHandler<...> | undefined; }' is not assignable to type 'HTMLAttributes<HTMLDListElement>'.
+    Types of property 'onCopy' are incompatible.
+      Type 'ClipboardEventHandler<HTMLDivElement> | undefined' is not assignable to type 'ClipboardEventHandler<HTMLDListElement> | undefined'.
+        Type 'ClipboardEventHandler<HTMLDivElement>' is not assignable to type 'ClipboardEventHandler<HTMLDListElement>'.
+          Property 'compact' is missing in type 'HTMLDivElement' but required in type 'HTMLDListElement'.
+apps/admin-web/src/foundation/provider.tsx(2,34): error TS2307: Cannot find module 'antd' or its corresponding type declarations.
+apps/admin-web/src/foundation/provider.tsx(3,18): error TS2307: Cannot find module 'antd/locale/zh_CN' or its corresponding type declarations.
+apps/admin-web/src/foundation/theme.ts(1,32): error TS2307: Cannot find module 'antd' or its corresponding type declarations.
+apps/admin-web/src/ui.tsx(1,89): error TS2307: Cannot find module 'antd' or its corresponding type declarations.
+apps/admin-web/src/ui.tsx(2,29): error TS2307: Cannot find module '@ant-design/pro-components' or its corresponding type declarations.
+apps/admin-web/src/ui.tsx(96,203): error TS7006: Parameter '_n' implicitly has an 'any' type.
+apps/admin-web/src/ui.tsx(96,206): error TS7006: Parameter 'type' implicitly has an 'any' type.
+apps/admin-web/src/ui.tsx(96,211): error TS7006: Parameter 'original' implicitly has an 'any' type.
+ ELIFECYCLE  Command failed with exit code 2.

@@ -1,0 +1,21 @@
+{
+  "status": "PASSED",
+  "providerVerified": "NOT_RUN",
+  "provider": "controlled local notification gateway; actual native PDF worker; seeded controlled AI suggestions (no external model)",
+  "checks": [
+    "catalog-manager-publishes-new-role-specific-multiselect-without-code-changes",
+    "upload-first-entry-creates-an-empty-draft-without-fabricating-person-facts",
+    "mobile-workflow-orders-materials-basics-professional-works-and-explicit-final-confirmation",
+    "mobile-self-enrollment-multi-role-encrypted-server-draft",
+    "mobile-template-driven-fields-and-unverified-qualification-survive-server-draft",
+    "refresh-before-receipt-readback-reconciles-original-command-without-a-second-plan",
+    "whole-ten-page-PDF-three-durable-batches-survive-page-reload",
+    "cross-batch-work-grouping-append-preserves-edited-title-cover-and-all-page-origins",
+    "real-upload-native-pdf-text-and-photo-extraction-work-case-self-confirmation",
+    "returning-account-loads-current-profile-and-three-mobile-widths",
+    "self-confirmed-dynamic-field-search-all-options-on-one-career-and-no-browser-fact-storage",
+    "professional-applied-and-draft-conditions-two-selected-people-second-page-detail-back-forward-reload-and-new-session-isolation",
+    "shared-foundation-and-native-supplier-workflow-have-no-CSP-violations"
+  ],
+  "errors": []
+}

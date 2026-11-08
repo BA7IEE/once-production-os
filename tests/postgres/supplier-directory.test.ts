@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {performance} from 'node:perf_hooks';
 import {mkdirSync,writeFileSync} from 'node:fs';
+import {join} from 'node:path';
 import {PrismaClient,Prisma} from '@prisma/client';
 import {PrismaStore} from '../../apps/api/src/prisma-store.ts';
 import {supplierFieldRootSql} from '../../apps/api/src/supplier-field-sql.ts';
@@ -29,6 +30,7 @@ test('more than 50,000 workspace facts: real SQL narrows candidate/role/source b
   const input={workspaceId:f.ids.workspaceId,personIds:[f.b.id],roleIds:[f.b.role],sourceIds:[f.sourceA,f.sourceB],fieldCode:'role.started_year',visibility:'SELF_SHARED' as const,owner:'ROLE' as const};assert.equal((await store.transaction(tx=>tx.supplierFieldRoots(input))).length,1);
   const plan=await db.$queryRaw(Prisma.sql`EXPLAIN (ANALYZE,BUFFERS,FORMAT JSON) ${supplierFieldRootSql(input)}`);
   const source=await db.sourceRecord.findUniqueOrThrow({where:{id:f.sourceB}});f.ok(await f.owner.cmd('POST','/sources/'+source.id+'/suspend',{expectedRevision:source.revision,reason:'匿名来源撤回，相关专业事实不再命中'}));assert.equal(f.ok(await f.owner.raw('POST','/directory/talents/search',query)).total,0);
-  mkdirSync('artifacts/once-upgrade/p04',{recursive:true});writeFileSync('artifacts/once-upgrade/p04/sql-scale.json',JSON.stringify({status:'PASSED',scope:'50,001 synthetic noise roots plus a narrow target; all PostgreSQL constraints enabled; one caller, no production capacity claim',seedMs:Math.round(started-seed),queryMs:Math.round(queryMs*100)/100,legacy:'FIELD_SEARCH_LIMIT',currentRows:1,total:1,secondPage:0,plan},null,2)+'\n');console.log('PASS narrow query over >50,000 facts; '+Math.round(queryMs)+'ms (single synthetic sample).');
+  const evidence=process.env.ONCE_ACCEPTANCE_EVIDENCE_DIR||'artifacts/once-upgrade/current/postgres';
+  mkdirSync(evidence,{recursive:true});writeFileSync(join(evidence,'sql-scale.json'),JSON.stringify({status:'PASSED',scope:'50,001 synthetic noise roots plus a narrow target; all PostgreSQL constraints enabled; one caller, no production capacity claim',seedMs:Math.round(started-seed),queryMs:Math.round(queryMs*100)/100,legacy:'FIELD_SEARCH_LIMIT',currentRows:1,total:1,secondPage:0,plan},null,2)+'\n');console.log('PASS narrow query over >50,000 facts; '+Math.round(queryMs)+'ms (single synthetic sample).');
  }finally{await store.close();}
 });

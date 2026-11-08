@@ -1,0 +1,40 @@
+{
+  "attempts": [
+    {
+      "log": "../../foundation/attempts/types1.txt",
+      "outcome": "FAILED",
+      "cause": "Initial new dependencies were not installed; description fallback prop type also required correction."
+    },
+    {
+      "log": "../../foundation/attempts/install.txt",
+      "outcome": "INCOMPLETE",
+      "cause": "Initial pnpm invocation prompted without completing installation; subsequent explicit install succeeded."
+    },
+    {
+      "log": "../../foundation/attempts/directory1.txt",
+      "outcome": "FAILED",
+      "cause": "Component runtime inserted styles under strict CSP; detached runtime style cache added."
+    },
+    {
+      "log": "supplier-csp-attempt1.txt",
+      "outcome": "FAILED",
+      "cause": "Full workflow captured six style-src-elem events; static icon mode corrected four."
+    },
+    {
+      "log": "supplier-csp-attempt2.txt",
+      "outcome": "FAILED",
+      "cause": "Two transient table scrollbar styles still violated strict CSP."
+    },
+    {
+      "log": "supplier-csp-diagnostics.txt",
+      "outcome": "FAILED",
+      "cause": "Repeated the two transient violations; live style elements were already removed. Dependency source identified scrollbar measurement; tracked CSP patch removes temporary insertion."
+    },
+    {
+      "log": "directory-paging-attempt1.txt",
+      "outcome": "FAILED",
+      "cause": "Mini pagination overrode the intended 44px touch area; scoped minimum dimensions corrected."
+    }
+  ],
+  "note": "Failures retained; no failed attempt counts as passing final evidence. directory-before-paging contains the prior successful run, separate from the paging failure screenshot."
+}

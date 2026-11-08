@@ -1,0 +1,149 @@
+ WARN  using --force I sure hope you know what you are doing
+Recreating /workspace/once-production-os/node_modules
+Progress: resolved 0, reused 0, downloaded 1, added 0
+Progress: resolved 23, reused 0, downloaded 19, added 0
+Progress: resolved 30, reused 0, downloaded 29, added 0
+Progress: resolved 47, reused 0, downloaded 31, added 0
+Progress: resolved 77, reused 0, downloaded 62, added 0
+Progress: resolved 106, reused 0, downloaded 95, added 0
+Progress: resolved 114, reused 0, downloaded 109, added 0
+Progress: resolved 141, reused 0, downloaded 141, added 0
+Progress: resolved 172, reused 0, downloaded 161, added 0
+Progress: resolved 181, reused 0, downloaded 176, added 0
+Progress: resolved 196, reused 0, downloaded 189, added 0
+Progress: resolved 221, reused 0, downloaded 211, added 0
+Progress: resolved 242, reused 0, downloaded 226, added 0
+Progress: resolved 251, reused 0, downloaded 233, added 0
+Progress: resolved 260, reused 0, downloaded 245, added 0
+Progress: resolved 270, reused 0, downloaded 252, added 0
+Progress: resolved 288, reused 0, downloaded 268, added 0
+Progress: resolved 310, reused 0, downloaded 301, added 0
+Progress: resolved 352, reused 0, downloaded 344, added 0
+Progress: resolved 387, reused 0, downloaded 387, added 0
+Packages: +417
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 417, reused 0, downloaded 417, added 247
+Progress: resolved 417, reused 0, downloaded 417, added 417, done
+.../fs-ext@2.1.1/node_modules/fs-ext install$ node-gyp configure build
+.../node_modules/@prisma/engines postinstall$ node scripts/postinstall.js
+.../esbuild@0.25.12/node_modules/esbuild postinstall$ node install.js
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info it worked if it ends with ok
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info using node-gyp@11.1.0
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info using node@22.22.3 | linux | x64
+.../esbuild@0.25.12/node_modules/esbuild postinstall: Done
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info find Python using Python version 3.12.14 found at "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3"
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp http GET https://nodejs.org/download/release/v22.22.3/node-v22.22.3-headers.tar.gz
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp http 200 https://nodejs.org/download/release/v22.22.3/node-v22.22.3-headers.tar.gz
+.../node_modules/@prisma/engines postinstall: Done
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp http GET https://nodejs.org/download/release/v22.22.3/SHASUMS256.txt
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp http 200 https://nodejs.org/download/release/v22.22.3/SHASUMS256.txt
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args [
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '/tmp/once-upgrade-toolchain/node_modules/pnpm/dist/node_modules/node-gyp/gyp/gyp_main.py',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args 'binding.gyp',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '-f',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args 'make',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '-I',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '/workspace/once-production-os/node_modules/.pnpm/fs-ext@2.1.1/node_modules/fs-ext/build/config.gypi',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '-I',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '/tmp/once-upgrade-toolchain/node_modules/pnpm/dist/node_modules/node-gyp/addon.gypi',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '-I',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '/home/agent/.cache/node-gyp/22.22.3/include/node/common.gypi',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '-Dlibrary=shared_library',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '-Dvisibility=default',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '-Dnode_root_dir=/home/agent/.cache/node-gyp/22.22.3',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '-Dnode_gyp_dir=/tmp/once-upgrade-toolchain/node_modules/pnpm/dist/node_modules/node-gyp',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '-Dnode_lib_file=/home/agent/.cache/node-gyp/22.22.3/<(target_arch)/node.lib',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '-Dmodule_root_dir=/workspace/once-production-os/node_modules/.pnpm/fs-ext@2.1.1/node_modules/fs-ext',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '-Dnode_engine=v8',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '--depth=.',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '--no-parallel',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '--generator-output',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args 'build',
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args '-Goutput_dir=.'
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args ]
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn make
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info spawn args [ 'BUILDTYPE=Release', '-C', 'build' ]
+.../fs-ext@2.1.1/node_modules/fs-ext install: make: Entering directory '/workspace/once-production-os/node_modules/.pnpm/fs-ext@2.1.1/node_modules/fs-ext/build'
+.../fs-ext@2.1.1/node_modules/fs-ext install:   CXX(target) Release/obj.target/fs_ext/fs-ext.o
+.../fs-ext@2.1.1/node_modules/fs-ext install: ../fs-ext.cc: In function ‘Nan::NAN_METHOD_RETURN_TYPE Flock(Nan::NAN_METHOD_ARGS_TYPE)’:
+.../fs-ext@2.1.1/node_modules/fs-ext install: ../fs-ext.cc:357:54: warning: cast between incompatible function types from ‘void (*)(uv_work_t*)’ {aka ‘void (*)(uv_work_s*)’} to ‘uv_after_work_cb’ {aka ‘void (*)(uv_work_s*, int)’} [-Wcast-function-type]
+.../fs-ext@2.1.1/node_modules/fs-ext install:   357 |     uv_queue_work(uv_default_loop(), req, EIO_Flock, (uv_after_work_cb)EIO_After);
+.../fs-ext@2.1.1/node_modules/fs-ext install:       |                                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+.../fs-ext@2.1.1/node_modules/fs-ext install: ../fs-ext.cc: In function ‘Nan::NAN_METHOD_RETURN_TYPE Seek(Nan::NAN_METHOD_ARGS_TYPE)’:
+.../fs-ext@2.1.1/node_modules/fs-ext install: ../fs-ext.cc:427:51: warning: cast between incompatible function types from ‘void (*)(uv_work_t*)’ {aka ‘void (*)(uv_work_s*)’} to ‘uv_after_work_cb’ {aka ‘void (*)(uv_work_s*, int)’} [-Wcast-function-type]
+.../fs-ext@2.1.1/node_modules/fs-ext install:   427 |   uv_queue_work(uv_default_loop(), req, EIO_Seek, (uv_after_work_cb)EIO_After);
+.../fs-ext@2.1.1/node_modules/fs-ext install:       |                                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+.../fs-ext@2.1.1/node_modules/fs-ext install: ../fs-ext.cc: In function ‘Nan::NAN_METHOD_RETURN_TYPE Fcntl(Nan::NAN_METHOD_ARGS_TYPE)’:
+.../fs-ext@2.1.1/node_modules/fs-ext install: ../fs-ext.cc:464:52: warning: cast between incompatible function types from ‘void (*)(uv_work_t*)’ {aka ‘void (*)(uv_work_s*)’} to ‘uv_after_work_cb’ {aka ‘void (*)(uv_work_s*, int)’} [-Wcast-function-type]
+.../fs-ext@2.1.1/node_modules/fs-ext install:   464 |   uv_queue_work(uv_default_loop(), req, EIO_Fcntl, (uv_after_work_cb)EIO_After);
+.../fs-ext@2.1.1/node_modules/fs-ext install:       |                                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+.../fs-ext@2.1.1/node_modules/fs-ext install: ../fs-ext.cc: In function ‘Nan::NAN_METHOD_RETURN_TYPE StatVFS(Nan::NAN_METHOD_ARGS_TYPE)’:
+.../fs-ext@2.1.1/node_modules/fs-ext install: ../fs-ext.cc:514:53: warning: cast between incompatible function types from ‘void (*)(uv_work_t*)’ {aka ‘void (*)(uv_work_s*)’} to ‘uv_after_work_cb’ {aka ‘void (*)(uv_work_s*, int)’} [-Wcast-function-type]
+.../fs-ext@2.1.1/node_modules/fs-ext install:   514 |   uv_queue_work(uv_default_loop(), req, EIO_StatVFS,(uv_after_work_cb)EIO_After);
+.../fs-ext@2.1.1/node_modules/fs-ext install:       |                                                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+.../fs-ext@2.1.1/node_modules/fs-ext install: In file included from ../fs-ext.cc:20:
+.../fs-ext@2.1.1/node_modules/fs-ext install: ../fs-ext.cc: At global scope:
+.../fs-ext@2.1.1/node_modules/fs-ext install: /home/agent/.cache/node-gyp/22.22.3/include/node/node.h:1263:7: warning: cast between incompatible function types from ‘void (*)(v8::Local<v8::Object>, v8::Local<v8::Value>, v8::Local<v8::Context>)’ to ‘node::addon_context_register_func’ {aka ‘void (*)(v8::Local<v8::Object>, v8::Local<v8::Value>, v8::Local<v8::Context>, void*)’} [-Wcast-function-type]
+.../fs-ext@2.1.1/node_modules/fs-ext install:  1263 |       (node::addon_context_register_func) (regfunc),                  \
+.../fs-ext@2.1.1/node_modules/fs-ext install:       |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.../fs-ext@2.1.1/node_modules/fs-ext install: /home/agent/.cache/node-gyp/22.22.3/include/node/node.h:1281:3: note: in expansion of macro ‘NODE_MODULE_CONTEXT_AWARE_X’
+.../fs-ext@2.1.1/node_modules/fs-ext install:  1281 |   NODE_MODULE_CONTEXT_AWARE_X(modname, regfunc, NULL, 0)
+.../fs-ext@2.1.1/node_modules/fs-ext install:       |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+.../fs-ext@2.1.1/node_modules/fs-ext install: /home/agent/.cache/node-gyp/22.22.3/include/node/node.h:1312:3: note: in expansion of macro ‘NODE_MODULE_CONTEXT_AWARE’
+.../fs-ext@2.1.1/node_modules/fs-ext install:  1312 |   NODE_MODULE_CONTEXT_AWARE(NODE_GYP_MODULE_NAME,                     \
+.../fs-ext@2.1.1/node_modules/fs-ext install:       |   ^~~~~~~~~~~~~~~~~~~~~~~~~
+.../fs-ext@2.1.1/node_modules/fs-ext install: ../fs-ext.cc:619:3: note: in expansion of macro ‘NODE_MODULE_INIT’
+.../fs-ext@2.1.1/node_modules/fs-ext install:   619 |   NODE_MODULE_INIT() {
+.../fs-ext@2.1.1/node_modules/fs-ext install:       |   ^~~~~~~~~~~~~~~~
+.../fs-ext@2.1.1/node_modules/fs-ext install:   SOLINK_MODULE(target) Release/obj.target/fs_ext.node
+.../fs-ext@2.1.1/node_modules/fs-ext install:   COPY Release/fs_ext.node
+.../fs-ext@2.1.1/node_modules/fs-ext install: make: Leaving directory '/workspace/once-production-os/node_modules/.pnpm/fs-ext@2.1.1/node_modules/fs-ext/build'
+.../fs-ext@2.1.1/node_modules/fs-ext install: gyp info ok
+.../fs-ext@2.1.1/node_modules/fs-ext install: Done
+.../node_modules/prisma preinstall$ node scripts/preinstall-entry.js
+.../node_modules/prisma preinstall: Done
+.../node_modules/@prisma/client postinstall$ node scripts/postinstall.js
+.../node_modules/@prisma/client postinstall: Environment variables loaded from .env
+.../node_modules/@prisma/client postinstall: Prisma schema loaded from prisma/schema.prisma
+.../node_modules/@prisma/client postinstall: ✔ Generated Prisma Client (v6.19.3) to ./node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.8.3__typescript@5.8.3/node_modules/@prisma/client in 1.72s
+.../node_modules/@prisma/client postinstall: Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+.../node_modules/@prisma/client postinstall: Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+.../node_modules/@prisma/client postinstall: Done
+
+dependencies:
++ @ai-sdk/anthropic 4.0.65
++ @ai-sdk/openai 4.0.78
++ @ai-sdk/openai-compatible 3.0.57
++ @ant-design/icons 6.3.4
++ @ant-design/pro-components 3.1.15-5
++ @nestjs/common 11.2.5
++ @nestjs/core 11.2.5
++ @nestjs/platform-express 11.2.5
++ @prisma/client 6.19.3
++ ai 7.0.118
++ antd 6.6.5 (6.7.0 is available)
++ cos-nodejs-sdk-v5 3.0.0
++ express 5.1.0
++ fs-ext 2.1.1
++ qrcode 1.5.4
++ react 19.1.1
++ react-dom 19.1.1
++ reflect-metadata 0.2.2
++ rxjs 7.8.2
++ sharp 0.35.4
+
+devDependencies:
++ @ant-design/cssinjs 2.1.2
++ @types/express 5.0.3
++ @types/fs-ext 2.0.3
++ @types/node 22.15.30
++ @types/qrcode 1.5.5
++ @types/react 19.1.10
++ @types/react-dom 19.1.9
++ playwright 1.63.0
++ prisma 6.19.3
++ typescript 5.8.3
++ vite 6.4.1
+
+Done in 32.2s using pnpm v10.14.0

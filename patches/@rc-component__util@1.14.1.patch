@@ -1,0 +1,100 @@
+--- a/es/getScrollBarSize.js
++++ b/es/getScrollBarSize.js
+@@ -1,5 +1,4 @@
+ /* eslint-disable no-param-reassign */
+-import { removeCSS, updateCSS } from "./Dom/dynamicCSS";
+ let cached;
+ function measureScrollbarSize(ele) {
+   const randomId = `rc-scrollbar-measure-${Math.random().toString(36).substring(7)}`;
+@@ -23,28 +22,11 @@
+     measureStyle.scrollbarColor = targetStyle.scrollbarColor;
+     measureStyle.scrollbarWidth = targetStyle.scrollbarWidth;
+ 
+-    // Set Webkit style
++    // Strict CSP: measure existing styles without injecting a temporary stylesheet.
++    // Explicit WebKit widths can be read directly; otherwise use the native box.
+     const webkitScrollbarStyle = getComputedStyle(ele, '::-webkit-scrollbar');
+-    const width = parseInt(webkitScrollbarStyle.width, 10);
+-    const height = parseInt(webkitScrollbarStyle.height, 10);
+-
+-    // Try wrap to handle CSP case
+-    try {
+-      const widthStyle = width ? `width: ${webkitScrollbarStyle.width};` : '';
+-      const heightStyle = height ? `height: ${webkitScrollbarStyle.height};` : '';
+-      updateCSS(`
+-#${randomId}::-webkit-scrollbar {
+-${widthStyle}
+-${heightStyle}
+-}`, randomId);
+-    } catch (e) {
+-      // Can't wrap, just log error
+-      console.error(e);
+-
+-      // Get from style directly
+-      fallbackWidth = width;
+-      fallbackHeight = height;
+-    }
++    fallbackWidth = parseInt(webkitScrollbarStyle.width, 10);
++    fallbackHeight = parseInt(webkitScrollbarStyle.height, 10);
+   }
+   document.body.appendChild(measureEle);
+ 
+@@ -54,7 +36,6 @@
+ 
+   // Clean up
+   document.body.removeChild(measureEle);
+-  removeCSS(randomId);
+   return {
+     width: scrollWidth,
+     height: scrollHeight
+--- a/lib/getScrollBarSize.js
++++ b/lib/getScrollBarSize.js
+@@ -5,7 +5,6 @@
+ });
+ exports.default = getScrollBarSize;
+ exports.getTargetScrollBarSize = getTargetScrollBarSize;
+-var _dynamicCSS = require("./Dom/dynamicCSS");
+ /* eslint-disable no-param-reassign */
+ 
+ let cached;
+@@ -31,28 +30,11 @@
+     measureStyle.scrollbarColor = targetStyle.scrollbarColor;
+     measureStyle.scrollbarWidth = targetStyle.scrollbarWidth;
+ 
+-    // Set Webkit style
++    // Strict CSP: measure existing styles without injecting a temporary stylesheet.
++    // Explicit WebKit widths can be read directly; otherwise use the native box.
+     const webkitScrollbarStyle = getComputedStyle(ele, '::-webkit-scrollbar');
+-    const width = parseInt(webkitScrollbarStyle.width, 10);
+-    const height = parseInt(webkitScrollbarStyle.height, 10);
+-
+-    // Try wrap to handle CSP case
+-    try {
+-      const widthStyle = width ? `width: ${webkitScrollbarStyle.width};` : '';
+-      const heightStyle = height ? `height: ${webkitScrollbarStyle.height};` : '';
+-      (0, _dynamicCSS.updateCSS)(`
+-#${randomId}::-webkit-scrollbar {
+-${widthStyle}
+-${heightStyle}
+-}`, randomId);
+-    } catch (e) {
+-      // Can't wrap, just log error
+-      console.error(e);
+-
+-      // Get from style directly
+-      fallbackWidth = width;
+-      fallbackHeight = height;
+-    }
++    fallbackWidth = parseInt(webkitScrollbarStyle.width, 10);
++    fallbackHeight = parseInt(webkitScrollbarStyle.height, 10);
+   }
+   document.body.appendChild(measureEle);
+ 
+@@ -62,7 +44,6 @@
+ 
+   // Clean up
+   document.body.removeChild(measureEle);
+-  (0, _dynamicCSS.removeCSS)(randomId);
+   return {
+     width: scrollWidth,
+     height: scrollHeight

@@ -1,0 +1,8 @@
+[?25l[36m?[39m [1mThe modules directory at "/workspace/once-production-os/node_modules" will be removed and reinstalled from scratch. Proceed?[22m [2m(Y/n)[22m [2m‣[22m [36mtrue[39m[4D
+   ╭──────────────────────────────────────────╮
+   │                                          │
+   │   Update available! 10.14.0 → 12.18.0.   │
+   │   Changelog: https://pnpm.io/v/12.18.0   │
+   │     To update, run: pnpm add -g pnpm     │
+   │                                          │
+   ╰──────────────────────────────────────────╯

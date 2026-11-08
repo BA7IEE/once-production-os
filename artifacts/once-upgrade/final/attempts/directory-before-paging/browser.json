@@ -1,0 +1,13 @@
+{
+  "status": "PASSED",
+  "checks": [
+    "director-card-uses-exact-credited-active-work-and-omits-model-metrics",
+    "photographer-card-uses-actual-specialties-and-one-role-capability-without-director-work",
+    "model-card-keeps-confirmed-measurements-specific-to-casting-context",
+    "explicit-career-and-selection-survive-detail-return",
+    "withdrawn-work-source-removes-summary-cover-and-actual-media-access-while-person-remains",
+    "mobile-career-cards-remain-full-width-with-unclipped-controls",
+    "shared-foundation-has-no-CSP-violations"
+  ],
+  "errors": []
+}

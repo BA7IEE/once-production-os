@@ -1,1 +1,19 @@
 .directory-role-summary{display:grid;gap:8px;margin-top:12px;overflow-wrap:anywhere}.directory-role-summary small{display:block;line-height:1.6}.directory-role-choice{display:grid;gap:6px;padding:12px 16px;color:var(--muted,#64757c);font-size:13px}.directory-role-choice select{min-width:0;width:100%}.directory-card .directory-card-body{overflow-wrap:anywhere}.directory-card .person-card{flex:1}
+
+/* Career controls and long summaries remain inside the card's natural height. */
+.talent-directory .directory-card{display:flex;flex-direction:column}
+.talent-directory .directory-card>.person-card{height:auto;flex:1}
+.talent-directory .directory-count{justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.talent-directory .directory-count .button-row{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px}
+.talent-directory .directory-count button{margin-left:0}
+.talent-directory .directory-list .directory-card{flex-direction:row;flex-wrap:wrap}
+.talent-directory .directory-list .directory-role-choice{flex:0 1 220px}
+@media(max-width:600px){
+ .talent-directory .photo-directory{grid-template-columns:minmax(0,1fr)}
+ .talent-directory .directory-count .button-row{width:100%}
+ .talent-directory .directory-count .button-row>button:first-child{margin-right:auto}
+ .talent-directory .directory-card .directory-cover,.talent-directory .directory-card .directory-cover-placeholder{height:210px}
+ .talent-directory .directory-list .directory-card{flex-direction:column;align-items:stretch}
+ .talent-directory .directory-list .directory-role-choice{flex:auto}
+ .talent-directory .directory-list .directory-card>footer{max-width:none;width:100%;border-top:1px solid var(--line)}
+}

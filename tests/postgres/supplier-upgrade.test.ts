@@ -14,7 +14,7 @@ test('populated migration 75 upgrades forward without changing original data or 
  const db=new PrismaClient({datasources:{db:{url:raw}},log:[]}),temp=registeredTemp();
  try{
   assert.equal((await db.$queryRawUnsafe<any[]>("SELECT tablename FROM pg_tables WHERE schemaname='public'")).length,0);
-  const names=readdirSync('prisma/migrations').filter(n=>/^\d/.test(n)).sort();assert.equal(names[74],'202610030001_business_flow');assert.equal(names.length,78);
+  const names=readdirSync('prisma/migrations').filter(n=>/^\d/.test(n)).sort();assert.equal(names[74],'202610030001_business_flow');assert.equal(names.length,82);
   copyFileSync('prisma/schema.prisma',join(temp.path,'schema.prisma'));mkdirSync(join(temp.path,'migrations'));copyFileSync('prisma/migrations/migration_lock.toml',join(temp.path,'migrations/migration_lock.toml'));
   for(const name of names.slice(0,75)){mkdirSync(join(temp.path,'migrations',name));copyFileSync(join('prisma/migrations',name,'migration.sql'),join(temp.path,'migrations',name,'migration.sql'));}
   const deploy=async(schema:string)=>run('pnpm',['exec','prisma','migrate','deploy','--schema',schema],{env:{...process.env,DATABASE_URL:raw},capture:true,timeout:120000});
@@ -34,7 +34,8 @@ test('populated migration 75 upgrades forward without changing original data or 
   const after=await db.$queryRawUnsafe<any[]>('SELECT * FROM sources');for(const row of before)for(const [key,value] of Object.entries(row))assert.deepEqual(after.find(r=>r.id===row.id)[key],value);
   assert.deepEqual(await db.$queryRawUnsafe('SELECT * FROM people'),people);assert.equal(people[0].id,personId);
   const currentHistory=await db.$queryRawUnsafe<any[]>('SELECT * FROM "sourceHistory"');for(const row of history)for(const [key,value] of Object.entries(row))assert.deepEqual(currentHistory.find(r=>r.id===row.id)[key],value);
-  const migrated=await db.$queryRawUnsafe<any[]>('SELECT migration_name,checksum FROM _prisma_migrations ORDER BY migration_name');assert.deepEqual(migrated.slice(0,75),checksums);
+  const migrated=await db.$queryRawUnsafe<any[]>('SELECT migration_name,checksum FROM _prisma_migrations ORDER BY migration_name');assert.equal(migrated.length,82);assert.deepEqual(migrated.slice(0,75),checksums);
+  for(const delegate of [db.supplierInboxBatch,db.projectRequirement,db.clientPresentation,db.clientVersion,db.clientRecipient,db.clientGuestSession,db.clientFeedback])assert.equal(await delegate.count(),0,'new workflow tables must exist without inventing historical business records');
   assert.equal(await db.dictionaryItem.count({where:{namespace:'role',code:{in:['screenwriter','lighting','colorist','sound','art_director']}}}),5);
   assert.equal((await db.sourceRecord.findUniqueOrThrow({where:{id:sourceId}})).confirmedByTalentId,null);
  }finally{await db.$disconnect();temp.cleanup();}

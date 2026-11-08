@@ -10,7 +10,9 @@ concurrency:
 jobs:
   acceptance:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 35
+    env:
+      ONCE_ACCEPTANCE_EVIDENCE_DIR: artifacts/once-upgrade/current/postgres
     steps:
       - uses: actions/checkout@v6
         with:
@@ -45,14 +47,14 @@ jobs:
       - run: pnpm test:postgres:owned --supplier-scale
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
-      - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/p02/browser pnpm test:postgres:owned --browser-suite supplier-inbox
-      - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/p03/browser pnpm test:postgres:owned --browser-suite supplier-migration
-      - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/p04/browser pnpm test:postgres:owned --browser-suite supplier-directory
-      - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/p05/browser pnpm test:postgres:owned --browser-suite project-selection
-      - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/p06/browser pnpm test:postgres:owned --browser-suite client-presentations
-      - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/supplier-document-batches/browser pnpm test:postgres:owned --browser-suite supplier-library
-      - run: ONCE_ACCEPTANCE_FIELDS=1 ONCE_ACCEPTANCE_UPGRADE=1 ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/p01/browser pnpm test:postgres:owned --browser-suite supplier-library
-      - run: ONCE_ACCEPTANCE_WORK_GROUPING=1 ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/supplier-work-grouping/browser pnpm test:postgres:owned --browser-suite supplier-library
+      - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/current/browser-inbox pnpm test:postgres:owned --browser-suite supplier-inbox
+      - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/current/browser-migration pnpm test:postgres:owned --browser-suite supplier-migration
+      - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/current/browser-directory pnpm test:postgres:owned --browser-suite supplier-directory
+      - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/current/browser-project pnpm test:postgres:owned --browser-suite project-selection
+      - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/current/browser-client pnpm test:postgres:owned --browser-suite client-presentations
+      - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/current/browser-documents pnpm test:postgres:owned --browser-suite supplier-library
+      - run: ONCE_ACCEPTANCE_FIELDS=1 ONCE_ACCEPTANCE_UPGRADE=1 ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/current/browser-fields pnpm test:postgres:owned --browser-suite supplier-library
+      - run: ONCE_ACCEPTANCE_WORK_GROUPING=1 ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/current/browser-work-grouping pnpm test:postgres:owned --browser-suite supplier-library
       - name: Keep synthetic evidence and cleanup records
         if: always()
         uses: actions/upload-artifact@v7
