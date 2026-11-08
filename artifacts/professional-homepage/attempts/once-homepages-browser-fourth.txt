@@ -1,0 +1,18 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite professional-homepages
+
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+TargetClosedError2: "route.fetch: Target page, context or browser has been closed" while running route callback.
+Consider awaiting `await page.unrouteAll({ behavior: 'ignoreErrors' })`
+before the end of the test to ignore remaining routes in flight.
+    at /workspace/once-production-os/tests/acceptance/professional-homepage-scenario.mjs:38:169 {
+  log: []
+}
+
+Node.js v22.22.3
+Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+ ELIFECYCLE  Command failed with exit code 1.

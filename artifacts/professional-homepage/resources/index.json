@@ -1,0 +1,507 @@
+{
+  "scope": "real runs in this feature implementation; no persistent services were removed",
+  "since": "2026-11-08T08:09:27Z",
+  "runs": [
+    {
+      "id": "22c9b94682554542f88b7f4d",
+      "started": "2026-11-08T09:20:10.292Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "37a81fb242c8319c2468f30d",
+      "started": "2026-11-08T09:17:59.695Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "68352f9e17dcc786c9631c64",
+      "started": "2026-11-08T09:06:04.853Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "NOT_RUN",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "857335cc6d5bcf8fe860937d",
+      "started": "2026-11-08T08:38:47.715Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "09d4f3394963d1bfb2e74386",
+      "started": "2026-11-08T09:19:04.539Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "b2676b3a30d7403cbdeb1791",
+      "started": "2026-11-08T08:55:12.375Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "NOT_RUN",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "29b0ac77a12d976b596397bc",
+      "started": "2026-11-08T09:03:30.467Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "43f6c4377c2a132f79a30d3a",
+      "started": "2026-11-08T08:57:14.160Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "8464284e47de4021b64e349d",
+      "started": "2026-11-08T09:08:44.411Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "f4a649a9c12476fa28d87f43",
+      "started": "2026-11-08T09:22:10.168Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": null,
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "74ec0956efd6fea74e2621b7",
+      "started": "2026-11-08T09:27:14.070Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "cb8d4366f3774ecf938a3686",
+      "started": "2026-11-08T09:27:35.488Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "4acc51728799bf6ffaeea524",
+      "started": "2026-11-08T09:21:01.087Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "8a4bb24a6f949e6f3bc57617",
+      "started": "2026-11-08T09:19:46.367Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "0b73522d6e1c952b3ca185cc",
+      "started": "2026-11-08T09:22:17.414Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": null,
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "6a9b0fd21a3501e7d9da93e9",
+      "started": "2026-11-08T09:29:25.390Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "871544634e53b4c9d480c46e",
+      "started": "2026-11-08T08:44:11.976Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "d952b0a281d74d8911ec66fe",
+      "started": "2026-11-08T09:21:34.114Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "9784681e8b8e8dccc387a0ec",
+      "started": "2026-11-08T08:42:47.968Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "19eb2488ac7b527de69cbe02",
+      "started": "2026-11-08T09:28:28.177Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "6e91411bcdb298792b51d058",
+      "started": "2026-11-08T08:45:52.685Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "7389a8a2e5b73a8203523723",
+      "started": "2026-11-08T08:57:33.111Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "fcce6d3933e737764311c978",
+      "started": "2026-11-08T08:37:26.355Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "93bc783ae79c11b15cf5bc9c",
+      "started": "2026-11-08T09:02:30.681Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "7241aa2e31d16355a0634616",
+      "started": "2026-11-08T08:54:38.156Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "987d58a2819a4acbc9e3193f",
+      "started": "2026-11-08T09:19:22.524Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "a56819461c20423519b25092",
+      "started": "2026-11-08T09:22:18.070Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "44536fca94953bdf72f5a55f",
+      "started": "2026-11-08T09:22:10.385Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": null,
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "16c3cc46507eda3729c9c123",
+      "started": "2026-11-08T09:25:46.256Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "037f851513b884a8f025c9ae",
+      "started": "2026-11-08T08:40:49.862Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "10d4dcece78a1ff96261f966",
+      "started": "2026-11-08T09:04:23.286Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL_RECONCILED",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "a9e3e9af8b82e51ac4d60c77",
+      "started": "2026-11-08T09:07:27.710Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "4dff03ec43550e041252ec59",
+      "started": "2026-11-08T08:46:31.630Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "254db97b5cad15ba68009653",
+      "started": "2026-11-08T08:55:24.009Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "fee9dc7e91fc146b5a10f9f4",
+      "started": "2026-11-08T08:40:00.585Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "35df217b9bec4745339e4584",
+      "started": "2026-11-08T08:53:08.698Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "5df64e08f289781e6ac31b74",
+      "started": "2026-11-08T08:56:32.987Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "aa11a4fa63e303c0113260c7",
+      "started": "2026-11-08T09:22:14.034Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": null,
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "9278c7658d1a1c2221bba087",
+      "started": "2026-11-08T09:17:25.239Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "b0bb0f67c718064fc1562307",
+      "started": "2026-11-08T09:09:41.970Z",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    }
+  ]
+}

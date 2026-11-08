@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: homepage: self publishes a whitelisted immutable version, stable URL/QR, draft isolation and explicit unpublish
+ok 1 - homepage: self publishes a whitelisted immutable version, stable URL/QR, draft isolation and explicit unpublish
+  ---
+  duration_ms: 500.000377
+  type: 'test'
+  ...
+# Subtest: homepage: current own account, workspace, SELF grant, exact role, public consent, input whitelist and original receipt
+ok 2 - homepage: current own account, workspace, SELF grant, exact role, public consent, input whitelist and original receipt
+  ---
+  duration_ms: 398.950011
+  type: 'test'
+  ...
+# Subtest: homepage: source withdrawal, asset quarantine, exact credit removal, expired public consent and recovery stop reads
+ok 3 - homepage: source withdrawal, asset quarantine, exact credit removal, expired public consent and recovery stop reads
+  ---
+  duration_ms: 383.79244
+  type: 'test'
+  ...
+# Subtest: homepage: reviewed erasure clears draft and every encrypted publication; immutable ownership is an explicit merge boundary
+ok 4 - homepage: reviewed erasure clears draft and every encrypted publication; immutable ownership is an explicit merge boundary
+  ---
+  duration_ms: 334.291243
+  type: 'test'
+  ...
+# Subtest: homepage: ordinary confirmed text changes wait for republication; separate signals and owner export never become leads
+ok 5 - homepage: ordinary confirmed text changes wait for republication; separate signals and owner export never become leads
+  ---
+  duration_ms: 335.635744
+  type: 'test'
+  ...
+# Subtest: homepage: model parameters are individually selected and known minor records cannot publish
+ok 6 - homepage: model parameters are individually selected and known minor records cannot publish
+  ---
+  duration_ms: 302.692472
+  type: 'test'
+  ...
+# Subtest: homepage: renewed explicit SELF grant can republish at the original address while old versions stay revoked
+ok 7 - homepage: renewed explicit SELF grant can republish at the original address while old versions stay revoked
+  ---
+  duration_ms: 335.626697
+  type: 'test'
+  ...
+# Subtest: homepage: after reviewed erasure a fresh selection gets a new address and cannot revive the erased page
+ok 8 - homepage: after reviewed erasure a fresh selection gets a new address and cannot revive the erased page
+  ---
+  duration_ms: 355.188839
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3446.685936

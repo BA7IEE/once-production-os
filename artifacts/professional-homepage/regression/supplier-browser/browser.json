@@ -1,0 +1,15 @@
+{
+  "status": "PASSED",
+  "providerVerified": "NOT_RUN",
+  "provider": "controlled local notification gateway; local PDF worker; AI off",
+  "checks": [
+    "mobile-workflow-orders-materials-basics-professional-works-and-explicit-final-confirmation",
+    "mobile-self-enrollment-multi-role-encrypted-server-draft",
+    "refresh-before-receipt-readback-reconciles-original-command-without-a-second-plan",
+    "whole-ten-page-PDF-three-durable-batches-survive-page-reload",
+    "real-upload-native-pdf-text-and-photo-extraction-work-case-self-confirmation",
+    "returning-account-loads-current-profile-and-three-mobile-widths",
+    "shared-foundation-and-native-supplier-workflow-have-no-CSP-violations"
+  ],
+  "errors": []
+}

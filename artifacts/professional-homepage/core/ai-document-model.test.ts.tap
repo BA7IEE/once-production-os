@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: document openai-chat sends actual page image bytes and accepts grounded structured works
+ok 1 - document openai-chat sends actual page image bytes and accepts grounded structured works
+  ---
+  duration_ms: 45.689926
+  type: 'test'
+  ...
+# Subtest: document openai-responses sends actual page image bytes and accepts grounded structured works
+ok 2 - document openai-responses sends actual page image bytes and accepts grounded structured works
+  ---
+  duration_ms: 12.909891
+  type: 'test'
+  ...
+# Subtest: document anthropic-messages sends actual page image bytes and accepts grounded structured works
+ok 3 - document anthropic-messages sends actual page image bytes and accepts grounded structured works
+  ---
+  duration_ms: 10.141113
+  type: 'test'
+  ...
+# Subtest: document transport rejects wrong bytes and excessive page batches before sending anything
+ok 4 - document transport rejects wrong bytes and excessive page batches before sending anything
+  ---
+  duration_ms: 1.505835
+  type: 'test'
+  ...
+# Subtest: document responses with fabricated evidence retain usage but cannot become candidates
+ok 5 - document responses with fabricated evidence retain usage but cannot become candidates
+  ---
+  duration_ms: 3.890086
+  type: 'test'
+  ...
+# Subtest: document timeout or provider error does not auto retry and does not expose provider content
+ok 6 - document timeout or provider error does not auto retry and does not expose provider content
+  ---
+  duration_ms: 4.302568
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 356.784795

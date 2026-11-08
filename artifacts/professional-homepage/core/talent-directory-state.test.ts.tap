@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: safe history state persists only strict filters, pagination and person-role IDs, never DTO or secrets
+ok 1 - safe history state persists only strict filters, pagination and person-role IDs, never DTO or secrets
+  ---
+  duration_ms: 2.80175
+  type: 'test'
+  ...
+# Subtest: logout, expiry, different member and same-member new session reject all historic state
+ok 2 - logout, expiry, different member and same-member new session reject all historic state
+  ---
+  duration_ms: 0.643488
+  type: 'test'
+  ...
+# Subtest: role choice may stay pending across pages, but cannot carry arbitrary data or contradict a chosen role
+ok 3 - role choice may stay pending across pages, but cannot carry arbitrary data or contradict a chosen role
+  ---
+  duration_ms: 0.488266
+  type: 'test'
+  ...
+# Subtest: professional applied conditions and unfinished edits survive detail return, history and reload within one identity
+ok 4 - professional applied conditions and unfinished edits survive detail return, history and reload within one identity
+  ---
+  duration_ms: 1.362537
+  type: 'test'
+  ...
+# Subtest: professional history rejects payloads, invalid fields, unbounded values and old versions
+ok 5 - professional history rejects payloads, invalid fields, unbounded values and old versions
+  ---
+  duration_ms: 1.041823
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 118.737418

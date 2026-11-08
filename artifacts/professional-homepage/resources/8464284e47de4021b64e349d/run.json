@@ -1,0 +1,18 @@
+{
+  "simulation": false,
+  "id": "8464284e47de4021b64e349d",
+  "pid": 70327,
+  "started": "2026-11-08T09:08:44.411Z",
+  "containers": [],
+  "networks": [],
+  "temporaryVolumes": [],
+  "status": "ZERO_RESIDUE",
+  "outcome": "PASS",
+  "remaining": {
+    "containers": 0,
+    "processes": 0,
+    "networks": 0,
+    "temporaryVolumes": 0
+  },
+  "finished": "2026-11-08T09:14:48.970Z"
+}

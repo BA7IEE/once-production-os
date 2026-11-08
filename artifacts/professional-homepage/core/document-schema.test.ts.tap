@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: document proposal preserves separate facts, images, work credits and original evidence
+ok 1 - document proposal preserves separate facts, images, work credits and original evidence
+  ---
+  duration_ms: 4.825555
+  type: 'test'
+  ...
+# Subtest: company brochures and shoot briefs cannot become people, credentials, work authorship or supplier portraits
+ok 2 - company brochures and shoot briefs cannot become people, credentials, work authorship or supplier portraits
+  ---
+  duration_ms: 0.819258
+  type: 'test'
+  ...
+# Subtest: AI maps controlled professional fields while preserving career boundaries and rejecting invented or internal terms
+ok 3 - AI maps controlled professional fields while preserving career boundaries and rejecting invented or internal terms
+  ---
+  duration_ms: 3.305339
+  type: 'test'
+  ...
+# Subtest: native AI suggestions preserve explicit units, registered levels and unverified qualification claims
+ok 4 - native AI suggestions preserve explicit units, registered levels and unverified qualification claims
+  ---
+  duration_ms: 3.331621
+  type: 'test'
+  ...
+# Subtest: shape-correct proposals cannot cite unprocessed pages, fabricated quotes or nonexistent images
+ok 5 - shape-correct proposals cannot cite unprocessed pages, fabricated quotes or nonexistent images
+  ---
+  duration_ms: 1.147877
+  type: 'test'
+  ...
+# Subtest: visual text requires a usable location; unsupported dictionary wording stays an explicit unknown
+ok 6 - visual text requires a usable location; unsupported dictionary wording stays an explicit unknown
+  ---
+  duration_ms: 0.287718
+  type: 'test'
+  ...
+# Subtest: typed field values, dictionary codes, region bounds and unique candidate keys are enforced
+ok 7 - typed field values, dictionary codes, region bounds and unique candidate keys are enforced
+  ---
+  duration_ms: 0.88096
+  type: 'test'
+  ...
+# Subtest: partial and failed page coverage cannot be presented as a complete document
+ok 8 - partial and failed page coverage cannot be presented as a complete document
+  ---
+  duration_ms: 0.525417
+  type: 'test'
+  ...
+# Subtest: new document schema does not admit arbitrary nested values or future schema versions
+ok 9 - new document schema does not admit arbitrary nested values or future schema versions
+  ---
+  duration_ms: 0.769529
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 154.352035

@@ -1,0 +1,220 @@
+
+> once-production-os@0.1.0-dev.1 test:lifecycle /workspace/once-production-os
+> node --test --test-concurrency=1 tests/lifecycle/*.test.mjs
+
+TAP version 13
+# Subtest: owned PG PASS reaches cleanup and zero (simulated Docker, no database)
+ok 1 - owned PG PASS reaches cleanup and zero (simulated Docker, no database)
+  ---
+  duration_ms: 106.563544
+  type: 'test'
+  ...
+# Subtest: owned PG FAIL reaches cleanup and zero (simulated Docker, no database)
+ok 2 - owned PG FAIL reaches cleanup and zero (simulated Docker, no database)
+  ---
+  duration_ms: 102.90111
+  type: 'test'
+  ...
+# Subtest: owned PG exception reaches cleanup and zero (simulated Docker, no database)
+ok 3 - owned PG exception reaches cleanup and zero (simulated Docker, no database)
+  ---
+  duration_ms: 102.23915
+  type: 'test'
+  ...
+# Subtest: owned PG timeout reaches cleanup and zero (simulated Docker, no database)
+ok 4 - owned PG timeout reaches cleanup and zero (simulated Docker, no database)
+  ---
+  duration_ms: 102.691897
+  type: 'test'
+  ...
+# Subtest: owned PG SIGINT reaches cleanup and zero (simulated Docker, no database)
+ok 5 - owned PG SIGINT reaches cleanup and zero (simulated Docker, no database)
+  ---
+  duration_ms: 104.748707
+  type: 'test'
+  ...
+# Subtest: owned PG SIGTERM reaches cleanup and zero (simulated Docker, no database)
+ok 6 - owned PG SIGTERM reaches cleanup and zero (simulated Docker, no database)
+  ---
+  duration_ms: 105.508355
+  type: 'test'
+  ...
+# Subtest: owned PG unknown-create reaches cleanup and zero (simulated Docker, no database)
+ok 7 - owned PG unknown-create reaches cleanup and zero (simulated Docker, no database)
+  ---
+  duration_ms: 103.322512
+  type: 'test'
+  ...
+# Subtest: cleanup failure retains lock and reports leak (simulated)
+ok 8 - cleanup failure retains lock and reports leak (simulated)
+  ---
+  duration_ms: 103.595784
+  type: 'test'
+  ...
+# Subtest: resource guard refuses before creating or querying Docker
+ok 9 - resource guard refuses before creating or querying Docker
+  ---
+  duration_ms: 102.397802
+  type: 'test'
+  ...
+# Subtest: unknown CI browser cannot create resources or execute an arbitrary file
+ok 10 - unknown CI browser cannot create resources or execute an arbitrary file
+  ---
+  duration_ms: 102.354712
+  type: 'test'
+  ...
+# Subtest: unknown Docker create with no observed container is not falsely certified zero
+ok 11 - unknown Docker create with no observed container is not falsely certified zero
+  ---
+  duration_ms: 104.950854
+  type: 'test'
+  ...
+# Subtest: verification success cannot become PASS when final cleanup fails
+ok 12 - verification success cannot become PASS when final cleanup fails
+  ---
+  duration_ms: 105.194456
+  type: 'test'
+  ...
+# Subtest: observed --rm container success reply waits for verified async disappearance (simulated)
+ok 13 - observed --rm container success reply waits for verified async disappearance (simulated)
+  ---
+  duration_ms: 303.941657
+  type: 'test'
+  ...
+# Subtest: observed --rm container unknown reply waits for verified async disappearance (simulated)
+ok 14 - observed --rm container unknown reply waits for verified async disappearance (simulated)
+  ---
+  duration_ms: 305.829523
+  type: 'test'
+  ...
+# FAIL first; verified zero residue, continuing the next independent suite.
+# {"baseline":"second","containers":0,"processes":0}
+# Subtest: independent failure continues only after cleanup and still fails the sequence
+ok 15 - independent failure continues only after cleanup and still fails the sequence
+  ---
+  duration_ms: 3.289914
+  type: 'test'
+  ...
+# Subtest: sequence stops after CLEANUP_FAILED, never launches another suite
+ok 16 - sequence stops after CLEANUP_FAILED, never launches another suite
+  ---
+  duration_ms: 0.365965
+  type: 'test'
+  ...
+# Subtest: sequence stops after NOT_RUN, never launches another suite
+ok 17 - sequence stops after NOT_RUN, never launches another suite
+  ---
+  duration_ms: 0.183484
+  type: 'test'
+  ...
+# Subtest: sequence stops after INTERRUPTED, never launches another suite
+ok 18 - sequence stops after INTERRUPTED, never launches another suite
+  ---
+  duration_ms: 0.151764
+  type: 'test'
+  ...
+# Subtest: isolated Linux Actions accepts local Docker without macOS sysctl
+ok 19 - isolated Linux Actions accepts local Docker without macOS sysctl
+  ---
+  duration_ms: 0.802353
+  type: 'test'
+  ...
+# Subtest: a Linux CI claim needs Actions and a local Unix Docker endpoint
+ok 20 - a Linux CI claim needs Actions and a local Unix Docker endpoint
+  ---
+  duration_ms: 0.329193
+  type: 'test'
+  ...
+# Subtest: Actions variables never bypass shared Mac pressure or Swap gates
+ok 21 - Actions variables never bypass shared Mac pressure or Swap gates
+  ---
+  duration_ms: 1.777193
+  type: 'test'
+  ...
+# Subtest: managed Linux requires finite cgroup headroom and real swap bounds
+ok 22 - managed Linux requires finite cgroup headroom and real swap bounds
+  ---
+  duration_ms: 0.465697
+  type: 'test'
+  ...
+# Subtest: browser launch with no exposed PID is UNKNOWN and retains the owned run lock (simulated browser and Docker)
+ok 23 - browser launch with no exposed PID is UNKNOWN and retains the owned run lock (simulated browser and Docker)
+  ---
+  duration_ms: 109.621326
+  type: 'test'
+  ...
+# Subtest: short browser temp remains journal-owned and cleanup rejects a substituted path
+ok 24 - short browser temp remains journal-owned and cleanup rejects a substituted path
+  ---
+  duration_ms: 207.810389
+  type: 'test'
+  ...
+# Subtest: nested temporary migration files are registered and reclaimed after child failure
+ok 25 - nested temporary migration files are registered and reclaimed after child failure
+  ---
+  duration_ms: 165.087469
+  type: 'test'
+  ...
+# Subtest: success and failure are distinguished
+ok 26 - success and failure are distinguished
+  ---
+  duration_ms: 63.806777
+  type: 'test'
+  ...
+# Subtest: timeout kills an uncooperative child
+ok 27 - timeout kills an uncooperative child
+  ---
+  duration_ms: 3117.854837
+  type: 'test'
+  ...
+# Subtest: parent SIGINT terminates child and reports failure
+ok 28 - parent SIGINT terminates child and reports failure
+  ---
+  duration_ms: 102.987834
+  type: 'test'
+  ...
+# Subtest: parent SIGTERM terminates child and reports failure
+ok 29 - parent SIGTERM terminates child and reports failure
+  ---
+  duration_ms: 115.077751
+  type: 'test'
+  ...
+# Subtest: descendants are killed after leader exits
+ok 30 - descendants are killed after leader exits
+  ---
+  duration_ms: 173.91788
+  type: 'test'
+  ...
+# Subtest: spawn exception and pre-aborted task create no live child
+ok 31 - spawn exception and pre-aborted task create no live child
+  ---
+  duration_ms: 2.889458
+  type: 'test'
+  ...
+# Subtest: leader exit with inherited pipes reclaims descendant promptly
+ok 32 - leader exit with inherited pipes reclaims descendant promptly
+  ---
+  duration_ms: 62.160918
+  type: 'test'
+  ...
+# Subtest: nested supervisor cancellation reclaims registered independent groups
+ok 33 - nested supervisor cancellation reclaims registered independent groups
+  ---
+  duration_ms: 3379.223929
+  type: 'test'
+  ...
+# Subtest: successful nested supervisor does not kill its ancestor
+ok 34 - successful nested supervisor does not kill its ancestor
+  ---
+  duration_ms: 188.150387
+  type: 'test'
+  ...
+1..34
+# tests 34
+# suites 0
+# pass 34
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10100.335312

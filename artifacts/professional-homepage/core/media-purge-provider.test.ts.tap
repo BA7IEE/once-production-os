@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: PR03E local exact immutable deletion, missing is idempotent
+ok 1 - PR03E local exact immutable deletion, missing is idempotent
+  ---
+  duration_ms: 25.138505
+  type: 'test'
+  ...
+# Subtest: PR03E local mismatch, symlink and path escape reject without touching target
+ok 2 - PR03E local mismatch, symlink and path escape reject without touching target
+  ---
+  duration_ms: 9.34793
+  type: 'test'
+  ...
+# Subtest: PR03E controlled COS success
+ok 3 - PR03E controlled COS success
+  ---
+  duration_ms: 7.019001
+  type: 'test'
+  ...
+# Subtest: PR03E controlled COS 404
+ok 4 - PR03E controlled COS 404
+  ---
+  duration_ms: 9.142809
+  type: 'test'
+  ...
+# Subtest: PR03E controlled COS unknown
+ok 5 - PR03E controlled COS unknown
+  ---
+  duration_ms: 9.214704
+  type: 'test'
+  ...
+# Subtest: PR03E controlled COS redirect
+ok 6 - PR03E controlled COS redirect
+  ---
+  duration_ms: 3.782271
+  type: 'test'
+  ...
+# Subtest: PR03E controlled COS identity
+ok 7 - PR03E controlled COS identity
+  ---
+  duration_ms: 6.112737
+  type: 'test'
+  ...
+# Subtest: PR03E exclusive upload namespace removes bounded abandoned copies but rejects unknown names
+ok 8 - PR03E exclusive upload namespace removes bounded abandoned copies but rejects unknown names
+  ---
+  duration_ms: 10.231244
+  type: 'test'
+  ...
+# Subtest: PR03E COS exclusive namespace rejects redirect and unknown keys before deletion
+ok 9 - PR03E COS exclusive namespace rejects redirect and unknown keys before deletion
+  ---
+  duration_ms: 10.876826
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 328.335849

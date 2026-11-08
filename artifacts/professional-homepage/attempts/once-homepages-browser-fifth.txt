@@ -1,0 +1,6 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite professional-homepages
+
+Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+ ELIFECYCLE  Command failed with exit code 1.

@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: SDK openai-chat uses the configured endpoint/model/key and returns normalized usage
+ok 1 - SDK openai-chat uses the configured endpoint/model/key and returns normalized usage
+  ---
+  duration_ms: 86.560225
+  type: 'test'
+  ...
+# Subtest: SDK openai-responses uses the configured endpoint/model/key and returns normalized usage
+ok 2 - SDK openai-responses uses the configured endpoint/model/key and returns normalized usage
+  ---
+  duration_ms: 39.923681
+  type: 'test'
+  ...
+# Subtest: SDK anthropic-messages uses the configured endpoint/model/key and returns normalized usage
+ok 3 - SDK anthropic-messages uses the configured endpoint/model/key and returns normalized usage
+  ---
+  duration_ms: 24.418531
+  type: 'test'
+  ...
+# Subtest: missing usage remains unknown; malformed suggestions retain returned usage
+ok 4 - missing usage remains unknown; malformed suggestions retain returned usage
+  ---
+  duration_ms: 18.824758
+  type: 'test'
+  ...
+# Subtest: HTTP throttling and provider errors never retry or expose raw error bodies
+ok 5 - HTTP throttling and provider errors never retry or expose raw error bodies
+  ---
+  duration_ms: 7.255982
+  type: 'test'
+  ...
+# Subtest: expired and cancelled requests are rejected before HTTP; in-flight abort propagates
+ok 6 - expired and cancelled requests are rejected before HTTP; in-flight abort propagates
+  ---
+  duration_ms: 3.28528
+  type: 'test'
+  ...
+# Subtest: untrusted configuration and oversized provider responses are rejected
+ok 7 - untrusted configuration and oversized provider responses are rejected
+  ---
+  duration_ms: 4.374353
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 492.839057

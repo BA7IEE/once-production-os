@@ -1,0 +1,76 @@
+TAP version 13
+# Subtest: every replacement needs its own role-specific answer and invalid batches leave facts, exposure and person unchanged
+ok 1 - every replacement needs its own role-specific answer and invalid batches leave facts, exposure and person unchanged
+  ---
+  duration_ms: 311.082408
+  type: 'test'
+  ...
+# Subtest: replacement rejects withdrawn source without retiring current facts or changing exposure
+ok 2 - replacement rejects withdrawn source without retiring current facts or changing exposure
+  ---
+  duration_ms: 246.674111
+  type: 'test'
+  ...
+# Subtest: dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person
+ok 3 - dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person
+  ---
+  duration_ms: 244.78773
+  type: 'test'
+  ...
+# Subtest: published catalogs preserve old drafts and reject type reinterpretation and deleted option codes
+ok 4 - published catalogs preserve old drafts and reject type reinterpretation and deleted option codes
+  ---
+  duration_ms: 281.048441
+  type: 'test'
+  ...
+# Subtest: ONCE corrections update explicitly shared professional facts and fence stale self drafts
+ok 5 - ONCE corrections update explicitly shared professional facts and fence stale self drafts
+  ---
+  duration_ms: 270.830627
+  type: 'test'
+  ...
+# Subtest: new fields reject cross-role data, invented options, fake dates and empty multi selections
+ok 6 - new fields reject cross-role data, invented options, fake dates and empty multi selections
+  ---
+  duration_ms: 239.61009
+  type: 'test'
+  ...
+# Subtest: confirmation audit failure rolls professional facts and choices back with the rest of the profile
+ok 7 - confirmation audit failure rolls professional facts and choices back with the rest of the profile
+  ---
+  duration_ms: 222.988372
+  type: 'test'
+  ...
+# Subtest: structured tag search supports ANY and ALL on the same role, with no missing-as-negative or private source leakage
+ok 8 - structured tag search supports ANY and ALL on the same role, with no missing-as-negative or private source leakage
+  ---
+  duration_ms: 278.524979
+  type: 'test'
+  ...
+# Subtest: native professional details reuse capability, credential, translation and dated measurement tables
+ok 9 - native professional details reuse capability, credential, translation and dated measurement tables
+  ---
+  duration_ms: 246.260246
+  type: 'test'
+  ...
+# Subtest: catalogs and typed fields participate in recovery integrity and explicit person cleanup
+ok 10 - catalogs and typed fields participate in recovery integrity and explicit person cleanup
+  ---
+  duration_ms: 235.041818
+  type: 'test'
+  ...
+# Subtest: a source holding only new professional facts receives a complete deletion plan and cleans without deleting the Person
+ok 11 - a source holding only new professional facts receives a complete deletion plan and cleans without deleting the Person
+  ---
+  duration_ms: 286.872289
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3333.781149

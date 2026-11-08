@@ -1,0 +1,21 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite professional-homepages
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.selectOption: Timeout 20000ms exceeded.
+Call log:
+[2m  - waiting for getByLabel('公开常驻城市', { exact: true })[22m
+
+    at browserHomepageScenario (/workspace/once-production-os/tests/acceptance/professional-homepage-scenario.mjs:31:117)
+    at async file:///workspace/once-production-os/tests/acceptance/browser-professional-homepages.mjs:46:2 {
+  log: [ "  - waiting for getByLabel('公开常驻城市', { exact: true })" ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.22.3
+Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+ ELIFECYCLE  Command failed with exit code 1.
