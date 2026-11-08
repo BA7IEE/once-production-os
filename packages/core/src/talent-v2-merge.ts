@@ -116,7 +116,7 @@ export async function scanTalentMerge(tx: Tx, actor: Actor, clock: Clock, canoni
     const shortlistEndpoints: unknown[]=[];
     for(const row of professionalShortlists) {
         try {
-            shortlistEndpoints.push(await shortlistFor(tx,actor,String(row.shortlistId)));
+            shortlistEndpoints.push(await shortlistFor(tx,actor,String(row.shortlistId),clock));
             if(row.workId)shortlistEndpoints.push(await workFor(tx,actor,String(row.workId),clock));
             const links=(await tx.find('shortlistItemAssets',{workspaceId:actor.workspaceId,itemId:row.id})).sort((a,b)=>a.id.localeCompare(b.id));
             if(links.length&&!actor.permissions.includes('assets.read'))blockers.add('TD2_MERGE_HIDDEN_DEPENDENCY');

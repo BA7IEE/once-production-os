@@ -186,13 +186,14 @@ export class Exports {
         invariant((projectIds.length > 0) === (projectFields.length > 0), 'EXPORT_FIELDS_REQUIRED', '项目选择与项目字段必须同时存在', 422);
         invariant(!d.fields.includes('media.identity') || workIds.length > 0, 'EXPORT_MEDIA_REQUIRES_WORK', '媒体身份清单只能随已选作品导出', 422);
 
+        for(const id of projectIds){await projectFor(tx,actor,id,this.clock);invariant(!(await tx.find('projectRequirements',{workspaceId:actor.workspaceId,projectId:id})).some(r=>r.status!=='ERASED')&&!(await tx.find('shortlists',{workspaceId:actor.workspaceId,projectId:id})).length,'PROJECT_SELECTION_EXPORT_UNSUPPORTED','当前业务迁移格式不能完整表达项目岗位与候选条件，请保留数据库备份；禁止静默遗漏这些资料',409);}
         const permissions: UsePermission[] = [];
         for (const id of d.usePermissionRefs) permissions.push(await this.permissionFor(tx, actor, id));
         const used = new Set<string>(), sources = new Map<string, Source>(), dependencies: ExportDependency[] = [];
         const people: Person[] = [], works = [], projects = [];
         for (const id of peopleIds) { const row = await personFor(tx, actor, id, this.clock); people.push(row);const origin=await sourceFor(tx,actor,row.sourceId,this.clock,false,true);sources.set(row.sourceId,origin.status==='ERASED'?origin:await sourceFor(tx,actor,row.sourceId,this.clock)); }
         for (const id of workIds) { const row = await workFor(tx, actor, id, this.clock); works.push(row); sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock)); }
-        for (const id of projectIds) { const row = await projectFor(tx, actor, id, this.clock); projects.push(row); sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock)); }
+        for (const id of projectIds) { const row = await projectFor(tx, actor, id, this.clock);  projects.push(row); sources.set(row.sourceId, await sourceFor(tx, actor, row.sourceId, this.clock)); }
 
         const localeBundle=await collectLocaleTransfer(tx,actor,this.clock,{people:peopleIds,works:workIds,projects:projectIds},d.fields);
         const locales=d.fields.some(isLocaleCode)?localeBundle:null;

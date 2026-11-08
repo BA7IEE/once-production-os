@@ -1,4 +1,4 @@
-import {visibleOrNull} from './production-policy.ts';
+import {projectFor,visibleOrNull} from './production-policy.ts';
 import {currentIdentity} from './talent-maintenance-policy.ts';
 import {exactCreditCurrent} from './talent-work-cases.ts';
 import { loadTalentGraph, td2PersonFor } from './talent-v2-graph.ts';
@@ -14,16 +14,17 @@ import { base, cas, page, patchDefined, touch, workspaceRow } from './helpers.ts
 import { personFor, requirePermission, requireScope, sourceFor } from './policy.ts';
 import { readyAsset, workFor, workHeader } from './production-policy.ts';
 
-export async function shortlistFor(tx: Tx, actor: Actor, id: string): Promise<Shortlist> {
+export async function shortlistFor(tx: Tx, actor: Actor, id: string, clock:Clock={now:()=>new Date()}): Promise<Shortlist> {
     const row = await workspaceRow(tx, 'shortlists', id, actor.workspaceId);
     if (!row)
         missing();
     await requireScope(tx, actor, row.scopeId);
+    if(row.projectId)await projectFor(tx,actor,row.projectId,clock);
     return row;
 }
 
 function header(row: Shortlist) {
-    return { id: row.id, title: row.title, brief: row.brief, scopeId: row.scopeId, maintainerId: row.maintainerId,
+    return { projectId:row.projectId??null, id: row.id, title: row.title, brief: row.brief, scopeId: row.scopeId, maintainerId: row.maintainerId,
         revision: row.revision, createdAt: row.createdAt, updatedAt: row.updatedAt };
 }
 
@@ -57,7 +58,8 @@ export class Shortlists {
         requirePermission(actor, 'records.write');
         const d = S.create.parse(input);
         await requireScope(tx, actor, d.scopeId);
-        const row: Shortlist = { ...base(actor.workspaceId, this.clock), scopeId: d.scopeId, maintainerId: actor.membershipId,
+        if(d.projectId){const p=await projectFor(tx,actor,d.projectId,this.clock);invariant(p.status!=='ARCHIVED'&&p.scopeId===d.scopeId,'PROJECT_LIST_SCOPE_MISMATCH','请选择同一访问范围内的可编辑项目',422);}
+        const row: Shortlist = { ...base(actor.workspaceId, this.clock),projectId:d.projectId??null, scopeId: d.scopeId, maintainerId: actor.membershipId,
             title: d.title.trim(), brief: d.brief ?? '' };
         invariant(row.title.length > 0, 'TITLE_REQUIRED', '候选清单标题不能为空', 422);
         await tx.insert('shortlists', row);
@@ -66,7 +68,7 @@ export class Shortlists {
 
     async update(tx: Tx, actor: Actor, id: string, input: unknown): Promise<Shortlist> {
         requirePermission(actor, 'records.write');
-        const d = S.patch.parse(input), row = await shortlistFor(tx, actor, id);
+        const d = S.patch.parse(input), row = await shortlistFor(tx, actor, id,this.clock);
         cas(row, d.expectedRevision);
         invariant(Object.keys(d).length > 1, 'EMPTY_UPDATE', '没有需要保存的修改', 400);
         const { expectedRevision: _, ...patch } = d;
@@ -79,25 +81,26 @@ export class Shortlists {
 
     async list(tx: Tx, actor: Actor, query: Record<string, string>) {
         requirePermission(actor, 'records.read');
-        page([], query, ['q']);
+        page([], query, ['q','projectId']);if(query.projectId) {const {uuid}=await import('./validation.ts');uuid.parse(query.projectId);await projectFor(tx,actor,query.projectId,this.clock);}
         invariant((query.q?.length ?? 0) <= 160, 'QUERY_INVALID', '关键词过长', 400);
         const q = query.q?.toLocaleLowerCase() ?? '';
         const rows = [];
         for (const row of await tx.find('shortlists', { workspaceId: actor.workspaceId })) {
             try {
-                await requireScope(tx, actor, row.scopeId);
+                await shortlistFor(tx, actor, row.id,this.clock);
             }
             catch (e) {
                 if (unavailable(e))
                     continue;
                 throw e;
             }
+            if(query.projectId&&row.projectId!==query.projectId)continue;
             if (q && ![row.title, row.brief].some(v => v.toLocaleLowerCase().includes(q)))
                 continue;
             rows.push(header(row));
         }
         rows.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.id.localeCompare(b.id));
-        return page(rows, query, ['q']);
+        return page(rows, query, ['q','projectId']);
     }
 
     private async visibleItem(tx: Tx, actor: Actor, item: ShortlistItem) {
@@ -164,7 +167,7 @@ export class Shortlists {
 
     async get(tx: Tx, actor: Actor, id: string) {
         requirePermission(actor, 'records.read');
-        const row = await shortlistFor(tx, actor, id);
+        const row = await shortlistFor(tx, actor, id,this.clock);
         const items = [];
         for (const item of (await tx.find('shortlistItems', { workspaceId: actor.workspaceId, shortlistId: id })).sort((a, b) => a.position - b.position))
             items.push(await this.visibleItem(tx, actor, item));
@@ -173,7 +176,7 @@ export class Shortlists {
 
     private async edit(tx: Tx, actor: Actor, id: string, expectedRevision: number) {
         requirePermission(actor, 'records.write');
-        const row = await shortlistFor(tx, actor, id);
+        const row = await shortlistFor(tx, actor, id,this.clock);
         cas(row, expectedRevision);
         return row;
     }

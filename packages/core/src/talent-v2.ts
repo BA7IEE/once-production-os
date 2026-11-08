@@ -74,7 +74,7 @@ export class TalentV2 {
         const legacyCandidates=(await tx.find('shortlistItems',{workspaceId:actor.workspaceId,personId:id})).filter(item=>!item.personRoleId);
         invariant(legacyCandidates.length<=500,'TALENT_ENROLL_DEPENDENCY_LIMIT','现有候选关系超过单次升级上限，需要先核对',409);
         const candidateLists=new Map<string,TableMap['shortlists']>();
-        for(const item of legacyCandidates)if(!candidateLists.has(item.shortlistId))candidateLists.set(item.shortlistId,await shortlistFor(tx,actor,item.shortlistId));
+        for(const item of legacyCandidates)if(!candidateLists.has(item.shortlistId))candidateLists.set(item.shortlistId,await shortlistFor(tx,actor,item.shortlistId,this.clock));
         await tx.insert('talentProfiles',{...base(actor.workspaceId,this.clock),personId:id,sourceId:p.sourceId,...PROFILE_DEFAULTS,internalSummary:'',status:'ACTIVE'});
         for(const roleCode of p.roles)await tx.insert('personRoles',{...base(actor.workspaceId,this.clock),personId:id,sourceId:p.sourceId,...ROLE_DEFAULTS,roleCode,validFrom:null,validUntil:null,status:'ACTIVE'});
         for(const languageCode of p.languageCodes)await tx.insert('personLanguages',{...base(actor.workspaceId,this.clock),personId:id,sourceId:p.sourceId,languageCode,speakingLevelCode:null,listeningLevelCode:null,readingLevelCode:null,writingLevelCode:null,verifiedAt:null,validFrom:null,validUntil:null,status:'ACTIVE'});

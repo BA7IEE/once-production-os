@@ -226,6 +226,14 @@ export interface Inputs {
   "work.creditAdd": { "expectedRevision": number; "personId": string; "roleCode": string; "note": string };
   "work.creditUpgrade": { "expectedRevision": number; "creditId": string; "expectedCreditRevision": number; "personRoleId": string; "expectedRoleRevision": number; "sourceId": string; "sourceRevision": number };
   "work.creditRemove": { "expectedRevision": number; "entryId": string };
+  "project.requirements": undefined;
+  "project.requirementSave": { "expectedRevision": number; "requirementId"?: string; "expectedRequirementRevision"?: number; "roleCode": string; "headcount": number; "locationCodes": Array<string>; "startsOn": string | null; "endsOn": string | null; "dateNote": string; "taskNote": string; "necessary": { "professional"?: { "roleCode"?: string; "fields": Array<{ "fieldCode": string; "state"?: "KNOWN" | "DECLARED_NONE" | "UNKNOWN" | "NOT_PROVIDED"; "match"?: "ANY" | "ALL"; "codes"?: Array<string>; "min"?: number; "max"?: number; "from"?: string; "until"?: string; "boolean"?: boolean }>; "capabilities"?: Array<{ "capabilityCode": string; "minLevel"?: "BASIC" | "WORKING" | "PROFESSIONAL" }> }; "q"?: string; "mode"?: "ALL" | "TALENT" | "CONTACT"; "role"?: string | Array<string>; "gender"?: "FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | "UNKNOWN" | Array<"FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | "UNKNOWN">; "nationality"?: string | Array<string>; "market"?: "DOMESTIC" | "INTERNATIONAL" | "UNCLASSIFIED" | Array<"DOMESTIC" | "INTERNATIONAL" | "UNCLASSIFIED">; "experience"?: "AMATEUR" | "PROFESSIONAL" | "UNSPECIFIED" | Array<"AMATEUR" | "PROFESSIONAL" | "UNSPECIFIED">; "style"?: string | Array<string>; "service"?: string | Array<string>; "location"?: string | Array<string>; "language"?: string | Array<string>; "industryCode"?: string | Array<string>; "workTypeCode"?: string | Array<string>; "status"?: "DRAFT" | "ACTIVE" | "ARCHIVED"; "ageMin"?: number; "ageMax"?: number; "ageUnknown"?: boolean; "heightMin"?: number; "heightMax"?: number; "page"?: number; "pageSize"?: number }; "preferred": { "professional"?: { "roleCode"?: string; "fields": Array<{ "fieldCode": string; "state"?: "KNOWN" | "DECLARED_NONE" | "UNKNOWN" | "NOT_PROVIDED"; "match"?: "ANY" | "ALL"; "codes"?: Array<string>; "min"?: number; "max"?: number; "from"?: string; "until"?: string; "boolean"?: boolean }>; "capabilities"?: Array<{ "capabilityCode": string; "minLevel"?: "BASIC" | "WORKING" | "PROFESSIONAL" }> }; "q"?: string; "mode"?: "ALL" | "TALENT" | "CONTACT"; "role"?: string | Array<string>; "gender"?: "FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | "UNKNOWN" | Array<"FEMALE" | "MALE" | "NON_BINARY" | "OTHER" | "UNKNOWN">; "nationality"?: string | Array<string>; "market"?: "DOMESTIC" | "INTERNATIONAL" | "UNCLASSIFIED" | Array<"DOMESTIC" | "INTERNATIONAL" | "UNCLASSIFIED">; "experience"?: "AMATEUR" | "PROFESSIONAL" | "UNSPECIFIED" | Array<"AMATEUR" | "PROFESSIONAL" | "UNSPECIFIED">; "style"?: string | Array<string>; "service"?: string | Array<string>; "location"?: string | Array<string>; "language"?: string | Array<string>; "industryCode"?: string | Array<string>; "workTypeCode"?: string | Array<string>; "status"?: "DRAFT" | "ACTIVE" | "ARCHIVED"; "ageMin"?: number; "ageMax"?: number; "ageUnknown"?: boolean; "heightMin"?: number; "heightMax"?: number; "page"?: number; "pageSize"?: number }; "questions": Array<string>; "status": "ACTIVE" | "ARCHIVED" };
+  "project.candidateSearch": { "requirementId": string; "expectedRequirementRevision": number; "page"?: number; "pageSize"?: number };
+  "shortlist.nominate": { "expectedRevision": number; "requirementId": string; "expectedRequirementRevision": number; "personId": string; "personRoleId": string; "personRoleRevision": number; "workId"?: string; "workAssetIds": Array<string>; "recommendation": string };
+  "shortlist.projectLink": { "expectedRevision": number; "projectId": string | null };
+  "shortlist.selectionContext": undefined;
+  "shortlist.selectionSave": { "expectedRevision": number; "entryId": string; "expectedItemRevision": number; "requirementId": string; "expectedRequirementRevision": number; "recommendation": string; "questions": Array<string>; "outcome": "PENDING" | "SELECTED" | "DECLINED"; "price"?: { "amountMinor": number; "currency": "CNY" | "USD" | "EUR" | "HKD"; "unit": "DAY" | "PROJECT" | "HOUR"; "scope": string; "confirmed": "CONFIRMED_FOR_THIS_REQUIREMENT" } | null; "availability"?: { "startsOn": string; "endsOn": string; "state": "AVAILABLE" | "UNAVAILABLE" | "TENTATIVE"; "note": string; "confirmed": "CONFIRMED_FOR_THIS_REQUIREMENT" } | null };
+  "shortlist.selectionClear": { "expectedRevision": number; "entryId": string; "expectedItemRevision": number; "acknowledge": "CLEAR_THIS_REQUIREMENT_CONFIRMATIONS" };
   "project.list": undefined;
   "project.create": { "title": string; "sourceId"?: string; "inlineSource"?: { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string }; "brief"?: string; "locationNote"?: string; "dateNote"?: string };
   "project.get": undefined;
@@ -330,7 +338,7 @@ export interface Inputs {
   "export.download": {  };
   "talent.search": undefined;
   "shortlist.list": undefined;
-  "shortlist.create": { "title": string; "brief"?: string; "scopeId": string };
+  "shortlist.create": { "title": string; "brief"?: string; "projectId"?: string; "scopeId": string };
   "shortlist.get": undefined;
   "shortlist.update": { "expectedRevision": number; "title"?: string; "brief"?: string };
   "shortlist.itemAdd": { "expectedRevision": number; "personId": string; "personRoleId"?: string; "personRoleRevision"?: number; "workId"?: string; "workAssetIds": Array<string>; "note": string };
@@ -1469,6 +1477,46 @@ export const ENDPOINTS = {
   "work.creditRemove": {
     "method": "POST",
     "path": "/works/{id}/credits/remove",
+    "mode": "COMMAND"
+  },
+  "project.requirements": {
+    "method": "GET",
+    "path": "/projects/{id}/requirements",
+    "mode": "READ"
+  },
+  "project.requirementSave": {
+    "method": "POST",
+    "path": "/projects/{id}/requirements",
+    "mode": "COMMAND"
+  },
+  "project.candidateSearch": {
+    "method": "POST",
+    "path": "/projects/{id}/candidates/search",
+    "mode": "READ"
+  },
+  "shortlist.nominate": {
+    "method": "POST",
+    "path": "/shortlists/{id}/nominate",
+    "mode": "COMMAND"
+  },
+  "shortlist.projectLink": {
+    "method": "POST",
+    "path": "/shortlists/{id}/project",
+    "mode": "COMMAND"
+  },
+  "shortlist.selectionContext": {
+    "method": "GET",
+    "path": "/shortlists/{id}/selection",
+    "mode": "READ"
+  },
+  "shortlist.selectionSave": {
+    "method": "POST",
+    "path": "/shortlists/{id}/selection",
+    "mode": "COMMAND"
+  },
+  "shortlist.selectionClear": {
+    "method": "POST",
+    "path": "/shortlists/{id}/selection/clear",
     "mode": "COMMAND"
   },
   "project.list": {

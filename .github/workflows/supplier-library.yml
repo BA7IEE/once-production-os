@@ -35,6 +35,7 @@ jobs:
       - run: pnpm test:postgres:owned --supplier-fields
       - run: pnpm test:postgres:owned --supplier-inbox
       - run: pnpm test:postgres:owned --supplier-migration
+      - run: pnpm test:postgres:owned --project-selection
       - run: pnpm test:postgres:owned --supplier-directory
       - run: pnpm test:postgres:owned --supplier-library
       - run: pnpm test:postgres:owned --supplier-document-batches
@@ -46,6 +47,7 @@ jobs:
       - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/p02/browser pnpm test:postgres:owned --browser-suite supplier-inbox
       - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/p03/browser pnpm test:postgres:owned --browser-suite supplier-migration
       - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/p04/browser pnpm test:postgres:owned --browser-suite supplier-directory
+      - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/p05/browser pnpm test:postgres:owned --browser-suite project-selection
       - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/supplier-document-batches/browser pnpm test:postgres:owned --browser-suite supplier-library
       - run: ONCE_ACCEPTANCE_FIELDS=1 ONCE_ACCEPTANCE_UPGRADE=1 ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/p01/browser pnpm test:postgres:owned --browser-suite supplier-library
       - run: ONCE_ACCEPTANCE_WORK_GROUPING=1 ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/supplier-work-grouping/browser pnpm test:postgres:owned --browser-suite supplier-library

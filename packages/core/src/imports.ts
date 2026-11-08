@@ -191,7 +191,7 @@ export class Imports {
           const definitions=await tx.find('capabilityDefinitions',{workspaceId:actor.workspaceId});
           if(p.roles.some(c=>!codes.has('role:'+c))||p.cityCode&&!codes.has('city:'+p.cityCode)||p.languageCodes.some(c=>!codes.has('language:'+c))||p.skillCodes.some(c=>{const def=definitions.find(d=>d.code===c);return def?def.status!=='ACTIVE':!codes.has('skill:'+c);}))state='REVIEW_REQUIRED';
         }
-        if(state==='READY')for(const item of await tx.find('shortlistItems',{workspaceId:actor.workspaceId,personId:p.id})){if(!item.personRoleId)await shortlistFor(tx,actor,item.shortlistId);}
+        if(state==='READY')for(const item of await tx.find('shortlistItems',{workspaceId:actor.workspaceId,personId:p.id})){if(!item.personRoleId)await shortlistFor(tx,actor,item.shortlistId,this.clock);}
         rows.push({index:row.index,personId:p.id,displayName:p.displayName,expectedPersonRevision:p.revision,sourceRevision:source.revision,state,reason:state==='REVIEW_REQUIRED'?'已有人才档案；缺失或已改动项须逐项核对，不能自动恢复':null});
       }catch(e){if(!(e instanceof AppError)||e.status>=500)throw e;rows.push({index:row.index,state:'BLOCKED',reason:e.code});}}
       return {id:batch.id,revision:batch.revision,formatVersion:batch.formatVersion??1,rows};

@@ -1,3 +1,4 @@
+import {projectSelectionImpacts} from './project-selection-lifecycle.ts';
 import {formalMediaSource} from './media-ownership.ts';
 import {authorizePartyCleanup} from './project-parties.ts';
 import {affectedAi,aiErasureSnapshot,validateAiErasure} from './ai-maintenance.ts';
@@ -85,7 +86,7 @@ export class Deletions {
 
     private async rootVisible(tx: Tx, actor: Actor, kind: 'WORK' | 'PROJECT' | 'SHORTLIST', id: string) {
         try {
-            if (kind === 'SHORTLIST') await shortlistFor(tx, actor, id);
+            if (kind === 'SHORTLIST') await shortlistFor(tx,actor,id,this.clock);
             else if (kind === 'WORK') await workFor(tx, actor, id, this.clock);
             else await projectFor(tx, actor, id, this.clock);
             return true;
@@ -330,6 +331,7 @@ export class Deletions {
             }
         }
 
+        const selection=await projectSelectionImpacts(tx,actor,targetKind,targetId);for(const item of selection.items)add(item);for(const code of selection.unresolved)miss(code);
         const inbox=await inboxErasureImpacts(tx,actor,targetKind,targetId);for(const item of inbox.items)add(item);for(const code of inbox.unresolved)miss(code);
         const sorted = [...impacts.values()].sort((a, b) => [a.resourceKind, a.resourceId, a.dependencyKind].join(':').localeCompare([b.resourceKind, b.resourceId, b.dependencyKind].join(':')));
         const truncated = sorted.length > L.impacts;

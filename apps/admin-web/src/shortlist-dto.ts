@@ -41,6 +41,7 @@ export interface TalentSearchResponse extends Page<TalentSearchPerson> {
     };
 }
 export interface ShortlistSummary {
+    projectId?:string|null;
     id: string;
     title: string;
     brief: string;

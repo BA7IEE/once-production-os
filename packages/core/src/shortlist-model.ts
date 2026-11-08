@@ -1,6 +1,7 @@
 import type { Base } from './model.ts';
 
 export interface Shortlist extends Base {
+    projectId?:string|null;
     scopeId: string;
     maintainerId: string;
     title: string;
@@ -8,6 +9,7 @@ export interface Shortlist extends Base {
 }
 
 export interface ShortlistItem extends Base {
+    requirementId?:string|null;requirementRevision?:number|null;selectionCiphertext?:string|null;
     personRoleId?: string | null;
     personRoleRevision?: number | null;
     roleContextState?: 'BOUND' | 'LEGACY_REVIEW' | null;

@@ -1,3 +1,4 @@
+import type {ProjectRequirement} from './project-selection-model.ts';
 import type {SupplierFieldTables} from './supplier-field-model.ts';
 import type {SupplierInboxTables} from './supplier-inbox-model.ts';
 import type {MediaPurgeIntent} from './media-purge-model.ts';
@@ -272,6 +273,7 @@ export interface TableMap extends TalentV2Tables, TalentAuthTables, TalentMainte
     works: Work;
     workAssets: WorkAsset;
     workCredits: WorkCredit;
+    projectRequirements:ProjectRequirement;
     projects: Project;
     projectParticipants: ProjectParticipant;
     projectWorks: ProjectWork;

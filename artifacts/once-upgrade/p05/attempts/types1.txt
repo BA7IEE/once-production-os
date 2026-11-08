@@ -1,0 +1,16 @@
+
+> once-production-os@0.1.0-dev.1 typecheck /workspace/once-production-os
+> tsc -p tsconfig.server.json --noEmit && tsc -p apps/admin-web/tsconfig.json
+
+packages/core/src/project-selection-lifecycle.ts(10,106): error TS7034: Variable 'items' implicitly has type 'any[]' in some locations where its type cannot be determined.
+packages/core/src/project-selection-lifecycle.ts(10,115): error TS7034: Variable 'unresolved' implicitly has type 'any[]' in some locations where its type cannot be determined.
+packages/core/src/project-selection-lifecycle.ts(10,177): error TS7005: Variable 'items' implicitly has an 'any[]' type.
+packages/core/src/project-selection-lifecycle.ts(10,183): error TS7005: Variable 'unresolved' implicitly has an 'any[]' type.
+packages/core/src/project-selection.ts(41,158): error TS2339: Property 'id' does not exist on type '{ roleSummaries: DirectoryRoleSummary[]; }'.
+packages/core/src/project-selection.ts(41,194): error TS7006: Parameter 'p' implicitly has an 'any' type.
+packages/core/src/project-selection.ts(42,159): error TS2339: Property 'matchedBy' does not exist on type '{ roleSummaries: DirectoryRoleSummary[]; }'.
+packages/core/src/project-selection.ts(42,295): error TS2339: Property 'id' does not exist on type '{ roleSummaries: DirectoryRoleSummary[]; }'.
+packages/core/src/project-selection.ts(42,301): error TS2339: Property 'some' does not exist on type '{}'.
+packages/core/src/project-selection.ts(42,306): error TS7006: Parameter 'id' implicitly has an 'any' type.
+packages/core/src/project-selection.ts(42,313): error TS2339: Property 'matchingRoleIds' does not exist on type '{ roleSummaries: DirectoryRoleSummary[]; }'.
+ ELIFECYCLE  Command failed with exit code 2.

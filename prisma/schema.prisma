@@ -9,6 +9,7 @@ datasource db {
 }
 
 model Workspace {
+  projectRequirements ProjectRequirement[] @relation("Requirement_workspace")
   SourceReviewRequest_workspaceId SourceReviewRequest[] @relation("SourceReviewRequest_workspaceId")
   talentAuthDeliveries TalentAuthDelivery[]
   talentAuthChallenges TalentAuthChallenge[]
@@ -276,6 +277,7 @@ model ScopeMember {
 }
 
 model SourceRecord {
+  requirements ProjectRequirement[] @relation("Requirement_source")
   confirmedByTalentId String? @db.Uuid
   selfConfirmedAt DateTime? @db.Timestamptz(3)
   SourceReviewRequest_sourceId SourceReviewRequest[] @relation("SourceReviewRequest_sourceId")
@@ -883,6 +885,8 @@ model WorkCredit {
 }
 
 model Project {
+  requirements ProjectRequirement[] @relation("Requirement_project")
+  candidateLists Shortlist[] @relation("Shortlist_project")
   parties ProjectParty[] @relation("PartyProject")
 
   AiTask_projectId AiTask[] @relation("AiTask_projectId")
@@ -959,6 +963,8 @@ model ProjectWork {
 }
 
 model Shortlist {
+  projectId String? @db.Uuid
+  linkedProject Project? @relation("Shortlist_project",fields:[workspaceId,projectId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
   ShortlistItem_shortlistIdRef ShortlistItem[] @relation("ShortlistItem_shortlistIdRef")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
@@ -978,6 +984,10 @@ model Shortlist {
 }
 
 model ShortlistItem {
+  requirementId String? @db.Uuid
+  requirementRevision Int?
+  selectionCiphertext String? @db.Text
+  requirement ProjectRequirement? @relation("Selection_requirement",fields:[workspaceId,requirementId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
   personRoleId String? @db.Uuid
   personRoleRevision Int?
   roleContextState String? @db.Text
@@ -2891,4 +2901,34 @@ model SupplierInboxMaterial {
   @@index([workspaceId, batchId, state], map: "supplier_inbox_material_batch")
   @@index([state, leaseUntil, createdAt, id], map: "supplier_inbox_material_claim")
   @@map("supplierInboxMaterials")
+}
+
+model ProjectRequirement {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ revision Int
+ projectId String @db.Uuid
+ sourceId String @db.Uuid
+ sourceRevision Int
+ roleCode String @db.Text
+ headcount Int
+ locationCodes String[]
+ startsOn String? @db.Text
+ endsOn String? @db.Text
+ dateNote String @db.Text
+ taskNote String @db.Text
+ necessary Json
+ preferred Json
+ questions String[]
+ status String @db.Text
+ workspace Workspace @relation("Requirement_workspace",fields:[workspaceId],references:[id],onDelete:Restrict,onUpdate:Cascade)
+ project Project @relation("Requirement_project",fields:[workspaceId,projectId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
+ source SourceRecord @relation("Requirement_source",fields:[workspaceId,sourceId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
+ selections ShortlistItem[] @relation("Selection_requirement")
+ @@unique([workspaceId,id])
+ @@index([workspaceId,projectId,status])
+ @@index([workspaceId,sourceId])
+ @@map("projectRequirements")
 }

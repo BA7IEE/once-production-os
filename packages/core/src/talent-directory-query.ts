@@ -14,10 +14,7 @@ export interface DirectoryDatabaseResult {ids:string[];total:number}
 /** SQL narrows potential matches. Core projection remains the authority for per-field evidence.
  * Only verified IDs enter SQL deduplication/paging; source/evidence checks share the transaction lock. */
 export async function queryTalentDirectory(tx:Tx,actor:Actor,clock:Clock,input:unknown){
- requirePermission(actor,'records.read');const data=DirectoryQuerySchema.parse(input),query=Object.fromEntries(Object.entries(data).filter(([k,v])=>k!=='professional'&&v!==undefined&&!(k==='ageUnknown'&&v===false)).map(([k,v])=>[k,Array.isArray(v)?v:String(v)]));
- const namespaces={role:'role',nationality:'nationality',style:'roleStyle',service:'roleService',location:'city',language:'language',industryCode:'industry',workTypeCode:'workType'};
- const dictionary=await tx.find('dictionary',{workspaceId:actor.workspaceId});
- for(const [key,namespace] of Object.entries(namespaces))for(const value of queryValues(query[key]))invariant(dictionary.some(d=>d.namespace===namespace&&d.code===value&&d.status==='ACTIVE'),'UNKNOWN_FILTER_CODE','筛选包含未知或停用的选项',400);
+ requirePermission(actor,'records.read');const {data,query}=await prepareDirectoryQuery(tx,actor,input);
  const visibility=await loadVisibility(tx,actor,clock),base={workspaceId:actor.workspaceId,visibleScopeIds:visibility.visibleScopeIds,asOf:clock.now().toISOString().slice(0,10),now:clock.now().toISOString()};
  const candidates=new Set<string>();
  for(const omitted of [[],...Object.keys(DIRECTORY_DIMENSIONS).filter(k=>query[k]!==undefined).map(k=>[k])]){const rest={...query};for(const k of omitted)delete rest[k];const r=await tx.talentDirectoryQuery({...base,query:rest,phase:'CANDIDATES'});for(const id of r.ids)candidates.add(id);}
@@ -28,4 +25,20 @@ export async function queryTalentDirectory(tx:Tx,actor:Actor,clock:Clock,input:u
  const verified=filtered.filter((p:Record<string,unknown>)=>candidates.has(String(p.id))),page=Number(query.page??1),pageSize=Number(query.pageSize??20);
  const result=await tx.talentDirectoryQuery({...base,query,phase:'PAGE',verifiedIds:verified.map((p:Record<string,unknown>)=>String(p.id)),page,pageSize});
  const items=new Map<string,Record<string,unknown>>(verified.map((p:Record<string,unknown>)=>[String(p.id),p] as const));return {...reference,...(professionalActive?{facets:{}}:{}),queryVersion:DIRECTORY_QUERY_VERSION,total:result.total,page,pageSize,items:await supplierRoleSummaries(tx,actor,clock,graph,result.ids.map(id=>items.get(id)!),{industryCodes:queryValues(query.industryCode),workTypeCodes:queryValues(query.workTypeCode)})};
+}
+
+/** The same strict query/dictionary/field semantics also evaluate project preferences
+ * on the necessary-result page. No globally truncated preference result set. */
+export async function prepareDirectoryQuery(tx:Tx,actor:Actor,input:unknown){
+ const data=DirectoryQuerySchema.parse(input),query=Object.fromEntries(Object.entries(data).filter(([k,v])=>k!=='professional'&&v!==undefined&&!(k==='ageUnknown'&&v===false)).map(([k,v])=>[k,Array.isArray(v)?v:String(v)]));
+ const namespaces={role:'role',nationality:'nationality',style:'roleStyle',service:'roleService',location:'city',language:'language',industryCode:'industry',workTypeCode:'workType'};
+ const dictionary=await tx.find('dictionary',{workspaceId:actor.workspaceId});
+ for(const [key,namespace] of Object.entries(namespaces))for(const value of queryValues(query[key]))invariant(dictionary.some(d=>d.namespace===namespace&&d.code===value&&d.status==='ACTIVE'),'UNKNOWN_FILTER_CODE','筛选包含未知或停用的选项',400);
+ return {data,query};
+}
+export async function evaluateDirectoryCandidates(tx:Tx,actor:Actor,clock:Clock,input:unknown,personIds:string[]):Promise<Record<string,unknown>[]>{
+ requirePermission(actor,'records.read');invariant(personIds.length<=200,'SELECTION_EVALUATION_LIMIT','一次最多核验200个人选',422);
+ const {data,query}=await prepareDirectoryQuery(tx,actor,input),graph=await loadTalentGraph(tx,actor,clock,personIds),reference=await searchTalentV2(tx,actor,clock,query,{graph,all:true,facets:false});
+ const rows=data.professional?await filterSupplierFields(tx,actor,clock,graph,reference.items,data.professional):reference.items;
+ const ids=new Set(personIds);return rows.filter((p:Record<string,unknown>)=>ids.has(String(p.id)));
 }

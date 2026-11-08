@@ -8,7 +8,7 @@ import {AppError} from './errors.ts';
 export interface DirectoryRoleSummary {personRoleId:string;roleCode:string;works:Array<{id:string;title:string;workTypeCodes:string[];coverAssetId:string|null}>;capabilities:Array<{code:string;label:string;levelCode:string|null}>;tags:string[]}
 /** Only the current page is enriched. An exact role, current source and real fact
  * back each summary; this projection never invents experience or a match score. */
-export async function supplierRoleSummaries(tx:Tx,actor:Actor,clock:Clock,g:Awaited<ReturnType<typeof loadTalentGraph>>,items:Record<string,unknown>[],filters:{industryCodes?:string[];workTypeCodes?:string[]}={}){
+export async function supplierRoleSummaries(tx:Tx,actor:Actor,clock:Clock,g:Awaited<ReturnType<typeof loadTalentGraph>>,items:Record<string,unknown>[],filters:{industryCodes?:string[];workTypeCodes?:string[]}={}):Promise<Array<Record<string,unknown>&{roleSummaries:DirectoryRoleSummary[]}>>{
  const peopleIds=items.map(p=>String(p.id)),roleIds=items.flatMap(p=>p.matchingRoleIds as string[]??[]),sourceIds=g.visibility.visibleSourceIds.filter(id=>g.sourceUsable(id)),catalog=await publishedCatalog(tx,actor.workspaceId);
  const tagMap=new Map<string,string[]>();
  if(roleIds.length)for(const field of catalog.definition.fields.filter(f=>f.owner==='ROLE'&&['CODE','CODE_SET'].includes(f.type)&&f.searchable)){

@@ -84,7 +84,7 @@ export class PersonMerges {
         catch (error) { if (error instanceof AppError && error.status === 404) return null; throw error; }
     }
     private async visibleShortlist(tx: Tx, actor: Actor, id: string) {
-        try { return await shortlistFor(tx, actor, id); }
+        try { return await shortlistFor(tx,actor,id,this.clock); }
         catch (error) { if (error instanceof AppError && error.status === 404) return null; throw error; }
     }
 
@@ -218,6 +218,7 @@ export class PersonMerges {
         const candidateReviews = await tx.find('talentMigrationReviews', { workspaceId: actor.workspaceId });
         const duplicateShort = await tx.find('shortlistItems', { workspaceId: actor.workspaceId, personId: duplicate.id });
         const canonicalShort = await tx.find('shortlistItems', { workspaceId: actor.workspaceId, personId: canonical.id });
+        if([...canonicalShort,...duplicateShort].some(i=>!!i.selectionCiphertext))blocker(blockers,'PROJECT_SELECTION_MERGE_REVIEW_REQUIRED');
         for (const row of duplicateShort) {
             const root = await this.visibleShortlist(tx, actor, row.shortlistId);
             if (!root) { blocker(blockers, 'HIDDEN_SHORTLIST_REFERENCE'); continue; }

@@ -1,3 +1,4 @@
+import {ProjectSelection} from './project-selection.ts';
 import {catalogView,publishedCatalog,SupplierFieldCatalogs} from './supplier-field-catalog.ts';
 import {SupplierProfessional} from './supplier-professional.ts';
 import {SupplierInbox} from './supplier-inbox.ts';
@@ -499,6 +500,14 @@ export class Application {
                     case 'work.creditAdd': return command('work', () => this.portfolio.addCredit(tx, actor, id, data));
                     case 'work.creditUpgrade': return command('work', () => this.portfolio.upgradeCredit(tx, actor, id, data));
                     case 'work.creditRemove': return command('work', () => this.portfolio.removeCredit(tx, actor, id, data));
+                    case 'project.requirements':return new ProjectSelection(this.clock,this.config).list(tx,actor,id);
+                    case 'project.requirementSave':return command('project',()=>new ProjectSelection(this.clock,this.config).save(tx,actor,id,data));
+                    case 'project.candidateSearch':return new ProjectSelection(this.clock,this.config).search(tx,actor,id,data);
+                    case 'shortlist.nominate':return command('shortlist',()=>new ProjectSelection(this.clock,this.config).nominate(tx,actor,id,data));
+                    case 'shortlist.projectLink':return command('shortlist',()=>new ProjectSelection(this.clock,this.config).link(tx,actor,id,data));
+                    case 'shortlist.selectionContext':return new ProjectSelection(this.clock,this.config).getContext(tx,actor,id);
+                    case 'shortlist.selectionSave':return command('shortlist',()=>new ProjectSelection(this.clock,this.config).saveContext(tx,actor,id,data));
+                    case 'shortlist.selectionClear':return command('shortlist',()=>new ProjectSelection(this.clock,this.config).clearContext(tx,actor,id,data));
                     case 'project.list': return this.projects.list(tx, actor, query);
                     case 'project.create': return command('project', () => this.projects.create(tx, actor, data));
                     case 'project.get': return this.projects.get(tx, actor, id);
@@ -651,7 +660,7 @@ export class Application {
                 if (row.resourceKind === 'deletion')
                     await this.deletions.get(tx, actor, row.resourceId);
                 if (row.resourceKind === 'shortlist')
-                    await shortlistFor(tx, actor, row.resourceId);
+                    await shortlistFor(tx,actor,row.resourceId,this.clock);
                 if (row.resourceKind === 'work')
                     await workFor(tx, actor, row.resourceId, this.clock);
                 if (row.resourceKind === 'project')

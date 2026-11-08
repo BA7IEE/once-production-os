@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: project multi-role requirements use current directory semantics; candidate scope, audit rollback, scoped confirmations and stale revisions
+not ok 1 - project multi-role requirements use current directory semantics; candidate scope, audit rollback, scoped confirmations and stale revisions
+  ---
+  duration_ms: 760.445791
+  type: 'test'
+  location: '/workspace/once-production-os/tests/core/project-selection.test.ts:4:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"NOT_FOUND","message":"记录不存在或你没有访问权限","requestId":"51d9fe37-5eb4-4cfc-bdeb-c84e131269d8"}}
+
+    404 !== 200
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 200
+  actual: 404
+  operator: 'strictEqual'
+  stack: |-
+    ok (file:///workspace/once-production-os/tests/support/supplier-migration.ts:20:39)
+    verifySelectionDeletion (file:///workspace/once-production-os/tests/support/project-selection.ts:47:187)
+    async TestContext.<anonymous> (file:///workspace/once-production-os/tests/core/project-selection.test.ts:4:222)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: project source withdrawal fences linked-list reads and existing command replay without inventing actual participation
+ok 2 - project source withdrawal fences linked-list reads and existing command replay without inventing actual participation
+  ---
+  duration_ms: 547.308843
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1726.426485

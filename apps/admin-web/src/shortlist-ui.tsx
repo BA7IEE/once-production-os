@@ -1,3 +1,4 @@
+import {CandidateContextPanel} from './project-selection-ui.tsx';
 import {TalentDirectory} from './talent-directory.tsx';
 import {navigateDirectoryPath} from './directory-state.ts';
 import {TalentDirectoryDetail} from './talent-directory-detail.tsx';
@@ -188,7 +189,7 @@ function ShortlistDetailPanel({ id, catalog, onChanged }: { id: string; catalog:
         void command.submit('shortlist.reorder', { expectedRevision: list.revision, entryIds: ids }, { id: list.id });
     };
     return <section className="panel sl-detail"><div className="panel-heading"><div><h2>{list?.title ?? '候选清单'}</h2><p>{list?.brief || '暂无需求简述'}</p></div><div className="button-row">{list?.canEdit && <button onClick={() => setEditingRoot(true)}>编辑清单</button>}<button onClick={() => setTick(x => x + 1)}>刷新</button></div></div>
-        <div className="padded"><CommandState command={command}/><ErrorBox error={load.error}/>{load.busy && <p>正在按当前权限读取候选条目…</p>}
+        <div className="padded">{list&&<CandidateContextPanel list={list} catalog={catalog} onChanged={()=>{setTick(t=>t+1);onChanged();}}/>}<CommandState command={command}/><ErrorBox error={load.error}/>{load.busy && <p>正在按当前权限读取候选条目…</p>}
             {list && !list.items.length && <Empty title="这份清单还没有候选人">点击“继续找人”，勾选人才后加入这份清单。</Empty>}
             {list?.items.map((item, index) => item.unavailable ? <article className="sl-item unavailable" key={item.id}>
                 <div>{item.roleReview ? <><strong>{item.roleReview.person.displayName} · 待核实职业</strong><p>确认本次职业后，才显示完整候选内容。</p>{list.canEdit && <button disabled={command.busy || command.unknown} onClick={() => setRoleReview(item)}>核实候选职业</button>}</> : <><strong>该条目当前不可用</strong><p>人才、来源、作品或图片的当前权限/有效性无法完整证明，因此不显示原姓名、作品和备注。</p></>}</div>

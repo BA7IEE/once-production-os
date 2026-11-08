@@ -1,0 +1,5 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {selectionFixture,verifyProjectSelection,verifySelectionDeletion} from '../support/project-selection.ts';
+test('project multi-role requirements use current directory semantics; candidate scope, audit rollback, scoped confirmations and stale revisions',async()=>{const f=await selectionFixture();await verifyProjectSelection(f);await verifySelectionDeletion(f);});
+test('project source withdrawal fences linked-list reads and existing command replay without inventing actual participation',async()=>{const f=await selectionFixture(),v=await verifyProjectSelection(f);f.ok(await f.owner.cmd('POST','/sources/'+f.source+'/suspend',{expectedRevision:1,reason:'匿名撤回项目需求来源'}));assert.equal((await f.owner.raw('GET','/shortlists/'+f.listId)).status,404);assert.equal((await f.owner.cmd('POST','/shortlists/'+f.listId+'/nominate',v.nominate,v.key)).status,404);assert.equal(f.ok(await f.owner.raw('GET','/shortlists')).items.some((l:any)=>l.id===f.listId),false);});

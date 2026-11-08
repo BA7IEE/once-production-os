@@ -87,7 +87,7 @@ export async function authorizeReceipt(tx: Tx, actor: CommandPrincipal, receipt:
             return;
         }
         case 'shortlist':
-            await shortlistFor(tx, actor, id);
+            await shortlistFor(tx,actor,id,clock);
             return;
         case 'work':
             await workFor(tx, actor, id, clock);

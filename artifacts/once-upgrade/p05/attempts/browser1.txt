@@ -1,0 +1,39 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite project-selection
+
+{ errors: [], alerts: [] }
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.selectOption: Timeout 25000ms exceeded.
+Call log:
+[2m  - waiting for getByLabel('岗位职业', { exact: true })[22m
+[2m    - locator resolved to <select id="«r0»-control" aria-labelledby="«r0»-label">…</select>[22m
+[2m  - attempting select option action[22m
+[2m    2 × waiting for element to be visible and enabled[22m
+[2m      - element is not enabled[22m
+[2m    - retrying select option action[22m
+[2m    - waiting 20ms[22m
+[2m    - waiting for element to be visible and enabled[22m
+[2m  - element was detached from the DOM, retrying[22m
+
+    at /workspace/once-production-os/tests/acceptance/browser-project-selection.mjs:49:111 {
+  log: [
+    "  - waiting for getByLabel('岗位职业', { exact: true })",
+    '    - locator resolved to <select id="«r0»-control" aria-labelledby="«r0»-label">…</select>',
+    '  - attempting select option action',
+    '    2 × waiting for element to be visible and enabled',
+    '      - element is not enabled',
+    '    - retrying select option action',
+    '    - waiting 20ms',
+    '    - waiting for element to be visible and enabled',
+    '  - element was detached from the DOM, retrying'
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.22.3
+Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+ ELIFECYCLE  Command failed with exit code 1.
