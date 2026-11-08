@@ -1,0 +1,806 @@
+TAP version 13
+# Subtest: directory summaries use the selected exact career; unrelated works never become experience and withdrawal removes dependent content
+ok 1 - directory summaries use the selected exact career; unrelated works never become experience and withdrawal removes dependent content
+  ---
+  duration_ms: 411.543781
+  type: 'test'
+  ...
+# Subtest: every replacement needs its own role-specific answer and invalid batches leave facts, exposure and person unchanged
+ok 2 - every replacement needs its own role-specific answer and invalid batches leave facts, exposure and person unchanged
+  ---
+  duration_ms: 300.371924
+  type: 'test'
+  ...
+# Subtest: replacement rejects withdrawn source without retiring current facts or changing exposure
+ok 3 - replacement rejects withdrawn source without retiring current facts or changing exposure
+  ---
+  duration_ms: 240.506015
+  type: 'test'
+  ...
+# Subtest: dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person
+ok 4 - dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person
+  ---
+  duration_ms: 235.511745
+  type: 'test'
+  ...
+# Subtest: published catalogs preserve old drafts and reject type reinterpretation and deleted option codes
+ok 5 - published catalogs preserve old drafts and reject type reinterpretation and deleted option codes
+  ---
+  duration_ms: 259.059146
+  type: 'test'
+  ...
+# Subtest: ONCE corrections update explicitly shared professional facts and fence stale self drafts
+ok 6 - ONCE corrections update explicitly shared professional facts and fence stale self drafts
+  ---
+  duration_ms: 257.03808
+  type: 'test'
+  ...
+# Subtest: new fields reject cross-role data, invented options, fake dates and empty multi selections
+ok 7 - new fields reject cross-role data, invented options, fake dates and empty multi selections
+  ---
+  duration_ms: 219.41329
+  type: 'test'
+  ...
+# Subtest: confirmation audit failure rolls professional facts and choices back with the rest of the profile
+ok 8 - confirmation audit failure rolls professional facts and choices back with the rest of the profile
+  ---
+  duration_ms: 219.284774
+  type: 'test'
+  ...
+# Subtest: structured tag search supports ANY and ALL on the same role, with no missing-as-negative or private source leakage
+ok 9 - structured tag search supports ANY and ALL on the same role, with no missing-as-negative or private source leakage
+  ---
+  duration_ms: 270.758404
+  type: 'test'
+  ...
+# Subtest: native professional details reuse capability, credential, translation and dated measurement tables
+ok 10 - native professional details reuse capability, credential, translation and dated measurement tables
+  ---
+  duration_ms: 251.057434
+  type: 'test'
+  ...
+# Subtest: catalogs and typed fields participate in recovery integrity and explicit person cleanup
+ok 11 - catalogs and typed fields participate in recovery integrity and explicit person cleanup
+  ---
+  duration_ms: 228.814719
+  type: 'test'
+  ...
+# Subtest: a source holding only new professional facts receives a complete deletion plan and cleans without deleting the Person
+ok 12 - a source holding only new professional facts receives a complete deletion plan and cleans without deleting the Person
+  ---
+  duration_ms: 280.387092
+  type: 'test'
+  ...
+# Subtest: PR01b finalization OR/AND, complete facets, conservative presets and explicit candidate role
+not ok 13 - PR01b finalization OR/AND, complete facets, conservative presets and explicit candidate role
+  ---
+  duration_ms: 434.755257
+  type: 'test'
+  location: '/workspace/once-production-os/tests/core/talent-directory-finalization.test.ts:4:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+
+      [
+        {
+          adultState: 'UNKNOWN',
+          ageRange: {
+            asOf: '2026-09-23',
+    ...
+          revision: 8,
+    +     roleSummaries: [
+    +       {
+    +         capabilities: [],
+    +         personRoleId: '5a527abd-d719-428c-b8d2-91af392a0d33',
+    +         roleCode: 'model',
+    +         tags: [],
+    +         works: []
+    +       }
+    +     ],
+          roles: [
+            {
+              castingMarketCode: 'INTERNATIONAL',
+              experienceCode: 'AMATEUR',
+              id: '5a527abd-d719-428c-b8d2-91af392a0d33',
+    ...
+          revision: 8,
+    +     roleSummaries: [
+    +       {
+    +         capabilities: [],
+    +         personRoleId: 'ff344984-8a52-4903-bac0-43fa8b22e16d',
+    +         roleCode: 'model',
+    +         tags: [],
+    +         works: []
+    +       }
+    +     ],
+          roles: [
+            {
+              castingMarketCode: 'INTERNATIONAL',
+              experienceCode: 'PROFESSIONAL',
+              id: 'ff344984-8a52-4903-bac0-43fa8b22e16d',
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      id: '4729f8ef-f0cd-49ea-b507-a753a416c49e'
+      displayName: 'Finalization 深圳素人'
+      aliases:
+      intro: ''
+      originSourceId: 'd371fd01-0b42-492b-87b8-dfbf08e500d2'
+      originAvailable: true
+      scopeId: '2a5eed2b-def6-4582-a3ca-e2ed661dc976'
+      status: 'DRAFT'
+      revision: 8
+      createdAt: '2026-09-23T08:00:00.000Z'
+      updatedAt: '2026-09-23T08:00:00.000Z'
+      isTalent: true
+      genderCode: 'FEMALE'
+      nationalityCodes:
+        0: 'CN'
+        1: 'US'
+      ageRange:
+        min: 25
+        max: 26
+        asOf: '2026-09-23'
+        precision: 'YEAR_ONLY'
+      coverAssetId: ~
+      matchingRoleIds:
+        0: '5a527abd-d719-428c-b8d2-91af392a0d33'
+      roles:
+        0:
+          id: '5a527abd-d719-428c-b8d2-91af392a0d33'
+          roleCode: 'model'
+          revision: 2
+          castingMarketCode: 'INTERNATIONAL'
+          experienceCode: 'AMATEUR'
+          styleCodes:
+            0: 'natural'
+            1: 'fashion'
+          serviceCodes:
+            0: 'print'
+            1: 'runway'
+        1:
+          id: 'dedde70a-aad1-4f7e-b366-74c59795dd77'
+          roleCode: 'actor'
+          revision: 1
+          castingMarketCode: 'UNCLASSIFIED'
+          experienceCode: 'UNSPECIFIED'
+          styleCodes:
+          serviceCodes:
+      languages:
+        0:
+          languageCode: 'en'
+          speakingLevelCode: 'WORKING'
+        1:
+          languageCode: 'zh'
+          speakingLevelCode: 'WORKING'
+      locations:
+        0:
+          locationCode: 'shenzhen'
+          relationCode: 'BASE'
+      heightCm: ~
+      adultState: 'UNKNOWN'
+      collectionCount: 0
+      matchedBy:
+        0:
+          field: 'experience'
+          value:
+            0: 'AMATEUR'
+            1: 'PROFESSIONAL'
+        1:
+          field: 'gender'
+          value:
+            0: 'FEMALE'
+        2:
+          field: 'location'
+          value:
+            0: 'shenzhen'
+            1: 'guangzhou'
+        3:
+          field: 'market'
+          value:
+            0: 'INTERNATIONAL'
+        4:
+          field: 'q'
+          value: 'Finalization '
+        5:
+          field: 'role'
+          value:
+            0: 'model'
+            1: 'actor'
+    1:
+      id: 'ef5711e8-5c30-4094-8447-538cca0e8ca9'
+      displayName: 'Finalization 广州专业'
+      aliases:
+      intro: ''
+      originSourceId: 'd371fd01-0b42-492b-87b8-dfbf08e500d2'
+      originAvailable: true
+      scopeId: '2a5eed2b-def6-4582-a3ca-e2ed661dc976'
+      status: 'DRAFT'
+      revision: 8
+      createdAt: '2026-09-23T08:00:00.000Z'
+      updatedAt: '2026-09-23T08:00:00.000Z'
+      isTalent: true
+      genderCode: 'FEMALE'
+      nationalityCodes:
+        0: 'CN'
+        1: 'US'
+      ageRange:
+        min: 25
+        max: 26
+        asOf: '2026-09-23'
+        precision: 'YEAR_ONLY'
+      coverAssetId: ~
+      matchingRoleIds:
+        0: 'ff344984-8a52-4903-bac0-43fa8b22e16d'
+      roles:
+        0:
+          id: 'ff344984-8a52-4903-bac0-43fa8b22e16d'
+          roleCode: 'model'
+          revision: 2
+          castingMarketCode: 'INTERNATIONAL'
+          experienceCode: 'PROFESSIONAL'
+          styleCodes:
+            0: 'natural'
+            1: 'fashion'
+          serviceCodes:
+            0: 'print'
+            1: 'runway'
+        1:
+          id: '11f8da53-2f7c-46b1-aa08-24fdde47911d'
+          roleCode: 'actor'
+          revision: 1
+          castingMarketCode: 'UNCLASSIFIED'
+          experienceCode: 'UNSPECIFIED'
+          styleCodes:
+          serviceCodes:
+      languages:
+        0:
+          languageCode: 'en'
+          speakingLevelCode: 'WORKING'
+        1:
+          languageCode: 'zh'
+          speakingLevelCode: 'WORKING'
+      locations:
+        0:
+          locationCode: 'guangzhou'
+          relationCode: 'BASE'
+      heightCm: ~
+      adultState: 'UNKNOWN'
+      collectionCount: 0
+      matchedBy:
+        0:
+          field: 'experience'
+          value: <Circular>
+        1:
+          field: 'gender'
+          value: <Circular>
+        2:
+          field: 'location'
+          value: <Circular>
+        3:
+          field: 'market'
+          value: <Circular>
+        4:
+          field: 'q'
+          value: 'Finalization '
+        5:
+          field: 'role'
+          value: <Circular>
+  actual:
+    0:
+      id: '4729f8ef-f0cd-49ea-b507-a753a416c49e'
+      displayName: 'Finalization 深圳素人'
+      aliases:
+      intro: ''
+      originSourceId: 'd371fd01-0b42-492b-87b8-dfbf08e500d2'
+      originAvailable: true
+      scopeId: '2a5eed2b-def6-4582-a3ca-e2ed661dc976'
+      status: 'DRAFT'
+      revision: 8
+      createdAt: '2026-09-23T08:00:00.000Z'
+      updatedAt: '2026-09-23T08:00:00.000Z'
+      isTalent: true
+      genderCode: 'FEMALE'
+      nationalityCodes:
+        0: 'CN'
+        1: 'US'
+      ageRange:
+        min: 25
+        max: 26
+        asOf: '2026-09-23'
+        precision: 'YEAR_ONLY'
+      coverAssetId: ~
+      matchingRoleIds:
+        0: '5a527abd-d719-428c-b8d2-91af392a0d33'
+      roles:
+        0:
+          id: '5a527abd-d719-428c-b8d2-91af392a0d33'
+          roleCode: 'model'
+          revision: 2
+          castingMarketCode: 'INTERNATIONAL'
+          experienceCode: 'AMATEUR'
+          styleCodes:
+            0: 'natural'
+            1: 'fashion'
+          serviceCodes:
+            0: 'print'
+            1: 'runway'
+        1:
+          id: 'dedde70a-aad1-4f7e-b366-74c59795dd77'
+          roleCode: 'actor'
+          revision: 1
+          castingMarketCode: 'UNCLASSIFIED'
+          experienceCode: 'UNSPECIFIED'
+          styleCodes:
+          serviceCodes:
+      languages:
+        0:
+          languageCode: 'en'
+          speakingLevelCode: 'WORKING'
+        1:
+          languageCode: 'zh'
+          speakingLevelCode: 'WORKING'
+      locations:
+        0:
+          locationCode: 'shenzhen'
+          relationCode: 'BASE'
+      heightCm: ~
+      adultState: 'UNKNOWN'
+      collectionCount: 0
+      matchedBy:
+        0:
+          field: 'experience'
+          value:
+            0: 'AMATEUR'
+            1: 'PROFESSIONAL'
+        1:
+          field: 'gender'
+          value:
+            0: 'FEMALE'
+        2:
+          field: 'location'
+          value:
+            0: 'shenzhen'
+            1: 'guangzhou'
+        3:
+          field: 'market'
+          value:
+            0: 'INTERNATIONAL'
+        4:
+          field: 'q'
+          value: 'Finalization '
+        5:
+          field: 'role'
+          value:
+            0: 'model'
+            1: 'actor'
+      roleSummaries:
+        0:
+          personRoleId: '5a527abd-d719-428c-b8d2-91af392a0d33'
+          roleCode: 'model'
+          works:
+          capabilities:
+          tags:
+    1:
+      id: 'ef5711e8-5c30-4094-8447-538cca0e8ca9'
+      displayName: 'Finalization 广州专业'
+      aliases:
+      intro: ''
+      originSourceId: 'd371fd01-0b42-492b-87b8-dfbf08e500d2'
+      originAvailable: true
+      scopeId: '2a5eed2b-def6-4582-a3ca-e2ed661dc976'
+      status: 'DRAFT'
+      revision: 8
+      createdAt: '2026-09-23T08:00:00.000Z'
+      updatedAt: '2026-09-23T08:00:00.000Z'
+      isTalent: true
+      genderCode: 'FEMALE'
+      nationalityCodes:
+        0: 'CN'
+        1: 'US'
+      ageRange:
+        min: 25
+        max: 26
+        asOf: '2026-09-23'
+        precision: 'YEAR_ONLY'
+      coverAssetId: ~
+      matchingRoleIds:
+        0: 'ff344984-8a52-4903-bac0-43fa8b22e16d'
+      roles:
+        0:
+          id: 'ff344984-8a52-4903-bac0-43fa8b22e16d'
+          roleCode: 'model'
+          revision: 2
+          castingMarketCode: 'INTERNATIONAL'
+          experienceCode: 'PROFESSIONAL'
+          styleCodes:
+            0: 'natural'
+            1: 'fashion'
+          serviceCodes:
+            0: 'print'
+            1: 'runway'
+        1:
+          id: '11f8da53-2f7c-46b1-aa08-24fdde47911d'
+          roleCode: 'actor'
+          revision: 1
+          castingMarketCode: 'UNCLASSIFIED'
+          experienceCode: 'UNSPECIFIED'
+          styleCodes:
+          serviceCodes:
+      languages:
+        0:
+          languageCode: 'en'
+          speakingLevelCode: 'WORKING'
+        1:
+          languageCode: 'zh'
+          speakingLevelCode: 'WORKING'
+      locations:
+        0:
+          locationCode: 'guangzhou'
+          relationCode: 'BASE'
+      heightCm: ~
+      adultState: 'UNKNOWN'
+      collectionCount: 0
+      matchedBy:
+        0:
+          field: 'experience'
+          value: <Circular>
+        1:
+          field: 'gender'
+          value: <Circular>
+        2:
+          field: 'location'
+          value: <Circular>
+        3:
+          field: 'market'
+          value: <Circular>
+        4:
+          field: 'q'
+          value: 'Finalization '
+        5:
+          field: 'role'
+          value: <Circular>
+      roleSummaries:
+        0:
+          personRoleId: 'ff344984-8a52-4903-bac0-43fa8b22e16d'
+          roleCode: 'model'
+          works:
+          capabilities:
+          tags:
+  operator: 'deepStrictEqual'
+  stack: |-
+    verifyDirectoryFinalization (file:///workspace/once-production-os/tests/support/talent-directory-finalization.ts:37:560)
+    async TestContext.<anonymous> (file:///workspace/once-production-os/tests/core/talent-directory-finalization.test.ts:4:111)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: PR01b new fields and cover survive controlled transfer, recovery and merge, then erase through the frozen asset graph
+ok 14 - PR01b new fields and cover survive controlled transfer, recovery and merge, then erase through the frozen asset graph
+  ---
+  duration_ms: 1085.554326
+  type: 'test'
+  ...
+# Subtest: safe history state persists only strict filters, pagination and person-role IDs, never DTO or secrets
+ok 15 - safe history state persists only strict filters, pagination and person-role IDs, never DTO or secrets
+  ---
+  duration_ms: 2.483776
+  type: 'test'
+  ...
+# Subtest: logout, expiry, different member and same-member new session reject all historic state
+ok 16 - logout, expiry, different member and same-member new session reject all historic state
+  ---
+  duration_ms: 0.610273
+  type: 'test'
+  ...
+# Subtest: role choice may stay pending across pages, but cannot carry arbitrary data or contradict a chosen role
+ok 17 - role choice may stay pending across pages, but cannot carry arbitrary data or contradict a chosen role
+  ---
+  duration_ms: 0.392204
+  type: 'test'
+  ...
+# Subtest: professional applied conditions and unfinished edits survive detail return, history and reload within one identity
+ok 18 - professional applied conditions and unfinished edits survive detail return, history and reload within one identity
+  ---
+  duration_ms: 1.390782
+  type: 'test'
+  ...
+# Subtest: professional history rejects payloads, invalid fields, unbounded values and old versions
+ok 19 - professional history rejects payloads, invalid fields, unbounded values and old versions
+  ---
+  duration_ms: 0.987782
+  type: 'test'
+  ...
+# Subtest: PR01b composed maintenance persists attributes and shared filters, without nationality inference or fabricated measurement date
+not ok 20 - PR01b composed maintenance persists attributes and shared filters, without nationality inference or fabricated measurement date
+  ---
+  duration_ms: 254.512757
+  type: 'test'
+  location: '/workspace/once-production-os/tests/core/talent-directory.test.ts:13:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+
+      [
+        {
+          adultState: 'UNKNOWN',
+          ageRange: {
+            asOf: '2026-09-23',
+    ...
+          revision: 9,
+    +     roleSummaries: [
+    +       {
+    +         capabilities: [],
+    +         personRoleId: 'fdb1a2eb-202a-4212-ae95-263821fcf386',
+    +         roleCode: 'model',
+    +         tags: [],
+    +         works: []
+    +       }
+    +     ],
+          roles: [
+            {
+              castingMarketCode: 'DOMESTIC',
+              experienceCode: 'AMATEUR',
+              id: 'fdb1a2eb-202a-4212-ae95-263821fcf386',
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      id: '945e83ce-ef8c-44c4-8792-4bb6cf6af7b7'
+      displayName: '合成目录模特'
+      aliases:
+      intro: ''
+      originSourceId: '10497ab2-376d-4b9e-b232-32dab31f09c2'
+      originAvailable: true
+      scopeId: '3e07145c-03b6-4977-b740-d40fa9316837'
+      status: 'DRAFT'
+      revision: 9
+      createdAt: '2026-09-23T08:00:00.000Z'
+      updatedAt: '2026-09-23T08:00:00.000Z'
+      isTalent: true
+      genderCode: 'FEMALE'
+      nationalityCodes:
+        0: 'US'
+      ageRange:
+        min: 25
+        max: 26
+        asOf: '2026-09-23'
+        precision: 'YEAR_ONLY'
+      coverAssetId: ~
+      matchingRoleIds:
+        0: 'fdb1a2eb-202a-4212-ae95-263821fcf386'
+      roles:
+        0:
+          id: 'fdb1a2eb-202a-4212-ae95-263821fcf386'
+          roleCode: 'model'
+          revision: 2
+          castingMarketCode: 'DOMESTIC'
+          experienceCode: 'AMATEUR'
+          styleCodes:
+            0: 'natural'
+          serviceCodes:
+            0: 'print'
+        1:
+          id: '23beb08b-c0b1-465f-9b4f-76eda92311ee'
+          roleCode: 'actor'
+          revision: 1
+          castingMarketCode: 'UNCLASSIFIED'
+          experienceCode: 'UNSPECIFIED'
+          styleCodes:
+          serviceCodes:
+      languages:
+      locations:
+        0:
+          locationCode: 'shenzhen'
+          relationCode: 'BASE'
+      heightCm: 175
+      adultState: 'UNKNOWN'
+      collectionCount: 0
+      matchedBy:
+        0:
+          field: 'role'
+          value: 'model'
+        1:
+          field: 'gender'
+          value: 'FEMALE'
+        2:
+          field: 'nationality'
+          value: 'US'
+        3:
+          field: 'market'
+          value: 'DOMESTIC'
+        4:
+          field: 'experience'
+          value: 'AMATEUR'
+        5:
+          field: 'style'
+          value: 'natural'
+        6:
+          field: 'service'
+          value: 'print'
+        7:
+          field: 'location'
+          value: 'shenzhen'
+        8:
+          field: 'ageMin'
+          value: '25'
+        9:
+          field: 'ageMax'
+          value: '26'
+        10:
+          field: 'heightMin'
+          value: '170'
+  actual:
+    0:
+      id: '945e83ce-ef8c-44c4-8792-4bb6cf6af7b7'
+      displayName: '合成目录模特'
+      aliases:
+      intro: ''
+      originSourceId: '10497ab2-376d-4b9e-b232-32dab31f09c2'
+      originAvailable: true
+      scopeId: '3e07145c-03b6-4977-b740-d40fa9316837'
+      status: 'DRAFT'
+      revision: 9
+      createdAt: '2026-09-23T08:00:00.000Z'
+      updatedAt: '2026-09-23T08:00:00.000Z'
+      isTalent: true
+      genderCode: 'FEMALE'
+      nationalityCodes:
+        0: 'US'
+      ageRange:
+        min: 25
+        max: 26
+        asOf: '2026-09-23'
+        precision: 'YEAR_ONLY'
+      coverAssetId: ~
+      matchingRoleIds:
+        0: 'fdb1a2eb-202a-4212-ae95-263821fcf386'
+      roles:
+        0:
+          id: 'fdb1a2eb-202a-4212-ae95-263821fcf386'
+          roleCode: 'model'
+          revision: 2
+          castingMarketCode: 'DOMESTIC'
+          experienceCode: 'AMATEUR'
+          styleCodes:
+            0: 'natural'
+          serviceCodes:
+            0: 'print'
+        1:
+          id: '23beb08b-c0b1-465f-9b4f-76eda92311ee'
+          roleCode: 'actor'
+          revision: 1
+          castingMarketCode: 'UNCLASSIFIED'
+          experienceCode: 'UNSPECIFIED'
+          styleCodes:
+          serviceCodes:
+      languages:
+      locations:
+        0:
+          locationCode: 'shenzhen'
+          relationCode: 'BASE'
+      heightCm: 175
+      adultState: 'UNKNOWN'
+      collectionCount: 0
+      matchedBy:
+        0:
+          field: 'role'
+          value: 'model'
+        1:
+          field: 'gender'
+          value: 'FEMALE'
+        2:
+          field: 'nationality'
+          value: 'US'
+        3:
+          field: 'market'
+          value: 'DOMESTIC'
+        4:
+          field: 'experience'
+          value: 'AMATEUR'
+        5:
+          field: 'style'
+          value: 'natural'
+        6:
+          field: 'service'
+          value: 'print'
+        7:
+          field: 'location'
+          value: 'shenzhen'
+        8:
+          field: 'ageMin'
+          value: '25'
+        9:
+          field: 'ageMax'
+          value: '26'
+        10:
+          field: 'heightMin'
+          value: '170'
+      roleSummaries:
+        0:
+          personRoleId: 'fdb1a2eb-202a-4212-ae95-263821fcf386'
+          roleCode: 'model'
+          works:
+          capabilities:
+          tags:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/once-production-os/tests/core/talent-directory.test.ts:18:94)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: PR01b rejects contradictory birth branches, fake unknown dates, non-model labels and stale atomic commands
+ok 21 - PR01b rejects contradictory birth branches, fake unknown dates, non-model labels and stale atomic commands
+  ---
+  duration_ms: 221.176061
+  type: 'test'
+  ...
+# Subtest: PR01b complete birth date needs separate grants, safe derived ages remain available and hidden source cannot match
+ok 22 - PR01b complete birth date needs separate grants, safe derived ages remain available and hidden source cannot match
+  ---
+  duration_ms: 790.945545
+  type: 'test'
+  ...
+# Subtest: PR01b unknown and declared ages keep precision through time and v14 imports gain unknown defaults
+ok 23 - PR01b unknown and declared ages keep precision through time and v14 imports gain unknown defaults
+  ---
+  duration_ms: 0.833793
+  type: 'test'
+  ...
+# Subtest: PR01b POST query is strict, authenticated and read-only: no key, receipt or business audit
+ok 24 - PR01b POST query is strict, authenticated and read-only: no key, receipt or business audit
+  ---
+  duration_ms: 201.407553
+  type: 'test'
+  ...
+# Subtest: PR01b server receipt time cannot be forged and legacy writes refuse new fields
+ok 25 - PR01b server receipt time cannot be forged and legacy writes refuse new fields
+  ---
+  duration_ms: 198.710636
+  type: 'test'
+  ...
+# Subtest: PR01b birthday proposals stay restricted and export requires new exact grants on both person and source
+ok 26 - PR01b birthday proposals stay restricted and export requires new exact grants on both person and source
+  ---
+  duration_ms: 771.123755
+  type: 'test'
+  ...
+# Subtest: TD2-T15 result totals and all-page facets exclude hidden professional facts
+ok 27 - TD2-T15 result totals and all-page facets exclude hidden professional facts
+  ---
+  duration_ms: 505.151113
+  type: 'test'
+  ...
+# Subtest: TD2-T15 industry and work type must match the same work in the selected occupation
+ok 28 - TD2-T15 industry and work type must match the same work in the selected occupation
+  ---
+  duration_ms: 273.060096
+  type: 'test'
+  ...
+# Subtest: TD2-T15 actual collaboration and combined professional filters preserve role context
+ok 29 - TD2-T15 actual collaboration and combined professional filters preserve role context
+  ---
+  duration_ms: 256.486764
+  type: 'test'
+  ...
+# Subtest: TD2-T15 suspended sources remove search matches and orphan filter qualifiers are rejected
+ok 30 - TD2-T15 suspended sources remove search matches and orphan filter qualifiers are rejected
+  ---
+  duration_ms: 250.134787
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 28
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11129.462927

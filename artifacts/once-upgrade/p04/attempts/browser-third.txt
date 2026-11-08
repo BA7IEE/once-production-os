@@ -1,0 +1,23 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite supplier-directory
+
+{ errors: [], alerts: [] }
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: {"error":{"code":"VALIDATION_FAILED","message":"collection.items[0].caption格式或长度不符合要求","requestId":"90befe9c-90b6-4b07-81e4-8960b1b3571f"}}
+    at cmd (file:///workspace/once-production-os/tests/acceptance/browser-supplier-directory.mjs:41:237)
+    at async file:///workspace/once-production-os/tests/acceptance/browser-supplier-directory.mjs:50:19 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.22.3
+Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+ ELIFECYCLE  Command failed with exit code 1.

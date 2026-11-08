@@ -1,3 +1,4 @@
+import {supplierFieldRootSql} from './supplier-field-sql.ts';
 import {normalizePrincipalRow} from '../../../packages/core/src/principal.ts';
 import {directorySql} from './talent-directory-sql.ts';
 import { PrismaClient, Prisma } from '@prisma/client';
@@ -38,6 +39,11 @@ export class PrismaStore implements Store {
                 await p.$executeRaw `SELECT pg_advisory_xact_lock(91880762001::bigint)`;
                 const delegate = (t: Table) => (p as unknown as Record<string, Delegate>)[DELEGATE[t]]!;
                 const tx: Tx = {
+                    supplierFieldRoots:async q=>{
+                        if(!q.personIds.length||!q.sourceIds.length||q.owner==='ROLE'&&!q.roleIds.length)return [];
+                        const rows=await p.$queryRaw(supplierFieldRootSql(q));
+                        return plain(rows) as TableMap['supplierFacts'][];
+                    },
                     inboxCandidates:async(now,limit)=>(await p.supplierInboxMaterial.findMany({where:{OR:[{state:'QUEUED'},{state:'PROCESSING',leaseUntil:{lte:new Date(now)}}]},orderBy:[{createdAt:'asc'},{id:'asc'}],take:Math.min(32,Math.max(1,limit)),select:{id:true}})).map(r=>r.id),
                     mediaPurgeOverview:async(workspaceId,now)=>{const rows=await p.$queryRaw<Array<{pending:number;cleaning:number;unknown:number;recentFailures:number;oldestDue:Date|null;pendingBytes:number}>>`WITH due AS (SELECT DISTINCT r."assetId",r."retainUntil" FROM "personMedia" r WHERE r."workspaceId"=${workspaceId}::uuid AND r."usageState" IN ('STAGED','RETIRED') AND r."purgedAt" IS NULL AND r."retainUntil"<=${new Date(now)}) SELECT
                     (SELECT count(DISTINCT "assetId")::int FROM due) pending,

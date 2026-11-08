@@ -1,0 +1,9 @@
+
+> once-production-os@0.1.0-dev.1 typecheck /workspace/once-production-os
+> tsc -p tsconfig.server.json --noEmit && tsc -p apps/admin-web/tsconfig.json
+
+packages/core/src/supplier-role-summary.ts(32,36): error TS2322: Type 'unknown' is not assignable to type 'string'.
+packages/core/src/talent-directory-query.ts(30,267): error TS2345: Argument of type '{}[]' is not assignable to parameter of type 'Record<string, unknown>[]'.
+  Type '{}' is not assignable to type 'Record<string, unknown>'.
+    Index signature for type 'string' is missing in type '{}'.
+ ELIFECYCLE  Command failed with exit code 2.

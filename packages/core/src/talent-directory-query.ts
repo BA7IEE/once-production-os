@@ -1,3 +1,4 @@
+import {supplierRoleSummaries} from './supplier-role-summary.ts';
 import {filterSupplierFields} from './supplier-field-search.ts';
 import {DIRECTORY_DIMENSIONS,DIRECTORY_QUERY_VERSION,queryValues,type TalentQuery} from './talent-directory-contract.ts';
 import type {Actor,Clock} from './model.ts';
@@ -26,5 +27,5 @@ export async function queryTalentDirectory(tx:Tx,actor:Actor,clock:Clock,input:u
  const filtered=professionalActive?await filterSupplierFields(tx,actor,clock,graph,reference.items,data.professional!):reference.items;
  const verified=filtered.filter((p:Record<string,unknown>)=>candidates.has(String(p.id))),page=Number(query.page??1),pageSize=Number(query.pageSize??20);
  const result=await tx.talentDirectoryQuery({...base,query,phase:'PAGE',verifiedIds:verified.map((p:Record<string,unknown>)=>String(p.id)),page,pageSize});
- const items=new Map(verified.map((p:Record<string,unknown>)=>[String(p.id),p]));return {...reference,...(professionalActive?{facets:{}}:{}),queryVersion:DIRECTORY_QUERY_VERSION,total:result.total,page,pageSize,items:result.ids.map(id=>items.get(id)!)};
+ const items=new Map<string,Record<string,unknown>>(verified.map((p:Record<string,unknown>)=>[String(p.id),p] as const));return {...reference,...(professionalActive?{facets:{}}:{}),queryVersion:DIRECTORY_QUERY_VERSION,total:result.total,page,pageSize,items:await supplierRoleSummaries(tx,actor,clock,graph,result.ids.map(id=>items.get(id)!),{industryCodes:queryValues(query.industryCode),workTypeCodes:queryValues(query.workTypeCode)})};
 }
