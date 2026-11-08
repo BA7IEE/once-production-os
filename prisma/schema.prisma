@@ -2799,6 +2799,8 @@ model SupplierCatalog {
   @@map("supplierCatalogs")
 }
 model SupplierFact {
+  mergeDecisionId String? @db.Uuid
+  originalConfirmation Json?
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)

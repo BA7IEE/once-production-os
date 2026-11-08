@@ -9,6 +9,7 @@ import type { ExportFieldCode, ExportSubjectKind } from '../../../packages/core/
 import { ErrorBox, Field, Modal, PageTitle, Pager, Submit, Tag, date, useAction, useLoad } from './ui.tsx';
 
 const professionalFields: Array<[ExportFieldCode,string]> = [
+    ['person.td2.supplierFields','扩展专业字段（含目录、记录组、原来源确认和停用历史）'],
     ['person.td2.birthDate','完整出生日期（受限，须单独批准）'],
     ['person.td2.mergeHistory','合并保留资料（旧身份、主档案和决定）'],
     ['person.td2.adultEligibilities','2.0 成年资格与原核验归属（单独批准）'],
@@ -36,6 +37,7 @@ const fieldGroups: Record<ExportSubjectKind, Array<[ExportFieldCode, string]>> =
         ['person.languageCodes', '语言'], ['person.skillCodes', '技能'], ['person.heightCm', '身高'], ['person.intro', '简介'], ['person.status', '档案状态'], ['person.identityEvidence','身份字段的来源证据与原核验记录'], ...professionalFields
     ],
     WORK: [
+        ['work.caseDate','作品日期'],['work.datePrecision','日期精度'],['work.location','作品地点'],['work.brandDisplayName','品牌展示名'],
         ['work.localeTexts','作品内部中英文文本、依据与原复核记录'],
         ['work.title', '作品标题'], ['work.description', '作品说明'], ['work.industryCode', '行业'], ['work.workTypeCodes', '作品类型'],
         ['work.origin', '制作归属'], ['work.originNote', '归属依据'], ['work.status', '作品状态'], ['work.relations', '与已选人才的署名关系']
@@ -46,6 +48,7 @@ const fieldGroups: Record<ExportSubjectKind, Array<[ExportFieldCode, string]>> =
         ['project.parties','客户机构、品牌及所属机构'], ['project.reviewNote', '内部复盘'], ['project.status', '项目状态'], ['project.relations', '与已选人才/作品的关系']
     ],
     SOURCE: [
+        ['work.relations','精确作品署名及职责来源'],
         ['project.parties','客户机构、品牌及所属机构'],
         ['person.localeTexts','人物内部中英文文本、依据与原复核记录'],['work.localeTexts','作品内部中英文文本、依据与原复核记录'],['project.localeTexts','项目内部中英文文本、依据与原复核记录'],
         ['source.title', '来源标题'], ['source.type', '来源类型'], ['source.providerClaim', '提供方说明'], ['source.basisMode', '内部依据类型'],
@@ -205,7 +208,7 @@ function ExportContent({ me }: { me: Me }) {
         <ErrorBox error={permissions.error ?? exports.error ?? create.error ?? revoke.error}/>
         <div className="notice"><strong>三道安全门</strong><p>账号必须有 data.export；对象必须有当前有效的精确用途许可；部署侧 DATA_EGRESS_MODE 必须明确开放。生产默认关闭出口。</p></div>
 
-        <div className="notice"><strong>内部语言文本</strong><p>请分别批准人物、作品或项目的语言文本字段，以及每份实际依据来源的相同字段。正文、依据和原复核记录一起迁移；在目标库保留为待复核文本，不会把导入人记作原复核人。</p></div><div className="notice"><strong>2.0 专业资料导出范围</strong><p>可选择主档案、职业、能力及所用字典、外部标识、代表关系及关联机构、语言、地点、外观、量尺历史和翻译资料；请同时选择必要关联；代表人须另行批准并一起选择导出。若需保留字段依据，请同时批准“所选专业字段的来源证据与原核验记录”，并批准每条证据来源及其对应专业资料；未选择时仍是旧版资料快照，不含字段证据。原核验仅保留历史归属，不等于新环境里的核验。包含每个来源的全部来源字段后，可用于隔离重建。无证明附件的资质可迁移；如有编号，必须另外批准加密编号并在隔离重建时提供原环境和目标环境密钥。带证明附件或已核验资质须同时批准图片及来源的“资质证明原件及预览”，下载 JSON 后再逐项保存原件和预览。媒体集合与内容标签可另行选择，必须同时批准集合引用的全部图片；类型、标签、顺序和说明分别保留。成年资格需单独批准，已核验记录还必须选择字段来源证据；原核验归属仅作历史记录，迁移不延长有效期。身份字段的来源证据可单独选择，普通联系人无需建立人才档案；须同时批准姓名、别名或简介以及各条证据的来源。合并保留资料可另行批准，包含旧身份、保留主档案、原合并决定及核验归属；须同时选择当前对应主档案、关联量尺及字段证据。原来源已删除而资料有独立依据保留时，必须一并选择字段证据；只迁移已删来源编号与删除状态，不恢复来源原文，也不把它重新变成可用依据。这份 JSON 不是完整备份。专业资料、所用能力定义或关联机构变化会使旧文件失效。</p></div>
+        <div className="notice"><strong>扩展专业资料</strong><p>选择扩展专业字段时，须同时批准人物主档、精确职业及全部原来源。目录、选项、成组经历和停用历史一起迁移，合并过的资料还需选择合并历史；原确认人仅保留历史归属。含文字的重建需要原环境和目标环境密钥，目录编码含义不同会停止。既有旧格式不会静默遗漏这些资料。</p></div><div className="notice"><strong>内部语言文本</strong><p>请分别批准人物、作品或项目的语言文本字段，以及每份实际依据来源的相同字段。正文、依据和原复核记录一起迁移；在目标库保留为待复核文本，不会把导入人记作原复核人。</p></div><div className="notice"><strong>2.0 专业资料导出范围</strong><p>可选择主档案、职业、能力及所用字典、外部标识、代表关系及关联机构、语言、地点、外观、量尺历史和翻译资料；请同时选择必要关联；代表人须另行批准并一起选择导出。若需保留字段依据，请同时批准“所选专业字段的来源证据与原核验记录”，并批准每条证据来源及其对应专业资料；未选择时仍是旧版资料快照，不含字段证据。原核验仅保留历史归属，不等于新环境里的核验。包含每个来源的全部来源字段后，可用于隔离重建。无证明附件的资质可迁移；如有编号，必须另外批准加密编号并在隔离重建时提供原环境和目标环境密钥。带证明附件或已核验资质须同时批准图片及来源的“资质证明原件及预览”，下载 JSON 后再逐项保存原件和预览。媒体集合与内容标签可另行选择，必须同时批准集合引用的全部图片；类型、标签、顺序和说明分别保留。成年资格需单独批准，已核验记录还必须选择字段来源证据；原核验归属仅作历史记录，迁移不延长有效期。身份字段的来源证据可单独选择，普通联系人无需建立人才档案；须同时批准姓名、别名或简介以及各条证据的来源。合并保留资料可另行批准，包含旧身份、保留主档案、原合并决定及核验归属；须同时选择当前对应主档案、关联量尺及字段证据。原来源已删除而资料有独立依据保留时，必须一并选择字段证据；只迁移已删来源编号与删除状态，不恢复来源原文，也不把它重新变成可用依据。这份 JSON 不是完整备份。专业资料、所用能力定义或关联机构变化会使旧文件失效。</p></div>
         <section className="panel padded"><div className="panel-heading"><div><h2>可用导出许可</h2><p>先由资料核验人员批准对象、字段和截止时间。导出任务只能使用这里的现行许可。</p></div><button onClick={() => setRefresh(x => x + 1)}>刷新</button></div>
             <div className="filters"><select aria-label="许可对象类型" value={permissionKind} onChange={e=>{setPermissionKind(e.target.value);setPermissionPage(1);}}><option value="">全部类型</option>{Object.entries(kindNames).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select><select aria-label="许可状态" value={permissionStatus} onChange={e=>{setPermissionStatus(e.target.value);setPermissionPage(1);}}><option value="">全部状态</option><option value="ACTIVE">有效</option><option value="REVOKED">已撤销</option></select></div>
             <div className="table-wrap"><table><thead><tr>{canExport && <th>用于本次导出</th>}<th>对象</th><th>允许字段</th><th>截止</th><th>状态</th>{canApprove && <th>操作</th>}</tr></thead>

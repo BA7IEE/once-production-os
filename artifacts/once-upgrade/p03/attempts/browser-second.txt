@@ -1,0 +1,20 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite supplier-migration
+
+{ errors: [], alerts: [] }
+/workspace/once-production-os/node_modules/.pnpm/playwright-core@1.63.0/node_modules/playwright-core/lib/coreBundle.js:58136
+          throw new Error(`Path is not available when connecting remotely. Use saveAs() to save a local copy.`);
+                ^
+
+Error: Path is not available when connecting remotely. Use saveAs() to save a local copy.
+    at Artifact2.pathAfterFinished (/workspace/once-production-os/node_modules/.pnpm/playwright-core@1.63.0/node_modules/playwright-core/lib/coreBundle.js:58136:17)
+    at Download2.path (/workspace/once-production-os/node_modules/.pnpm/playwright-core@1.63.0/node_modules/playwright-core/lib/coreBundle.js:58279:37)
+    at file:///workspace/once-production-os/tests/acceptance/browser-supplier-migration.mjs:55:475
+    at runNextTicks (node:internal/process/task_queues:64:5)
+    at process.processImmediate (node:internal/timers:452:9)
+    at process.callbackTrampoline (node:internal/async_hooks:130:17)
+
+Node.js v22.22.3
+Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+ ELIFECYCLE  Command failed with exit code 1.

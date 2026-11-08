@@ -1,3 +1,6 @@
+import {exactCreditCurrent} from './talent-work-cases.ts';
+import {randomUUID} from 'node:crypto';
+import {applySupplierMerge} from './supplier-field-merge.ts';
 import {adoptedMediaFor} from './media-ownership.ts';
 import {maintenanceSnapshot,maintenanceScopeBlocker,revokePersonMaintenance} from './talent-maintenance-lifecycle.ts';
 import {scanLocaleMerge,applyLocaleMerge,type LocaleMergePlan} from './locale-merge.ts';
@@ -97,7 +100,7 @@ export class PersonMerges {
         const blockers = new Map<string,number>();
         const locales=await scanLocaleMerge(tx,actor,this.clock,canonical.id,duplicate.id);
         for(const code of locales.blockers)blocker(blockers,code);
-        const talent = await scanTalentMerge(tx, actor, this.clock, canonical.id, duplicate.id);
+        const talent = await scanTalentMerge(tx, actor, this.clock, canonical.id, duplicate.id,this.config);
         for (const code of talent.blockers) blocker(blockers, code);
 
         // A selected upload Role is a historical origin. Do not silently move or drop that binding.
@@ -182,7 +185,13 @@ export class PersonMerges {
         const duplicateCredits = await tx.find('workCredits', { workspaceId: actor.workspaceId, personId: duplicate.id });
         const canonicalCredits = await tx.find('workCredits', { workspaceId: actor.workspaceId, personId: canonical.id });
         for (const row of duplicateCredits) {
-            if (row.personRoleId) { blocker(blockers, 'EXACT_WORK_ROLE_CONFLICT'); continue; }
+            if(row.personRoleId){
+                const migrating=talent.supplier.snapshot.facts.length>0&&talent.preview.items.some(i=>i.table==='personRoles'&&i.id===row.personRoleId&&i.action==='MOVE');
+                if(!migrating||!await exactCreditCurrent(tx,row,this.clock)||canonicalCredits.some(c=>c.workId===row.workId&&c.roleCode===row.roleCode)){blocker(blockers,'EXACT_WORK_ROLE_CONFLICT');continue;}
+                try{await sourceFor(tx,actor,row.sourceId!,this.clock);const role=(await tx.get('personRoles',row.personRoleId))!;await sourceFor(tx,actor,role.sourceId,this.clock);}catch(e){if(e instanceof AppError&&e.status===404){blocker(blockers,'HIDDEN_WORK_REFERENCE');continue;}throw e;}
+                const root=await this.visibleWork(tx,actor,row.workId);if(!root){blocker(blockers,'HIDDEN_WORK_REFERENCE');continue;}
+                affectedWorkIds.add(row.workId);workCreditMoveIds.push(row.id);talent.preview.items.push({table:'workCredits',id:row.id,revision:row.revision,action:'MOVE'});continue;
+            }
             const root = await this.visibleWork(tx, actor, row.workId);
             if (!root) { blocker(blockers, 'HIDDEN_WORK_REFERENCE'); continue; }
             affectedWorkIds.add(row.workId);
@@ -344,8 +353,10 @@ export class PersonMerges {
         const requested = talentDecisions.map(r => `${r.table}:${r.id}:${r.action}`).sort();
         const required = plan.talent.preview.items.map(r => `${r.table}:${r.id}:${r.action}`).sort();
         invariant(same(requested, required), 'TD2_MERGE_DECISIONS_INCOMPLETE', '必须逐项确认专业资料迁移及建议失效', 422);
+        const mergeDecisionId=randomUUID();
         const professional = await applyTalentMerge(tx, actor, this.clock, plan.talent, plan.canonical.id, plan.duplicate.id, d.professionalConflicts ?? []);
 
+        const supplierFacts=await applySupplierMerge(tx,actor,this.clock,this.config,plan.talent.supplier,plan.canonical.id,plan.duplicate.id,d.professionalConflicts??[],mergeDecisionId);
         const now = this.clock.now().toISOString();
         // Revoke purpose grants and handoffs rather than moving them to a different identity.
         for (const id of plan.activePermissionIds) {
@@ -451,7 +462,7 @@ export class PersonMerges {
 
         const localeResults=await applyLocaleMerge(tx,actor,this.clock,plan.locales,plan.canonical.id,plan.duplicate.id,d.localeDecisions??[]);
         const manifest = {
-            localeResults,
+            localeResults,...(supplierFacts.length?{supplierFacts}:{}),
             professional, professionalDecisions: talentDecisions, professionalConflicts: d.professionalConflicts ?? [],
             reason: d.reason, fieldDecisions: [...fieldMap].sort(), collisionDecisions: [...collisionMap].sort(),
             revokedHandoffs: plan.activeHandoffIds.length, revokedUsePermissions: plan.activePermissionIds.length,
@@ -459,7 +470,7 @@ export class PersonMerges {
             uploadsDetached: plan.uploadIds.length, assetsReassigned: plan.assetReassignIds.length, assetsDetached: plan.assetDetachIds.length,
             moved: { workCredits: plan.workCreditMoveIds.length, projectParticipants: plan.projectParticipantMoveIds.length, shortlistItems: plan.shortlistItemMoveIds.length }
         };
-        const decision: PersonMergeDecision = { ...base(actor.workspaceId, this.clock), actorId: actor.membershipId,
+        const decision: PersonMergeDecision = { ...base(actor.workspaceId, this.clock),id:mergeDecisionId, actorId: actor.membershipId,
             canonicalPersonId: plan.canonical.id, duplicatePersonId: plan.duplicate.id,
             canonicalRevisionBefore: plan.canonical.revision, duplicateRevisionBefore: plan.duplicate.revision,
             canonicalRevisionAfter: nextCanonical.revision, canonicalSourceId: plan.canonicalSource.id, duplicateSourceId: plan.duplicateSource.id,

@@ -1,3 +1,5 @@
+import {answerText} from './supplier-professional-fields.tsx';
+import type {ProfessionalAnswer,SupplierField} from '../../../packages/core/src/supplier-field-contract.ts';
 import { useMemo, useState } from 'react';
 import { call, read } from './api.ts';
 import type { Me, Page, Person, Receipt } from './dto.ts';
@@ -5,7 +7,7 @@ import type { ProfessionalConflictChoice, PersonMergeCollisionChoice, PersonMerg
 import { ErrorBox, Field, PageTitle, Submit, useAction, useLoad } from './ui.tsx';
 
 const professionalLabel: Record<string, string> = {
-    talentProfiles: '人才主档案', personRoles: '职业', personCapabilities: '能力', personLanguages: '语言',
+    talentProfiles: '人才主档案', supplierFacts:'扩展专业字段',workCredits:'精确作品署名',personRoles: '职业', personCapabilities: '能力', personLanguages: '语言',
     talentLocations: '地点', castingProfiles: '外观档案', measurementSets: '量尺历史', adultEligibilities: '成人资格',
     representations: '代表关系', personExternalRefs: '外部标识', personCredentials: '资质', translatorLanguagePairs: '翻译语言对',
     translatorServiceModes: '翻译服务方式', mediaCollections: '媒体集合', mediaCollectionTags: '集合标签',
@@ -33,6 +35,9 @@ const blockerLabel: Record<string, string> = {
     DUPLICATE_HAS_ALIASES: '重复档案仍承接其他旧 ID',
     PERSON_DELETION_REQUEST: '档案存在删除申请',
     ACTIVE_DELETION_DEPENDENCY: '档案被活动中的删除计划引用',
+    SUPPLIER_FIELD_ROLE_REBIND_REVIEW_REQUIRED:'两份档案存在重叠的同职业扩展资料，需要先分别核对职业归属；暂不自动换绑',
+    SUPPLIER_FIELD_HIDDEN_DEPENDENCY:'专业扩展事实存在当前不可见或失效的来源',
+    SUPPLIER_FIELD_MERGE_LIMIT:'扩展资料超过单次安全迁移上限，请分别整理',
     SENSITIVE_WRITE_REQUIRED: '存在联系方式，需要“维护敏感字段”权限才能安全重加密',
     HIDDEN_CONTACT_SOURCE: '存在当前不可见的联系方式来源',
     HIDDEN_EVIDENCE_SOURCE: '存在当前不可见的核验证据来源',
@@ -70,6 +75,7 @@ const professionalValueLabel: Record<string, string> = {
 function ProfessionalValues({ value }: { value: unknown }) {
     if (!value || typeof value !== 'object') return <p>暂无可读内容</p>;
     const record = value as Record<string, unknown>;
+    if(record.answer&&typeof record.answer==='object'&&record.field&&typeof record.field==='object'){const field=record.field as SupplierField;return <div className="notice"><strong>{field.label}</strong><p>{answerText(record.answer as ProfessionalAnswer,field)}</p><small>{String(record.sourceTitle??'')} · 目录版本 {String(record.catalogVersion)}</small></div>;}
     const hidden = Array.isArray(record.unavailableFields) ? record.unavailableFields : [];
     return <dl className="detail-grid">{Object.entries(professionalFieldLabel).filter(([key]) => Object.hasOwn(record, key)).map(([key, label]) =>
         <div key={key}><dt>{label}</dt><dd>{hidden.includes(key) ? '当前不可读' : professionalValueLabel[String(record[key])] ?? valueText(record[key])}</dd></div>

@@ -29453,7 +29453,9 @@
                             "mediaCollectionItems",
                             "talentMigrationReviews",
                             "fieldProposals",
-                            "shortlistItems"
+                            "shortlistItems",
+                            "supplierFacts",
+                            "workCredits"
                           ]
                         },
                         "id": {
@@ -29495,7 +29497,8 @@
                             "adultEligibilities",
                             "personRoles",
                             "personLanguages",
-                            "talentLocations"
+                            "talentLocations",
+                            "supplierFacts"
                           ]
                         },
                         "canonicalId": {
@@ -31709,6 +31712,7 @@
                         "source.validFrom",
                         "source.validUntil",
                         "source.status",
+                        "person.td2.supplierFields",
                         "person.td2.mergeHistory",
                         "person.identityEvidence",
                         "media.identity",
@@ -31734,7 +31738,7 @@
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 62
+                    "maxItems": 63
                   },
                   "validUntil": {
                     "type": "string",
@@ -32026,6 +32030,7 @@
                         "source.validFrom",
                         "source.validUntil",
                         "source.status",
+                        "person.td2.supplierFields",
                         "person.td2.mergeHistory",
                         "person.identityEvidence",
                         "media.identity",
@@ -32051,7 +32056,7 @@
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 62
+                    "maxItems": 63
                   },
                   "usePermissionRefs": {
                     "type": "array",

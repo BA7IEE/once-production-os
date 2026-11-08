@@ -6,7 +6,7 @@ import type { Table } from './model.ts';
 
 export const REBUILD_SCHEMA_VERSION = 'once-export-v1' as const;
 
-export const REBUILD_EMPTY_TABLES: Table[] = [...MAINTENANCE_TABLES,'brands','projectParties','localeTexts','localeDependencies',
+export const REBUILD_EMPTY_TABLES: Table[] = ['supplierInboxBatches','supplierInboxMaterials','supplierFacts','supplierFactChoices',...MAINTENANCE_TABLES,'brands','projectParties','localeTexts','localeDependencies',
     ...TALENT_V2_TABLES,
     'personMerges', 'personAliases', 'deletionRequests', 'deletionItems',
     'usePermissions', 'exports', 'exportDependencies',
@@ -48,6 +48,9 @@ export interface RebuildSummary {
     encryptedCredentialCount?: number;
     fieldEvidence?: number;
     professionalRecords?: number;
+    supplierFacts?:number;
+    supplierChoices?:number;
+    supplierCatalogs?:number;
     capabilityDefinitions?: number;
     organizations?: number;
     mergeHistory?: {people:number;aliases:number;decisions:number;profiles:number;evidence:number};

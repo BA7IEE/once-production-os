@@ -10,3 +10,8 @@ artifacts/once-upgrade/p02/**/*.tap -whitespace
 artifacts/once-upgrade/p02/**/*.txt -whitespace
 artifacts/once-upgrade/p02/*.tap -whitespace
 artifacts/once-upgrade/p02/*.txt -whitespace
+
+artifacts/once-upgrade/p03/**/*.tap -whitespace
+artifacts/once-upgrade/p03/**/*.txt -whitespace
+artifacts/once-upgrade/p03/*.tap -whitespace
+artifacts/once-upgrade/p03/*.txt -whitespace

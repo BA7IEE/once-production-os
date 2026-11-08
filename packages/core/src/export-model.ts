@@ -1,3 +1,4 @@
+import {SUPPLIER_TRANSFER_CODE} from './supplier-field-transfer.ts';
 import {LOCALE_TRANSFER_CODES,LOCALE_EXPORT_VERSION} from './locale-transfer.ts';
 import {MERGE_HISTORY_CODE} from './merge-history-transfer.ts';
 import {IDENTITY_EVIDENCE_CODE} from './identity-transfer.ts';
@@ -11,7 +12,7 @@ export const EXPORT_FIELD_CODES = [
     'work.caseDate','work.datePrecision','work.location','work.brandDisplayName','work.title', 'work.description', 'work.industryCode', 'work.workTypeCodes', 'work.origin', 'work.originNote', 'work.status', 'work.relations',
     'project.parties', 'project.title', 'project.brief', 'project.locationNote', 'project.dateNote', 'project.reviewNote', 'project.status', 'project.relations',
     'source.title', 'source.type', 'source.providerClaim', 'source.basisMode', 'source.basisDescription', 'source.validFrom', 'source.validUntil', 'source.status',
-    MERGE_HISTORY_CODE, IDENTITY_EVIDENCE_CODE, 'media.identity', MEDIA_TRANSFER_CODE, ...TRANSFER_CODES, BIRTH_DATE_CODE, CREDENTIAL_IDENTIFIER_CODE, EVIDENCE_TRANSFER_CODE
+    SUPPLIER_TRANSFER_CODE, MERGE_HISTORY_CODE, IDENTITY_EVIDENCE_CODE, 'media.identity', MEDIA_TRANSFER_CODE, ...TRANSFER_CODES, BIRTH_DATE_CODE, CREDENTIAL_IDENTIFIER_CODE, EVIDENCE_TRANSFER_CODE
 ] as const;
 export type ExportFieldCode = typeof EXPORT_FIELD_CODES[number];
 export type ExportSubjectKind = 'SOURCE' | 'PERSON' | 'WORK' | 'PROJECT' | 'ASSET';

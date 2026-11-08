@@ -1,0 +1,99 @@
+TAP version 13
+# Subtest: extension merge retains exact roles, grouped records, choices, two sources, retired history and atomic audit; v16 rekeys a complete business rebuild
+not ok 1 - extension merge retains exact roles, grouped records, choices, two sources, retired history and atomic audit; v16 rekeys a complete business rebuild
+  ---
+  duration_ms: 313.456552
+  type: 'test'
+  location: '/workspace/once-production-os/tests/core/supplier-migration.test.ts:6:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    [{"code":"EXACT_WORK_ROLE_CONFLICT","count":1}]
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    verifySupplierMerge (file:///workspace/once-production-os/tests/support/supplier-migration.ts:38:82)
+    async TestContext.<anonymous> (file:///workspace/once-production-os/tests/core/supplier-migration.test.ts:7:35)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: overlapping exact roles with extension facts remain explicitly blocked
+ok 2 - overlapping exact roles with extension facts remain explicitly blocked
+  ---
+  duration_ms: 254.278198
+  type: 'test'
+  ...
+# Subtest: TD2 typed merge preserves IDs, sources, role links and credentials; audit failure rolls back; exact retry/replay succeed
+ok 3 - TD2 typed merge preserves IDs, sources, role links and credentials; audit failure rolls back; exact retry/replay succeed
+  ---
+  duration_ms: 376.303639
+  type: 'test'
+  ...
+# Subtest: TD2 typed merge binds fact content, evidence and proposal revisions, not only root revisions
+ok 4 - TD2 typed merge binds fact content, evidence and proposal revisions, not only root revisions
+  ---
+  duration_ms: 288.23865
+  type: 'test'
+  ...
+# Subtest: TD2 hidden or sensitive dependencies expose no typed IDs, proposal values or secret data
+ok 5 - TD2 hidden or sensitive dependencies expose no typed IDs, proposal values or secret data
+  ---
+  duration_ms: 464.429607
+  type: 'test'
+  ...
+# Subtest: TD2 singleton collisions are enumerated and cannot be bypassed by explicit migration acknowledgements
+ok 6 - TD2 singleton collisions are enumerated and cannot be bypassed by explicit migration acknowledgements
+  ---
+  duration_ms: 284.458963
+  type: 'test'
+  ...
+# Subtest: TD2 overlapping language facts remain a conflict, and duplicate or invented acknowledgements fail
+ok 7 - TD2 overlapping language facts remain a conflict, and duplicate or invented acknowledgements fail
+  ---
+  duration_ms: 270.38682
+  type: 'test'
+  ...
+# Subtest: TD2 merging an independent agent rebinds inbound representation without moving the represented talent
+ok 8 - TD2 merging an independent agent rebinds inbound representation without moving the represented talent
+  ---
+  duration_ms: 262.113097
+  type: 'test'
+  ...
+# Subtest: TD2 source revocation for a professional fact invalidates preview while both identity sources remain readable
+ok 9 - TD2 source revocation for a professional fact invalidates preview while both identity sources remain readable
+  ---
+  duration_ms: 260.72913
+  type: 'test'
+  ...
+# Subtest: TD2 explicit conflict decisions retain source facts, immutable history and atomic retry
+ok 10 - TD2 explicit conflict decisions retain source facts, immutable history and atomic retry
+  ---
+  duration_ms: 439.296046
+  type: 'test'
+  ...
+# Subtest: TD2 contradictory interval decisions cannot deactivate a record selected as active elsewhere
+ok 11 - TD2 contradictory interval decisions cannot deactivate a record selected as active elsewhere
+  ---
+  duration_ms: 0.885552
+  type: 'test'
+  ...
+# Subtest: TD2 retained history requires merge permission and rechecks the original identity scope
+ok 12 - TD2 retained history requires merge permission and rechecks the original identity scope
+  ---
+  duration_ms: 662.591252
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 11
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4731.544498
