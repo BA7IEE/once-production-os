@@ -1,0 +1,27 @@
+{
+  "status": "BROWSER_TESTED",
+  "data": "SYNTHETIC",
+  "backend": "real Nest/Worker/PostgreSQL/private local media",
+  "providerVerified": "NOT_RUN",
+  "humanUsability": "NOT_RUN",
+  "partialProjectionTest": "CONTROLLED_READ_RESPONSE_REAL_WRITE_AND_DATABASE",
+  "claimLifecycleFixture": "SYNTHETIC_DATABASE_STATES_REAL_READ_AND_REJECT",
+  "checks": [
+    "cross-page selection and detail return; explicit scope/list/role; lost committed response recovered readonly with one batch write",
+    "duplicate preview and confirmed numeric outcome preserve existing candidates",
+    "explicit batch subset commits only chosen items and keeps deferred directory selection",
+    "360/390/430px no horizontal overflow; keyboard checkbox filter and explicit application",
+    "inline editor preserves input when leaving is cancelled; explicit discard never writes",
+    "real contacts items projection supports empty/add/read/edit/remove; unauthorized viewer has no entry and receives denial; reads audited without raw values",
+    "controlled partial read projection hides unavailable model controls; one visible change preserves hidden database values through real service",
+    "controlled partial personal read permits visible gender edit without inventing a required birth date; real write preserves birth and nationality",
+    "contextual independent-source proposal preserves old value, lost response resumes readonly with one write, explicit review adopts new value",
+    "real images processed in serial; malformed PUT success and uncertain completion pause queue; readonly inspection never resends received bytes; successful files survive one invalid image",
+    "one UI command creates case, exact role credit and ordered media; explicit cover and unknown date preserved",
+    "work and project use full pages and stable URLs, refresh opens same record, project source chosen explicitly",
+    "CSV/TSV mapping -> current server preview -> only valid rows imported by real Worker; unknown role retained as invalid",
+    "real stale-source rejection then fresh preview sends two selected rows; lost commit plus readonly GET stays frozen until exact key/body recovery without duplicate people",
+    "synthetic expired/revoked claim states use real task reads: consistent closed status, no approval action, explicit rejection persists without a grant"
+  ],
+  "errors": []
+}

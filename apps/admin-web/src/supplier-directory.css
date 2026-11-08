@@ -8,6 +8,12 @@
 .talent-directory .directory-count button{margin-left:0}
 .talent-directory .directory-list .directory-card{flex-direction:row;flex-wrap:wrap}
 .talent-directory .directory-list .directory-role-choice{flex:0 1 220px}
+/* Keep the first card and its career selector visible on a desktop viewport. */
+@media(min-width:1101px){
+ .once-current-shell .talent-directory .page-title{margin-bottom:6px}
+ .once-current-shell .talent-directory .directory-count{margin:4px 0}
+ .talent-directory .photo-directory:not(.directory-list) .directory-cover,.talent-directory .photo-directory:not(.directory-list) .directory-cover-placeholder{height:160px}
+}
 @media(max-width:600px){
  .talent-directory .photo-directory{grid-template-columns:minmax(0,1fr)}
  .talent-directory .directory-count .button-row{width:100%}

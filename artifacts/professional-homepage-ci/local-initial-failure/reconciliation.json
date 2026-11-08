@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-08T11:11:59.799482+00:00",
+  "resourceRun": "5d3fb75ee7af479c2bb197e4",
+  "originalStatus": "CLEANUP_FAILED",
+  "cause": "Playwright bundled chromium_headless_shell executable absent; browser intent has no resolved PID",
+  "binaryWasAbsent": true,
+  "registeredProcessGroups": [
+    83624,
+    83633,
+    83707,
+    83797,
+    83826,
+    83835,
+    83854,
+    83931
+  ],
+  "remainingLiveProcesses": 0,
+  "remainingOwnedContainers": 0,
+  "remainingOwnedTemporaryDirectories": 0,
+  "originalRunUnchanged": true,
+  "lockRemovedAfterInspection": true
+}
