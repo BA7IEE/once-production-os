@@ -1,3 +1,4 @@
+import {HomepagePublic} from './professional-homepage-public.ts';
 import {ClientPortal} from './client-portal.ts';
 import {ClientPresentations} from './client-presentations.ts';
 import {ProjectSelection} from './project-selection.ts';
@@ -92,6 +93,7 @@ function cookies(header: string): Record<string, string> {
 }
 export class Application {
     readonly mediaPurge:MediaPurge;
+    readonly homepagePublic:HomepagePublic;
     readonly clientPortal:ClientPortal;
     portal: TalentPortal;
     store: Store;
@@ -129,6 +131,7 @@ export class Application {
         this.safetyIntent = safetyIntent;
         this.config = config;
         this.identity = new Identity(store, clock, config);
+        this.homepagePublic=new HomepagePublic(store,clock,config);
         this.clientPortal=new ClientPortal(store,clock,config,safetyIntent);
         this.portal=new TalentPortal(new TalentAuth(store,config,clock,authProvider),(a,o,r,id,k)=>this.writeAhead(a,o,r,id,k),safetyIntent);
         this.talent = new Talent(clock, config);
@@ -243,6 +246,7 @@ export class Application {
         try {
             const url = new URL(request.url, this.config.origin);
             invariant(url.pathname.startsWith('/api/v1/'), 'NOT_FOUND', '接口不存在', 404);
+            if(url.pathname.startsWith('/api/v1/public/'))return await this.homepagePublic.handle(request,response,meta);
             if(url.pathname==='/api/v1/client'||url.pathname.startsWith('/api/v1/client/'))return await this.clientPortal.handle(request,response,meta);
             if(url.pathname==='/api/v1/portal'||url.pathname.startsWith('/api/v1/portal/'))return await this.portal.handle(request,response,meta);
             const { route, params } = this.match(request.method, url.pathname.slice('/api/v1'.length));

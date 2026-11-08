@@ -1,3 +1,4 @@
+import {quarantineHomepages} from './professional-homepage-lifecycle.ts';
 import {quarantineClientGuests} from './client-presentation-lifecycle.ts';
 import {SupplierProfessional} from './supplier-professional.ts';
 import {validateFieldCatalog,validateScalar} from './supplier-field-validation.ts';
@@ -21,7 +22,7 @@ import { touch } from './helpers.ts';
 
 /** All TD2 rows and their security-relevant endpoints participate in one recovery digest.
  * Do not return raw rows, encrypted identifiers or machine credential hashes in a report. */
-export const TD2_INTEGRITY_TABLES = ['clientPresentations','clientVersions','clientRecipients','clientGuestSessions','clientFeedback','projects','projectRequirements','shortlists','supplierInboxBatches','supplierInboxMaterials',...TALENT_V2_TABLES, 'supplierCatalogs','supplierFacts','supplierFactChoices','contacts','sourceReviews', 'people', 'sources', 'scopes',
+export const TD2_INTEGRITY_TABLES = ['professionalHomepages','homepageVersions','clientPresentations','clientVersions','clientRecipients','clientGuestSessions','clientFeedback','projects','projectRequirements','shortlists','supplierInboxBatches','supplierInboxMaterials',...TALENT_V2_TABLES, 'supplierCatalogs','supplierFacts','supplierFactChoices','contacts','sourceReviews', 'people', 'sources', 'scopes',
     'memberships', 'works','workCredits','workAssets','talentSubmissionItems', 'mediaPurgeIntents','personMedia','uploads','talentSubmissions','sourceAttributions','sourceUseBases','talentConsents','talentAccounts','talentClaims','talentAccessGrants','talentInvitations','talentInvitationContexts','assets', 'evidence', 'shortlistItemAssets', 'shortlistItems', 'personAliases', 'personMerges', 'mergeHistoryErasures'] as const;
 export type IntegrityTable = typeof TD2_INTEGRITY_TABLES[number];
 type Row = { id: string; workspaceId: string; [key: string]: unknown };
@@ -61,6 +62,8 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
     };
     for(const r of data.sourceReviews){ref(r,'personId','people',false,true);ref(r,'sourceId','sources',false,true);for(const f of ['senderId','reviewerId','publisherId'])ref(r,f,'memberships',false,true);for(const f of ['personScopeId','sourceScopeId','targetScopeId'])ref(r,f,'scopes',false,true);}
     for(const p of data.clientPresentations){ref(p,'id','shortlists',false,true);ref(p,'scopeId','scopes',false,true);ref(p,'maintainerId','memberships',false,true);}
+    for(const h of data.professionalHomepages){ref(h,'personId','people',false,true);ref(h,'talentAccountId','talentAccounts',false,true);ref(h,'grantId','talentAccessGrants',false,true);check((h.state==='ERASED')===(h.draftCiphertext===null));const g=maps.talentAccessGrants.get(String(h.grantId));check(g?.personId===h.personId&&g?.talentAccountId===h.talentAccountId);if(h.currentVersionId){const v=maps.homepageVersions.get(String(h.currentVersionId));check(v?.homepageId===h.id&&v?.state==='PUBLISHED');}if(h.draftCiphertext)try{JSON.parse(decryptDraftPayload(String(h.draftCiphertext),contactKey,`homepage-draft:${workspaceId}:${h.id}`));}catch{professionalFactFailures++;}}
+    for(const v of data.homepageVersions){ref(v,'homepageId','professionalHomepages',false,true);ref(v,'talentAccountId','talentAccounts',false,true);ref(v,'consentId','talentConsents',false,true);check((v.state==='ERASED')===(v.contentCiphertext===null));if(v.contentCiphertext)try{const content=JSON.parse(decryptDraftPayload(String(v.contentCiphertext),contactKey,`homepage-version:${workspaceId}:${v.id}`));check(digest({content,dependencies:v.dependencies})===v.contentDigest);}catch{professionalFactFailures++;}}
     for(const v of data.clientVersions){ref(v,'presentationId','clientPresentations',false,true);ref(v,'publisherId','memberships',false,true);ref(v,'approvalSourceId','sources',false,true);check((v.state==='ERASED')===(v.contentCiphertext===null));if(v.contentCiphertext)try{const p=JSON.parse(decryptDraftPayload(String(v.contentCiphertext),contactKey,`client-version:${workspaceId}:${v.id}`));check(p.schemaVersion==='once-client-presentation-v1'&&p.purpose==='CLIENT_PRESENTATION'&&digest(p.entries.map((e:{id:string})=>e.id))===digest(v.entryIds)&&digest(p)===v.manifestDigest&&digest(p.dependencies)===digest(v.dependencies));for(const id of v.personIds as string[])check(maps.people.has(id));for(const id of v.sourceIds as string[])check(maps.sources.has(id));for(const id of v.workIds as string[])check(maps.works.has(id));for(const id of v.assetIds as string[])check(maps.assets.has(id));}catch{professionalFactFailures++;}}
     for(const r of data.clientRecipients){ref(r,'versionId','clientVersions',false,true);ref(r,'createdById','memberships',false,true);if(r.labelCiphertext)try{decryptDraftPayload(String(r.labelCiphertext),contactKey,`client-recipient:${workspaceId}:${r.id}`);}catch{professionalFactFailures++;}check(r.state!=='ACTIVE'||typeof r.tokenHash==='string'&&/^[a-f0-9]{64}$/.test(r.tokenHash));}
     for(const s of data.clientGuestSessions){ref(s,'recipientId','clientRecipients',false,true);ref(s,'versionId','clientVersions',false,true);check(maps.clientRecipients.get(String(s.recipientId))?.versionId===s.versionId);}
@@ -257,7 +260,7 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
 /** Performed inside recovery.prepare's transaction and audit rollback boundary.
  * Re-issuing a machine account after recovery is an explicit new human operation. */
 export async function quarantineTalentActors(tx: Tx, actor: Actor, clock: Clock) {
-    await quarantineClientGuests(tx,actor.workspaceId,clock);
+    await quarantineHomepages(tx,actor.workspaceId,clock);await quarantineClientGuests(tx,actor.workspaceId,clock);
     for (const row of await tx.find('servicePrincipals', { workspaceId: actor.workspaceId })) {
         if (row.status === 'REVOKED' && row.credentialHash === null) continue;
         await tx.replace('servicePrincipals', { ...touch(row, clock), status: 'REVOKED',

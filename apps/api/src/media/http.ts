@@ -34,6 +34,16 @@ export function registerMediaHttp(server: Express, core: Application, provider: 
         res.set({'Content-Type':part==='attachment'?'application/pdf':'image/jpeg','Content-Disposition':part==='attachment'?'attachment; filename="portfolio.pdf"':'inline; filename="preview.jpg"','Content-Security-Policy':"default-src 'none'; sandbox"}).status(200).send(bytes);
         }catch(e){error(res,e);}
     });
+    for(const part of ['preview','attachment'] as const)server.get('/api/v1/public/homepages/:slug/media/:key/'+part,async(req,res)=>{
+        headers(res);try{
+            invariant(provider,'MEDIA_DISABLED','媒体暂不可用',503);
+            const r=request(req),read=()=>core.homepagePublic.media(r,req.params.slug as string,req.params.key as string),initial=await read(),a=initial.asset;
+            invariant(part==='attachment'?a.mime==='application/pdf':a.mime.startsWith('image/'),'NOT_FOUND','素材不可访问',404);
+            const bytes=part==='attachment'?await provider.readOriginal(a):await provider.readPreview(a),current=(await read()).asset;
+            invariant(current.revision===a.revision&&current.objectToken===a.objectToken&&current.sha256===a.sha256,'NOT_FOUND','媒体已变化或不可访问',404);
+            res.set({'Content-Type':part==='attachment'?'application/pdf':'image/jpeg','Content-Disposition':part==='attachment'?'attachment; filename="portfolio.pdf"':'inline; filename="preview.jpg"','Content-Security-Policy':"default-src 'none'; sandbox",'X-Robots-Tag':'noindex, nofollow'}).status(200).send(bytes);
+        }catch(e){error(res,e);}
+    });
     server.put(['/api/v1/uploads/:id/content','/api/v1/portal/uploads/:id/content','/api/v1/ingestion/uploads/:id/content'], async (req, res) => {
         headers(res);
         let claimed: Awaited<ReturnType<typeof core.media.beginReceive>> | null = null;

@@ -51,11 +51,14 @@
     "@ai-sdk/anthropic": "4.0.65",
     "@ai-sdk/openai": "4.0.78",
     "@ai-sdk/openai-compatible": "3.0.57",
+    "@ant-design/icons": "6.3.4",
+    "@ant-design/pro-components": "3.1.15-5",
     "@nestjs/common": "11.2.5",
     "@nestjs/core": "11.2.5",
     "@nestjs/platform-express": "11.2.5",
     "@prisma/client": "6.19.3",
     "ai": "7.0.118",
+    "antd": "6.6.5",
     "cos-nodejs-sdk-v5": "3.0.0",
     "express": "5.1.0",
     "fs-ext": "2.1.1",
@@ -64,23 +67,21 @@
     "react-dom": "19.1.1",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2",
-    "sharp": "0.35.4",
-    "antd": "6.6.5",
-    "@ant-design/icons": "6.3.4",
-    "@ant-design/pro-components": "3.1.15-5"
+    "sharp": "0.35.4"
   },
   "devDependencies": {
+    "@ant-design/cssinjs": "2.1.2",
     "@types/express": "5.0.3",
     "@types/fs-ext": "2.0.3",
     "@types/node": "22.15.30",
     "@types/qrcode": "1.5.5",
     "@types/react": "19.1.10",
     "@types/react-dom": "19.1.9",
+    "jsqr": "1.4.0",
     "playwright": "1.63.0",
     "prisma": "6.19.3",
     "typescript": "5.8.3",
-    "vite": "6.4.1",
-    "@ant-design/cssinjs": "2.1.2"
+    "vite": "6.4.1"
   },
   "type": "module",
   "pnpm": {

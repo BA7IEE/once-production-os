@@ -1,3 +1,4 @@
+import {homepageImpacts} from './professional-homepage-lifecycle.ts';
 import {clientPresentationImpacts} from './client-presentation-lifecycle.ts';
 import {projectSelectionImpacts} from './project-selection-lifecycle.ts';
 import {formalMediaSource} from './media-ownership.ts';
@@ -332,6 +333,7 @@ export class Deletions {
             }
         }
 
+        const homepage=await homepageImpacts(tx,actor,targetKind,targetId);for(const item of homepage.items)add(item);for(const code of homepage.unresolved)miss(code);
         const client=await clientPresentationImpacts(tx,actor,targetKind,targetId);for(const item of client.items)add(item);for(const code of client.unresolved)miss(code);
         const selection=await projectSelectionImpacts(tx,actor,targetKind,targetId);for(const item of selection.items)add(item);for(const code of selection.unresolved)miss(code);
         const inbox=await inboxErasureImpacts(tx,actor,targetKind,targetId);for(const item of inbox.items)add(item);for(const code of inbox.unresolved)miss(code);

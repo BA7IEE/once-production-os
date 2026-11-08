@@ -1,3 +1,4 @@
+import {ProfessionalHomepageEditor} from './professional-homepage-editor.tsx';
 import {CAPABILITY_LEVEL_LABELS,TRANSLATION_MODE_LABELS} from '../../../packages/core/src/supplier-native-contract.ts';
 import {SupplierNativeFields,type SkillOption} from './supplier-native-fields.tsx';
 import {SupplierProfessionalForm,answerText} from './supplier-professional-fields.tsx';
@@ -25,6 +26,7 @@ export function SupplierProfileHome(props:{me:TalentAccountMe;invitationContext:
  return <SupplierProfileSession key={props.me.talentAccountId} {...props}/>;
 }
 function SupplierProfileSession({me,invitationContext}:{me:TalentAccountMe;invitationContext:string|null}){
+ const [homepagePerson,setHomepagePerson]=useState<string|null>(new URL(location.href).searchParams.get('homepage'));
  const [schema,setSchema]=useState<Schema|null>(null),[profiles,setProfiles]=useState<Array<{personId:string;grantId:string;relation:string}>>([]);
  const [claims,setClaims]=useState<Claim[]>([]),[list,setList]=useState<DraftSummary[]>([]),[draft,setDraft]=useState<Draft|null>(null),[current,setCurrent]=useState<OwnProfile|null>(null);
  const [form,setForm]=useState(emptySupplierProfile),[aliasesText,setAliasesText]=useState(''),[workDirty,setWorkDirty]=useState(false),[dirty,setDirty]=useState(false),[consent,setConsent]=useState(false),[adult,setAdult]=useState(false);
@@ -96,11 +98,13 @@ function SupplierProfileSession({me,invitationContext}:{me:TalentAccountMe;invit
  }
  const checks=(field:'roleCodes'|'locationCodes'|'languageCodes'|'skillCodes',options:Option[])=>
   <div className="supplier-options">{options.map(o=><label key={o.code}><input type="checkbox" checked={form[field].includes(o.code)} onChange={e=>{if(field==='roleCodes'){toggleRole(o.code,e.target.checked);}else change(field,e.target.checked?[...form[field],o.code]:form[field].filter(v=>v!==o.code));}}/>{o.label}</label>)}</div>;
+ if(homepagePerson&&me.professionalHomepagesEnabled)return <ProfessionalHomepageEditor me={me} personId={homepagePerson} onClose={()=>{setHomepagePerson(null);const u=new URL(location.href);u.searchParams.delete('homepage');history.replaceState(null,'',u.pathname+u.search);}}/>;
  return <section className="supplier-home">
   <header><p className="eyebrow">ONCE · 供应商库</p><h2>我的专业资料</h2><p>填写职业、联系方式和作品资料。你确认后直接入库，之后可以随时更新。</p></header>
   {error&&<p className="supplier-error" role="alert">{error}</p>}{message&&<p role="status">{message}</p>}
   {pending&&<div className="panel padded"><p>上次操作的结果需要核对，核对完成后可继续编辑。</p><button disabled={busy} onClick={()=>void run(async()=>{await renderReceipt(await transport.current!.replay(me.talentAccountId));})}>{transport.current!.confirmed?'刷新已保存资料':'核对原请求'}</button></div>}
   {own&&<button disabled={busy||pending} onClick={()=>void run(editCurrent)}>查看并修改已入库资料</button>}
+  {own&&me.professionalHomepagesEnabled&&<button disabled={busy||pending||dirty||workDirty} onClick={()=>{setHomepagePerson(own.personId);const u=new URL(location.href);u.searchParams.set('homepage',own.personId);history.replaceState(null,'',u.pathname+u.search);}}>管理我的专业主页</button>}
   {!own&&!claim&&<div className="panel padded">{invitation?.purpose==='ENROLL'?<><p>通过本次邀请建立你的 ONCE 档案。</p><label><input type="checkbox" checked={adult} onChange={e=>setAdult(e.target.checked)}/>我是本人，且已满 18 周岁</label><button disabled={!adult||busy||pending} onClick={()=>void run(async()=>{await command('/claims',{contextId:invitationContext,relation:'SELF',applicantKey:'SELF',adultDeclared:true});setMessage('已加入，请完善下方资料。');})}>加入并建立资料</button></>:<p>请使用 ONCE 发给你的加入邀请。已有档案的认领、代理人或监护人申请可在历史申请入口继续处理。</p>}</div>}
   {list.length>0&&<label>打开已保存资料<select disabled={busy||pending} value={draft?.id??''} onChange={e=>{const id=e.target.value;if(id&&maySwitch())void run(async()=>{select(id);setCurrent(null);await refresh(true);});}}><option value="">选择草稿或已入库记录</option>{list.map(d=><option key={d.id} value={d.id}>{labels[d.state]??d.state} · {new Date(d.updatedAt).toLocaleString('zh-CN')}</option>)}</select></label>}
   {(own||claim||draft)&&schema&&<>

@@ -37,6 +37,7 @@ jobs:
       - run: pnpm test:postgres:owned --supplier-fields
       - run: pnpm test:postgres:owned --supplier-inbox
       - run: pnpm test:postgres:owned --supplier-migration
+      - run: pnpm test:postgres:owned --professional-homepages
       - run: pnpm test:postgres:owned --client-presentations
       - run: pnpm test:postgres:owned --project-selection
       - run: pnpm test:postgres:owned --supplier-directory
@@ -51,6 +52,7 @@ jobs:
       - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/current/browser-migration pnpm test:postgres:owned --browser-suite supplier-migration
       - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/current/browser-directory pnpm test:postgres:owned --browser-suite supplier-directory
       - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/current/browser-project pnpm test:postgres:owned --browser-suite project-selection
+      - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/professional-homepage/current/browser pnpm test:postgres:owned --browser-suite professional-homepages
       - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/current/browser-client pnpm test:postgres:owned --browser-suite client-presentations
       - run: ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/current/browser-documents pnpm test:postgres:owned --browser-suite supplier-library
       - run: ONCE_ACCEPTANCE_FIELDS=1 ONCE_ACCEPTANCE_UPGRADE=1 ONCE_ACCEPTANCE_EVIDENCE_DIR=artifacts/once-upgrade/current/browser-fields pnpm test:postgres:owned --browser-suite supplier-library
@@ -66,6 +68,7 @@ jobs:
             artifacts/supplier-work-grouping/
             artifacts/supplier-field-templates/
             artifacts/once-upgrade/
+            artifacts/professional-homepage/
             data/local-resource-runs/*/run.json
             data/local-resource-runs/*/process-*.json
             data/local-resource-runs/*/temporary-*.json

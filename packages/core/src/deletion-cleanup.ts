@@ -1,3 +1,4 @@
+import {checkHomepageErasure,eraseHomepage} from './professional-homepage-lifecycle.ts';
 import {checkClientErasure,eraseClientVersion} from './client-presentation-lifecycle.ts';
 import {checkProjectSelectionErasure,eraseProjectSelection} from './project-selection-lifecycle.ts';
 import {irreversiblePurge} from './media-purge-model.ts';
@@ -21,7 +22,7 @@ import { DeletionSchemas as S } from './deletion-validation.ts';
 import { AppError, invariant, missing } from './errors.ts';
 import { audit, cas, touch, workspaceRow } from './helpers.ts';
 import { digest } from './json.ts';
-import { requirePermission, sourceCurrent } from './policy.ts';
+import { requireScope, requirePermission, sourceCurrent } from './policy.ts';
 
 const LEASE_MS = 30000;
 const MAX_ATTEMPTS = 3;
@@ -38,6 +39,7 @@ const actionPriority = (item: DeletionItem) => {
     if(['projectParty','brandOrganization'].includes(item.resourceKind))return 1;
     if(item.resourceKind==='brand')return 2;
     if(item.resourceKind==='organization')return 5;
+    if(item.resourceKind==='professionalHomepage')return 6;
     if(item.resourceKind==='clientVersion')return 7;
     if(item.resourceKind==='projectSelection')return 8;
     if (item.resourceKind === SOURCE_FACT_GROUP) return 4;
@@ -101,7 +103,7 @@ export class DeletionCleanup {
         const executionPlanDigest = digest(executionPlan(row, prepared));
         for (const item of prepared) await tx.replace('deletionItems', item);
         await validateLocaleErasurePlan(tx,actor,items);await validateAiErasure(tx,actor,items);
-        await checkInboxErasure(tx,actor,items,this.clock);await checkProjectSelectionErasure(tx,actor,items);await checkClientErasure(tx,actor,items);
+        await checkInboxErasure(tx,actor,items,this.clock);await checkProjectSelectionErasure(tx,actor,items);await checkClientErasure(tx,actor,items);await checkHomepageErasure(tx,actor,items);
         await validatePersonErasurePlan(tx,actor,row,items);
         await validateSourceFactPlan(tx, actor, row, items, this.clock);
         const next: DeletionRequest = { ...touch(row, this.clock), state: 'CLEANING', executionPlanDigest,
@@ -232,6 +234,14 @@ export class DeletionCleanup {
             }}
             const table = relationTable[item.resourceKind];
             invariant(table, 'CLEANUP_ACTION_UNSUPPORTED', '关系清理类型尚未注册', 409);
+            if(item.resourceKind==='workAsset'){
+                const entry=await workspaceRow(tx,'workAssets',item.resourceId,request.workspaceId);
+                const work=entry?await workspaceRow(tx,'works',entry.workId,request.workspaceId):null;
+                if(work&&entry&&work.coverEntryId===entry.id){
+                    await requireScope(tx,await deletionWorkerActor(tx,request),work.scopeId);
+                    await tx.replace('works',{...touch(work,this.clock),coverEntryId:null});
+                }
+            }
             if (await tx.get(table as never, item.resourceId)) await tx.remove(table as never, item.resourceId);
             return { outcome: 'DONE' };
         }
@@ -268,6 +278,7 @@ export class DeletionCleanup {
             return { outcome: 'DONE' };
         }
         if (action === 'ERASE_PAYLOAD') {
+            if(item.resourceKind==='professionalHomepage'){await eraseHomepage(tx,await deletionWorkerActor(tx,request),item,this.clock);return {outcome:'DONE'};}
             if(item.resourceKind==='clientVersion'){await eraseClientVersion(tx,await deletionWorkerActor(tx,request),item,this.clock);return {outcome:'DONE'};}
             if(item.resourceKind==='projectSelection'){await eraseProjectSelection(tx,await deletionWorkerActor(tx,request),item,this.clock);return {outcome:'DONE'};}
             if(item.resourceKind==='supplierInboxMaterial'){await eraseInboxItem(tx,await deletionWorkerActor(tx,request),item,this.clock,this.config);return {outcome:'DONE'};}

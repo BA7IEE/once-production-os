@@ -3,7 +3,7 @@ import {join,relative} from 'node:path';
 import ts from 'typescript';
 const root='apps/admin-web/src',violations=[],coverage=[];
 // Dedicated guest and talent portals retain their own mobile workflow and native forms.
-const portalModules=new Set(['client-guest-ui.tsx','talent-login.tsx','supplier-profile-ui.tsx','portal-collections.tsx']);
+const portalModules=new Set(['professional-homepage-editor.tsx','client-guest-ui.tsx','talent-login.tsx','supplier-profile-ui.tsx','portal-collections.tsx']);
 function walk(dir){for(const item of readdirSync(dir,{withFileTypes:true})){const p=join(dir,item.name);if(item.isDirectory())walk(p);else if(/\.tsx$/.test(p)&&!p.includes('/foundation/')){
  const text=readFileSync(p,'utf8'),source=ts.createSourceFile(p,text,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX),counts={};
  function visit(n){if(ts.isJsxOpeningElement(n)||ts.isJsxSelfClosingElement(n)){

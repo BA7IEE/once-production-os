@@ -8,6 +8,8 @@
 
 ## 当前开发版本
 
+个人作品主页在 `codex/once-professional-homepage-20261108` 已完成研究 A 阶段的本地代码与匿名验收，直接基于 `d998cf059ab912b62fcc33d2094c32c62c564bc1`，保留下述六包成果。本人在 `/talent/home` 的“管理我的专业主页”中选择公开资料、作品与联系方式，保存草稿并预览后明确发布，获得 `/p/<固定随机地址>` 和二维码；更新须重新发布，可随时下架。需要应用前向迁移 83—85，并明确设置 `PROFESSIONAL_HOMEPAGES_ENABLED=true`（默认关闭）。不复用内部档案或客户候选包的授权，未开放代理发布。研究原件、首版范围、匿名验收及真实手机/六周试点边界见[个人主页实施记录](docs/release/ONCE_PROFESSIONAL_HOMEPAGE_20261108.md)。
+
 2026-11-08（北京时间），供应商库 PR [#40](https://github.com/BA7IEE/once-production-os/pull/40) 已合并到 `main`，基线为 `ea5bceaf41a33be87e8bf0aee3f9dca006d20a43`。本轮升级分支为 `codex/once-upgrade-20261108`，分包进度见[升级实施记录](docs/release/ONCE_UPGRADE_20261108.md)。H5 入口为 `/talent/login`，本人使用独立账号；现有管理端继续维护同一人物库。
 
 - 基础资料支持多职业、城市、语言、技能、联系方式和模特量尺，保存服务器草稿并检查更新冲突。

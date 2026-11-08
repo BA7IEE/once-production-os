@@ -10,3 +10,10 @@ export const portalMarkers:PortalMarkerStorage={
  write(marker){sessionStorage.setItem('once-portal-pending',encodePortalMarker(marker));},
  remove(owner){const current=this.read(owner);if(current?.owner!==owner)throw new Error('请使用原人才账号核对');sessionStorage.removeItem('once-portal-pending');}
 };
+/** Homepage commands have their own markers so profile refresh cannot consume a
+ * publication receipt. Both stores contain only account/request identifiers. */
+export const homepageMarkers:PortalMarkerStorage={
+ read(owner){const raw=sessionStorage.getItem('once-homepage-pending');if(!raw)return null;const parsed=JSON.parse(raw);encodePortalMarker(parsed);return {owner:parsed.owner,key:parsed.key,draft:parsed.draft};},
+ write(marker){sessionStorage.setItem('once-homepage-pending',encodePortalMarker(marker));},
+ remove(owner){const current=this.read(owner);if(current?.owner!==owner)throw new Error('请使用原人才账号核对');sessionStorage.removeItem('once-homepage-pending');}
+};

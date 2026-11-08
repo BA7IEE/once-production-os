@@ -211,4 +211,4 @@ export interface HandoffRecipient {
 }
 
 /** Account-only portal projection: no Person, contacts, authentication hashes or source data. */
-export interface TalentAccountMe {talentAccountId:string;status:'ACTIVE';revision:number;csrfToken:string;}
+export interface TalentAccountMe {professionalHomepagesEnabled?:boolean;talentAccountId:string;status:'ACTIVE';revision:number;csrfToken:string;}

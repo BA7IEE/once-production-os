@@ -9,6 +9,9 @@ datasource db {
 }
 
 model Workspace {
+ professionalHomepages ProfessionalHomepage[] @relation("Homepage_workspace")
+ homepageVersions HomepageVersion[] @relation("HomepageVersion_workspace")
+
   clientPresentations ClientPresentation[] @relation("ClientPresentation_workspace")
   clientVersions ClientVersion[] @relation("ClientVersion_workspace")
   clientRecipients ClientRecipient[] @relation("ClientRecipient_workspace")
@@ -363,6 +366,8 @@ model SourceRecord {
 }
 
 model Person {
+ professionalHomepage ProfessionalHomepage[] @relation("Homepage_person")
+
   SourceReviewRequest_personId SourceReviewRequest[] @relation("SourceReviewRequest_personId")
   AiTask_personId AiTask[] @relation("AiTask_personId")
   LocaleDependency_person_locale LocaleDependency[] @relation("LocaleDependency_person_locale")
@@ -2379,6 +2384,8 @@ model ProjectParty {
 }
 
 model TalentAccount {
+ professionalHomepages ProfessionalHomepage[] @relation("Homepage_account")
+
   identityKeyDigest String @db.Text
   audits AuditEvent[]
   receipts CommandReceipt[]
@@ -2558,6 +2565,8 @@ model TalentClaim {
 }
 
 model TalentAccessGrant {
+ professionalHomepages ProfessionalHomepage[] @relation("Homepage_grant")
+
   confirmedByTalentId String? @db.Uuid
   id String @id @db.Uuid
   workspaceId String @db.Uuid
@@ -2580,6 +2589,8 @@ model TalentAccessGrant {
 }
 
 model TalentConsent {
+ homepageVersions HomepageVersion[] @relation("HomepageVersion_consent")
+
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -3053,4 +3064,54 @@ model ClientFeedback {
  @@unique([workspaceId,recipientId,commandKey])
  @@index([workspaceId,versionId,entryId])
  @@map("clientFeedback")
+}
+
+model ProfessionalHomepage {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ revision Int
+ personId String @db.Uuid
+ talentAccountId String @db.Uuid
+ grantId String @db.Uuid
+ slug String @unique @db.Text
+ state String @db.Text
+ draftCiphertext String? @db.Text
+ currentVersionId String? @db.Uuid
+ sourceIds String[] @db.Uuid
+ workIds String[] @db.Uuid
+ assetIds String[] @db.Uuid
+ workspace Workspace @relation("Homepage_workspace",fields:[workspaceId],references:[id],onDelete:Restrict,onUpdate:Cascade)
+ person Person @relation("Homepage_person",fields:[workspaceId,personId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
+ account TalentAccount @relation("Homepage_account",fields:[workspaceId,talentAccountId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
+ grant TalentAccessGrant @relation("Homepage_grant",fields:[workspaceId,grantId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
+ versions HomepageVersion[] @relation("HomepageVersion_homepage")
+ @@unique([workspaceId,id])
+ // Migration 85 enforces one non-erased homepage per person with a partial index.
+ @@map("professionalHomepages")
+}
+model HomepageVersion {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ revision Int
+ homepageId String @db.Uuid
+ versionNumber Int
+ talentAccountId String @db.Uuid
+ sessionEpoch Int
+ recoveryEpoch String @db.Text
+ consentId String @db.Uuid
+ expiresAt DateTime @db.Timestamptz(3)
+ state String @db.Text
+ contentCiphertext String? @db.Text
+ contentDigest String @db.Text
+ dependencies Json
+ workspace Workspace @relation("HomepageVersion_workspace",fields:[workspaceId],references:[id],onDelete:Restrict,onUpdate:Cascade)
+ homepage ProfessionalHomepage @relation("HomepageVersion_homepage",fields:[workspaceId,homepageId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
+ consent TalentConsent @relation("HomepageVersion_consent",fields:[workspaceId,consentId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
+ @@unique([workspaceId,id])
+ @@unique([workspaceId,homepageId,versionNumber])
+ @@map("homepageVersions")
 }

@@ -186,6 +186,7 @@ export class Exports {
         invariant((projectIds.length > 0) === (projectFields.length > 0), 'EXPORT_FIELDS_REQUIRED', '项目选择与项目字段必须同时存在', 422);
         invariant(!d.fields.includes('media.identity') || workIds.length > 0, 'EXPORT_MEDIA_REQUIRES_WORK', '媒体身份清单只能随已选作品导出', 422);
 
+        invariant(!(await tx.find('professionalHomepages',{workspaceId:actor.workspaceId})).some(h=>h.state!=='ERASED'&&(peopleIds.includes(h.personId)||h.workIds.some(w=>workIds.includes(w)))),'HOMEPAGE_EXPORT_UNSUPPORTED','当前业务迁移格式不包含主页草稿及发布版本，请保留数据库备份；不能静默遗漏主页资料',409);
         for(const id of projectIds){await projectFor(tx,actor,id,this.clock);invariant(!(await tx.find('projectRequirements',{workspaceId:actor.workspaceId,projectId:id})).some(r=>r.status!=='ERASED')&&!(await tx.find('shortlists',{workspaceId:actor.workspaceId,projectId:id})).length,'PROJECT_SELECTION_EXPORT_UNSUPPORTED','当前业务迁移格式不能完整表达项目岗位与候选条件，请保留数据库备份；禁止静默遗漏这些资料',409);}
         const permissions: UsePermission[] = [];
         for (const id of d.usePermissionRefs) permissions.push(await this.permissionFor(tx, actor, id));

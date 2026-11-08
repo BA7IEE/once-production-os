@@ -1,3 +1,4 @@
+import {HOMEPAGE_OWNER_ROUTES} from './professional-homepage-routes.ts';
 import {SupplierDocumentSchemas as D} from './supplier-documents.ts';
 import {handoffExposureSchema} from './talent-handoff.ts';
 import {WorkCaseSchemas} from './work-case-schema.ts';
@@ -7,7 +8,7 @@ import {TalentMediaSchemas,MediaSchemas} from './media-validation.ts';
 import type {RouteDefinition} from './routes.ts';
 import {MaintenanceSchemas as S} from './talent-maintenance-schema.ts';
 import {SupplierProfileSchemas as P} from './supplier-profile-schema.ts';
-export const TALENT_MAINTENANCE_ROUTES:RouteDefinition[]=[
+export const TALENT_MAINTENANCE_ROUTES:RouteDefinition[]=[...HOMEPAGE_OWNER_ROUTES,
  {method:'POST',path:'/portal/profile-drafts/{id}/documents/batch',operation:'portal.supplier.documentBatch',mode:'COMMAND',schema:D.batch},
  {method:'POST',path:'/portal/profile-drafts/{id}/documents/work-group',operation:'portal.supplier.documentWorkGroup',mode:'COMMAND',schema:D.workGroup},
  {method:'POST',path:'/portal/profile-drafts/{id}/documents/work',operation:'portal.supplier.documentWork',mode:'COMMAND',schema:D.work},

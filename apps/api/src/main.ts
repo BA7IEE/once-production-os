@@ -1,3 +1,4 @@
+import {registerHomepageHttp} from './professional-homepage-http.ts';
 import {configuredAuthProvider} from './talent-auth-provider.ts';
 import { registerMediaHttp } from './media/http.ts';
 import { SafetyJournalWriter } from './recovery/safety-journal.ts';
@@ -93,6 +94,7 @@ async function main() {
     });
     const assets = join(process.cwd(), 'dist/web');
     if (existsSync(assets)) {
+        registerHomepageHttp(server,core,assets);
         server.use(express.static(assets, { index: false, maxAge: 0, fallthrough: true, setHeaders: (res) => res.setHeader('Cache-Control', 'no-cache') }));
         server.get(['/talent/login','/talent/claim','/talent/home'], (_req,res)=>config.talentAuth?.enabled?res.set('Cache-Control','no-store').sendFile('index.html',{root:assets}):res.status(503).set('Cache-Control','no-store').type('text/plain').send('人才登录暂未开放'));
         server.get(['/client/presentation','/', '/activate','/talents','/talents/:id','/workspace/:page','/workspace/inbox/:id','/workspace/works/:id','/workspace/projects/:id','/workspace/shortlists/:id','/workspace/shortlists/:id/find','/workspace/review/:kind/:id'], (_req, res) => res.set('Cache-Control', 'no-store').sendFile('index.html', { root: assets }));

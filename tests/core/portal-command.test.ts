@@ -1,8 +1,18 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {PortalCommands,PortalRequestError} from '../../apps/admin-web/src/portal-command.ts';
-import {encodePortalMarker} from '../../apps/admin-web/src/portal-pending-marker.ts';
+import {encodePortalMarker,homepageMarkers,portalMarkers} from '../../apps/admin-web/src/portal-pending-marker.ts';
 const receipt={operationId:'11111111-1111-4111-8111-111111111111',resourceId:'22222222-2222-4222-8222-222222222222',revision:2,state:'SUCCEEDED'};
+test('homepage publication markers survive independent profile receipt readback without storing bodies',async()=>{
+ const previous=Object.getOwnPropertyDescriptor(globalThis,'sessionStorage'),values=new Map<string,string>(),owner='33333333-3333-4333-8333-333333333333';
+ Object.defineProperty(globalThis,'sessionStorage',{configurable:true,value:{getItem:(k:string)=>values.get(k)??null,setItem:(k:string,v:string)=>values.set(k,v),removeItem:(k:string)=>values.delete(k)}});
+ try{
+  const homepage=new PortalCommands(async()=>{throw new Error('synthetic lost publication response');},()=>{},homepageMarkers);
+  await assert.rejects(()=>homepage.submit(owner,'/homepages',{privateText:'MUST_NOT_PERSIST'}));const marker=homepageMarkers.read(owner);assert.ok(marker);assert.equal(portalMarkers.read(owner),null);
+  portalMarkers.write({owner,key:'44444444-4444-4444-8444-444444444444',draft:true});assert.equal(homepageMarkers.read(owner)!.key,marker.key);assert.ok(!JSON.stringify([...values.values()]).includes('MUST_NOT_PERSIST'));
+  const restored=new PortalCommands(async(path,method)=>{assert.equal(method,'GET');assert.equal(path,'/commands/'+marker.key);return receipt;},()=>{},homepageMarkers);restored.restore(owner);await restored.replay(owner);restored.rendered();assert.equal(homepageMarkers.read(owner),null);assert.ok(portalMarkers.read(owner));
+ }finally{if(previous)Object.defineProperty(globalThis,'sessionStorage',previous);else Reflect.deleteProperty(globalThis,'sessionStorage');}
+});
 test('portal deterministic rejection allows correction and a new request key',async()=>{
  const keys:string[]=[];const p=new PortalCommands(async(_path,_method,body,key)=>{keys.push(key);if(!(body as {items:unknown[]}).items.length)throw new PortalRequestError('没有可提交内容',422,'EMPTY_SUBMISSION',false);return receipt;},()=>{});
  await assert.rejects(()=>p.submit('talent','/submissions/id/submit',{items:[]}));assert.equal(p.pending,null);

@@ -1,3 +1,4 @@
+import {ProfessionalHomepages} from './professional-homepages.ts';
 import {Ingestion} from './ingestion.ts';
 import {SupplierInbox} from './supplier-inbox.ts';
 import {TalentMaintenance} from './talent-maintenance.ts';
@@ -31,6 +32,7 @@ export async function authorizeReceipt(tx: Tx, actor: CommandPrincipal, receipt:
         if(receipt.resourceKind==='talentAccount'){invariant(receipt.resourceId===actor.talentAccountId,'REPLAY_FORBIDDEN','不可访问',403);return;}
         if(!config)missing();const m=new TalentMaintenance(clock,config);
         if(receipt.resourceKind==='upload'||receipt.resourceKind==='asset'){const u=await uploadFor(tx,actor,receipt.resourceId);if(!u.submissionId)missing();await m.submissionAccess(tx,actor,u.submissionId,true);return;}
+        if(receipt.resourceKind==='professionalHomepage'){await new ProfessionalHomepages(clock,config).access(tx,actor,receipt.resourceId);return;}
         if(receipt.resourceKind==='talentSubmission'){await m.submissionAccess(tx,actor,receipt.resourceId);return;}
         if(receipt.resourceKind==='talentClaim'){const c=await m.ownClaim(tx,actor,receipt.resourceId);if(c.state==='APPROVED'){const g=(await tx.find('talentAccessGrants',{workspaceId:actor.workspaceId,claimId:c.id}))[0];if(!g)missing();await m.grant(tx,actor.workspaceId,actor.talentAccountId,g.id);}return;}
         if(receipt.resourceKind==='talentConsent'){const c=await workspaceRow(tx,'talentConsents',receipt.resourceId,actor.workspaceId);if(!c||c.talentAccountId!==actor.talentAccountId)missing();return;}missing();

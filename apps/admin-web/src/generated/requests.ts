@@ -1,5 +1,9 @@
 // Generated from packages/core/src/routes.ts and validation.ts. Do not edit.
 export interface Inputs {
+  "homepage.public.read": undefined;
+  "homepage.media.preview": undefined;
+  "homepage.media.attachment": undefined;
+  "homepage.media.playback": undefined;
   "supplier.inbox.list": undefined;
   "supplier.inbox.create": { "source": { "title": string; "type": "MANUAL" | "TEXT"; "providerClaim": string; "textPayload"?: string; "basisMode": "TEMP_ORGANIZE" | "INTERNAL_USE"; "basisDescription": string; "validUntil"?: string; "scopeId"?: string }; "receivedAt": string };
   "supplier.inbox.get": undefined;
@@ -67,6 +71,19 @@ export interface Inputs {
   "portal.sessions.revoke": {  };
   "talent.account.disable": { "expectedRevision": number };
   "talent.account.erase": { "expectedRevision": number };
+  "portal.homepage.options": undefined;
+  "portal.homepage.list": undefined;
+  "portal.homepage.create": { "personId": string; "draft": { "personRoleId": string; "includeIntro": boolean; "cityCode": string; "skillCodes": Array<string>; "languageCodes": Array<string>; "measurementFields": Array<"heightCm" | "bustCm" | "waistCm" | "hipsCm">; "contactIds": Array<string>; "coverAssetId": string | null; "portfolioAssetId": string | null; "works": Array<{ "creditId": string; "assetIds": Array<string>; "externalUrl": string }> } };
+  "portal.homepage.get": undefined;
+  "portal.homepage.save": { "expectedRevision": number; "draft": { "personRoleId": string; "includeIntro": boolean; "cityCode": string; "skillCodes": Array<string>; "languageCodes": Array<string>; "measurementFields": Array<"heightCm" | "bustCm" | "waistCm" | "hipsCm">; "contactIds": Array<string>; "coverAssetId": string | null; "portfolioAssetId": string | null; "works": Array<{ "creditId": string; "assetIds": Array<string>; "externalUrl": string }> } };
+  "portal.homepage.preview": undefined;
+  "portal.homepage.qr": undefined;
+  "portal.homepage.export": undefined;
+  "portal.homepage.activity": undefined;
+  "portal.homepage.copyLink": {  };
+  "portal.homepage.qrDownload": {  };
+  "portal.homepage.publish": { "expectedRevision": number; "previewDigest": string; "expiresAt": string; "consentVersion": "once-public-homepage-v1"; "publicAccepted": boolean; "mediaRightsAccepted": boolean; "adultDeclared": boolean };
+  "portal.homepage.unpublish": { "expectedRevision": number };
   "portal.supplier.documentBatch": { "expectedRevision": number; "batchId": string; "expectedBatchRevision": number; "action": "CANCEL" | "RESUME"; "aiRetryAccepted": boolean };
   "portal.supplier.documentWorkGroup": { "expectedRevision": number; "targetClientItemKey": string | null; "candidates": Array<{ "jobId": string; "expectedJobRevision": number; "workKey": string }> };
   "portal.supplier.documentWork": { "expectedRevision": number; "jobId": string; "expectedJobRevision": number; "workKey": string };
@@ -363,6 +380,26 @@ export interface Inputs {
   "shortlist.reorder": { "expectedRevision": number; "entryIds": Array<string> };
 }
 export const ENDPOINTS = {
+  "homepage.public.read": {
+    "method": "GET",
+    "path": "/public/homepages/{slug}",
+    "mode": "READ"
+  },
+  "homepage.media.preview": {
+    "method": "GET",
+    "path": "/public/homepages/{slug}/media/{key}/preview",
+    "mode": "BINARY"
+  },
+  "homepage.media.attachment": {
+    "method": "GET",
+    "path": "/public/homepages/{slug}/media/{key}/attachment",
+    "mode": "BINARY"
+  },
+  "homepage.media.playback": {
+    "method": "GET",
+    "path": "/public/homepages/{slug}/media/{key}/playback",
+    "mode": "BINARY"
+  },
   "supplier.inbox.list": {
     "method": "GET",
     "path": "/supplier-inbox",
@@ -696,6 +733,71 @@ export const ENDPOINTS = {
   "talent.account.erase": {
     "method": "POST",
     "path": "/talent-accounts/{id}/erase",
+    "mode": "COMMAND"
+  },
+  "portal.homepage.options": {
+    "method": "GET",
+    "path": "/portal/homepage-options/{id}",
+    "mode": "READ"
+  },
+  "portal.homepage.list": {
+    "method": "GET",
+    "path": "/portal/homepages",
+    "mode": "READ"
+  },
+  "portal.homepage.create": {
+    "method": "POST",
+    "path": "/portal/homepages",
+    "mode": "COMMAND"
+  },
+  "portal.homepage.get": {
+    "method": "GET",
+    "path": "/portal/homepages/{id}",
+    "mode": "READ"
+  },
+  "portal.homepage.save": {
+    "method": "PATCH",
+    "path": "/portal/homepages/{id}",
+    "mode": "COMMAND"
+  },
+  "portal.homepage.preview": {
+    "method": "GET",
+    "path": "/portal/homepages/{id}/preview",
+    "mode": "READ"
+  },
+  "portal.homepage.qr": {
+    "method": "GET",
+    "path": "/portal/homepages/{id}/qr",
+    "mode": "READ"
+  },
+  "portal.homepage.export": {
+    "method": "GET",
+    "path": "/portal/homepages/{id}/export",
+    "mode": "READ"
+  },
+  "portal.homepage.activity": {
+    "method": "GET",
+    "path": "/portal/homepages/{id}/activity",
+    "mode": "READ"
+  },
+  "portal.homepage.copyLink": {
+    "method": "POST",
+    "path": "/portal/homepages/{id}/copy-link",
+    "mode": "COMMAND"
+  },
+  "portal.homepage.qrDownload": {
+    "method": "POST",
+    "path": "/portal/homepages/{id}/qr-download",
+    "mode": "COMMAND"
+  },
+  "portal.homepage.publish": {
+    "method": "POST",
+    "path": "/portal/homepages/{id}/publish",
+    "mode": "COMMAND"
+  },
+  "portal.homepage.unpublish": {
+    "method": "POST",
+    "path": "/portal/homepages/{id}/unpublish",
     "mode": "COMMAND"
   },
   "portal.supplier.documentBatch": {
