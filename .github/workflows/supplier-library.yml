@@ -24,6 +24,8 @@ jobs:
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
       - run: pnpm db:generate
+      - name: Install native video fixture and media worker tools
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Install isolated document parser and synthetic fixture dependencies
         run: |
           python3 -m venv "$RUNNER_TEMP/once-document-python"

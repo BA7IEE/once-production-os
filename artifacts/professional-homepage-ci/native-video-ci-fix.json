@@ -1,0 +1,21 @@
+{
+  "baseSha": "49030cf7ab4d76c20a04f25e7856700394af4544",
+  "checkedAt": "2026-11-08T11:50:01.882918+00:00",
+  "correction": "Explicit ffmpeg/ffprobe install in supplier CI; record spawn failure code without arguments",
+  "runtimeApplicationChanged": false,
+  "migrationsChanged": false,
+  "homepageBrowserChecks": 11,
+  "result": "PASS",
+  "remainingResources": {
+    "containers": 0,
+    "processes": 0,
+    "networks": 0,
+    "temporaryVolumes": 0,
+    "temporaryDirectories": 0,
+    "unresolvedBrowserLaunches": 0
+  },
+  "changedFileSha256": {
+    ".github/workflows/supplier-library.yml": "efb7d5e89aad549683dc6b678469d3e935a114026fdae0b4f0b912e79ba6635c",
+    "tests/acceptance/browser-professional-homepages.mjs": "ae4d745bcce992a9b12f168583e25222ab1cc5da9a2dcb3a91c95909792c1b13"
+  }
+}

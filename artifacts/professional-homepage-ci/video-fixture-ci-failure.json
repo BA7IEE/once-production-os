@@ -1,0 +1,31 @@
+{
+  "sourceSha": "49030cf7ab4d76c20a04f25e7856700394af4544",
+  "workflowRun": 42476011696,
+  "attempt": 2,
+  "jobId": 128719408160,
+  "failedCommand": "ffmpeg (synthetic MP4 fixture generation)",
+  "status": null,
+  "diagnosticLimitation": "Old helper did not record spawn error code or signal. Workflow lacked explicit ffmpeg installation; next revision installs it and preserves business assertions.",
+  "errorExcerpt": [
+    "2026-11-08T11:46:55.1528832Z AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+    "2026-11-08T11:46:55.1529195Z ",
+    "2026-11-08T11:46:55.1529305Z null !== 0",
+    "2026-11-08T11:46:55.1529435Z ",
+    "2026-11-08T11:46:55.1530058Z     at run (file:///home/runner/work/once-production-os/once-production-os/tests/acceptance/browser-professional-homepages.mjs:28:96)",
+    "2026-11-08T11:46:55.1531382Z     at browserHomepageScenario (file:///home/runner/work/once-production-os/once-production-os/tests/acceptance/professional-homepage-scenario.mjs:19:2)",
+    "2026-11-08T11:46:55.1532231Z     at async file:///home/runner/work/once-production-os/once-production-os/tests/acceptance/browser-professional-homepages.mjs:46:2 {",
+    "2026-11-08T11:46:55.1532705Z   generatedMessage: true,",
+    "2026-11-08T11:46:55.1532917Z   code: 'ERR_ASSERTION',",
+    "2026-11-08T11:46:55.1533109Z   actual: null,",
+    "2026-11-08T11:46:55.1533294Z   expected: 0,",
+    "2026-11-08T11:46:55.1533487Z   operator: 'strictEqual',",
+    "2026-11-08T11:46:55.1533692Z   diff: 'simple'",
+    "2026-11-08T11:46:55.1533874Z }",
+    "2026-11-08T11:46:55.1533959Z ",
+    "2026-11-08T11:46:55.1534036Z Node.js v22.22.3",
+    "2026-11-08T11:46:55.4999924Z Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.",
+    "2026-11-08T11:46:55.5137230Z  ELIFECYCLE  Command failed with exit code 1.",
+    "2026-11-08T11:46:55.5335422Z ##[error]Process completed with exit code 1.",
+    "2026-11-08T11:46:55.5422003Z ##[group]Run actions/upload-artifact@v7"
+  ]
+}
