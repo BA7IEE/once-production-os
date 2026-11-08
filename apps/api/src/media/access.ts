@@ -2,9 +2,10 @@ import type {Application,ApiRequest} from '../../../../packages/core/src/api.ts'
 import type {RequestMeta} from '../../../../packages/core/src/model.ts';
 import {invariant} from '../../../../packages/core/src/errors.ts';
 import {uploadFor} from '../../../../packages/core/src/media.ts';
-export type MediaReadSurface='internal'|'review'|'talent'|'agent';
+export type MediaReadSurface='internal'|'review'|'talent'|'agent'|'client';
 /** Same streaming implementation, distinct policies. Account in path binds native img/video requests across login changes. */
 export async function mediaRead(core:Application,r:ApiRequest,id:string,surface:MediaReadSurface,meta?:RequestMeta){
+ if(surface==='client')return core.clientPortal.media(r,r.headers['x-once-client-version']??'',id,meta);
  if(surface==='agent')return core.ingestionAuthenticated(r,'ingestion.read.own',async(tx,actor)=>{
   const u=await uploadFor(tx,actor,id);invariant(u.submissionId===r.headers['x-once-ingestion-submission'],'NOT_FOUND','素材不可访问',404);
   return {asset:await core.media.staged(tx,actor,id,meta),workspace:actor.workspaceId,actor:'MACHINE:'+actor.servicePrincipalId};

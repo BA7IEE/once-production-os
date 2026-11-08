@@ -1,5 +1,6 @@
 // Explicit presentation DTOs. Never import Prisma models into the browser.
 export interface Me {
+    clientPresentationsEnabled?:boolean;
     workspaceName?: string;
     mediaEnabled?: boolean;
     ingestionEnabled?: boolean;

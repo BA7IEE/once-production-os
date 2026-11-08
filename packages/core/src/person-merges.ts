@@ -218,6 +218,7 @@ export class PersonMerges {
         const candidateReviews = await tx.find('talentMigrationReviews', { workspaceId: actor.workspaceId });
         const duplicateShort = await tx.find('shortlistItems', { workspaceId: actor.workspaceId, personId: duplicate.id });
         const canonicalShort = await tx.find('shortlistItems', { workspaceId: actor.workspaceId, personId: canonical.id });
+        if((await tx.find('clientVersions',{workspaceId:actor.workspaceId})).some(v=>v.state!=='ERASED'&&v.personIds.some(id=>id===canonical.id||id===duplicate.id)))blocker(blockers,'CLIENT_PRESENTATION_MERGE_REVIEW_REQUIRED');
         if([...canonicalShort,...duplicateShort].some(i=>!!i.selectionCiphertext))blocker(blockers,'PROJECT_SELECTION_MERGE_REVIEW_REQUIRED');
         for (const row of duplicateShort) {
             const root = await this.visibleShortlist(tx, actor, row.shortlistId);

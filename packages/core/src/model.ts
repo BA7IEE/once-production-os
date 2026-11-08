@@ -1,3 +1,4 @@
+import type {ClientPresentationTables} from './client-presentation-model.ts';
 import type {ProjectRequirement} from './project-selection-model.ts';
 import type {SupplierFieldTables} from './supplier-field-model.ts';
 import type {SupplierInboxTables} from './supplier-inbox-model.ts';
@@ -242,7 +243,7 @@ export interface RecordHandoff extends Base {
     closedById: string | null;
 }
 import type {SourceReviewRequest} from './source-review.ts';
-export interface TableMap extends TalentV2Tables, TalentAuthTables, TalentMaintenanceTables, SupplierFieldTables, SupplierInboxTables {
+export interface TableMap extends ClientPresentationTables, TalentV2Tables, TalentAuthTables, TalentMaintenanceTables, SupplierFieldTables, SupplierInboxTables {
     mediaPurgeIntents:MediaPurgeIntent;
     brands:Brand;projectParties:ProjectParty;
     aiResponseMetadata: AiResponseMetadata;
@@ -323,6 +324,7 @@ export interface Clock {
     now(): Date;
 }
 export interface Config {
+    clientPresentationsEnabled?:boolean;
     ingestionEnabled?:boolean;
     agentMediaEnabled?:boolean;
     agentMediaAdmission?: import('./agent-media.ts').AgentMediaAdmission;

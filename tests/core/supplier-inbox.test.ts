@@ -55,3 +55,6 @@ test('recovery invalidates old employee inbox commands, including receipt replay
  assert.equal((await f.owner.raw('GET','/supplier-inbox/'+b.id)).status,503);
  assert.equal((await f.owner.cmd('POST','/supplier-inbox/'+b.id+'/control',body,key)).status,503);
 });
+
+test('an employee unresolved AI attempt blocks new paid inbox requests without relying on old Source visibility or disclosing another actor',async()=>{const f=await fixture(),{ledgerFixture}=await import('../support/ai-ledger.ts'),{assertEmployeeInboxAiResolved}=await import('../../packages/core/src/supplier-inbox.ts'),l=await ledgerFixture(f.store,f.clock),run=await l.reserve(),attempt=await l.begin(run.id),actor={workspaceId:f.workspaceId,membershipId:f.membershipId},other=await member(f,'other_inbox_ai','EDITOR');
+ await assert.rejects(f.store.transaction(tx=>assertEmployeeInboxAiResolved(tx,actor)),(e:unknown)=>{assert.equal((e as any).code,'AI_OUTCOME_RECONCILE_REQUIRED');assert.equal(String(e).includes(run.id),false);return true;});await f.store.transaction(tx=>assertEmployeeInboxAiResolved(tx,{workspaceId:f.workspaceId,membershipId:other.id}));await l.unknown(attempt.id);await assert.rejects(f.store.transaction(tx=>assertEmployeeInboxAiResolved(tx,actor)));await l.settle(attempt.id,'NOT_EXECUTED',0);await f.store.transaction(tx=>assertEmployeeInboxAiResolved(tx,actor));});

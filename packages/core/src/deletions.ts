@@ -1,3 +1,4 @@
+import {clientPresentationImpacts} from './client-presentation-lifecycle.ts';
 import {projectSelectionImpacts} from './project-selection-lifecycle.ts';
 import {formalMediaSource} from './media-ownership.ts';
 import {authorizePartyCleanup} from './project-parties.ts';
@@ -331,6 +332,7 @@ export class Deletions {
             }
         }
 
+        const client=await clientPresentationImpacts(tx,actor,targetKind,targetId);for(const item of client.items)add(item);for(const code of client.unresolved)miss(code);
         const selection=await projectSelectionImpacts(tx,actor,targetKind,targetId);for(const item of selection.items)add(item);for(const code of selection.unresolved)miss(code);
         const inbox=await inboxErasureImpacts(tx,actor,targetKind,targetId);for(const item of inbox.items)add(item);for(const code of inbox.unresolved)miss(code);
         const sorted = [...impacts.values()].sort((a, b) => [a.resourceKind, a.resourceId, a.dependencyKind].join(':').localeCompare([b.resourceKind, b.resourceId, b.dependencyKind].join(':')));

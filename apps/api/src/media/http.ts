@@ -28,6 +28,12 @@ function error(res: Response, e: unknown) {
 export function registerMediaHttp(server: Express, core: Application, provider: LocalMediaProvider | null) {
     registerPlaybackHttp(server, core, provider);
     const headers = (res: Response) => { res.set({ 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'Cross-Origin-Resource-Policy': 'same-origin' }); };
+    for(const part of ['preview','attachment'] as const)server.get('/api/v1/client/presentations/:versionId/media/:id/'+part,async(req,res)=>{
+        headers(res);try{invariant(provider,'MEDIA_DISABLED','媒体暂不可用',503);invariant(req.method==='GET'&&!req.url.includes('?'),'CLIENT_REQUEST_INVALID','媒体请求无效',400);const id=uuid.parse(req.params.id),versionId=uuid.parse(req.params.versionId),r=request(req),read=(log:boolean)=>core.clientPortal.media(r,versionId,id,log?{requestId:randomUUID(),ip:r.ip}:undefined),initial=await read(false),a=initial.asset;
+        invariant(part==='attachment'?a.mime==='application/pdf':a.mime!=='application/pdf','NOT_FOUND','媒体不可访问',404);const bytes=part==='attachment'?await provider.readOriginal(a):await provider.readPreview(a),current=(await read(true)).asset;invariant(current.revision===a.revision&&current.objectToken===a.objectToken&&current.sha256===a.sha256,'NOT_FOUND','媒体已变化或不可访问',404);
+        res.set({'Content-Type':part==='attachment'?'application/pdf':'image/jpeg','Content-Disposition':part==='attachment'?'attachment; filename="portfolio.pdf"':'inline; filename="preview.jpg"','Content-Security-Policy':"default-src 'none'; sandbox"}).status(200).send(bytes);
+        }catch(e){error(res,e);}
+    });
     server.put(['/api/v1/uploads/:id/content','/api/v1/portal/uploads/:id/content','/api/v1/ingestion/uploads/:id/content'], async (req, res) => {
         headers(res);
         let claimed: Awaited<ReturnType<typeof core.media.beginReceive>> | null = null;

@@ -1,0 +1,16 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite client-presentations
+
+file:///workspace/once-production-os/tests/acceptance/browser-client-presentations.mjs:67
+}catch(error){if(portalPage){await portalPage.evaluate(()=>{for(const input of document.querySelectorAll('input'))if(input.value.includes('#recipient='))input.value='[REDACTED LINK]';}).catch(()=>{});await portalPage.screenshot({path:join(evidence,'browser-failure.png'),fullPage:true});}let message=String(error?.stack??error);for(const value of issuedSecrets.filter(Boolean))message=message.replaceAll(value,'[REDACTED]');throw new Error(message);}
+                                                                                                                                                                                                                                                                                                                                                                                                                                              ^
+
+Error: AssertionError [ERR_ASSERTION]: {"error":{"code":"VALIDATION_FAILED","message":"请求包含未知字段","requestId":"24ef9686-977c-47fe-be7e-a3730310ecdf"}}
+    at cmd (file:///workspace/once-production-os/tests/acceptance/browser-client-presentations.mjs:42:237)
+    at async file:///workspace/once-production-os/tests/acceptance/browser-client-presentations.mjs:65:88
+    at file:///workspace/once-production-os/tests/acceptance/browser-client-presentations.mjs:67:431
+
+Node.js v22.22.3
+Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+ ELIFECYCLE  Command failed with exit code 1.

@@ -1,3 +1,4 @@
+import {quarantineClientGuests} from './client-presentation-lifecycle.ts';
 import {SupplierProfessional} from './supplier-professional.ts';
 import {validateFieldCatalog,validateScalar} from './supplier-field-validation.ts';
 import {decryptDraftPayload} from './private-draft-payload.ts';
@@ -20,7 +21,7 @@ import { touch } from './helpers.ts';
 
 /** All TD2 rows and their security-relevant endpoints participate in one recovery digest.
  * Do not return raw rows, encrypted identifiers or machine credential hashes in a report. */
-export const TD2_INTEGRITY_TABLES = ['projects','projectRequirements','shortlists','supplierInboxBatches','supplierInboxMaterials',...TALENT_V2_TABLES, 'supplierCatalogs','supplierFacts','supplierFactChoices','contacts','sourceReviews', 'people', 'sources', 'scopes',
+export const TD2_INTEGRITY_TABLES = ['clientPresentations','clientVersions','clientRecipients','clientGuestSessions','clientFeedback','projects','projectRequirements','shortlists','supplierInboxBatches','supplierInboxMaterials',...TALENT_V2_TABLES, 'supplierCatalogs','supplierFacts','supplierFactChoices','contacts','sourceReviews', 'people', 'sources', 'scopes',
     'memberships', 'works','workCredits','workAssets','talentSubmissionItems', 'mediaPurgeIntents','personMedia','uploads','talentSubmissions','sourceAttributions','sourceUseBases','talentConsents','talentAccounts','talentClaims','talentAccessGrants','talentInvitations','talentInvitationContexts','assets', 'evidence', 'shortlistItemAssets', 'shortlistItems', 'personAliases', 'personMerges', 'mergeHistoryErasures'] as const;
 export type IntegrityTable = typeof TD2_INTEGRITY_TABLES[number];
 type Row = { id: string; workspaceId: string; [key: string]: unknown };
@@ -59,6 +60,11 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
         check(!!target && target.workspaceId === workspaceId && (!samePerson || target.personId === row.personId));
     };
     for(const r of data.sourceReviews){ref(r,'personId','people',false,true);ref(r,'sourceId','sources',false,true);for(const f of ['senderId','reviewerId','publisherId'])ref(r,f,'memberships',false,true);for(const f of ['personScopeId','sourceScopeId','targetScopeId'])ref(r,f,'scopes',false,true);}
+    for(const p of data.clientPresentations){ref(p,'id','shortlists',false,true);ref(p,'scopeId','scopes',false,true);ref(p,'maintainerId','memberships',false,true);}
+    for(const v of data.clientVersions){ref(v,'presentationId','clientPresentations',false,true);ref(v,'publisherId','memberships',false,true);ref(v,'approvalSourceId','sources',false,true);check((v.state==='ERASED')===(v.contentCiphertext===null));if(v.contentCiphertext)try{const p=JSON.parse(decryptDraftPayload(String(v.contentCiphertext),contactKey,`client-version:${workspaceId}:${v.id}`));check(p.schemaVersion==='once-client-presentation-v1'&&p.purpose==='CLIENT_PRESENTATION'&&digest(p.entries.map((e:{id:string})=>e.id))===digest(v.entryIds)&&digest(p)===v.manifestDigest&&digest(p.dependencies)===digest(v.dependencies));for(const id of v.personIds as string[])check(maps.people.has(id));for(const id of v.sourceIds as string[])check(maps.sources.has(id));for(const id of v.workIds as string[])check(maps.works.has(id));for(const id of v.assetIds as string[])check(maps.assets.has(id));}catch{professionalFactFailures++;}}
+    for(const r of data.clientRecipients){ref(r,'versionId','clientVersions',false,true);ref(r,'createdById','memberships',false,true);if(r.labelCiphertext)try{decryptDraftPayload(String(r.labelCiphertext),contactKey,`client-recipient:${workspaceId}:${r.id}`);}catch{professionalFactFailures++;}check(r.state!=='ACTIVE'||typeof r.tokenHash==='string'&&/^[a-f0-9]{64}$/.test(r.tokenHash));}
+    for(const s of data.clientGuestSessions){ref(s,'recipientId','clientRecipients',false,true);ref(s,'versionId','clientVersions',false,true);check(maps.clientRecipients.get(String(s.recipientId))?.versionId===s.versionId);}
+    for(const f of data.clientFeedback){ref(f,'recipientId','clientRecipients',false,true);ref(f,'versionId','clientVersions',false,true);ref(f,'guestSessionId','clientGuestSessions',false,true);const session=maps.clientGuestSessions.get(String(f.guestSessionId));check(session?.versionId===f.versionId&&session?.recipientId===f.recipientId);if(f.noteCiphertext)try{decryptDraftPayload(String(f.noteCiphertext),contactKey,`client-feedback:${workspaceId}:${f.id}`);}catch{professionalFactFailures++;}}
     for(const r of data.projectRequirements){ref(r,'projectId','projects',false,true);ref(r,'sourceId','sources',false,true);check(maps.projects.get(String(r.projectId))?.sourceId===r.sourceId);}
     for(const l of data.shortlists){ref(l,'projectId','projects');if(l.projectId)check(maps.projects.get(String(l.projectId))?.scopeId===l.scopeId);}
     for(const i of data.shortlistItems){if(i.requirementId){ref(i,'requirementId','projectRequirements',false,true);check(maps.shortlists.get(String(i.shortlistId))?.projectId===maps.projectRequirements.get(String(i.requirementId))?.projectId);try{const c=JSON.parse(decryptDraftPayload(String(i.selectionCiphertext),contactKey,`project-selection:${workspaceId}:${i.shortlistId}:${i.id}`));check(!!c.updatedById&&Array.isArray(c.questions));}catch{professionalFactFailures++;}}else check(!i.selectionCiphertext&&!i.requirementRevision);}
@@ -251,6 +257,7 @@ export async function inspectTalentIntegrity(tx: Tx, workspaceId: string, contac
 /** Performed inside recovery.prepare's transaction and audit rollback boundary.
  * Re-issuing a machine account after recovery is an explicit new human operation. */
 export async function quarantineTalentActors(tx: Tx, actor: Actor, clock: Clock) {
+    await quarantineClientGuests(tx,actor.workspaceId,clock);
     for (const row of await tx.find('servicePrincipals', { workspaceId: actor.workspaceId })) {
         if (row.status === 'REVOKED' && row.credentialHash === null) continue;
         await tx.replace('servicePrincipals', { ...touch(row, clock), status: 'REVOKED',

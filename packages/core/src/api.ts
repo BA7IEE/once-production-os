@@ -1,3 +1,5 @@
+import {ClientPortal} from './client-portal.ts';
+import {ClientPresentations} from './client-presentations.ts';
 import {ProjectSelection} from './project-selection.ts';
 import {catalogView,publishedCatalog,SupplierFieldCatalogs} from './supplier-field-catalog.ts';
 import {SupplierProfessional} from './supplier-professional.ts';
@@ -90,6 +92,7 @@ function cookies(header: string): Record<string, string> {
 }
 export class Application {
     readonly mediaPurge:MediaPurge;
+    readonly clientPortal:ClientPortal;
     portal: TalentPortal;
     store: Store;
     clock: Clock;
@@ -126,6 +129,7 @@ export class Application {
         this.safetyIntent = safetyIntent;
         this.config = config;
         this.identity = new Identity(store, clock, config);
+        this.clientPortal=new ClientPortal(store,clock,config,safetyIntent);
         this.portal=new TalentPortal(new TalentAuth(store,config,clock,authProvider),(a,o,r,id,k)=>this.writeAhead(a,o,r,id,k),safetyIntent);
         this.talent = new Talent(clock, config);
         this.talentV2 = new TalentV2(clock, config);
@@ -239,6 +243,7 @@ export class Application {
         try {
             const url = new URL(request.url, this.config.origin);
             invariant(url.pathname.startsWith('/api/v1/'), 'NOT_FOUND', '接口不存在', 404);
+            if(url.pathname==='/api/v1/client'||url.pathname.startsWith('/api/v1/client/'))return await this.clientPortal.handle(request,response,meta);
             if(url.pathname==='/api/v1/portal'||url.pathname.startsWith('/api/v1/portal/'))return await this.portal.handle(request,response,meta);
             const { route, params } = this.match(request.method, url.pathname.slice('/api/v1'.length));
             const bearerHeader=request.headers.authorization;
@@ -344,6 +349,11 @@ export class Application {
                 const maintenance=new TalentMaintenance(this.clock,this.config);
                 const ingestion=new Ingestion(this.clock,this.config);
                 switch (route.operation) {
+                    case 'client.presentation.list':return new ClientPresentations(this.clock,this.config).list(tx,actor,id,query);
+                    case 'client.presentation.feedback':return new ClientPresentations(this.clock,this.config).feedback(tx,actor,id,data);
+                    case 'client.presentation.publish':return command('shortlist',()=>new ClientPresentations(this.clock,this.config).publish(tx,actor,id,data));
+                    case 'client.recipient.issue':return new ClientPresentations(this.clock,this.config).issue(tx,actor,id,data,meta);
+                    case 'client.presentation.revoke':return command('shortlist',()=>new ClientPresentations(this.clock,this.config).revoke(tx,actor,id,data));
                     case 'supplier.inbox.list':return new SupplierInbox(this.clock,this.config).list(tx,actor,query);
                     case 'supplier.inbox.get':return new SupplierInbox(this.clock,this.config).read(tx,actor,id);
                     case 'supplier.inbox.create':return command('source',()=>new SupplierInbox(this.clock,this.config).create(tx,actor,data));
@@ -527,7 +537,7 @@ export class Application {
                     case 'asset.list': return this.media.listAssets(tx, actor, query);
                     case 'asset.get': return this.media.getAsset(tx, actor, id);
                     case 'asset.quarantine': return command('asset', () => this.media.quarantine(tx, actor, id, data));
-                    case 'identity.me': return { directoryStateScope: digest({purpose:'directory-state-v1',sessionId:actor.sessionId}), membershipId: actor.membershipId, displayName: actor.displayName, role: actor.role, permissions: actor.permissions, mediaEnabled: this.config.mediaEnabled === true, ingestionEnabled:this.config.ingestionEnabled===true, workspaceName: (await tx.get('workspaces', actor.workspaceId))?.name ?? 'ONCE', csrfToken: csrfFor(token, this.config.csrfKey), version: '0.1.0-dev.1' };
+                    case 'identity.me': return {clientPresentationsEnabled:!!this.config.clientPresentationsEnabled, directoryStateScope: digest({purpose:'directory-state-v1',sessionId:actor.sessionId}), membershipId: actor.membershipId, displayName: actor.displayName, role: actor.role, permissions: actor.permissions, mediaEnabled: this.config.mediaEnabled === true, ingestionEnabled:this.config.ingestionEnabled===true, workspaceName: (await tx.get('workspaces', actor.workspaceId))?.name ?? 'ONCE', csrfToken: csrfFor(token, this.config.csrfKey), version: '0.1.0-dev.1' };
                     case 'dashboard.get': return this.dashboard(tx, actor);
                     case 'member.list': return this.identity.listMembers(tx, actor, query);
                     case 'member.create': return this.identity.createMember(tx, actor, data, meta);

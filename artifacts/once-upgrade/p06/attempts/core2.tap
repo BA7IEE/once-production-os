@@ -1,0 +1,97 @@
+TAP version 13
+# Subtest: immutable explicit client versions, real guest identity, server whitelist, idempotent audited feedback and reviewed full project erasure
+ok 1 - immutable explicit client versions, real guest identity, server whitelist, idempotent audited feedback and reviewed full project erasure
+  ---
+  duration_ms: 869.16067
+  type: 'test'
+  ...
+# Subtest: client source withdrawal and recovery fencing stop old named links and existing sessions
+ok 2 - client source withdrawal and recovery fencing stop old named links and existing sessions
+  ---
+  duration_ms: 656.640767
+  type: 'test'
+  ...
+# Subtest: recovery preparation explicitly revokes guest secrets, sessions and live versions
+ok 3 - recovery preparation explicitly revokes guest secrets, sessions and live versions
+  ---
+  duration_ms: 641.514606
+  type: 'test'
+  ...
+# Subtest: real safety journal accepts guest feedback intent, commit and database audit identities without fake employee attribution
+not ok 4 - real safety journal accepts guest feedback intent, commit and database audit identities without fake employee attribution
+  ---
+  duration_ms: 605.155235
+  type: 'test'
+  location: '/workspace/once-production-os/tests/core/client-presentations.test.ts:8:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    undefined !== 0
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/once-production-os/tests/core/client-presentations.test.ts:9:759)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: project multi-role requirements use current directory semantics; candidate scope, audit rollback, scoped confirmations and stale revisions
+ok 5 - project multi-role requirements use current directory semantics; candidate scope, audit rollback, scoped confirmations and stale revisions
+  ---
+  duration_ms: 675.410667
+  type: 'test'
+  ...
+# Subtest: project source withdrawal fences linked-list reads and existing command replay without inventing actual participation
+ok 6 - project source withdrawal fences linked-list reads and existing command replay without inventing actual participation
+  ---
+  duration_ms: 563.843496
+  type: 'test'
+  ...
+# Subtest: employee inbox records true employee provenance, encrypted drafts and explicit multiple-person ownership atomically
+ok 7 - employee inbox records true employee provenance, encrypted drafts and explicit multiple-person ownership atomically
+  ---
+  duration_ms: 273.892867
+  type: 'test'
+  ...
+# Subtest: company introductions cannot be adopted as a person and audit failure rolls back the entire employee adoption
+ok 8 - company introductions cannot be adopted as a person and audit failure rolls back the entire employee adoption
+  ---
+  duration_ms: 241.003164
+  type: 'test'
+  ...
+# Subtest: multiple materials explicitly supplement one current Person, preserve identity and reject stale revisions
+ok 9 - multiple materials explicitly supplement one current Person, preserve identity and reject stale revisions
+  ---
+  duration_ms: 250.230519
+  type: 'test'
+  ...
+# Subtest: employee scope and source withdrawal fence inbox reads
+ok 10 - employee scope and source withdrawal fence inbox reads
+  ---
+  duration_ms: 418.04
+  type: 'test'
+  ...
+# Subtest: recovery invalidates old employee inbox commands, including receipt replay
+ok 11 - recovery invalidates old employee inbox commands, including receipt replay
+  ---
+  duration_ms: 212.087284
+  type: 'test'
+  ...
+# Subtest: an employee unresolved AI attempt blocks new paid inbox requests without relying on old Source visibility or disclosing another actor
+ok 12 - an employee unresolved AI attempt blocks new paid inbox requests without relying on old Source visibility or disclosing another actor
+  ---
+  duration_ms: 410.556232
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 11
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7004.494177

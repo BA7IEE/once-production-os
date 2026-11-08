@@ -1,3 +1,4 @@
+import {CLIENT_PRESENTATION_ROUTES} from './client-presentation-routes.ts';
 import {ProjectSelectionSchemas as PSS} from './project-selection-schema.ts';
 import {SUPPLIER_FIELD_ROUTES} from './supplier-field-routes.ts';
 import {SUPPLIER_INBOX_ROUTES} from './supplier-inbox-routes.ts';
@@ -29,7 +30,7 @@ export interface RouteDefinition {
     permission?: Permission;
     schema?: Schema<unknown>;
 }
-export const ROUTES: RouteDefinition[] = [...SUPPLIER_INBOX_ROUTES,...SUPPLIER_FIELD_ROUTES,
+export const ROUTES: RouteDefinition[] = [...SUPPLIER_INBOX_ROUTES,...CLIENT_PRESENTATION_ROUTES,...SUPPLIER_FIELD_ROUTES,
     {method:'POST',path:'/review/search',operation:'review.search',mode:'READ',permission:'records.read',schema:ReviewQuerySchema},
     {method:'GET',path:'/review/{kind}/{id}',operation:'review.get',mode:'READ',permission:'records.read'},
     {method:'POST',path:'/commands/inspect',operation:'command.inspect',mode:'READ',permission:'records.read',schema:CommandInspectionSchema},

@@ -20,6 +20,9 @@ import {applyInboxSubject} from './supplier-inbox-profile.ts';
 
 const open=new Set(['WAITING','READY','PAUSED']);
 const imageKey=(chunk:string,key:string)=>chunk+':'+key;
+/** Own accounting uncertainty remains a gate even when an old Source is no longer
+ * readable. Never reveal another employee's task or hidden material identity. */
+export async function assertEmployeeInboxAiResolved(tx:Tx,actor:Pick<Actor,'workspaceId'|'membershipId'>){const runs=await tx.find('aiRuns',{workspaceId:actor.workspaceId,actorId:actor.membershipId}),attempts=await tx.findIn('aiAttempts',actor.workspaceId,'runId',runs.map(r=>r.id));invariant(!attempts.some(a=>['UNKNOWN','MAY_HAVE_EXECUTED'].includes(a.state)),'AI_OUTCOME_RECONCILE_REQUIRED','你先前的模型请求仍有结果或费用待核对，请先在模型运行中核对，不能另建任务再次发送',409);}
 export class SupplierInbox {
  readonly clock:Clock;readonly config:Config;
  constructor(clock:Clock,config:Config){this.clock=clock;this.config=config;}
@@ -77,7 +80,7 @@ export class SupplierInbox {
   invariant(batch.state==='OPEN'&&m.state==='WAITING'&&m.assetId,'INBOX_START_UNAVAILABLE','请选择尚未处理的文件；网址只保存，不自动抓取',409);
   await this.duplicateGuard(tx,actor,m);
   const config=d.useAi?await approvedAi(tx,actor.workspaceId,this.config):null;
-  if(d.useAi){requirePermission(actor,'ai.use');requirePermission(actor,'sources.review');invariant(d.aiAccepted&&source.status==='CONFIRMED'&&source.basisMode==='INTERNAL_USE','INBOX_AI_PERMISSION_REQUIRED','AI 解析需要审核人明确同意本次原文和页图外送，且来源已确认',422);}
+  if(d.useAi){requirePermission(actor,'ai.use');await assertEmployeeInboxAiResolved(tx,actor);requirePermission(actor,'sources.review');invariant(d.aiAccepted&&source.status==='CONFIRMED'&&source.basisMode==='INTERNAL_USE','INBOX_AI_PERMISSION_REQUIRED','AI 解析需要审核人明确同意本次原文和页图外送，且来源已确认',422);}
   const p=this.decode(m),member=(await tx.get('memberships',actor.membershipId))!;
   await tx.replace('supplierInboxMaterials',{...touch(m,this.clock),actorId:actor.membershipId,actorRevision:member.revision,userEpoch:actor.userEpoch,useAi:d.useAi,state:'QUEUED',ciphertext:this.encode(m,{...p,aiConfigDigest:config?digest(config):null,aiPermissionAccepted:d.aiAccepted})});return this.bump(tx,batch);
  }
@@ -152,7 +155,7 @@ export class SupplierInbox {
  async planned(tx:Tx,claim:SupplierInboxMaterial,totalPages:number){const {material:m}=await this.current(tx,claim),p=this.decode(m);invariant(Number.isSafeInteger(totalPages)&&totalPages>0&&totalPages<=100,'DOCUMENT_PAGE_LIMIT','文件最多100页，请先拆分过长文件',422);const completed=new Set(p.chunks.flatMap(c=>c.pages)),pages=Array.from({length:Math.min(4,totalPages-completed.size)},(_,i)=>completed.size+i+1);await tx.replace('supplierInboxMaterials',{...touch(m,this.clock),ciphertext:this.encode(m,{...p,totalPages,nextPages:pages})});return pages;}
  async extracted(tx:Tx,claim:SupplierInboxMaterial,input:unknown){const {material:m,asset}=await this.current(tx,claim),p=this.decode(m),manifest=validateDocumentManifest(input);invariant(manifest.input.sha256===asset.sha256&&digest(manifest.requestedPages)===digest(p.nextPages),'INBOX_PAGE_CHANGED','原件或处理页面与任务计划不一致',409);invariant(!manifest.failedPages.length,'DOCUMENT_PAGES_PARTIAL','本批页面部分失败，请核对后续做',409);await tx.replace('supplierInboxMaterials',{...touch(m,this.clock),ciphertext:this.encode(m,{...p,pendingManifest:manifest})});if(!m.useAi)await this.finishChunk(tx,claim,null);}
  async reserve(tx:Tx,claim:SupplierInboxMaterial,meta:RequestMeta){const {material:m,actor}=await this.current(tx,claim),p=this.decode(m);invariant(p.pendingManifest&&m.useAi&&!m.runId,'INBOX_AI_UNAVAILABLE','此材料不能重复预留 AI 任务',409);const config=await approvedAi(tx,m.workspaceId,this.config),input={manifest:p.pendingManifest,dictionary:p.dictionary},key='inbox-'+m.id+'-'+p.chunks.length+'-'+p.attempt;
-  const run=await new AiLedger(this.clock).reserve(tx,m.workspaceId,actor.membershipId,key,digest(input),config.perTaskLimitUnits,config,meta);await tx.replace('supplierInboxMaterials',{...touch(m,this.clock),runId:run.id});return {run,config,input};}
+  await assertEmployeeInboxAiResolved(tx,actor);const run=await new AiLedger(this.clock).reserve(tx,m.workspaceId,actor.membershipId,key,digest(input),config.perTaskLimitUnits,config,meta);await tx.replace('supplierInboxMaterials',{...touch(m,this.clock),runId:run.id});return {run,config,input};}
  async finishChunk(tx:Tx,claim:SupplierInboxMaterial,raw:unknown){const {material:m}=await this.current(tx,claim),p=this.decode(m);invariant(p.pendingManifest,'INBOX_RESULT_MISSING','缺少原生提取结果',409);
   const proposal=raw===null?null:validateDocumentProposal(raw,p.pendingManifest,p.dictionary),chunks=[...p.chunks,{id:randomUUID(),pages:p.nextPages,manifest:p.pendingManifest,proposal,runId:m.runId,actorId:m.actorId,sourceRevision:(await tx.get('supplierInboxBatches',m.batchId))!.sourceRevision}],complete=chunks.flatMap(c=>c.pages).length===p.totalPages;
   await tx.replace('supplierInboxMaterials',{...touch(m,this.clock),state:complete?'READY':'QUEUED',materialKind:m.materialKind==='UNKNOWN'&&proposal?.documentKind?proposal.documentKind:m.materialKind,leaseToken:null,leaseUntil:null,errorCode:null,runId:null,ciphertext:this.encode(m,{...p,chunks,pendingManifest:null,nextPages:[]})});

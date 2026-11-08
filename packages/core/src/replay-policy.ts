@@ -87,6 +87,7 @@ export async function authorizeReceipt(tx: Tx, actor: CommandPrincipal, receipt:
             return;
         }
         case 'shortlist':
+            if(receipt.operation==='client.presentation.revoke'){requirePermission(actor,'data.export');const l=await workspaceRow(tx,'shortlists',id,actor.workspaceId);if(!l)missing();await requireScope(tx,actor,l.scopeId);return;}
             await shortlistFor(tx,actor,id,clock);
             return;
         case 'work':

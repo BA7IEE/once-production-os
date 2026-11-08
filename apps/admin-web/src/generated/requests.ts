@@ -10,6 +10,20 @@ export interface Inputs {
   "supplier.inbox.control": { "expectedRevision": number; "materialId": string; "expectedMaterialRevision": number; "action": "RESUME" | "HOLD" | "IGNORE" | "ERASE"; "aiRetryAccepted": boolean };
   "supplier.inbox.images": { "expectedRevision": number; "materialId": string; "expectedMaterialRevision": number; "imageKeys": Array<string> };
   "supplier.inbox.close": { "expectedRevision": number; "closed": boolean };
+  "client.presentation.list": undefined;
+  "client.presentation.publish": { "expectedRevision": number; "versionId": string; "title": string; "expiresAt": string; "approvalSourceId": string; "approvalSourceRevision": number; "purpose": "CLIENT_PRESENTATION"; "approvalNote": string; "mediaContentReviewed": "SELECTED_MEDIA_CHECKED_FOR_PRIVATE_CONTENT"; "entries": Array<{ "shortlistItemId": string; "publicName": string; "intro": string; "recommendation": string; "conditions": string; "includeWork": boolean; "assetIds": Array<string> }> };
+  "client.recipient.issue": { "versionId": string; "recipientId": string; "label": string; "expiresAt": string; "rotate": boolean; "expectedRecipientRevision"?: number; "acknowledge": "NAMED_RECIPIENT_LINK" };
+  "client.presentation.feedback": { "versionId": string; "page"?: number; "pageSize"?: number };
+  "client.presentation.revoke": { "expectedRevision": number; "versionId"?: string; "recipientId"?: string };
+  "client.exchange": { "recipientId": string; "token": string };
+  "client.me": undefined;
+  "client.view": undefined;
+  "client.feedback.inspect": { "versionId": string; "commandKey": string };
+  "client.feedback": { "versionId": string; "entryId": string; "choice": "INTERESTED" | "PENDING" | "PASS"; "note": string };
+  "client.logout": {  };
+  "client.media.preview": undefined;
+  "client.media.attachment": undefined;
+  "client.media.playback": undefined;
   "supplier.fields.schema": undefined;
   "supplier.catalog.list": undefined;
   "supplier.catalog.create": { "baseVersion": number; "definition": { "schemaVersion": "once-supplier-fields-v1"; "fields": Array<{ "code": string; "label": string; "required": boolean; "unit"?: string; "min"?: number; "max"?: number; "maxLength"?: number; "options"?: Array<{ "code": string; "label": string; "aliases": Array<string>; "status": "ACTIVE" | "DEPRECATED"; "replacedBy"?: string }>; "type": "TEXT" | "NUMBER" | "BOOLEAN" | "DATE" | "CODE" | "CODE_SET" | "RECORDS"; "owner": "PERSON" | "ROLE"; "roles": Array<string>; "visibility": "SELF_SHARED" | "INTERNAL"; "description": string; "searchable": boolean; "ai": "SUGGEST" | "NEVER"; "components"?: Array<{ "code": string; "label": string; "required": boolean; "unit"?: string; "min"?: number; "max"?: number; "maxLength"?: number; "options"?: Array<{ "code": string; "label": string; "aliases": Array<string>; "status": "ACTIVE" | "DEPRECATED"; "replacedBy"?: string }>; "type": "TEXT" | "NUMBER" | "BOOLEAN" | "DATE" | "CODE" | "CODE_SET" }>; "maxItems"?: number }>; "templates": Array<{ "code": string; "label": string; "roleCode": string | null; "fieldCodes": Array<string> }> } };
@@ -398,6 +412,76 @@ export const ENDPOINTS = {
     "method": "POST",
     "path": "/supplier-inbox/{id}/close",
     "mode": "COMMAND"
+  },
+  "client.presentation.list": {
+    "method": "GET",
+    "path": "/shortlists/{id}/presentations",
+    "mode": "READ"
+  },
+  "client.presentation.publish": {
+    "method": "POST",
+    "path": "/shortlists/{id}/presentations",
+    "mode": "COMMAND"
+  },
+  "client.recipient.issue": {
+    "method": "POST",
+    "path": "/shortlists/{id}/presentations/recipients/issue",
+    "mode": "SECRET"
+  },
+  "client.presentation.feedback": {
+    "method": "POST",
+    "path": "/shortlists/{id}/presentations/feedback",
+    "mode": "READ"
+  },
+  "client.presentation.revoke": {
+    "method": "POST",
+    "path": "/shortlists/{id}/presentations/revoke",
+    "mode": "COMMAND"
+  },
+  "client.exchange": {
+    "method": "POST",
+    "path": "/client/exchange",
+    "mode": "AUTH"
+  },
+  "client.me": {
+    "method": "GET",
+    "path": "/client/me",
+    "mode": "READ"
+  },
+  "client.view": {
+    "method": "GET",
+    "path": "/client/presentations/{id}",
+    "mode": "READ"
+  },
+  "client.feedback.inspect": {
+    "method": "POST",
+    "path": "/client/feedback/inspect",
+    "mode": "READ"
+  },
+  "client.feedback": {
+    "method": "POST",
+    "path": "/client/feedback",
+    "mode": "COMMAND"
+  },
+  "client.logout": {
+    "method": "POST",
+    "path": "/client/logout",
+    "mode": "AUTH"
+  },
+  "client.media.preview": {
+    "method": "GET",
+    "path": "/client/presentations/{id}/media/{asset}/preview",
+    "mode": "BINARY"
+  },
+  "client.media.attachment": {
+    "method": "GET",
+    "path": "/client/presentations/{id}/media/{asset}/attachment",
+    "mode": "BINARY"
+  },
+  "client.media.playback": {
+    "method": "GET",
+    "path": "/client/presentations/{id}/media/{asset}/playback",
+    "mode": "BINARY"
   },
   "supplier.fields.schema": {
     "method": "GET",

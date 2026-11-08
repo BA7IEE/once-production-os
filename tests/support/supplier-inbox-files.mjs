@@ -1,3 +1,4 @@
+import {assertEmployeeInboxAiResolved} from '../../packages/core/src/supplier-inbox.ts';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {readFile} from 'node:fs/promises';
@@ -74,6 +75,7 @@ export async function verifyInboxFiles(store){
   assert.equal(await new SupplierInboxWorker(f.app,provider).cycle(new AbortController().signal),false);assert.equal(calls,1);
   assert.equal((await command('control',ai,{action:'RESUME',aiRetryAccepted:true})).body.error.code,'AI_OUTCOME_RECONCILE_REQUIRED');
   const duplicate=await add(await upload('portfolio.pdf'));assert.equal((await command('parse',duplicate,{useAi:true,aiAccepted:true})).body.error.code,'AI_OUTCOME_RECONCILE_REQUIRED');
+  await assert.rejects(store.transaction(tx=>assertEmployeeInboxAiResolved(tx,actor)),error=>error.code==='AI_OUTCOME_RECONCILE_REQUIRED');
   const unresolved=ok(await f.owner.raw('GET','/ai-operations')).unresolved[0],attempt=await store.transaction(tx=>tx.get('aiAttempts',unresolved.id));
   ok(await f.owner.cmd('POST','/ai-attempts/'+attempt.id+'/reconcile',{expectedRevision:attempt.revision,outcome:'NOT_EXECUTED',amountUnits:0,evidenceSourceId:batch,evidenceSourceRevision:1,providerIdempotencyKey:attempt.providerIdempotencyKey,providerIdentityHash:f.app.config.ai.providerIdentityHash,confirmProviderResult:true}));
   ok(await command('control',ai,{action:'RESUME',aiRetryAccepted:true}));

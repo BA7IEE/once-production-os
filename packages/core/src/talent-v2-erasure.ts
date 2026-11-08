@@ -1,3 +1,4 @@
+import {assertClientErasureClean} from './client-presentation-lifecycle.ts';
 import {assertProjectSelectionClean} from './project-selection-lifecycle.ts';
 import {supplierFieldSnapshot,supplierFieldScopeBlocker,eraseSupplierFields} from './supplier-field-lifecycle.ts';
 import {assertInboxFinalizationClean} from './supplier-inbox-lifecycle.ts';
@@ -109,7 +110,7 @@ export async function eraseTalentPersonGraph(tx: Tx, request: DeletionRequest, i
 
 /** Older persisted requests must not finalize a root while newly introduced dependencies survive. */
 export async function assertTalentFinalizationClean(tx: Tx, workspaceId: string, kind: string, id: string, clock: Clock) {
-    await assertInboxFinalizationClean(tx,workspaceId,kind,id);await assertProjectSelectionClean(tx,workspaceId,kind,id);
+    await assertClientErasureClean(tx,workspaceId,kind,id);await assertInboxFinalizationClean(tx,workspaceId,kind,id);await assertProjectSelectionClean(tx,workspaceId,kind,id);
     if (kind !== 'PERSON' && kind !== 'SOURCE' && kind !== 'ASSET') return;
     if(kind==='PERSON'||kind==='SOURCE'){const extra=await supplierFieldSnapshot(tx,workspaceId,kind==='PERSON'?[id]:undefined,kind==='SOURCE'?id:undefined);invariant(extra.count===0,'SUPPLIER_FIELD_CLEANUP_INCOMPLETE','专业补充资料尚未完成清理',409);}
     if(kind==='PERSON')await assertHistoryErasureComplete(tx,workspaceId,id);
