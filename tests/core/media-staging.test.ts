@@ -25,6 +25,8 @@ import {stagingWorkerScenario,stagingConcurrencyScenario} from '../support/media
 for(const stop of ['grant','withdraw','consent','recovery'] as const)test('PR03 worker revalidates '+stop,async()=>{await stagingWorkerScenario(new MemoryStore(),stop);});
 test('PR03 concurrent upload commands use stable principal and submission CAS',async()=>{await stagingConcurrencyScenario(new MemoryStore());});
 import {stagingFixture,unitReady} from '../support/media-staging.ts';
+import {MediaPurge} from '../../packages/core/src/media-purge.ts';
+import {PURGE_LIMITS} from '../../packages/core/src/media-purge-model.ts';
 import {mergePreview} from '../support/talent-v2-merge.ts';
 test('PR03 exact Role cannot borrow another person and pinned Role merge fails closed',async()=>{
  const store=new MemoryStore(),f=await stagingFixture(store),role=store.rows('personRoles').find(r=>r.personId===f.personId)!;
@@ -35,6 +37,25 @@ test('PR03 exact Role cannot borrow another person and pinned Role merge fails c
 test('PR03 retiring a draft file revokes read but never fakes failure or releases bytes',async()=>{
  const store=new MemoryStore(),f=await stagingFixture(store),id=await unitReady(f),a=store.rows('assets')[0]!;
  await f.expect(f.a.client.raw('POST','/portal/assets/'+id+'/retire',{expectedRevision:a.revision},f.headers()));const relation=store.rows('personMedia')[0]!;assert.equal(relation.usageState,'RETIRED');assert.equal(Date.parse(relation.retainUntil!)-f.clock.now().getTime(),7*86400000);assert.equal(store.rows('uploads')[0]!.state,'READY');assert.equal(store.rows('uploads')[0]!.purgedAt,null);await assert.rejects(store.transaction(tx=>f.app.media.staged(tx,f.actor,id)));assert.equal(store.rows('talentSubmissionItems').filter(x=>x.kind==='MEDIA').length,0);
+});
+test('retired media shows a scoped check-required state only after an unknown purge',async()=>{
+ const store=new MemoryStore(),f=await stagingFixture(store),id=await unitReady(f),a=store.rows('assets')[0]!;
+ const read=async()=>f.expect(f.a.client.raw('GET','/portal/submissions/'+f.submissionId,undefined,f.headers()));
+ assert.equal((await read()).media.find((m:any)=>m.id===id).cleanupState,null);
+ await f.expect(f.a.client.raw('POST','/portal/assets/'+id+'/retire',{expectedRevision:a.revision},f.headers()));
+ assert.equal((await read()).media.find((m:any)=>m.id===id).cleanupState,null);
+ f.app.config.dataCleanupMode='INTERNAL_APPROVED';let purgeNow=f.clock.value+7*86400000+1;const due=new MediaPurge(store,{now:()=>new Date(purgeNow)},f.app.config);
+ const claim=await due.claim();assert.ok(claim);await due.beginDelete(claim);
+ await due.objectResult(claim,'original','UNKNOWN');await due.defer(claim);
+ const media=(await read()).media.find((m:any)=>m.id===id);assert.equal(media.cleanupState,'CHECK_REQUIRED');
+ assert.deepEqual(Object.keys(media).sort(),['id','fileName','mime','state','revision','assetRevision','usageState','errorCode','cleanupState'].sort());
+ assert.equal(JSON.stringify(media).includes(claim.objectToken),false);assert.equal(JSON.stringify(media).includes(claim.id),false);assert.equal(JSON.stringify(media).includes(claim.leaseToken!),false);
+ const list=await f.expect(f.a.client.raw('GET','/portal/submissions',undefined,f.headers()));assert.equal(list.items.find((s:any)=>s.id===f.submissionId).media.find((m:any)=>m.id===id).cleanupState,'CHECK_REQUIRED');
+ assert.equal((await f.b.client.raw('GET','/portal/submissions/'+f.submissionId,undefined,{'x-once-talent-account':f.b.accountId})).status,404);
+ const internal=await f.expect(f.owner.raw('GET','/talent-submissions/'+f.submissionId));assert.equal('cleanupState' in internal.media.find((m:any)=>m.id===id),false);
+ purgeNow+=PURGE_LIMITS.retryMs+1;const retry=await due.claim();assert.ok(retry);await due.beginDelete(retry);
+ await due.objectResult(retry,'original','MISSING');await due.objectResult(retry,'preview','MISSING');await due.finalize(retry);
+ const cleaned=(await read()).media.find((m:any)=>m.id===id);assert.equal(cleaned.state,'ERASED');assert.equal(cleaned.cleanupState,null);assert.equal(store.rows('uploads')[0]!.expectedBytes,0);assert.ok(store.rows('uploads')[0]!.purgedAt);
 });
 import {formalMediaScenario} from '../support/formal-media-authorization.ts';
 for(const bound of [true,false])test('PR03 formal media authorization replaces historical intake '+(bound?'bound':'ENROLL'),async()=>{await formalMediaScenario(new MemoryStore(),bound);});
