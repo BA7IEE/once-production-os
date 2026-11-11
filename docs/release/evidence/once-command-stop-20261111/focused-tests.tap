@@ -1,0 +1,634 @@
+TAP version 13
+# Subtest: cancel binding independently matches the versioned canonical test vector
+ok 1 - cancel binding independently matches the versioned canonical test vector
+  ---
+  duration_ms: 1.442082
+  type: 'test'
+  ...
+# Subtest: an invalid cancel (missing revision) is rejected before it can be classified as non-cancel
+ok 2 - an invalid cancel (missing revision) is rejected before it can be classified as non-cancel
+  ---
+  duration_ms: 1.632614
+  type: 'test'
+  ...
+# Subtest: an invalid cancel (zero revision) is rejected before it can be classified as non-cancel
+ok 3 - an invalid cancel (zero revision) is rejected before it can be classified as non-cancel
+  ---
+  duration_ms: 0.232684
+  type: 'test'
+  ...
+# Subtest: an invalid cancel (extra fields) is rejected before it can be classified as non-cancel
+ok 4 - an invalid cancel (extra fields) is rejected before it can be classified as non-cancel
+  ---
+  duration_ms: 0.112006
+  type: 'test'
+  ...
+# Subtest: an invalid cancel (JSON serialization injects extra fields) is rejected before it can be classified as non-cancel
+ok 5 - an invalid cancel (JSON serialization injects extra fields) is rejected before it can be classified as non-cancel
+  ---
+  duration_ms: 0.179225
+  type: 'test'
+  ...
+# Subtest: an invalid cancel (JSON serialization fails) is rejected before it can be classified as non-cancel
+ok 6 - an invalid cancel (JSON serialization fails) is rejected before it can be classified as non-cancel
+  ---
+  duration_ms: 0.114609
+  type: 'test'
+  ...
+# Subtest: an invalid cancel (non-finite revision) is rejected before it can be classified as non-cancel
+ok 7 - an invalid cancel (non-finite revision) is rejected before it can be classified as non-cancel
+  ---
+  duration_ms: 0.185173
+  type: 'test'
+  ...
+# Subtest: an invalid cancel (revision cannot be incremented safely) is rejected before it can be classified as non-cancel
+ok 8 - an invalid cancel (revision cannot be incremented safely) is rejected before it can be classified as non-cancel
+  ---
+  duration_ms: 0.117083
+  type: 'test'
+  ...
+# Subtest: a successful-format first cancel response with wrong upload stays unknown until the matching receipt arrives
+ok 9 - a successful-format first cancel response with wrong upload stays unknown until the matching receipt arrives
+  ---
+  duration_ms: 18.355424
+  type: 'test'
+  ...
+# Subtest: a successful-format first cancel response with wrong upload stays unknown until a mismatched receipt is rejected
+ok 10 - a successful-format first cancel response with wrong upload stays unknown until a mismatched receipt is rejected
+  ---
+  duration_ms: 1.464355
+  type: 'test'
+  ...
+# Subtest: a successful-format first cancel response with wrong revision stays unknown until the matching receipt arrives
+ok 11 - a successful-format first cancel response with wrong revision stays unknown until the matching receipt arrives
+  ---
+  duration_ms: 1.889665
+  type: 'test'
+  ...
+# Subtest: a successful-format first cancel response with wrong revision stays unknown until a mismatched receipt is rejected
+ok 12 - a successful-format first cancel response with wrong revision stays unknown until a mismatched receipt is rejected
+  ---
+  duration_ms: 0.897247
+  type: 'test'
+  ...
+# Subtest: lowercase post is normalized as a bound cancel and is not replayed
+ok 13 - lowercase post is normalized as a bound cancel and is not replayed
+  ---
+  duration_ms: 1.557103
+  type: 'test'
+  ...
+# Subtest: unavailable digest fails before any marker or request and releases the preparation lock
+ok 14 - unavailable digest fails before any marker or request and releases the preparation lock
+  ---
+  duration_ms: 1.389325
+  type: 'test'
+  ...
+# Subtest: while the binding is being prepared a second submission and replay are rejected
+ok 15 - while the binding is being prepared a second submission and replay are rejected
+  ---
+  duration_ms: 1.475602
+  type: 'test'
+  ...
+# Subtest: uncertain cancel checks only the scoped receipt and never reposts the original cancel
+ok 16 - uncertain cancel checks only the scoped receipt and never reposts the original cancel
+  ---
+  duration_ms: 1.767915
+  type: 'test'
+  ...
+# Subtest: uncertain cancel rejects a different upload receipt and remains pending
+ok 17 - uncertain cancel rejects a different upload receipt and remains pending
+  ---
+  duration_ms: 1.2512
+  type: 'test'
+  ...
+# Subtest: uncertain cancel rejects a wrong revision receipt and remains pending
+ok 18 - uncertain cancel rejects a wrong revision receipt and remains pending
+  ---
+  duration_ms: 1.071755
+  type: 'test'
+  ...
+# Subtest: uncertain cancel rejects a invalid state receipt and remains pending
+ok 19 - uncertain cancel rejects a invalid state receipt and remains pending
+  ---
+  duration_ms: 0.844298
+  type: 'test'
+  ...
+# Subtest: uncertain cancel rejects a invalid operation id receipt and remains pending
+ok 20 - uncertain cancel rejects a invalid operation id receipt and remains pending
+  ---
+  duration_ms: 1.627557
+  type: 'test'
+  ...
+# Subtest: legacy marker retains its generic read, then offers explicit stop only after both negative reads
+ok 21 - legacy marker retains its generic read, then offers explicit stop only after both negative reads
+  ---
+  duration_ms: 0.7984
+  type: 'test'
+  ...
+# Subtest: legacy marker keeps pending when generic GET returns 200 with plausible cancel receipt
+ok 22 - legacy marker keeps pending when generic GET returns 200 with plausible cancel receipt
+  ---
+  duration_ms: 0.235198
+  type: 'test'
+  ...
+# Subtest: legacy marker keeps pending when generic GET returns 200 with receipt from another operation
+ok 23 - legacy marker keeps pending when generic GET returns 200 with receipt from another operation
+  ---
+  duration_ms: 0.276579
+  type: 'test'
+  ...
+# Subtest: legacy marker keeps pending when generic GET returns 200 with unverifiable purported binding
+ok 24 - legacy marker keeps pending when generic GET returns 200 with unverifiable purported binding
+  ---
+  duration_ms: 0.14265
+  type: 'test'
+  ...
+# Subtest: stop response loss is resolved by status read and never becomes a fake command receipt
+ok 25 - stop response loss is resolved by status read and never becomes a fake command receipt
+  ---
+  duration_ms: 0.708037
+  type: 'test'
+  ...
+# Subtest: an in-flight cancel POST rejects replay immediately and preserves its marker on success
+ok 26 - an in-flight cancel POST rejects replay immediately and preserves its marker on success
+  ---
+  duration_ms: 2.890674
+  type: 'test'
+  ...
+# Subtest: an in-flight cancel POST rejects replay immediately and preserves its marker on unknown failure
+ok 27 - an in-flight cancel POST rejects replay immediately and preserves its marker on unknown failure
+  ---
+  duration_ms: 1.608138
+  type: 'test'
+  ...
+# Subtest: unavailable stop status (permission denied) cannot enable stop or clear the marker
+ok 28 - unavailable stop status (permission denied) cannot enable stop or clear the marker
+  ---
+  duration_ms: 0.908904
+  type: 'test'
+  ...
+# Subtest: unavailable stop status (server failure) cannot enable stop or clear the marker
+ok 29 - unavailable stop status (server failure) cannot enable stop or clear the marker
+  ---
+  duration_ms: 0.775567
+  type: 'test'
+  ...
+# Subtest: unavailable stop status (network failure) cannot enable stop or clear the marker
+ok 30 - unavailable stop status (network failure) cannot enable stop or clear the marker
+  ---
+  duration_ms: 0.620578
+  type: 'test'
+  ...
+# Subtest: unavailable stop status (ambiguous 404) cannot enable stop or clear the marker
+ok 31 - unavailable stop status (ambiguous 404) cannot enable stop or clear the marker
+  ---
+  duration_ms: 0.491878
+  type: 'test'
+  ...
+# Subtest: unavailable cancel receipt (permission denied) never enables stop or resends cancel
+ok 32 - unavailable cancel receipt (permission denied) never enables stop or resends cancel
+  ---
+  duration_ms: 0.751341
+  type: 'test'
+  ...
+# Subtest: unavailable cancel receipt (server failure) never enables stop or resends cancel
+ok 33 - unavailable cancel receipt (server failure) never enables stop or resends cancel
+  ---
+  duration_ms: 0.490154
+  type: 'test'
+  ...
+# Subtest: unavailable cancel receipt (network failure) never enables stop or resends cancel
+ok 34 - unavailable cancel receipt (network failure) never enables stop or resends cancel
+  ---
+  duration_ms: 0.965027
+  type: 'test'
+  ...
+# Subtest: unavailable cancel receipt (unrecognized 404) never enables stop or resends cancel
+ok 35 - unavailable cancel receipt (unrecognized 404) never enables stop or resends cancel
+  ---
+  duration_ms: 1.159926
+  type: 'test'
+  ...
+# Subtest: malformed stop status and a refused stop preserve pending identity
+ok 36 - malformed stop status and a refused stop preserve pending identity
+  ---
+  duration_ms: 0.456475
+  type: 'test'
+  ...
+# Subtest: disabled feature still reads uncertain cancellation without reposting or clearing
+ok 37 - disabled feature still reads uncertain cancellation without reposting or clearing
+  ---
+  duration_ms: 3.692621
+  type: 'test'
+  ...
+# Subtest: stop cannot run before a verified missing receipt or under a different owner
+ok 38 - stop cannot run before a verified missing receipt or under a different owner
+  ---
+  duration_ms: 0.27699
+  type: 'test'
+  ...
+# Subtest: replacement marker with the same owner is never cleared by an older stopped request
+ok 39 - replacement marker with the same owner is never cleared by an older stopped request
+  ---
+  duration_ms: 0.428975
+  type: 'test'
+  ...
+# Subtest: same-owner same-key marker with a replaced proof cannot be cleared after confirmation
+ok 40 - same-owner same-key marker with a replaced proof cannot be cleared after confirmation
+  ---
+  duration_ms: 1.500899
+  type: 'test'
+  ...
+# Subtest: both real marker stores remove only the exact owner and request key
+ok 41 - both real marker stores remove only the exact owner and request key
+  ---
+  duration_ms: 0.458368
+  type: 'test'
+  ...
+# Subtest: both real stores compare the binding or category before removing a same-key marker
+ok 42 - both real stores compare the binding or category before removing a same-key marker
+  ---
+  duration_ms: 0.471757
+  type: 'test'
+  ...
+# Subtest: an unreadable marker remains blocked and never triggers recovery requests
+ok 43 - an unreadable marker remains blocked and never triggers recovery requests
+  ---
+  duration_ms: 0.226675
+  type: 'test'
+  ...
+# Subtest: cancel markers contain only the versioned binding and minimal identifiers
+ok 44 - cancel markers contain only the versioned binding and minimal identifiers
+  ---
+  duration_ms: 0.185905
+  type: 'test'
+  ...
+# Subtest: new non-cancel markers preserve their prior generic recovery without request content
+ok 45 - new non-cancel markers preserve their prior generic recovery without request content
+  ---
+  duration_ms: 0.398579
+  type: 'test'
+  ...
+# Subtest: a false non-cancel category marker never becomes an automatically confirmed receipt
+ok 46 - a false non-cancel category marker never becomes an automatically confirmed receipt
+  ---
+  duration_ms: 0.222429
+  type: 'test'
+  ...
+# Subtest: a string non-cancel category marker never becomes an automatically confirmed receipt
+ok 47 - a string non-cancel category marker never becomes an automatically confirmed receipt
+  ---
+  duration_ms: 0.115491
+  type: 'test'
+  ...
+# Subtest: a both categories marker never becomes an automatically confirmed receipt
+ok 48 - a both categories marker never becomes an automatically confirmed receipt
+  ---
+  duration_ms: 0.098035
+  type: 'test'
+  ...
+# Subtest: a malformed cancel binding marker never becomes an automatically confirmed receipt
+ok 49 - a malformed cancel binding marker never becomes an automatically confirmed receipt
+  ---
+  duration_ms: 0.062172
+  type: 'test'
+  ...
+# Subtest: reloading an uncertain cancel verifies its binding with the scoped receipt path
+ok 50 - reloading an uncertain cancel verifies its binding with the scoped receipt path
+  ---
+  duration_ms: 3.874599
+  type: 'test'
+  ...
+# Subtest: same-page cancel rejects missing binding without clearing
+ok 51 - same-page cancel rejects missing binding without clearing
+  ---
+  duration_ms: 1.994579
+  type: 'test'
+  ...
+# Subtest: reloaded cancel rejects missing binding without clearing
+ok 52 - reloaded cancel rejects missing binding without clearing
+  ---
+  duration_ms: 0.77785
+  type: 'test'
+  ...
+# Subtest: same-page cancel rejects malformed binding without clearing
+ok 53 - same-page cancel rejects malformed binding without clearing
+  ---
+  duration_ms: 0.707346
+  type: 'test'
+  ...
+# Subtest: reloaded cancel rejects malformed binding without clearing
+ok 54 - reloaded cancel rejects malformed binding without clearing
+  ---
+  duration_ms: 1.665603
+  type: 'test'
+  ...
+# Subtest: same-page cancel rejects another key without clearing
+ok 55 - same-page cancel rejects another key without clearing
+  ---
+  duration_ms: 1.673805
+  type: 'test'
+  ...
+# Subtest: reloaded cancel rejects another key without clearing
+ok 56 - reloaded cancel rejects another key without clearing
+  ---
+  duration_ms: 1.090753
+  type: 'test'
+  ...
+# Subtest: same-page cancel rejects another upload without clearing
+ok 57 - same-page cancel rejects another upload without clearing
+  ---
+  duration_ms: 1.931276
+  type: 'test'
+  ...
+# Subtest: reloaded cancel rejects another upload without clearing
+ok 58 - reloaded cancel rejects another upload without clearing
+  ---
+  duration_ms: 7.816628
+  type: 'test'
+  ...
+# Subtest: same-page cancel rejects another revision without clearing
+ok 59 - same-page cancel rejects another revision without clearing
+  ---
+  duration_ms: 0.604093
+  type: 'test'
+  ...
+# Subtest: reloaded cancel rejects another revision without clearing
+ok 60 - reloaded cancel rejects another revision without clearing
+  ---
+  duration_ms: 0.82478
+  type: 'test'
+  ...
+# Subtest: same-page cancel rejects another operation without clearing
+ok 61 - same-page cancel rejects another operation without clearing
+  ---
+  duration_ms: 1.499282
+  type: 'test'
+  ...
+# Subtest: reloaded cancel rejects another operation without clearing
+ok 62 - reloaded cancel rejects another operation without clearing
+  ---
+  duration_ms: 0.653787
+  type: 'test'
+  ...
+# Subtest: after reload a matching binding with another upload result remains unknown
+ok 63 - after reload a matching binding with another upload result remains unknown
+  ---
+  duration_ms: 1.540383
+  type: 'test'
+  ...
+# Subtest: after reload a matching binding with another revision result remains unknown
+ok 64 - after reload a matching binding with another revision result remains unknown
+  ---
+  duration_ms: 1.281885
+  type: 'test'
+  ...
+# Subtest: an older receipt whose binding recomputation finishes late cannot override a newer read
+ok 65 - an older receipt whose binding recomputation finishes late cannot override a newer read
+  ---
+  duration_ms: 2.991604
+  type: 'test'
+  ...
+# Subtest: a stop POST followed by forbidden status never clears or fabricates confirmation
+ok 66 - a stop POST followed by forbidden status never clears or fabricates confirmation
+  ---
+  duration_ms: 0.477166
+  type: 'test'
+  ...
+# Subtest: a stop POST followed by unavailable status never clears or fabricates confirmation
+ok 67 - a stop POST followed by unavailable status never clears or fabricates confirmation
+  ---
+  duration_ms: 0.118325
+  type: 'test'
+  ...
+# Subtest: a stop POST followed by malformed status never clears or fabricates confirmation
+ok 68 - a stop POST followed by malformed status never clears or fabricates confirmation
+  ---
+  duration_ms: 0.219495
+  type: 'test'
+  ...
+# Subtest: a later authorization failure must invalidate a previous canStop observation
+ok 69 - a later authorization failure must invalidate a previous canStop observation
+  ---
+  duration_ms: 0.224342
+  type: 'test'
+  ...
+# Subtest: a legacy draft marker uses generic key fencing without inventing a draft receipt
+ok 70 - a legacy draft marker uses generic key fencing without inventing a draft receipt
+  ---
+  duration_ms: 0.309178
+  type: 'test'
+  ...
+# Subtest: stop cannot be offered while its not-found status read is still in flight
+ok 71 - stop cannot be offered while its not-found status read is still in flight
+  ---
+  duration_ms: 3.057361
+  type: 'test'
+  ...
+# Subtest: an older missing-stop-status response cannot offer stop after a newer confirmed receipt
+ok 72 - an older missing-stop-status response cannot offer stop after a newer confirmed receipt
+  ---
+  duration_ms: 1.094028
+  type: 'test'
+  ...
+# Subtest: an older successful read cannot clear the marker of a newer in-flight request
+ok 73 - an older successful read cannot clear the marker of a newer in-flight request
+  ---
+  duration_ms: 1.087818
+  type: 'test'
+  ...
+# Subtest: unconfirmed unknown outcomes cannot clear the marker through rendered
+ok 74 - unconfirmed unknown outcomes cannot clear the marker through rendered
+  ---
+  duration_ms: 0.798811
+  type: 'test'
+  ...
+# Subtest: a late old stop-status read cannot undo recovery after a lost stop response
+ok 75 - a late old stop-status read cannot undo recovery after a lost stop response
+  ---
+  duration_ms: 0.461032
+  type: 'test'
+  ...
+# Subtest: portal stop defaults off and does not create a fence when unavailable
+ok 76 - portal stop defaults off and does not create a fence when unavailable
+  ---
+  duration_ms: 221.477136
+  type: 'test'
+  ...
+# Subtest: portal stop wins: late cancel and another portal command with the same key cannot apply
+ok 77 - portal stop wins: late cancel and another portal command with the same key cannot apply
+  ---
+  duration_ms: 227.440815
+  type: 'test'
+  ...
+# Subtest: an established stop is enforced even if its creation capability is later disabled
+ok 78 - an established stop is enforced even if its creation capability is later disabled
+  ---
+  duration_ms: 192.083831
+  type: 'test'
+  ...
+# Subtest: stop is actor scoped and the same key remains available to a different talent account
+ok 79 - stop is actor scoped and the same key remains available to a different talent account
+  ---
+  duration_ms: 193.651408
+  type: 'test'
+  ...
+# Subtest: original cancel wins: a real receipt prevents stop and remains readable as the cancel
+ok 80 - original cancel wins: a real receipt prevents stop and remains readable as the cancel
+  ---
+  duration_ms: 197.532662
+  type: 'test'
+  ...
+# Subtest: a same-key receipt of another operation blocks stop rather than being called a cancel
+ok 81 - a same-key receipt of another operation blocks stop rather than being called a cancel
+  ---
+  duration_ms: 181.725527
+  type: 'test'
+  ...
+# Subtest: two different same-key portal receipts make stop and cancel lookup ambiguous
+ok 82 - two different same-key portal receipts make stop and cancel lookup ambiguous
+  ---
+  duration_ms: 192.954571
+  type: 'test'
+  ...
+# Subtest: an inaccessible existing cancel receipt is never mistaken for no receipt or safely stopped
+ok 83 - an inaccessible existing cancel receipt is never mistaken for no receipt or safely stopped
+  ---
+  duration_ms: 192.630432
+  type: 'test'
+  ...
+# Subtest: stop requires the original key, same authenticated account, CSRF and origin
+ok 84 - stop requires the original key, same authenticated account, CSRF and origin
+  ---
+  duration_ms: 192.247846
+  type: 'test'
+  ...
+# Subtest: racing real API commands choose one outcome in the serialized in-memory store
+ok 85 - racing real API commands choose one outcome in the serialized in-memory store
+  ---
+  duration_ms: 197.531439
+  type: 'test'
+  ...
+# Subtest: synthetic mixed-version stop and original receipts remain ambiguous and reject stop replay
+ok 86 - synthetic mixed-version stop and original receipts remain ambiguous and reject stop replay
+  ---
+  duration_ms: 190.863419
+  type: 'test'
+  ...
+# Subtest: new stops are rate limited per account; replay is free and limit expires
+ok 87 - new stops are rate limited per account; replay is free and limit expires
+  ---
+  duration_ms: 203.628735
+  type: 'test'
+  ...
+# Subtest: failed stop audit rolls back its receipt and rate change
+ok 88 - failed stop audit rolls back its receipt and rate change
+  ---
+  duration_ms: 194.936773
+  type: 'test'
+  ...
+# Subtest: stop committed before a response-side journal failure is recovered by status without reissuing cancel
+ok 89 - stop committed before a response-side journal failure is recovered by status without reissuing cancel
+  ---
+  duration_ms: 183.376608
+  type: 'test'
+  ...
+# Subtest: account disable prevents later stop creation, status reads and receipt replay
+ok 90 - account disable prevents later stop creation, status reads and receipt replay
+  ---
+  duration_ms: 216.458076
+  type: 'test'
+  ...
+# Subtest: cancel request binding identifies key, operation, target and revision without unauthorized disclosure
+ok 91 - cancel request binding identifies key, operation, target and revision without unauthorized disclosure
+  ---
+  duration_ms: 223.549401
+  type: 'test'
+  ...
+# Subtest: homepage publication markers survive independent profile receipt readback without storing bodies
+ok 92 - homepage publication markers survive independent profile receipt readback without storing bodies
+  ---
+  duration_ms: 3.371936
+  type: 'test'
+  ...
+# Subtest: portal deterministic rejection allows correction and a new request key
+ok 93 - portal deterministic rejection allows correction and a new request key
+  ---
+  duration_ms: 0.420992
+  type: 'test'
+  ...
+# Subtest: portal unknown followed by denial retains exact body, key and original identity
+ok 94 - portal unknown followed by denial retains exact body, key and original identity
+  ---
+  duration_ms: 0.794344
+  type: 'test'
+  ...
+# Subtest: portal success remains known when refresh fails and never repeats the write
+ok 95 - portal success remains known when refresh fails and never repeats the write
+  ---
+  duration_ms: 0.258702
+  type: 'test'
+  ...
+# Subtest: portal malformed receipts retain original request
+ok 96 - portal malformed receipts retain original request
+  ---
+  duration_ms: 0.257581
+  type: 'test'
+  ...
+# Subtest: reload stores only minimal marker and queries receipt without replaying a request body
+ok 97 - reload stores only minimal marker and queries receipt without replaying a request body
+  ---
+  duration_ms: 0.505818
+  type: 'test'
+  ...
+# Subtest: a missing receipt after reload stays unknown and never unlocks a second write
+ok 98 - a missing receipt after reload stays unknown and never unlocks a second write
+  ---
+  duration_ms: 0.542352
+  type: 'test'
+  ...
+# Subtest: an unreadable reload marker blocks writes in the transport itself
+ok 99 - an unreadable reload marker blocks writes in the transport itself
+  ---
+  duration_ms: 0.355525
+  type: 'test'
+  ...
+# Subtest: a committed stop after a backup anchor remains a recovery blocker
+ok 100 - a committed stop after a backup anchor remains a recovery blocker
+  ---
+  duration_ms: 335.843974
+  type: 'test'
+  ...
+# Subtest: a late cancellation rejected by a previously established fence leaves a blocker
+ok 101 - a late cancellation rejected by a previously established fence leaves a blocker
+  ---
+  duration_ms: 304.393588
+  type: 'test'
+  ...
+# Subtest: a post-commit journal completion failure cannot become a no-commit claim
+ok 102 - a post-commit journal completion failure cannot become a no-commit claim
+  ---
+  duration_ms: 311.447051
+  type: 'test'
+  ...
+# Subtest: stop conflict with a previously committed cancel leaves a conservative blocker
+ok 103 - stop conflict with a previously committed cancel leaves a conservative blocker
+  ---
+  duration_ms: 330.536784
+  type: 'test'
+  ...
+# Subtest: a rate-limited stop after the anchor also remains unresolved
+ok 104 - a rate-limited stop after the anchor also remains unresolved
+  ---
+  duration_ms: 356.129886
+  type: 'test'
+  ...
+1..104
+# tests 104
+# suites 0
+# pass 104
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6274.745809

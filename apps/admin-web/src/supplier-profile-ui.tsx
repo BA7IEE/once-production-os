@@ -6,7 +6,7 @@ import type {SupplierCatalogView} from '../../../packages/core/src/supplier-fiel
 import {PortalWorkDraft,PortalWorkGallery,type WorkPlan} from './work-case-ui.tsx';
 import {useEffect,useRef,useState} from 'react';
 import type {TalentAccountMe} from './dto.ts';
-import {PortalCommands,PortalRequestError,type PortalReceipt} from './portal-command.ts';
+import {PortalCommands,PortalRequestError,PortalStopConfirmed,type PortalReceipt} from './portal-command.ts';
 import {portalMarkers} from './portal-pending-marker.ts';
 import {TalentMediaStaging} from './talent-media-staging.tsx';
 import {emptySupplierProfile,SUPPLIER_PROFILE_VERSION,SUPPLIER_CONSENT_VERSION,type SupplierProfile} from '../../../packages/core/src/supplier-profile-contract.ts';
@@ -48,7 +48,7 @@ function SupplierProfileSession({me,invitationContext}:{me:TalentAccountMe;invit
  }
  requestRef.current=request;
  const transport=useRef<PortalCommands|null>(null);
- if(!transport.current)transport.current=new PortalCommands((p,m,b,k)=>requestRef.current(p,m,b,k),()=>{if(active.current)setPending(!!transport.current?.hasPending);},portalMarkers);
+ if(!transport.current)transport.current=new PortalCommands((p,m,b,k)=>requestRef.current(p,m,b,k),()=>{if(active.current)setPending(!!transport.current?.hasPending);},portalMarkers,{stopEnabled:me.portalCommandStopEnabled===true});
  function select(id:string|null){selected.current=id;const url=new URL(location.href);if(id)url.searchParams.set('draft',id);else url.searchParams.delete('draft');history.replaceState(null,'',url.pathname+url.search);}
  async function refresh(replaceForm=false){
   const id=selected.current,version=++refreshVersion.current;
@@ -82,6 +82,9 @@ function SupplierProfileSession({me,invitationContext}:{me:TalentAccountMe;invit
   catch(e){if(e instanceof PortalRequestError&&e.code==='SUPPLIER_PROFILE_CONFLICT'&&draft?.personId){const latest=await request<OwnProfile>('/supplier-profiles/'+draft.personId);if(active.current)setConflict(latest);}throw e;}
   finally{if(active.current)setSubmitting(false);}
  }
+ async function finishStopped(){const cancel=!!(transport.current!.pending?.cancelBinding||transport.current!.orphan?.cancelBinding);await refresh(false);transport.current!.rendered();if(cancel)setMediaReconciliation(v=>({version:v.version+1,createdUploadId:null}));setMessage('已阻止原请求后续执行，当前资料已刷新。原请求此前结果仍需核对；如涉及文件，清理完成前继续占用额度。');}
+ async function reconcilePending(){const path=transport.current!.pending?.path,orphan=!!transport.current!.orphan;let receipt:PortalReceipt;try{receipt=await transport.current!.replay(me.talentAccountId);}catch(e){if(e instanceof PortalStopConfirmed){await finishStopped();return;}throw e;}await renderReceipt(receipt);const openUpload=orphan&&lastLoadedDraft.current?.media.some(m=>m.id===receipt.resourceId&&m.state==='OPEN');const media=!!path&&(path==='/uploads'||path.startsWith('/assets/')||path.startsWith('/uploads/'))||openUpload;if(media)setMediaReconciliation(v=>({version:v.version+1,createdUploadId:path==='/uploads'||openUpload?receipt.resourceId:null}));}
+ async function stopPending(){if(!window.confirm('将阻止该原请求今后执行，不能证明其此前是否发生。此操作不会自动取消上传或释放额度；已提交的操作不会撤销。继续吗？'))return;await transport.current!.stop(me.talentAccountId);await finishStopped();}
  function change<K extends keyof SupplierProfile>(key:K,value:SupplierProfile[K]){setForm(p=>({...p,[key]:value}));setDirty(true);setMessage('');}
  const own=profiles.find(p=>p.relation==='SELF'),claim=claims.find(c=>c.kind==='ENROLL'&&c.relation==='SELF'&&c.state==='PENDING'&&c.reserved);
  const locked=busy||pending||mediaBusy||workDirty||draft!==null&&draft.state!=='DRAFT';
@@ -104,7 +107,7 @@ function SupplierProfileSession({me,invitationContext}:{me:TalentAccountMe;invit
  return <section className="supplier-home">
   <header><p className="eyebrow">ONCE · 供应商库</p><h2>我的专业资料</h2><p>填写职业、联系方式和作品资料。你确认后直接入库，之后可以随时更新。</p></header>
   {error&&<p className="supplier-error" role="alert">{error}</p>}{message&&<p role="status">{message}</p>}
-  {pending&&<div className="panel padded">{submitting?<p role="status">正在提交，请稍候。</p>:<><p>上次操作的结果需要核对，核对完成后可继续编辑。</p><button disabled={busy} onClick={()=>void run(async()=>{const path=transport.current!.pending?.path,orphan=!!transport.current!.orphan;const receipt=await transport.current!.replay(me.talentAccountId);await renderReceipt(receipt);const openUpload=orphan&&lastLoadedDraft.current?.media.some(m=>m.id===receipt.resourceId&&m.state==='OPEN');const media=!!path&&(path==='/uploads'||path.startsWith('/assets/')||path.startsWith('/uploads/'))||openUpload;if(media)setMediaReconciliation(v=>({version:v.version+1,createdUploadId:path==='/uploads'||openUpload?receipt.resourceId:null}));})}>{transport.current!.confirmed?'刷新已保存资料':'核对原请求'}</button></>}</div>}
+  {pending&&<div className="panel padded">{submitting?<p role="status">正在提交，请稍候。</p>:<><p>上次操作的结果需要核对，核对完成后可继续编辑。</p><button disabled={busy} onClick={()=>void run(reconcilePending)}>{transport.current!.confirmed?'刷新已保存资料':'核对原请求'}</button>{transport.current!.missing&&<p>未找到原请求回执，不代表原请求没有发生。{me.portalCommandStopEnabled?'可以选择阻止它今后执行，再核对当前资料。':'当前环境不能安全自助停止，请联系 ONCE。'}</p>}{transport.current!.stopped?<button disabled={busy} onClick={()=>void run(finishStopped)}>刷新当前资料</button>:transport.current!.canStop&&<button disabled={busy} onClick={()=>void run(stopPending)}>停止原请求并刷新</button>}</>}</div>}
   {own&&<button disabled={busy||pending||mediaBusy} onClick={()=>void run(editCurrent)}>查看并修改已入库资料</button>}
   {own&&me.professionalHomepagesEnabled&&<button disabled={busy||pending||dirty||workDirty||mediaBusy} onClick={()=>{setHomepagePerson(own.personId);const u=new URL(location.href);u.searchParams.set('homepage',own.personId);history.replaceState(null,'',u.pathname+u.search);}}>管理我的专业主页</button>}
   {!own&&!claim&&<div className="panel padded">{invitation?.purpose==='ENROLL'?<><p>通过本次邀请建立你的 ONCE 档案。</p><label><input type="checkbox" checked={adult} onChange={e=>setAdult(e.target.checked)}/>我是本人，且已满 18 周岁</label><button disabled={!adult||busy||pending} onClick={()=>void run(async()=>{await command('/claims',{contextId:invitationContext,relation:'SELF',applicantKey:'SELF',adultDeclared:true});setMessage('已加入，请完善下方资料。');})}>加入并建立资料</button></>:<p>请使用 ONCE 发给你的加入邀请。已有档案的认领、代理人或监护人申请可在历史申请入口继续处理。</p>}</div>}

@@ -1,0 +1,71 @@
+{
+  "head": "2e327e01897002ca8027095e431010583197dbc0",
+  "observations": {
+    "legacy_fixture_open": {
+      "pass": true,
+      "state": "OPEN",
+      "chargedBytes": 3233,
+      "uploadCount": 1,
+      "assetCount": 0
+    },
+    "legacy_cancel_not_delivered": {
+      "pass": true,
+      "businessSnapshotStable": true,
+      "cancelReceipts": 0,
+      "stopReceipts": 0,
+      "markerMinimized": true,
+      "staleNetworkMessage": "网络中断，操作结果待核对。",
+      "inputDisabled": true
+    },
+    "legacy_missing_reads_before_stop": {
+      "pass": true,
+      "originalReceiptHttp": 404,
+      "stopStatusHttp": 404,
+      "cancelPosts": 0,
+      "stopPosts": 0,
+      "businessSnapshotStable": true
+    },
+    "legacy_stop_preserves_open_clears_old_error": {
+      "pass": true,
+      "stopHttp": 200,
+      "stopStatusHttp": 200,
+      "stopReceiptCount": 1,
+      "stopMatchesAccount": true,
+      "stopAuditAddedOnce": true,
+      "state": "OPEN",
+      "businessSnapshotStable": true,
+      "staleCancelNetworkAlert": false,
+      "knownStaleMessage": null,
+      "pendingOriginalControlVisible": false,
+      "oldUploadStatusControlVisible": true,
+      "inputDisabled": true,
+      "cancelEnabled": true
+    },
+    "legacy_late_cancel_blocked": {
+      "pass": true,
+      "http": 409,
+      "errorCode": "PORTAL_COMMAND_STOPPED",
+      "businessSnapshotStable": true,
+      "stopReceipts": 1,
+      "cancelReceipts": 0
+    },
+    "legacy_reopen_preserves_open": {
+      "pass": true,
+      "state": "OPEN",
+      "reopenedAlerts": 0,
+      "reopenedCancelEnabled": true,
+      "businessSnapshotStable": true,
+      "chargedBytes": 3233
+    },
+    "legacy_fresh_cancel_key_valid": {
+      "pass": true,
+      "http": 200,
+      "differentKey": true,
+      "state": "CANCELLED",
+      "revisionDelta": 1,
+      "cancelReceipts": 1,
+      "chargedBytes": 3233
+    }
+  },
+  "findings": []
+}

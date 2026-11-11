@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-10T16:47:08.659Z",
+  "generatedAt": "2026-11-11T13:06:03.669Z",
   "node": "v22.22.3",
   "typescript": "5.8.3",
   "scope": "static-source-and-contract",
@@ -32,7 +32,7 @@
       "name": "unique-route-operation-identities",
       "passed": true,
       "detail": {
-        "routes": 378
+        "routes": 381
       }
     },
     {

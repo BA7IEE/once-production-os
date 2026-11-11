@@ -1,0 +1,115 @@
+{
+  "status": "PASS",
+  "head": "2e327e01897002ca8027095e431010583197dbc0",
+  "subject": "working tree; source hashes apply",
+  "environment": "isolated PostgreSQL, Nest, Chromium, synthetic accounts and local storage",
+  "sourceHashes": {
+    "apps/admin-web/src/talent-media-staging.tsx": "726ee7c2a38538046ecd458b3c3398d51ddcc10d63fb91bd4ac23b86a82196ee",
+    "apps/admin-web/src/supplier-profile-ui.tsx": "f13bae1535b52d4aaf6a45c16b6f27a55cb8bd2a10a3de2be9ae4e39e582f803",
+    "apps/admin-web/src/portal-command.ts": "fcf8fbe29385727f34d77a2a1b0fa0568ea43d31c27ed0e123e1ded4d2f4ff0e",
+    "apps/api/src/media/http.ts": "dca67091603c60f7adf3b0bb1aab8fdf330edfb818d5a15b610b814211e2a898",
+    "packages/core/src/media.ts": "9c8aacd8acee9103b51dae79872bb193a6e726da56f896b1fffa65cca6fce1e5",
+    "tests/acceptance/browser-cancel-recovery-20261111.mjs": "35ef52d83bd8b0a6a9aa407d6fd0b014c3b76a9f6f18db807e73f458735c82e5"
+  },
+  "buildHashes": {
+    "dist/web/index.html": "2aa567e3c8d834e410206daba6080028d357f7fbf80faf97670770b4e97b8c26",
+    "dist/web/assets/main-D8Qo-7uO.js": "88c0735c879465e60f24aedf74dc3bbba490702314fbc12ad21211edec1fc65d",
+    "dist/apps/api/src/main.js": "219a73e7ef9442d4a09b586b220bd09c22b63731704f4e18aaff5242261919ea",
+    "dist/packages/core/src/media.js": "c5ce4426df4898046208d50b5217b86ffd19c5589f7ea291f1adc6795075526f"
+  },
+  "observations": {
+    "lost_cancel_response_stays_pending": {
+      "pass": true,
+      "upstreamHttpStatus": 200,
+      "dbState": "CANCELLED",
+      "pendingNoticeVisible": true,
+      "prematureCancelledVisible": false,
+      "cancelReceiptCount": 1,
+      "cancelReceiptMatches": true,
+      "cancelDisabled": true,
+      "inputDisabled": true,
+      "noSecondCancelRequest": true,
+      "quotaRetained": true,
+      "dbStable": true
+    },
+    "same_page_cancel_receipt_without_replay": {
+      "pass": true,
+      "sameOriginalKey": true,
+      "cancelAuditCount": 1,
+      "cancelPosts": 1,
+      "receiptReads": 1,
+      "noConcurrentReplay": true,
+      "receiptHttp200": true,
+      "oneReceipt": true,
+      "dbStable": true,
+      "inputEnabled": true
+    },
+    "reload_reads_cancel_receipt_without_replay": {
+      "pass": true,
+      "inputDisabledBeforeReceipt": true,
+      "pendingNoticeVisible": true,
+      "receiptHttpStatus": 200,
+      "receiptMatches": true,
+      "receiptReads": 1,
+      "cancelPosts": 0,
+      "dbStable": true,
+      "cancelReceiptCount": 1,
+      "chargedBytes": 6466,
+      "expectedChargedBytes": 6466
+    },
+    "old_receiving_read_cannot_replace_cancelled": {
+      "pass": true,
+      "oldResponseState": "RECEIVING",
+      "newResponseState": "CANCELLED",
+      "browserConsumedOrder": [
+        {
+          "state": "CANCELLED",
+          "revision": 3
+        },
+        {
+          "state": "CANCELLED",
+          "revision": 3
+        },
+        {
+          "state": "RECEIVING",
+          "revision": 2
+        }
+      ],
+      "terminalRegressed": false,
+      "cancelledVisible": true,
+      "staleAlertVisible": false,
+      "cancelHttpStatus": 200,
+      "cancelReceiptCount": 1,
+      "oneRevisionIncrement": true,
+      "dbStable": true,
+      "quotaRetained": true
+    },
+    "cancelled_survives_reload_and_late_stream": {
+      "pass": true,
+      "state": "CANCELLED",
+      "dbStable": true,
+      "uploadCount": 3,
+      "assetCount": 0,
+      "chargedBytes": 9699,
+      "cancelReceiptCount": 1
+    },
+    "missing_cancel_receipt_remains_pending": {
+      "pass": true,
+      "receiptHttpStatuses": [
+        404,
+        404
+      ],
+      "pendingNoticeVisible": true,
+      "inputDisabled": true,
+      "state": "OPEN",
+      "cancelReceiptCount": 0,
+      "cancelAuditCount": 0,
+      "receiptReads": 2,
+      "cancelPosts": 0,
+      "dbStable": true,
+      "chargedBytes": 12932,
+      "expectedChargedBytes": 12932
+    }
+  },
+  "findings": []
+}

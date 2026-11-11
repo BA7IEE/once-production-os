@@ -26,7 +26,7 @@ export function ProfessionalHomepageEditor({me,personId,onClose}:{me:TalentAccou
   return data as T;
  }
  requestRef.current=request;
- const commands=useRef<PortalCommands|null>(null);if(!commands.current)commands.current=new PortalCommands((p,m,b,k)=>requestRef.current(p,m,b,k),()=>{if(active.current)setPending(!!commands.current?.hasPending);},homepageMarkers);
+ const commands=useRef<PortalCommands|null>(null);if(!commands.current)commands.current=new PortalCommands((p,m,b,k)=>requestRef.current(p,m,b,k),()=>{if(active.current)setPending(!!commands.current?.hasPending);},homepageMarkers,{allowLegacyReceipt:true});
  const run=async(work:()=>Promise<void>)=>{setBusy(true);setError('');setMessage('');try{await work();}catch(e){if(active.current){setError(e instanceof Error?e.message:'操作未完成');if(e instanceof PortalRequestError&&e.code==='HOMEPAGE_PREVIEW_STALE'){setPreview(null);setPublicAccepted(false);setRights(false);setAdult(false);}}}finally{if(active.current)setBusy(false);}};
  const load=async(id?:string)=>{const [o,list]=await Promise.all([request<Options>('/homepage-options/'+personId),request<{items:Detail[]}>('/homepages')]);const found=id?await request<Detail>('/homepages/'+id):list.items.find(h=>(h as Detail&{personId:string}).personId===personId)??null;if(!active.current)return;setOptions(o);setDetail(found);setDraft(found?.draft??blank(o));setDirty(false);setPreview(null);setPublicAccepted(false);setRights(false);setAdult(false);};
  const rendered=async(receipt:PortalReceipt)=>{await load(receipt.resourceId);commands.current!.rendered();setMessage('已核对并载入服务器保存的主页资料。');};

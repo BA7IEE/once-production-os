@@ -325,6 +325,8 @@ export interface Clock {
     now(): Date;
 }
 export interface Config {
+    /** Explicit deployment attestation: every portal writer enforces command stops. */
+    portalCommandStopEnabled?:boolean;
     professionalHomepagesEnabled?:boolean;
     clientPresentationsEnabled?:boolean;
     ingestionEnabled?:boolean;

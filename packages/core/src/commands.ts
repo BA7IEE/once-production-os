@@ -6,6 +6,7 @@ import type { Tx } from './store.ts';
 import { digest } from './json.ts';
 import { audit, base } from './helpers.ts';
 import { invariant } from './errors.ts';
+export const PORTAL_COMMAND_STOP = 'portal.command.stop';
 export class Commands {
     clock: Clock;
     constructor(clock: Clock) { this.clock = clock; }
@@ -15,6 +16,11 @@ export class Commands {
         commandSummary?: ReceiptResult['summary'];
     }>, authorizeReplay: (receipt: CommandReceipt) => Promise<void>, successState: ReceiptResult['state'] = 'SUCCEEDED'): Promise<ReceiptResult> {
         invariant(/^[A-Za-z0-9_-]{8,128}$/.test(commandKey), 'IDEMPOTENCY_REQUIRED', '写入需要 8–128 位 Idempotency-Key', 400);
+        // Existing stops remain effective even when creation of new stops is disabled.
+        if (actor.actorKind === 'TALENT' && operation.startsWith('portal.') && operation !== PORTAL_COMMAND_STOP) {
+            const stops = await tx.find('receipts', { workspaceId: actor.workspaceId, ...principalFields(actor), operation: PORTAL_COMMAND_STOP, commandKey });
+            invariant(stops.length === 0, 'PORTAL_COMMAND_STOPPED', '原请求已停止，不能再次执行', 409);
+        }
         const requestDigest = digest({ operation, targetId, input });
         const previous = (await tx.find('receipts', { workspaceId: actor.workspaceId, ...principalFields(actor), operation, commandKey }))[0];
         if (previous) {

@@ -38,7 +38,7 @@ test('reload stores only minimal marker and queries receipt without replaying a 
  let saved:string|null=null;const owner=receipt.resourceId,storage={read:()=>saved?JSON.parse(saved):null,write:(m:any)=>{saved=encodePortalMarker(m);},remove:()=>{saved=null;}};
  const first=new PortalCommands(async()=>{throw new Error('lost response');},()=>{},storage);
  await assert.rejects(()=>first.submit(owner,'/submissions',{intro:'PRIVATE ORIGINAL TEXT',token:'PRIVATE TOKEN'}));
- assert.deepEqual(Object.keys(JSON.parse(saved!)).sort(),['draft','key','owner']);assert.ok(!saved!.includes('PRIVATE'));
+ assert.deepEqual(Object.keys(JSON.parse(saved!)).sort(),['draft','key','nonCancel','owner']);assert.equal(JSON.parse(saved!).nonCancel,true);assert.ok(!saved!.includes('PRIVATE'));
  const reads:any[]=[];const next=new PortalCommands(async(...args)=>{reads.push(args);return receipt;},()=>{},storage);next.restore(owner);await assert.rejects(()=>next.submit(owner,'/submissions',{}));await next.replay(owner);assert.equal(reads[0][1],'GET');assert.equal(reads[0][2],undefined);assert.equal(next.draftResourceId,receipt.resourceId);next.rendered();assert.equal(saved,null);
  assert.equal(encodePortalMarker({owner,key:receipt.operationId,draft:false,receipt} as any).includes('revision'),false);
 });

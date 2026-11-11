@@ -101,6 +101,9 @@ export interface Inputs {
   "portal.supplier.rebase": { "expectedRevision": number; "expectedPersonRevision": number; "profile": { "displayName": string; "aliases": Array<string>; "intro": string; "roleCodes": Array<string>; "locationCodes": Array<string>; "languageCodes": Array<string>; "skillCodes": Array<string>; "contacts": Array<{ "kind": "PHONE" | "EMAIL" | "WECHAT" | "OTHER"; "value": string }>; "measurements": { "heightCm": number | null; "bustCm": number | null; "waistCm": number | null; "hipsCm": number | null; "shoeSizeValue"?: string | null; "shoeSizeSystem"?: "EU" | "US" | "UK" | "CN" | null; "clothingSizeValue"?: string | null; "clothingSizeSystem"?: "INTL" | "EU" | "US" | "UK" | "CN" | null; "measuredOn"?: string | null; "datePrecision"?: "EXACT_DAY" | "APPROXIMATE" | "UNKNOWN" }; "professional"?: { "catalogVersion": number; "catalogDigest": string; "answers": Array<{ "fieldCode": string; "roleCode": string | null; "state": "KNOWN" | "DECLARED_NONE" | "UNKNOWN" | "NOT_PROVIDED"; "value"?: unknown }> }; "capabilityDetails"?: Array<{ "roleCode": string; "capabilityCode": string; "levelCode": "BASIC" | "WORKING" | "PROFESSIONAL" | "FLUENT" | "NATIVE" | null }>; "credentials"?: Array<{ "roleCode": string | null; "credentialTypeCode": "DRONE_LICENSE" | "TRANSLATION_CERTIFICATE" | "DIVING_CERTIFICATE" | "EQUIPMENT_CERTIFICATE" | "OTHER"; "credentialName": string; "issuerName": string | null; "issuedOn": string | null; "expiresOn": string | null }>; "translation"?: { "pairs": Array<{ "sourceLanguageCode": string; "targetLanguageCode": string }>; "modeCodes": Array<"BUSINESS_MEETING" | "ON_SET" | "ESCORT" | "CONSECUTIVE" | "SIMULTANEOUS" | "WRITTEN"> } | null }; "conflictsAcknowledged": boolean };
   "portal.supplier.confirm": { "expectedRevision": number; "accepted": boolean };
   "portal.command.get": undefined;
+  "portal.command.cancelReceipt": undefined;
+  "portal.command.stopStatus": undefined;
+  "portal.command.stop": {  };
   "talent.handoff.get": undefined;
   "talent.grant.exposure": { "expectedRevision": number; "decision": "ALLOW" | "REVOKE"; "fields": Array<{ "field": "displayName" | "aliases" | "intro"; "expectedValueDigest": string }>; "assets": Array<{ "id": string; "expectedRevision": number }>; "collections": Array<{ "id": string; "expectedRevision": number }>; "credits": Array<{ "id": string; "expectedRevision": number }>; "approvalBasis": string };
   "portal.work.catalog": undefined;
@@ -884,6 +887,21 @@ export const ENDPOINTS = {
     "method": "GET",
     "path": "/portal/commands/{id}",
     "mode": "READ"
+  },
+  "portal.command.cancelReceipt": {
+    "method": "GET",
+    "path": "/portal/commands/{id}/cancel",
+    "mode": "READ"
+  },
+  "portal.command.stopStatus": {
+    "method": "GET",
+    "path": "/portal/commands/{id}/stop",
+    "mode": "READ"
+  },
+  "portal.command.stop": {
+    "method": "POST",
+    "path": "/portal/commands/{id}/stop",
+    "mode": "COMMAND"
   },
   "talent.handoff.get": {
     "method": "GET",

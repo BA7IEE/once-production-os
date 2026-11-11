@@ -1,0 +1,301 @@
+{
+  "head": "2e327e01897002ca8027095e431010583197dbc0",
+  "observations": {
+    "fixture_open_1": {
+      "pass": true,
+      "state": "OPEN",
+      "uploadCount": 1,
+      "chargedBytes": 3233,
+      "assetCount": 0
+    },
+    "cancel_not_delivered_1": {
+      "pass": true,
+      "markerOnlyAllowed": true,
+      "bindingShapeValid": true,
+      "markerKeyMatches": true,
+      "markerOwnerMatches": true,
+      "markerDraftFalse": true,
+      "markerHasNoTargetOrRevision": true,
+      "state": "OPEN",
+      "revisionStable": true,
+      "cancelReceipts": 0,
+      "stopReceipts": 0,
+      "cancelAudits": 0,
+      "inputDisabled": true,
+      "chargedBytes": 3233
+    },
+    "both_missing_before_stop_1": {
+      "pass": true,
+      "cancelReceiptHttp": 404,
+      "cancelReceiptCode": "NOT_FOUND",
+      "stopStatusHttp": 404,
+      "stopStatusCode": "STOP_NOT_FOUND",
+      "originalReposts": 0,
+      "stopOffered": true,
+      "dbStable": true
+    },
+    "confirmed_stop_is_only_a_fence": {
+      "pass": true,
+      "stopPostHttp": 200,
+      "stopStatusHttp": 200,
+      "stopReceiptCount": 1,
+      "stopReceiptMatchesAccount": true,
+      "stopAuditAddedOnce": true,
+      "originalCancelReceipts": 0,
+      "uploadState": "OPEN",
+      "dbUnchanged": true,
+      "inputDisabled": true,
+      "confirmationExplainedNoRelease": true
+    },
+    "same_page_after_stop_feedback": {
+      "pass": true,
+      "staleCancelNetworkAlert": false,
+      "knownStaleMessage": null,
+      "oldUploadStatusControlVisible": true,
+      "pendingOriginalControlVisible": false,
+      "cancelAvailable": true
+    },
+    "reopen_after_stop_preserves_original": {
+      "pass": true,
+      "state": "OPEN",
+      "reopenedShowsOpen": true,
+      "reopenedAlerts": 0,
+      "reopenedCancelEnabled": true,
+      "dbStable": true,
+      "chargedBytes": 3233
+    },
+    "late_original_blocked": {
+      "pass": true,
+      "lateHttp": 409,
+      "lateErrorCode": "PORTAL_COMMAND_STOPPED",
+      "businessSnapshotStable": true,
+      "stopReceiptCount": 1,
+      "cancelReceipts": 0,
+      "cancelAudits": 0
+    },
+    "fresh_cancel_key_remains_valid": {
+      "pass": true,
+      "freshCancelHttp": 200,
+      "distinctKey": true,
+      "state": "CANCELLED",
+      "oneRevisionIncrement": true,
+      "cancelReceiptCount": 1,
+      "chargedBytes": 3233
+    },
+    "fixture_open_2": {
+      "pass": true,
+      "state": "OPEN",
+      "uploadCount": 2,
+      "chargedBytes": 6466,
+      "assetCount": 0
+    },
+    "browser_inflight_has_no_replay_or_stop": {
+      "pass": true,
+      "submittingNoticeVisible": true,
+      "originalCheckButtons": 0,
+      "stopButtons": 0,
+      "cancelDisabled": true,
+      "inputDisabled": true,
+      "noDoubleCancel": true,
+      "serverState": "CANCELLED"
+    },
+    "committed_cancel_before_response_loss": {
+      "pass": true,
+      "upstreamHttp": 200,
+      "state": "CANCELLED",
+      "oneRevisionIncrement": true,
+      "cancelReceiptCount": 1,
+      "cancelReceiptMatches": true,
+      "stopReceipts": 0,
+      "chargedBytes": 6466
+    },
+    "mismatched_cancel_binding_stays_unknown": {
+      "pass": true,
+      "upstreamReceiptHttp": 200,
+      "upstreamBindingMatches": true,
+      "substitutedBindingRejected": true,
+      "markerRetained": true,
+      "pendingControlVisible": true,
+      "originalPosts": 0,
+      "stopCalls": 0,
+      "businessSnapshotStable": true
+    },
+    "reopened_forged_resourceId_stays_unknown": {
+      "pass": true,
+      "upstreamHttp": 200,
+      "originalBindingMatched": true,
+      "originalTargetMatched": true,
+      "originalRevisionMatched": true,
+      "forgedResultRejected": true,
+      "markerRetained": true,
+      "pendingControlVisible": true,
+      "inputDisabled": true,
+      "originalPosts": 0,
+      "stopCalls": 0,
+      "businessSnapshotStable": true
+    },
+    "reopened_forged_revision_stays_unknown": {
+      "pass": true,
+      "upstreamHttp": 200,
+      "originalBindingMatched": true,
+      "originalTargetMatched": true,
+      "originalRevisionMatched": true,
+      "forgedResultRejected": true,
+      "markerRetained": true,
+      "pendingControlVisible": true,
+      "inputDisabled": true,
+      "originalPosts": 0,
+      "stopCalls": 0,
+      "businessSnapshotStable": true
+    },
+    "committed_original_receipt_read_without_resend": {
+      "pass": true,
+      "receiptHttp": 200,
+      "receiptMatches": true,
+      "requestBindingMatched": true,
+      "pendingCleared": true,
+      "markerCleared": true,
+      "originalPostsAfterLoss": 0,
+      "stopCalls": 0,
+      "dbStable": true,
+      "cancelReceipts": 1
+    },
+    "fixture_open_3": {
+      "pass": true,
+      "state": "OPEN",
+      "uploadCount": 3,
+      "chargedBytes": 9699,
+      "assetCount": 0
+    },
+    "cancel_not_delivered_3": {
+      "pass": true,
+      "markerOnlyAllowed": true,
+      "bindingShapeValid": true,
+      "markerKeyMatches": true,
+      "markerOwnerMatches": true,
+      "markerDraftFalse": true,
+      "markerHasNoTargetOrRevision": true,
+      "state": "OPEN",
+      "revisionStable": true,
+      "cancelReceipts": 0,
+      "stopReceipts": 0,
+      "cancelAudits": 0,
+      "inputDisabled": true,
+      "chargedBytes": 9699
+    },
+    "both_missing_before_stop_3": {
+      "pass": true,
+      "cancelReceiptHttp": 404,
+      "cancelReceiptCode": "NOT_FOUND",
+      "stopStatusHttp": 404,
+      "stopStatusCode": "STOP_NOT_FOUND",
+      "originalReposts": 0,
+      "stopOffered": true,
+      "dbStable": true
+    },
+    "stop_committed_before_response_loss": {
+      "pass": true,
+      "upstreamHttp": 200,
+      "stopReceiptCount": 1,
+      "stopMatchesAccount": true,
+      "stopAuditAddedOnce": true,
+      "businessSnapshotStable": true,
+      "state": "OPEN",
+      "chargedBytes": 9699
+    },
+    "stop_loss_marker_minimal": {
+      "pass": true,
+      "markerOnlyAllowed": true,
+      "bindingShapeValid": true,
+      "markerKeyMatches": true,
+      "markerOwnerMatches": true,
+      "markerDraftFalse": true,
+      "markerHasNoTargetOrRevision": true
+    },
+    "reload_resolves_stop_without_resend": {
+      "pass": true,
+      "originalReceiptHttp": 404,
+      "genericReceiptReads": 0,
+      "specificCancelReads": 1,
+      "stopStatusHttp": 200,
+      "stopStatus": "STOPPED",
+      "originalPosts": 0,
+      "stopPosts": 0,
+      "stopReceiptCount": 1,
+      "state": "OPEN",
+      "dbStable": true,
+      "chargedBytes": 9699,
+      "inputDisabled": true
+    },
+    "late_original_blocked_after_reload": {
+      "pass": true,
+      "lateHttp": 409,
+      "errorCode": "PORTAL_COMMAND_STOPPED",
+      "businessSnapshotStable": true,
+      "stopReceiptCount": 1,
+      "cancelReceiptCount": 0
+    },
+    "fixture_open_4": {
+      "pass": true,
+      "state": "OPEN",
+      "uploadCount": 4,
+      "chargedBytes": 12932,
+      "assetCount": 0
+    },
+    "cancel_not_delivered_4": {
+      "pass": true,
+      "markerOnlyAllowed": true,
+      "bindingShapeValid": true,
+      "markerKeyMatches": true,
+      "markerOwnerMatches": true,
+      "markerDraftFalse": true,
+      "markerHasNoTargetOrRevision": true,
+      "state": "OPEN",
+      "revisionStable": true,
+      "cancelReceipts": 0,
+      "stopReceipts": 0,
+      "cancelAudits": 0,
+      "inputDisabled": true,
+      "chargedBytes": 12932
+    },
+    "simultaneous_requests_reached_postgres": {
+      "pass": true,
+      "waitingAdvisoryLocks": 2
+    },
+    "parallel_stop_cancel_exactly_one_wins": {
+      "pass": true,
+      "winner": "CANCEL",
+      "stopHttp": 409,
+      "cancelHttp": 200,
+      "stopError": "PENDING_ALREADY_RECORDED",
+      "cancelError": null,
+      "state": "CANCELLED",
+      "revisionDelta": 1,
+      "stopReceipts": 0,
+      "cancelReceipts": 1,
+      "cancelAudits": 1,
+      "stopAuditDelta": 0,
+      "chargedBytes": 12932,
+      "assetCount": 0
+    },
+    "parallel_race_ui_reconciles": {
+      "pass": true,
+      "winner": "CANCEL",
+      "state": "CANCELLED",
+      "dbStable": true,
+      "stopReceipts": 0,
+      "cancelReceipts": 1
+    },
+    "legacy_other_operation_receipt_stays_unknown": {
+      "pass": true,
+      "genericReceiptHttp": 200,
+      "receiptWasOtherOperation": true,
+      "markerRetained": true,
+      "pendingNotice": true,
+      "writes": 0,
+      "stopButtonVisible": false,
+      "businessSnapshotStable": true
+    }
+  },
+  "findings": []
+}
