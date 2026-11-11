@@ -1,0 +1,165 @@
+{
+  "status": "PRODUCT_GAPS",
+  "head": "56f73354688a3c90ab139da94616d96319d7ca2b",
+  "subject": "working tree; source hashes apply",
+  "environment": "isolated PostgreSQL, Nest, Chromium, synthetic accounts and local storage",
+  "sourceHashes": {
+    "apps/admin-web/src/talent-media-staging.tsx": "26da0318745a00cc5268d01833e674da883c434796d8443a6ce0d4c62f174f87",
+    "apps/api/src/media/http.ts": "dca67091603c60f7adf3b0bb1aab8fdf330edfb818d5a15b610b814211e2a898",
+    "packages/core/src/media.ts": "9c8aacd8acee9103b51dae79872bb193a6e726da56f896b1fffa65cca6fce1e5",
+    "tests/acceptance/browser-receiving-interruption-20261111.mjs": "2701d005eb051242aa70b97bc6dc4622d4d4be4a345c4ab6d1d969790703ba25"
+  },
+  "buildHashes": {
+    "dist/web/index.html": "536c0841cd23d41bdec5ae6d3ad81f80f21d1edf55d00b1b4cff9182651873b4",
+    "dist/web/assets/main-DcZHRxkB.js": "da871a61ee5b3711409b0dd9d92949143650a094a9d25e7eb0116e80baa7f69c",
+    "dist/apps/api/src/main.js": "219a73e7ef9442d4a09b586b220bd09c22b63731704f4e18aaff5242261919ea",
+    "dist/packages/core/src/media.js": "c5ce4426df4898046208d50b5217b86ffd19c5589f7ea291f1adc6795075526f"
+  },
+  "observations": {
+    "active_tab_receiving_feedback_accurate": {
+      "pass": true,
+      "neutralIncompleteMessage": true,
+      "saysCanCancel": false,
+      "cancelEnabled": false
+    },
+    "receiving_reopen_reload_no_duplicate": {
+      "pass": true,
+      "state": "RECEIVING",
+      "blockedOpen": true,
+      "cancelOpen": true,
+      "blockedReload": true,
+      "blockedUpload": true,
+      "uploadCount": 1,
+      "chargedBytes": 3233,
+      "fileBytes": 3233,
+      "assetCount": 0,
+      "createReceiptCount": 1,
+      "createReceiptMatches": true,
+      "unchangedRevision": true,
+      "unchangedSubmissionRevision": true
+    },
+    "interruption_recorded_without_premature_release": {
+      "pass": true,
+      "state": "FAILED",
+      "errorCode": "UPLOAD_INTERRUPTED",
+      "oneRevisionIncrement": true,
+      "uploadCount": 1,
+      "chargedBytes": 3233,
+      "fileBytes": 3233,
+      "assetCount": 0,
+      "purged": false,
+      "createReceiptCount": 1,
+      "completionReceipts": 0,
+      "completionRequests": 0,
+      "cancelOfferedAfterTerminal": false
+    },
+    "interrupted_transfer_message_accurate": {
+      "pass": true,
+      "displayedFormatAdvice": false,
+      "displayedNeutralIncomplete": true,
+      "technicalCodeDisplayed": false
+    },
+    "original_tab_terminal_feedback_not_unknown": {
+      "pass": true,
+      "staleUnknownAlert": false,
+      "terminalStateVisible": true
+    },
+    "explicit_retry_retains_prior_charge": {
+      "pass": true,
+      "firstWasTerminal": true,
+      "uploadCount": 2,
+      "sameNameCount": 2,
+      "chargedBytes": 6466,
+      "expectedChargedBytes": 6466,
+      "assetCount": 0,
+      "createReceiptCount": 1,
+      "duplicateAttemptBlocked": true
+    },
+    "cancel_receiving_then_interrupt": {
+      "pass": true,
+      "cancelHttpStatus": 200,
+      "state": "CANCELLED",
+      "oneRevisionIncrement": true,
+      "unchangedAfterInterrupt": true,
+      "uploadCount": 2,
+      "chargedBytes": 6466,
+      "assetCount": 0,
+      "purged": false,
+      "cancelReceiptCount": 1,
+      "cancelReceiptMatches": true,
+      "completionReceiptCount": 0,
+      "unchangedSubmissionRevision": true
+    },
+    "reopen_terminal_state_shown": {
+      "pass": true,
+      "cancelledVisible": true,
+      "failedVisible": true,
+      "canExplicitlyChooseAgain": true
+    },
+    "original_cancel_terminal_feedback": {
+      "pass": true,
+      "staleUnknownAlert": false,
+      "cancelledVisible": true,
+      "canChooseAgain": true
+    },
+    "status_read_loss_remains_unknown": {
+      "pass": true,
+      "unknownAlert": true,
+      "inputDisabled": true,
+      "stateOnlyKnownToTestDatabase": "FAILED",
+      "uploadCount": 3,
+      "chargedBytes": 9699,
+      "assetCount": 0
+    },
+    "status_read_loss_reconciles_without_new_upload": {
+      "pass": true,
+      "state": "FAILED",
+      "revisionStable": true,
+      "uploadCountStable": true,
+      "chargeStable": true,
+      "assetCount": 0,
+      "alerts": 0
+    },
+    "late_completed_stream_cannot_overwrite_cancel": {
+      "pass": true,
+      "lateHttpStatus": 409,
+      "state": "CANCELLED",
+      "revisionStable": true,
+      "cancelReceiptCount": 1,
+      "completionReceiptCount": 0,
+      "uploadCount": 4,
+      "assetCount": 0,
+      "chargedBytes": 12932
+    },
+    "stale_receiving_read_then_failed_refresh": {
+      "pass": false,
+      "originalGetState": "RECEIVING",
+      "laterDatabaseState": "FAILED",
+      "staleUnknownAlert": true,
+      "observedConflict": true,
+      "pageReadState": "RECEIVING",
+      "alertCount": 1,
+      "oneRevisionIncrement": true,
+      "completionReceiptCount": 0
+    },
+    "final_receipts_and_quota": {
+      "pass": true,
+      "states": [
+        "FAILED",
+        "CANCELLED",
+        "FAILED",
+        "CANCELLED",
+        "FAILED"
+      ],
+      "completionReceipts": 0,
+      "assets": 0,
+      "uploadCount": 5,
+      "chargedBytes": 16165,
+      "expectedChargedBytes": 16165,
+      "earlierRevisionsStable": true
+    }
+  },
+  "findings": [
+    "stale_receiving_read_then_failed_refresh"
+  ]
+}

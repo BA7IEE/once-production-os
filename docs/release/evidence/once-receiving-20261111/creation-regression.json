@@ -1,0 +1,61 @@
+{
+  "status": "PASS",
+  "head": "56f73354688a3c90ab139da94616d96319d7ca2b",
+  "subject": "uncommitted local working tree",
+  "sourceHashes": {
+    "apps/admin-web/src/talent-media-staging.tsx": "726ee7c2a38538046ecd458b3c3398d51ddcc10d63fb91bd4ac23b86a82196ee",
+    "apps/admin-web/src/supplier-profile-ui.tsx": "69fe74a02576e137b00cf459b3d75c3925ec3e9a9605143632edd638feb7fa14",
+    "apps/admin-web/src/talent-maintenance-ui.tsx": "9625a272458f9695a84bed2d40a67dd248efea4f19c0fba570e10dd028249bc8",
+    "tests/acceptance/browser-upload-create-loss-20261111.mjs": "04df648abacbe3dfe8a5775df0569d20276e5c91290e8053b7b26815d5dbb2f5"
+  },
+  "buildHashes": {
+    "dist/web/index.html": "2e16af704653839e4edae590e49210df461c26461d1a5724a2e5ba44569e52ae",
+    "dist/apps/api/src/main.js": "219a73e7ef9442d4a09b586b220bd09c22b63731704f4e18aaff5242261919ea",
+    "dist/packages/core/src/media.js": "c5ce4426df4898046208d50b5217b86ffd19c5589f7ea291f1adc6795075526f"
+  },
+  "observations": {
+    "create_response_lost_is_one_open_record": {
+      "pass": true,
+      "serverCommitted": true,
+      "receiptCount": 1,
+      "uploadCount": 1,
+      "state": "OPEN",
+      "chargedBytes": 3233,
+      "unchangedRevision": true
+    },
+    "create_recovery_blocks_duplicate": {
+      "pass": true,
+      "uploadDisabled": true,
+      "inputDisabled": true,
+      "cancelVisible": true,
+      "cancelFocus": true
+    },
+    "created_original_cancel_recovers": {
+      "pass": true,
+      "state": "CANCELLED",
+      "inputEnabled": true
+    },
+    "create_reload_receipt_and_duplicate_guard": {
+      "pass": true,
+      "stable": true,
+      "receiptHttp200AndMatches": true,
+      "uploadDisabled": true,
+      "inputDisabled": true,
+      "cancelFocus": true
+    },
+    "cross_draft_upload_state_isolation": {
+      "pass": true,
+      "switchBlockedWhileUploading": true,
+      "draftBLoaded": true,
+      "draftBInputEnabled": true,
+      "draftBHasAlert": false,
+      "draftBHasOldGuidance": false
+    },
+    "return_to_draft_blocks_until_original_cancelled": {
+      "pass": true,
+      "blockedOnReturn": true,
+      "unlockedAfterCancel": true
+    }
+  },
+  "findings": []
+}

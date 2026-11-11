@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "head": "56f73354688a3c90ab139da94616d96319d7ca2b",
+  "subject": "working tree; source hashes apply",
+  "sourceHashes": {
+    "packages/core/src/media.ts": "9c8aacd8acee9103b51dae79872bb193a6e726da56f896b1fffa65cca6fce1e5",
+    "apps/admin-web/src/talent-media-staging.tsx": "726ee7c2a38538046ecd458b3c3398d51ddcc10d63fb91bd4ac23b86a82196ee",
+    "tests/acceptance/browser-receiving-stale-tabs-20261111.mjs": "2876c41f913cf8754f77090032ce0c16b5f847cfd74b44eaa27502d13cffa6f0"
+  },
+  "observations": {
+    "staleTabLoadedBeforeFirstCreate": true,
+    "firstDatabaseStateAtSecondCreate": "RECEIVING",
+    "firstRevisionStable": true,
+    "secondHttpStatus": 409,
+    "secondErrorCode": "REVISION_CONFLICT",
+    "uploadCount": 1,
+    "sameContentCount": 1,
+    "chargedBytes": 3233,
+    "expectedOneFileBytes": 3233,
+    "createReceiptCount": 1,
+    "secondContentRequested": false,
+    "conflictExplainsRefresh": true,
+    "retryEnabledBeforeRefresh": true,
+    "reloadBlocked": true,
+    "reloadShowsReceiving": true,
+    "postReloadUploads": 1
+  },
+  "findings": []
+}
