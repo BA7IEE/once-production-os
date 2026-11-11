@@ -1,0 +1,15 @@
+{
+  "subject": "working tree on top of 2c9952ae92204e7894391fca9831f30c4ae3df7c; final source/build hashes",
+  "firstLocalReproduction": "e851f7d84daa4242754c075c FAIL / ZERO_RESIDUE",
+  "fixedLocalRetest": "bfa811d5da18797cb17bef66 PASS / ZERO_RESIDUE",
+  "providerVerified": "NOT_RUN",
+  "onlyProbeDifference": "evidence output directory",
+  "sha256": {
+    "packages/core/src/talent-portal.ts": "89ee77ec13ba8ff53448421abee330d0b413aa334e76cea9cff123ab31abc151",
+    "tests/core/portal-command-stop-server.test.ts": "8a7ecae78e127d01789d5da81d91b2d3ef662106acabccd815c3e8e4ac96968b",
+    "dist/packages/core/src/talent-portal.js": "feeb4e7d4c526e74fccb09f41169e06e63f2f9e057e87428d4be48bfdf27c3ff",
+    "tests/acceptance/browser-talent-auth.mjs": "be1cc21d49d45eecb6aa3ce693d1852c8ca91284880fe304ab17d6c47c5b02dc",
+    "docs/release/evidence/once-command-stop-20261111/ci-auth-compat/repro-script.mjs": "4f64af57e697eac65e1291a0d6bd5a233a1adf1521646d8635199c6053e7bfe1",
+    "docs/release/evidence/once-command-stop-20261111/ci-auth-compat/fixed-probe-script.mjs": "1c9d8bbbd9d03c04861dbd70e10f0dc66bfad99dc0089bd6e71adcf09a44eecc"
+  }
+}

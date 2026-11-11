@@ -1,6 +1,6 @@
 # ONCE 取消回执持续缺失：受控停止及恢复验收
 
-本记录对应本提交内的源码和独立专项证据；验收时的父提交为 `2e327e01897002ca8027095e431010583197dbc0`，工作树包含本次修改，具体源码与构建摘要见各次 `result.json`。本地测试、远端 CI 和真实供应商验收分别计数，互不替代。PR #41 保持 Draft，不涉及合并或部署。
+本记录对应本提交内的源码和独立专项证据；首次验收时的父提交为 `2e327e01897002ca8027095e431010583197dbc0`，后续兼容修复基于 `2c9952ae92204e7894391fca9831f30c4ae3df7c`。各次工作树、源码与构建摘要见各次 `result.json`，不同版本结果不自动继承。本地测试、远端 CI 和真实供应商验收分别计数，互不替代。PR #41 保持 Draft，不涉及合并或部署。
 
 ## 处理与边界
 
@@ -8,7 +8,7 @@
 - 在原回执和停止状态的受控读取满足条件时，用户可明确选择停止。服务端在同一事务中核对原键并记录独立的停止栅栏；新的支持栅栏的写入者拒绝此后到达的同键 TALENT portal COMMAND。停止回执只证明栅栏，不能证明原业务请求此前是否发生，不自动取消上传、释放额度或宣称物理清理完成。
 - 新取消请求保留原请求键及一项有版本的关联摘要。摘要绑定请求键、取消目标和预期版本，但不保存文件名、原目标、版本数字、请求正文或凭据；摘要仍是可关联元数据，不应称为绝对匿名或用于日志。回执同时核对摘要和实际返回的目标/版本；首个 POST 仍在途中时不能再次发送。
 - 旧门户三字段标记如读到无法证明归属的 200 回执，继续待核对并提示联系 ONCE；若两个受控读取均表明未找到，才可选择受控停止。为保持既有非取消流程，新非取消标记只增加分类并沿用通用回执语义；这不是业务操作的加密绑定证明，通用回执同键跨操作误认的历史边界不属于本次关闭范围。独立主页标记也保留原通用语义。
-- 本功能默认关闭。`PORTAL_COMMAND_STOP_ALL_WRITERS_VERIFIED=true` 是操作者的明确断言，并非系统自动证明：启用前必须确认同库所有 portal 写入实例均执行栅栏检查且旧实例在途请求已排空。停用开关不会让不识别已有栅栏的旧版本安全；回滚前必须停止相关写入并安全处理存量栅栏。绕过同一 Store/数据库锁的写入者、不同数据库、文件内容 PUT 不在此栅栏保证内。
+- 本功能默认关闭。`PORTAL_COMMAND_STOP_ALL_WRITERS_VERIFIED=true` 是操作者的明确断言，并非系统自动证明：启用前必须确认同库所有 portal 写入实例均执行栅栏检查、旧实例在途请求已排空，并确认客户端接受启用时新增的能力字段。停用开关不会让不识别已有栅栏的旧版本安全；回滚前必须停止相关写入并安全处理存量栅栏。绕过同一 Store/数据库锁的写入者、不同数据库、文件内容 PUT 不在此栅栏保证内。
 - 安全 journal 及恢复分析对已提交停止、拒绝的迟到取消及缺失完成标记保持 BLOCKER；没有伪造 abort，也没有扩大自动恢复白名单。日志和数据库的备份/恢复闭环与混合版本上线、回滚的实际演练仍未完成。
 
 ## 实际执行与失败保留
@@ -22,6 +22,14 @@
 - 旧人才页面另用独立 PG/Nest/Chromium 夹具[定向验收](evidence/once-command-stop-20261111/legacy/result.json) 7/7：同页停止后旧错误清除，原上传仍 OPEN 且额度保留，迟到取消被拒、重开状态一致，用户主动新建请求键后可取消。[资源记录](evidence/once-command-stop-20261111/legacy/resources.json)为 PASS / ZERO_RESIDUE。
 - 更新后的[既有取消恢复脚本](evidence/once-command-stop-20261111/cancel-regression/result.json)在另一套受管隔离 PG/Nest/Chromium 栈运行 6/6 通过，涵盖原请求在服务端已提交后响应丢失、同页与刷新读取绑定回执、重复点击及旧状态读取。其[资源记录](evidence/once-command-stop-20261111/cancel-regression/resources.json)为 PASS / ZERO_RESIDUE；使用新目录，未覆盖此前验收原件。
 - 真实浏览器专项采用 `source /workspace/.once-cloud/env.sh` 后，由 `ONCE_RUNNER=managed-linux`、独立 `ONCE_ACCEPTANCE_EVIDENCE_DIR` 和 `/usr/local/bin/docker-init -s -- node scripts/test-command-stop-20261111.mjs` 启动；旧人才页使用 `scripts/test-command-stop-legacy-20261111.mjs`。均使用已登记容器和临时目录，三个结果分别绑定自己的工作树与构建指纹。
+
+## 远端认证门禁发现与兼容修复
+
+`2c9952ae92204e7894391fca9831f30c4ae3df7c` 的 [browser-talent-auth 作业](https://github.com/BA7IEE/once-production-os/actions/runs/43027270446/job/130545033579)失败；工作流其余作业结束前原作业日志不可用。基于该提交，[隔离真实 PG/Nest/Chromium 复现](evidence/once-command-stop-20261111/ci-auth-compat/first-reproduction.txt)观察到 `/portal/me` 默认响应多出 `portalCommandStopEnabled`，与既有五字段精确断言冲突；[失败资源记录](evidence/once-command-stop-20261111/ci-auth-compat/first-resources.json)为 FAIL / ZERO_RESIDUE。
+
+兼容修复改为仅在配置严格为 `true` 时返回该能力字段；缺省/关闭时保留既有五字段，客户端缺字段仍保持关闭，服务端栅栏与权限检查不变，不放宽原浏览器门禁。使用同一脚本、只更换证据输出目录，在独立合成环境[复验通过](evidence/once-command-stop-20261111/ci-auth-compat/fixed-browser.json)：360/390/430 宽度、双标签身份隔离及敏感值泄露检查完成；[复验资源](evidence/once-command-stop-20261111/ci-auth-compat/fixed-resources.json)为 PASS / ZERO_RESIDUE。两个脚本、当前源码及构建摘要见[指纹记录](evidence/once-command-stop-20261111/ci-auth-compat/fingerprints.json)。修复后的四个定向单测文件再次[合跑 104/104](evidence/once-command-stop-20261111/ci-auth-compat/focused-tests.tap)，[摘要](evidence/once-command-stop-20261111/ci-auth-compat/focused-tests.json)随附；均是本地结果。
+
+兼容修复后，两个页面的独立真实 PG/Nest/Chromium 专项分别再次通过：[供应商页 28/28](evidence/once-command-stop-20261111/ci-auth-compat/supplier/result.json)、[旧人才页 7/7](evidence/once-command-stop-20261111/ci-auth-compat/legacy/result.json)，[既有取消恢复脚本 6/6](evidence/once-command-stop-20261111/ci-auth-compat/cancel-regression/result.json)。[供应商](evidence/once-command-stop-20261111/ci-auth-compat/supplier/resources.json)、[旧人才页](evidence/once-command-stop-20261111/ci-auth-compat/legacy/resources.json)及[取消恢复](evidence/once-command-stop-20261111/ci-auth-compat/cancel-regression/resources.json)资源均 PASS / ZERO_RESIDUE，结果包含修复后的源码及构建摘要，旧版本结果仍原样保留。
 
 ## 未执行
 

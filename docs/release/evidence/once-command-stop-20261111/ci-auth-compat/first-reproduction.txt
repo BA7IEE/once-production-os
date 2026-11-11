@@ -1,0 +1,15 @@
+Synthetic isolated PostgreSQL / Nest / Chromium reproduction on 2c9952ae92204e7894391fca9831f30c4ae3df7c.
+Only the evidence directory differs from the committed browser fixture.
+Resource e851f7d84daa4242754c075c: FAIL / ZERO_RESIDUE.
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
+  [
+    'csrfToken',
++   'portalCommandStopEnabled',
+    'professionalHomepagesEnabled',
+    'revision',
+    'status',
+    'talentAccountId'
+  ]

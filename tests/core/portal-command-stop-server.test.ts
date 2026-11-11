@@ -25,7 +25,7 @@ const assertError=(response:{status:number;body:unknown},status:number,code?:str
 
 test('portal stop defaults off and does not create a fence when unavailable',async()=>{
  const f=await fixture(),key=randomUUID(),before=f.receipts().length;
- const me=await f.a.client.raw('GET','/portal/me');assert.equal(result(me).portalCommandStopEnabled,false);
+ const me=await f.a.client.raw('GET','/portal/me');assert.equal(Object.hasOwn(result(me),'portalCommandStopEnabled'),false);
  const stop=await f.stop(key);assertError(stop,503,'PORTAL_STOP_DISABLED');
  assert.notEqual((await f.stopStatus(key)).status,200);
  assert.equal(f.receipts().length,before);

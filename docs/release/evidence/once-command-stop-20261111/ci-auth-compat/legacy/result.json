@@ -1,0 +1,104 @@
+{
+  "status": "PASS",
+  "head": "2c9952ae92204e7894391fca9831f30c4ae3df7c",
+  "subject": "working tree; source hashes apply",
+  "environment": "isolated PostgreSQL, Nest, Chromium, synthetic accounts, local storage; all-writers-verified flag enabled only in this fixture",
+  "sourceHashes": {
+    "apps/admin-web/src/dto.ts": "bb07db28b04fa1c148a62b072b8a7af812cb5eb1530d34c781f926e1b8df330d",
+    "apps/admin-web/src/generated/requests.ts": "0117d68959b3d4fa478f3cd1888720f1074dc0af47417d6b7d5ac0ff3ce394a0",
+    "apps/admin-web/src/portal-command.ts": "fcf8fbe29385727f34d77a2a1b0fa0568ea43d31c27ed0e123e1ded4d2f4ff0e",
+    "apps/admin-web/src/portal-pending-marker.ts": "aea79a930ac10fd14578ac09d98c98673af48f552358497e60476f4aff3faa4d",
+    "apps/admin-web/src/professional-homepage-editor.tsx": "a6197899015fd3f06c7febd51f1785ce5f26412a3a2b5fffe269b1bc985cee6b",
+    "apps/admin-web/src/supplier-profile-ui.tsx": "f13bae1535b52d4aaf6a45c16b6f27a55cb8bd2a10a3de2be9ae4e39e582f803",
+    "apps/admin-web/src/talent-maintenance-ui.tsx": "fcc0bc3d55b549b9d64d572eecb5127df670f639ba47ed13d6a4e0927012383b",
+    "apps/admin-web/src/talent-media-staging.tsx": "726ee7c2a38538046ecd458b3c3398d51ddcc10d63fb91bd4ac23b86a82196ee",
+    "apps/api/src/config.ts": "41f91657a9424ec92faf4bf2f8bca22f38fe584c2c5c56eb76833e9f7e02bf50",
+    "apps/api/src/media/http.ts": "dca67091603c60f7adf3b0bb1aab8fdf330edfb818d5a15b610b814211e2a898",
+    "apps/api/src/prisma-store.ts": "ea44a34063887283f93971c526d25ed492221edcb7a22ab2438552067fdf1f6e",
+    "packages/core/src/commands.ts": "7a002bbe66c7554c8895857dd12bb969822179affb76e20b594921e4653f3621",
+    "packages/core/src/media.ts": "9c8aacd8acee9103b51dae79872bb193a6e726da56f896b1fffa65cca6fce1e5",
+    "packages/core/src/model.ts": "bdd131839b942f13cc12b2d6ec0e138710283295677bff0790fa3ec203d23dbb",
+    "packages/core/src/talent-portal.ts": "89ee77ec13ba8ff53448421abee330d0b413aa334e76cea9cff123ab31abc151",
+    "packages/core/src/talent-maintenance-routes.ts": "00a3e6b38632acecccd294da8958894e6068db144e3a6748c8d79a49d8cd89d4",
+    "prisma/schema.prisma": "868dc02f5518f70be959d0a086a5ea64e64293b5d087662353f7398e8bff8a3f",
+    "scripts/test-command-stop-legacy-20261111.mjs": "a3546676c0a5c50bd41fd4f7f0186c280e07b7bb6ea44477e4ce68fad5833f58",
+    "tests/acceptance/browser-command-stop-legacy-20261111.mjs": "aecec369d9582c4bcdf4a2c541c2cce8b8ad5367710905c8e25a7784d54f85b6"
+  },
+  "buildHashes": {
+    "dist/web/index.html": "2aa567e3c8d834e410206daba6080028d357f7fbf80faf97670770b4e97b8c26",
+    "dist/web/assets/main-D8Qo-7uO.js": "88c0735c879465e60f24aedf74dc3bbba490702314fbc12ad21211edec1fc65d",
+    "dist/apps/api/src/main.js": "219a73e7ef9442d4a09b586b220bd09c22b63731704f4e18aaff5242261919ea",
+    "dist/apps/api/src/prisma-store.js": "3b15e47c9c2fab1d152e13371eb207f9fff0dd2bcf1fa47a3fe2a2305c91f311",
+    "dist/packages/core/src/commands.js": "a1fe57609689629a6b4637722531d9e1c84a311441a3fb5f19589db5d2757344",
+    "dist/packages/core/src/media.js": "c5ce4426df4898046208d50b5217b86ffd19c5589f7ea291f1adc6795075526f",
+    "dist/packages/core/src/talent-portal.js": "feeb4e7d4c526e74fccb09f41169e06e63f2f9e057e87428d4be48bfdf27c3ff"
+  },
+  "observations": {
+    "legacy_fixture_open": {
+      "pass": true,
+      "state": "OPEN",
+      "chargedBytes": 3233,
+      "uploadCount": 1,
+      "assetCount": 0
+    },
+    "legacy_cancel_not_delivered": {
+      "pass": true,
+      "businessSnapshotStable": true,
+      "cancelReceipts": 0,
+      "stopReceipts": 0,
+      "markerMinimized": true,
+      "staleNetworkMessage": "网络中断，操作结果待核对。",
+      "inputDisabled": true
+    },
+    "legacy_missing_reads_before_stop": {
+      "pass": true,
+      "originalReceiptHttp": 404,
+      "stopStatusHttp": 404,
+      "cancelPosts": 0,
+      "stopPosts": 0,
+      "businessSnapshotStable": true
+    },
+    "legacy_stop_preserves_open_clears_old_error": {
+      "pass": true,
+      "stopHttp": 200,
+      "stopStatusHttp": 200,
+      "stopReceiptCount": 1,
+      "stopMatchesAccount": true,
+      "stopAuditAddedOnce": true,
+      "state": "OPEN",
+      "businessSnapshotStable": true,
+      "staleCancelNetworkAlert": false,
+      "knownStaleMessage": null,
+      "pendingOriginalControlVisible": false,
+      "oldUploadStatusControlVisible": true,
+      "inputDisabled": true,
+      "cancelEnabled": true
+    },
+    "legacy_late_cancel_blocked": {
+      "pass": true,
+      "http": 409,
+      "errorCode": "PORTAL_COMMAND_STOPPED",
+      "businessSnapshotStable": true,
+      "stopReceipts": 1,
+      "cancelReceipts": 0
+    },
+    "legacy_reopen_preserves_open": {
+      "pass": true,
+      "state": "OPEN",
+      "reopenedAlerts": 0,
+      "reopenedCancelEnabled": true,
+      "businessSnapshotStable": true,
+      "chargedBytes": 3233
+    },
+    "legacy_fresh_cancel_key_valid": {
+      "pass": true,
+      "http": 200,
+      "differentKey": true,
+      "state": "CANCELLED",
+      "revisionDelta": 1,
+      "cancelReceipts": 1,
+      "chargedBytes": 3233
+    }
+  },
+  "findings": []
+}
