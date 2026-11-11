@@ -72,8 +72,17 @@ export class TalentPortal {
   if(route.operation==='portal.command.cancelReceipt')return {...originals[0]!.result,requestBinding:'v1:'+digest({commandKey:resourceId,purpose:'portal.upload.cancel.binding.v1',requestDigest:originals[0]!.requestDigest})};
   return originals[0]!.result;
  }if(route.operation==='portal.upload.get'){const u=await uploadFor(tx,actor,resourceId);await maintenance.submissionAccess(tx,actor,u.submissionId!,true);return new Media(this.auth.store,this.auth.clock,this.auth.config).get(tx,actor,resourceId);}return maintenance.portalRead(tx,actor,route.operation,resourceId,browser);});return res;}
- const actor=await this.auth.store.transaction(authenticate),key=req.headers['idempotency-key']??'';
- if(route.operation===PORTAL_COMMAND_STOP){invariant(this.auth.config.portalCommandStopEnabled===true,'PORTAL_STOP_DISABLED','当前环境不能安全停止原请求，请联系 ONCE',503);invariant(key===resourceId,'COMMAND_KEY_MISMATCH','请使用原请求标记核对',400);}
+ const key=req.headers['idempotency-key']??'';
+ const actor=await this.auth.store.transaction(async tx=>{
+  const current=await authenticate(tx);
+  if(route.operation===PORTAL_COMMAND_STOP){
+   invariant(this.auth.config.portalCommandStopEnabled===true,'PORTAL_STOP_DISABLED','当前环境不能安全停止原请求，请联系 ONCE',503);
+   invariant(key===resourceId,'COMMAND_KEY_MISMATCH','请使用原请求标记核对',400);
+   // Bound every authorized stop attempt, including replays, before journal I/O.
+   await this.auth.rate(tx,current.workspaceId,'portal-command-stop-attempt:'+current.talentAccountId,120,3600000);
+  }
+  return current;
+ });
  const intentTarget=route.operation===PORTAL_COMMAND_STOP?actor.talentAccountId:resourceId||actor.talentAccountId;
  const intent=await this.writeAhead(actor,route.operation,meta.requestId,intentTarget,key);
  const kind=route.operation===PORTAL_COMMAND_STOP?'talentAccount':route.operation.startsWith('portal.homepage.')?'professionalHomepage':route.operation.startsWith('portal.upload.')?'upload':route.operation.startsWith('portal.asset.')?'asset':route.operation.startsWith('portal.claim.')?'talentClaim':route.operation==='portal.consent.revoke'?'talentConsent':'talentSubmission';

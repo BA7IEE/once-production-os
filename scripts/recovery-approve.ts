@@ -9,7 +9,7 @@ import { RecoveryOps } from '../packages/core/src/recovery.ts';
 import { collectRecoveryExternalCheck } from '../apps/api/src/recovery/external-check.ts';
 import { readBackupManifest, sha256File } from '../apps/api/src/recovery/backup-manifest.ts';
 import { readSafetyJournal, safetyJournalHashAt, withSafetyJournalLock } from '../apps/api/src/recovery/safety-journal.ts';
-import { analyzeSafetyDeltas } from '../apps/api/src/recovery/delta-resolution.ts';
+import { analyzeSafetyDeltas, countUnclosedStopIntentsAtAnchor } from '../apps/api/src/recovery/delta-resolution.ts';
 import { digest } from '../packages/core/src/json.ts';
 import { AppError } from '../packages/core/src/errors.ts';
 
@@ -104,6 +104,7 @@ try{
                 const postBackupEntries=deltaResolution.postBackupEntries;
                 const blockers=[...report.blockers];
                 if(deltaResolution.unresolved!==0) blockers.push('SAFETY_JOURNAL_DELTA_UNRESOLVED');
+                if(countUnclosedStopIntentsAtAnchor(journal,manifest.safetyJournal.sequence)!==0) blockers.push('SAFETY_JOURNAL_ANCHOR_STOP_UNRESOLVED');
                 if(manifest.recoveryEpochDigest!==run.sourceEpochDigest) blockers.push('BACKUP_EPOCH_MISMATCH');
                 if(manifest.contactKeyDigest!==(run.report as any).contactKeyDigest) blockers.push('BACKUP_CONTACT_KEY_MISMATCH');
                 if(manifest.migrationDigest!==(run.report as any).migrationDigest) blockers.push('BACKUP_MIGRATION_MISMATCH');

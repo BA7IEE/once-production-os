@@ -1,0 +1,280 @@
+TAP version 13
+# Subtest: zero stop receipts preserve the 89744a2 recovery safety digest
+ok 1 - zero stop receipts preserve the 89744a2 recovery safety digest
+  ---
+  duration_ms: 13.771205
+  type: 'test'
+  ...
+# Subtest: a preexisting same-principal same-key stop and original block recovery approval
+ok 2 - a preexisting same-principal same-key stop and original block recovery approval
+  ---
+  duration_ms: 233.194388
+  type: 'test'
+  ...
+# Subtest: a different talent principal reusing the key does not create a false collision
+ok 3 - a different talent principal reusing the key does not create a false collision
+  ---
+  duration_ms: 222.138287
+  type: 'test'
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-request-digest) blocks check and approval
+not ok 4 - a preexisting structurally invalid stop (bad-request-digest) blocks check and approval
+  ---
+  duration_ms: 207.105749
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:125:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(check.blockers.includes('PORTAL_STOP_RECEIPT_INVALID'))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    inspectedFixture (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:76:47)
+    async TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:126:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-owner) blocks check and approval
+not ok 5 - a preexisting structurally invalid stop (bad-owner) blocks check and approval
+  ---
+  duration_ms: 187.024573
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:125:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(check.blockers.includes('PORTAL_STOP_RECEIPT_INVALID'))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    inspectedFixture (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:76:47)
+    async TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:126:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-resource) blocks check and approval
+not ok 6 - a preexisting structurally invalid stop (bad-resource) blocks check and approval
+  ---
+  duration_ms: 196.230952
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:125:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(check.blockers.includes('PORTAL_STOP_RECEIPT_INVALID'))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    inspectedFixture (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:76:47)
+    async TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:126:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-result-target) blocks check and approval
+not ok 7 - a preexisting structurally invalid stop (bad-result-target) blocks check and approval
+  ---
+  duration_ms: 177.117227
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:125:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(check.blockers.includes('PORTAL_STOP_RECEIPT_INVALID'))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    inspectedFixture (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:76:47)
+    async TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:126:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-state) blocks check and approval
+not ok 8 - a preexisting structurally invalid stop (bad-state) blocks check and approval
+  ---
+  duration_ms: 186.370916
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:125:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(check.blockers.includes('PORTAL_STOP_RECEIPT_INVALID'))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    inspectedFixture (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:76:47)
+    async TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:126:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-revision) blocks check and approval
+not ok 9 - a preexisting structurally invalid stop (bad-revision) blocks check and approval
+  ---
+  duration_ms: 216.138487
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:125:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(check.blockers.includes('PORTAL_STOP_RECEIPT_INVALID'))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    inspectedFixture (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:76:47)
+    async TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:126:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-operation-id) blocks check and approval
+not ok 10 - a preexisting structurally invalid stop (bad-operation-id) blocks check and approval
+  ---
+  duration_ms: 197.566237
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:125:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(check.blockers.includes('PORTAL_STOP_RECEIPT_INVALID'))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    inspectedFixture (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:76:47)
+    async TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:126:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a legitimate stop (replay) remains approvable
+ok 11 - a legitimate stop (replay) remains approvable
+  ---
+  duration_ms: 198.956408
+  type: 'test'
+  ...
+# Subtest: a legitimate stop (nonstandard-key) remains approvable
+ok 12 - a legitimate stop (nonstandard-key) remains approvable
+  ---
+  duration_ms: 195.155668
+  type: 'test'
+  ...
+# Subtest: unchanged inspected stop permits the existing synthetic zero-delta approval control
+ok 13 - unchanged inspected stop permits the existing synthetic zero-delta approval control
+  ---
+  duration_ms: 215.324773
+  type: 'test'
+  ...
+# Subtest: post-inspection delete a stop receipt changes the safety state digest
+ok 14 - post-inspection delete a stop receipt changes the safety state digest
+  ---
+  duration_ms: 209.945579
+  type: 'test'
+  ...
+# Subtest: post-inspection delete a stop receipt rejects approval as stale
+ok 15 - post-inspection delete a stop receipt rejects approval as stale
+  ---
+  duration_ms: 185.604223
+  type: 'test'
+  ...
+# Subtest: post-inspection change the stopped command key changes the safety state digest
+ok 16 - post-inspection change the stopped command key changes the safety state digest
+  ---
+  duration_ms: 196.294631
+  type: 'test'
+  ...
+# Subtest: post-inspection change the stopped command key rejects approval as stale
+ok 17 - post-inspection change the stopped command key rejects approval as stale
+  ---
+  duration_ms: 191.655721
+  type: 'test'
+  ...
+# Subtest: post-inspection change the owning talent account changes the safety state digest
+ok 18 - post-inspection change the owning talent account changes the safety state digest
+  ---
+  duration_ms: 178.156039
+  type: 'test'
+  ...
+# Subtest: post-inspection change the owning talent account rejects approval as stale
+ok 19 - post-inspection change the owning talent account rejects approval as stale
+  ---
+  duration_ms: 185.03816
+  type: 'test'
+  ...
+# Subtest: post-inspection change the stop request digest changes the safety state digest
+ok 20 - post-inspection change the stop request digest changes the safety state digest
+  ---
+  duration_ms: 190.767948
+  type: 'test'
+  ...
+# Subtest: post-inspection change the stop request digest rejects approval as stale
+ok 21 - post-inspection change the stop request digest rejects approval as stale
+  ---
+  duration_ms: 186.149693
+  type: 'test'
+  ...
+# Subtest: post-inspection change the stop result identity changes the safety state digest
+ok 22 - post-inspection change the stop result identity changes the safety state digest
+  ---
+  duration_ms: 173.781515
+  type: 'test'
+  ...
+# Subtest: post-inspection change the stop result identity rejects approval as stale
+ok 23 - post-inspection change the stop result identity rejects approval as stale
+  ---
+  duration_ms: 198.784799
+  type: 'test'
+  ...
+# Subtest: post-inspection insert another stop receipt changes the safety state digest
+ok 24 - post-inspection insert another stop receipt changes the safety state digest
+  ---
+  duration_ms: 178.314192
+  type: 'test'
+  ...
+# Subtest: post-inspection insert another stop receipt rejects approval as stale
+ok 25 - post-inspection insert another stop receipt rejects approval as stale
+  ---
+  duration_ms: 184.563623
+  type: 'test'
+  ...
+# ResourceRun 43911e240ce603ebd55c13af: ZERO_RESIDUE
+1..25
+# tests 25
+# suites 0
+# pass 18
+# fail 7
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5209.718966

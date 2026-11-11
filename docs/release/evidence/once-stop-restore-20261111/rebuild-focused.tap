@@ -1,0 +1,131 @@
+TAP version 13
+# Subtest: empty talent-auth target still supports CHECK and APPLY after internal catalog preparation
+ok 1 - empty talent-auth target still supports CHECK and APPLY after internal catalog preparation
+  ---
+  duration_ms: 241.490368
+  type: 'test'
+  ...
+# Subtest: each populated talent-auth table independently blocks CHECK and APPLY without altering records
+    # Subtest: talentAccounts
+    ok 1 - talentAccounts
+      ---
+      duration_ms: 197.163903
+      type: 'test'
+      ...
+    # Subtest: talentIdentities
+    ok 2 - talentIdentities
+      ---
+      duration_ms: 200.430955
+      type: 'test'
+      ...
+    # Subtest: talentSessions
+    ok 3 - talentSessions
+      ---
+      duration_ms: 184.12106
+      type: 'test'
+      ...
+    # Subtest: talentAuthContexts
+    ok 4 - talentAuthContexts
+      ---
+      duration_ms: 181.982999
+      type: 'test'
+      ...
+    # Subtest: talentAuthChallenges
+    ok 5 - talentAuthChallenges
+      ---
+      duration_ms: 176.585437
+      type: 'test'
+      ...
+    # Subtest: talentAuthDeliveries
+    ok 6 - talentAuthDeliveries
+      ---
+      duration_ms: 175.276561
+      type: 'test'
+      ...
+    1..6
+ok 2 - each populated talent-auth table independently blocks CHECK and APPLY without altering records
+  ---
+  duration_ms: 1299.891265
+  type: 'test'
+  ...
+# Subtest: a live talent login created after CHECK blocks APPLY and remains usable
+ok 3 - a live talent login created after CHECK blocks APPLY and remains usable
+  ---
+  duration_ms: 188.075548
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 preview is zero-write and accepts a closed 10 people / 3 works / 1 project graph
+ok 4 - DEV-07H T29 preview is zero-write and accepts a closed 10 people / 3 works / 1 project graph
+  ---
+  duration_ms: 198.827019
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 apply preserves exported business ids and relations while rebinding target ownership/scope
+ok 5 - DEV-07H T29 apply preserves exported business ids and relations while rebinding target ownership/scope
+  ---
+  duration_ms: 181.521638
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 rejects non-rebuildable missing or unknown fields before any write
+ok 6 - DEV-07H T29 rejects non-rebuildable missing or unknown fields before any write
+  ---
+  duration_ms: 348.246869
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 rejects missing source closure, unknown target catalog codes, ACTUAL-without-note and ACTIVE work without bytes
+ok 7 - DEV-07H T29 rejects missing source closure, unknown target catalog codes, ACTUAL-without-note and ACTIVE work without bytes
+  ---
+  duration_ms: 702.127549
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 refuses to merge into an already-used target
+ok 8 - DEV-07H T29 refuses to merge into an already-used target
+  ---
+  duration_ms: 167.795404
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 cannot bypass normal per-work or per-project relationship limits
+ok 9 - DEV-07H T29 cannot bypass normal per-work or per-project relationship limits
+  ---
+  duration_ms: 347.708759
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 rejects states normal record APIs would not create
+ok 10 - DEV-07H T29 rejects states normal record APIs would not create
+  ---
+  duration_ms: 859.985619
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 media identity permits cross-work reuse but rejects duplicate links and order gaps
+ok 11 - DEV-07H T29 media identity permits cross-work reuse but rejects duplicate links and order gaps
+  ---
+  duration_ms: 849.060019
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 allows target-local catalog preparation through normal commands
+ok 12 - DEV-07H T29 allows target-local catalog preparation through normal commands
+  ---
+  duration_ms: 173.559098
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 audit failure rolls the complete rebuild transaction back
+ok 13 - DEV-07H T29 audit failure rolls the complete rebuild transaction back
+  ---
+  duration_ms: 176.832322
+  type: 'test'
+  ...
+# Subtest: DEV-07H T29 cannot be replayed into the same target after a successful rebuild
+ok 14 - DEV-07H T29 cannot be replayed into the same target after a successful rebuild
+  ---
+  duration_ms: 189.23914
+  type: 'test'
+  ...
+1..14
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6604.498499

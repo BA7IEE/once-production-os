@@ -1,0 +1,68 @@
+{
+  "status": "PASS",
+  "head": "89744a2ca4a49dde6f5202c65f82ba209fc0fabe",
+  "baseline": "89744a2ca4a49dde6f5202c65f82ba209fc0fabe",
+  "legacyCommit": "2e327e01897002ca8027095e431010583197dbc0",
+  "scopedWorktreeDirty": true,
+  "currentSourceHashes": {
+    "tests/acceptance/browser-stop-mixed-pg-20261111.mjs": "0a12944e0ad46300b1bd4d573d3c222b8c6c383a72eca14e88558082f296b1f3",
+    "scripts/test-stop-mixed-pg-20261111.mjs": "925a6328b407b795454896d9dfb7d8e9a42d12f1320d54298a57702f7ef3cd8c",
+    "scripts/test-postgres-owned.mjs": "a7278315712a1ffd1a8495368656b3288daf1ed878749dadb1858b498c6ee641",
+    "scripts/resource-run.mjs": "9130cd9589144b0518250df9ab737e76339143af2e2a2c9aff3a0beaa7af5ee8",
+    "scripts/registered-temp.mjs": "ea5406a42b0d84261fb6a3b4b0118e1c44b441bb9a8b0655c644d072cb8b43a6",
+    "tests/support/media-staging.ts": "c8e6c78e56b79137465f76bee26790e881088538924d444063c0b3f05a1a4b45",
+    "tests/support/talent-maintenance.ts": "77a6344801ca8af6f56be66b8aad512578ced3a8eadd159aa2721d253c07a94e",
+    "tests/support/talent-auth.ts": "8c15c2df096f2dce473b302667b32b0e10811a3c269e43f5cc58e96f55cc7256",
+    "tests/support/fixtures.ts": "bb0d57494b9013f8c58e474008eec0c12d724523df87994e3c3a623f148b493e",
+    "apps/api/src/prisma-store.ts": "ea44a34063887283f93971c526d25ed492221edcb7a22ab2438552067fdf1f6e",
+    "apps/api/src/recovery/safety-journal.ts": "ed7ec0642b2e7ac2f514815e9f4e342e2f3f9714ecd5a95103357040d2da27c6",
+    "packages/core/src/api.ts": "8055db1271dceafd6e30ec19f7e8b22756e6865f8e88da6938531a0f3be12e20",
+    "packages/core/src/commands.ts": "7a002bbe66c7554c8895857dd12bb969822179affb76e20b594921e4653f3621",
+    "packages/core/src/talent-portal.ts": "ce289b9b0dac947bf19c31d41e5cbe013acb15587183265aec1cf6a501a9ce3d",
+    "packages/core/src/talent-maintenance-routes.ts": "00a3e6b38632acecccd294da8958894e6068db144e3a6748c8d79a49d8cd89d4"
+  },
+  "legacySourceHashes": {
+    "packages/core/src/api.ts": "4205118fcc3570d76e521bd14c209a3b4f84fad67deb9f20de1b2dd0be35ce8e",
+    "packages/core/src/commands.ts": "da496cecdfe0aec2b58ea15bd176e158da115d57d8acfb2c407a35e9987afbb7",
+    "packages/core/src/talent-portal.ts": "52a617e4b35b30a771961542f44d37df3615aa9f631890fa39a905fefc539fd0",
+    "packages/core/src/talent-maintenance-routes.ts": "c96357ba37d142a78ac2866397332d25fa541407476f907c1c553b65de6fac0f"
+  },
+  "observations": {
+    "legacy_source": {
+      "actualGitCommit": true,
+      "unchangedKeySourceFiles": true,
+      "schemaMatchesCurrentCommit": true
+    },
+    "current_writer": {
+      "stopStatus": 200,
+      "lateCommandStatus": 409,
+      "lateCommandCode": "PORTAL_COMMAND_STOPPED",
+      "submissionRevisionUnchanged": true
+    },
+    "old_writer_rejoin": {
+      "legacyLateCommandStatus": 200,
+      "realDatabaseState": "WITHDRAWN",
+      "oneRevisionIncrement": true,
+      "sameAccountAndKeyReceipts": 2,
+      "currentStatusReadHttp": 409,
+      "currentStatusCode": "PENDING_STATUS_AMBIGUOUS"
+    }
+  },
+  "environment": "one registered disposable PostgreSQL container, separate synthetic database, two in-process Core Application objects and local SafetyJournal",
+  "boundaries": {
+    "legacyCore": "actual git archive; no modifications",
+    "legacyStore": "current PrismaStore reused; not a historical full deployment",
+    "stopCreation": "current writer alone; old writer intentionally rejoins afterwards",
+    "separateOsProcesses": "NOT_RUN",
+    "realNest": "NOT_RUN",
+    "realProviders": "NOT_RUN",
+    "recoveryDatabases": "NOT_USED",
+    "cleanup": "requires ResourceRun ZERO_RESIDUE journal"
+  },
+  "finding": "OLD_WRITER_CAN_EXECUTE_AFTER_STOP_IF_REINTRODUCED",
+  "commands": [
+    "git archive 2e327e0 packages/core",
+    "pnpm db:deploy on registered empty sibling database"
+  ],
+  "scope": "This negative control intentionally reintroduces an old writer after stop creation; it is not an authorized deployment configuration."
+}

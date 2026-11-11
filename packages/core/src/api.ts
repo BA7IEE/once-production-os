@@ -48,7 +48,7 @@ import type { Store, Tx } from './store.ts';
 import { AppError, fail, invariant, missing } from './errors.ts';
 import { Identity } from './identity.ts';
 import { Talent } from './talent.ts';
-import { Commands } from './commands.ts';
+import { Commands, PORTAL_COMMAND_STOP } from './commands.ts';
 import { authorizeReceipt } from './replay-policy.ts';
 import { inspectCommand, recentCommands } from './command-inspection.ts';
 import { reviewTasks, reviewTask } from './review-workspace.ts';
@@ -161,7 +161,10 @@ export class Application {
             invariant(/^[A-Za-z0-9_-]{8,128}$/.test(commandKey), 'IDEMPOTENCY_REQUIRED',
                 '写入需要 8–128 位 Idempotency-Key', 400);
         const stable = commandKey
-            ? digest({ workspaceId: actor.workspaceId, ...(actor.actorKind === 'TALENT' ? {principalKind:'TALENT',talentAccountId:actor.talentAccountId} : actor.actorKind === 'MACHINE' ? {servicePrincipalId: actor.servicePrincipalId} : {actorId: actor.membershipId}), operation, commandKey })
+            ? digest({ workspaceId: actor.workspaceId, ...(actor.actorKind === 'TALENT' ? {principalKind:'TALENT',talentAccountId:actor.talentAccountId} : actor.actorKind === 'MACHINE' ? {servicePrincipalId: actor.servicePrincipalId} : {actorId: actor.membershipId}), operation, commandKey,
+                // Each stop attempt must be visible across a backup anchor even when a
+                // prior same-key attempt failed or its completion was lost.
+                ...(operation === PORTAL_COMMAND_STOP ? {requestId} : {}) })
             : requestId;
         const intent: SafetyIntent = {
             intentId: 'intent:' + stable,

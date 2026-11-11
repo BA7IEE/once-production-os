@@ -1,6 +1,7 @@
 import type { RecoveryDeltaItem, RecoveryDeltaResolutionReport } from '../../../../packages/core/src/recovery-model.ts';
 import { RECOVERY_PREPARE_CONTAINED_OPERATIONS } from '../../../../packages/core/src/recovery-model.ts';
 import { invariant } from '../../../../packages/core/src/errors.ts';
+import { PORTAL_COMMAND_STOP } from '../../../../packages/core/src/commands.ts';
 import { SAFETY_JOURNAL_ENTRY_VERSION } from './safety-journal.ts';
 import type { SafetyJournalEntry, SafetyJournalState } from './safety-journal.ts';
 
@@ -26,6 +27,35 @@ function auditIdentity(entry: SafetyJournalEntry, operation: string): string | n
     // Legacy bytes/anchors remain valid, but v1 never recorded a request identity.
     if (entry.schemaVersion !== SAFETY_JOURNAL_ENTRY_VERSION || !entry.requestId) return null;
     return JSON.stringify([entry.workspaceId, operation, entry.resourceId, entry.requestId]);
+}
+
+/** A historical same-key stop may retry without a new marker in older writers.
+ * A pre-anchor intent is safe to treat as closed only when a matching stop
+ * commit was already present at the anchor. An abort cannot prove no later
+ * retry. This is an additional blocker; it does not rewrite delta evidence. */
+export function countUnclosedStopIntentsAtAnchor(state: SafetyJournalState, backupSequence: number): number {
+    invariant(Number.isSafeInteger(backupSequence) && backupSequence >= 0 && backupSequence <= state.entries.length,
+        'SAFETY_DELTA_ANCHOR_INVALID', '安全日志 backup sequence 无效', 503);
+    const groups = new Map<string, {intent?: SafetyJournalEntry; commit?: SafetyJournalEntry; abort?: SafetyJournalEntry}>();
+    for (const row of state.entries) {
+        if (row.seq > backupSequence) continue;
+        const kind = row.action === 'intent.' + PORTAL_COMMAND_STOP ? 'intent'
+            : row.action === 'commit.' + PORTAL_COMMAND_STOP ? 'commit'
+            : row.action === 'abort.' + PORTAL_COMMAND_STOP ? 'abort' : null;
+        if (!kind) continue;
+        const key = suffix(row.auditId, kind + ':');
+        invariant(key !== null && row.resourceKind === (kind === 'intent' ? 'intent' : kind === 'commit' ? 'intent-commit' : 'intent-abort'),
+            'SAFETY_DELTA_INVALID', '停止请求的安全日志标记无效', 503);
+        const group = groups.get(key) ?? {};
+        invariant(!group[kind], 'SAFETY_DELTA_INVALID', '停止请求的安全日志标记重复', 503);
+        group[kind] = row; groups.set(key, group);
+    }
+    let count = 0;
+    for (const {intent, commit, abort} of groups.values()) {
+        if (!intent || !commit || abort || intent.seq >= commit.seq
+            || intent.workspaceId !== commit.workspaceId || intent.resourceId !== commit.resourceId) count++;
+    }
+    return count;
 }
 
 export function analyzeSafetyDeltas(state: SafetyJournalState, backupSequence: number): RecoveryDeltaResolutionReport {

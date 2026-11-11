@@ -19,7 +19,7 @@ import { PRODUCTION_LIMITS as PL } from './production-model.ts';
 import type { Tx } from './store.ts';
 import type { Parsed } from './validation.ts';
 import { RebuildSchemas } from './rebuild-validation.ts';
-import { REBUILD_EMPTY_TABLES, REBUILD_LIMITS as RL, REBUILD_SCHEMA_VERSION, type RebuildSummary } from './rebuild-model.ts';
+import { REBUILD_EMPTY_TABLES, REBUILD_EMPTY_TALENT_AUTH_TABLES, REBUILD_LIMITS as RL, REBUILD_SCHEMA_VERSION, type RebuildSummary } from './rebuild-model.ts';
 import { audit, base, unique, workspaceRow } from './helpers.ts';
 import { digest } from './json.ts';
 import { invariant } from './errors.ts';
@@ -65,6 +65,10 @@ export class JsonRebuild {
         invariant((await tx.find('scopeMembers', { workspaceId: actor.workspaceId })).length === 0,
             'REBUILD_TARGET_NOT_ISOLATED', '目标已经存在额外范围成员配置', 409);
 
+        for (const table of REBUILD_EMPTY_TALENT_AUTH_TABLES) {
+            invariant((await tx.find(table, { workspaceId: actor.workspaceId })).length === 0,
+                'REBUILD_TARGET_NOT_ISOLATED', '目标已存在人才认证数据，隔离重建拒绝覆盖或合并现有记录', 409);
+        }
         for (const table of REBUILD_EMPTY_TABLES) {
             const rows = await tx.find(table, { workspaceId: actor.workspaceId } as never);
             invariant(rows.length === 0, 'REBUILD_TARGET_NOT_EMPTY', '目标已存在业务数据，隔离重建拒绝覆盖或合并现有记录', 409);

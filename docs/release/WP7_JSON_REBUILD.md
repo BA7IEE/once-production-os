@@ -77,6 +77,7 @@ CLI 只读取 `DATABASE_URL_REBUILD`，刻意忽略普通 `DATABASE_URL`。
 - 只有 1 个已激活 ADMIN 用户/成员；
 - 只有 bootstrap 的 WORKSPACE scope；
 - 没有待处理 Activation；
+- 人才认证账号、身份、会话、认证上下文、挑战及投递记录为空，包括已过期或撤销的记录；
 - 业务表为空。
 
 允许目标管理员先通过正常 API 补齐 Dictionary；因此 catalog preparation 产生的 target-local Audit / CommandReceipt 不会被误判为“已有业务数据”。

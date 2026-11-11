@@ -1,0 +1,51 @@
+{
+  "status": "HARNESS_FAILURE",
+  "head": "89744a2ca4a49dde6f5202c65f82ba209fc0fabe",
+  "baseline": "89744a2ca4a49dde6f5202c65f82ba209fc0fabe",
+  "scopedWorktreeDirty": true,
+  "subject": "source plus scoped uncommitted changes",
+  "environment": "registered disposable PostgreSQL; synthetic Core Application and PrismaStore; local SafetyJournal",
+  "boundaries": {
+    "realNest": "NOT_RUN",
+    "realProviders": "NOT_RUN",
+    "mixedVersion": "NOT_RUN; separate evaluation only",
+    "restoredApplication": "MAINTENANCE with new epoch only",
+    "cleanup": "requires ResourceRun ZERO_RESIDUE journal"
+  },
+  "sourceHashes": {
+    "tests/acceptance/browser-stop-recovery-pg-20261111.mjs": "c85fe178bad27aab4fa5fdb699e34346bbf8c71a578f2d7738db90604ede058e",
+    "scripts/test-stop-recovery-pg-20261111.mjs": "4a26e3298670e893091770317d96b6ffd27d21eda6df4d61e000a2e1a6add58a",
+    "scripts/test-postgres-owned.mjs": "a7278315712a1ffd1a8495368656b3288daf1ed878749dadb1858b498c6ee641",
+    "scripts/resource-run.mjs": "9130cd9589144b0518250df9ab737e76339143af2e2a2c9aff3a0beaa7af5ee8",
+    "scripts/registered-temp.mjs": "ea5406a42b0d84261fb6a3b4b0118e1c44b441bb9a8b0655c644d072cb8b43a6",
+    "tests/support/media-staging.ts": "c8e6c78e56b79137465f76bee26790e881088538924d444063c0b3f05a1a4b45",
+    "tests/support/talent-maintenance.ts": "77a6344801ca8af6f56be66b8aad512578ced3a8eadd159aa2721d253c07a94e",
+    "tests/support/talent-auth.ts": "8c15c2df096f2dce473b302667b32b0e10811a3c269e43f5cc58e96f55cc7256",
+    "tests/support/fixtures.ts": "bb0d57494b9013f8c58e474008eec0c12d724523df87994e3c3a623f148b493e",
+    "tests/support/fault-store.ts": "6f9b8cd364e7b8d25c244ac3666c056e914dfce27fdb737ded1ae23c73882f7f",
+    "packages/core/src/api.ts": "8055db1271dceafd6e30ec19f7e8b22756e6865f8e88da6938531a0f3be12e20",
+    "packages/core/src/commands.ts": "7a002bbe66c7554c8895857dd12bb969822179affb76e20b594921e4653f3621",
+    "packages/core/src/talent-portal.ts": "ce289b9b0dac947bf19c31d41e5cbe013acb15587183265aec1cf6a501a9ce3d",
+    "packages/core/src/recovery.ts": "4f4518b46a36c0d4952a7b13993e6369bed6e14e8c496d9d0e0de77e3d96980c",
+    "packages/core/src/recovery-model.ts": "fd9bbb2f81b73ac8154d32d9cde5eb09bb721c246bbecde134045b7a47dc5662",
+    "apps/api/src/prisma-store.ts": "ea44a34063887283f93971c526d25ed492221edcb7a22ab2438552067fdf1f6e",
+    "apps/api/src/recovery/safety-journal.ts": "ed7ec0642b2e7ac2f514815e9f4e342e2f3f9714ecd5a95103357040d2da27c6",
+    "apps/api/src/recovery/delta-resolution.ts": "5f393970b8da70295459fe30a5ff921d1d98e3a68bacf64a5e354b6cd208e69e",
+    "scripts/recovery-backup.ts": "0edd080411e9d15c47697da74b0b201e4d3cd838f9abbe31bd7e45f4593d534d",
+    "scripts/recovery-prepare.ts": "e55af6da63d41d000ef725da43546190b49e8a52408b61a82850a92caf0c3d40",
+    "scripts/recovery-check.ts": "557e80c93bbcbdbcabcac2bfd6718c9478868c5e4a8cafebf983023aefc7910b",
+    "scripts/recovery-approve.ts": "41b01c8373c275b5a6c55ea3a7e842b613cde90e8f6b42edef4ed920db12632a"
+  },
+  "commands": [
+    "pnpm db:deploy (fresh owned source)"
+  ],
+  "observations": {
+    "synthetic_talent_stop_before_backup": {
+      "stopHttp": 200,
+      "receiptCount": 1,
+      "receiptMatchesAccount": true
+    }
+  },
+  "phase": "failed-attempt-before-backup",
+  "errorType": "AssertionError"
+}

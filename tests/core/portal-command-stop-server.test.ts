@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash,randomUUID} from 'node:crypto';
 import {Application} from '../../packages/core/src/api.ts';
+import {talentHash} from '../../packages/core/src/talent-auth.ts';
 import {MemoryStore} from '../support/memory-store.ts';
 import {stagingFixture} from '../support/media-staging.ts';
 import {Client,result} from '../support/fixtures.ts';
@@ -106,7 +107,7 @@ test('an inaccessible existing cancel receipt is never mistaken for no receipt o
 });
 
 test('stop requires the original key, same authenticated account, CSRF and origin',async()=>{
- const f=await fixture(),key=randomUUID(),different=randomUUID();f.enabled(true);
+ const f=await fixture(),key=randomUUID(),different=randomUUID();f.enabled(true);const beforeBuckets=f.store.rows('rateBuckets');
  assert.notEqual((await f.stop(key,f.a,{'idempotency-key':different})).status,200);
  assertError(await f.stop(key,f.a,{origin:'https://wrong-origin.test.invalid'}),403);
  assertError(await f.stop(key,f.a,{'x-csrf-token':'synthetic-wrong'}),403);
@@ -115,6 +116,7 @@ test('stop requires the original key, same authenticated account, CSRF and origi
  assert.equal(f.receipts().filter(r=>r.commandKey===key&&r.operation==='portal.command.stop').length,0);
  assert.notEqual((await f.a.client.raw('POST',`/portal/commands/${key}/stop`,{unexpected:true},f.headers(f.a,key))).status,200);
  assert.equal(f.receipts().filter(r=>r.commandKey===key&&r.operation==='portal.command.stop').length,0);
+ assert.deepEqual(f.store.rows('rateBuckets'),beforeBuckets);assert.equal(f.intents.filter(i=>i.operation==='portal.command.stop').length,0);
 });
 
 test('racing real API commands choose one outcome in the serialized in-memory store',async()=>{
@@ -146,7 +148,7 @@ test('synthetic mixed-version stop and original receipts remain ambiguous and re
  assert.equal(f.receipts().filter(r=>r.commandKey===key&&r.talentAccountId===f.a.accountId).length,2);
 });
 
-test('new stops are rate limited per account; replay is free and limit expires',async()=>{
+test('new stops are rate limited per account; replay does not use new-stop quota',async()=>{
  const f=await fixture();f.enabled(true);const keys=Array.from({length:11},()=>randomUUID());
  for(const key of keys.slice(0,10))assertError(await f.stop(key),200);
  for(let n=0;n<3;n++){const replay=await f.stop(keys[0]!);assertError(replay,200);assert.equal(result(replay).replayed,true);}
@@ -156,12 +158,17 @@ test('new stops are rate limited per account; replay is free and limit expires',
  f.clock.advance(3600001);assertError(await f.stop(keys[10]!),200);
 });
 
-test('failed stop audit rolls back its receipt and rate change',async()=>{
+test('failed stop audit rolls back receipt and new-stop quota but charges the request limit',async()=>{
  const f=await fixture(),u=await f.create(),id=u.resourceId as string,key=randomUUID();f.enabled(true);
  const before=(await f.store.transaction(tx=>tx.get('uploads',id)))!,buckets=await f.store.transaction(tx=>tx.find('rateBuckets'));
  f.store.failNextAudit=true;assertError(await f.stop(key),500);
  assert.equal(f.receipts().filter(r=>r.commandKey===key&&r.operation==='portal.command.stop').length,0);
- assert.deepEqual(await f.store.transaction(tx=>tx.find('rateBuckets')),buckets);
+ const afterBuckets=await f.store.transaction(tx=>tx.find('rateBuckets'));
+ const identityKey=f.app.config.talentAuth!.identityKey,workspace=f.actor.workspaceId;
+ const attemptId=talentHash(identityKey,'rate',workspace+':portal-command-stop-attempt:'+f.a.accountId);
+ const creationId=talentHash(identityKey,'rate',workspace+':portal-command-stop:'+f.a.accountId);
+ assert.equal(afterBuckets.find(b=>b.id===attemptId)?.count,1);assert.equal(afterBuckets.some(b=>b.id===creationId),false);
+ assert.equal(afterBuckets.length,buckets.length+1);for(const previous of buckets)assert.deepEqual(afterBuckets.find(b=>b.id===previous.id),previous);
  // The test controls this failure before commit; this is not guidance to blindly
  // retry an unknown client request in production.
  assertError(await f.cancel(id,before.revision,key),200);assertError(await f.stop(key),409,'PENDING_ALREADY_RECORDED');
@@ -240,4 +247,23 @@ test('cancel request binding identifies key, operation, target and revision with
  const a=await execute(target,1),otherTargetBinding=await execute(otherTarget,1),rev2=await execute(target,2),rev3=await execute(target,3);
  const otherOperation=await execute(target,3,'complete'),otherCommandKey=await execute(target,1,'cancel',otherKey);
  assert.notEqual(a,otherTargetBinding);assert.notEqual(a,rev2);assert.notEqual(rev2,rev3);assert.notEqual(rev3,otherOperation);assert.notEqual(a,otherCommandKey);
+});
+
+test('stop request account limit covers replay and new keys before safety journal writes',async t=>{
+ const f=await fixture(),key=randomUUID(),newKey=randomUUID();f.enabled(true);
+ const first=await f.stop(key);assertError(first,200);
+ for(let n=0;n<118;n++){const replay=await f.stop(key);assertError(replay,200);assert.equal(result(replay).replayed,true);}
+ // 119 accepted attempts so far: competing replays must share the last slot.
+ const [a,b]=await Promise.all([f.stop(key),f.stop(key)]),statuses=[a.status,b.status].sort();
+ t.diagnostic(JSON.stringify({synthetic:true,concurrentStatuses:statuses,stopIntentCount:f.intents.filter(i=>i.operation==='portal.command.stop').length}));
+ assert.deepEqual(statuses,[200,429]);
+ const rejected=a.status===429?a:b;assert.equal(result(rejected).error.code,'RATE_LIMITED');
+ const intentCount=f.intents.filter(i=>i.operation==='portal.command.stop').length;assert.equal(intentCount,120);
+ assertError(await f.stop(key),429,'RATE_LIMITED');assertError(await f.stop(newKey),429,'RATE_LIMITED');
+ assert.equal(f.intents.filter(i=>i.operation==='portal.command.stop').length,intentCount);
+ assert.equal(f.receipts().filter(r=>r.operation==='portal.command.stop'&&r.commandKey===key&&r.talentAccountId===f.a.accountId).length,1);
+ assert.equal(f.receipts().filter(r=>r.operation==='portal.command.stop'&&r.commandKey===newKey&&r.talentAccountId===f.a.accountId).length,0);
+ const status=await f.stopStatus(key);assertError(status,200);assert.equal(result(status).state,'STOPPED');
+ assertError(await f.stop(key,f.b),200);assertError(await f.stopStatus(key,f.b),200);
+ f.clock.advance(3600001);const recovered=await f.stop(key);assertError(recovered,200);assert.equal(result(recovered).replayed,true);
 });
