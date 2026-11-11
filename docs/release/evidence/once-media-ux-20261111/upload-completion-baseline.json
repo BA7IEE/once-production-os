@@ -1,0 +1,90 @@
+{
+  "status": "PRODUCT_GAPS",
+  "head": "1c492fbebaf558aac6ab9763be979a70eff9c408",
+  "subject": "uncommitted local working tree",
+  "sourceHashes": {
+    "apps/admin-web/src/talent-media-staging.tsx": "cdd747c1d99cc2d96455b4f0507cae2d41c5074678f911f3c165588d4aec90c5",
+    "apps/admin-web/src/supplier-profile-ui.tsx": "3e1a2e39c93fb1b39c584e3738cb3a700d99cd9f930b9acfdcb38175dd5dcf2e"
+  },
+  "environment": "isolated PostgreSQL, Nest API, Chromium and local storage",
+  "observations": {
+    "reload_unknown_feedback": {
+      "pass": true,
+      "message": "网络中断，请核对原请求后继续。",
+      "selectionDisabledWhileUnknown": true,
+      "upstreamStatus": 200,
+      "dbState": "QUEUED",
+      "dbRevisionIncrementedOnce": true,
+      "receiptCount": 1
+    },
+    "reload_recovery_integrity": {
+      "pass": true,
+      "stable": true,
+      "uploadState": "QUEUED",
+      "uploadRevision": 4,
+      "uploadCount": 1,
+      "chargedBytes": 3233,
+      "expectedFileBytes": 3233,
+      "sameNameCount": 1,
+      "assetCount": 0,
+      "receiptCount": 1,
+      "completeRequests": 1,
+      "receiptReads": 1,
+      "sameKey": true
+    },
+    "reload_selection_after_recovery": {
+      "pass": true,
+      "selectionCleared": true,
+      "uploadDisabled": true
+    },
+    "samepage_unknown_feedback": {
+      "pass": true,
+      "message": "网络中断，请核对原请求后继续。",
+      "selectionDisabledWhileUnknown": true,
+      "upstreamStatus": 200,
+      "dbState": "QUEUED",
+      "dbRevisionIncrementedOnce": true,
+      "receiptCount": 1
+    },
+    "samepage_recovery_integrity": {
+      "pass": true,
+      "stable": true,
+      "uploadState": "QUEUED",
+      "uploadRevision": 4,
+      "uploadCount": 2,
+      "chargedBytes": 6466,
+      "expectedFileBytes": 3233,
+      "sameNameCount": 1,
+      "assetCount": 0,
+      "receiptCount": 1,
+      "completeRequests": 2,
+      "receiptReads": 0,
+      "sameKey": true
+    },
+    "samepage_selection_after_recovery": {
+      "pass": false,
+      "selectionCleared": false,
+      "uploadDisabled": false
+    },
+    "definitive_rejection_distinguished": {
+      "pass": true,
+      "message": "合成测试：请求明确未通过。",
+      "state": "UPLOADED",
+      "receiptCount": 0,
+      "pendingButton": false
+    },
+    "final_unique_materials_and_quota": {
+      "pass": true,
+      "refreshStable": true,
+      "uploadCount": 3,
+      "assetCount": 2,
+      "chargedBytes": 9699,
+      "expectedChargedBytes": 9699,
+      "readyUploads": 2,
+      "rejectedUploadStillCounts": true
+    }
+  },
+  "findings": [
+    "samepage_selection_after_recovery"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "simulation": false,
+  "id": "80a96f46009486b9ced0dd9f",
+  "pid": 41120,
+  "started": "2026-11-11T06:04:16.074Z",
+  "containers": [
+    {
+      "name": "once-os-test-pg-80a96f46009486b9ced0dd9f",
+      "label": "io.once.test-run=80a96f46009486b9ced0dd9f",
+      "creation": "CONFIRMED"
+    }
+  ],
+  "networks": [],
+  "temporaryVolumes": [],
+  "status": "CLEANUP_FAILED",
+  "outcome": "CLEANUP_FAILED",
+  "remaining": {
+    "containers": "UNKNOWN",
+    "processes": 0,
+    "networks": 0,
+    "temporaryVolumes": 0,
+    "temporaryDirectories": 0,
+    "unresolvedBrowserLaunches": 1
+  },
+  "finished": "2026-11-11T06:06:08.881Z"
+}

@@ -1,0 +1,12 @@
+{
+  "run": "80a96f46009486b9ced0dd9f",
+  "originalRunStatus": "CLEANUP_FAILED (preserved)",
+  "lockOwnerPid": 41120,
+  "lockOwnerGone": true,
+  "registeredBrowserPgid": 41473,
+  "liveRegisteredProcesses": 0,
+  "registeredTemporaryDirectoryAbsent": true,
+  "exactContainerNameAndLabelQueriesEmpty": true,
+  "manualLockRelease": "COMPLETE",
+  "at": "2026-11-11T06:06:38.264074+00:00"
+}
