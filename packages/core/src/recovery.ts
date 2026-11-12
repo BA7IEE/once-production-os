@@ -20,6 +20,15 @@ import { PORTAL_COMMAND_STOP } from './commands.ts';
 type RecoveryConfig = Pick<Config, 'accessMode' | 'dataEgressMode' | 'dataCleanupMode' | 'dataMergeMode' | 'recoveryEpoch'> & { contactKey?: Buffer };
 
 const RECOVERY_ERROR = 'RESTORE_REVIEW_REQUIRED';
+const RECOVERY_TRUST_EVIDENCE_UNAVAILABLE = 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE';
+
+// No independently verifiable, anti-rollback witness or bound target snapshot
+// is implemented yet. This hold intentionally accepts no caller-supplied flag,
+// configuration value or self-attested evidence as a substitute.
+function requireIndependentRecoveryEvidence(): void {
+    throw new AppError(409, RECOVERY_TRUST_EVIDENCE_UNAVAILABLE,
+        '缺少可独立验证的最新见证、停写及恢复目标一致性证据，恢复批准保持阻断');
+}
 
 export class RecoveryOps {
     clock: Clock;
@@ -256,7 +265,10 @@ export class RecoveryOps {
             && expectedAssetIds.every((id, i) => id === external.media.expectedAssetIds[i]),
             'RECOVERY_EXTERNAL_EVIDENCE_STALE', '媒体检查对象与当前恢复数据库不一致，请重新检查', 409);
 
-        const blockers: string[] = [];
+        // A clean local restore inspection cannot establish journal freshness,
+        // source quiescence, or target/snapshot binding. Keep the diagnostic
+        // report useful, but never present it as approval-ready without proof.
+        const blockers: string[] = [RECOVERY_TRUST_EVIDENCE_UNAVAILABLE];
         const block = (condition: boolean, code: string) => { if (condition) blockers.push(code); };
         block(hashSecret(state.workspace.recoveryEpoch) !== run.sourceEpochDigest, 'SOURCE_EPOCH_CHANGED');
         block(state.sessions.some(x => !x.revokedAt), 'ACTIVE_SESSION');
@@ -413,7 +425,10 @@ export class RecoveryOps {
 
     private comparableReport(report: RecoveryCheckReport) {
         const { checkedAt: _checkedAt, ...stable } = report;
-        return stable;
+        // Local-state comparison is diagnostic only: pre-existing reports did
+        // not have this policy marker. The unconditional hold below still
+        // prevents any write regardless of the result of this comparison.
+        return { ...stable, blockers: stable.blockers.filter(x => x !== RECOVERY_TRUST_EVIDENCE_UNAVAILABLE) };
     }
 
     async approve(tx: Tx, actor: Actor, recoveryRunId: string, externalInput: RecoveryExternalCheck,
@@ -425,7 +440,11 @@ export class RecoveryOps {
         invariant(run.actorId === actor.membershipId, 'RECOVERY_ACTOR_MISMATCH', '只能由执行恢复准备的维护管理员批准', 403);
         const stored = run.report as RecoveryCheckReport;
         invariant(run.reportDigest === digest(stored), 'RECOVERY_REPORT_TAMPERED', '已记录的 restore-check 摘要不匹配', 409);
-        invariant(Array.isArray(stored.blockers) && stored.blockers.length === 0,
+        // Keep the policy hold distinct while diagnosing existing local
+        // blockers. This never permits approval: the hard hold is enforced
+        // below before the first mutation, including for legacy reports.
+        invariant(Array.isArray(stored.blockers)
+            && stored.blockers.every(x => x === RECOVERY_TRUST_EVIDENCE_UNAVAILABLE),
             'RECOVERY_BLOCKERS_PRESENT', 'restore-check 仍有阻断项，不能批准', 409);
 
         const evidence = this.approvalEvidence(approvalInput);
@@ -440,13 +459,17 @@ export class RecoveryOps {
             '备份清单的媒体身份摘要与 restore-check 不一致', 409);
 
         const { report: fresh } = await this.inspection(tx, actor, recoveryRunId, externalInput);
-        invariant(fresh.blockers.length === 0, 'RECOVERY_BLOCKERS_PRESENT', '当前 restore-check 已出现阻断项，不能批准', 409);
+        invariant(fresh.blockers.every(x => x === RECOVERY_TRUST_EVIDENCE_UNAVAILABLE),
+            'RECOVERY_BLOCKERS_PRESENT', '当前 restore-check 已出现阻断项，不能批准', 409);
         invariant(digest(this.comparableReport(fresh)) === digest(this.comparableReport(stored)),
             'RECOVERY_CHECK_STALE', '恢复数据库、密钥或媒体证据在检查后发生变化，请重新记录 restore-check', 409);
 
         const workspace = await tx.get('workspaces', actor.workspaceId);
         invariant(workspace && hashSecret(workspace.recoveryEpoch) === run.sourceEpochDigest,
             'RECOVERY_SOURCE_EPOCH_CHANGED', '恢复数据库中的旧 recovery epoch 已变化', 409);
+        // A clean local diagnosis or legacy report is not proof of freshness,
+        // source quiescence or target identity. No runtime override exists.
+        requireIndependentRecoveryEvidence();
         const approvedAt = this.clock.now().toISOString();
         await tx.replace('workspaces', { ...workspace, recoveryEpoch: this.config.recoveryEpoch });
         const next: RecoveryRun = {

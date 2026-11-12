@@ -153,7 +153,7 @@ export async function verifyProfessionalRecovery(app: Application, store: Store,
         expectedAssetIds: [], verifiedAssetIds: [], missingAssetIds: [], mismatchAssetIds: [] };
     const external = { migrationDigest: 'd'.repeat(64), migrationMatch: true, media: emptyMedia };
     const report = await store.transaction(tx => recovery.inspect(tx, actor, run.id, external, meta));
-    assert.deepEqual(report.blockers, []); assert.ok(report.talent); assert.equal(report.talent.credentialCount, 1);
+    assert.deepEqual(report.blockers, ['RECOVERY_TRUST_EVIDENCE_UNAVAILABLE']); assert.ok(report.talent); assert.equal(report.talent.credentialCount, 1);
     assert.equal(report.talent.credentialDecryptFailures, 0); assert.equal(report.talent.tableCounts.personRoles, 2);
     const serialized = JSON.stringify(report);
     assert.ok(!serialized.includes(f.token) && !serialized.includes('credentialHash') && !serialized.includes('identifierCiphertext'));

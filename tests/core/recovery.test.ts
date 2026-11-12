@@ -9,6 +9,7 @@ import { digest } from '../../packages/core/src/json.ts';
 import { AppError } from '../../packages/core/src/errors.ts';
 
 type F = Awaited<ReturnType<typeof fixture>>;
+const RECOVERY_TRUST_HOLD = 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE';
 
 function recovery(f: F, epoch = 'R'.repeat(48), contactKey: Buffer = f.app.config.contactKey) {
     return new RecoveryOps(f.clock, {
@@ -284,7 +285,7 @@ test('DEV-09B restore check is zero-write; record persists an allowlisted INSPEC
     const beforeAudits = f.store.rows('audits').length;
 
     const report = await f.store.transaction(tx => r.check(tx, a, run.id, external(f)));
-    assert.deepEqual(report.blockers, []);
+    assert.deepEqual(report.blockers, [RECOVERY_TRUST_HOLD]);
     assert.equal(report.contactCount, 1);
     assert.equal(report.contactDecryptFailures, 0);
     assert.equal(report.migrationMatch, true);
@@ -294,7 +295,7 @@ test('DEV-09B restore check is zero-write; record persists an allowlisted INSPEC
 
     const recorded = await f.store.transaction(tx => r.inspect(tx, a, run.id, external(f),
         { requestId: randomUUID(), ip: 'CLI' }));
-    assert.deepEqual(recorded.blockers, []);
+    assert.deepEqual(recorded.blockers, [RECOVERY_TRUST_HOLD]);
     const saved = f.store.rows('recoveryRuns')[0]!;
     assert.equal(saved.state, 'INSPECTED');
     assert.match(saved.reportDigest ?? '', /^[a-f0-9]{64}$/);
@@ -407,7 +408,7 @@ function approvalEvidence(run: any, report: any, overrides: any = {}) {
     };
 }
 
-test('DEV-09C zero-delta approval changes only recovery epoch and preserves conservative quarantines', async () => {
+test('DEV-09C zero-delta approval remains blocked and preserves conservative quarantines', async () => {
     const f = await fixture();
     const { sourceId } = await seed(f);
     const r = recovery(f), a = await actor(f, r);
@@ -416,21 +417,23 @@ test('DEV-09C zero-delta approval changes only recovery epoch and preserves cons
         { requestId: randomUUID(), ip: 'CLI' }));
     const report = await f.store.transaction(tx => r.inspect(tx, a, prepared.id, external(f),
         { requestId: randomUUID(), ip: 'CLI' }));
-    assert.deepEqual(report.blockers, []);
+    assert.deepEqual(report.blockers, [RECOVERY_TRUST_HOLD]);
     const inspected = f.store.rows('recoveryRuns')[0]!;
     const evidence = approvalEvidence(inspected, report);
+    const before = snapshot(f);
 
-    const approved = await f.store.transaction(tx => r.approve(tx, a, inspected.id, external(f), evidence,
-        { requestId: randomUUID(), ip: 'CLI' }));
-    assert.equal(approved.state, 'APPROVED');
-    assert.equal(f.store.rows('workspaces')[0]!.recoveryEpoch, 'R'.repeat(48));
-    assert.match(approved.approvalDigest ?? '', /^[a-f0-9]{64}$/);
-    assert.equal((approved.approval as any).backupId, evidence.backupId);
+    await assert.rejects(f.store.transaction(tx => r.approve(tx, a, inspected.id, external(f), evidence,
+        { requestId: randomUUID(), ip: 'CLI' })),
+        (e: unknown) => e instanceof AppError && e.code === RECOVERY_TRUST_HOLD);
+    assert.deepEqual(snapshot(f), before, 'a held approval must not modify any recovery state or audit');
+    assert.equal(f.store.rows('workspaces')[0]!.recoveryEpoch, oldEpoch);
+    assert.equal(f.store.rows('recoveryRuns')[0]!.state, 'INSPECTED');
+    assert.equal(f.store.rows('recoveryRuns')[0]!.approvalDigest, null);
     assert.equal(f.store.rows('sources').find(x => x.id === sourceId)!.status, 'SUSPENDED',
         'approval must not silently reactivate restored source data');
     assert.equal(f.store.rows('assets')[0]!.state, 'QUARANTINED',
         'approval must not silently unquarantine restored media');
-    assert.equal(f.store.rows('audits').at(-1)!.action, 'recovery.approve');
+    assert.equal(f.store.rows('audits').some(row => row.action === 'recovery.approve'), false);
 });
 
 test('DEV-09E unresolved post-backup safety journal entry blocks approval', async () => {
@@ -453,7 +456,7 @@ test('DEV-09E unresolved post-backup safety journal entry blocks approval', asyn
     assert.deepEqual(snapshot(f), before);
 });
 
-test('DEV-09E non-zero but fully prepare-contained delta may approve', async () => {
+test('DEV-09E fully prepare-contained delta remains blocked without independent evidence', async () => {
     const f = await fixture();
     await seed(f);
     const r = recovery(f), a = await actor(f, r);
@@ -477,11 +480,16 @@ test('DEV-09E non-zero but fully prepare-contained delta may approve', async () 
             evidenceSeqs: [8,9]
         }]
     });
-    const approved = await f.store.transaction(tx => r.approve(tx, a, inspected.id, external(f), evidence,
-        { requestId: randomUUID(), ip: 'CLI' }));
-    assert.equal(approved.state, 'APPROVED');
-    assert.equal((approved.approval as any).deltaResolution.postBackupEntries, 2);
-    assert.equal((approved.approval as any).deltaResolution.unresolved, 0);
+    assert.equal(evidence.deltaResolution.postBackupEntries, 2);
+    assert.equal(evidence.deltaResolution.unresolved, 0);
+    const before = snapshot(f);
+    await assert.rejects(f.store.transaction(tx => r.approve(tx, a, inspected.id, external(f), evidence,
+        { requestId: randomUUID(), ip: 'CLI' })),
+        (e: unknown) => e instanceof AppError && e.code === RECOVERY_TRUST_HOLD);
+    assert.deepEqual(snapshot(f), before, 'contained delta alone must not authorize an approval');
+    assert.equal(f.store.rows('workspaces')[0]!.recoveryEpoch, oldEpoch);
+    assert.equal(f.store.rows('recoveryRuns')[0]!.state, 'INSPECTED');
+    assert.equal(f.store.rows('audits').some(row => row.action === 'recovery.approve'), false);
 });
 
 test('DEV-09E incomplete or forged delta resolution is rejected before epoch approval', async () => {
@@ -558,6 +566,52 @@ test('DEV-09C stale inspection or mismatched backup evidence cannot approve', as
     assert.equal(f.store.rows('workspaces')[0]!.recoveryEpoch, oldEpoch);
 });
 
+test('DEV-09C a different actor cannot approve an inspected recovery', async () => {
+    const f = await fixture();
+    await seed(f);
+    const r = recovery(f), a = await actor(f, r);
+    const oldEpoch = f.store.rows('workspaces')[0]!.recoveryEpoch;
+    const prepared = await f.store.transaction(tx => r.prepare(tx, a, hashSecret(oldEpoch),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    const report = await f.store.transaction(tx => r.inspect(tx, a, prepared.id, external(f),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    const inspected = f.store.rows('recoveryRuns')[0]!;
+    const evidence = approvalEvidence(inspected, report);
+    const before = snapshot(f);
+    const otherActor = { ...a, membershipId: randomUUID() };
+    await assert.rejects(f.store.transaction(tx => r.approve(tx, otherActor, inspected.id, external(f), evidence,
+        { requestId: randomUUID(), ip: 'CLI' })),
+        (e: unknown) => e instanceof AppError && e.code === 'RECOVERY_ACTOR_MISMATCH');
+    assert.deepEqual(snapshot(f), before);
+});
+
+test('DEV-09C swallowing the default hold still cannot commit approval writes', async () => {
+    const f = await fixture();
+    await seed(f);
+    const r = recovery(f), a = await actor(f, r);
+    const oldEpoch = f.store.rows('workspaces')[0]!.recoveryEpoch;
+    const prepared = await f.store.transaction(tx => r.prepare(tx, a, hashSecret(oldEpoch),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    const report = await f.store.transaction(tx => r.inspect(tx, a, prepared.id, external(f),
+        { requestId: randomUUID(), ip: 'CLI' }));
+    const inspected = f.store.rows('recoveryRuns')[0]!;
+    const evidence = approvalEvidence(inspected, report);
+    const before = snapshot(f);
+    f.store.failNextAudit = true;
+    await f.store.transaction(async tx => {
+        let observed: unknown;
+        try { await r.approve(tx, a, inspected.id, external(f), evidence, { requestId: randomUUID(), ip: 'CLI' }); }
+        catch (error) { observed = error; }
+        assert.ok(observed instanceof AppError && observed.code === RECOVERY_TRUST_HOLD);
+        // Return normally to commit the transaction if approve made writes.
+    });
+    assert.deepEqual(snapshot(f), before);
+    assert.equal(f.store.failNextAudit, true, 'the held approval must not even attempt its audit write');
+});
+
+// Historical contract retained: this assertion cannot currently be reached
+// because no independent trust proof exists. Do not replace it with a mock
+// proof or report it as passed until the real guarded approval is available.
 test('DEV-09C approval audit failure rolls workspace epoch and approval evidence back', async () => {
     const f = await fixture();
     await seed(f);

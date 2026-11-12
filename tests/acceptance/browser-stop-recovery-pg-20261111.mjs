@@ -12,6 +12,8 @@ import {fileURLToPath} from 'node:url';
 import {PrismaClient} from '@prisma/client';
 import {registeredTemp} from '../../scripts/registered-temp.mjs';
 
+const TRUST_HOLD='RECOVERY_TRUST_EVIDENCE_UNAVAILABLE';
+
 // ownedPostgres launches a normal node process; source fixtures need Node 22's
 // explicit type stripping. The child remains in the supervisor's process group.
 if (process.argv[2] !== '--owned-case') {
@@ -273,11 +275,17 @@ async function main() {
       assert.equal((await rows(client,stopKey)).length,1);
       assert.equal((await client.workspace.findFirstOrThrow()).recoveryEpoch,oldEpoch);
       const checked=json(command(process.execPath,['--experimental-strip-types','scripts/recovery-check.ts','--actor-login','owner',
-        '--recovery-run-id',prepared.id,'--record'],{...recoveryEnv,ALLOW_RECOVERY_CHECK:'yes'}));
-      assert.deepEqual(checked.blockers,[]);
+        '--recovery-run-id',prepared.id,'--record'],{...recoveryEnv,ALLOW_RECOVERY_CHECK:'yes'},[3]));
+      assert.equal(checked.mode,'RECORD');
+      assert.deepEqual(checked.blockers,[TRUST_HOLD]);
+      const inspected=await client.recoveryRun.findUniqueOrThrow({where:{id:prepared.id}});
+      assert.equal(inspected.state,'INSPECTED');
+      assert.deepEqual(inspected.report.blockers,[TRUST_HOLD]);
+      assert.equal(await client.auditEvent.count({where:{action:'recovery.approve'}}),0);
       commands.push(`recovery:prepare CHECK and --apply; recovery:check --record (${label})`);
       mark(`restored_${label}_isolated`,{beforePrepareHttp:deniedBefore.status,afterPrepareHttp:deniedAfter.status,
         activeTalentSessions:0,preBackupStopReceiptStillPresent:true,sourceEpochRemainsUnapproved:true,
+        inspectedWithTrustHold:true,
         stoppedKeyBusinessReplay:'NOT_RUN: restore target remains in maintenance'});
       const approveArgs=['--experimental-strip-types','scripts/recovery-approve.ts','--actor-login','owner',
         '--recovery-run-id',prepared.id,'--backup-manifest',backup.manifestPath,'--database-dump',backup.dumpPath];
@@ -300,6 +308,7 @@ async function main() {
     const blindCheck=json(blindRun);
     commands.push('recovery:approve CHECK against actual current unsynced journal');
     assert.equal(blindCheck.eligible,false);
+    assert.ok(blindCheck.blockers.includes(TRUST_HOLD));
     assert.ok(blindCheck.blockers.includes('SAFETY_JOURNAL_DELTA_UNRESOLVED'));
     assert.ok(blindCheck.blockers.includes('SAFETY_JOURNAL_ANCHOR_STOP_UNRESOLVED'));
     assert.ok(blindCheck.deltaResolution.items.some(i=>i.key===retryIntent.intentId.slice(7)
@@ -329,6 +338,7 @@ async function main() {
     const blocked=json(blockedRun);
     commands.push('recovery:approve CHECK against real post-backup stop journal');
     assert.equal(blocked.eligible,false);
+    assert.ok(blocked.blockers.includes(TRUST_HOLD));
     assert.ok(blocked.blockers.includes('SAFETY_JOURNAL_DELTA_UNRESOLVED'));
     assert.ok(blocked.blockers.includes('SAFETY_JOURNAL_ANCHOR_STOP_UNRESOLVED'));
     assert.ok(blocked.deltaResolution.items.some(i=>i.key===laterIntent.intentId.slice(7)

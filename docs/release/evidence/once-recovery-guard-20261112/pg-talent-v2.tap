@@ -1,0 +1,10 @@
+TAP version 13
+# Output sanitized; raw stdout/stderr retained only as SHA-256 digests.
+ok 1 - contract assertion
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0

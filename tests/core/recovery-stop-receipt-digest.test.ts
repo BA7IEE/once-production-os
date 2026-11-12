@@ -18,6 +18,7 @@ import {FakeClock} from '../support/fixtures.ts';
 const resource=new ResourceRun();
 after(async t=>{resource.record.outcome='TESTS_COMPLETED';const result=await resource.cleanup();assert.equal(result.status,'ZERO_RESIDUE');t.diagnostic('ResourceRun '+resource.id+': '+result.status);});
 const meta=()=>({requestId:randomUUID(),ip:'synthetic'});
+const HOLD='RECOVERY_TRUST_EVIDENCE_UNAVAILABLE';
 const emptyDigest=digest([]);
 const external=()=>({migrationDigest:'d'.repeat(64),migrationMatch:true,media:{provider:'disabled' as const,identityDigest:emptyDigest,backupIdentityDigest:emptyDigest,expectedAssetIds:[],verifiedAssetIds:[],missingAssetIds:[],mismatchAssetIds:[]}});
 
@@ -72,13 +73,28 @@ async function inspectedFixture(collision:FixtureScenario='none'){
  const run=await store.transaction(tx=>ops.prepare(tx,actor,hashSecret(workspace.recoveryEpoch),meta()));
  const check=await store.transaction(tx=>ops.check(tx,actor,run.id,external()));
  const report=await store.transaction(tx=>ops.inspect(tx,actor,run.id,external(),meta()));
+ assert.ok(check.blockers.includes(HOLD));assert.ok(report.blockers.includes(HOLD));
  if(collision==='same-account'){assert.ok(check.blockers.includes('PORTAL_STOP_RECEIPT_AMBIGUOUS'));assert.ok(report.blockers.includes('PORTAL_STOP_RECEIPT_AMBIGUOUS'));}
  else if(collision.startsWith('bad-')){assert.ok(check.blockers.includes('PORTAL_STOP_RECEIPT_INVALID'));assert.ok(report.blockers.includes('PORTAL_STOP_RECEIPT_INVALID'));}
- else{assert.deepEqual(check.blockers,[]);assert.deepEqual(report.blockers,[]);}
+ else{assert.deepEqual(check.blockers,[HOLD]);assert.deepEqual(report.blockers,[HOLD]);}
  assert.equal(report.databaseStateDigest,check.databaseStateDigest,'recording inspection must preserve the checked state');
  const inspected=store.rows('recoveryRuns').find(row=>row.id===run.id)!;assert.equal(inspected.state,'INSPECTED');
  assert.deepEqual(store.rows('receipts').filter(row=>row.id===stop.id),[stop],'recovery preparation must retain the fence');
  return {f,store,ops,actor,run:inspected,report,stop,accountB:b.accountId,oldEpoch:workspace.recoveryEpoch};
+}
+
+function approvalState(f:Awaited<ReturnType<typeof inspectedFixture>>){
+ return {workspaces:f.store.rows('workspaces'),runs:f.store.rows('recoveryRuns'),
+  audits:f.store.rows('audits'),receipts:f.store.rows('receipts')};
+}
+async function assertTrustHoldWithoutWrite(f:Awaited<ReturnType<typeof inspectedFixture>>,evidence:RecoveryApprovalEvidence){
+ const before=approvalState(f);
+ await assert.rejects(f.store.transaction(tx=>f.ops.approve(tx,f.actor,f.run.id,external(),evidence,meta())),
+  (error:unknown)=>error instanceof AppError&&error.code===HOLD&&error.status===409);
+ assert.deepEqual(approvalState(f),before,'refusal must not write even when local checks are clean');
+ assert.equal(f.store.rows('workspaces')[0]!.recoveryEpoch,f.oldEpoch);
+ assert.equal(f.store.rows('recoveryRuns').find(row=>row.id===f.run.id)?.state,'INSPECTED');
+ assert.equal(f.store.rows('audits').some(row=>row.action==='recovery.approve'),false);
 }
 
 type Mutation={name:string;approvalError:'RECOVERY_CHECK_STALE'|'RECOVERY_BLOCKERS_PRESENT';apply:(f:Awaited<ReturnType<typeof inspectedFixture>>)=>Promise<void>};
@@ -105,7 +121,7 @@ test('zero stop receipts preserve the 89744a2 recovery safety digest',async()=>{
  const actor=await store.transaction(tx=>ops.actorFromRestoredTarget(tx,'owner'));
  const run=await store.transaction(tx=>ops.prepare(tx,actor,hashSecret('S'.repeat(48)),meta()));
  assert.equal(store.rows('receipts').length,0);
- const report=await store.transaction(tx=>ops.check(tx,actor,run.id,external()));assert.deepEqual(report.blockers,[]);
+ const report=await store.transaction(tx=>ops.check(tx,actor,run.id,external()));assert.deepEqual(report.blockers,[HOLD]);
  assert.equal(report.databaseStateDigest,'2ee5e1b7ea6ca4fc7ec0eafdfb3313ebc16de7e2418b62c8855792aea2fb799f');
 });
 
@@ -118,10 +134,10 @@ test('a preexisting same-principal same-key stop and original block recovery app
  assert.equal(f.store.rows('workspaces')[0]!.recoveryEpoch,f.oldEpoch);assert.equal(f.store.rows('recoveryRuns').find(row=>row.id===f.run.id)?.state,'INSPECTED');
 });
 
-test('a different talent principal reusing the key does not create a false collision',async()=>{
+test('a different talent principal reusing the key does not create a false collision but remains held',async()=>{
  const f=await inspectedFixture('other-account'),evidence=approvalEvidence(f.run,f.report);
- assert.deepEqual(f.report.blockers,[]);
- assert.equal((await f.store.transaction(tx=>f.ops.approve(tx,f.actor,f.run.id,external(),evidence,meta()))).state,'APPROVED');
+ assert.deepEqual(f.report.blockers,[HOLD]);
+ await assertTrustHoldWithoutWrite(f,evidence);
 });
 
 for(const scenario of ['bad-request-digest','bad-owner','bad-resource','bad-result-target','bad-state','bad-revision','bad-operation-id'] as const){
@@ -136,20 +152,33 @@ for(const scenario of ['bad-request-digest','bad-owner','bad-resource','bad-resu
 }
 
 for(const scenario of ['replay','nonstandard-key'] as const){
- test('a legitimate stop ('+scenario+') remains approvable',async()=>{
+ test('a legitimate stop ('+scenario+') retains its receipt and remains held',async()=>{
   const f=await inspectedFixture(scenario),evidence=approvalEvidence(f.run,f.report);
-  assert.deepEqual(f.report.blockers,[]);
-  assert.equal((await f.store.transaction(tx=>f.ops.approve(tx,f.actor,f.run.id,external(),evidence,meta()))).state,'APPROVED');
+  assert.deepEqual(f.report.blockers,[HOLD]);
+  await assertTrustHoldWithoutWrite(f,evidence);
  });
 }
 
-// A synthetic, zero-delta approval is a control for these unit tests only; the
-// production recovery CLI separately validates its real backup and journal.
-test('unchanged inspected stop permits the existing synthetic zero-delta approval control',async()=>{
+// A valid synthetic zero-delta case is locally well formed but cannot prove an
+// independent latest witness or authorize the actual recovery approval.
+test('unchanged inspected stop remains held even with synthetic zero-delta evidence',async()=>{
  const f=await inspectedFixture(),evidence=approvalEvidence(f.run,f.report);
- const approved=await f.store.transaction(tx=>f.ops.approve(tx,f.actor,f.run.id,external(),evidence,meta()));
- assert.equal(approved.state,'APPROVED');assert.equal(f.store.rows('workspaces')[0]!.recoveryEpoch,'R'.repeat(48));
+ await assertTrustHoldWithoutWrite(f,evidence);
  assert.equal(f.store.rows('receipts').filter(row=>row.id===f.stop.id).length,1);
+});
+
+test('catching the trust refusal inside a committed transaction cannot preserve approval writes',async()=>{
+ const f=await inspectedFixture(),evidence=approvalEvidence(f.run,f.report),before=approvalState(f);
+ let refused=false;
+ await f.store.transaction(async tx=>{
+  try{await f.ops.approve(tx,f.actor,f.run.id,external(),evidence,meta());assert.fail('approval unexpectedly succeeded');}
+  catch(error){assert.ok(error instanceof AppError);assert.equal(error.code,HOLD);assert.equal(error.status,409);refused=true;}
+ });
+ assert.equal(refused,true);
+ assert.deepEqual(approvalState(f),before,'a caller swallowing the error must not commit any approval mutation');
+ assert.equal(f.store.rows('workspaces')[0]!.recoveryEpoch,f.oldEpoch);
+ assert.equal(f.store.rows('recoveryRuns').find(row=>row.id===f.run.id)?.state,'INSPECTED');
+ assert.equal(f.store.rows('audits').some(row=>row.action==='recovery.approve'),false);
 });
 
 for(const mutation of mutations){
@@ -157,8 +186,9 @@ for(const mutation of mutations){
   const f=await inspectedFixture();await mutation.apply(f);
   const changed=await f.store.transaction(tx=>f.ops.check(tx,f.actor,f.run.id,external()));
   assert.notEqual(changed.databaseStateDigest,f.report.databaseStateDigest,'the checked stop-fence state must bind the recorded digest');
+  assert.ok(changed.blockers.includes(HOLD));
   if(mutation.approvalError==='RECOVERY_BLOCKERS_PRESENT')assert.ok(changed.blockers.includes('PORTAL_STOP_RECEIPT_INVALID'));
-  else assert.deepEqual(changed.blockers,[]);
+  else assert.deepEqual(changed.blockers,[HOLD]);
   assert.equal(f.store.rows('recoveryRuns').find(row=>row.id===f.run.id)?.state,'INSPECTED');
  });
  test('post-inspection '+mutation.name+' rejects approval with '+mutation.approvalError,async()=>{

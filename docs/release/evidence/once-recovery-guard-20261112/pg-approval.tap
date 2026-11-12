@@ -1,0 +1,17 @@
+TAP version 13
+# Output sanitized; raw stdout/stderr retained only as SHA-256 digests.
+not ok 1 - contract assertion
+# location: recovery-approval.test.ts:49:1
+# error: RECOVERY_TRUST_EVIDENCE_UNAVAILABLE
+# code: ERR_ASSERTION
+# expected: 0
+# actual: 3
+# location: recovery-approval.test.ts:45:12
+# location: recovery-approval.test.ts:417:24
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
