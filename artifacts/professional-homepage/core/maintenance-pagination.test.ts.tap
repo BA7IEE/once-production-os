@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: maintenance lists reach records beyond 100 and export rechecks every selected permission
+ok 1 - maintenance lists reach records beyond 100 and export rechecks every selected permission
+  ---
+  duration_ms: 1485.46807
+  type: 'test'
+  ...
+# Subtest: AI grant paging has deterministic ordering and keeps the older grant reachable
+ok 2 - AI grant paging has deterministic ordering and keeps the older grant reachable
+  ---
+  duration_ms: 443.172507
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2390.780634

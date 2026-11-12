@@ -1,0 +1,126 @@
+TAP version 13
+# Subtest: DEV-09A recovery preview is zero-write and requires a rotated deployment epoch
+ok 1 - DEV-09A recovery preview is zero-write and requires a rotated deployment epoch
+  ---
+  duration_ms: 387.575693
+  type: 'test'
+  ...
+# Subtest: DEV-09A prepare revokes old capabilities but deliberately does not approve workspace epoch
+ok 2 - DEV-09A prepare revokes old capabilities but deliberately does not approve workspace epoch
+  ---
+  duration_ms: 377.291163
+  type: 'test'
+  ...
+# Subtest: DEV-09A wrong source epoch digest and open execution gates fail before writes
+ok 3 - DEV-09A wrong source epoch digest and open execution gates fail before writes
+  ---
+  duration_ms: 369.548974
+  type: 'test'
+  ...
+# Subtest: DEV-09A audit failure rolls every recovery quarantine write back
+ok 4 - DEV-09A audit failure rolls every recovery quarantine write back
+  ---
+  duration_ms: 377.437192
+  type: 'test'
+  ...
+# Subtest: DEV-09B restore check is zero-write; record persists an allowlisted INSPECTED report
+ok 5 - DEV-09B restore check is zero-write; record persists an allowlisted INSPECTED report
+  ---
+  duration_ms: 361.704191
+  type: 'test'
+  ...
+# Subtest: DEV-09B wrong contact key and media/migration gaps become explicit blockers
+ok 6 - DEV-09B wrong contact key and media/migration gaps become explicit blockers
+  ---
+  duration_ms: 339.766203
+  type: 'test'
+  ...
+# Subtest: DEV-09B stale media evidence is rejected and DB safety changes produce a new blocker/digest
+ok 7 - DEV-09B stale media evidence is rejected and DB safety changes produce a new blocker/digest
+  ---
+  duration_ms: 359.07642
+  type: 'test'
+  ...
+# Subtest: DEV-09C zero-delta approval remains blocked and preserves conservative quarantines
+ok 8 - DEV-09C zero-delta approval remains blocked and preserves conservative quarantines
+  ---
+  duration_ms: 348.361518
+  type: 'test'
+  ...
+# Subtest: DEV-09E unresolved post-backup safety journal entry blocks approval
+ok 9 - DEV-09E unresolved post-backup safety journal entry blocks approval
+  ---
+  duration_ms: 339.188157
+  type: 'test'
+  ...
+# Subtest: DEV-09E fully prepare-contained delta remains blocked without independent evidence
+ok 10 - DEV-09E fully prepare-contained delta remains blocked without independent evidence
+  ---
+  duration_ms: 350.07538
+  type: 'test'
+  ...
+# Subtest: DEV-09E incomplete or forged delta resolution is rejected before epoch approval
+ok 11 - DEV-09E incomplete or forged delta resolution is rejected before epoch approval
+  ---
+  duration_ms: 344.898368
+  type: 'test'
+  ...
+# Subtest: DEV-09C stale inspection or mismatched backup evidence cannot approve
+ok 12 - DEV-09C stale inspection or mismatched backup evidence cannot approve
+  ---
+  duration_ms: 349.800357
+  type: 'test'
+  ...
+# Subtest: DEV-09C a different actor cannot approve an inspected recovery
+ok 13 - DEV-09C a different actor cannot approve an inspected recovery
+  ---
+  duration_ms: 355.883304
+  type: 'test'
+  ...
+# Subtest: DEV-09C swallowing the default hold still cannot commit approval writes
+ok 14 - DEV-09C swallowing the default hold still cannot commit approval writes
+  ---
+  duration_ms: 385.233871
+  type: 'test'
+  ...
+# Subtest: DEV-09C approval audit failure rolls workspace epoch and approval evidence back
+not ok 15 - DEV-09C approval audit failure rolls workspace epoch and approval evidence back
+  ---
+  duration_ms: 346.537507
+  type: 'test'
+  location: '[checkout]/tests/core/recovery.test.ts:615:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /injected audit failure/. Input:
+
+    'AppError: 缺少可独立验证的最新见证、停写及恢复目标一致性证据，恢复批准保持阻断'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  error: '缺少可独立验证的最新见证、停写及恢复目标一致性证据，恢复批准保持阻断'
+  stack: |-
+    requireIndependentRecoveryEvidence (file://[checkout]/packages/core/src/recovery.ts:29:11)
+    RecoveryOps.approve (file://[checkout]/packages/core/src/recovery.ts:472:9)
+    async MemoryStore.transaction (file://[checkout]/tests/support/memory-store.ts:133:28)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery.test.ts:626:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery.test.ts:626:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 14
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5717.09648

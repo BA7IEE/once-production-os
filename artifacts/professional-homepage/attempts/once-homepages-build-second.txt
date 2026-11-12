@@ -1,0 +1,19 @@
+
+> once-production-os@0.1.0-dev.1 build /workspace/once-production-os
+> node scripts/heavy-task.mjs pnpm build:sequential
+
+
+> once-production-os@0.1.0-dev.1 build:sequential /workspace/once-production-os
+> pnpm build:api && pnpm build:web
+
+
+> once-production-os@0.1.0-dev.1 build:api /workspace/once-production-os
+> tsc -p tsconfig.server.json
+
+packages/core/src/professional-homepages.ts(63,19): error TS2345: Argument of type '{ namespace: string; code: string; label: string; }' is not assignable to parameter of type '{ namespace: "role" | "city" | "language" | "skill" | "industry" | "workType" | "nationality" | "roleStyle" | "roleService"; code: string; label: string; }'.
+  Types of property 'namespace' are incompatible.
+    Type 'string' is not assignable to type '"role" | "city" | "language" | "skill" | "industry" | "workType" | "nationality" | "roleStyle" | "roleService"'.
+ ELIFECYCLE  Command failed with exit code 2.
+ ELIFECYCLE  Command failed with exit code 2.
+Heavy task refused, failed or interrupted; inspect private resource journal.
+ ELIFECYCLE  Command failed with exit code 1.

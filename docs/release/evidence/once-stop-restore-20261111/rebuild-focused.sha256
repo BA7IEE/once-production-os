@@ -1,0 +1,4 @@
+20cef5ce3572db0cd3e5e45bf0ffb10603b8aa860c0eeecf3fe2dc5078322a30  packages/core/src/rebuild-model.ts
+5eda8dc6baa3fb7beffce74e8a966cdf61b8370a4974fd4653b7e1df4f9ff9cb  packages/core/src/rebuild.ts
+865d568912e7d77012461381c14ba255feef32270474db16606819b0aa9edc22  docs/release/WP7_JSON_REBUILD.md
+35c091d42ead00a28ca4a3eaa73228d154a4e09991b2f94a3533fa5f1c32cfc3  tests/core/rebuild-active-auth-isolation.test.ts

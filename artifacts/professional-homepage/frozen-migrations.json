@@ -1,0 +1,10 @@
+{
+  "base": "d998cf059ab912b62fcc33d2094c32c62c564bc1",
+  "unchangedAppliedMigrations": 82,
+  "changed": [],
+  "forwardMigrations": [
+    83,
+    84,
+    85
+  ]
+}

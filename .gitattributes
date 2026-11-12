@@ -1,5 +1,19 @@
 # Preserve test-runner output verbatim, including blank diagnostic lines.
 # Source files and hand-written documentation retain Git's whitespace checks.
+# Dependency patch context lines require a leading space, including blank lines.
+patches/*.patch -whitespace
 artifacts/supplier-*/*.log -whitespace
 artifacts/supplier-*/*.tap -whitespace
 artifacts/supplier-*/*.txt -whitespace
+artifacts/once-upgrade/p01/*.tap -whitespace
+artifacts/once-upgrade/p01/*.txt -whitespace
+
+artifacts/once-upgrade/p02/**/*.tap -whitespace
+artifacts/once-upgrade/p02/**/*.txt -whitespace
+artifacts/once-upgrade/p02/*.tap -whitespace
+artifacts/once-upgrade/p02/*.txt -whitespace
+
+artifacts/once-upgrade/p03/**/*.tap -whitespace
+artifacts/once-upgrade/p03/**/*.txt -whitespace
+artifacts/once-upgrade/p03/*.tap -whitespace
+artifacts/once-upgrade/p03/*.txt -whitespace

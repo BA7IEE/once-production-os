@@ -1,3 +1,4 @@
+import {AdminForm} from './foundation/patterns.tsx';
 import { useState } from 'react';
 import {useUnsaved} from './unsaved.ts';
 import { call } from './api.ts';
@@ -17,7 +18,7 @@ export function TalentIntake({ catalog, canChooseSource, onClose, onSaved }: {
     useUnsaved(!!name,'新人才档案');
     const unknown = outcomeUnknown(action.error), frozen = action.busy || unknown;
     const close = () => { if (!frozen && (!name || window.confirm('尚未保存这份草稿，确定关闭？'))) onClose(); };
-    return <Modal title="新增人才" onClose={close}><form onSubmit={event => {
+    return <Modal title="新增人才" onClose={close}><AdminForm onSubmit={event => {
         event.preventDefault();
         void action.run(async () => {
             const receipt = await call<'directory.talent.create', Receipt>('directory.talent.create', {
@@ -35,5 +36,5 @@ export function TalentIntake({ catalog, canChooseSource, onClose, onSaved }: {
         {existing ? <TalentSourceChoice value={source} disabled={frozen} onChange={setSource}/> : <p className="notice">先保存草稿，其他资料以后补充。未选来源时，仅你可见，临时整理最长 7 天；继续使用前需核对来源和依据。</p>}
         {kind === 'CONTACT' && <p className="muted">只保存联系人，后续可以在同一档案上添加职业。</p>}</fieldset>
         {unknown && <p className="notice" role="status">提交结果尚不明确，已保留原内容。请点击“原样重试建档”，确认后再修改。</p>}
-    </div><footer className="modal-footer"><button type="button" disabled={frozen} onClick={close}>取消</button><button type="submit" className="primary" disabled={action.busy || !name.trim() || (kind === 'TALENT' && !roles.length) || (existing && !source)}>{action.busy ? '正在保存…' : unknown ? '原样重试建档' : '保存草稿'}</button></footer></form></Modal>;
+    </div><footer className="modal-footer"><button type="button" disabled={frozen} onClick={close}>取消</button><button type="submit" className="primary" disabled={action.busy || !name.trim() || (kind === 'TALENT' && !roles.length) || (existing && !source)}>{action.busy ? '正在保存…' : unknown ? '原样重试建档' : '保存草稿'}</button></footer></AdminForm></Modal>;
 }

@@ -1,0 +1,6 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite client-presentations
+
+PASS published-selected-server-whitelist-and-real-private-original-preview-use-dedicated-guest-session; lost-feedback-response-is-reconciled-read-only-with-exact-recipient-version-entry-and-no-duplicate; interest-and-pending-feedback-are-attributed-to-named-recipient-and-never-become-ACTUAL; old-public-work-title-remains-stable-new-version-is-explicit-and-guessed-version-is-rejected; explicit-recipient-rotation-invalidates-old-link-and-old-media-session-without-changing-snapshot; restricted-real-media-stops-bytes-and-source-withdrawal-also-stops-independent-text-version
+{"containers":0,"processes":0,"networks":0,"temporaryVolumes":0,"temporaryDirectories":0,"unresolvedBrowserLaunches":0}

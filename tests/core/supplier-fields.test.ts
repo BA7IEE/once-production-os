@@ -18,6 +18,42 @@ async function setup(){const store=new MemoryStore(),f=await supplierFixture(sto
  const create=async(answers:ProfessionalAnswer[])=>f.ok(await f.a.client.raw('POST','/portal/profile-drafts',{...f.input,profile:{...f.profile,professional:professional(answers)}},f.headers()));
  const confirm=async(draft:{resourceId:string;revision:number})=>{f.ok(await f.a.client.raw('POST','/portal/profile-drafts/'+draft.resourceId+'/confirm',{expectedRevision:draft.revision,accepted:true},f.headers()));return f.read(draft.resourceId);};
  return {store,f,schema,professional,create,confirm};}
+test('every replacement needs its own role-specific answer and invalid batches leave facts, exposure and person unchanged',async()=>{
+ const {f,store,professional,create,confirm}=await setup(),saved=await confirm(await create([
+  {fieldCode:'role.started_year',roleCode:'photographer',state:'KNOWN',value:2018},
+  {fieldCode:'role.started_year',roleCode:'director',state:'KNOWN',value:2020},
+ ]));
+ const detail=f.ok(await f.owner.raw('GET','/people/'+saved.personId+'/professional'));
+ const photo=detail.entries.find((e:any)=>e.answer.roleCode==='photographer'),director=detail.entries.find((e:any)=>e.answer.roleCode==='director');
+ const snapshot=()=>store.transaction(async tx=>({person:await tx.get('people',saved.personId),facts:await tx.find('supplierFacts',{personId:saved.personId}),grants:await tx.find('talentAccessGrants',{personId:saved.personId})}));
+ const before=await snapshot(),ownBefore=f.ok(await f.a.client.raw('GET','/portal/supplier-profiles/'+saved.personId,undefined,f.headers()));
+ const write=(replace:any[],answers:ProfessionalAnswer[])=>f.owner.cmd('POST','/people/'+saved.personId+'/professional',{
+  expectedPersonRevision:detail.revision,sourceId:f.sourceId,sourceRevision:1,professional:professional(answers),replace,
+ });
+ const incomplete=await write([photo,director].map(e=>({id:e.id,revision:e.revision})),[{...photo.answer,value:2019}]);
+ assert.equal(incomplete.status,422,JSON.stringify(incomplete.body));
+ assert.deepEqual(await snapshot(),before);
+ assert.deepEqual(f.ok(await f.a.client.raw('GET','/portal/supplier-profiles/'+saved.personId,undefined,f.headers())),ownBefore);
+ const duplicate=await write([{id:photo.id,revision:photo.revision},{id:photo.id,revision:photo.revision}],[{...photo.answer,value:2019}]);
+ assert.equal(duplicate.status,422,JSON.stringify(duplicate.body));assert.deepEqual(await snapshot(),before);
+ const wrongRole=await write([{id:director.id,revision:director.revision}],[{...photo.answer,value:2019}]);
+ assert.equal(wrongRole.status,422);assert.deepEqual(await snapshot(),before);
+ f.ok(await write([photo,director].map(e=>({id:e.id,revision:e.revision})),[{...photo.answer,value:2019},{fieldCode:'role.started_year',roleCode:'director',state:'NOT_PROVIDED'}]));
+ const after=f.ok(await f.a.client.raw('GET','/portal/supplier-profiles/'+saved.personId,undefined,f.headers())).profile.professional.answers;
+ assert.equal(after.find((a:ProfessionalAnswer)=>a.roleCode==='photographer').value,2019);
+ assert.deepEqual(after.find((a:ProfessionalAnswer)=>a.roleCode==='director'),{fieldCode:'role.started_year',roleCode:'director',state:'NOT_PROVIDED'});
+ const current=await snapshot();assert.equal(current.person!.revision,before.person!.revision+1);
+ assert.equal(current.facts.filter(r=>r.status==='RETIRED').length,2);assert.equal(current.facts.filter(r=>r.status==='ACTIVE').length,2);
+});
+test('replacement rejects withdrawn source without retiring current facts or changing exposure',async()=>{
+ const {f,store,professional,create,confirm}=await setup(),saved=await confirm(await create([{fieldCode:'camera.specialties',roleCode:'photographer',state:'KNOWN',value:['steadicam']}]));
+ const detail=f.ok(await f.owner.raw('GET','/people/'+saved.personId+'/professional')),entry=detail.entries[0];
+ await store.transaction(async tx=>{const source=(await tx.get('sources',entry.sourceId))!;await tx.replace('sources',{...source,status:'SUSPENDED'});});
+ const snapshot=()=>store.transaction(async tx=>({person:await tx.get('people',saved.personId),facts:await tx.find('supplierFacts',{personId:saved.personId}),grants:await tx.find('talentAccessGrants',{personId:saved.personId})}));
+ const before=await snapshot();assert.equal((await f.owner.cmd('POST','/people/'+saved.personId+'/professional',{expectedPersonRevision:detail.revision,sourceId:f.sourceId,sourceRevision:1,
+  professional:professional([{...entry.answer,value:['trinity']}]),replace:[{id:entry.id,revision:entry.revision}]})).status,404);
+ assert.deepEqual(await snapshot(),before);
+});
 test('dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person',async()=>{
  const {f,store,schema,create,confirm}=await setup();assert.ok(!JSON.stringify(schema).includes('internal.relationship_tags'));
  const answers:ProfessionalAnswer[]=[{fieldCode:'camera.duties',roleCode:'photographer',state:'KNOWN',value:['dp','camera_operator']},

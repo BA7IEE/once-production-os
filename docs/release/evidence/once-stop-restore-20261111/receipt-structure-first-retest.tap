@@ -1,0 +1,197 @@
+TAP version 13
+# Subtest: zero stop receipts preserve the 89744a2 recovery safety digest
+ok 1 - zero stop receipts preserve the 89744a2 recovery safety digest
+  ---
+  duration_ms: 11.439247
+  type: 'test'
+  ...
+# Subtest: a preexisting same-principal same-key stop and original block recovery approval
+ok 2 - a preexisting same-principal same-key stop and original block recovery approval
+  ---
+  duration_ms: 260.1365
+  type: 'test'
+  ...
+# Subtest: a different talent principal reusing the key does not create a false collision
+ok 3 - a different talent principal reusing the key does not create a false collision
+  ---
+  duration_ms: 211.698261
+  type: 'test'
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-request-digest) blocks check and approval
+ok 4 - a preexisting structurally invalid stop (bad-request-digest) blocks check and approval
+  ---
+  duration_ms: 203.244599
+  type: 'test'
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-owner) blocks check and approval
+ok 5 - a preexisting structurally invalid stop (bad-owner) blocks check and approval
+  ---
+  duration_ms: 222.053343
+  type: 'test'
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-resource) blocks check and approval
+ok 6 - a preexisting structurally invalid stop (bad-resource) blocks check and approval
+  ---
+  duration_ms: 218.180065
+  type: 'test'
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-result-target) blocks check and approval
+ok 7 - a preexisting structurally invalid stop (bad-result-target) blocks check and approval
+  ---
+  duration_ms: 208.002706
+  type: 'test'
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-state) blocks check and approval
+ok 8 - a preexisting structurally invalid stop (bad-state) blocks check and approval
+  ---
+  duration_ms: 201.540759
+  type: 'test'
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-revision) blocks check and approval
+ok 9 - a preexisting structurally invalid stop (bad-revision) blocks check and approval
+  ---
+  duration_ms: 240.401556
+  type: 'test'
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-operation-id) blocks check and approval
+ok 10 - a preexisting structurally invalid stop (bad-operation-id) blocks check and approval
+  ---
+  duration_ms: 218.07811
+  type: 'test'
+  ...
+# Subtest: a legitimate stop (replay) remains approvable
+ok 11 - a legitimate stop (replay) remains approvable
+  ---
+  duration_ms: 181.548849
+  type: 'test'
+  ...
+# Subtest: a legitimate stop (nonstandard-key) remains approvable
+ok 12 - a legitimate stop (nonstandard-key) remains approvable
+  ---
+  duration_ms: 214.356927
+  type: 'test'
+  ...
+# Subtest: unchanged inspected stop permits the existing synthetic zero-delta approval control
+ok 13 - unchanged inspected stop permits the existing synthetic zero-delta approval control
+  ---
+  duration_ms: 205.390231
+  type: 'test'
+  ...
+# Subtest: post-inspection delete a stop receipt changes the safety state digest
+ok 14 - post-inspection delete a stop receipt changes the safety state digest
+  ---
+  duration_ms: 204.957571
+  type: 'test'
+  ...
+# Subtest: post-inspection delete a stop receipt rejects approval as stale
+ok 15 - post-inspection delete a stop receipt rejects approval as stale
+  ---
+  duration_ms: 186.839564
+  type: 'test'
+  ...
+# Subtest: post-inspection change the stopped command key changes the safety state digest
+ok 16 - post-inspection change the stopped command key changes the safety state digest
+  ---
+  duration_ms: 192.035042
+  type: 'test'
+  ...
+# Subtest: post-inspection change the stopped command key rejects approval as stale
+not ok 17 - post-inspection change the stopped command key rejects approval as stale
+  ---
+  duration_ms: 215.503487
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:159:2'
+  failureType: 'testCodeFailure'
+  error: 'mutated stop receipt must invalidate old approval evidence'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:161:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the owning talent account changes the safety state digest
+ok 18 - post-inspection change the owning talent account changes the safety state digest
+  ---
+  duration_ms: 186.493717
+  type: 'test'
+  ...
+# Subtest: post-inspection change the owning talent account rejects approval as stale
+not ok 19 - post-inspection change the owning talent account rejects approval as stale
+  ---
+  duration_ms: 191.149493
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:159:2'
+  failureType: 'testCodeFailure'
+  error: 'mutated stop receipt must invalidate old approval evidence'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:161:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the stop request digest changes the safety state digest
+ok 20 - post-inspection change the stop request digest changes the safety state digest
+  ---
+  duration_ms: 196.870452
+  type: 'test'
+  ...
+# Subtest: post-inspection change the stop request digest rejects approval as stale
+not ok 21 - post-inspection change the stop request digest rejects approval as stale
+  ---
+  duration_ms: 190.683724
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:159:2'
+  failureType: 'testCodeFailure'
+  error: 'mutated stop receipt must invalidate old approval evidence'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:161:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the stop result identity changes the safety state digest
+ok 22 - post-inspection change the stop result identity changes the safety state digest
+  ---
+  duration_ms: 217.259544
+  type: 'test'
+  ...
+# Subtest: post-inspection change the stop result identity rejects approval as stale
+not ok 23 - post-inspection change the stop result identity rejects approval as stale
+  ---
+  duration_ms: 189.696333
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:159:2'
+  failureType: 'testCodeFailure'
+  error: 'mutated stop receipt must invalidate old approval evidence'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:161:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection insert another stop receipt changes the safety state digest
+ok 24 - post-inspection insert another stop receipt changes the safety state digest
+  ---
+  duration_ms: 178.936302
+  type: 'test'
+  ...
+# Subtest: post-inspection insert another stop receipt rejects approval as stale
+ok 25 - post-inspection insert another stop receipt rejects approval as stale
+  ---
+  duration_ms: 201.02014
+  type: 'test'
+  ...
+# ResourceRun 31647635c32afaaca7236669: ZERO_RESIDUE
+1..25
+# tests 25
+# suites 0
+# pass 21
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5452.680391

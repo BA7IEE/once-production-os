@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: employee inbox records true employee provenance, encrypted drafts and explicit multiple-person ownership atomically
+ok 1 - employee inbox records true employee provenance, encrypted drafts and explicit multiple-person ownership atomically
+  ---
+  duration_ms: 276.649804
+  type: 'test'
+  ...
+# Subtest: company introductions cannot be adopted as a person and audit failure rolls back the entire employee adoption
+ok 2 - company introductions cannot be adopted as a person and audit failure rolls back the entire employee adoption
+  ---
+  duration_ms: 232.096436
+  type: 'test'
+  ...
+# Subtest: multiple materials explicitly supplement one current Person, preserve identity and reject stale revisions
+ok 3 - multiple materials explicitly supplement one current Person, preserve identity and reject stale revisions
+  ---
+  duration_ms: 248.452927
+  type: 'test'
+  ...
+# Subtest: employee scope and source withdrawal fence inbox reads
+ok 4 - employee scope and source withdrawal fence inbox reads
+  ---
+  duration_ms: 415.234681
+  type: 'test'
+  ...
+# Subtest: recovery invalidates old employee inbox commands, including receipt replay
+ok 5 - recovery invalidates old employee inbox commands, including receipt replay
+  ---
+  duration_ms: 207.376783
+  type: 'test'
+  ...
+# Subtest: an employee unresolved AI attempt blocks new paid inbox requests without relying on old Source visibility or disclosing another actor
+ok 6 - an employee unresolved AI attempt blocks new paid inbox requests without relying on old Source visibility or disclosing another actor
+  ---
+  duration_ms: 412.717189
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2206.984653

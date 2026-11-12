@@ -1,0 +1,12 @@
+{
+  "id": "10d4dcece78a1ff96261f966",
+  "scope": "this-task-only",
+  "checkedAt": "2026-11-08T09:07:27.193Z",
+  "parentExited": true,
+  "registeredBrowserPid": 69052,
+  "liveRegisteredProcesses": 0,
+  "zombieProcessesObserved": 13,
+  "ownedContainerAbsent": true,
+  "ownedTemporaryDirectoryAbsent": true,
+  "reason": "single registered browser launch reached its recorded PID; abrupt route callback failure interrupted CLOSED receipt after process shutdown"
+}

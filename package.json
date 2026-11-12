@@ -14,10 +14,10 @@
     "typecheck:core": "tsc -p packages/core/tsconfig.json",
     "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p apps/admin-web/tsconfig.json",
     "build:api": "tsc -p tsconfig.server.json",
-    "build:web": "vite build --config apps/admin-web/vite.config.ts",
+    "build:web": "NODE_ENV=production node scripts/generate-admin-styles.mjs && vite build --config apps/admin-web/vite.config.ts",
     "build": "node scripts/heavy-task.mjs pnpm build:sequential",
     "dev:api": "node --env-file=.env dist/apps/api/src/main.js",
-    "dev:web": "vite --config apps/admin-web/vite.config.ts",
+    "dev:web": "NODE_ENV=production node scripts/generate-admin-styles.mjs && vite --config apps/admin-web/vite.config.ts",
     "start": "node dist/apps/api/src/main.js",
     "worker": "node dist/apps/api/src/worker-main.js",
     "db:generate": "prisma generate",
@@ -25,7 +25,7 @@
     "bootstrap": "node dist/apps/api/src/bootstrap.js",
     "contract:generate": "node --experimental-strip-types scripts/generate-contract.ts",
     "contract:check": "node --experimental-strip-types scripts/generate-contract.ts --check",
-    "review:static": "node scripts/static-review.mjs",
+    "review:static": "node scripts/check-admin-foundation.mjs && node scripts/static-review.mjs",
     "verify": "pnpm contract:check && pnpm typecheck && pnpm test:core && pnpm review:static && pnpm build",
     "verify:postgres": "node scripts/verify-postgres.mjs",
     "verify:browser": "node tests/acceptance/browser-resume.mjs",
@@ -44,17 +44,21 @@
     "build:sequential": "pnpm build:api && pnpm build:web",
     "test:postgres:owned": "node scripts/test-postgres-owned.mjs",
     "test:lifecycle": "node --test --test-concurrency=1 tests/lifecycle/*.test.mjs",
-    "test:business-flow": "node scripts/test-business-flow.mjs"
+    "test:business-flow": "node scripts/test-business-flow.mjs",
+    "review:foundation": "node scripts/check-admin-foundation.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "4.0.65",
     "@ai-sdk/openai": "4.0.78",
     "@ai-sdk/openai-compatible": "3.0.57",
+    "@ant-design/icons": "6.3.4",
+    "@ant-design/pro-components": "3.1.15-5",
     "@nestjs/common": "11.2.5",
     "@nestjs/core": "11.2.5",
     "@nestjs/platform-express": "11.2.5",
     "@prisma/client": "6.19.3",
     "ai": "7.0.118",
+    "antd": "6.6.5",
     "cos-nodejs-sdk-v5": "3.0.0",
     "express": "5.1.0",
     "fs-ext": "2.1.1",
@@ -66,12 +70,14 @@
     "sharp": "0.35.4"
   },
   "devDependencies": {
+    "@ant-design/cssinjs": "2.1.2",
     "@types/express": "5.0.3",
     "@types/fs-ext": "2.0.3",
     "@types/node": "22.15.30",
     "@types/qrcode": "1.5.5",
     "@types/react": "19.1.10",
     "@types/react-dom": "19.1.9",
+    "jsqr": "1.4.0",
     "playwright": "1.63.0",
     "prisma": "6.19.3",
     "typescript": "5.8.3",
@@ -90,6 +96,9 @@
     "overrides": {
       "@nestjs/platform-express>multer": "2.3.0",
       "@prisma/config>deepmerge-ts": "8.0.1"
+    },
+    "patchedDependencies": {
+      "@rc-component/util@1.14.1": "patches/@rc-component__util@1.14.1.patch"
     }
   }
 }

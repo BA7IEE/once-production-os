@@ -1,8 +1,12 @@
+import {homepageImpacts} from './professional-homepage-lifecycle.ts';
+import {clientPresentationImpacts} from './client-presentation-lifecycle.ts';
+import {projectSelectionImpacts} from './project-selection-lifecycle.ts';
 import {formalMediaSource} from './media-ownership.ts';
 import {authorizePartyCleanup} from './project-parties.ts';
 import {affectedAi,aiErasureSnapshot,validateAiErasure} from './ai-maintenance.ts';
 import {affectedLocales,localeErasureSnapshot,validateLocaleErasurePlan} from './locale-maintenance.ts';
 import {SOURCE_IDENTITY_EVIDENCE} from './talent-source-identity-evidence.ts';
+import {inboxErasureImpacts} from './supplier-inbox-lifecycle.ts';
 import {IDENTITY_RETENTION,IDENTITY_DEPENDENCY,identityItemCode,validateIdentityRetention} from './talent-identity-retention.ts';
 import { sourceFactGraph, sourceFactItemCode, validateSourceFactDecision, validateSourceFactPlan, SOURCE_FACT_GROUP, SOURCE_FACT_ITEM } from './talent-source-fact-erasure.ts';
 import { previewTalentSourceErasure } from './talent-source-erasure.ts';
@@ -84,7 +88,7 @@ export class Deletions {
 
     private async rootVisible(tx: Tx, actor: Actor, kind: 'WORK' | 'PROJECT' | 'SHORTLIST', id: string) {
         try {
-            if (kind === 'SHORTLIST') await shortlistFor(tx, actor, id);
+            if (kind === 'SHORTLIST') await shortlistFor(tx,actor,id,this.clock);
             else if (kind === 'WORK') await workFor(tx, actor, id, this.clock);
             else await projectFor(tx, actor, id, this.clock);
             return true;
@@ -329,6 +333,10 @@ export class Deletions {
             }
         }
 
+        const homepage=await homepageImpacts(tx,actor,targetKind,targetId);for(const item of homepage.items)add(item);for(const code of homepage.unresolved)miss(code);
+        const client=await clientPresentationImpacts(tx,actor,targetKind,targetId);for(const item of client.items)add(item);for(const code of client.unresolved)miss(code);
+        const selection=await projectSelectionImpacts(tx,actor,targetKind,targetId);for(const item of selection.items)add(item);for(const code of selection.unresolved)miss(code);
+        const inbox=await inboxErasureImpacts(tx,actor,targetKind,targetId);for(const item of inbox.items)add(item);for(const code of inbox.unresolved)miss(code);
         const sorted = [...impacts.values()].sort((a, b) => [a.resourceKind, a.resourceId, a.dependencyKind].join(':').localeCompare([b.resourceKind, b.resourceId, b.dependencyKind].join(':')));
         const truncated = sorted.length > L.impacts;
         const items = sorted.slice(0, L.impacts);

@@ -27,8 +27,9 @@ export async function filterSupplierFields(tx:Tx,actor:Actor,clock:Clock,graph:A
   invariant(q.min===undefined||q.max===undefined||q.min<=q.max,'FIELD_SEARCH_RANGE','数值范围无效',400);
   invariant(!q.from||!q.until||q.from<=q.until,'FIELD_SEARCH_RANGE','日期范围无效',400);
   invariant(!q.state||q.state==='KNOWN'||!q.codes&&q.min===undefined&&q.max===undefined&&!q.from&&!q.until&&q.boolean===undefined,'FIELD_SEARCH_STATE','未知、未提供或明确没有不能同时带值筛选',400);
-  const rows=await tx.find('supplierFacts',{workspaceId:actor.workspaceId,fieldCode:q.fieldCode,recordKey:'single',status:'ACTIVE'});invariant(rows.length<=50000,'FIELD_SEARCH_LIMIT','该字段的资料量较大，请增加职业或人员条件',503);
-  for(const r of rows)if(idSet.has(r.personId)&&r.visibility===f.visibility&&graph.sourceUsable(r.sourceId)&&graph.source(r.sourceId)?.revision===r.sourceRevision&&(!r.personRoleId||!!graph.fact('personRoles',r.personRoleId)&&graph.usable('personRoles',graph.fact('personRoles',r.personRoleId)!)))facts.push(r);
+  const roleIds=[...new Set(items.flatMap(p=>p.matchingRoleIds as string[]??[]))].filter(id=>!query.roleCode||graph.fact('personRoles',id)?.roleCode===query.roleCode),sourceIds=graph.visibility.visibleSourceIds.filter(id=>graph.sourceUsable(id));
+  const rows=await tx.supplierFieldRoots({workspaceId:actor.workspaceId,personIds:[...idSet],roleIds,sourceIds,fieldCode:q.fieldCode,visibility:f.visibility,owner:f.owner});invariant(rows.length<=50000,'FIELD_SEARCH_LIMIT','该字段的资料量较大，请增加职业或人员条件',503);
+  for(const r of rows)if(idSet.has(r.personId)&&r.visibility===f.visibility&&graph.sourceUsable(r.sourceId)&&graph.source(r.sourceId)?.revision===r.sourceRevision&&(!r.personRoleId||r.roleCode===graph.fact('personRoles',r.personRoleId)?.roleCode&&!!graph.fact('personRoles',r.personRoleId)&&graph.usable('personRoles',graph.fact('personRoles',r.personRoleId)!)))facts.push(r);
  }
  const choices=await tx.findIn('supplierFactChoices',actor.workspaceId,'factId',facts.filter(r=>r.valueType==='CODE_SET').map(r=>r.id)),codes=new Map<string,string[]>();for(const c of choices){const group=codes.get(c.factId)??[];group.push(c.code);codes.set(c.factId,group);}
  const byOwner=new Map<string,SupplierFact[]>();for(const row of facts){const key=row.personId+':'+(row.personRoleId??'person')+':'+row.fieldCode,rows=byOwner.get(key)??[];rows.push(row);byOwner.set(key,rows);}

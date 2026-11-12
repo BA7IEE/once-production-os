@@ -1,0 +1,195 @@
+{
+  "status": "PASS",
+  "head": "1c492fbebaf558aac6ab9763be979a70eff9c408",
+  "subject": "uncommitted local working tree",
+  "sourceHashes": {
+    "apps/admin-web/src/talent-media-staging.tsx": "9fb9840c067969160046a33bd741a5377dd8627c1e8b7a6d058de370feee54f6",
+    "apps/admin-web/src/supplier-profile-ui.tsx": "69fe74a02576e137b00cf459b3d75c3925ec3e9a9605143632edd638feb7fa14",
+    "apps/admin-web/src/talent-maintenance-ui.tsx": "9625a272458f9695a84bed2d40a67dd248efea4f19c0fba570e10dd028249bc8"
+  },
+  "source": "isolated PostgreSQL, Nest API, real Chromium, local COS SDK fake",
+  "observations": {
+    "synthetic_cleanup_unknown": {
+      "pass": true,
+      "dbState": "DELETE_UNKNOWN",
+      "knownKeyDeleted": true,
+      "siblingRetained": true
+    },
+    "layout_1366": {
+      "pass": true,
+      "name": "1366",
+      "requested": {
+        "width": 1366,
+        "height": 768,
+        "zoom": 1
+      },
+      "dimensions": {
+        "width": 1366,
+        "height": 768,
+        "dpr": 1,
+        "scrollWidth": 1366
+      },
+      "nav": {
+        "count": 7,
+        "targetSteps": 2,
+        "forward": true,
+        "backward": true,
+        "again": true
+      },
+      "focus": {
+        "focusVisible": true,
+        "outlineStyle": "solid",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(52, 85, 139)"
+      },
+      "longHit": {
+        "hit": true,
+        "inside": true,
+        "lines": 5
+      },
+      "noticeHit": {
+        "hit": true,
+        "inside": true,
+        "lines": 1
+      },
+      "button": {
+        "hit": true,
+        "inside": true
+      },
+      "hasFilenameDescription": true,
+      "describedEvery": true,
+      "visibleFilename": {
+        "matches": true,
+        "visible": true,
+        "inside": true,
+        "hit": true
+      }
+    },
+    "distinct_media_button_description": {
+      "pass": true,
+      "buttonCount": 3
+    },
+    "loading_feedback": {
+      "pass": true,
+      "waitingCopy": false,
+      "replayVisible": false,
+      "loadingVisible": true
+    },
+    "focus_restored_after_retire": {
+      "pass": true,
+      "tag": "INPUT",
+      "type": "file",
+      "focusVisible": true
+    },
+    "file_input_cleared_and_reselectable": {
+      "pass": true,
+      "inputCleared": true,
+      "reselectEnabled": true
+    },
+    "no_stale_success_on_failure": {
+      "pass": true,
+      "errorMessage": "合成测试：请求暂不可用，请重试。",
+      "staleSuccess": false
+    },
+    "keyboard_recovery_and_focus": {
+      "pass": true,
+      "replayReached": true,
+      "replayFocusVisible": true,
+      "replayFocusRestored": true
+    },
+    "same_page_recovery": {
+      "pass": true,
+      "requests": 2,
+      "sameKey": true,
+      "unchangedRevision": true
+    },
+    "no_stale_error_after_recovery": {
+      "pass": true,
+      "alertVisible": false
+    },
+    "unrelated_file_selection_preserved": {
+      "pass": true,
+      "preserved": true
+    },
+    "offline_upload_message": {
+      "pass": true,
+      "message": "网络或响应异常，无法确认上传状态。请恢复连接后重新打开草稿，核对原上传；不要重复上传。"
+    },
+    "offline_unknown_blocks_duplicate": {
+      "pass": true,
+      "uploadDisabledAfterReconnect": true,
+      "inputDisabledAfterReconnect": true,
+      "guidanceVisible": true
+    },
+    "open_upload_label_accurate": {
+      "pass": true,
+      "text": "offline-synthetic.png · 等待文件传输，可取消后重新上传\n\n取消上传"
+    },
+    "offline_upload_recovery": {
+      "pass": true,
+      "originalCancelled": true,
+      "reuploadReady": true
+    }
+  },
+  "viewportResults": [
+    {
+      "name": "1366",
+      "requested": {
+        "width": 1366,
+        "height": 768,
+        "zoom": 1
+      },
+      "dimensions": {
+        "width": 1366,
+        "height": 768,
+        "dpr": 1,
+        "scrollWidth": 1366
+      },
+      "nav": {
+        "count": 7,
+        "targetSteps": 2,
+        "forward": true,
+        "backward": true,
+        "again": true
+      },
+      "focus": {
+        "focusVisible": true,
+        "outlineStyle": "solid",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(52, 85, 139)"
+      },
+      "longHit": {
+        "hit": true,
+        "inside": true,
+        "lines": 5
+      },
+      "noticeHit": {
+        "hit": true,
+        "inside": true,
+        "lines": 1
+      },
+      "button": {
+        "hit": true,
+        "inside": true
+      },
+      "hasFilenameDescription": true,
+      "describedEvery": true,
+      "visibleFilename": {
+        "matches": true,
+        "visible": true,
+        "inside": true,
+        "hit": true
+      }
+    }
+  ],
+  "httpSummary": {
+    "retire": {
+      "200": 4,
+      "422": 1
+    },
+    "upload-create": {
+      "200": 7
+    }
+  },
+  "findings": []
+}

@@ -17,6 +17,8 @@ import { spawnSync } from 'node:child_process';
 import { PrismaClient } from '@prisma/client';
 import { PrismaStore } from '../../apps/api/src/prisma-store.ts';
 import { Application } from '../../packages/core/src/api.ts';
+import { RecoveryOps } from '../../packages/core/src/recovery.ts';
+import { AppError } from '../../packages/core/src/errors.ts';
 import { Client, FakeClock, SYNTHETIC_PASSWORD, result, sourceInput } from '../support/fixtures.ts';
 import { LocalMediaProvider } from '../../apps/api/src/media/local-provider.ts';
 import { SafetyJournalWriter, readSafetyJournal } from '../../apps/api/src/recovery/safety-journal.ts';
@@ -214,8 +216,8 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         assert.equal(manifest.media.assetCount,1);
         assert.equal(manifest.media.assets[0].id,uploadId);
 
-        // Freeze a zero-delta backup-head copy. Then create one prepare-contained committed
-        // delta and one deliberately unresolved committed delta, each with write-ahead markers.
+        // Preserve a complete historical zero-delta view. It is not the current
+        // journal after subsequent operations. Then create two later deltas.
         copyFileSync(journal,zeroJournal);chmodSync(zeroJournal,0o600);
         const beforeIntent=(await readSafetyJournal(journal)).snapshot.sequence;
         const currentSource=await sourceClient.sourceRecord.findUniqueOrThrow({where:{id:sourceId}});
@@ -231,6 +233,7 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         assert.ok(containedState.entries.slice(beforeIntent).some(x=>x.action==='intent.source.suspend'));
         assert.ok(containedState.entries.slice(beforeIntent).some(x=>x.action==='commit.source.suspend'));
         assert.ok(containedState.entries.slice(beforeIntent).some(x=>x.action==='source.suspend'));
+        // This complete view is also historical after the next operation.
         copyFileSync(journal,containedJournal);chmodSync(containedJournal,0o600);
 
         const member=await sourceClient.membership.findUniqueOrThrow({where:{id:deltaMemberId}});
@@ -277,9 +280,9 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         const inspected=run('pnpm',['--silent','recovery:check','--','--actor-login','owner',
             '--recovery-run-id',preparedRow.id,'--record'],{
             ...common,ALLOW_RECOVERY_CHECK:'yes'
-        });
+        },3);
         const report=JSON.parse(inspected.stdout);
-        assert.deepEqual(report.blockers,[]);
+        assert.deepEqual(report.blockers,['RECOVERY_TRUST_EVIDENCE_UNAVAILABLE']);
         assert.equal(report.contactDecryptFailures,0);
         assert.equal(report.talent.relationFailures, 0);
         const retained = await restoreClient.talentProfile.findUniqueOrThrow({where:{id:historyId}});
@@ -337,28 +340,79 @@ test('DEV-09E real backup/restore resolves contained deltas and blocks unresolve
         },3);
         const blocked=JSON.parse(blockedRun.stdout);
         assert.equal(blocked.eligible,false);
+        assert.ok(blocked.blockers.includes('RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'));
         assert.ok(blocked.blockers.includes('SAFETY_JOURNAL_DELTA_UNRESOLVED'));
         assert.ok(blocked.deltaResolution.items.some((x:any)=>x.operation==='source.suspend'&&x.resolution==='CONTAINED_BY_PREPARE'));
         assert.ok(blocked.deltaResolution.items.some((x:any)=>x.operation==='member.disable'&&x.resolution==='BLOCKER'));
         assert.equal((await restoreClient.workspace.findFirstOrThrow()).recoveryEpoch,oldEpoch);
 
-        const zeroEligible=JSON.parse(run('pnpm',['--silent','recovery:approve','--',
+        const zeroView=JSON.parse(run('pnpm',['--silent','recovery:approve','--',
             '--actor-login','owner','--recovery-run-id',preparedRow.id,
             '--backup-manifest',manifestPath,'--database-dump',dumpPath],{
             ...common,SAFETY_JOURNAL_FILE:zeroJournal
-        }).stdout);
-        assert.equal(zeroEligible.eligible,true);
-        assert.equal(zeroEligible.deltaResolution.postBackupEntries,0);
+        },3).stdout);
+        assert.equal(zeroView.eligible,false);
+        assert.ok(zeroView.blockers.includes('RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'));
+        assert.equal(zeroView.deltaResolution.postBackupEntries,0);
 
-        const containedEligible=JSON.parse(run('pnpm',['--silent','recovery:approve','--',
+        const containedView=JSON.parse(run('pnpm',['--silent','recovery:approve','--',
             '--actor-login','owner','--recovery-run-id',preparedRow.id,
             '--backup-manifest',manifestPath,'--database-dump',dumpPath],{
             ...common,SAFETY_JOURNAL_FILE:containedJournal
-        }).stdout);
-        assert.equal(containedEligible.eligible,true);
-        assert.ok(containedEligible.deltaResolution.postBackupEntries>0);
-        assert.equal(containedEligible.deltaResolution.unresolved,0);
-        assert.ok(containedEligible.deltaResolution.items.some((x:any)=>x.operation==='source.suspend'&&x.resolution==='CONTAINED_BY_PREPARE'));
+        },3).stdout);
+        assert.equal(containedView.eligible,false);
+        assert.ok(containedView.blockers.includes('RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'));
+        assert.ok(containedView.deltaResolution.postBackupEntries>0);
+        assert.equal(containedView.deltaResolution.unresolved,0);
+        assert.ok(containedView.deltaResolution.items.some((x:any)=>x.operation==='source.suspend'&&x.resolution==='CONTAINED_BY_PREPARE'));
+
+        // A refused APPLY must not change the epoch, approval record or audit.
+        const beforeRefusal={
+            workspace:await restoreClient.workspace.findFirstOrThrow(),
+            run:await restoreClient.recoveryRun.findUniqueOrThrow({where:{id:preparedRow.id}}),
+            audits:await restoreClient.auditEvent.findMany({where:{action:'recovery.approve'},orderBy:{id:'asc'}}),
+            source:await restoreClient.sourceRecord.findUniqueOrThrow({where:{id:sourceId}})
+        };
+        for(const safetyJournalFile of [zeroJournal,containedJournal]){
+            const refused=run('pnpm',['--silent','recovery:approve','--',
+                '--actor-login','owner','--recovery-run-id',preparedRow.id,
+                '--backup-manifest',manifestPath,'--database-dump',dumpPath,'--apply'],{
+                ...common,SAFETY_JOURNAL_FILE:safetyJournalFile,ALLOW_RECOVERY_APPROVE:'yes'
+            },3);
+            const refusedResult=JSON.parse(refused.stdout);
+            assert.equal(refusedResult.mode,'APPLY');assert.equal(refusedResult.eligible,false);
+            assert.ok(refusedResult.blockers.includes('RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'));
+            assert.deepEqual(await restoreClient.workspace.findFirstOrThrow(),beforeRefusal.workspace);
+            assert.deepEqual(await restoreClient.recoveryRun.findUniqueOrThrow({where:{id:preparedRow.id}}),beforeRefusal.run);
+            assert.deepEqual(await restoreClient.auditEvent.findMany({where:{action:'recovery.approve'},orderBy:{id:'asc'}}),beforeRefusal.audits);
+            assert.deepEqual(await restoreClient.sourceRecord.findUniqueOrThrow({where:{id:sourceId}}),beforeRefusal.source);
+        }
+        assert.equal(beforeRefusal.workspace.recoveryEpoch,oldEpoch);
+        assert.equal(beforeRefusal.run.state,'INSPECTED');
+        assert.equal(beforeRefusal.audits.length,0);
+        assert.equal(beforeRefusal.source.status,'SUSPENDED');
+
+        // No new epoch has been approved: even if INTERNAL is requested, the
+        // restored administrator cannot log in and browse restored records.
+        const isolatedApp=new Application(restoreStore,{
+            origin:'https://restore-blocked.test.invalid',secureCookies:true,contactKey,csrfKey,recoveryEpoch:newEpoch,
+            accessMode:'INTERNAL',environment:'test',mediaEnabled:false,
+            dataEgressMode:'DISABLED',dataCleanupMode:'DISABLED',dataMergeMode:'DISABLED'
+        },clock);
+        const isolatedOwner=new Client(isolatedApp);
+        assert.equal((await isolatedOwner.login()).status,503);
+
+        // Check the underlying privacy policy on the same real restored data
+        // without forging a recovery approval or opening the HTTP auth gate.
+        // This is a policy-layer check, not the post-approval HTTP regression.
+        const recoveryOps=new RecoveryOps(clock,{
+            accessMode:'MAINTENANCE',dataEgressMode:'DISABLED',dataCleanupMode:'DISABLED',dataMergeMode:'DISABLED',
+            recoveryEpoch:newEpoch,contactKey
+        });
+        const recoveryActor=await restoreStore.transaction(tx=>recoveryOps.actorFromRestoredTarget(tx,'owner'));
+        const hidden404=(error:unknown)=>error instanceof AppError&&error.code==='NOT_FOUND'&&error.status===404;
+        await assert.rejects(restoreStore.transaction(tx=>isolatedApp.talent.getPerson(tx,recoveryActor,personId)),hidden404);
+        await assert.rejects(restoreStore.transaction(tx=>isolatedApp.localeTexts.get(tx,recoveryActor,localeId)),hidden404);
 
         const approved=run('pnpm',['--silent','recovery:approve','--',
             '--actor-login','owner','--recovery-run-id',preparedRow.id,

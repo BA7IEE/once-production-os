@@ -1,0 +1,10 @@
+{
+  "status": "PASSED",
+  "checks": [
+    "one-project-multiple-structured-occupations-save-through-real-UI",
+    "same-occupation-current-query-candidate-is-explicitly-nominated-without-ACTUAL",
+    "project-scoped-price-time-confirmation-and-adoption-have-explicit-human-update-without-actual-work",
+    "withdrawn-project-source-stops-linked-candidate-and-condition-reads"
+  ],
+  "errors": []
+}

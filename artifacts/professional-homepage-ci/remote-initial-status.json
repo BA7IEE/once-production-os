@@ -1,0 +1,205 @@
+{
+  "headRefOid": "19061493020a43d6f8a5fc03cf30ba28f3c710da",
+  "statusCheckRollup": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:01:48Z",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737858/job/128710327271",
+      "name": "browser-resume",
+      "startedAt": "2026-11-08T10:59:35Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:03:32Z",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737914/job/128710327071",
+      "name": "acceptance",
+      "startedAt": "2026-11-08T10:59:35Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE business flow repair acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:05:59Z",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737951/job/128710327102",
+      "name": "acceptance",
+      "startedAt": "2026-11-08T10:59:35Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE supplier library acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:17:52Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737858/job/128710327239",
+      "name": "postgres-contract",
+      "startedAt": "2026-11-08T10:59:35Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:04:35Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737914/job/128710326942",
+      "name": "core",
+      "startedAt": "2026-11-08T10:59:35Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE business flow repair acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:01:47Z",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737858/job/128710327304",
+      "name": "browser-handoff",
+      "startedAt": "2026-11-08T10:59:35Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:02:25Z",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737858/job/128710327051",
+      "name": "browser-media",
+      "startedAt": "2026-11-08T10:59:35Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:02:04Z",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737858/job/128710327268",
+      "name": "browser-production",
+      "startedAt": "2026-11-08T10:59:36Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:01:38Z",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737858/job/128710327303",
+      "name": "browser-talent-intake",
+      "startedAt": "2026-11-08T10:59:35Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:01:56Z",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737858/job/128710327368",
+      "name": "browser-talent-directory",
+      "startedAt": "2026-11-08T10:59:35Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:01:26Z",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737858/job/128710327504",
+      "name": "browser-talent-auth",
+      "startedAt": "2026-11-08T10:59:36Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:02:02Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737858/job/128710327347",
+      "name": "browser-talent-maintenance",
+      "startedAt": "2026-11-08T10:59:36Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:02:33Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737858/job/128710327316",
+      "name": "browser-media-staging",
+      "startedAt": "2026-11-08T10:59:35Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:03:11Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737858/job/128710327251",
+      "name": "browser-media-collections",
+      "startedAt": "2026-11-08T10:59:36Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:03:22Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737858/job/128710327294",
+      "name": "browser-work-cases",
+      "startedAt": "2026-11-08T10:59:35Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:03:54Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737858/job/128710327333",
+      "name": "browser-media-purge",
+      "startedAt": "2026-11-08T10:59:36Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:01:31Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737858/job/128710327403",
+      "name": "browser-agent-ingestion",
+      "startedAt": "2026-11-08T10:59:36Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:02:14Z",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737858/job/128710327254",
+      "name": "browser-agent-media",
+      "startedAt": "2026-11-08T10:59:36Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:02:14Z",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737858/job/128710327230",
+      "name": "browser-agent-structures",
+      "startedAt": "2026-11-08T10:59:35Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-08T11:02:14Z",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/BA7IEE/once-production-os/actions/runs/42473737858/job/128710327337",
+      "name": "browser-agent-handoff",
+      "startedAt": "2026-11-08T10:59:35Z",
+      "status": "COMPLETED",
+      "workflowName": "ONCE acceptance"
+    }
+  ]
+}

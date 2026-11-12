@@ -1,13 +1,15 @@
+import {HOMEPAGE_OWNER_ROUTES} from './professional-homepage-routes.ts';
 import {SupplierDocumentSchemas as D} from './supplier-documents.ts';
 import {handoffExposureSchema} from './talent-handoff.ts';
 import {WorkCaseSchemas} from './work-case-schema.ts';
 import {mediaExposureSchema} from './talent-media-exposure.ts';
 import {CollectionSchemas} from './media-collections.ts';
+import {v} from './validation.ts';
 import {TalentMediaSchemas,MediaSchemas} from './media-validation.ts';
 import type {RouteDefinition} from './routes.ts';
 import {MaintenanceSchemas as S} from './talent-maintenance-schema.ts';
 import {SupplierProfileSchemas as P} from './supplier-profile-schema.ts';
-export const TALENT_MAINTENANCE_ROUTES:RouteDefinition[]=[
+export const TALENT_MAINTENANCE_ROUTES:RouteDefinition[]=[...HOMEPAGE_OWNER_ROUTES,
  {method:'POST',path:'/portal/profile-drafts/{id}/documents/batch',operation:'portal.supplier.documentBatch',mode:'COMMAND',schema:D.batch},
  {method:'POST',path:'/portal/profile-drafts/{id}/documents/work-group',operation:'portal.supplier.documentWorkGroup',mode:'COMMAND',schema:D.workGroup},
  {method:'POST',path:'/portal/profile-drafts/{id}/documents/work',operation:'portal.supplier.documentWork',mode:'COMMAND',schema:D.work},
@@ -25,6 +27,9 @@ export const TALENT_MAINTENANCE_ROUTES:RouteDefinition[]=[
  {method:'POST',path:'/portal/profile-drafts/{id}/rebase',operation:'portal.supplier.rebase',mode:'COMMAND',schema:P.rebase},
  {method:'POST',path:'/portal/profile-drafts/{id}/confirm',operation:'portal.supplier.confirm',mode:'COMMAND',schema:P.confirm},
  {method:'GET',path:'/portal/commands/{id}',operation:'portal.command.get',mode:'READ'},
+ {method:'GET',path:'/portal/commands/{id}/cancel',operation:'portal.command.cancelReceipt',mode:'READ'},
+ {method:'GET',path:'/portal/commands/{id}/stop',operation:'portal.command.stopStatus',mode:'READ'},
+ {method:'POST',path:'/portal/commands/{id}/stop',operation:'portal.command.stop',mode:'COMMAND',schema:v.object({})},
  {method:'GET',path:'/talent-handoff/people/{id}',operation:'talent.handoff.get',mode:'READ',permission:'talent.review'},
  {method:'POST',path:'/talent-grants/{id}/exposure',operation:'talent.grant.exposure',mode:'COMMAND',permission:'talent.review',schema:handoffExposureSchema},
  {method:'GET',path:'/portal/work-catalog',operation:'portal.work.catalog',mode:'READ'},

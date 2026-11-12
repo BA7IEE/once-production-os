@@ -1,4 +1,8 @@
+import {assertHomepageErasureClean} from './professional-homepage-lifecycle.ts';
+import {assertClientErasureClean} from './client-presentation-lifecycle.ts';
+import {assertProjectSelectionClean} from './project-selection-lifecycle.ts';
 import {supplierFieldSnapshot,supplierFieldScopeBlocker,eraseSupplierFields} from './supplier-field-lifecycle.ts';
+import {assertInboxFinalizationClean} from './supplier-inbox-lifecycle.ts';
 import {maintenanceSnapshot,maintenanceScopeBlocker,revokePersonMaintenance} from './talent-maintenance-lifecycle.ts';
 import {personHistoryErasure,historyErasureBlocker,recordPersonHistoryErasure,assertHistoryErasureComplete} from './merge-history-erasure.ts';
 import {deletionWorkerActor} from './deletion-worker-policy.ts';
@@ -77,6 +81,13 @@ export async function eraseTalentPersonGraph(tx: Tx, request: DeletionRequest, i
     await eraseSupplierFields(tx,request.workspaceId,[item.resourceId,...g.history.oldIds]);
     await revokePersonMaintenance(tx,request.workspaceId,[item.resourceId,...g.history.oldIds],clock,true);
     const roles = new Set((g.selected.get('personRoles') ?? []).map(r => r.id));
+    // Exact WorkCredit FKs must disappear in the same transaction as their roles.
+    // The individual frozen relation items still own and record that decision.
+    const decisions=await tx.find('deletionItems',{workspaceId:request.workspaceId,requestId:request.id});
+    for(const credit of await tx.find('workCredits',{workspaceId:request.workspaceId,personId:item.resourceId}))if(credit.personRoleId&&roles.has(credit.personRoleId)){
+        invariant(decisions.some(i=>i.resourceKind==='workCredit'&&i.resourceId===credit.id&&i.resolvedAction==='REMOVE_RELATION'),'TD2_CREDIT_ERASURE_REQUIRED','精确作品署名须在同一冻结计划中明确移除',409);
+        await tx.remove('workCredits',credit.id);
+    }
     for (const row of await tx.find('shortlistItems', { workspaceId: request.workspaceId, personId: item.resourceId })) {
         if (!row.personRoleId || !roles.has(row.personRoleId)) continue;
         // The parent Person is already blocked. Clearing this FK does not authorize a fallback role.
@@ -100,6 +111,7 @@ export async function eraseTalentPersonGraph(tx: Tx, request: DeletionRequest, i
 
 /** Older persisted requests must not finalize a root while newly introduced dependencies survive. */
 export async function assertTalentFinalizationClean(tx: Tx, workspaceId: string, kind: string, id: string, clock: Clock) {
+    await assertHomepageErasureClean(tx,workspaceId,kind,id);await assertClientErasureClean(tx,workspaceId,kind,id);await assertInboxFinalizationClean(tx,workspaceId,kind,id);await assertProjectSelectionClean(tx,workspaceId,kind,id);
     if (kind !== 'PERSON' && kind !== 'SOURCE' && kind !== 'ASSET') return;
     if(kind==='PERSON'||kind==='SOURCE'){const extra=await supplierFieldSnapshot(tx,workspaceId,kind==='PERSON'?[id]:undefined,kind==='SOURCE'?id:undefined);invariant(extra.count===0,'SUPPLIER_FIELD_CLEANUP_INCOMPLETE','专业补充资料尚未完成清理',409);}
     if(kind==='PERSON')await assertHistoryErasureComplete(tx,workspaceId,id);

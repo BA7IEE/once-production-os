@@ -9,6 +9,15 @@ datasource db {
 }
 
 model Workspace {
+ professionalHomepages ProfessionalHomepage[] @relation("Homepage_workspace")
+ homepageVersions HomepageVersion[] @relation("HomepageVersion_workspace")
+
+  clientPresentations ClientPresentation[] @relation("ClientPresentation_workspace")
+  clientVersions ClientVersion[] @relation("ClientVersion_workspace")
+  clientRecipients ClientRecipient[] @relation("ClientRecipient_workspace")
+  clientGuestSessions ClientGuestSession[] @relation("ClientSession_workspace")
+  clientFeedback ClientFeedback[] @relation("ClientFeedback_workspace")
+  projectRequirements ProjectRequirement[] @relation("Requirement_workspace")
   SourceReviewRequest_workspaceId SourceReviewRequest[] @relation("SourceReviewRequest_workspaceId")
   talentAuthDeliveries TalentAuthDelivery[]
   talentAuthChallenges TalentAuthChallenge[]
@@ -276,6 +285,7 @@ model ScopeMember {
 }
 
 model SourceRecord {
+  requirements ProjectRequirement[] @relation("Requirement_source")
   confirmedByTalentId String? @db.Uuid
   selfConfirmedAt DateTime? @db.Timestamptz(3)
   SourceReviewRequest_sourceId SourceReviewRequest[] @relation("SourceReviewRequest_sourceId")
@@ -356,6 +366,8 @@ model SourceRecord {
 }
 
 model Person {
+ professionalHomepage ProfessionalHomepage[] @relation("Homepage_person")
+
   SourceReviewRequest_personId SourceReviewRequest[] @relation("SourceReviewRequest_personId")
   AiTask_personId AiTask[] @relation("AiTask_personId")
   LocaleDependency_person_locale LocaleDependency[] @relation("LocaleDependency_person_locale")
@@ -883,6 +895,8 @@ model WorkCredit {
 }
 
 model Project {
+  requirements ProjectRequirement[] @relation("Requirement_project")
+  candidateLists Shortlist[] @relation("Shortlist_project")
   parties ProjectParty[] @relation("PartyProject")
 
   AiTask_projectId AiTask[] @relation("AiTask_projectId")
@@ -959,6 +973,9 @@ model ProjectWork {
 }
 
 model Shortlist {
+  clientPresentation ClientPresentation? @relation("ClientPresentation_shortlist")
+  projectId String? @db.Uuid
+  linkedProject Project? @relation("Shortlist_project",fields:[workspaceId,projectId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
   ShortlistItem_shortlistIdRef ShortlistItem[] @relation("ShortlistItem_shortlistIdRef")
   id String @id @db.Uuid
   workspaceId String @db.Uuid
@@ -978,6 +995,10 @@ model Shortlist {
 }
 
 model ShortlistItem {
+  requirementId String? @db.Uuid
+  requirementRevision Int?
+  selectionCiphertext String? @db.Text
+  requirement ProjectRequirement? @relation("Selection_requirement",fields:[workspaceId,requirementId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
   personRoleId String? @db.Uuid
   personRoleRevision Int?
   roleContextState String? @db.Text
@@ -2363,6 +2384,8 @@ model ProjectParty {
 }
 
 model TalentAccount {
+ professionalHomepages ProfessionalHomepage[] @relation("Homepage_account")
+
   identityKeyDigest String @db.Text
   audits AuditEvent[]
   receipts CommandReceipt[]
@@ -2542,6 +2565,8 @@ model TalentClaim {
 }
 
 model TalentAccessGrant {
+ professionalHomepages ProfessionalHomepage[] @relation("Homepage_grant")
+
   confirmedByTalentId String? @db.Uuid
   id String @id @db.Uuid
   workspaceId String @db.Uuid
@@ -2564,6 +2589,8 @@ model TalentAccessGrant {
 }
 
 model TalentConsent {
+ homepageVersions HomepageVersion[] @relation("HomepageVersion_consent")
+
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -2799,6 +2826,8 @@ model SupplierCatalog {
   @@map("supplierCatalogs")
 }
 model SupplierFact {
+  mergeDecisionId String? @db.Uuid
+  originalConfirmation Json?
   id String @id @db.Uuid
   workspaceId String @db.Uuid
   createdAt DateTime @db.Timestamptz(3)
@@ -2840,4 +2869,249 @@ model SupplierFactChoice {
   @@unique([workspaceId, factId, code])
   @@index([workspaceId, code, factId])
   @@map("supplierFactChoices")
+}
+
+model SupplierInboxBatch {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  sourceId String @db.Uuid
+  scopeId String @db.Uuid
+  maintainerId String @db.Uuid
+  sourceRevision Int
+  scopeRevision Int
+  receivedAt DateTime @db.Timestamptz(3)
+  recoveryEpoch String @db.Text
+  state String @db.Text
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, sourceId])
+  @@index([workspaceId, createdAt, id], map: "supplier_inbox_batch_order")
+  @@map("supplierInboxBatches")
+}
+model SupplierInboxMaterial {
+  id String @id @db.Uuid
+  workspaceId String @db.Uuid
+  createdAt DateTime @db.Timestamptz(3)
+  updatedAt DateTime @db.Timestamptz(3)
+  revision Int
+  batchId String @db.Uuid
+  assetId String? @db.Uuid
+  actorId String @db.Uuid
+  createdById String @db.Uuid
+  actorRevision Int
+  userEpoch Int
+  recoveryEpoch String @db.Text
+  state String @db.Text
+  materialKind String @db.Text
+  useAi Boolean
+  personIds String[] @db.Uuid
+  workIds String[] @db.Uuid
+  assetIds String[] @db.Uuid
+  leaseToken String? @db.Uuid
+  leaseUntil DateTime? @db.Timestamptz(3)
+  runId String? @db.Uuid
+  errorCode String? @db.Text
+  ciphertext String? @db.Text
+  @@unique([workspaceId, id])
+  @@index([workspaceId, batchId, state], map: "supplier_inbox_material_batch")
+  @@index([state, leaseUntil, createdAt, id], map: "supplier_inbox_material_claim")
+  @@map("supplierInboxMaterials")
+}
+
+model ProjectRequirement {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ revision Int
+ projectId String @db.Uuid
+ sourceId String @db.Uuid
+ sourceRevision Int
+ roleCode String @db.Text
+ headcount Int
+ locationCodes String[]
+ startsOn String? @db.Text
+ endsOn String? @db.Text
+ dateNote String @db.Text
+ taskNote String @db.Text
+ necessary Json
+ preferred Json
+ questions String[]
+ status String @db.Text
+ workspace Workspace @relation("Requirement_workspace",fields:[workspaceId],references:[id],onDelete:Restrict,onUpdate:Cascade)
+ project Project @relation("Requirement_project",fields:[workspaceId,projectId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
+ source SourceRecord @relation("Requirement_source",fields:[workspaceId,sourceId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
+ selections ShortlistItem[] @relation("Selection_requirement")
+ @@unique([workspaceId,id])
+ @@index([workspaceId,projectId,status])
+ @@index([workspaceId,sourceId])
+ @@map("projectRequirements")
+}
+
+model ClientPresentation {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ revision Int
+ scopeId String @db.Uuid
+ maintainerId String @db.Uuid
+ state String @db.Text
+ workspace Workspace @relation("ClientPresentation_workspace",fields:[workspaceId],references:[id],onDelete:Restrict,onUpdate:Cascade)
+ shortlist Shortlist @relation("ClientPresentation_shortlist",fields:[workspaceId,id],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
+ versions ClientVersion[] @relation("ClientVersion_presentation")
+ @@unique([workspaceId,id])
+ @@map("clientPresentations")
+}
+model ClientVersion {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ revision Int
+ presentationId String @db.Uuid
+ versionNumber Int
+ publisherId String @db.Uuid
+ publisherUserEpoch Int
+ recoveryEpoch String @db.Text
+ expiresAt DateTime @db.Timestamptz(3)
+ state String @db.Text
+ approvalSourceId String @db.Uuid
+ approvalSourceRevision Int
+ approvedAt DateTime @db.Timestamptz(3)
+ contentCiphertext String? @db.Text
+ manifestDigest String @db.Text
+ dependencies Json
+ entryIds String[] @db.Uuid
+ personIds String[] @db.Uuid
+ sourceIds String[] @db.Uuid
+ workIds String[] @db.Uuid
+ projectIds String[] @db.Uuid
+ assetIds String[] @db.Uuid
+ workspace Workspace @relation("ClientVersion_workspace",fields:[workspaceId],references:[id],onDelete:Restrict,onUpdate:Cascade)
+ presentation ClientPresentation @relation("ClientVersion_presentation",fields:[workspaceId,presentationId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
+ recipients ClientRecipient[] @relation("ClientRecipient_version")
+ @@unique([workspaceId,id])
+ @@unique([workspaceId,presentationId,versionNumber])
+ @@map("clientVersions")
+}
+model ClientRecipient {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ revision Int
+ versionId String @db.Uuid
+ createdById String @db.Uuid
+ labelCiphertext String? @db.Text
+ tokenHash String? @db.Text
+ tokenVersion Int
+ recoveryEpoch String @db.Text
+ expiresAt DateTime @db.Timestamptz(3)
+ state String @db.Text
+ workspace Workspace @relation("ClientRecipient_workspace",fields:[workspaceId],references:[id],onDelete:Restrict,onUpdate:Cascade)
+ version ClientVersion @relation("ClientRecipient_version",fields:[workspaceId,versionId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
+ sessions ClientGuestSession[] @relation("ClientSession_recipient")
+ feedback ClientFeedback[] @relation("ClientFeedback_recipient")
+ @@unique([workspaceId,id])
+ @@unique([workspaceId,id,versionId])
+ @@index([workspaceId,versionId])
+ @@map("clientRecipients")
+}
+model ClientGuestSession {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ revision Int
+ recipientId String @db.Uuid
+ versionId String @db.Uuid
+ tokenHash String @db.Text
+ tokenVersion Int
+ recoveryEpoch String @db.Text
+ expiresAt DateTime @db.Timestamptz(3)
+ revokedAt DateTime? @db.Timestamptz(3)
+ workspace Workspace @relation("ClientSession_workspace",fields:[workspaceId],references:[id],onDelete:Restrict,onUpdate:Cascade)
+ recipient ClientRecipient @relation("ClientSession_recipient",fields:[workspaceId,recipientId,versionId],references:[workspaceId,id,versionId],onDelete:Restrict,onUpdate:Cascade)
+ feedback ClientFeedback[] @relation("ClientFeedback_session")
+ @@unique([workspaceId,id])
+ @@unique([workspaceId,id,recipientId,versionId])
+ @@index([workspaceId,recipientId])
+ @@map("clientGuestSessions")
+}
+model ClientFeedback {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ revision Int
+ recipientId String @db.Uuid
+ versionId String @db.Uuid
+ guestSessionId String @db.Uuid
+ entryId String @db.Uuid
+ commandKey String @db.Text
+ requestDigest String @db.Text
+ sequenceNumber Int
+ choice String @db.Text
+ noteCiphertext String? @db.Text
+ state String @db.Text
+ workspace Workspace @relation("ClientFeedback_workspace",fields:[workspaceId],references:[id],onDelete:Restrict,onUpdate:Cascade)
+ recipient ClientRecipient @relation("ClientFeedback_recipient",fields:[workspaceId,recipientId,versionId],references:[workspaceId,id,versionId],onDelete:Restrict,onUpdate:Cascade)
+ session ClientGuestSession @relation("ClientFeedback_session",fields:[workspaceId,guestSessionId,recipientId,versionId],references:[workspaceId,id,recipientId,versionId],onDelete:Restrict,onUpdate:Cascade)
+ @@unique([workspaceId,id])
+ @@unique([workspaceId,recipientId,commandKey])
+ @@index([workspaceId,versionId,entryId])
+ @@map("clientFeedback")
+}
+
+model ProfessionalHomepage {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ revision Int
+ personId String @db.Uuid
+ talentAccountId String @db.Uuid
+ grantId String @db.Uuid
+ slug String @unique @db.Text
+ state String @db.Text
+ draftCiphertext String? @db.Text
+ currentVersionId String? @db.Uuid
+ sourceIds String[] @db.Uuid
+ workIds String[] @db.Uuid
+ assetIds String[] @db.Uuid
+ workspace Workspace @relation("Homepage_workspace",fields:[workspaceId],references:[id],onDelete:Restrict,onUpdate:Cascade)
+ person Person @relation("Homepage_person",fields:[workspaceId,personId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
+ account TalentAccount @relation("Homepage_account",fields:[workspaceId,talentAccountId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
+ grant TalentAccessGrant @relation("Homepage_grant",fields:[workspaceId,grantId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
+ versions HomepageVersion[] @relation("HomepageVersion_homepage")
+ @@unique([workspaceId,id])
+ // Migration 85 enforces one non-erased homepage per person with a partial index.
+ @@map("professionalHomepages")
+}
+model HomepageVersion {
+ id String @id @db.Uuid
+ workspaceId String @db.Uuid
+ createdAt DateTime @db.Timestamptz(3)
+ updatedAt DateTime @db.Timestamptz(3)
+ revision Int
+ homepageId String @db.Uuid
+ versionNumber Int
+ talentAccountId String @db.Uuid
+ sessionEpoch Int
+ recoveryEpoch String @db.Text
+ consentId String @db.Uuid
+ expiresAt DateTime @db.Timestamptz(3)
+ state String @db.Text
+ contentCiphertext String? @db.Text
+ contentDigest String @db.Text
+ dependencies Json
+ workspace Workspace @relation("HomepageVersion_workspace",fields:[workspaceId],references:[id],onDelete:Restrict,onUpdate:Cascade)
+ homepage ProfessionalHomepage @relation("HomepageVersion_homepage",fields:[workspaceId,homepageId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
+ consent TalentConsent @relation("HomepageVersion_consent",fields:[workspaceId,consentId],references:[workspaceId,id],onDelete:Restrict,onUpdate:Cascade)
+ @@unique([workspaceId,id])
+ @@unique([workspaceId,homepageId,versionNumber])
+ @@map("homepageVersions")
 }

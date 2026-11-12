@@ -1,0 +1,130 @@
+{
+  "status": "PASS",
+  "head": "56f73354688a3c90ab139da94616d96319d7ca2b",
+  "subject": "uncommitted local working tree",
+  "sourceHashes": {
+    "apps/admin-web/src/talent-media-staging.tsx": "726ee7c2a38538046ecd458b3c3398d51ddcc10d63fb91bd4ac23b86a82196ee",
+    "apps/admin-web/src/supplier-profile-ui.tsx": "69fe74a02576e137b00cf459b3d75c3925ec3e9a9605143632edd638feb7fa14",
+    "apps/admin-web/src/talent-maintenance-ui.tsx": "9625a272458f9695a84bed2d40a67dd248efea4f19c0fba570e10dd028249bc8",
+    "tests/acceptance/browser-upload-complete-recovery-20261111.mjs": "6808b2c43c0c30f5a0d75cc7359c27a32f7c7cb38a2733da46161a7b481a0b36"
+  },
+  "buildHashes": {
+    "dist/web/index.html": "2e16af704653839e4edae590e49210df461c26461d1a5724a2e5ba44569e52ae",
+    "dist/web/assets/main-fyhK4JNs.js": "d7d79f31529154412ec6eed0206dc92ece109a9c6b3cc0f16a4ba0e4f23c19ab",
+    "dist/apps/api/src/main.js": "219a73e7ef9442d4a09b586b220bd09c22b63731704f4e18aaff5242261919ea",
+    "dist/packages/core/src/media.js": "c5ce4426df4898046208d50b5217b86ffd19c5589f7ea291f1adc6795075526f"
+  },
+  "environment": "isolated PostgreSQL, Nest API, Chromium and local storage",
+  "observations": {
+    "reload_unknown_feedback": {
+      "pass": true,
+      "messageClass": "NETWORK_RESULT_UNKNOWN",
+      "selectionDisabledWhileUnknown": true,
+      "inputDisabledWhileUnknown": true,
+      "upstreamStatus": 200,
+      "dbState": "QUEUED",
+      "dbRevisionIncrementedOnce": true,
+      "receiptCount": 1,
+      "creationAddedOneUploadAndOneFileCharge": true,
+      "commitPreservedCountsAndCharge": true
+    },
+    "reload_recovery_integrity": {
+      "pass": true,
+      "stable": true,
+      "uploadState": "QUEUED",
+      "uploadRevision": 4,
+      "uploadCount": 1,
+      "chargedBytes": 3233,
+      "expectedFileBytes": 3233,
+      "sameNameCount": 1,
+      "assetCount": 0,
+      "receiptCount": 1,
+      "completeRequests": 1,
+      "receiptReads": 1,
+      "sameKey": true,
+      "recoveryHttp200AndReceiptMatches": true,
+      "commitToReplaySnapshotStable": true
+    },
+    "reload_selection_after_recovery": {
+      "pass": true,
+      "selectionCleared": true,
+      "uploadDisabled": true,
+      "staleAlert": false,
+      "staleGuidance": false
+    },
+    "samepage_unknown_feedback": {
+      "pass": true,
+      "messageClass": "NETWORK_RESULT_UNKNOWN",
+      "selectionDisabledWhileUnknown": true,
+      "inputDisabledWhileUnknown": true,
+      "upstreamStatus": 200,
+      "dbState": "QUEUED",
+      "dbRevisionIncrementedOnce": true,
+      "receiptCount": 1,
+      "creationAddedOneUploadAndOneFileCharge": true,
+      "commitPreservedCountsAndCharge": true
+    },
+    "samepage_recovery_integrity": {
+      "pass": true,
+      "stable": true,
+      "uploadState": "QUEUED",
+      "uploadRevision": 4,
+      "uploadCount": 2,
+      "chargedBytes": 6466,
+      "expectedFileBytes": 3233,
+      "sameNameCount": 1,
+      "assetCount": 0,
+      "receiptCount": 1,
+      "completeRequests": 2,
+      "receiptReads": 0,
+      "sameKey": true,
+      "recoveryHttp200AndReceiptMatches": true,
+      "commitToReplaySnapshotStable": true
+    },
+    "samepage_selection_after_recovery": {
+      "pass": true,
+      "selectionCleared": true,
+      "uploadDisabled": true,
+      "staleAlert": false,
+      "staleGuidance": false
+    },
+    "definitive_rejection_distinguished": {
+      "pass": true,
+      "messageClass": "DEFINITE_REJECTION",
+      "state": "UPLOADED",
+      "receiptCount": 0,
+      "pendingButton": false,
+      "uploadDisabled": true,
+      "guidanceVisible": true,
+      "networkGuidanceVisible": false
+    },
+    "rejected_upload_completed_without_duplicate": {
+      "pass": true,
+      "state": "QUEUED",
+      "oneRevisionIncrement": true,
+      "receiptCount": 1,
+      "sameUploadCount": true,
+      "sameChargedBytes": true
+    },
+    "status_read_loss_same_page_recovery": {
+      "pass": true,
+      "messageClass": "STATUS_UNKNOWN",
+      "uploadDisabled": true,
+      "blockedAfterReload": true,
+      "readBackUploaded": true,
+      "revisionUnchangedBeforeRetry": true,
+      "completeReceiptCount": 1
+    },
+    "final_unique_materials_and_quota": {
+      "pass": true,
+      "refreshStable": true,
+      "uploadCount": 4,
+      "assetCount": 4,
+      "chargedBytes": 12932,
+      "expectedChargedBytes": 12932,
+      "readyUploads": 4,
+      "rejectedUploadRecovered": true
+    }
+  },
+  "findings": []
+}

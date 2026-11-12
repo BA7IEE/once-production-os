@@ -1,0 +1,190 @@
+TAP version 13
+# Subtest: directory summaries use the selected exact career; unrelated works never become experience and withdrawal removes dependent content
+ok 1 - directory summaries use the selected exact career; unrelated works never become experience and withdrawal removes dependent content
+  ---
+  duration_ms: 374.162272
+  type: 'test'
+  ...
+# Subtest: every replacement needs its own role-specific answer and invalid batches leave facts, exposure and person unchanged
+ok 2 - every replacement needs its own role-specific answer and invalid batches leave facts, exposure and person unchanged
+  ---
+  duration_ms: 291.551579
+  type: 'test'
+  ...
+# Subtest: replacement rejects withdrawn source without retiring current facts or changing exposure
+ok 3 - replacement rejects withdrawn source without retiring current facts or changing exposure
+  ---
+  duration_ms: 229.649714
+  type: 'test'
+  ...
+# Subtest: dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person
+ok 4 - dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person
+  ---
+  duration_ms: 223.157594
+  type: 'test'
+  ...
+# Subtest: published catalogs preserve old drafts and reject type reinterpretation and deleted option codes
+ok 5 - published catalogs preserve old drafts and reject type reinterpretation and deleted option codes
+  ---
+  duration_ms: 257.320817
+  type: 'test'
+  ...
+# Subtest: ONCE corrections update explicitly shared professional facts and fence stale self drafts
+ok 6 - ONCE corrections update explicitly shared professional facts and fence stale self drafts
+  ---
+  duration_ms: 245.116785
+  type: 'test'
+  ...
+# Subtest: new fields reject cross-role data, invented options, fake dates and empty multi selections
+ok 7 - new fields reject cross-role data, invented options, fake dates and empty multi selections
+  ---
+  duration_ms: 228.554305
+  type: 'test'
+  ...
+# Subtest: confirmation audit failure rolls professional facts and choices back with the rest of the profile
+ok 8 - confirmation audit failure rolls professional facts and choices back with the rest of the profile
+  ---
+  duration_ms: 214.2613
+  type: 'test'
+  ...
+# Subtest: structured tag search supports ANY and ALL on the same role, with no missing-as-negative or private source leakage
+ok 9 - structured tag search supports ANY and ALL on the same role, with no missing-as-negative or private source leakage
+  ---
+  duration_ms: 253.917702
+  type: 'test'
+  ...
+# Subtest: native professional details reuse capability, credential, translation and dated measurement tables
+ok 10 - native professional details reuse capability, credential, translation and dated measurement tables
+  ---
+  duration_ms: 236.22896
+  type: 'test'
+  ...
+# Subtest: catalogs and typed fields participate in recovery integrity and explicit person cleanup
+ok 11 - catalogs and typed fields participate in recovery integrity and explicit person cleanup
+  ---
+  duration_ms: 228.414987
+  type: 'test'
+  ...
+# Subtest: a source holding only new professional facts receives a complete deletion plan and cleans without deleting the Person
+ok 12 - a source holding only new professional facts receives a complete deletion plan and cleans without deleting the Person
+  ---
+  duration_ms: 277.790571
+  type: 'test'
+  ...
+# Subtest: PR01b finalization OR/AND, complete facets, conservative presets and explicit candidate role
+ok 13 - PR01b finalization OR/AND, complete facets, conservative presets and explicit candidate role
+  ---
+  duration_ms: 490.922643
+  type: 'test'
+  ...
+# Subtest: PR01b new fields and cover survive controlled transfer, recovery and merge, then erase through the frozen asset graph
+ok 14 - PR01b new fields and cover survive controlled transfer, recovery and merge, then erase through the frozen asset graph
+  ---
+  duration_ms: 1096.966887
+  type: 'test'
+  ...
+# Subtest: safe history state persists only strict filters, pagination and person-role IDs, never DTO or secrets
+ok 15 - safe history state persists only strict filters, pagination and person-role IDs, never DTO or secrets
+  ---
+  duration_ms: 2.823099
+  type: 'test'
+  ...
+# Subtest: logout, expiry, different member and same-member new session reject all historic state
+ok 16 - logout, expiry, different member and same-member new session reject all historic state
+  ---
+  duration_ms: 0.774204
+  type: 'test'
+  ...
+# Subtest: role choice may stay pending across pages, but cannot carry arbitrary data or contradict a chosen role
+ok 17 - role choice may stay pending across pages, but cannot carry arbitrary data or contradict a chosen role
+  ---
+  duration_ms: 0.572362
+  type: 'test'
+  ...
+# Subtest: professional applied conditions and unfinished edits survive detail return, history and reload within one identity
+ok 18 - professional applied conditions and unfinished edits survive detail return, history and reload within one identity
+  ---
+  duration_ms: 1.335968
+  type: 'test'
+  ...
+# Subtest: professional history rejects payloads, invalid fields, unbounded values and old versions
+ok 19 - professional history rejects payloads, invalid fields, unbounded values and old versions
+  ---
+  duration_ms: 0.879162
+  type: 'test'
+  ...
+# Subtest: PR01b composed maintenance persists attributes and shared filters, without nationality inference or fabricated measurement date
+ok 20 - PR01b composed maintenance persists attributes and shared filters, without nationality inference or fabricated measurement date
+  ---
+  duration_ms: 259.997033
+  type: 'test'
+  ...
+# Subtest: PR01b rejects contradictory birth branches, fake unknown dates, non-model labels and stale atomic commands
+ok 21 - PR01b rejects contradictory birth branches, fake unknown dates, non-model labels and stale atomic commands
+  ---
+  duration_ms: 228.026951
+  type: 'test'
+  ...
+# Subtest: PR01b complete birth date needs separate grants, safe derived ages remain available and hidden source cannot match
+ok 22 - PR01b complete birth date needs separate grants, safe derived ages remain available and hidden source cannot match
+  ---
+  duration_ms: 791.979901
+  type: 'test'
+  ...
+# Subtest: PR01b unknown and declared ages keep precision through time and v14 imports gain unknown defaults
+ok 23 - PR01b unknown and declared ages keep precision through time and v14 imports gain unknown defaults
+  ---
+  duration_ms: 0.593486
+  type: 'test'
+  ...
+# Subtest: PR01b POST query is strict, authenticated and read-only: no key, receipt or business audit
+ok 24 - PR01b POST query is strict, authenticated and read-only: no key, receipt or business audit
+  ---
+  duration_ms: 195.571428
+  type: 'test'
+  ...
+# Subtest: PR01b server receipt time cannot be forged and legacy writes refuse new fields
+ok 25 - PR01b server receipt time cannot be forged and legacy writes refuse new fields
+  ---
+  duration_ms: 201.949009
+  type: 'test'
+  ...
+# Subtest: PR01b birthday proposals stay restricted and export requires new exact grants on both person and source
+ok 26 - PR01b birthday proposals stay restricted and export requires new exact grants on both person and source
+  ---
+  duration_ms: 760.420752
+  type: 'test'
+  ...
+# Subtest: TD2-T15 result totals and all-page facets exclude hidden professional facts
+ok 27 - TD2-T15 result totals and all-page facets exclude hidden professional facts
+  ---
+  duration_ms: 508.912117
+  type: 'test'
+  ...
+# Subtest: TD2-T15 industry and work type must match the same work in the selected occupation
+ok 28 - TD2-T15 industry and work type must match the same work in the selected occupation
+  ---
+  duration_ms: 347.651049
+  type: 'test'
+  ...
+# Subtest: TD2-T15 actual collaboration and combined professional filters preserve role context
+ok 29 - TD2-T15 actual collaboration and combined professional filters preserve role context
+  ---
+  duration_ms: 252.501431
+  type: 'test'
+  ...
+# Subtest: TD2-T15 suspended sources remove search matches and orphan filter qualifiers are rejected
+ok 30 - TD2-T15 suspended sources remove search matches and orphan filter qualifiers are rejected
+  ---
+  duration_ms: 247.024158
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 30
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11081.413759

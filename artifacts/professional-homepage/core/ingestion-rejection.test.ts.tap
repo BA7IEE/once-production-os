@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: MACHINE stale intake rejection is metadata-only, currently authorized, atomic and retention-safe
+ok 1 - MACHINE stale intake rejection is metadata-only, currently authorized, atomic and retention-safe
+  ---
+  duration_ms: 1042.913011
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1528.361251

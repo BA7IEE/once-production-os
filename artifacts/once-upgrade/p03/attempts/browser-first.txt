@@ -1,0 +1,26 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite supplier-migration
+
+{
+  errors: [],
+  alerts: [ '当前环境未批准执行人才合并请求编号：f6471570-83ff-456e-a500-c2a1e9e08ff0' ]
+}
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.waitFor: Timeout 25000ms exceeded.
+Call log:
+[2m  - waiting for getByText('合并已完成', { exact: true }) to be visible[22m
+
+    at /workspace/once-production-os/tests/acceptance/browser-supplier-migration.mjs:52:148 {
+  log: [
+    "  - waiting for getByText('合并已完成', { exact: true }) to be visible"
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.22.3
+Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+ ELIFECYCLE  Command failed with exit code 1.

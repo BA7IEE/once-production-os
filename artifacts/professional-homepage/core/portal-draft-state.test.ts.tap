@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: portal media polling and consent readback update revision without replacing editable identity
+ok 1 - portal media polling and consent readback update revision without replacing editable identity
+  ---
+  duration_ms: 1.683979
+  type: 'test'
+  ...
+# Subtest: portal late reads cannot return a switched draft, older revision or previous owner view
+ok 2 - portal late reads cannot return a switched draft, older revision or previous owner view
+  ---
+  duration_ms: 0.24669
+  type: 'test'
+  ...
+# Subtest: portal unknown save and failed readback keep text until explicit same-request recovery succeeds
+ok 3 - portal unknown save and failed readback keep text until explicit same-request recovery succeeds
+  ---
+  duration_ms: 2.695255
+  type: 'test'
+  ...
+# Subtest: new draft ignores previous view reads and attaches only the confirmed draft identity
+ok 4 - new draft ignores previous view reads and attaches only the confirmed draft identity
+  ---
+  duration_ms: 0.336352
+  type: 'test'
+  ...
+# Subtest: remote identity changes preserve local text and block save until explicit discard and review
+ok 5 - remote identity changes preserve local text and block save until explicit discard and review
+  ---
+  duration_ms: 0.34245
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 112.96053

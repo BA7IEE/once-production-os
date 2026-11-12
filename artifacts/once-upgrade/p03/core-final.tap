@@ -1,0 +1,256 @@
+TAP version 13
+# Subtest: merge history rebuild preserves immutable alias, archived identity, retained profiles and original actor without replaying a merge
+ok 1 - merge history rebuild preserves immutable alias, archived identity, retained profiles and original actor without replaying a merge
+  ---
+  duration_ms: 676.053591
+  type: 'test'
+  ...
+# Subtest: merge history rejects cross-identity mapping, missing current profile or retired measurement, forged actor and unknown manifest payload
+ok 2 - merge history rejects cross-identity mapping, missing current profile or retired measurement, forged actor and unknown manifest payload
+  ---
+  duration_ms: 528.544937
+  type: 'test'
+  ...
+# Subtest: historical identity scope and explicit history or evidence grant remain required
+ok 3 - historical identity scope and explicit history or evidence grant remain required
+  ---
+  duration_ms: 311.465385
+  type: 'test'
+  ...
+# Subtest: every replacement needs its own role-specific answer and invalid batches leave facts, exposure and person unchanged
+ok 4 - every replacement needs its own role-specific answer and invalid batches leave facts, exposure and person unchanged
+  ---
+  duration_ms: 435.07035
+  type: 'test'
+  ...
+# Subtest: replacement rejects withdrawn source without retiring current facts or changing exposure
+ok 5 - replacement rejects withdrawn source without retiring current facts or changing exposure
+  ---
+  duration_ms: 259.374847
+  type: 'test'
+  ...
+# Subtest: dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person
+ok 6 - dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person
+  ---
+  duration_ms: 246.769806
+  type: 'test'
+  ...
+# Subtest: published catalogs preserve old drafts and reject type reinterpretation and deleted option codes
+ok 7 - published catalogs preserve old drafts and reject type reinterpretation and deleted option codes
+  ---
+  duration_ms: 292.047847
+  type: 'test'
+  ...
+# Subtest: ONCE corrections update explicitly shared professional facts and fence stale self drafts
+ok 8 - ONCE corrections update explicitly shared professional facts and fence stale self drafts
+  ---
+  duration_ms: 277.594758
+  type: 'test'
+  ...
+# Subtest: new fields reject cross-role data, invented options, fake dates and empty multi selections
+ok 9 - new fields reject cross-role data, invented options, fake dates and empty multi selections
+  ---
+  duration_ms: 251.091461
+  type: 'test'
+  ...
+# Subtest: confirmation audit failure rolls professional facts and choices back with the rest of the profile
+ok 10 - confirmation audit failure rolls professional facts and choices back with the rest of the profile
+  ---
+  duration_ms: 260.552075
+  type: 'test'
+  ...
+# Subtest: structured tag search supports ANY and ALL on the same role, with no missing-as-negative or private source leakage
+ok 11 - structured tag search supports ANY and ALL on the same role, with no missing-as-negative or private source leakage
+  ---
+  duration_ms: 284.204595
+  type: 'test'
+  ...
+# Subtest: native professional details reuse capability, credential, translation and dated measurement tables
+ok 12 - native professional details reuse capability, credential, translation and dated measurement tables
+  ---
+  duration_ms: 278.393507
+  type: 'test'
+  ...
+# Subtest: catalogs and typed fields participate in recovery integrity and explicit person cleanup
+ok 13 - catalogs and typed fields participate in recovery integrity and explicit person cleanup
+  ---
+  duration_ms: 258.775185
+  type: 'test'
+  ...
+# Subtest: a source holding only new professional facts receives a complete deletion plan and cleans without deleting the Person
+ok 14 - a source holding only new professional facts receives a complete deletion plan and cleans without deleting the Person
+  ---
+  duration_ms: 311.17738
+  type: 'test'
+  ...
+# Subtest: employee inbox records true employee provenance, encrypted drafts and explicit multiple-person ownership atomically
+ok 15 - employee inbox records true employee provenance, encrypted drafts and explicit multiple-person ownership atomically
+  ---
+  duration_ms: 286.631675
+  type: 'test'
+  ...
+# Subtest: company introductions cannot be adopted as a person and audit failure rolls back the entire employee adoption
+ok 16 - company introductions cannot be adopted as a person and audit failure rolls back the entire employee adoption
+  ---
+  duration_ms: 234.159901
+  type: 'test'
+  ...
+# Subtest: multiple materials explicitly supplement one current Person, preserve identity and reject stale revisions
+ok 17 - multiple materials explicitly supplement one current Person, preserve identity and reject stale revisions
+  ---
+  duration_ms: 264.908466
+  type: 'test'
+  ...
+# Subtest: employee scope and source withdrawal fence inbox reads
+ok 18 - employee scope and source withdrawal fence inbox reads
+  ---
+  duration_ms: 404.5506
+  type: 'test'
+  ...
+# Subtest: recovery invalidates old employee inbox commands, including receipt replay
+ok 19 - recovery invalidates old employee inbox commands, including receipt replay
+  ---
+  duration_ms: 228.953722
+  type: 'test'
+  ...
+# Subtest: extension merge retains exact roles, grouped records, choices, two sources, retired history and atomic audit; v16 rekeys a complete business rebuild
+ok 20 - extension merge retains exact roles, grouped records, choices, two sources, retired history and atomic audit; v16 rekeys a complete business rebuild
+  ---
+  duration_ms: 681.55359
+  type: 'test'
+  ...
+# Subtest: overlapping exact roles with extension facts remain explicitly blocked
+ok 21 - overlapping exact roles with extension facts remain explicitly blocked
+  ---
+  duration_ms: 236.138003
+  type: 'test'
+  ...
+# Subtest: changed origin versions hide extension conflict values and block a stale merge
+ok 22 - changed origin versions hide extension conflict values and block a stale merge
+  ---
+  duration_ms: 241.017122
+  type: 'test'
+  ...
+# Subtest: TD2 explicit person and fact-source permits export a typed whitelist and atomically rebuild stable relationships
+ok 23 - TD2 explicit person and fact-source permits export a typed whitelist and atomically rebuild stable relationships
+  ---
+  duration_ms: 726.626337
+  type: 'test'
+  ...
+# Subtest: TD2 frozen professional downloads fail closed after fact changes, source revocation, or disabled requestor
+ok 24 - TD2 frozen professional downloads fail closed after fact changes, source revocation, or disabled requestor
+  ---
+  duration_ms: 854.954906
+  type: 'test'
+  ...
+# Subtest: TD2 selected dependencies are explicit and unsupported typed fields cannot be smuggled into export
+ok 25 - TD2 selected dependencies are explicit and unsupported typed fields cannot be smuggled into export
+  ---
+  duration_ms: 492.503631
+  type: 'test'
+  ...
+# Subtest: TD2 foreign-source field evidence cannot be silently flattened and worker rechecks revoked grants
+ok 26 - TD2 foreign-source field evidence cannot be silently flattened and worker rechecks revoked grants
+  ---
+  duration_ms: 573.572947
+  type: 'test'
+  ...
+# Subtest: TD2 capability transfer preserves only referenced definitions and stales queued or ready exports when meaning changes
+ok 27 - TD2 capability transfer preserves only referenced definitions and stales queued or ready exports when meaning changes
+  ---
+  duration_ms: 286.691313
+  type: 'test'
+  ...
+# Subtest: TD2 capability rebuild rejects omitted, unrelated, duplicate, invalid-role and invalid-level definitions before writes
+ok 28 - TD2 capability rebuild rejects omitted, unrelated, duplicate, invalid-role and invalid-level definitions before writes
+  ---
+  duration_ms: 480.644907
+  type: 'test'
+  ...
+# Subtest: TD2 selected eight groups use current format without exporting unselected capabilities
+ok 29 - TD2 selected eight groups use current format without exporting unselected capabilities
+  ---
+  duration_ms: 504.061023
+  type: 'test'
+  ...
+# Subtest: TD2 shared inactive capability definitions and nullable role or level survive rebuild without reactivation
+ok 30 - TD2 shared inactive capability definitions and nullable role or level survive rebuild without reactivation
+  ---
+  duration_ms: 490.522574
+  type: 'test'
+  ...
+# Subtest: TD2 retired development formats v1-v13 are rejected before any rebuild write
+ok 31 - TD2 retired development formats v1-v13 are rejected before any rebuild write
+  ---
+  duration_ms: 471.387845
+  type: 'test'
+  ...
+# Subtest: TD2 typed merge preserves IDs, sources, role links and credentials; audit failure rolls back; exact retry/replay succeed
+ok 32 - TD2 typed merge preserves IDs, sources, role links and credentials; audit failure rolls back; exact retry/replay succeed
+  ---
+  duration_ms: 363.739878
+  type: 'test'
+  ...
+# Subtest: TD2 typed merge binds fact content, evidence and proposal revisions, not only root revisions
+ok 33 - TD2 typed merge binds fact content, evidence and proposal revisions, not only root revisions
+  ---
+  duration_ms: 284.495932
+  type: 'test'
+  ...
+# Subtest: TD2 hidden or sensitive dependencies expose no typed IDs, proposal values or secret data
+ok 34 - TD2 hidden or sensitive dependencies expose no typed IDs, proposal values or secret data
+  ---
+  duration_ms: 462.197479
+  type: 'test'
+  ...
+# Subtest: TD2 singleton collisions are enumerated and cannot be bypassed by explicit migration acknowledgements
+ok 35 - TD2 singleton collisions are enumerated and cannot be bypassed by explicit migration acknowledgements
+  ---
+  duration_ms: 281.373296
+  type: 'test'
+  ...
+# Subtest: TD2 overlapping language facts remain a conflict, and duplicate or invented acknowledgements fail
+ok 36 - TD2 overlapping language facts remain a conflict, and duplicate or invented acknowledgements fail
+  ---
+  duration_ms: 264.030054
+  type: 'test'
+  ...
+# Subtest: TD2 merging an independent agent rebinds inbound representation without moving the represented talent
+ok 37 - TD2 merging an independent agent rebinds inbound representation without moving the represented talent
+  ---
+  duration_ms: 256.167832
+  type: 'test'
+  ...
+# Subtest: TD2 source revocation for a professional fact invalidates preview while both identity sources remain readable
+ok 38 - TD2 source revocation for a professional fact invalidates preview while both identity sources remain readable
+  ---
+  duration_ms: 260.357086
+  type: 'test'
+  ...
+# Subtest: TD2 explicit conflict decisions retain source facts, immutable history and atomic retry
+ok 39 - TD2 explicit conflict decisions retain source facts, immutable history and atomic retry
+  ---
+  duration_ms: 388.298729
+  type: 'test'
+  ...
+# Subtest: TD2 contradictory interval decisions cannot deactivate a record selected as active elsewhere
+ok 40 - TD2 contradictory interval decisions cannot deactivate a record selected as active elsewhere
+  ---
+  duration_ms: 2.050038
+  type: 'test'
+  ...
+# Subtest: TD2 retained history requires merge permission and rechecks the original identity scope
+ok 41 - TD2 retained history requires merge permission and rechecks the original identity scope
+  ---
+  duration_ms: 671.722205
+  type: 'test'
+  ...
+1..41
+# tests 41
+# suites 0
+# pass 41
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 17901.640194

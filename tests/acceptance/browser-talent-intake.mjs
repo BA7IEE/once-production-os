@@ -26,7 +26,7 @@ let api,browser,base,fault=false;const errors=[],checks=[];
 const record=name=>{checks.push(name);console.log('PASS '+name);};
 function run(command,args){const r=spawnSync(command,args,{env,encoding:'utf8',timeout:120000});assert.equal(r.status,0,(r.stderr??'').slice(-1200));}
 async function stop(child){if(!child||child.exitCode!==null||child.signalCode!==null)return;await new Promise(resolve=>{const timer=setTimeout(()=>{child.kill('SIGKILL');resolve();},5000);child.once('exit',()=>{clearTimeout(timer);resolve();});child.kill('SIGINT');});}
-async function login(page,name='owner'){await page.goto(base,{waitUntil:'networkidle'});await page.locator('input[autocomplete=username]').fill(name);await page.locator('input[autocomplete=current-password]').fill(password);await page.getByRole('button',{name:'登录',exact:true}).click();await page.locator('.topbar').getByText('工作空间 / 工作台',{exact:true}).waitFor();}
+async function login(page,name='owner'){await page.goto(base,{waitUntil:'networkidle'});await page.locator('input[autocomplete=username]').fill(name);await page.locator('input[autocomplete=current-password]').fill(password);await page.getByRole('button',{name:'登录',exact:true}).click();await page.locator('.topbar').getByText('工作台',{exact:true}).waitFor();}
 async function command(page,path,input,key=randomUUID()){
  const me=await page.context().request.get(base+'/api/v1/me');assert.equal(me.status(),200);const who=await me.json();
  const response=await page.context().request.post(base+'/api/v1'+path,{data:input,headers:{Origin:base,'X-CSRF-Token':who.csrfToken,'X-ONCE-Membership':who.membershipId,'Idempotency-Key':key}});

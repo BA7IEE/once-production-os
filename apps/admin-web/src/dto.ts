@@ -1,5 +1,6 @@
 // Explicit presentation DTOs. Never import Prisma models into the browser.
 export interface Me {
+    clientPresentationsEnabled?:boolean;
     workspaceName?: string;
     mediaEnabled?: boolean;
     ingestionEnabled?: boolean;
@@ -210,4 +211,4 @@ export interface HandoffRecipient {
 }
 
 /** Account-only portal projection: no Person, contacts, authentication hashes or source data. */
-export interface TalentAccountMe {talentAccountId:string;status:'ACTIVE';revision:number;csrfToken:string;}
+export interface TalentAccountMe {professionalHomepagesEnabled?:boolean;portalCommandStopEnabled?:boolean;talentAccountId:string;status:'ACTIVE';revision:number;csrfToken:string;}

@@ -1,0 +1,41 @@
+TAP version 13
+# Subtest: extension merge retains exact roles, grouped records, choices, two sources, retired history and atomic audit; v16 rekeys a complete business rebuild
+not ok 1 - extension merge retains exact roles, grouped records, choices, two sources, retired history and atomic audit; v16 rekeys a complete business rebuild
+  ---
+  duration_ms: 367.06629
+  type: 'test'
+  location: '/workspace/once-production-os/tests/core/supplier-migration.test.ts:6:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"EXPORT_FIELD_SUBJECT_MISMATCH","message":"导出许可字段与对象类型不匹配","requestId":"8710274c-d8da-407e-801c-990e1fe438e7"}}
+    
+    422 !== 201
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 201
+  actual: 422
+  operator: 'strictEqual'
+  stack: |-
+    ok (file:///workspace/once-production-os/tests/support/supplier-migration.ts:20:39)
+    permission (file:///workspace/once-production-os/tests/support/supplier-migration.ts:58:81)
+    async exportSupplier (file:///workspace/once-production-os/tests/support/supplier-migration.ts:59:161)
+    async TestContext.<anonymous> (file:///workspace/once-production-os/tests/core/supplier-migration.test.ts:7:78)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: overlapping exact roles with extension facts remain explicitly blocked
+ok 2 - overlapping exact roles with extension facts remain explicitly blocked
+  ---
+  duration_ms: 251.332051
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1058.035833

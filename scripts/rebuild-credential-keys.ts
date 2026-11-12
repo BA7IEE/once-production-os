@@ -15,11 +15,11 @@ function readPrivateKey(path:string|undefined):Buffer {
         const text=readFileSync(fd,'utf8').trim();
         if(!/^[a-f0-9]{64}$/i.test(text))throw new Error();
         return Buffer.from(text,'hex');
-    } catch {throw new AppError(422,'REBUILD_CREDENTIAL_KEY_FILE_INVALID','编号迁移需设置 REBUILD_SOURCE_CONTACT_KEY_FILE 和 CONTACT_KEY_FILE；文件须私有、有效且不是符号链接');}
+    } catch {throw new AppError(422,'REBUILD_CREDENTIAL_KEY_FILE_INVALID','加密专业资料迁移需设置 REBUILD_SOURCE_CONTACT_KEY_FILE 和 CONTACT_KEY_FILE；文件须私有、有效且不是符号链接');}
     finally {if(fd!==undefined)closeSync(fd);}
 }
 export function loadCredentialRebuildKeys(payload:unknown,env:NodeJS.ProcessEnv):CredentialRebuildKeys|undefined {
     const parsed=RebuildSchemas.payload.parse(payload);
-    if(!parsed.manifest.talent||!transferRows(parsed.manifest.talent,'personCredentials').some(r=>r.data.identifierCiphertext))return undefined;
+    if(!parsed.manifest.talent||!transferRows(parsed.manifest.talent,'personCredentials').some(r=>r.data.identifierCiphertext)&&!parsed.manifest.talent.supplier?.facts.some(r=>r.textCiphertext))return undefined;
     return {sourceContactKey:readPrivateKey(env.REBUILD_SOURCE_CONTACT_KEY_FILE),targetContactKey:readPrivateKey(env.CONTACT_KEY_FILE)};
 }

@@ -1,0 +1,7 @@
+{
+  "status": "FAIL",
+  "stage": "setup",
+  "checks": [],
+  "errorType": "AssertionError",
+  "error": "API readiness"
+}

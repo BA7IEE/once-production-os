@@ -1,0 +1,9 @@
+2e4626212549b120e04617834bf177b37cfbfd633433cf572d2e508d151cd78a  tests/core/portal-command-stop-server.test.ts
+ca5614e7e10172c7ca7e09866ac60a2f8a7724cc535c1b361aeb57ddfd62c5f5  tests/core/portal-stop-recovery-boundary.test.ts
+6f7c1a43d207e3670ce94850c1d0beeea126b68b49568b35dd93ae48085229c6  tests/core/portal-stop-anchor-retry-20261111.test.ts
+ce289b9b0dac947bf19c31d41e5cbe013acb15587183265aec1cf6a501a9ce3d  packages/core/src/talent-portal.ts
+7a002bbe66c7554c8895857dd12bb969822179affb76e20b594921e4653f3621  packages/core/src/commands.ts
+8055db1271dceafd6e30ec19f7e8b22756e6865f8e88da6938531a0f3be12e20  packages/core/src/api.ts
+ed7ec0642b2e7ac2f514815e9f4e342e2f3f9714ecd5a95103357040d2da27c6  apps/api/src/recovery/safety-journal.ts
+5f393970b8da70295459fe30a5ff921d1d98e3a68bacf64a5e354b6cd208e69e  apps/api/src/recovery/delta-resolution.ts
+41b01c8373c275b5a6c55ea3a7e842b613cde90e8f6b42edef4ed920db12632a  scripts/recovery-approve.ts

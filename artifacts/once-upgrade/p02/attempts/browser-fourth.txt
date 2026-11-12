@@ -1,0 +1,22 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite supplier-inbox
+
+{
+  errors: [],
+  alerts: [],
+  materials: [
+    { state: 'WAITING', error: null },
+    { state: 'COMPLETE', error: null }
+  ]
+}
+file:///workspace/once-production-os/tests/acceptance/browser-supplier-inbox.mjs:59
+ assert.equal(await prisma.person.count(),2);assert.equal(await prisma.talentAccount.count(),0);const source=await prisma.source.findUniqueOrThrow({where:{id:batchId}});assert.equal(source.confirmedByTalentId,null);const saved=await prisma.supplierInboxMaterial.findFirstOrThrow({where:{batchId,state:'COMPLETE'}});assert.equal(saved.createdById,me.membershipId);checks.push('one-file-two-people-human-page-ownership-no-fabricated-talent-account');
+                                                                                                                                 ^
+
+TypeError: Cannot read properties of undefined (reading 'findUniqueOrThrow')
+    at file:///workspace/once-production-os/tests/acceptance/browser-supplier-inbox.mjs:59:130
+
+Node.js v22.22.3
+Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+ ELIFECYCLE  Command failed with exit code 1.

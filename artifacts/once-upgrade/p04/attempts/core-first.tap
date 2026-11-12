@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: directory summaries use the selected exact career; unrelated works never become experience and withdrawal removes dependent content
+ok 1 - directory summaries use the selected exact career; unrelated works never become experience and withdrawal removes dependent content
+  ---
+  duration_ms: 345.740782
+  type: 'test'
+  ...
+# Subtest: every replacement needs its own role-specific answer and invalid batches leave facts, exposure and person unchanged
+ok 2 - every replacement needs its own role-specific answer and invalid batches leave facts, exposure and person unchanged
+  ---
+  duration_ms: 294.58896
+  type: 'test'
+  ...
+# Subtest: replacement rejects withdrawn source without retiring current facts or changing exposure
+ok 3 - replacement rejects withdrawn source without retiring current facts or changing exposure
+  ---
+  duration_ms: 235.365957
+  type: 'test'
+  ...
+# Subtest: dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person
+ok 4 - dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person
+  ---
+  duration_ms: 228.963599
+  type: 'test'
+  ...
+# Subtest: published catalogs preserve old drafts and reject type reinterpretation and deleted option codes
+ok 5 - published catalogs preserve old drafts and reject type reinterpretation and deleted option codes
+  ---
+  duration_ms: 262.230929
+  type: 'test'
+  ...
+# Subtest: ONCE corrections update explicitly shared professional facts and fence stale self drafts
+ok 6 - ONCE corrections update explicitly shared professional facts and fence stale self drafts
+  ---
+  duration_ms: 247.814581
+  type: 'test'
+  ...
+# Subtest: new fields reject cross-role data, invented options, fake dates and empty multi selections
+ok 7 - new fields reject cross-role data, invented options, fake dates and empty multi selections
+  ---
+  duration_ms: 226.598243
+  type: 'test'
+  ...
+# Subtest: confirmation audit failure rolls professional facts and choices back with the rest of the profile
+ok 8 - confirmation audit failure rolls professional facts and choices back with the rest of the profile
+  ---
+  duration_ms: 210.741137
+  type: 'test'
+  ...
+# Subtest: structured tag search supports ANY and ALL on the same role, with no missing-as-negative or private source leakage
+ok 9 - structured tag search supports ANY and ALL on the same role, with no missing-as-negative or private source leakage
+  ---
+  duration_ms: 261.825154
+  type: 'test'
+  ...
+# Subtest: native professional details reuse capability, credential, translation and dated measurement tables
+ok 10 - native professional details reuse capability, credential, translation and dated measurement tables
+  ---
+  duration_ms: 238.009867
+  type: 'test'
+  ...
+# Subtest: catalogs and typed fields participate in recovery integrity and explicit person cleanup
+ok 11 - catalogs and typed fields participate in recovery integrity and explicit person cleanup
+  ---
+  duration_ms: 234.345542
+  type: 'test'
+  ...
+# Subtest: a source holding only new professional facts receives a complete deletion plan and cleans without deleting the Person
+ok 12 - a source holding only new professional facts receives a complete deletion plan and cleans without deleting the Person
+  ---
+  duration_ms: 276.035788
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3888.006507

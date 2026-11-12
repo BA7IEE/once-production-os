@@ -9,7 +9,7 @@ export function forbiddenBrowserGlobals(file,text){
   const property=node.parent,call=property?.parent;
   if(!ts.isPropertyAccessExpression(property)||property.expression!==node||!ts.isCallExpression(call)||call.expression!==property||property.questionDotToken||call.questionDotToken)return false;
   const method=property.name.text,args=call.arguments;
-  if(portal)return literal(args[0],'once-portal-pending')&&(['getItem','removeItem'].includes(method)&&args.length===1||method==='setItem'&&args.length===2&&ts.isCallExpression(args[1])&&ts.isIdentifier(args[1].expression)&&args[1].expression.text==='encodePortalMarker'&&args[1].arguments.length===1);
+  if(portal)return (literal(args[0],'once-portal-pending')||literal(args[0],'once-homepage-pending'))&&(['getItem','removeItem'].includes(method)&&args.length===1||method==='setItem'&&args.length===2&&ts.isCallExpression(args[1])&&ts.isIdentifier(args[1].expression)&&args[1].expression.text==='encodePortalMarker'&&args[1].arguments.length===1);
   return literal(args[0],'once-pending-command')&&(
    method==='setItem'&&args.length===2&&literal(args[1],'1')||
    ['getItem','removeItem'].includes(method)&&args.length===1);

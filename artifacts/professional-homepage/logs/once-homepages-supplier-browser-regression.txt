@@ -1,0 +1,6 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite supplier-library
+
+PASS mobile-workflow-orders-materials-basics-professional-works-and-explicit-final-confirmation; mobile-self-enrollment-multi-role-encrypted-server-draft; refresh-before-receipt-readback-reconciles-original-command-without-a-second-plan; whole-ten-page-PDF-three-durable-batches-survive-page-reload; real-upload-native-pdf-text-and-photo-extraction-work-case-self-confirmation; returning-account-loads-current-profile-and-three-mobile-widths; shared-foundation-and-native-supplier-workflow-have-no-CSP-violations
+{"containers":0,"processes":0,"networks":0,"temporaryVolumes":0,"temporaryDirectories":0,"unresolvedBrowserLaunches":0}

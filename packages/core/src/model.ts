@@ -1,4 +1,8 @@
+import type {ProfessionalHomepageTables} from './professional-homepage-model.ts';
+import type {ClientPresentationTables} from './client-presentation-model.ts';
+import type {ProjectRequirement} from './project-selection-model.ts';
 import type {SupplierFieldTables} from './supplier-field-model.ts';
+import type {SupplierInboxTables} from './supplier-inbox-model.ts';
 import type {MediaPurgeIntent} from './media-purge-model.ts';
 import type {TalentMaintenanceTables} from './talent-maintenance-model.ts';
 import type {TalentAuthTables,TalentAuthConfig} from './talent-auth-model.ts';
@@ -156,7 +160,7 @@ export interface CommandReceipt extends Base {
     operation: string;
     commandKey: string;
     requestDigest: string;
-    resourceKind: 'sourceReview' | 'mediaPurge' | 'talentInvitation' | 'talentClaim' | 'talentGrant' | 'talentSubmission' | 'talentConsent' | 'talentAccount' | 'brand' | 'aiConnectionTest' | 'aiConnection' | 'aiApproval' | 'aiAttempt' | 'aiBudget' | 'aiTask' | 'aiGrant' | 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
+    resourceKind: 'professionalHomepage' | 'sourceReview' | 'mediaPurge' | 'talentInvitation' | 'talentClaim' | 'talentGrant' | 'talentSubmission' | 'talentConsent' | 'talentAccount' | 'brand' | 'aiConnectionTest' | 'aiConnection' | 'aiApproval' | 'aiAttempt' | 'aiBudget' | 'aiTask' | 'aiGrant' | 'localeText' | 'talentMigrationReview' | 'talentFact' | 'fieldProposal' | 'servicePrincipal' | 'organization' | 'capabilityDefinition' | 'person' | 'source' | 'scope' | 'membership' | 'catalog' | 'import' | 'job' | 'handoff' | 'upload' | 'asset' | 'work' | 'project' | 'shortlist' | 'usePermission' | 'export' | 'deletion' | 'merge';
     resourceId: string;
     result: ReceiptResult;
 }
@@ -240,7 +244,7 @@ export interface RecordHandoff extends Base {
     closedById: string | null;
 }
 import type {SourceReviewRequest} from './source-review.ts';
-export interface TableMap extends TalentV2Tables, TalentAuthTables, TalentMaintenanceTables, SupplierFieldTables {
+export interface TableMap extends ProfessionalHomepageTables, ClientPresentationTables, TalentV2Tables, TalentAuthTables, TalentMaintenanceTables, SupplierFieldTables, SupplierInboxTables {
     mediaPurgeIntents:MediaPurgeIntent;
     brands:Brand;projectParties:ProjectParty;
     aiResponseMetadata: AiResponseMetadata;
@@ -271,6 +275,7 @@ export interface TableMap extends TalentV2Tables, TalentAuthTables, TalentMainte
     works: Work;
     workAssets: WorkAsset;
     workCredits: WorkCredit;
+    projectRequirements:ProjectRequirement;
     projects: Project;
     projectParticipants: ProjectParticipant;
     projectWorks: ProjectWork;
@@ -320,6 +325,10 @@ export interface Clock {
     now(): Date;
 }
 export interface Config {
+    /** Explicit deployment attestation: every portal writer enforces command stops. */
+    portalCommandStopEnabled?:boolean;
+    professionalHomepagesEnabled?:boolean;
+    clientPresentationsEnabled?:boolean;
     ingestionEnabled?:boolean;
     agentMediaEnabled?:boolean;
     agentMediaAdmission?: import('./agent-media.ts').AgentMediaAdmission;

@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: playback HTTP ranges: exact, open, suffix, oversized, invalid and ignored multi-range
+ok 1 - playback HTTP ranges: exact, open, suffix, oversized, invalid and ignored multi-range
+  ---
+  duration_ms: 1.813918
+  type: 'test'
+  ...
+# Subtest: playback quota: per actor/workspace, no session bypass, idempotent release, rate and byte caps
+ok 2 - playback quota: per actor/workspace, no session bypass, idempotent release, rate and byte caps
+  ---
+  duration_ms: 0.978684
+  type: 'test'
+  ...
+# Subtest: real local bounded stream: identity mismatch, writeable file and abort are rejected
+ok 3 - real local bounded stream: identity mismatch, writeable file and abort are rejected
+  ---
+  duration_ms: 257.536605
+  type: 'test'
+  ...
+# Subtest: real HTTP playback: 200/206/416, privacy/authentication, current source and audit
+ok 4 - real HTTP playback: 200/206/416, privacy/authentication, current source and audit
+  ---
+  duration_ms: 310.047712
+  type: 'test'
+  ...
+# Subtest: revocation while opening stream denies first byte
+ok 5 - revocation while opening stream denies first byte
+  ---
+  duration_ms: 224.580315
+  type: 'test'
+  ...
+# Subtest: playback audit failure rolls back and sends no video bytes
+ok 6 - playback audit failure rolls back and sends no video bytes
+  ---
+  duration_ms: 211.08733
+  type: 'test'
+  ...
+# Subtest: storage mismatch quarantines exact asset with SYSTEM audit, without revealing storage path
+ok 7 - storage mismatch quarantines exact asset with SYSTEM audit, without revealing storage path
+  ---
+  duration_ms: 219.700519
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1710.717028

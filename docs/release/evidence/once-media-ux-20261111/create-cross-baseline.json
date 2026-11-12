@@ -1,0 +1,35 @@
+{
+  "status": "PRODUCT_GAPS",
+  "head": "1c492fbebaf558aac6ab9763be979a70eff9c408",
+  "subject": "uncommitted local working tree",
+  "sourceHashes": {
+    "apps/admin-web/src/talent-media-staging.tsx": "69ce5c462a73ef203678ba31cb00ff8a5f46854634e796edc097a0c2f92bc61e",
+    "apps/admin-web/src/supplier-profile-ui.tsx": "3e1a2e39c93fb1b39c584e3738cb3a700d99cd9f930b9acfdcb38175dd5dcf2e"
+  },
+  "observations": {
+    "create_response_lost_is_one_open_record": {
+      "pass": true,
+      "serverCommitted": true,
+      "receiptCount": 1,
+      "uploadCount": 1,
+      "state": "OPEN",
+      "chargedBytes": 3233,
+      "unchangedRevision": true
+    },
+    "create_recovery_blocks_duplicate": {
+      "pass": false,
+      "uploadDisabled": false,
+      "cancelVisible": true
+    },
+    "cross_draft_upload_state_isolation": {
+      "pass": false,
+      "draftBInputEnabled": false,
+      "draftBHasAlert": true,
+      "draftBHasOldGuidance": true
+    }
+  },
+  "findings": [
+    "create_recovery_blocks_duplicate",
+    "cross_draft_upload_state_isolation"
+  ]
+}

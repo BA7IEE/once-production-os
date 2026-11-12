@@ -11,8 +11,23 @@ for(const path of ['/portal/profile-schema','/portal/supplier-profiles/{id}','/p
 for(const path of ['/supplier-field-schema','/supplier-field-catalog','/supplier-field-catalog/{id}',
  '/supplier-field-catalog/{id}/publish','/people/{id}/professional'])EXPERIENCE_INTERNAL_ROUTES.add(path);
 export function unsupportedExperienceSurfaces(paths) {
- return paths.filter(path => (/(?:publish|anqicms|share|quote|ai\/)/.test(path) || /^\/(directory|portal|casting|ingestion|talent-invitations|talent-claims|talent-submissions|casting-shares|talent-publications)(\/|$)/.test(path)) && !EXPERIENCE_INTERNAL_ROUTES.has(path.replace(/^\/api\/v1(?=\/)/,'')));
+ return paths.filter(path => (/(?:publish|anqicms|share|quote|ai\/)/.test(path) || /^\/(client|directory|portal|casting|ingestion|talent-invitations|talent-claims|talent-submissions|casting-shares|talent-publications)(\/|$)/.test(path)) && !EXPERIENCE_INTERNAL_ROUTES.has(path.replace(/^\/api\/v1(?=\/)/,'')));
 }
 export function forbiddenNonGoalSurfaces(paths) {
  return paths.filter(path => /(?:^|\/)(invoice|payment|booking|crm|seo|geo)(?:\/|$)/.test(path));
 }
+
+// P06: explicitly reviewed client-purpose snapshot/recipient/feedback routes.
+for(const path of ['/shortlists/{id}/presentations','/shortlists/{id}/presentations/recipients/issue','/shortlists/{id}/presentations/revoke','/client/exchange','/client/me','/client/presentations/{id}','/client/feedback','/client/logout','/client/presentations/{id}/media/{asset}/preview','/client/presentations/{id}/media/{asset}/attachment','/client/presentations/{id}/media/{asset}/playback'])EXPERIENCE_INTERNAL_ROUTES.add(path);
+
+EXPERIENCE_INTERNAL_ROUTES.add('/shortlists/{id}/presentations/feedback');
+
+EXPERIENCE_INTERNAL_ROUTES.add('/client/feedback/inspect');
+
+// Explicitly authorized personal-homepage increment from d998cf0. Only these public
+// projections and SELF-owner commands are admitted; no generic site publication API.
+for(const path of ['/portal/homepage-options/{id}','/portal/homepages','/portal/homepages/{id}',
+ '/portal/homepages/{id}/export','/portal/homepages/{id}/activity','/portal/homepages/{id}/copy-link','/portal/homepages/{id}/qr-download','/portal/homepages/{id}/preview','/portal/homepages/{id}/qr','/portal/homepages/{id}/publish',
+ '/portal/homepages/{id}/unpublish','/public/homepages/{slug}',
+ '/public/homepages/{slug}/media/{key}/preview','/public/homepages/{slug}/media/{key}/attachment',
+ '/public/homepages/{slug}/media/{key}/playback'])EXPERIENCE_INTERNAL_ROUTES.add(path);

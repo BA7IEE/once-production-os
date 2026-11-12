@@ -15,10 +15,20 @@ import { digest } from './json.ts';
 import { uuid } from './validation.ts';
 import { permissionsFor } from './policy.ts';
 import { appendSourceHistory } from './source-history.ts';
+import { PORTAL_COMMAND_STOP } from './commands.ts';
 
 type RecoveryConfig = Pick<Config, 'accessMode' | 'dataEgressMode' | 'dataCleanupMode' | 'dataMergeMode' | 'recoveryEpoch'> & { contactKey?: Buffer };
 
 const RECOVERY_ERROR = 'RESTORE_REVIEW_REQUIRED';
+const RECOVERY_TRUST_EVIDENCE_UNAVAILABLE = 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE';
+
+// No independently verifiable, anti-rollback witness or bound target snapshot
+// is implemented yet. This hold intentionally accepts no caller-supplied flag,
+// configuration value or self-attested evidence as a substitute.
+function requireIndependentRecoveryEvidence(): void {
+    throw new AppError(409, RECOVERY_TRUST_EVIDENCE_UNAVAILABLE,
+        '缺少可独立验证的最新见证、停写及恢复目标一致性证据，恢复批准保持阻断');
+}
 
 export class RecoveryOps {
     clock: Clock;
@@ -167,6 +177,34 @@ export class RecoveryOps {
         const uploads = byId(await tx.find('uploads', { workspaceId: actor.workspaceId }));
         const assets = byId(await tx.find('assets', { workspaceId: actor.workspaceId }));
         const deletions = byId(await tx.find('deletionRequests', { workspaceId: actor.workspaceId }));
+        const portalStops = byId(await tx.find('receipts', { workspaceId: actor.workspaceId, operation: PORTAL_COMMAND_STOP }));
+        const portalStopReceiptInvalid = portalStops.some(x => {
+            const result = x.result as unknown;
+            if (!result || typeof result !== 'object' || Array.isArray(result)) return true;
+            const r = result as Record<string, unknown>;
+            return x.principalKind !== 'TALENT' || !x.talentAccountId || x.actorId != null || x.servicePrincipalId != null
+                || typeof x.commandKey !== 'string' || !/^[a-f0-9-]{36}$/.test(x.commandKey)
+                || x.resourceKind !== 'talentAccount' || x.resourceId !== x.talentAccountId
+                || x.requestDigest !== digest({ operation: PORTAL_COMMAND_STOP, targetId: x.commandKey, input: {} })
+                || typeof r.operationId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(r.operationId)
+                || r.resourceId !== x.resourceId || r.state !== 'SUCCEEDED'
+                || !Number.isSafeInteger(r.revision) || Number(r.revision) < 1;
+        });
+        // A stop and another receipt for the same TALENT principal/key are an
+        // ambiguous mixed-version or restore state, not evidence of either outcome.
+        const stopIdentities = portalStops.filter(x => x.principalKind === 'TALENT' && x.talentAccountId)
+            .map(x => JSON.stringify([x.talentAccountId, x.commandKey]));
+        const stopOwners = new Set(stopIdentities);
+        const stopKeys = unique(portalStops.map(x => x.commandKey));
+        let portalStopReceiptAmbiguous = stopOwners.size !== stopIdentities.length;
+        for (let i = 0; i < stopKeys.length; i += 500) {
+            const related = await tx.findIn('receipts', actor.workspaceId, 'commandKey', stopKeys.slice(i, i + 500));
+            if (related.some(x => x.operation !== PORTAL_COMMAND_STOP && x.principalKind === 'TALENT'
+                && x.talentAccountId && stopOwners.has(JSON.stringify([x.talentAccountId, x.commandKey])))) {
+                portalStopReceiptAmbiguous = true;
+                break;
+            }
+        }
         const compact = {
             workspace: { id: workspace.id, recoveryEpoch: workspace.recoveryEpoch },
             users: users.map(x => [x.id,x.revision,x.status,x.sessionEpoch]),
@@ -181,9 +219,13 @@ export class RecoveryOps {
             jobs: jobs.map(x => [x.id,x.revision,x.state,x.errorCode]),
             uploads: uploads.map(x => [x.id,x.revision,x.state,x.errorCode,x.expectedHash]),
             assets: assets.map(x => [x.id,x.revision,x.state,x.sha256,x.previewHash,x.objectToken]),
-            deletions: deletions.map(x => [x.id,x.revision,x.state,x.executionPlanDigest,x.cleanupErrorCode,x.finalizationDigest,x.finalizationErrorCode])
+            deletions: deletions.map(x => [x.id,x.revision,x.state,x.executionPlanDigest,x.cleanupErrorCode,x.finalizationDigest,x.finalizationErrorCode]),
+            // Keep the legacy digest exactly unchanged when no stops exist.
+            // Hash complete, deterministically ordered records so changes to
+            // any fence field invalidate an already inspected report.
+            ...(portalStops.length ? { portalCommandStops: portalStops } : {})
         };
-        return { workspace, users, memberships, sessions, activations, sources, contacts, handoffs, usePermissions, exports, jobs, uploads, assets, deletions,
+        return { workspace, users, memberships, sessions, activations, sources, contacts, handoffs, usePermissions, exports, jobs, uploads, assets, deletions, portalStopReceiptAmbiguous, portalStopReceiptInvalid,
             databaseStateDigest: digest(compact) };
     }
 
@@ -223,7 +265,10 @@ export class RecoveryOps {
             && expectedAssetIds.every((id, i) => id === external.media.expectedAssetIds[i]),
             'RECOVERY_EXTERNAL_EVIDENCE_STALE', '媒体检查对象与当前恢复数据库不一致，请重新检查', 409);
 
-        const blockers: string[] = [];
+        // A clean local restore inspection cannot establish journal freshness,
+        // source quiescence, or target/snapshot binding. Keep the diagnostic
+        // report useful, but never present it as approval-ready without proof.
+        const blockers: string[] = [RECOVERY_TRUST_EVIDENCE_UNAVAILABLE];
         const block = (condition: boolean, code: string) => { if (condition) blockers.push(code); };
         block(hashSecret(state.workspace.recoveryEpoch) !== run.sourceEpochDigest, 'SOURCE_EPOCH_CHANGED');
         block(state.sessions.some(x => !x.revokedAt), 'ACTIVE_SESSION');
@@ -241,6 +286,8 @@ export class RecoveryOps {
         block(state.assets.some(x => x.state === 'READY'), 'ASSET_NOT_QUARANTINED');
         block(state.sources.some(x => x.status === 'RECEIVED' || x.status === 'CONFIRMED'), 'SOURCE_NOT_REVIEWED');
         block(state.deletions.some(x => x.state === 'CLEANING'), 'DELETION_IN_FLIGHT');
+        block(state.portalStopReceiptAmbiguous, 'PORTAL_STOP_RECEIPT_AMBIGUOUS');
+        block(state.portalStopReceiptInvalid, 'PORTAL_STOP_RECEIPT_INVALID');
         block(!external.migrationMatch, 'MIGRATION_MISMATCH');
         block(external.media.provider === 'disabled' && expectedAssetIds.length > 0, 'MEDIA_PROVIDER_REQUIRED');
         block(external.media.missingAssetIds.length > 0, 'MEDIA_MISSING');
@@ -378,7 +425,10 @@ export class RecoveryOps {
 
     private comparableReport(report: RecoveryCheckReport) {
         const { checkedAt: _checkedAt, ...stable } = report;
-        return stable;
+        // Local-state comparison is diagnostic only: pre-existing reports did
+        // not have this policy marker. The unconditional hold below still
+        // prevents any write regardless of the result of this comparison.
+        return { ...stable, blockers: stable.blockers.filter(x => x !== RECOVERY_TRUST_EVIDENCE_UNAVAILABLE) };
     }
 
     async approve(tx: Tx, actor: Actor, recoveryRunId: string, externalInput: RecoveryExternalCheck,
@@ -390,7 +440,11 @@ export class RecoveryOps {
         invariant(run.actorId === actor.membershipId, 'RECOVERY_ACTOR_MISMATCH', '只能由执行恢复准备的维护管理员批准', 403);
         const stored = run.report as RecoveryCheckReport;
         invariant(run.reportDigest === digest(stored), 'RECOVERY_REPORT_TAMPERED', '已记录的 restore-check 摘要不匹配', 409);
-        invariant(Array.isArray(stored.blockers) && stored.blockers.length === 0,
+        // Keep the policy hold distinct while diagnosing existing local
+        // blockers. This never permits approval: the hard hold is enforced
+        // below before the first mutation, including for legacy reports.
+        invariant(Array.isArray(stored.blockers)
+            && stored.blockers.every(x => x === RECOVERY_TRUST_EVIDENCE_UNAVAILABLE),
             'RECOVERY_BLOCKERS_PRESENT', 'restore-check 仍有阻断项，不能批准', 409);
 
         const evidence = this.approvalEvidence(approvalInput);
@@ -405,13 +459,17 @@ export class RecoveryOps {
             '备份清单的媒体身份摘要与 restore-check 不一致', 409);
 
         const { report: fresh } = await this.inspection(tx, actor, recoveryRunId, externalInput);
-        invariant(fresh.blockers.length === 0, 'RECOVERY_BLOCKERS_PRESENT', '当前 restore-check 已出现阻断项，不能批准', 409);
+        invariant(fresh.blockers.every(x => x === RECOVERY_TRUST_EVIDENCE_UNAVAILABLE),
+            'RECOVERY_BLOCKERS_PRESENT', '当前 restore-check 已出现阻断项，不能批准', 409);
         invariant(digest(this.comparableReport(fresh)) === digest(this.comparableReport(stored)),
             'RECOVERY_CHECK_STALE', '恢复数据库、密钥或媒体证据在检查后发生变化，请重新记录 restore-check', 409);
 
         const workspace = await tx.get('workspaces', actor.workspaceId);
         invariant(workspace && hashSecret(workspace.recoveryEpoch) === run.sourceEpochDigest,
             'RECOVERY_SOURCE_EPOCH_CHANGED', '恢复数据库中的旧 recovery epoch 已变化', 409);
+        // A clean local diagnosis or legacy report is not proof of freshness,
+        // source quiescence or target identity. No runtime override exists.
+        requireIndependentRecoveryEvidence();
         const approvedAt = this.clock.now().toISOString();
         await tx.replace('workspaces', { ...workspace, recoveryEpoch: this.config.recoveryEpoch });
         const next: RecoveryRun = {

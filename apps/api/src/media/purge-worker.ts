@@ -1,5 +1,5 @@
 import type {Application} from '../../../../packages/core/src/api.ts';
-import type {MediaPurgeProvider} from './purge-provider.ts';
+import type {MediaPurgeProvider,PurgeObjectRef} from './purge-provider.ts';
 import type {MediaPurgeIntent} from '../../../../packages/core/src/media-purge-model.ts';
 import {PURGE_LIMITS} from '../../../../packages/core/src/media-purge-model.ts';
 import type {SafetyIntentSink} from '../../../../packages/core/src/safety-intent.ts';
@@ -19,17 +19,34 @@ export class MediaPurgeWorker {
   try{
    if(this.journal){await this.journal.writeAhead(intent);journaled=true;}
    const started=await this.core.mediaPurge.beginDelete(claim);if(!started){if(this.journal)await this.journal.committed(intent,claim.assetId).catch(()=>{});return;}let p:MediaPurgeIntent=started;
+   const provisional:PurgeObjectRef[]=[];
    for(const object of p.objects){
     if(controller.signal.aborted)return;
     // Even a previously confirmed object is re-statted after crash/restore before finalization.
     const ref={...object,uploadId:p.uploadId,objectToken:p.objectToken};
     try{
+     if(this.provider.deferObjectMissingUntilNamespace){
+      // Validate any present known bytes, but never delete a COS object outside
+      // the durable namespace receipt. A 404 is only a provisional observation.
+      await this.provider.statPurgeObject(ref,controller.signal);
+      provisional.push(ref);
+      p=await this.core.mediaPurge.objectResult(claim,object.part,'UNKNOWN');
+      continue;
+     }
      if(await this.provider.statPurgeObject(ref,controller.signal)==='EXISTS'){
       const authorized=await this.core.mediaPurge.beginDelete(claim);if(!authorized)return;
       await this.provider.deleteImmutableObject(ref,controller.signal);
      }
-     const state=await this.provider.statPurgeObject(ref,controller.signal)==='MISSING'?'MISSING':'UNKNOWN';if(state==='MISSING'&&p.objects.filter(o=>o.part!==object.part).every(o=>o.state==='MISSING'))await this.provider.purgeOwnedNamespace(ref,controller.signal);p=await this.core.mediaPurge.objectResult(claim,object.part,state);
+     const state=await this.provider.statPurgeObject(ref,controller.signal)==='MISSING'?'MISSING':'UNKNOWN';
+     if(state==='MISSING'&&p.objects.filter(o=>o.part!==object.part).every(o=>o.state==='MISSING'))await this.provider.purgeOwnedNamespace(ref,controller.signal);
+     p=await this.core.mediaPurge.objectResult(claim,object.part,state);
     }catch{p=await this.core.mediaPurge.objectResult(claim,object.part,'UNKNOWN');}
+   }
+   if(this.provider.deferObjectMissingUntilNamespace&&provisional.length>0&&provisional.length===p.objects.length&&!controller.signal.aborted){
+    let confirmed=false;
+    try{await this.provider.purgeOwnedNamespace(provisional[provisional.length-1]!,controller.signal);confirmed=true;}
+    catch{/* Namespace remains unconfirmed; every processed object stays UNKNOWN. */}
+    if(confirmed)for(const ref of provisional)p=await this.core.mediaPurge.objectResult(claim,ref.part,'MISSING');
    }
    if(p.state==='DELETE_CONFIRMED')await this.core.mediaPurge.finalize(claim);else await this.core.mediaPurge.defer(claim);
    if(this.journal)await this.journal.committed(intent,claim.assetId).catch(()=>{});

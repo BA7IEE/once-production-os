@@ -1,0 +1,21 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --supplier-upgrade
+
+TAP version 13
+# Subtest: populated migration 75 upgrades forward without changing original data or applied checksums
+ok 1 - populated migration 75 upgrades forward without changing original data or applied checksums
+  ---
+  duration_ms: 4219.509676
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4671.424219
+{"containers":0,"processes":0,"networks":0,"temporaryVolumes":0,"temporaryDirectories":0}

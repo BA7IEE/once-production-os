@@ -1,0 +1,250 @@
+TAP version 13
+# Subtest: zero stop receipts preserve the 89744a2 recovery safety digest
+ok 1 - zero stop receipts preserve the 89744a2 recovery safety digest
+  ---
+  duration_ms: 12.81827
+  type: 'test'
+  ...
+# Subtest: a preexisting same-principal same-key stop and original block recovery approval
+not ok 2 - a preexisting same-principal same-key stop and original block recovery approval
+  ---
+  duration_ms: 218.899844
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:93:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(check.blockers.includes('PORTAL_STOP_RECEIPT_AMBIGUOUS'))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    inspectedFixture (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:60:40)
+    async TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:94:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a different talent principal reusing the key does not create a false collision
+ok 3 - a different talent principal reusing the key does not create a false collision
+  ---
+  duration_ms: 177.935021
+  type: 'test'
+  ...
+# Subtest: unchanged inspected stop permits the existing synthetic zero-delta approval control
+ok 4 - unchanged inspected stop permits the existing synthetic zero-delta approval control
+  ---
+  duration_ms: 184.622365
+  type: 'test'
+  ...
+# Subtest: post-inspection delete a stop receipt changes the safety state digest
+not ok 5 - post-inspection delete a stop receipt changes the safety state digest
+  ---
+  duration_ms: 183.61827
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:118:2'
+  failureType: 'testCodeFailure'
+  error: 'the checked stop-fence state must bind the recorded digest'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '59f5a4b0d51597c960d13644e959dc87d9b029a4754596dec67e021934fb501e'
+  actual: '59f5a4b0d51597c960d13644e959dc87d9b029a4754596dec67e021934fb501e'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:121:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection delete a stop receipt rejects approval as stale
+not ok 6 - post-inspection delete a stop receipt rejects approval as stale
+  ---
+  duration_ms: 185.786515
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:124:2'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection: mutated stop receipt must invalidate old approval evidence'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:126:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the stopped command key changes the safety state digest
+not ok 7 - post-inspection change the stopped command key changes the safety state digest
+  ---
+  duration_ms: 182.505954
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:118:2'
+  failureType: 'testCodeFailure'
+  error: 'the checked stop-fence state must bind the recorded digest'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '72c2bfac74d80e900c3cc4b2964fcfe7736a3d61a7696f857dff1708a9c875c9'
+  actual: '72c2bfac74d80e900c3cc4b2964fcfe7736a3d61a7696f857dff1708a9c875c9'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:121:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the stopped command key rejects approval as stale
+not ok 8 - post-inspection change the stopped command key rejects approval as stale
+  ---
+  duration_ms: 173.577983
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:124:2'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection: mutated stop receipt must invalidate old approval evidence'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:126:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the owning talent account changes the safety state digest
+not ok 9 - post-inspection change the owning talent account changes the safety state digest
+  ---
+  duration_ms: 191.639021
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:118:2'
+  failureType: 'testCodeFailure'
+  error: 'the checked stop-fence state must bind the recorded digest'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '256557d1038fbfedb7be97847de987f53b964b954f62db22d3214de3c7ffa275'
+  actual: '256557d1038fbfedb7be97847de987f53b964b954f62db22d3214de3c7ffa275'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:121:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the owning talent account rejects approval as stale
+not ok 10 - post-inspection change the owning talent account rejects approval as stale
+  ---
+  duration_ms: 178.706296
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:124:2'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection: mutated stop receipt must invalidate old approval evidence'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:126:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the stop request digest changes the safety state digest
+not ok 11 - post-inspection change the stop request digest changes the safety state digest
+  ---
+  duration_ms: 175.286764
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:118:2'
+  failureType: 'testCodeFailure'
+  error: 'the checked stop-fence state must bind the recorded digest'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ade59f08084315b98f24ef785ced89a8eb6e5d6c2b5390bef2dc61a6844fbf5f'
+  actual: 'ade59f08084315b98f24ef785ced89a8eb6e5d6c2b5390bef2dc61a6844fbf5f'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:121:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the stop request digest rejects approval as stale
+not ok 12 - post-inspection change the stop request digest rejects approval as stale
+  ---
+  duration_ms: 179.643953
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:124:2'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection: mutated stop receipt must invalidate old approval evidence'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:126:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the stop result identity changes the safety state digest
+not ok 13 - post-inspection change the stop result identity changes the safety state digest
+  ---
+  duration_ms: 183.946591
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:118:2'
+  failureType: 'testCodeFailure'
+  error: 'the checked stop-fence state must bind the recorded digest'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'c68f5b665264b477743615daf86b9a55b395c0b267d2856c6ea3109e1e4568f8'
+  actual: 'c68f5b665264b477743615daf86b9a55b395c0b267d2856c6ea3109e1e4568f8'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:121:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the stop result identity rejects approval as stale
+not ok 14 - post-inspection change the stop result identity rejects approval as stale
+  ---
+  duration_ms: 180.410937
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:124:2'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection: mutated stop receipt must invalidate old approval evidence'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:126:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection insert another stop receipt changes the safety state digest
+not ok 15 - post-inspection insert another stop receipt changes the safety state digest
+  ---
+  duration_ms: 176.735782
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:118:2'
+  failureType: 'testCodeFailure'
+  error: 'the checked stop-fence state must bind the recorded digest'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '8a52fe7205a3cf0d2a209bbb66d943afc8278c68e88d36ba8d4fefa6b06652cc'
+  actual: '8a52fe7205a3cf0d2a209bbb66d943afc8278c68e88d36ba8d4fefa6b06652cc'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:121:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection insert another stop receipt rejects approval as stale
+not ok 16 - post-inspection insert another stop receipt rejects approval as stale
+  ---
+  duration_ms: 178.299625
+  type: 'test'
+  location: '/workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:124:2'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection: mutated stop receipt must invalidate old approval evidence'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///workspace/once-acceptance-20261109/tests/core/recovery-stop-receipt-digest.test.ts:126:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# ResourceRun 0d42a69c88c3bbecdb7a9d61: ZERO_RESIDUE
+1..16
+# tests 16
+# suites 0
+# pass 3
+# fail 13
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3216.328393

@@ -1,3 +1,4 @@
+import {validateSupplierRebuild,applySupplierRebuild} from './supplier-field-transfer.ts';
 import {WORK_CONSENT_VERSION,isWorkConsentVersion} from './work-consent.ts';
 import {validateCaseDate} from './talent-work-cases.ts';
 import {mediaByteLimit} from './media-model.ts';
@@ -18,7 +19,7 @@ import { PRODUCTION_LIMITS as PL } from './production-model.ts';
 import type { Tx } from './store.ts';
 import type { Parsed } from './validation.ts';
 import { RebuildSchemas } from './rebuild-validation.ts';
-import { REBUILD_EMPTY_TABLES, REBUILD_LIMITS as RL, REBUILD_SCHEMA_VERSION, type RebuildSummary } from './rebuild-model.ts';
+import { REBUILD_EMPTY_TABLES, REBUILD_EMPTY_TALENT_AUTH_TABLES, REBUILD_LIMITS as RL, REBUILD_SCHEMA_VERSION, type RebuildSummary } from './rebuild-model.ts';
 import { audit, base, unique, workspaceRow } from './helpers.ts';
 import { digest } from './json.ts';
 import { invariant } from './errors.ts';
@@ -64,6 +65,10 @@ export class JsonRebuild {
         invariant((await tx.find('scopeMembers', { workspaceId: actor.workspaceId })).length === 0,
             'REBUILD_TARGET_NOT_ISOLATED', '目标已经存在额外范围成员配置', 409);
 
+        for (const table of REBUILD_EMPTY_TALENT_AUTH_TABLES) {
+            invariant((await tx.find(table, { workspaceId: actor.workspaceId })).length === 0,
+                'REBUILD_TARGET_NOT_ISOLATED', '目标已存在人才认证数据，隔离重建拒绝覆盖或合并现有记录', 409);
+        }
         for (const table of REBUILD_EMPTY_TABLES) {
             const rows = await tx.find(table, { workspaceId: actor.workspaceId } as never);
             invariant(rows.length === 0, 'REBUILD_TARGET_NOT_EMPTY', '目标已存在业务数据，隔离重建拒绝覆盖或合并现有记录', 409);
@@ -85,6 +90,7 @@ export class JsonRebuild {
         invariant(payload.schemaVersion === payload.manifest.schemaVersion && (payload.schemaVersion===LOCALE_EXPORT_VERSION?!!payload.manifest.locales:!payload.manifest.locales&&(payload.schemaVersion===TALENT_EXPORT_VERSION) === typed), 'REBUILD_SCHEMA_MISMATCH', '导出版本与专业资料结构不一致', 422);
         if (payload.manifest.talent) validateRetainedOrigins(payload.manifest.talent,payload.manifest.sources,this.clock,payload.manifest.people);
         if (payload.manifest.talent) await validateTalentRebuild(tx, actor, this.clock, payload.manifest.talent, payload.manifest.people.map(p=>p.id), payload.manifest.sources.map(s=>s.id));
+        if(payload.manifest.talent)await validateSupplierRebuild(tx,actor,this.clock,payload.manifest.talent,payload.manifest.sources,this.credentialKeys);
         if(payload.manifest.talent&&(transferRows(payload.manifest.talent,'talentProfiles').some(r=>r.data.birthDate)||(payload.manifest.talent.mergeHistory?.talentProfiles??[]).some(r=>(r as unknown as Record<string,unknown>).birthDate))){requirePermission(actor,'sensitive.write');requirePermission({...actor,permissions:permissionsFor(target.member)},'sensitive.write');}
         if(payload.manifest.talent&&transferRows(payload.manifest.talent,'personCredentials').some(r=>r.data.identifierCiphertext)) {
             requirePermission(actor,'sensitive.write');
@@ -120,7 +126,7 @@ export class JsonRebuild {
                 'REBUILD_SOURCE_NOT_CURRENT', '重建只接受当前仍有效的 INTERNAL_USE 来源快照', 409);
         }
         for (const row of [...people, ...works, ...projects])
-            invariant(sourceIds.has(row.sourceId)||(people.includes(row as typeof people[number])&&['once-talent-transfer-v14','once-talent-transfer-v15'].includes(payload.manifest.talent?.schemaVersion??'')&&payload.manifest.talent?.retainedOrigins?.some(o=>o.id===row.sourceId)), 'REBUILD_SOURCE_MISSING', '业务对象引用的来源没有包含在重建清单中', 422);
+            invariant(sourceIds.has(row.sourceId)||(people.includes(row as typeof people[number])&&['once-talent-transfer-v14','once-talent-transfer-v15','once-talent-transfer-v16'].includes(payload.manifest.talent?.schemaVersion??'')&&payload.manifest.talent?.retainedOrigins?.some(o=>o.id===row.sourceId)), 'REBUILD_SOURCE_MISSING', '业务对象引用的来源没有包含在重建清单中', 422);
         const assetIdentity = new Map<string,string>();
         for (const row of media) {
             invariant(row.bytes<=mediaByteLimit(row.mime),'MEDIA_SIZE_INVALID','媒体超过对应类型上限',422);
@@ -136,7 +142,7 @@ export class JsonRebuild {
 
         for(const e of payload.manifest.talent?.evidence??[]) invariant(e.sourceRevision<=(sources.find(s=>s.id===e.sourceId)?.revision??0),'TD2_TRANSFER_EVIDENCE_SOURCE_REVISION','字段证据引用了不存在的来源版本',422);
         const referencedSources = new Set([
-            ...(payload.manifest.locales?.texts.flatMap(t=>[...t.dependencies,...t.importedBasis?.dependencies??[]].map(d=>d.sourceId))??[]), ...(payload.manifest.parties?[...payload.manifest.parties.brands,...payload.manifest.parties.organizations].map(r=>r.sourceId):[]), ...payload.manifest.relations.workCredits.flatMap(c=>c.sourceId?[c.sourceId]:[]), ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent?.assets??[]).map(a=>a.sourceId), ...(payload.manifest.talent?.evidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.identityEvidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.mergeHistory?[...payload.manifest.talent.mergeHistory.people,...payload.manifest.talent.mergeHistory.talentProfiles,...payload.manifest.talent.mergeHistory.castingProfiles,...payload.manifest.talent.mergeHistory.evidence,...payload.manifest.talent.mergeHistory.erasures??[]].map(r=>r.sourceId):[]), ...(payload.manifest.talent?.organizations??[]).map(o=>o.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>transferRows(payload.manifest.talent!,t).map(r=>r.sourceId)) : [])
+            ...(payload.manifest.locales?.texts.flatMap(t=>[...t.dependencies,...t.importedBasis?.dependencies??[]].map(d=>d.sourceId))??[]), ...(payload.manifest.parties?[...payload.manifest.parties.brands,...payload.manifest.parties.organizations].map(r=>r.sourceId):[]), ...payload.manifest.relations.workCredits.flatMap(c=>c.sourceId?[c.sourceId]:[]), ...people.map(x => x.sourceId), ...works.map(x => x.sourceId), ...projects.map(x => x.sourceId), ...media.map(x => x.sourceId), ...(payload.manifest.talent?.supplier?.facts??[]).map(a=>a.sourceId), ...(payload.manifest.talent?.assets??[]).map(a=>a.sourceId), ...(payload.manifest.talent?.evidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.identityEvidence??[]).map(e=>e.sourceId), ...(payload.manifest.talent?.mergeHistory?[...payload.manifest.talent.mergeHistory.people,...payload.manifest.talent.mergeHistory.talentProfiles,...payload.manifest.talent.mergeHistory.castingProfiles,...payload.manifest.talent.mergeHistory.evidence,...payload.manifest.talent.mergeHistory.erasures??[]].map(r=>r.sourceId):[]), ...(payload.manifest.talent?.organizations??[]).map(o=>o.sourceId), ...(payload.manifest.talent ? TRANSFER_TABLES.flatMap(t=>transferRows(payload.manifest.talent!,t).map(r=>r.sourceId)) : [])
         ]);
         invariant(sources.every(x => referencedSources.has(x.id)), 'REBUILD_UNUSED_SOURCE',
             '来源清单包含没有被本次业务图引用的记录', 422);
@@ -237,6 +243,7 @@ export class JsonRebuild {
             ...(payload.manifest.talent ? {encryptedCredentialCount:transferRows(payload.manifest.talent,'personCredentials').filter(r=>r.data.identifierCiphertext).length, fieldEvidence:(payload.manifest.talent.evidence?.length??0)+(payload.manifest.talent.identityEvidence?.length??0), organizations:payload.manifest.talent.organizations?.length??0, capabilityDefinitions: payload.manifest.talent.capabilityDefinitions?.length??0, professionalRecords: TRANSFER_TABLES.reduce((n,t)=>n+transferRows(payload.manifest.talent!,t).length,0)} : {}),
             ...(payload.manifest.talent?.mergeHistory?{mergeHistory:{people:payload.manifest.talent.mergeHistory.people.length,aliases:payload.manifest.talent.mergeHistory.aliases.length,decisions:payload.manifest.talent.mergeHistory.decisions.length,profiles:payload.manifest.talent.mergeHistory.talentProfiles.length+payload.manifest.talent.mergeHistory.castingProfiles.length,evidence:payload.manifest.talent.mergeHistory.evidence.length,...(payload.manifest.talent.mergeHistory.erasures?{erasures:payload.manifest.talent.mergeHistory.erasures.length}:{})}}:{}),
             ...(payload.manifest.locales?{localeTexts:payload.manifest.locales.texts.length,localeDependencies:payload.manifest.locales.texts.reduce((n,t)=>n+t.dependencies.length,0)}:{}),
+            ...(payload.manifest.talent?.supplier?{supplierFacts:payload.manifest.talent.supplier.facts.length,supplierChoices:payload.manifest.talent.supplier.choices.length,supplierCatalogs:payload.manifest.talent.supplier.catalogs.length}:{}),
             mediaRestored: payload.manifest.talent?.assets?.length??0
         };
         return { payload, target, summary };
@@ -355,6 +362,7 @@ export class JsonRebuild {
         if (payload.manifest.talent?.identityEvidence) await applyIdentityEvidence(tx,actor,payload.manifest.talent.identityEvidence);
 
         if (payload.manifest.talent?.mergeHistory) await applyMergeHistory(tx,actor,payload.manifest.talent.mergeHistory);
+        if(payload.manifest.talent)await applySupplierRebuild(tx,actor,this.clock,payload.manifest.talent,this.credentialKeys);
 
         await audit(tx, actor, actor.workspaceId, 'rebuild.apply', 'rebuild-export', payload.exportId,
             ['sources', 'people', 'works', 'projects', 'relations', ...(payload.manifest.locales?['locale.texts']:[]), ...(payload.manifest.talent ? ['talent.typed'] : []), ...(payload.manifest.media.length ? ['media.identity-only'] : [])],

@@ -13,7 +13,7 @@ async function fixture(){
  const root=await mkdtemp(join(await realpath(tmpdir()),'once-cos-')),local=await LocalMediaProvider.create(root),id=randomUUID(),token=randomUUID();
  const objects=new Map<string,Buffer>(),requests:COS.PutObjectParams[]=[];let version:string|undefined,acl='private',failDelete=false;
  const sdk={
-  async getBucketPolicy(){throw {statusCode:404};},async getBucketAcl(){return {ACL:acl};},async getBucketVersioning(){return {VersioningConfiguration:{Status:version}};},
+  async getBucketPolicy(){throw {statusCode:404};},async getBucketAcl(){return {ACL:acl,Owner:{ID:'synthetic-owner'},Grants:[{Grantee:{ID:'synthetic-owner'},Permission:'FULL_CONTROL'}]};},async getBucketVersioning(){return {VersioningConfiguration:{Status:version}};},
   async putObject(p:COS.PutObjectParams){requests.push(p);if(objects.has(p.Key))throw {statusCode:409};objects.set(p.Key,Buffer.from(p.Body as Buffer));return {};},
   async getObject(p:COS.GetObjectParams){const b=objects.get(p.Key);if(!b)throw {statusCode:404};await new Promise<void>((resolve,reject)=>{const out=p.Output as import('node:stream').Writable;out.once('error',reject);out.end(b,resolve);});return {};},
   async getBucket(p:COS.GetBucketParams){return {statusCode:200,Contents:[...objects.keys()].filter(k=>k.startsWith(p.Prefix!)).map(Key=>({Key})),IsTruncated:'false'};},
@@ -25,12 +25,12 @@ async function fixture(){
  const asset={uploadId:id,objectToken:token,mime:'application/pdf',bytes:original.length,sha256:hash(original),previewBytes:preview.length,previewHash:hash(preview)} as MediaAsset;
  return {provider,id,token,asset,objects,requests,original,preview,setVersion:(s:string)=>{version=s;},setAcl:(s:string)=>{acl=s;},failDelete:()=>{failDelete=true;},cleanup:()=>rm(root,{recursive:true,force:true})};
 }
-test('COS stores private objects, verifies retries and round-trips original and preview',async()=>{
+test('COS stores private objects, verifies retries and keeps cleanup pending without conclusive inventory',async()=>{
  const f=await fixture();try{
   await f.provider.publishSealed(f.id,f.token,new AbortController().signal);await f.provider.publishSealed(f.id,f.token,new AbortController().signal);
   assert.equal(f.objects.size,2);assert.ok(f.requests.every(p=>p.ACL==='private'&&p.Headers?.['x-cos-forbid-overwrite']==='true'));
   assert.deepEqual(await f.provider.readOriginal(f.asset),f.original);assert.deepEqual(await f.provider.readPreview(f.asset),f.preview);
-  await f.provider.purge(f.id);assert.equal(f.objects.size,0);
+  await assert.rejects(f.provider.purge(f.id),{code:'COS_PURGE_RECONCILIATION_REQUIRED'});assert.equal(f.objects.size,0);
  }finally{await f.cleanup();}
 });
 test('COS refuses public or versioned buckets and detects changed or oversized objects',async()=>{

@@ -102,10 +102,12 @@ export class SupplierProfessional{
   return {personId,revision:person.revision,catalog:catalogView(await publishedCatalog(tx,actor.workspaceId),true),entries};
  }
  async update(tx:Tx,actor:Actor,personId:string,input:unknown){requirePermission(actor,'records.write');const d=ProfessionalWriteSchema.parse(input),person=await td2PersonFor(tx,actor,personId);cas(person,d.expectedPersonRevision);
+  invariant(new Set(d.replace.map(t=>t.id)).size===d.replace.length,'FIELD_REPLACEMENT_DUPLICATE','同一字段事实不能重复替换',422);
   const source=await sourceFor(tx,actor,d.sourceId,this.clock);cas(source,d.sourceRevision);const roles=(await tx.find('personRoles',{workspaceId:actor.workspaceId,personId,status:'ACTIVE'})).map(r=>r.roleCode);
   const priorAnswers:ProfessionalAnswer[]=[];for(const target of d.replace){const root=await workspaceRow(tx,'supplierFacts',target.id,actor.workspaceId);if(!root||root.personId!==personId||!isRoot(root)||!await this.readable(tx,root))missing();cas(root,target.revision);await sourceFor(tx,actor,root.sourceId,this.clock);priorAnswers.push(await this.answer(tx,root));}
   const data=await this.validate(tx,actor.workspaceId,roles,d.professional,{...d.professional,answers:priorAnswers},true);
-  invariant(d.replace.every(t=>priorAnswers.some(a=>data.answers.some(n=>answerKey(n)===answerKey(a)))),'FIELD_REPLACEMENT_REQUIRED','被替换的字段必须明确提供新值或清空状态',422);
+  const replacementKeys=new Set(data.answers.map(answerKey));
+  invariant(priorAnswers.every(a=>replacementKeys.has(answerKey(a))),'FIELD_REPLACEMENT_REQUIRED','被替换的字段必须明确提供对应人物或职业的新值或清空状态',422);
   const exposedGrants=await tx.find('talentAccessGrants',{workspaceId:actor.workspaceId,personId,state:'ACTIVE'}),newExposure=await this.apply(tx,person,source,data,d.replace.map(r=>r.id));
   for(const g of exposedGrants){const old=g.selfExposureManifest.filter(e=>e.kind==='supplierField'&&d.replace.some(r=>r.id===e.targetId));if(!old.length)continue;
    const keys=new Set(priorAnswers.filter((_,i)=>old.some(e=>e.targetId===d.replace[i]?.id)).map(answerKey));

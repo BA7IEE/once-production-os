@@ -1,0 +1,10 @@
+{
+  "status": "PASSED",
+  "externalModel": "NOT_RUN",
+  "checks": [
+    "employee-inline-source-multiple-file-upload-durable-ten-page-PDF-reload",
+    "one-file-two-people-human-page-ownership-no-fabricated-talent-account",
+    "independent-file-hold-resume-without-reupload"
+  ],
+  "errors": []
+}

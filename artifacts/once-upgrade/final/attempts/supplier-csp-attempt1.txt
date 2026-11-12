@@ -1,0 +1,41 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite supplier-library
+
+{"documentJobs":[{"state":"READY","pages":[],"errorCode":null,"images":0},{"state":"READY","pages":[1,2,3,4],"images":4},{"state":"READY","pages":[5,6,7,8],"images":4},{"state":"READY","pages":[9,10],"images":2}],"alerts":[],"sections":0,"labels":[],"errors":[]}
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: strict CSP across internal and supplier pages
++ actual - expected
+
++ [
++   'style-src-elem',
++   'style-src-elem',
++   'style-src-elem',
++   'style-src-elem',
++   'style-src-elem',
++   'style-src-elem'
++ ]
+- []
+
+    at file:///workspace/once-production-os/tests/acceptance/browser-supplier-library.mjs:69:37 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [
+    'style-src-elem',
+    'style-src-elem',
+    'style-src-elem',
+    'style-src-elem',
+    'style-src-elem',
+    'style-src-elem'
+  ],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.3
+Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+ ELIFECYCLE  Command failed with exit code 1.

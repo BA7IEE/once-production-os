@@ -1,0 +1,228 @@
+TAP version 13
+# Subtest: portal stop defaults off and does not create a fence when unavailable
+ok 1 - portal stop defaults off and does not create a fence when unavailable
+  ---
+  duration_ms: 238.817787
+  type: 'test'
+  ...
+# Subtest: portal stop wins: late cancel and another portal command with the same key cannot apply
+ok 2 - portal stop wins: late cancel and another portal command with the same key cannot apply
+  ---
+  duration_ms: 217.632193
+  type: 'test'
+  ...
+# Subtest: an established stop is enforced even if its creation capability is later disabled
+ok 3 - an established stop is enforced even if its creation capability is later disabled
+  ---
+  duration_ms: 208.659478
+  type: 'test'
+  ...
+# Subtest: stop is actor scoped and the same key remains available to a different talent account
+ok 4 - stop is actor scoped and the same key remains available to a different talent account
+  ---
+  duration_ms: 248.198827
+  type: 'test'
+  ...
+# Subtest: original cancel wins: a real receipt prevents stop and remains readable as the cancel
+ok 5 - original cancel wins: a real receipt prevents stop and remains readable as the cancel
+  ---
+  duration_ms: 205.411238
+  type: 'test'
+  ...
+# Subtest: a same-key receipt of another operation blocks stop rather than being called a cancel
+ok 6 - a same-key receipt of another operation blocks stop rather than being called a cancel
+  ---
+  duration_ms: 206.959964
+  type: 'test'
+  ...
+# Subtest: two different same-key portal receipts make stop and cancel lookup ambiguous
+ok 7 - two different same-key portal receipts make stop and cancel lookup ambiguous
+  ---
+  duration_ms: 204.623382
+  type: 'test'
+  ...
+# Subtest: an inaccessible existing cancel receipt is never mistaken for no receipt or safely stopped
+ok 8 - an inaccessible existing cancel receipt is never mistaken for no receipt or safely stopped
+  ---
+  duration_ms: 276.905699
+  type: 'test'
+  ...
+# Subtest: stop requires the original key, same authenticated account, CSRF and origin
+ok 9 - stop requires the original key, same authenticated account, CSRF and origin
+  ---
+  duration_ms: 243.442522
+  type: 'test'
+  ...
+# Subtest: racing real API commands choose one outcome in the serialized in-memory store
+ok 10 - racing real API commands choose one outcome in the serialized in-memory store
+  ---
+  duration_ms: 195.433411
+  type: 'test'
+  ...
+# Subtest: synthetic mixed-version stop and original receipts remain ambiguous and reject stop replay
+ok 11 - synthetic mixed-version stop and original receipts remain ambiguous and reject stop replay
+  ---
+  duration_ms: 247.984444
+  type: 'test'
+  ...
+# Subtest: new stops are rate limited per account; replay does not use new-stop quota
+ok 12 - new stops are rate limited per account; replay does not use new-stop quota
+  ---
+  duration_ms: 195.114164
+  type: 'test'
+  ...
+# Subtest: failed stop audit rolls back receipt and new-stop quota but charges the request limit
+ok 13 - failed stop audit rolls back receipt and new-stop quota but charges the request limit
+  ---
+  duration_ms: 191.743809
+  type: 'test'
+  ...
+# Subtest: stop committed before a response-side journal failure is recovered by status without reissuing cancel
+ok 14 - stop committed before a response-side journal failure is recovered by status without reissuing cancel
+  ---
+  duration_ms: 186.82131
+  type: 'test'
+  ...
+# Subtest: account disable prevents later stop creation, status reads and receipt replay
+ok 15 - account disable prevents later stop creation, status reads and receipt replay
+  ---
+  duration_ms: 219.864038
+  type: 'test'
+  ...
+# Subtest: cancel request binding identifies key, operation, target and revision without unauthorized disclosure
+ok 16 - cancel request binding identifies key, operation, target and revision without unauthorized disclosure
+  ---
+  duration_ms: 224.788493
+  type: 'test'
+  ...
+# Subtest: stop request account limit covers replay and new keys before safety journal writes
+ok 17 - stop request account limit covers replay and new keys before safety journal writes
+  ---
+  duration_ms: 325.26749
+  type: 'test'
+  ...
+# {"synthetic":true,"concurrentStatuses":[200,429],"stopIntentCount":120}
+# Subtest: a failed pre-anchor stop retried after anchor must leave a new blocking journal delta
+ok 18 - a failed pre-anchor stop retried after anchor must leave a new blocking journal delta
+  ---
+  duration_ms: 472.966568
+  type: 'test'
+  ...
+# {"synthetic":true,"initialStatus":429,"retryStatus":500,"stopStatus":"STOPPED","snapshotReceiptCount":0,"currentReceiptCount":1,"anchorSequence":21,"currentSequence":22,"postBackupEntries":1,"unresolved":1}
+# Subtest: pre-anchor unclosed stop is counted even with zero post-anchor events
+ok 19 - pre-anchor unclosed stop is counted even with zero post-anchor events
+  ---
+  duration_ms: 106.187091
+  type: 'test'
+  ...
+# Subtest: pre-anchor unclosed stop remains counted when other post-anchor deltas are resolved
+ok 20 - pre-anchor unclosed stop remains counted when other post-anchor deltas are resolved
+  ---
+  duration_ms: 109.030256
+  type: 'test'
+  ...
+# Subtest: a pre-anchor abort for a stop cannot prove that an old stable key was never retried
+ok 21 - a pre-anchor abort for a stop cannot prove that an old stable key was never retried
+  ---
+  duration_ms: 108.818518
+  type: 'test'
+  ...
+# Subtest: a genuinely committed pre-anchor stop is closed, including a synthetic legacy requestId mismatch
+ok 22 - a genuinely committed pre-anchor stop is closed, including a synthetic legacy requestId mismatch
+  ---
+  duration_ms: 302.795695
+  type: 'test'
+  ...
+# Subtest: a stop committed after the anchor does not close the pre-anchor stop and is also a delta blocker
+ok 23 - a stop committed after the anchor does not close the pre-anchor stop and is also a delta blocker
+  ---
+  duration_ms: 292.961986
+  type: 'test'
+  ...
+# Subtest: each stop network attempt has its own intent while business receipt remains idempotent
+ok 24 - each stop network attempt has its own intent while business receipt remains idempotent
+  ---
+  duration_ms: 315.979779
+  type: 'test'
+  ...
+# Subtest: anchor guard rejects orphan commit
+ok 25 - anchor guard rejects orphan commit
+  ---
+  duration_ms: 106.28977
+  type: 'test'
+  ...
+# Subtest: anchor guard rejects orphan abort
+ok 26 - anchor guard rejects orphan abort
+  ---
+  duration_ms: 107.315047
+  type: 'test'
+  ...
+# Subtest: anchor guard rejects different workspace
+ok 27 - anchor guard rejects different workspace
+  ---
+  duration_ms: 109.541314
+  type: 'test'
+  ...
+# Subtest: anchor guard rejects different resource
+ok 28 - anchor guard rejects different resource
+  ---
+  duration_ms: 107.171724
+  type: 'test'
+  ...
+# Subtest: anchor guard rejects different operation
+ok 29 - anchor guard rejects different operation
+  ---
+  duration_ms: 108.860878
+  type: 'test'
+  ...
+# Subtest: anchor guard rejects commit before intent
+ok 30 - anchor guard rejects commit before intent
+  ---
+  duration_ms: 107.637343
+  type: 'test'
+  ...
+# Subtest: anchor guard rejects both abort and commit
+ok 31 - anchor guard rejects both abort and commit
+  ---
+  duration_ms: 110.911017
+  type: 'test'
+  ...
+# Subtest: a committed stop after a backup anchor remains a recovery blocker
+ok 32 - a committed stop after a backup anchor remains a recovery blocker
+  ---
+  duration_ms: 338.335729
+  type: 'test'
+  ...
+# Subtest: a late cancellation rejected by a previously established fence leaves a blocker
+ok 33 - a late cancellation rejected by a previously established fence leaves a blocker
+  ---
+  duration_ms: 314.713968
+  type: 'test'
+  ...
+# Subtest: a post-commit journal completion failure cannot become a no-commit claim
+ok 34 - a post-commit journal completion failure cannot become a no-commit claim
+  ---
+  duration_ms: 305.331898
+  type: 'test'
+  ...
+# Subtest: stop conflict with a previously committed cancel leaves a conservative blocker
+ok 35 - stop conflict with a previously committed cancel leaves a conservative blocker
+  ---
+  duration_ms: 298.182538
+  type: 'test'
+  ...
+# Subtest: a rate-limited stop after the anchor also remains unresolved
+ok 36 - a rate-limited stop after the anchor also remains unresolved
+  ---
+  duration_ms: 349.936472
+  type: 'test'
+  ...
+1..36
+# tests 36
+# suites 0
+# pass 36
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9044.555588

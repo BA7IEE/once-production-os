@@ -1,3 +1,4 @@
+import {SUPPLIER_TRANSFER_VERSION,SupplierTransferSchema,collectSupplierTransfer,type SupplierTransfer} from './supplier-field-transfer.ts';
 import {RetainedOriginSchema,validateRetainedOrigins,type RetainedOrigin} from './retained-origin-transfer.ts';
 import {MERGE_ERASURE_VERSION,ErasedMergeHistorySchema,collectMergeHistory,type MergeHistory} from './merge-history-transfer.ts';
 import {IDENTITY_FIELDS,IdentityEvidenceSchema,collectIdentityEvidence,type IdentityEvidence} from './identity-transfer.ts';
@@ -19,7 +20,7 @@ export const TALENT_TRANSFER_FIELDS = {
     personRoles: ['roleCode', 'validFrom', 'validUntil', 'status', 'castingMarketCode', 'experienceCode', 'styleCodes', 'serviceCodes'],
     personCapabilities: ['personRoleId', 'capabilityCode', 'levelCode', 'validFrom', 'validUntil', 'status'],
     representations: ['personRoleId','agencyOrganizationId','agentPersonId','relationCode','territoryCode','validFrom','validUntil','status'],
-    personCredentials: ['personRoleId','credentialTypeCode','issuerOrganizationId','issuerName','issuedOn','expiresOn','evidenceAssetId','status','identifierCiphertext','maskedIdentifier'],
+    personCredentials: ['credentialName','personRoleId','credentialTypeCode','issuerOrganizationId','issuerName','issuedOn','expiresOn','evidenceAssetId','status','identifierCiphertext','maskedIdentifier'],
     personExternalRefs: ['providerCode', 'namespaceCode', 'issuerOrganizationId', 'externalKey', 'state', 'verifiedAt'],
     personLanguages: ['languageCode', 'speakingLevelCode', 'listeningLevelCode', 'readingLevelCode', 'writingLevelCode', 'validFrom', 'validUntil', 'status', 'verifiedAt'],
     talentLocations: ['locationCode', 'relationCode', 'validFrom', 'validUntil', 'status', 'verifiedAt'],
@@ -46,7 +47,7 @@ export interface TransferDefinition { id: string; revision: number; createdAt: s
 export interface TransferOrganization { id: string; sourceId: string; revision: number; createdAt: string; updatedAt: string; name: string; kind: 'AGENCY' | 'ISSUER' | 'OTHER'; status: 'ACTIVE' }
 export interface TransferEvidence { id: string; revision: number; createdAt: string; updatedAt: string; ownerKind: TransferTable; ownerId: string; fieldPath: string; valueDigest: string; sourceId: string; sourceRevision: number; originalReview: {workspaceId:string; membershipId:string; reviewedAt:string} | null }
 export interface TransferCollectionItem {id:string;personId:string;collectionId:string;assetId:string;revision:number;createdAt:string;updatedAt:string;orderIndex:number;caption:string;featured:boolean}
-export interface TalentTransfer { schemaVersion: typeof MERGE_ERASURE_VERSION; retainedOrigins?:RetainedOrigin[]; mergeHistory?:MergeHistory; identityFields?:string[]; identityEvidence?:IdentityEvidence[]; collectionItems?:TransferCollectionItem[]; assets?: TransferAsset[]; identifierContextWorkspaceId?: string; credentialIdentifiersIncluded?: boolean; evidence?: TransferEvidence[]; selectedFields: TransferCode[]; tables: Record<TransferTable, TransferRow[]>; capabilityDefinitions?: TransferDefinition[]; organizations?: TransferOrganization[] }
+export interface TalentTransfer { schemaVersion: typeof MERGE_ERASURE_VERSION|typeof SUPPLIER_TRANSFER_VERSION; supplier?:SupplierTransfer; retainedOrigins?:RetainedOrigin[]; mergeHistory?:MergeHistory; identityFields?:string[]; identityEvidence?:IdentityEvidence[]; collectionItems?:TransferCollectionItem[]; assets?: TransferAsset[]; identifierContextWorkspaceId?: string; credentialIdentifiersIncluded?: boolean; evidence?: TransferEvidence[]; selectedFields: TransferCode[]; tables: Record<TransferTable, TransferRow[]>; capabilityDefinitions?: TransferDefinition[]; organizations?: TransferOrganization[] }
 // All current payloads declare every table; unselected groups are empty.
 export const transferRows = (bundle: TalentTransfer, table: TransferTable): TransferRow[] => bundle.tables[table];
 const definitionSchema = v.object({ id: uuid, revision, createdAt: dateIso, updatedAt: dateIso, code,
@@ -59,7 +60,7 @@ for (const table of TRANSFER_TABLES) {
     const shape: Record<string, Schema<unknown>> = {};
     for (const field of TALENT_TRANSFER_FIELDS[table]) {
         const type = (TD2_FACTS[table].fields as Record<string, string>)[field];
-        shape[field] = field==='reportedAt' ? v.optional(v.nullable(dateIso)) : table==='adultEligibilities'&&field==='verification' ? v.nullable(v.object({workspaceId:uuid,membershipId:uuid})) : table==='adultEligibilities'&&field==='state' ? v.enum(['UNKNOWN','SELF_DECLARED_ADULT','VERIFIED_ADULT','RESTRICTED']) : table==='personCredentials'&&field==='status' ? v.enum(['UNVERIFIED','VERIFIED','REVOKED']) : field==='identifierCiphertext' ? v.nullable(v.string(2048,1,/^v1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/)) : field==='maskedIdentifier' ? v.nullable(v.string(7,4)) : type ? fieldSchema(type, field) : field === 'state' ? v.enum(['OBSERVED','VERIFIED','REVOKED']) : field === 'status' ? v.enum(['DRAFT','CONFIRMED','SUPERSEDED'])
+        shape[field] = field==='credentialName'?v.optional(v.nullable(v.string(200,1))):field==='reportedAt' ? v.optional(v.nullable(dateIso)) : table==='adultEligibilities'&&field==='verification' ? v.nullable(v.object({workspaceId:uuid,membershipId:uuid})) : table==='adultEligibilities'&&field==='state' ? v.enum(['UNKNOWN','SELF_DECLARED_ADULT','VERIFIED_ADULT','RESTRICTED']) : table==='personCredentials'&&field==='status' ? v.enum(['UNVERIFIED','VERIFIED','REVOKED']) : field==='identifierCiphertext' ? v.nullable(v.string(2048,1,/^v1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/)) : field==='maskedIdentifier' ? v.nullable(v.string(7,4)) : type ? fieldSchema(type, field) : field === 'state' ? v.enum(['OBSERVED','VERIFIED','REVOKED']) : field === 'status' ? v.enum(['DRAFT','CONFIRMED','SUPERSEDED'])
             : field === 'currentMeasurementSetId' ? v.nullable(uuid) : v.nullable(dateIso);
     }
     if(table==='mediaCollections')for(const f of ['coverAssetId','isCurrent'])shape[f]=v.optional(shape[f]!);
@@ -71,7 +72,7 @@ for (const table of TRANSFER_TABLES) {
 const evidenceSchema=v.object({id:uuid,revision,createdAt:dateIso,updatedAt:dateIso,ownerKind:v.enum(TRANSFER_TABLES),ownerId:uuid,fieldPath:v.string(160,1),valueDigest:v.string(64,64,/^[a-f0-9]{64}$/),sourceId:uuid,sourceRevision:revision,originalReview:v.nullable(v.object({workspaceId:uuid,membershipId:uuid,reviewedAt:dateIso}))});
 const collectionItemSchema=v.object({id:uuid,personId:uuid,collectionId:uuid,assetId:uuid,revision,createdAt:dateIso,updatedAt:dateIso,orderIndex:v.number(0,199),caption:v.string(1000),featured:v.boolean()});
 const currentSchema=v.object({
- schemaVersion:v.enum([MERGE_ERASURE_VERSION,'once-talent-transfer-v14']),
+ schemaVersion:v.enum([SUPPLIER_TRANSFER_VERSION,MERGE_ERASURE_VERSION,'once-talent-transfer-v14']),supplier:v.optional(SupplierTransferSchema),
  retainedOrigins:v.array(RetainedOriginSchema,500),mergeHistory:v.optional(ErasedMergeHistorySchema),
  identityFields:v.array(v.enum(IDENTITY_FIELDS),3),identityEvidence:v.array(IdentityEvidenceSchema,500),
  assets:v.array(TransferAssetSchema,500),collectionItems:v.array(collectionItemSchema,500),
@@ -83,12 +84,12 @@ export const TransferSchema: Schema<TalentTransfer> = {
  json:currentSchema.json,
  parse(input,path){
   const version=input&&typeof input==='object'?(input as Record<string,unknown>).schemaVersion:null;
-  invariant(version===MERGE_ERASURE_VERSION||version==='once-talent-transfer-v14','TD2_TRANSFER_VERSION_RETIRED','只接受当前导出格式；开发期旧文件请从当前系统重新导出',422);
-  const parsed=currentSchema.parse(input,path) as unknown as TalentTransfer;parsed.schemaVersion=MERGE_ERASURE_VERSION;for(const table of ['talentProfiles','personRoles'] as const)for(const row of parsed.tables[table])row.data={...rowDefaults(table),...row.data};for(const row of parsed.tables.measurementSets)row.data={reportedAt:null,...row.data};return parsed;
+  invariant(version===SUPPLIER_TRANSFER_VERSION||version===MERGE_ERASURE_VERSION||version==='once-talent-transfer-v14','TD2_TRANSFER_VERSION_RETIRED','只接受当前导出格式；开发期旧文件请从当前系统重新导出',422);
+  const parsed=currentSchema.parse(input,path) as unknown as TalentTransfer;invariant((version===SUPPLIER_TRANSFER_VERSION)===!!parsed.supplier,'SUPPLIER_TRANSFER_VERSION','扩展事实必须使用 v16 格式，旧格式不得夹带或忽略新事实',422);parsed.schemaVersion=version===SUPPLIER_TRANSFER_VERSION?SUPPLIER_TRANSFER_VERSION:MERGE_ERASURE_VERSION;for(const table of ['talentProfiles','personRoles'] as const)for(const row of parsed.tables[table])row.data={...rowDefaults(table),...row.data};for(const row of parsed.tables.measurementSets)row.data={reportedAt:null,...row.data};return parsed;
  }
 };
 
-export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, peopleIds: string[], codes: TransferCode[], withEvidence = false, withIdentifiers = false, withMedia = false, identityFields?:string[],withHistory=false,withBirthDate=false): Promise<TalentTransfer> {
+export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, peopleIds: string[], codes: TransferCode[], withEvidence = false, withIdentifiers = false, withMedia = false, identityFields?:string[],withHistory=false,withBirthDate=false,withSupplier=false): Promise<TalentTransfer> {
     requirePermission(actor, 'records.read');
     const identityEvidence=identityFields?await collectIdentityEvidence(tx,actor,clock,peopleIds,identityFields):undefined;
     const withAdults=codes.includes('person.td2.adultEligibilities');
@@ -196,7 +197,7 @@ export async function collectTalentTransfer(tx: Tx, actor: Actor, clock: Clock, 
         assets.sort((a,b)=>a.id.localeCompare(b.id));
     }
     const data:TalentTransfer = {
-        schemaVersion:MERGE_ERASURE_VERSION,selectedFields:[...codes].sort(),tables,
+        schemaVersion:withSupplier?SUPPLIER_TRANSFER_VERSION:MERGE_ERASURE_VERSION,...(withSupplier?{supplier:await collectSupplierTransfer(tx,actor,clock,peopleIds)}:{}),selectedFields:[...codes].sort(),tables,
         identityFields:[...identityFields??[]].sort(),identityEvidence:identityEvidence??[],
         capabilityDefinitions,organizations,evidence,assets,collectionItems,
         identifierContextWorkspaceId:actor.workspaceId,credentialIdentifiersIncluded:withIdentifiers,

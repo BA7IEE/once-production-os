@@ -1,9 +1,15 @@
 import type {DirectoryDatabaseQuery,DirectoryDatabaseResult} from './talent-directory-query.ts';
+import type {SupplierFact} from './supplier-field-model.ts';
 import type { Table, TableMap } from './model.ts';
 import type { TalentQueryFilters, TalentQueryResult } from './search-query-model.ts';
 /** A short database transaction. All implementations must atomically commit or roll back. */
 export interface PurgeOverview {pending:number;cleaning:number;unknown:number;recentFailures:number;oldestDue:string|null;pendingBytes:number;reconcileIds:string[]}
+export interface SupplierFieldDatabaseQuery {workspaceId:string;personIds:string[];roleIds:string[];sourceIds:string[];fieldCode:string;visibility:'SELF_SHARED'|'INTERNAL';owner:'PERSON'|'ROLE'}
 export interface Tx {
+    /** Authorized candidate/role/source predicates apply before the 50,001-row sentinel. */
+    supplierFieldRoots(input:SupplierFieldDatabaseQuery):Promise<SupplierFact[]>;
+    /** Bounded employee document scheduling, including expired leases for reconciliation. */
+    inboxCandidates(now:string,limit:number):Promise<string[]>;
     mediaPurgeOverview(workspaceId:string,now:string):Promise<PurgeOverview>;
     /** Indexed bounded scheduling query; does not load the workspace into memory. */
     mediaPurgeCandidates(now:string,limit:number):Promise<string[]>;

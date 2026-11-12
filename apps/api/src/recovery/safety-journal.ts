@@ -14,6 +14,7 @@ export const SAFETY_JOURNAL_ENTRY_VERSION = 'once-safety-journal-entry-v2';
 const LEGACY_ENTRY_VERSION = 'once-safety-journal-entry-v1';
 const ZERO = '0'.repeat(64);
 const NOISY_READ_ACTIONS = new Set([
+    'client.session.exchange','client.media.read',
     'auth.login', 'auth.login-denied', 'auth.logout',
     'contact.read', 'asset.preview', 'asset.playback', 'export.download'
 ]);

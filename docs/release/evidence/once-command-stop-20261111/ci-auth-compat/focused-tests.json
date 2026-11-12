@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "tests": 104,
+  "passed": 104,
+  "failed": 0,
+  "skipped": 0,
+  "node": "22.22.3",
+  "headAtExecution": "2c9952ae92204e7894391fca9831f30c4ae3df7c",
+  "subject": "compatibility fix in working tree; source/test hashes identify this run",
+  "testCommand": "node --experimental-strip-types --test --test-concurrency=1 tests/core/portal-command-stop-client.test.ts tests/core/portal-command.test.ts tests/core/portal-command-stop-server.test.ts tests/core/portal-stop-recovery-boundary.test.ts",
+  "scope": "MemoryStore core and client; real file safety journal and recovery analyzer, not PostgreSQL",
+  "sha256": {
+    "apps/admin-web/src/portal-command.ts": "fcf8fbe29385727f34d77a2a1b0fa0568ea43d31c27ed0e123e1ded4d2f4ff0e",
+    "apps/admin-web/src/portal-pending-marker.ts": "aea79a930ac10fd14578ac09d98c98673af48f552358497e60476f4aff3faa4d",
+    "packages/core/src/commands.ts": "7a002bbe66c7554c8895857dd12bb969822179affb76e20b594921e4653f3621",
+    "packages/core/src/talent-portal.ts": "89ee77ec13ba8ff53448421abee330d0b413aa334e76cea9cff123ab31abc151",
+    "apps/api/src/recovery/safety-journal.ts": "ed7ec0642b2e7ac2f514815e9f4e342e2f3f9714ecd5a95103357040d2da27c6",
+    "apps/api/src/recovery/delta-resolution.ts": "9ea5af0977f763b5f95009118f4adbd54b45d6a2ac0e5b3bcba2b4dbdf812e5e",
+    "tests/core/portal-command-stop-client.test.ts": "644e65a8a2d9205f4236ec201873f43c9b0207e827e14753a17ce9cf774b4088",
+    "tests/core/portal-command.test.ts": "5c19f8c13542645c6f93df97efbdfe9ae069d6b1670826ce6fb65ce999786b16",
+    "tests/core/portal-command-stop-server.test.ts": "8a7ecae78e127d01789d5da81d91b2d3ef662106acabccd815c3e8e4ac96968b",
+    "tests/core/portal-stop-recovery-boundary.test.ts": "ca5614e7e10172c7ca7e09866ac60a2f8a7724cc535c1b361aeb57ddfd62c5f5",
+    "docs/release/evidence/once-command-stop-20261111/ci-auth-compat/focused-tests.tap": "83dd91a3864c7aa4e020f07741af7c70456a530e19b23773c34c30fe3ac2863a"
+  }
+}

@@ -1,0 +1,1016 @@
+TAP version 13
+# Subtest: zero stop receipts preserve the 89744a2 recovery safety digest
+not ok 1 - zero stop receipts preserve the 89744a2 recovery safety digest
+  ---
+  duration_ms: 11.098082
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:97:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:108:89)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: a preexisting same-principal same-key stop and original block recovery approval
+not ok 2 - a preexisting same-principal same-key stop and original block recovery approval
+  ---
+  duration_ms: 283.878395
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:112:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+
+    Caught error:
+
+    AppError: 缺少可独立验证的最新见证、停写及恢复目标一致性证据，恢复批准保持阻断
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:116:2)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a different talent principal reusing the key does not create a false collision
+not ok 3 - a different talent principal reusing the key does not create a false collision
+  ---
+  duration_ms: 283.657939
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:121:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:122:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-request-digest) blocks check and approval
+not ok 4 - a preexisting structurally invalid stop (bad-request-digest) blocks check and approval
+  ---
+  duration_ms: 172.530832
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:128:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+
+    Caught error:
+
+    AppError: 缺少可独立验证的最新见证、停写及恢复目标一致性证据，恢复批准保持阻断
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:132:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-owner) blocks check and approval
+not ok 5 - a preexisting structurally invalid stop (bad-owner) blocks check and approval
+  ---
+  duration_ms: 182.148695
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:128:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+
+    Caught error:
+
+    AppError: 缺少可独立验证的最新见证、停写及恢复目标一致性证据，恢复批准保持阻断
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:132:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-resource) blocks check and approval
+not ok 6 - a preexisting structurally invalid stop (bad-resource) blocks check and approval
+  ---
+  duration_ms: 176.993246
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:128:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+
+    Caught error:
+
+    AppError: 缺少可独立验证的最新见证、停写及恢复目标一致性证据，恢复批准保持阻断
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:132:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-result-target) blocks check and approval
+not ok 7 - a preexisting structurally invalid stop (bad-result-target) blocks check and approval
+  ---
+  duration_ms: 187.934
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:128:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+
+    Caught error:
+
+    AppError: 缺少可独立验证的最新见证、停写及恢复目标一致性证据，恢复批准保持阻断
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:132:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-state) blocks check and approval
+not ok 8 - a preexisting structurally invalid stop (bad-state) blocks check and approval
+  ---
+  duration_ms: 167.578388
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:128:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+
+    Caught error:
+
+    AppError: 缺少可独立验证的最新见证、停写及恢复目标一致性证据，恢复批准保持阻断
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:132:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-revision) blocks check and approval
+not ok 9 - a preexisting structurally invalid stop (bad-revision) blocks check and approval
+  ---
+  duration_ms: 185.396367
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:128:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+
+    Caught error:
+
+    AppError: 缺少可独立验证的最新见证、停写及恢复目标一致性证据，恢复批准保持阻断
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:132:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a preexisting structurally invalid stop (bad-operation-id) blocks check and approval
+not ok 10 - a preexisting structurally invalid stop (bad-operation-id) blocks check and approval
+  ---
+  duration_ms: 172.413438
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:128:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+
+    Caught error:
+
+    AppError: 缺少可独立验证的最新见证、停写及恢复目标一致性证据，恢复批准保持阻断
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:132:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a legitimate stop (replay) remains approvable
+not ok 11 - a legitimate stop (replay) remains approvable
+  ---
+  duration_ms: 171.361192
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:139:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:140:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a legitimate stop (nonstandard-key) remains approvable
+not ok 12 - a legitimate stop (nonstandard-key) remains approvable
+  ---
+  duration_ms: 246.743509
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:139:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:140:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unchanged inspected stop permits the existing synthetic zero-delta approval control
+not ok 13 - unchanged inspected stop permits the existing synthetic zero-delta approval control
+  ---
+  duration_ms: 168.216191
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:148:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:149:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection delete a stop receipt changes the safety state digest
+not ok 14 - post-inspection delete a stop receipt changes the safety state digest
+  ---
+  duration_ms: 205.101688
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:156:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:157:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection delete a stop receipt rejects approval with RECOVERY_CHECK_STALE
+not ok 15 - post-inspection delete a stop receipt rejects approval with RECOVERY_CHECK_STALE
+  ---
+  duration_ms: 180.661456
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:164:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:165:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the stopped command key consistently changes the safety state digest
+not ok 16 - post-inspection change the stopped command key consistently changes the safety state digest
+  ---
+  duration_ms: 166.101694
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:156:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:157:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the stopped command key consistently rejects approval with RECOVERY_CHECK_STALE
+not ok 17 - post-inspection change the stopped command key consistently rejects approval with RECOVERY_CHECK_STALE
+  ---
+  duration_ms: 185.471954
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:164:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:165:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the owning talent account consistently changes the safety state digest
+not ok 18 - post-inspection change the owning talent account consistently changes the safety state digest
+  ---
+  duration_ms: 190.596933
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:156:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:157:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the owning talent account consistently rejects approval with RECOVERY_CHECK_STALE
+not ok 19 - post-inspection change the owning talent account consistently rejects approval with RECOVERY_CHECK_STALE
+  ---
+  duration_ms: 192.576866
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:164:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:165:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the stop request digest inconsistently changes the safety state digest
+not ok 20 - post-inspection change the stop request digest inconsistently changes the safety state digest
+  ---
+  duration_ms: 186.830433
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:156:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:157:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the stop request digest inconsistently rejects approval with RECOVERY_BLOCKERS_PRESENT
+not ok 21 - post-inspection change the stop request digest inconsistently rejects approval with RECOVERY_BLOCKERS_PRESENT
+  ---
+  duration_ms: 175.517574
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:164:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:165:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the stop result identity inconsistently changes the safety state digest
+not ok 22 - post-inspection change the stop result identity inconsistently changes the safety state digest
+  ---
+  duration_ms: 175.035581
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:156:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:157:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the stop result identity inconsistently rejects approval with RECOVERY_BLOCKERS_PRESENT
+not ok 23 - post-inspection change the stop result identity inconsistently rejects approval with RECOVERY_BLOCKERS_PRESENT
+  ---
+  duration_ms: 181.287867
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:164:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:165:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the result operation ID to another valid value changes the safety state digest
+not ok 24 - post-inspection change the result operation ID to another valid value changes the safety state digest
+  ---
+  duration_ms: 172.91898
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:156:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:157:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the result operation ID to another valid value rejects approval with RECOVERY_CHECK_STALE
+not ok 25 - post-inspection change the result operation ID to another valid value rejects approval with RECOVERY_CHECK_STALE
+  ---
+  duration_ms: 174.375945
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:164:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:165:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the result revision to another positive value changes the safety state digest
+not ok 26 - post-inspection change the result revision to another positive value changes the safety state digest
+  ---
+  duration_ms: 178.928372
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:156:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:157:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change the result revision to another positive value rejects approval with RECOVERY_CHECK_STALE
+not ok 27 - post-inspection change the result revision to another positive value rejects approval with RECOVERY_CHECK_STALE
+  ---
+  duration_ms: 177.829228
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:164:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:165:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change stop metadata changes the safety state digest
+not ok 28 - post-inspection change stop metadata changes the safety state digest
+  ---
+  duration_ms: 174.401468
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:156:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:157:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection change stop metadata rejects approval with RECOVERY_CHECK_STALE
+not ok 29 - post-inspection change stop metadata rejects approval with RECOVERY_CHECK_STALE
+  ---
+  duration_ms: 169.022263
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:164:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:165:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection insert another stop receipt changes the safety state digest
+not ok 30 - post-inspection insert another stop receipt changes the safety state digest
+  ---
+  duration_ms: 172.468419
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:156:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:157:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: post-inspection insert another stop receipt rejects approval with RECOVERY_CHECK_STALE
+not ok 31 - post-inspection insert another stop receipt rejects approval with RECOVERY_CHECK_STALE
+  ---
+  duration_ms: 183.818574
+  type: 'test'
+  location: '[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:164:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    inspectedFixture (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:77:14)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery-stop-receipt-digest.test.ts:165:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# ResourceRun 4168069795244132fb246e6d: ZERO_RESIDUE
+# Subtest: DEV-09A recovery preview is zero-write and requires a rotated deployment epoch
+ok 32 - DEV-09A recovery preview is zero-write and requires a rotated deployment epoch
+  ---
+  duration_ms: 364.561741
+  type: 'test'
+  ...
+# Subtest: DEV-09A prepare revokes old capabilities but deliberately does not approve workspace epoch
+ok 33 - DEV-09A prepare revokes old capabilities but deliberately does not approve workspace epoch
+  ---
+  duration_ms: 341.45535
+  type: 'test'
+  ...
+# Subtest: DEV-09A wrong source epoch digest and open execution gates fail before writes
+ok 34 - DEV-09A wrong source epoch digest and open execution gates fail before writes
+  ---
+  duration_ms: 342.9493
+  type: 'test'
+  ...
+# Subtest: DEV-09A audit failure rolls every recovery quarantine write back
+ok 35 - DEV-09A audit failure rolls every recovery quarantine write back
+  ---
+  duration_ms: 336.335869
+  type: 'test'
+  ...
+# Subtest: DEV-09B restore check is zero-write; record persists an allowlisted INSPECTED report
+not ok 36 - DEV-09B restore check is zero-write; record persists an allowlisted INSPECTED report
+  ---
+  duration_ms: 354.703472
+  type: 'test'
+  location: '[checkout]/tests/core/recovery.test.ts:269:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file://[checkout]/tests/core/recovery.test.ts:287:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: DEV-09B wrong contact key and media/migration gaps become explicit blockers
+ok 37 - DEV-09B wrong contact key and media/migration gaps become explicit blockers
+  ---
+  duration_ms: 338.651655
+  type: 'test'
+  ...
+# Subtest: DEV-09B stale media evidence is rejected and DB safety changes produce a new blocker/digest
+ok 38 - DEV-09B stale media evidence is rejected and DB safety changes produce a new blocker/digest
+  ---
+  duration_ms: 352.503183
+  type: 'test'
+  ...
+# Subtest: DEV-09C zero-delta approval changes only recovery epoch and preserves conservative quarantines
+not ok 39 - DEV-09C zero-delta approval changes only recovery epoch and preserves conservative quarantines
+  ---
+  duration_ms: 344.533413
+  type: 'test'
+  location: '[checkout]/tests/core/recovery.test.ts:410:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+    + [
+    +   'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+    + ]
+    - []
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file://[checkout]/tests/core/recovery.test.ts:419:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: DEV-09E unresolved post-backup safety journal entry blocks approval
+not ok 40 - DEV-09E unresolved post-backup safety journal entry blocks approval
+  ---
+  duration_ms: 335.113993
+  type: 'test'
+  location: '[checkout]/tests/core/recovery.test.ts:436:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+
+    Caught error:
+
+    AppError: 缺少可独立验证的最新见证、停写及恢复目标一致性证据，恢复批准保持阻断
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery.test.ts:450:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: DEV-09E non-zero but fully prepare-contained delta may approve
+not ok 41 - DEV-09E non-zero but fully prepare-contained delta may approve
+  ---
+  duration_ms: 357.083522
+  type: 'test'
+  location: '[checkout]/tests/core/recovery.test.ts:456:1'
+  failureType: 'testCodeFailure'
+  error: '缺少可独立验证的最新见证、停写及恢复目标一致性证据，恢复批准保持阻断'
+  code: 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE'
+  name: 'AppError'
+  stack: |-
+    requireIndependentRecoveryEvidence (file://[checkout]/packages/core/src/recovery.ts:29:11)
+    RecoveryOps.approve (file://[checkout]/packages/core/src/recovery.ts:436:9)
+    file://[checkout]/tests/core/recovery.test.ts:480:56
+    MemoryStore.transaction (file://[checkout]/tests/support/memory-store.ts:133:34)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery.test.ts:480:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: DEV-09E incomplete or forged delta resolution is rejected before epoch approval
+not ok 42 - DEV-09E incomplete or forged delta resolution is rejected before epoch approval
+  ---
+  duration_ms: 364.610137
+  type: 'test'
+  location: '[checkout]/tests/core/recovery.test.ts:487:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+
+    Caught error:
+
+    AppError: 缺少可独立验证的最新见证、停写及恢复目标一致性证据，恢复批准保持阻断
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery.test.ts:511:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: DEV-09C stale inspection or mismatched backup evidence cannot approve
+not ok 43 - DEV-09C stale inspection or mismatched backup evidence cannot approve
+  ---
+  duration_ms: 345.259066
+  type: 'test'
+  location: '[checkout]/tests/core/recovery.test.ts:534:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+
+    Caught error:
+
+    AppError: 缺少可独立验证的最新见证、停写及恢复目标一致性证据，恢复批准保持阻断
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery.test.ts:545:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: DEV-09C approval audit failure rolls workspace epoch and approval evidence back
+not ok 44 - DEV-09C approval audit failure rolls workspace epoch and approval evidence back
+  ---
+  duration_ms: 368.908191
+  type: 'test'
+  location: '[checkout]/tests/core/recovery.test.ts:561:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /injected audit failure/. Input:
+
+    'AppError: 缺少可独立验证的最新见证、停写及恢复目标一致性证据，恢复批准保持阻断'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  error: '缺少可独立验证的最新见证、停写及恢复目标一致性证据，恢复批准保持阻断'
+  stack: |-
+    requireIndependentRecoveryEvidence (file://[checkout]/packages/core/src/recovery.ts:29:11)
+    RecoveryOps.approve (file://[checkout]/packages/core/src/recovery.ts:436:9)
+    file://[checkout]/tests/core/recovery.test.ts:572:54
+    MemoryStore.transaction (file://[checkout]/tests/support/memory-store.ts:133:34)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery.test.ts:572:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file://[checkout]/tests/core/recovery.test.ts:572:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..44
+# tests 44
+# suites 0
+# pass 6
+# fail 38
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11048.741404

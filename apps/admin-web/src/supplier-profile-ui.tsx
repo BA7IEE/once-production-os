@@ -1,3 +1,4 @@
+import {ProfessionalHomepageEditor} from './professional-homepage-editor.tsx';
 import {CAPABILITY_LEVEL_LABELS,TRANSLATION_MODE_LABELS} from '../../../packages/core/src/supplier-native-contract.ts';
 import {SupplierNativeFields,type SkillOption} from './supplier-native-fields.tsx';
 import {SupplierProfessionalForm,answerText} from './supplier-professional-fields.tsx';
@@ -5,7 +6,7 @@ import type {SupplierCatalogView} from '../../../packages/core/src/supplier-fiel
 import {PortalWorkDraft,PortalWorkGallery,type WorkPlan} from './work-case-ui.tsx';
 import {useEffect,useRef,useState} from 'react';
 import type {TalentAccountMe} from './dto.ts';
-import {PortalCommands,PortalRequestError,type PortalReceipt} from './portal-command.ts';
+import {PortalCommands,PortalRequestError,PortalStopConfirmed,type PortalReceipt} from './portal-command.ts';
 import {portalMarkers} from './portal-pending-marker.ts';
 import {TalentMediaStaging} from './talent-media-staging.tsx';
 import {emptySupplierProfile,SUPPLIER_PROFILE_VERSION,SUPPLIER_CONSENT_VERSION,type SupplierProfile} from '../../../packages/core/src/supplier-profile-contract.ts';
@@ -25,13 +26,14 @@ export function SupplierProfileHome(props:{me:TalentAccountMe;invitationContext:
  return <SupplierProfileSession key={props.me.talentAccountId} {...props}/>;
 }
 function SupplierProfileSession({me,invitationContext}:{me:TalentAccountMe;invitationContext:string|null}){
+ const [homepagePerson,setHomepagePerson]=useState<string|null>(new URL(location.href).searchParams.get('homepage'));
  const [schema,setSchema]=useState<Schema|null>(null),[profiles,setProfiles]=useState<Array<{personId:string;grantId:string;relation:string}>>([]);
  const [claims,setClaims]=useState<Claim[]>([]),[list,setList]=useState<DraftSummary[]>([]),[draft,setDraft]=useState<Draft|null>(null),[current,setCurrent]=useState<OwnProfile|null>(null);
  const [form,setForm]=useState(emptySupplierProfile),[aliasesText,setAliasesText]=useState(''),[workDirty,setWorkDirty]=useState(false),[dirty,setDirty]=useState(false),[consent,setConsent]=useState(false),[adult,setAdult]=useState(false);
  const [busy,setBusy]=useState(false),[pending,setPending]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[invitation,setInvitation]=useState<{purpose:string}|null>(null);
  const [conflict,setConflict]=useState<OwnProfile|null>(null),[ack,setAck]=useState(false);
- const [documentPending,setDocumentPending]=useState(false);
- const refreshVersion=useRef(0);
+ const [documentPending,setDocumentPending]=useState(false),[submitting,setSubmitting]=useState(false),[mediaReconciliation,setMediaReconciliation]=useState<{version:number;createdUploadId:string|null}>({version:0,createdUploadId:null}),[mediaBusy,setMediaBusy]=useState(false);
+ const refreshVersion=useRef(0),lastLoadedDraft=useRef<Draft|null>(null);
  const active=useRef(true),selected=useRef<string|null>(new URL(location.href).searchParams.get('draft'));
  const dirtyRef=useRef(dirty);dirtyRef.current=dirty;
  const requestRef=useRef<(path:string,method?:string,body?:unknown,key?:string)=>Promise<any>>(null!);
@@ -46,7 +48,7 @@ function SupplierProfileSession({me,invitationContext}:{me:TalentAccountMe;invit
  }
  requestRef.current=request;
  const transport=useRef<PortalCommands|null>(null);
- if(!transport.current)transport.current=new PortalCommands((p,m,b,k)=>requestRef.current(p,m,b,k),()=>{if(active.current)setPending(!!transport.current?.hasPending);},portalMarkers);
+ if(!transport.current)transport.current=new PortalCommands((p,m,b,k)=>requestRef.current(p,m,b,k),()=>{if(active.current)setPending(!!transport.current?.hasPending);},portalMarkers,{stopEnabled:me.portalCommandStopEnabled===true});
  function select(id:string|null){selected.current=id;const url=new URL(location.href);if(id)url.searchParams.set('draft',id);else url.searchParams.delete('draft');history.replaceState(null,'',url.pathname+url.search);}
  async function refresh(replaceForm=false){
   const id=selected.current,version=++refreshVersion.current;
@@ -54,7 +56,7 @@ function SupplierProfileSession({me,invitationContext}:{me:TalentAccountMe;invit
   let latest:OwnProfile|null=null;
   if(!detail&&(replaceForm||!dirtyRef.current)){const own=p.items.find(p=>p.relation==='SELF');if(own)latest=await request<OwnProfile>('/supplier-profiles/'+own.personId);}
   if(!active.current||selected.current!==id||version!==refreshVersion.current)throw new Error('当前账号或草稿已切换，请核对当前页面。');
-  setProfiles(p.items);setClaims(c.items);setList(d.items);setDraft(detail);
+  setProfiles(p.items);setClaims(c.items);setList(d.items);lastLoadedDraft.current=detail;setDraft(detail);
   const loaded=detail?.profile??latest?.profile;
   if(loaded&&(replaceForm||!dirtyRef.current)){setForm(loaded);setAliasesText(loaded.aliases.join('，'));setDirty(false);}
   if(latest)setCurrent(latest);
@@ -75,13 +77,18 @@ function SupplierProfileSession({me,invitationContext}:{me:TalentAccountMe;invit
   await refresh(true);transport.current!.rendered();setConflict(null);setAck(false);return receipt;
  }
  async function command(path:string,body:unknown,method='POST'){
+  setSubmitting(true);
   try{return await renderReceipt(await transport.current!.submit(me.talentAccountId,path,body,method));}
   catch(e){if(e instanceof PortalRequestError&&e.code==='SUPPLIER_PROFILE_CONFLICT'&&draft?.personId){const latest=await request<OwnProfile>('/supplier-profiles/'+draft.personId);if(active.current)setConflict(latest);}throw e;}
+  finally{if(active.current)setSubmitting(false);}
  }
+ async function finishStopped(){const cancel=!!(transport.current!.pending?.cancelBinding||transport.current!.orphan?.cancelBinding);await refresh(false);transport.current!.rendered();if(cancel)setMediaReconciliation(v=>({version:v.version+1,createdUploadId:null}));setMessage('已阻止原请求后续执行，当前资料已刷新。原请求此前结果仍需核对；如涉及文件，清理完成前继续占用额度。');}
+ async function reconcilePending(){const path=transport.current!.pending?.path,orphan=!!transport.current!.orphan;let receipt:PortalReceipt;try{receipt=await transport.current!.replay(me.talentAccountId);}catch(e){if(e instanceof PortalStopConfirmed){await finishStopped();return;}throw e;}await renderReceipt(receipt);const openUpload=orphan&&lastLoadedDraft.current?.media.some(m=>m.id===receipt.resourceId&&m.state==='OPEN');const media=!!path&&(path==='/uploads'||path.startsWith('/assets/')||path.startsWith('/uploads/'))||openUpload;if(media)setMediaReconciliation(v=>({version:v.version+1,createdUploadId:path==='/uploads'||openUpload?receipt.resourceId:null}));}
+ async function stopPending(){if(!window.confirm('将阻止该原请求今后执行，不能证明其此前是否发生。此操作不会自动取消上传或释放额度；已提交的操作不会撤销。继续吗？'))return;await transport.current!.stop(me.talentAccountId);await finishStopped();}
  function change<K extends keyof SupplierProfile>(key:K,value:SupplierProfile[K]){setForm(p=>({...p,[key]:value}));setDirty(true);setMessage('');}
  const own=profiles.find(p=>p.relation==='SELF'),claim=claims.find(c=>c.kind==='ENROLL'&&c.relation==='SELF'&&c.state==='PENDING'&&c.reserved);
- const locked=busy||pending||workDirty||draft!==null&&draft.state!=='DRAFT';
- const maySwitch=()=>!pending&&(!(dirty||workDirty)||window.confirm('有未保存的资料，放弃这些修改并切换？'));
+ const locked=busy||pending||mediaBusy||workDirty||draft!==null&&draft.state!=='DRAFT';
+ const maySwitch=()=>!pending&&!mediaBusy&&(!(dirty||workDirty)||window.confirm('有未保存的资料，放弃这些修改并切换？'));
  async function editCurrent(){if(!own||!maySwitch())return;const profile=await request<OwnProfile>('/supplier-profiles/'+own.personId);if(!active.current)return;select(null);setDraft(null);setCurrent(profile);setForm(profile.profile);setAliasesText(profile.profile.aliases.join('，'));setWorkDirty(false);setConsent(false);setDirty(false);setMessage('修改后先保存草稿，再确认入库。');}
  async function save(){
   const profile={...form,aliases:aliasesText.split(/[，,]/).map(v=>v.trim()).filter(Boolean)};
@@ -96,16 +103,20 @@ function SupplierProfileSession({me,invitationContext}:{me:TalentAccountMe;invit
  }
  const checks=(field:'roleCodes'|'locationCodes'|'languageCodes'|'skillCodes',options:Option[])=>
   <div className="supplier-options">{options.map(o=><label key={o.code}><input type="checkbox" checked={form[field].includes(o.code)} onChange={e=>{if(field==='roleCodes'){toggleRole(o.code,e.target.checked);}else change(field,e.target.checked?[...form[field],o.code]:form[field].filter(v=>v!==o.code));}}/>{o.label}</label>)}</div>;
+ if(homepagePerson&&me.professionalHomepagesEnabled)return <ProfessionalHomepageEditor me={me} personId={homepagePerson} onClose={()=>{setHomepagePerson(null);const u=new URL(location.href);u.searchParams.delete('homepage');history.replaceState(null,'',u.pathname+u.search);}}/>;
  return <section className="supplier-home">
   <header><p className="eyebrow">ONCE · 供应商库</p><h2>我的专业资料</h2><p>填写职业、联系方式和作品资料。你确认后直接入库，之后可以随时更新。</p></header>
   {error&&<p className="supplier-error" role="alert">{error}</p>}{message&&<p role="status">{message}</p>}
-  {pending&&<div className="panel padded"><p>上次操作的结果需要核对，核对完成后可继续编辑。</p><button disabled={busy} onClick={()=>void run(async()=>{await renderReceipt(await transport.current!.replay(me.talentAccountId));})}>{transport.current!.confirmed?'刷新已保存资料':'核对原请求'}</button></div>}
-  {own&&<button disabled={busy||pending} onClick={()=>void run(editCurrent)}>查看并修改已入库资料</button>}
+  {pending&&<div className="panel padded">{submitting?<p role="status">正在提交，请稍候。</p>:<><p>上次操作的结果需要核对，核对完成后可继续编辑。</p><button disabled={busy} onClick={()=>void run(reconcilePending)}>{transport.current!.confirmed?'刷新已保存资料':'核对原请求'}</button>{transport.current!.missing&&<p>未找到原请求回执，不代表原请求没有发生。{me.portalCommandStopEnabled?'可以选择阻止它今后执行，再核对当前资料。':'当前环境不能安全自助停止，请联系 ONCE。'}</p>}{transport.current!.stopped?<button disabled={busy} onClick={()=>void run(finishStopped)}>刷新当前资料</button>:transport.current!.canStop&&<button disabled={busy} onClick={()=>void run(stopPending)}>停止原请求并刷新</button>}</>}</div>}
+  {own&&<button disabled={busy||pending||mediaBusy} onClick={()=>void run(editCurrent)}>查看并修改已入库资料</button>}
+  {own&&me.professionalHomepagesEnabled&&<button disabled={busy||pending||dirty||workDirty||mediaBusy} onClick={()=>{setHomepagePerson(own.personId);const u=new URL(location.href);u.searchParams.set('homepage',own.personId);history.replaceState(null,'',u.pathname+u.search);}}>管理我的专业主页</button>}
   {!own&&!claim&&<div className="panel padded">{invitation?.purpose==='ENROLL'?<><p>通过本次邀请建立你的 ONCE 档案。</p><label><input type="checkbox" checked={adult} onChange={e=>setAdult(e.target.checked)}/>我是本人，且已满 18 周岁</label><button disabled={!adult||busy||pending} onClick={()=>void run(async()=>{await command('/claims',{contextId:invitationContext,relation:'SELF',applicantKey:'SELF',adultDeclared:true});setMessage('已加入，请完善下方资料。');})}>加入并建立资料</button></>:<p>请使用 ONCE 发给你的加入邀请。已有档案的认领、代理人或监护人申请可在历史申请入口继续处理。</p>}</div>}
-  {list.length>0&&<label>打开已保存资料<select disabled={busy||pending} value={draft?.id??''} onChange={e=>{const id=e.target.value;if(id&&maySwitch())void run(async()=>{select(id);setCurrent(null);await refresh(true);});}}><option value="">选择草稿或已入库记录</option>{list.map(d=><option key={d.id} value={d.id}>{labels[d.state]??d.state} · {new Date(d.updatedAt).toLocaleString('zh-CN')}</option>)}</select></label>}
+  {list.length>0&&<label>打开已保存资料<select disabled={busy||pending||mediaBusy} value={draft?.id??''} onChange={e=>{const id=e.target.value;if(id&&maySwitch())void run(async()=>{select(id);setCurrent(null);await refresh(true);});}}><option value="">选择草稿或已入库记录</option>{list.map(d=><option key={d.id} value={d.id}>{labels[d.state]??d.state} · {new Date(d.updatedAt).toLocaleString('zh-CN')}</option>)}</select></label>}
   {(own||claim||draft)&&schema&&<>
    {!draft&&<section className="supplier-ai-entry"><p>可以先不填写资料。保存草稿后上传 PDF 或图片，让 AI 预填，再来核对。</p>   {!draft&&<label className="supplier-consent"><input type="checkbox" checked={consent} disabled={busy||pending} onChange={e=>setConsent(e.target.checked)}/>我同意本次资料、上传材料与作品用于 ONCE 内部供应商库、内部查找及受控内部导出，有效期 365 天，可随时撤回授权。</label>}<button disabled={busy||pending||workDirty||!consent} onClick={()=>void run(async()=>{await save();requestAnimationFrame(()=>document.getElementById('supplier-materials')?.scrollIntoView({block:'start'}));})}>保存草稿，上传资料</button></section>}
-   {draft&&<nav className="supplier-section-nav" aria-label="资料填写步骤"><a href="#supplier-materials">上传材料与 AI 整理</a><a href="#supplier-basic">核对基础资料</a><a href="#supplier-professional">补充专业资料</a></nav>}
+   {draft&&<nav className="supplier-section-nav" aria-label="资料填写步骤"><a href="#supplier-materials">上传材料与 AI 整理</a><a href="#supplier-basic">核对基础资料</a><a href="#supplier-professional">补充专业资料</a><a href="#supplier-works">整理作品</a><a href="#supplier-confirm">确认入库</a></nav>}
+   <div id="supplier-materials">{draft&&<TalentMediaStaging key={'media:'+draft.id} me={me} submission={draft} command={command} refresh={()=>refresh(false)} disabled={busy||pending||dirty||workDirty} reconciliationVersion={mediaReconciliation.version} reconciledCreatedUploadId={mediaReconciliation.createdUploadId} onBusyChange={setMediaBusy}/>}
+   {draft&&<SupplierDocumentPanel roles={schema?.roles??[]} onPendingChange={setDocumentPending} key={'document:'+draft.id} draft={draft} request={request} command={command} refreshDraft={()=>refresh(false)} disabled={busy||pending||dirty||workDirty||mediaBusy}/>}</div>
    <fieldset id="supplier-basic" disabled={locked} className="supplier-form"><legend>基础资料</legend>
     <label>姓名 / 展示名<input maxLength={120} value={form.displayName} onChange={e=>change('displayName',e.target.value)} placeholder="你希望 ONCE 如何称呼你"/></label>
     <label>别名<input value={aliasesText} onChange={e=>{setAliasesText(e.target.value);change('aliases',e.target.value.split(/[，,]/).map(v=>v.trim()).filter(Boolean));}} placeholder="多个别名用逗号分隔"/></label>
@@ -120,16 +131,19 @@ function SupplierProfileSession({me,invitationContext}:{me:TalentAccountMe;invit
 
    <div id="supplier-professional">{schema&&<SupplierNativeFields profile={form} skills={schema.skills} languages={schema.languages} roles={schema.roles} onChange={change} disabled={locked}/>}
    {schema&&<SupplierProfessionalForm catalog={draft?.fieldCatalog??current?.fieldCatalog??schema.fieldCatalog} roles={form.roleCodes} roleOptions={schema.roles} value={form.professional} onChange={value=>change('professional',value)} disabled={locked}/>}</div>
-   <div className="supplier-actions">{(!draft||draft.state==='DRAFT')&&<><button disabled={busy||pending||workDirty||!draft&&!consent} onClick={()=>void run(save)}>{dirty?'保存修改':'保存草稿'}</button><button disabled={!draft||dirty||workDirty||documentPending||busy||pending} onClick={()=>void run(async()=>{await command('/profile-drafts/'+draft!.id+'/confirm',{expectedRevision:draft!.revision,accepted:true});setMessage('资料已入库，ONCE 现在可以查看和整理你的档案。');})}>确认资料并入库</button></>}{draft?.state==='APPROVED'&&<p role="status">本次资料已入库。</p>}</div>
-   {workDirty&&<p>作品案例有未保存的修改。请先保存案例草稿，再确认入库。</p>}
-   {draft?.consent.state==='ACTIVE'&&<button disabled={busy||pending||dirty||workDirty} onClick={()=>void run(async()=>{if(!window.confirm('撤回后，本次资料及材料将停止按这份同意用于 ONCE 内部供应商库。是否继续？'))return;await command('/consents/'+draft.consent.id+'/revoke',{expectedRevision:draft.consent.revision});setMessage('本次内部使用同意已撤回。');})}>撤回本次内部使用同意</button>}
-   {dirty&&<p>有未保存的修改。先保存草稿，再确认入库。</p>}
    {conflict&&<section className="panel padded"><h3>资料已更新，请核对</h3><div className="supplier-comparison"><table><thead><tr><th>字段</th><th>当前已入库资料</th><th>本次草稿</th></tr></thead><tbody>{compareProfileRows(conflict.profile,form,schema).map(row=><tr key={row.key}><th>{row.label}</th><td>{row.current||'未提供'}</td><td>{row.draft||'未提供'}</td></tr>)}</tbody></table></div><label><input type="checkbox" checked={ack} onChange={e=>setAck(e.target.checked)}/>我已核对当前资料，选择保留上表本次草稿的内容</label><button disabled={!ack||busy||pending} onClick={()=>void run(async()=>{await command('/profile-drafts/'+draft!.id+'/rebase',{expectedRevision:draft!.revision,expectedPersonRevision:conflict.revision,profile:form,conflictsAcknowledged:true});setMessage('已保存核对结果，请再次确认入库。');})}>保存核对结果</button><button disabled={busy||pending} onClick={()=>{setForm(conflict.profile);setAliasesText(conflict.profile.aliases.join('，'));setDirty(true);}}>使用当前已入库资料</button></section>}
-   <div id="supplier-materials">{draft&&<TalentMediaStaging me={me} submission={draft} command={command} refresh={()=>refresh(false)} disabled={busy||pending||dirty||workDirty}/>}
-   {draft&&<SupplierDocumentPanel roles={schema?.roles??[]} onPendingChange={setDocumentPending} key={'document:'+draft.id} draft={draft} request={request} command={command} refreshDraft={()=>refresh(false)} disabled={busy||pending||dirty||workDirty}/>}</div>
    {draft?.state==='DRAFT'&&documentPending&&<p>材料处理或状态核对完成后，可以继续编辑作品；暂停的整份解析可选择继续或停止。</p>}
-   {draft&&<PortalWorkDraft key={'work:'+draft.id} onDirtyChange={setWorkDirty} me={me} submission={draft} command={command} refresh={()=>refresh(false)} disabled={busy||pending||dirty||documentPending}/> }
+   <section id="supplier-works" aria-label="整理作品"><h3>整理作品</h3>
+   {draft&&<PortalWorkDraft key={'work:'+draft.id} onDirtyChange={setWorkDirty} me={me} submission={draft} command={command} refresh={()=>refresh(false)} disabled={busy||pending||dirty||documentPending||mediaBusy}/> }
    {own&&<PortalWorkGallery me={me} personId={own.personId} version={String(draft?.revision)}/> }
+   </section>
+   <section id="supplier-confirm" aria-label="确认入库"><h3>确认入库</h3>
+   <p id="supplier-confirm-reason" role="status">{!draft?'请先保存草稿，再上传材料并核对资料。':pending?(submitting?'当前操作正在处理，请稍候。':'上次提交结果需要核对，请先核对原请求。'):busy||mediaBusy?'当前操作正在处理，请稍候。':dirty?'资料尚未保存，请先保存修改。':workDirty?'作品案例尚未保存，请先保存案例草稿。':documentPending?'材料解析或结果核对尚未完成，请先处理材料任务。':draft.state==='DRAFT'?'资料与作品已保存，可以核对后确认入库。':'本次资料已经入库。'}</p>
+   <div className="supplier-actions">{(!draft||draft.state==='DRAFT')&&<><button disabled={busy||pending||workDirty||mediaBusy||!draft&&!consent} onClick={()=>void run(save)}>{dirty?'保存修改':'保存草稿'}</button><button aria-describedby="supplier-confirm-reason" disabled={!draft||dirty||workDirty||documentPending||busy||pending||mediaBusy} onClick={()=>void run(async()=>{await command('/profile-drafts/'+draft!.id+'/confirm',{expectedRevision:draft!.revision,accepted:true});setMessage('资料已入库，ONCE 现在可以查看和整理你的档案。');})}>确认资料并入库</button></>}{draft?.state==='APPROVED'&&<p role="status">本次资料已入库。</p>}</div>
+   {workDirty&&<p>作品案例有未保存的修改。请先保存案例草稿，再确认入库。</p>}
+   {draft?.consent.state==='ACTIVE'&&<button disabled={busy||pending||dirty||workDirty||mediaBusy} onClick={()=>void run(async()=>{if(!window.confirm('撤回后，本次资料及材料将停止按这份同意用于 ONCE 内部供应商库。是否继续？'))return;await command('/consents/'+draft.consent.id+'/revoke',{expectedRevision:draft.consent.revision});setMessage('本次内部使用同意已撤回。');})}>撤回本次内部使用同意</button>}
+   {dirty&&<p>有未保存的修改。先保存草稿，再确认入库。</p>}
+   </section>
   </>}
   <p><a href={(()=>{const u=new URL(location.href);u.searchParams.set('legacy','1');u.searchParams.delete('draft');return u.pathname+u.search;})()}>查看历史申请、代理维护与历史提交</a></p>
  </section>;

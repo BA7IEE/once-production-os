@@ -1,0 +1,14 @@
+{
+  "status": "PASSED",
+  "checks": [
+    "published-selected-server-whitelist-and-real-private-original-preview-use-dedicated-guest-session",
+    "lost-feedback-response-is-reconciled-read-only-with-exact-recipient-version-entry-and-no-duplicate",
+    "interest-and-pending-feedback-are-attributed-to-named-recipient-and-never-become-ACTUAL",
+    "old-public-work-title-remains-stable-new-version-is-explicit-and-guessed-version-is-rejected",
+    "explicit-recipient-rotation-invalidates-old-link-and-old-media-session-without-changing-snapshot",
+    "restricted-real-media-stops-bytes-and-source-withdrawal-also-stops-independent-text-version",
+    "shared-foundation-and-guest-feedback-have-no-CSP-violations"
+  ],
+  "errors": [],
+  "provider": "local real PNG bytes and media worker; named capability recipients; no real external recipients"
+}

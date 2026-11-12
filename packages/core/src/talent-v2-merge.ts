@@ -1,4 +1,5 @@
-import type { Actor, Clock, Table, TableMap } from './model.ts';
+import {scanSupplierMerge} from './supplier-field-merge.ts';
+import type { Actor, Clock, Config, Table, TableMap } from './model.ts';
 import type { Tx } from './store.ts';
 import { TALENT_FACT_TABLES, TALENT_OWNER_TABLES } from './talent-v2-model.ts';
 import { talentSnapshot } from './talent-v2-integrity.ts';
@@ -25,15 +26,15 @@ export const conflictKey = (c: { table: string; canonicalId: string; duplicateId
 
 /** Conflict values use the permission-filtered fact projection. Secret identifiers and proposal
  * values are never exposed. Stable UUIDs and original sources survive every resolution. */
-export async function scanTalentMerge(tx: Tx, actor: Actor, clock: Clock, canonicalId: string, duplicateId: string) {
+export async function scanTalentMerge(tx: Tx, actor: Actor, clock: Clock, canonicalId: string, duplicateId: string,config:Config) {
     const data = await talentSnapshot(tx, actor.workspaceId);
     const graph = await loadTalentGraph(tx, actor, clock);
     const selected = new Map<Table, Row[]>();
     const ownerIds = new Set<string>();
     const blockers = new Set<string>();
-    if((await tx.findIn('supplierFacts',actor.workspaceId,'personId',[canonicalId,duplicateId])).length)blockers.add('SUPPLIER_FIELD_MERGE_REVIEW_REQUIRED');
+    const supplier=await scanSupplierMerge(tx,actor,clock,config,canonicalId,duplicateId);for(const code of supplier.blockers)blockers.add(code);
     const items: TalentMergeItem[] = [];
-    const conflicts: TalentMergeConflict[] = [];
+    const conflicts: TalentMergeConflict[] = [...supplier.conflicts];items.push(...supplier.items);
     const addConflict = (table: FactTable, a: Row, b: Row, code: string, choices: TalentConflictChoice[]) => {
         const canonicalValue = graph.project(table, a as FactRow), duplicateValue = graph.project(table, b as FactRow);
         if (!canonicalValue || !duplicateValue || (canonicalValue.unavailableFields as string[]).length || (duplicateValue.unavailableFields as string[]).length)
@@ -115,7 +116,7 @@ export async function scanTalentMerge(tx: Tx, actor: Actor, clock: Clock, canoni
     const shortlistEndpoints: unknown[]=[];
     for(const row of professionalShortlists) {
         try {
-            shortlistEndpoints.push(await shortlistFor(tx,actor,String(row.shortlistId)));
+            shortlistEndpoints.push(await shortlistFor(tx,actor,String(row.shortlistId),clock));
             if(row.workId)shortlistEndpoints.push(await workFor(tx,actor,String(row.workId),clock));
             const links=(await tx.find('shortlistItemAssets',{workspaceId:actor.workspaceId,itemId:row.id})).sort((a,b)=>a.id.localeCompare(b.id));
             if(links.length&&!actor.permissions.includes('assets.read'))blockers.add('TD2_MERGE_HIDDEN_DEPENDENCY');
@@ -135,14 +136,14 @@ export async function scanTalentMerge(tx: Tx, actor: Actor, clock: Clock, canoni
         if(a && data.talentMigrationReviews.some(r=>(r.shortlistItemId===a.id||r.shortlistItemId===b.id) && Array.isArray(r.previousShortlistItemIds) && r.previousShortlistItemIds.length>=100))
             blockers.add('TD2_MERGE_LIMIT');
     }
-    const count = [...selected.values()].reduce((n, rows) => n + rows.length, 0);
+    const count = [...selected.values()].reduce((n, rows) => n + rows.length, 0)+supplier.snapshot.count;
     if (count > 500) blockers.add('TD2_MERGE_LIMIT');
-    const hidden = blockers.has('TD2_MERGE_HIDDEN_DEPENDENCY') || blockers.has('TD2_MERGE_SENSITIVE_REQUIRED');
+    const hidden = blockers.has('SUPPLIER_FIELD_HIDDEN_DEPENDENCY') || blockers.has('TD2_MERGE_HIDDEN_DEPENDENCY') || blockers.has('TD2_MERGE_SENSITIVE_REQUIRED');
     items.sort((a, b) => a.table.localeCompare(b.table) || a.id.localeCompare(b.id));
     if (conflicts.length > 100) blockers.add('TD2_MERGE_LIMIT');
     // Include endpoint state so source/scope/media changes invalidate a frozen preview too.
     // This conservative snapshot may also invalidate on unrelated workspace edits.
-    return { selected, conflicts, count, blockers: [...blockers].sort(),
+    return { supplier, selected, conflicts, count, blockers: [...blockers].sort(),
         preview: { items: hidden ? [] : items, conflicts: hidden ? [] : conflicts, restricted: hidden },
         digest: digest({data,shortlistEndpoints}) };
 }
@@ -165,6 +166,7 @@ export function resolveTalentConflicts(plan: TalentMergePlan, decisions: TalentC
         const keep = choice === 'KEEP_CANONICAL_ACTIVE' ? c.canonicalId : c.duplicateId;
         const drop = choice === 'KEEP_CANONICAL_ACTIVE' ? c.duplicateId : c.canonicalId;
         kept.add(c.table + ':' + keep); dropped.add(c.table + ':' + drop);
+        if(c.table==='supplierFacts')continue;
         const ids = deactivate.get(c.table as FactTable) ?? new Set<string>(); ids.add(drop); deactivate.set(c.table as FactTable, ids);
     }
     invariant([...kept].every(id => !dropped.has(id)), 'TD2_MERGE_CONFLICT_CONTRADICTORY', '同一条资料不能同时选择保留生效和停用，请重新决定', 422);

@@ -1,5 +1,5 @@
 import type {Clock,Config,Person,Source,TableMap} from './model.ts';
-import type {TalentActor} from './talent-auth-model.ts';
+import type {TalentActor,CommandPrincipal} from './talent-auth-model.ts';
 import type {TalentAccessGrant,Exposure} from './talent-maintenance-model.ts';
 import type {Tx} from './store.ts';
 import type {SupplierProfile} from './supplier-profile-schema.ts';
@@ -13,7 +13,7 @@ const native={personCapabilities:['personRoleId','capabilityCode','levelCode'],p
 type NativeTable=keyof typeof native;
 export class SupplierNative{
  readonly clock:Clock;readonly config:Config;constructor(clock:Clock,config:Config){this.clock=clock;this.config=config;}
- async validate(tx:Tx,actor:TalentActor,p:SupplierProfile,previous?:SupplierProfile){
+ async validate(tx:Tx,actor:Pick<TalentActor,'workspaceId'>,p:SupplierProfile,previous?:SupplierProfile){
   const defs=await tx.find('capabilityDefinitions',{workspaceId:actor.workspaceId,status:'ACTIVE'});
   const capabilities=p.capabilityDetails??[];invariant(new Set(capabilities.map(c=>c.roleCode+':'+c.capabilityCode)).size===capabilities.length,'SUPPLIER_CAPABILITY_DUPLICATE','同一职业不能重复记录相同能力',422);
   for(const c of capabilities){const def=defs.find(d=>d.code===c.capabilityCode);invariant(def&&p.roleCodes.includes(c.roleCode)&&(!def.applicableRoleCodes.length||def.applicableRoleCodes.includes(c.roleCode)),'SUPPLIER_CAPABILITY_INVALID','能力未登记、停用或与职业不符',422);
@@ -37,8 +37,8 @@ export class SupplierNative{
   const credentials=await this.exposed(tx,grant,'personCredentials');if(credentials.length){profile.credentials=[];for(const raw of credentials){const r=raw as TableMap['personCredentials'],role=await roleCode(r.personRoleId);if(!r.personRoleId||role&&profile.roleCodes.includes(role))profile.credentials.push({roleCode:role,credentialTypeCode:r.credentialTypeCode,credentialName:r.credentialName??'专业资格',issuerName:r.issuerName,issuedOn:r.issuedOn,expiresOn:r.expiresOn});}}
   if(profile.roleCodes.includes('translator')){const pairs=await this.exposed(tx,grant,'translatorLanguagePairs'),modes=await this.exposed(tx,grant,'translatorServiceModes');if(pairs.length||modes.length)profile.translation={pairs:pairs.map(raw=>{const r=raw as TableMap['translatorLanguagePairs'];return {sourceLanguageCode:r.sourceLanguageCode,targetLanguageCode:r.targetLanguageCode};}),modeCodes:modes.map(raw=>(raw as TableMap['translatorServiceModes']).modeCode)};}
  }
- async apply(tx:Tx,actor:TalentActor,person:Person,source:Source,profile:SupplierProfile,grant:TalentAccessGrant|null,expose:(kind:string,row:{id:string},field:string,value:unknown)=>void){
-  const roles=await tx.find('personRoles',{workspaceId:actor.workspaceId,personId:person.id,status:'ACTIVE'}),role=(code:string|null)=>code?roles.find(r=>r.roleCode===code)?.id??null:null;
+ async apply(tx:Tx,actor:CommandPrincipal,person:Person,source:Source,profile:SupplierProfile,grant:TalentAccessGrant|null,expose:(kind:string,row:{id:string},field:string,value:unknown)=>void,roleIds?:Record<string,string>){
+  const roles=await tx.find('personRoles',{workspaceId:actor.workspaceId,personId:person.id,status:'ACTIVE'}),role=(code:string|null)=>code?(roleIds?roleIds[code]??null:roles.find(r=>r.roleCode===code)?.id??null):null;
   const supplied:Partial<Record<NativeTable,unknown[]>>={};if(profile.capabilityDetails)supplied.personCapabilities=profile.capabilityDetails;if(profile.credentials)supplied.personCredentials=profile.credentials;if(profile.translation!==undefined){supplied.translatorLanguagePairs=profile.translation?.pairs??[];supplied.translatorServiceModes=profile.translation?.modeCodes??[];}
   for(const table of Object.keys(supplied) as NativeTable[]){
    if(grant)for(const old of await this.exposed(tx,grant,table)){if(table==='personCredentials'&&(old as TableMap['personCredentials']).status==='VERIFIED')continue;await tx.replace(table,{...touch(old,this.clock),status:table==='personCredentials'?'REVOKED':'INACTIVE'} as never);}

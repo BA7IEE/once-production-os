@@ -1,0 +1,26 @@
+{
+  "simulation": false,
+  "id": "533f3ce269859c21ca530245",
+  "pid": 72783,
+  "started": "2026-11-11T13:03:44.403Z",
+  "containers": [
+    {
+      "name": "once-os-test-pg-533f3ce269859c21ca530245",
+      "label": "io.once.test-run=533f3ce269859c21ca530245",
+      "creation": "CONFIRMED"
+    }
+  ],
+  "networks": [],
+  "temporaryVolumes": [],
+  "status": "ZERO_RESIDUE",
+  "outcome": "FAIL",
+  "remaining": {
+    "containers": 0,
+    "processes": 0,
+    "networks": 0,
+    "temporaryVolumes": 0,
+    "temporaryDirectories": 0,
+    "unresolvedBrowserLaunches": 0
+  },
+  "finished": "2026-11-11T13:04:14.477Z"
+}

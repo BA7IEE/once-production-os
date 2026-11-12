@@ -1,0 +1,8 @@
+{
+  "status": "PASSED",
+  "checks": [
+    "human-side-by-side-extension-conflict-and-explicit-stable-fact-migration",
+    "permission-selection-generates-and-downloads-actual-v16-facts-catalog-and-retired-history"
+  ],
+  "errors": []
+}

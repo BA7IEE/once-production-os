@@ -1,0 +1,23 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite supplier-inbox
+
+{ errors: [] }
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.waitFor: Timeout 45000ms exceeded.
+Call log:
+[2m  - waiting for locator('.inbox-material').filter({ has: getByRole('heading', { name: 'long-portfolio.pdf', exact: true }) }).getByText('已处理 10 / 10 页 · 3 批', { exact: true }) to be visible[22m
+
+    at /workspace/once-production-os/tests/acceptance/browser-supplier-inbox.mjs:47:385 {
+  log: [
+    "  - waiting for locator('.inbox-material').filter({ has: getByRole('heading', { name: 'long-portfolio.pdf', exact: true }) }).getByText('已处理 10 / 10 页 · 3 批', { exact: true }) to be visible"
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.22.3
+Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+ ELIFECYCLE  Command failed with exit code 1.

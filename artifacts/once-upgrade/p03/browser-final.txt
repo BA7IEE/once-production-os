@@ -1,0 +1,6 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite supplier-migration
+
+PASS human-side-by-side-extension-conflict-and-explicit-stable-fact-migration; permission-selection-generates-and-downloads-actual-v16-facts-catalog-and-retired-history
+{"containers":0,"processes":0,"networks":0,"temporaryVolumes":0,"temporaryDirectories":0,"unresolvedBrowserLaunches":0}

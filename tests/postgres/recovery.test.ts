@@ -36,6 +36,8 @@ function run(command: string, args: string[], env: NodeJS.ProcessEnv, expected =
     return r;
 }
 
+const TRUST_HOLD = 'RECOVERY_TRUST_EVIDENCE_UNAVAILABLE';
+
 test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch approval', async () => {
     const url = restoreUrl();
     const client = new PrismaClient({ datasources: { db: { url } }, log: [] });
@@ -246,10 +248,10 @@ test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch appro
 
         const checkEnv = { ...common, MEDIA_PROVIDER: 'local', MEDIA_ROOT: mediaRoot };
         const restoreCheck = run('pnpm', ['--silent', 'recovery:check', '--',
-            '--actor-login', 'owner', '--recovery-run-id', prepared.id], checkEnv);
+            '--actor-login', 'owner', '--recovery-run-id', prepared.id], checkEnv, 3);
         const restoreReport = JSON.parse(restoreCheck.stdout);
         assert.equal(restoreReport.mode, 'CHECK');
-        assert.deepEqual(restoreReport.blockers, []);
+        assert.deepEqual(restoreReport.blockers, [TRUST_HOLD]);
         assert.equal(restoreReport.contactCount, 1);
         assert.equal(restoreReport.contactDecryptFailures, 0);
         assert.equal(restoreReport.media.verifiedAssetIds[0], readyId);
@@ -259,12 +261,13 @@ test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch appro
         const recordedCheck = run('pnpm', ['--silent', 'recovery:check', '--',
             '--actor-login', 'owner', '--recovery-run-id', prepared.id, '--record'], {
             ...checkEnv, ALLOW_RECOVERY_CHECK: 'yes'
-        });
+        }, 3);
         const recordedReport = JSON.parse(recordedCheck.stdout);
         assert.equal(recordedReport.mode, 'RECORD');
-        assert.deepEqual(recordedReport.blockers, []);
+        assert.deepEqual(recordedReport.blockers, [TRUST_HOLD]);
         const inspected = await client.recoveryRun.findUniqueOrThrow({ where: { id: prepared.id } });
         assert.equal(inspected.state, 'INSPECTED');
+        assert.deepEqual((inspected.report as any).blockers, [TRUST_HOLD]);
         assert.match(inspected.reportDigest ?? '', /^[a-f0-9]{64}$/);
         assert.equal((inspected.report as any).databaseStateDigest, recordedReport.databaseStateDigest);
         assert.equal((await client.auditEvent.findFirstOrThrow({ where: { action: 'recovery.inspect' } })).resourceId, prepared.id);
@@ -279,7 +282,9 @@ test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch appro
         writeFileSync(join(mediaWork, 'preview.jpg'), Buffer.alloc(previewBody.length));
         const badMedia = run('pnpm', ['--silent', 'recovery:check', '--',
             '--actor-login', 'owner', '--recovery-run-id', prepared.id], checkEnv, 3);
-        assert.ok(JSON.parse(badMedia.stdout).blockers.includes('MEDIA_DIGEST_MISMATCH'));
+        const badMediaReport = JSON.parse(badMedia.stdout);
+        assert.ok(badMediaReport.blockers.includes('MEDIA_DIGEST_MISMATCH'));
+        assert.ok(badMediaReport.blockers.includes(TRUST_HOLD));
         writeFileSync(join(mediaWork, 'preview.jpg'), previewBody);
         chmodSync(join(mediaWork, 'preview.jpg'), 0o400);
 
@@ -290,7 +295,9 @@ test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch appro
             '--actor-login', 'owner', '--recovery-run-id', prepared.id], {
             ...checkEnv, CONTACT_KEY_FILE: wrongContactFile
         }, 3);
-        assert.ok(JSON.parse(badKey.stdout).blockers.includes('CONTACT_KEY_MISMATCH'));
+        const badKeyReport = JSON.parse(badKey.stdout);
+        assert.ok(badKeyReport.blockers.includes('CONTACT_KEY_MISMATCH'));
+        assert.ok(badKeyReport.blockers.includes(TRUST_HOLD));
 
         // A later DB safety change invalidates the previously clean evidence.
         await client.membership.update({ where: { id: reviewerId }, data: { status: 'ACTIVE' } });
@@ -298,6 +305,7 @@ test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch appro
             '--actor-login', 'owner', '--recovery-run-id', prepared.id], checkEnv, 3);
         const driftReport = JSON.parse(drift.stdout);
         assert.ok(driftReport.blockers.includes('OLD_MEMBERSHIP_ACTIVE'));
+        assert.ok(driftReport.blockers.includes(TRUST_HOLD));
         assert.notEqual(driftReport.databaseStateDigest, recordedReport.databaseStateDigest);
         await client.membership.update({ where: { id: reviewerId }, data: { status: 'DISABLED' } });
 
@@ -315,8 +323,9 @@ test('DEV-09A restored PostgreSQL is quarantined before any recovery epoch appro
             ...common, ALLOW_RECOVERY_PREPARE: 'yes'
         }, 1);
         assert.match(second.stderr, /RECOVERY_ALREADY_PREPARED/);
+        assert.equal(await client.auditEvent.count({ where: { action: 'recovery.approve' } }), 0);
 
-        console.log('PASS DEV-09A/09B recovery PG/CLI: old capabilities invalidated; DB/contact/media restore-check clean; tampered media, wrong key and state drift blocked; epoch remains unapproved');
+        console.log('PASS DEV-09A/09B recovery PG/CLI: old capabilities invalidated; local DB/contact/media diagnostics clean with trust hold; tampered media, wrong key and state drift blocked; epoch remains unapproved');
     }
     finally {
         await store.close();

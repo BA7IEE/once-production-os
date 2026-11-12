@@ -48,7 +48,7 @@ async function login(page, loginName) {
     await page.locator('input[autocomplete=username]').fill(loginName);
     await page.locator('input[autocomplete=current-password]').fill(password);
     await page.getByRole('button', { name: '登录', exact: true }).click();
-    await page.locator('.topbar').getByText('工作空间 / 工作台',{exact:true}).waitFor();
+    await page.locator('.topbar').getByText('工作台',{exact:true}).waitFor();
 }
 async function cmd(page, method, path, data, expected = 200) {
     const me = await page.context().request.get(base + '/api/v1/me'); assert.equal(me.status(), 200);
@@ -83,7 +83,7 @@ try {
  const owner=await browser.newPage(),editor=await browser.newPage();for(const p of[owner,editor])p.on('pageerror',e=>errors.push(e.message));await login(owner,'owner');
  await cmd(owner,'POST','/catalog/items',{namespace:'industry',code:'furniture',labelZh:'家具',labelEn:'Furniture'},201);
  await cmd(owner,'POST','/catalog/items',{namespace:'workType',code:'product_photo',labelZh:'产品摄影',labelEn:'Product photography'},201);
- await owner.reload({waitUntil:'networkidle'});await owner.locator('.topbar').getByText('工作空间 / 工作台',{exact:true}).waitFor();
+ await owner.reload({waitUntil:'networkidle'});await owner.locator('.topbar').getByText('工作台',{exact:true}).waitFor();
  const added=await cmd(owner,'POST','/memberships',{loginName:'wp_editor',displayName:'WP1合成编辑',role:'EDITOR',extraPermissions:[]},201);
  await editor.goto(base+'/activate',{waitUntil:'networkidle'});await editor.getByLabel('激活凭证').fill(added.activationToken);await editor.getByLabel('设置密码（至少 12 个字符）').fill(password);await editor.getByRole('button',{name:'激活账号',exact:true}).click();await editor.getByText('账号已激活').waitFor();await login(editor,'wp_editor');
  const source=title=>({title,type:'MANUAL',providerClaim:'WP1合成记录',basisMode:'INTERNAL_USE',basisDescription:'隔离自动化测试资料，不代表真实授权',validUntil:new Date(Date.now()+86400000*7).toISOString()});
@@ -134,7 +134,7 @@ try {
  await writeUI(owner,'POST',wpath+'/credits',()=>retryOriginal(f),401);
  await owner.unroute(pattern);
  await owner.locator('input[autocomplete=username]').fill('owner');await owner.locator('input[autocomplete=current-password]').fill(password);
- await owner.getByRole('button',{name:'登录',exact:true}).click();await owner.locator('.topbar').getByText('工作空间 / 工作台',{exact:true}).waitFor();
+ await owner.getByRole('button',{name:'登录',exact:true}).click();await owner.locator('.topbar').getByText('工作台',{exact:true}).waitFor();
  const reconciled=await writeUI(owner,'POST',wpath+'/credits',async()=>{const pending=owner.getByRole('region',{name:'提交结果核对',exact:true});await pending.getByText('仍需重试',{exact:true}).click();await pending.getByRole('button',{name:'原样重试提交',exact:true}).click();});assert.equal(reconciled.replayed,true);assert.equal(requests.length,6);for(const request of requests)assert.deepEqual(requests[0],request);assert.equal(await prisma.commandReceipt.count({where:{commandKey:requests[0].key,operation:'work.creditAdd'}}),1);
  await navigateWorkspace(owner,'作品库');await owner.getByRole('button').filter({has:owner.getByRole('heading',{name:'WP1外部家具作品',exact:true})}).click();
  await owner.getByRole('heading',{name:'作品素材',exact:true}).waitFor();d=await dialogReady(owner,'WP1外部家具作品');

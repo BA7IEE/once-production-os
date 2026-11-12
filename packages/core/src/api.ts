@@ -1,5 +1,10 @@
+import {HomepagePublic} from './professional-homepage-public.ts';
+import {ClientPortal} from './client-portal.ts';
+import {ClientPresentations} from './client-presentations.ts';
+import {ProjectSelection} from './project-selection.ts';
 import {catalogView,publishedCatalog,SupplierFieldCatalogs} from './supplier-field-catalog.ts';
 import {SupplierProfessional} from './supplier-professional.ts';
+import {SupplierInbox} from './supplier-inbox.ts';
 import {handoffOverview,approveHandoffExposure} from './talent-handoff.ts';
 import {Ingestion} from './ingestion.ts';
 import {authorizeAgentReceive} from './agent-media.ts';
@@ -43,7 +48,7 @@ import type { Store, Tx } from './store.ts';
 import { AppError, fail, invariant, missing } from './errors.ts';
 import { Identity } from './identity.ts';
 import { Talent } from './talent.ts';
-import { Commands } from './commands.ts';
+import { Commands, PORTAL_COMMAND_STOP } from './commands.ts';
 import { authorizeReceipt } from './replay-policy.ts';
 import { inspectCommand, recentCommands } from './command-inspection.ts';
 import { reviewTasks, reviewTask } from './review-workspace.ts';
@@ -88,6 +93,8 @@ function cookies(header: string): Record<string, string> {
 }
 export class Application {
     readonly mediaPurge:MediaPurge;
+    readonly homepagePublic:HomepagePublic;
+    readonly clientPortal:ClientPortal;
     portal: TalentPortal;
     store: Store;
     clock: Clock;
@@ -124,6 +131,8 @@ export class Application {
         this.safetyIntent = safetyIntent;
         this.config = config;
         this.identity = new Identity(store, clock, config);
+        this.homepagePublic=new HomepagePublic(store,clock,config);
+        this.clientPortal=new ClientPortal(store,clock,config,safetyIntent);
         this.portal=new TalentPortal(new TalentAuth(store,config,clock,authProvider),(a,o,r,id,k)=>this.writeAhead(a,o,r,id,k),safetyIntent);
         this.talent = new Talent(clock, config);
         this.talentV2 = new TalentV2(clock, config);
@@ -152,7 +161,10 @@ export class Application {
             invariant(/^[A-Za-z0-9_-]{8,128}$/.test(commandKey), 'IDEMPOTENCY_REQUIRED',
                 '写入需要 8–128 位 Idempotency-Key', 400);
         const stable = commandKey
-            ? digest({ workspaceId: actor.workspaceId, ...(actor.actorKind === 'TALENT' ? {principalKind:'TALENT',talentAccountId:actor.talentAccountId} : actor.actorKind === 'MACHINE' ? {servicePrincipalId: actor.servicePrincipalId} : {actorId: actor.membershipId}), operation, commandKey })
+            ? digest({ workspaceId: actor.workspaceId, ...(actor.actorKind === 'TALENT' ? {principalKind:'TALENT',talentAccountId:actor.talentAccountId} : actor.actorKind === 'MACHINE' ? {servicePrincipalId: actor.servicePrincipalId} : {actorId: actor.membershipId}), operation, commandKey,
+                // Each stop attempt must be visible across a backup anchor even when a
+                // prior same-key attempt failed or its completion was lost.
+                ...(operation === PORTAL_COMMAND_STOP ? {requestId} : {}) })
             : requestId;
         const intent: SafetyIntent = {
             intentId: 'intent:' + stable,
@@ -237,6 +249,8 @@ export class Application {
         try {
             const url = new URL(request.url, this.config.origin);
             invariant(url.pathname.startsWith('/api/v1/'), 'NOT_FOUND', '接口不存在', 404);
+            if(url.pathname.startsWith('/api/v1/public/'))return await this.homepagePublic.handle(request,response,meta);
+            if(url.pathname==='/api/v1/client'||url.pathname.startsWith('/api/v1/client/'))return await this.clientPortal.handle(request,response,meta);
             if(url.pathname==='/api/v1/portal'||url.pathname.startsWith('/api/v1/portal/'))return await this.portal.handle(request,response,meta);
             const { route, params } = this.match(request.method, url.pathname.slice('/api/v1'.length));
             const bearerHeader=request.headers.authorization;
@@ -342,6 +356,21 @@ export class Application {
                 const maintenance=new TalentMaintenance(this.clock,this.config);
                 const ingestion=new Ingestion(this.clock,this.config);
                 switch (route.operation) {
+                    case 'client.presentation.list':return new ClientPresentations(this.clock,this.config).list(tx,actor,id,query);
+                    case 'client.presentation.feedback':return new ClientPresentations(this.clock,this.config).feedback(tx,actor,id,data);
+                    case 'client.presentation.publish':return command('shortlist',()=>new ClientPresentations(this.clock,this.config).publish(tx,actor,id,data));
+                    case 'client.recipient.issue':return new ClientPresentations(this.clock,this.config).issue(tx,actor,id,data,meta);
+                    case 'client.presentation.revoke':return command('shortlist',()=>new ClientPresentations(this.clock,this.config).revoke(tx,actor,id,data));
+                    case 'supplier.inbox.list':return new SupplierInbox(this.clock,this.config).list(tx,actor,query);
+                    case 'supplier.inbox.get':return new SupplierInbox(this.clock,this.config).read(tx,actor,id);
+                    case 'supplier.inbox.create':return command('source',()=>new SupplierInbox(this.clock,this.config).create(tx,actor,data));
+                    case 'supplier.inbox.add':return command('source',()=>new SupplierInbox(this.clock,this.config).add(tx,actor,id,data));
+                    case 'supplier.inbox.start':return command('source',()=>new SupplierInbox(this.clock,this.config).start(tx,actor,id,data));
+                    case 'supplier.inbox.save':return command('source',()=>new SupplierInbox(this.clock,this.config).save(tx,actor,id,data));
+                    case 'supplier.inbox.apply':return command('source',()=>new SupplierInbox(this.clock,this.config).apply(tx,actor,id,data));
+                    case 'supplier.inbox.control':return command('source',()=>new SupplierInbox(this.clock,this.config).control(tx,actor,id,data));
+                    case 'supplier.inbox.images':return command('source',()=>new SupplierInbox(this.clock,this.config).images(tx,actor,id,data));
+                    case 'supplier.inbox.close':return command('source',()=>new SupplierInbox(this.clock,this.config).close(tx,actor,id,data));
                     case 'review.search': return reviewTasks(tx,actor,data,this.clock,this.config);
                     case 'review.get': return reviewTask(tx,actor,params.kind??'',id,this.clock,this.config,meta);
                     case 'command.inspect': return inspectCommand(tx, actor, data, this.clock, this.config);
@@ -488,6 +517,14 @@ export class Application {
                     case 'work.creditAdd': return command('work', () => this.portfolio.addCredit(tx, actor, id, data));
                     case 'work.creditUpgrade': return command('work', () => this.portfolio.upgradeCredit(tx, actor, id, data));
                     case 'work.creditRemove': return command('work', () => this.portfolio.removeCredit(tx, actor, id, data));
+                    case 'project.requirements':return new ProjectSelection(this.clock,this.config).list(tx,actor,id);
+                    case 'project.requirementSave':return command('project',()=>new ProjectSelection(this.clock,this.config).save(tx,actor,id,data));
+                    case 'project.candidateSearch':return new ProjectSelection(this.clock,this.config).search(tx,actor,id,data);
+                    case 'shortlist.nominate':return command('shortlist',()=>new ProjectSelection(this.clock,this.config).nominate(tx,actor,id,data));
+                    case 'shortlist.projectLink':return command('shortlist',()=>new ProjectSelection(this.clock,this.config).link(tx,actor,id,data));
+                    case 'shortlist.selectionContext':return new ProjectSelection(this.clock,this.config).getContext(tx,actor,id);
+                    case 'shortlist.selectionSave':return command('shortlist',()=>new ProjectSelection(this.clock,this.config).saveContext(tx,actor,id,data));
+                    case 'shortlist.selectionClear':return command('shortlist',()=>new ProjectSelection(this.clock,this.config).clearContext(tx,actor,id,data));
                     case 'project.list': return this.projects.list(tx, actor, query);
                     case 'project.create': return command('project', () => this.projects.create(tx, actor, data));
                     case 'project.get': return this.projects.get(tx, actor, id);
@@ -507,7 +544,7 @@ export class Application {
                     case 'asset.list': return this.media.listAssets(tx, actor, query);
                     case 'asset.get': return this.media.getAsset(tx, actor, id);
                     case 'asset.quarantine': return command('asset', () => this.media.quarantine(tx, actor, id, data));
-                    case 'identity.me': return { directoryStateScope: digest({purpose:'directory-state-v1',sessionId:actor.sessionId}), membershipId: actor.membershipId, displayName: actor.displayName, role: actor.role, permissions: actor.permissions, mediaEnabled: this.config.mediaEnabled === true, ingestionEnabled:this.config.ingestionEnabled===true, workspaceName: (await tx.get('workspaces', actor.workspaceId))?.name ?? 'ONCE', csrfToken: csrfFor(token, this.config.csrfKey), version: '0.1.0-dev.1' };
+                    case 'identity.me': return {clientPresentationsEnabled:!!this.config.clientPresentationsEnabled, directoryStateScope: digest({purpose:'directory-state-v1',sessionId:actor.sessionId}), membershipId: actor.membershipId, displayName: actor.displayName, role: actor.role, permissions: actor.permissions, mediaEnabled: this.config.mediaEnabled === true, ingestionEnabled:this.config.ingestionEnabled===true, workspaceName: (await tx.get('workspaces', actor.workspaceId))?.name ?? 'ONCE', csrfToken: csrfFor(token, this.config.csrfKey), version: '0.1.0-dev.1' };
                     case 'dashboard.get': return this.dashboard(tx, actor);
                     case 'member.list': return this.identity.listMembers(tx, actor, query);
                     case 'member.create': return this.identity.createMember(tx, actor, data, meta);
@@ -591,7 +628,7 @@ export class Application {
             if (['ai.create', 'import.commit', 'job.resume', 'upload.complete', 'ingestion.upload.complete', 'export.create'].includes(route.operation))
                 response.status = 202;
             else if (route.operation==='directory.talent.create' || route.operation.startsWith('td2.') && route.operation.endsWith('.create')) response.status = 201;
-            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['supplier.catalog.create','sourceReview.create','brand.create', 'ai.grant', 'locale.create', 'deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create', 'ingestion.upload.create'].includes(route.operation)))
+            else if (route.operation === 'member.create' || (route.mode === 'COMMAND' && ['supplier.inbox.create','supplier.catalog.create','sourceReview.create','brand.create', 'ai.grant', 'locale.create', 'deletion.create', 'usePermission.create', 'shortlist.create', 'work.create', 'project.create', 'person.create', 'source.create', 'scope.create', 'catalog.create', 'import.preview', 'handoff.create', 'upload.create', 'ingestion.upload.create'].includes(route.operation)))
                 response.status = 201;
             return response;
         }
@@ -640,7 +677,7 @@ export class Application {
                 if (row.resourceKind === 'deletion')
                     await this.deletions.get(tx, actor, row.resourceId);
                 if (row.resourceKind === 'shortlist')
-                    await shortlistFor(tx, actor, row.resourceId);
+                    await shortlistFor(tx,actor,row.resourceId,this.clock);
                 if (row.resourceKind === 'work')
                     await workFor(tx, actor, row.resourceId, this.clock);
                 if (row.resourceKind === 'project')

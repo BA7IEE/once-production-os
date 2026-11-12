@@ -1,0 +1,7 @@
+{
+  "status": "FAIL",
+  "stage": "task navigation and seeded directory",
+  "checks": [],
+  "errorType": "AssertionError",
+  "error": "first card must fit in initial desktop viewport"
+}

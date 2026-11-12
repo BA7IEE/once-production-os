@@ -1,0 +1,140 @@
+{
+  "status": "PASS",
+  "generatedAt": "2026-11-08T09:40:41.079626+00:00",
+  "baseCommit": "d998cf059ab912b62fcc33d2094c32c62c564bc1",
+  "sourceCommit": "8823c1a888aee17612644ec1372676c9f95a2b83",
+  "branch": "codex/once-professional-homepage-20261108",
+  "delivery": "research phase A local implementation and anonymous isolated acceptance",
+  "researchDocSha256": "d02ed1c1dde02d2b9dc8951362ad2561659fcd3eedd5e6e55a31db111a9d81fc",
+  "sourceFiles": 778,
+  "sourceManifest": "source-sha256.json",
+  "sourceManifestSha256": "22d0b168c59f2c2c967b21d216552433117cb8bf2547f65083d3168ee8779f6c",
+  "sourceDriftDuringFinalChecks": [],
+  "checks": {
+    "core": {
+      "tests": 869,
+      "pass": 869,
+      "fail": 0,
+      "report": "core-report.json"
+    },
+    "targetedHomepageReceiptsStorage": {
+      "pass": 19,
+      "fail": 0
+    },
+    "postgres": {
+      "suites": [
+        "professional-homepages",
+        "client-presentations",
+        "supplier-migration"
+      ],
+      "pass": 3,
+      "fail": 0
+    },
+    "chromium": {
+      "homepage": 11,
+      "clientRegression": 7,
+      "supplierRegression": 7,
+      "total": 25,
+      "pass": 25,
+      "cspViolations": 0,
+      "mobileWidths": [
+        360,
+        390,
+        430
+      ],
+      "desktopWidth": 1440
+    },
+    "qr": {
+      "decoder": "jsQR 1.4.0",
+      "actualSvgDownload": true,
+      "stableUrlDecoded": true
+    },
+    "documents": {
+      "pass": 21,
+      "fail": 0
+    },
+    "lifecycle": {
+      "pass": 34,
+      "fail": 0
+    },
+    "typecheck": "PASS",
+    "transportTypecheck": "PASS",
+    "strictContractRoutes": 378,
+    "static": {
+      "pass": 12,
+      "fail": 0
+    },
+    "foundation": "PASS",
+    "build": "PASS",
+    "unchangedAppliedBaselineMigrations": 82,
+    "appliedFrozenForwardMigrations": [
+      83,
+      84,
+      85
+    ]
+  },
+  "resources": {
+    "realRuns": 40,
+    "status": "ZERO_RESIDUE",
+    "liveProcesses": 0,
+    "containers": 0,
+    "temporaryNetworks": 0,
+    "temporaryVolumes": 0,
+    "note": "one failed browser cleanup was reconciled using its recorded PID/group/container/temp evidence; original failure preserved, terminated zombie entries excluded from live counts"
+  },
+  "builtWebAssets": {
+    "dist/web/assets/index-BQ6QEkTj.js": {
+      "bytes": 2297,
+      "sha256": "cdd86ab5254edcb802c8f2b4238612924ff1a83554c095d63dfe5cc28b5db494"
+    },
+    "dist/web/assets/main-DB3mhJL3.css": {
+      "bytes": 65465,
+      "sha256": "ac79eee44265e476ebd93d582d5a9b44acb6bc403c4800ccfd52a580b61d980a"
+    },
+    "dist/web/assets/main-DQfnLy93.js": {
+      "bytes": 2311530,
+      "sha256": "e19ad45f8687cafa77bb02d7d376b717e0eaedde36d691ec7cccb6a3c960a944"
+    },
+    "dist/web/assets/professional-homepage-entry-B3rcf_hF.js": {
+      "bytes": 194,
+      "sha256": "ea2f3c094f1b5ccfd01a28ca87d509dd7a2d303a866c8235bfb2f4e13e60fb20"
+    },
+    "dist/web/assets/professional-homepage-view-BP2IJr00.js": {
+      "bytes": 192893,
+      "sha256": "970b8c0133c3d5d40cedddb50627cee1e240cc48e37d35757a3fb4d33f286146"
+    },
+    "dist/web/assets/professional-homepage-view-DcTk-a5B.css": {
+      "bytes": 6914,
+      "sha256": "60629c661ce244ef764a32fbf1c811db7d8327e278c7192e9b0f2a4adca6df5a"
+    },
+    "dist/web/index.html": {
+      "bytes": 446,
+      "sha256": "7eeae3e5c242152af6f2603e504044b795eebf055ed8f54373033736d30e06cc"
+    },
+    "dist/web/once-components.css": {
+      "bytes": 243885,
+      "sha256": "e6891f609ca5488b96053c5d7dfe84c17eeb0503f5e932ff45181ac2a96fae85"
+    }
+  },
+  "notRun": [
+    "real iOS/Android WeChat and sharing cards",
+    "real model accuracy and fees",
+    "real authentication provider",
+    "COS",
+    "real external recipients/publications",
+    "six-week use and paid validation",
+    "current remote CI",
+    "production migration and deployment"
+  ],
+  "limitations": [
+    "SELF adult publication only; proxy and guardian publication not implemented",
+    "one template; theme selections, designed PDF export, custom domains and commercial phase B/C await use evidence",
+    "homepage payloads are excluded from legacy business export and immutable ownership explicitly blocks person merge, including erased homepage history",
+    "previous visitor downloads and third-party caches cannot be recalled"
+  ],
+  "logArchive": {
+    "displayNormalization": "trailing whitespace and trailing blank lines removed only",
+    "rawBytes": "raw-logs.tar.gz",
+    "rawBytesSha256": "b6ec9065388817adced1c74f02fbbe4118dc091994daadb00ebe9e31e5a85641"
+  }
+}

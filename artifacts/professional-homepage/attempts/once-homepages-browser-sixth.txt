@@ -1,0 +1,6 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite professional-homepages
+
+PASS self-confirmed-profile-and-exact-director-credit-curated-draft-is-private; lost-publish-response-refresh-reconciles-with-GET-original-receipt-without-republication; actual-SVG-QR-decodes-to-stable-homepage-URL-without-private-identifiers; owner-downloads-actual-QR-SVG-and-portable-selected-public-data-JSON; anonymous-independent-whitelist-real-image-PDF-and-bounded-MP4-range-no-internal-access-and-separated-event-counts; mobile-360-390-430-desktop-and-video-failure-alternative; draft-live-separation-and-explicit-republish-preserve-link-and-QR; owner-unpublishes-and-anonymous-link-stops; source-withdrawal-stops-published-profile-and-real-media-bytes; strict-CSP-owner-and-public-no-browser-errors
+{"containers":0,"processes":0,"networks":0,"temporaryVolumes":0,"temporaryDirectories":0,"unresolvedBrowserLaunches":0}

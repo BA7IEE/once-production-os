@@ -1,4 +1,8 @@
+import {HOMEPAGE_PUBLIC_ROUTES} from './professional-homepage-routes.ts';
+import {CLIENT_PRESENTATION_ROUTES} from './client-presentation-routes.ts';
+import {ProjectSelectionSchemas as PSS} from './project-selection-schema.ts';
 import {SUPPLIER_FIELD_ROUTES} from './supplier-field-routes.ts';
+import {SUPPLIER_INBOX_ROUTES} from './supplier-inbox-routes.ts';
 import {SourceReviewSchemas} from './source-review.ts';
 import {CommandInspectionSchema,ReviewQuerySchema} from './admin-ux-schema.ts';
 import {INGESTION_ROUTES} from './ingestion-routes.ts';
@@ -27,7 +31,7 @@ export interface RouteDefinition {
     permission?: Permission;
     schema?: Schema<unknown>;
 }
-export const ROUTES: RouteDefinition[] = [...SUPPLIER_FIELD_ROUTES,
+export const ROUTES: RouteDefinition[] = [...HOMEPAGE_PUBLIC_ROUTES,...SUPPLIER_INBOX_ROUTES,...CLIENT_PRESENTATION_ROUTES,...SUPPLIER_FIELD_ROUTES,
     {method:'POST',path:'/review/search',operation:'review.search',mode:'READ',permission:'records.read',schema:ReviewQuerySchema},
     {method:'GET',path:'/review/{kind}/{id}',operation:'review.get',mode:'READ',permission:'records.read'},
     {method:'POST',path:'/commands/inspect',operation:'command.inspect',mode:'READ',permission:'records.read',schema:CommandInspectionSchema},
@@ -79,6 +83,14 @@ export const ROUTES: RouteDefinition[] = [...SUPPLIER_FIELD_ROUTES,
     { method: 'POST', path: '/works/{id}/credits', operation: 'work.creditAdd', mode: 'COMMAND', permission: 'records.write', schema: PS.credit },
     {method:'POST',path:'/works/{id}/credits/upgrade',operation:'work.creditUpgrade',mode:'COMMAND',permission:'records.write',schema:PS.creditUpgrade},
     { method: 'POST', path: '/works/{id}/credits/remove', operation: 'work.creditRemove', mode: 'COMMAND', permission: 'records.write', schema: PS.remove },
+    {method:'GET',path:'/projects/{id}/requirements',operation:'project.requirements',mode:'READ',permission:'records.read'},
+    {method:'POST',path:'/projects/{id}/requirements',operation:'project.requirementSave',mode:'COMMAND',permission:'records.write',schema:PSS.save},
+    {method:'POST',path:'/projects/{id}/candidates/search',operation:'project.candidateSearch',mode:'READ',permission:'records.read',schema:PSS.search},
+    {method:'POST',path:'/shortlists/{id}/nominate',operation:'shortlist.nominate',mode:'COMMAND',permission:'records.write',schema:PSS.nominate},
+    {method:'POST',path:'/shortlists/{id}/project',operation:'shortlist.projectLink',mode:'COMMAND',permission:'records.write',schema:PSS.link},
+    {method:'GET',path:'/shortlists/{id}/selection',operation:'shortlist.selectionContext',mode:'READ',permission:'records.read'},
+    {method:'POST',path:'/shortlists/{id}/selection',operation:'shortlist.selectionSave',mode:'COMMAND',permission:'records.write',schema:PSS.context},
+    {method:'POST',path:'/shortlists/{id}/selection/clear',operation:'shortlist.selectionClear',mode:'COMMAND',permission:'records.write',schema:PSS.clear},
     { method: 'GET', path: '/projects', operation: 'project.list', mode: 'READ', permission: 'records.read' },
     { method: 'POST', path: '/projects', operation: 'project.create', mode: 'COMMAND', permission: 'records.write', schema: PS.projectCreate },
     { method: 'GET', path: '/projects/{id}', operation: 'project.get', mode: 'READ', permission: 'records.read' },

@@ -16,10 +16,11 @@ const hash=v.string(64,64,/^[a-f0-9]{64}$/),count=v.number(0);
 const originalReview=v.nullable(v.object({workspaceId:uuid,membershipId:uuid,reviewedAt:dateIso}));
 const historyPerson=v.object({...stamp,sourceId:uuid,displayName:v.string(120,1),aliases:v.array(v.string(120,1),20),intro:v.string(5000),roles:v.array(code,10),cityCode:v.nullable(code),languageCodes:v.array(code,20),skillCodes:v.array(code,30),heightCm:v.nullable(v.number(50,250,false)),status:v.enum(['ARCHIVED']),protectionEpoch:revision});
 const manifest=v.object({
+ supplierFacts:v.optional(v.array(uuid,1000)),
  localeResults:v.optional(v.array(v.object({locale:v.enum(['zh','en']),selectedTextId:uuid,resultTextId:uuid,retainedTextCount:v.number(1,20)}),2)),
  professional:v.optional(v.object({moved:count,staleProposals:count,retainedProfiles:v.optional(count),deactivated:v.optional(count)})),
- professionalDecisions:v.optional(v.array(v.object({table:v.enum([...TALENT_FACT_TABLES,'mediaCollectionItems','talentMigrationReviews','fieldProposals','shortlistItems']),id:uuid,action:v.enum(['MOVE','REBIND_AGENT','STALE_PROPOSAL','RETAIN_HISTORY'])}),500)),
- professionalConflicts:v.optional(v.array(v.object({table:v.enum(['talentProfiles','castingProfiles','adultEligibilities','personRoles','personLanguages','talentLocations']),canonicalId:uuid,duplicateId:uuid,choice:v.enum(['RETAIN_DUPLICATE_HISTORY','KEEP_CANONICAL_ACTIVE','KEEP_DUPLICATE_ACTIVE'])}),100)),
+ professionalDecisions:v.optional(v.array(v.object({table:v.enum([...TALENT_FACT_TABLES,'mediaCollectionItems','talentMigrationReviews','fieldProposals','shortlistItems','supplierFacts','workCredits']),id:uuid,action:v.enum(['MOVE','REBIND_AGENT','STALE_PROPOSAL','RETAIN_HISTORY'])}),500)),
+ professionalConflicts:v.optional(v.array(v.object({table:v.enum(['talentProfiles','castingProfiles','adultEligibilities','personRoles','personLanguages','talentLocations','supplierFacts']),canonicalId:uuid,duplicateId:uuid,choice:v.enum(['RETAIN_DUPLICATE_HISTORY','KEEP_CANONICAL_ACTIVE','KEEP_DUPLICATE_ACTIVE'])}),100)),
  reason:v.string(2000,4),fieldDecisions:v.array(v.array(v.string(80,1),2,2),100),collisionDecisions:v.array(v.array(v.string(80,1),2,2),500),
  revokedHandoffs:count,revokedUsePermissions:count,contactsReencrypted:count,evidenceMoved:count,uploadsDetached:count,assetsReassigned:count,assetsDetached:count,
  moved:v.object({workCredits:count,projectParticipants:count,shortlistItems:count})
@@ -77,7 +78,7 @@ export function validateMergeHistory(clock:Clock,h:MergeHistory,bundle:TalentTra
  invariant((bundle.identityFields?.length??0)>0||!(bundle.identityEvidence?.length),'IDENTITY_TRANSFER_FIELDS','身份依据必须关联所选字段',422);
  const current=new Map(people.map(p=>[p.id,p])),old=new Map(h.people.map(p=>[p.id,p])),decisions=new Map(h.decisions.map(d=>[d.id,d]));
  const erasures=h.erasures??[];
- invariant(!erasures.length||bundle.schemaVersion===MERGE_ERASURE_VERSION,'MERGE_HISTORY_ERASURE_VERSION','历史清理标识必须使用 v14 格式',422);
+ invariant(!erasures.length||[MERGE_ERASURE_VERSION,'once-talent-transfer-v16'].includes(bundle.schemaVersion),'MERGE_HISTORY_ERASURE_VERSION','历史清理标识必须使用 v14 格式',422);
  for(const e of erasures){
   const d=decisions.get(e.mergeDecisionId),p=old.get(e.personId);
   invariant(d&&p&&p.status==='ERASED'&&d.duplicatePersonId===p.id&&sources.some(s=>s.id===e.sourceId),'MERGE_HISTORY_ERASURE_LINEAGE','历史清理记录的原身份或来源不匹配',422);

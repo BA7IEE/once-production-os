@@ -1,0 +1,68 @@
+TAP version 13
+# Subtest: homepage: self publishes a whitelisted immutable version, stable URL/QR, draft isolation and explicit unpublish
+ok 1 - homepage: self publishes a whitelisted immutable version, stable URL/QR, draft isolation and explicit unpublish
+  ---
+  duration_ms: 484.796203
+  type: 'test'
+  ...
+# Subtest: homepage: current own account, workspace, SELF grant, exact role, public consent, input whitelist and original receipt
+ok 2 - homepage: current own account, workspace, SELF grant, exact role, public consent, input whitelist and original receipt
+  ---
+  duration_ms: 354.621875
+  type: 'test'
+  ...
+# Subtest: homepage: source withdrawal, asset quarantine, exact credit removal, expired public consent and recovery stop reads
+ok 3 - homepage: source withdrawal, asset quarantine, exact credit removal, expired public consent and recovery stop reads
+  ---
+  duration_ms: 325.318536
+  type: 'test'
+  ...
+# Subtest: homepage: reviewed erasure clears draft and every encrypted publication; immutable ownership is an explicit merge boundary
+not ok 4 - homepage: reviewed erasure clears draft and every encrypted publication; immutable ownership is an explicit merge boundary
+  ---
+  duration_ms: 340.939016
+  type: 'test'
+  location: '/workspace/once-production-os/tests/core/professional-homepages.test.ts:51:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+
+      assert.ok(preview.blockers.includes('PROFESSIONAL_HOMEPAGE_MERGE_REVIEW_REQUIRED'))
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/once-production-os/tests/core/professional-homepages.test.ts:51:589)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: homepage: ordinary confirmed text changes wait for republication; separate signals and owner export never become leads
+ok 5 - homepage: ordinary confirmed text changes wait for republication; separate signals and owner export never become leads
+  ---
+  duration_ms: 329.39126
+  type: 'test'
+  ...
+# Subtest: homepage: model parameters are individually selected and known minor records cannot publish
+ok 6 - homepage: model parameters are individually selected and known minor records cannot publish
+  ---
+  duration_ms: 290.527722
+  type: 'test'
+  ...
+# Subtest: homepage: renewed explicit SELF grant can republish at the original address while old versions stay revoked
+ok 7 - homepage: renewed explicit SELF grant can republish at the original address while old versions stay revoked
+  ---
+  duration_ms: 327.657629
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 6
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2928.892303

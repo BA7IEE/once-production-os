@@ -1,0 +1,110 @@
+TAP version 13
+# (node:843) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: every replacement needs its own role-specific answer and invalid batches leave facts, exposure and person unchanged
+ok 1 - every replacement needs its own role-specific answer and invalid batches leave facts, exposure and person unchanged
+  ---
+  duration_ms: 567.128725
+  type: 'test'
+  ...
+# Subtest: replacement rejects withdrawn source without retiring current facts or changing exposure
+ok 2 - replacement rejects withdrawn source without retiring current facts or changing exposure
+  ---
+  duration_ms: 448.012981
+  type: 'test'
+  ...
+# Subtest: dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person
+ok 3 - dynamic professional facts remain typed, encrypted, role-specific and self-confirmed on the same Person
+  ---
+  duration_ms: 256.229017
+  type: 'test'
+  ...
+# Subtest: published catalogs preserve old drafts and reject type reinterpretation and deleted option codes
+ok 4 - published catalogs preserve old drafts and reject type reinterpretation and deleted option codes
+  ---
+  duration_ms: 290.858675
+  type: 'test'
+  ...
+# Subtest: ONCE corrections update explicitly shared professional facts and fence stale self drafts
+ok 5 - ONCE corrections update explicitly shared professional facts and fence stale self drafts
+  ---
+  duration_ms: 286.459483
+  type: 'test'
+  ...
+# Subtest: new fields reject cross-role data, invented options, fake dates and empty multi selections
+ok 6 - new fields reject cross-role data, invented options, fake dates and empty multi selections
+  ---
+  duration_ms: 225.277168
+  type: 'test'
+  ...
+# Subtest: confirmation audit failure rolls professional facts and choices back with the rest of the profile
+ok 7 - confirmation audit failure rolls professional facts and choices back with the rest of the profile
+  ---
+  duration_ms: 221.742935
+  type: 'test'
+  ...
+# Subtest: structured tag search supports ANY and ALL on the same role, with no missing-as-negative or private source leakage
+ok 8 - structured tag search supports ANY and ALL on the same role, with no missing-as-negative or private source leakage
+  ---
+  duration_ms: 253.274954
+  type: 'test'
+  ...
+# Subtest: native professional details reuse capability, credential, translation and dated measurement tables
+ok 9 - native professional details reuse capability, credential, translation and dated measurement tables
+  ---
+  duration_ms: 245.689127
+  type: 'test'
+  ...
+# Subtest: catalogs and typed fields participate in recovery integrity and explicit person cleanup
+ok 10 - catalogs and typed fields participate in recovery integrity and explicit person cleanup
+  ---
+  duration_ms: 238.931265
+  type: 'test'
+  ...
+# Subtest: a source holding only new professional facts receives a complete deletion plan and cleans without deleting the Person
+ok 11 - a source holding only new professional facts receives a complete deletion plan and cleans without deleting the Person
+  ---
+  duration_ms: 289.891932
+  type: 'test'
+  ...
+# (node:854) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: safe history state persists only strict filters, pagination and person-role IDs, never DTO or secrets
+ok 12 - safe history state persists only strict filters, pagination and person-role IDs, never DTO or secrets
+  ---
+  duration_ms: 2.316048
+  type: 'test'
+  ...
+# Subtest: logout, expiry, different member and same-member new session reject all historic state
+ok 13 - logout, expiry, different member and same-member new session reject all historic state
+  ---
+  duration_ms: 0.59672
+  type: 'test'
+  ...
+# Subtest: role choice may stay pending across pages, but cannot carry arbitrary data or contradict a chosen role
+ok 14 - role choice may stay pending across pages, but cannot carry arbitrary data or contradict a chosen role
+  ---
+  duration_ms: 0.346373
+  type: 'test'
+  ...
+# Subtest: professional applied conditions and unfinished edits survive detail return, history and reload within one identity
+ok 15 - professional applied conditions and unfinished edits survive detail return, history and reload within one identity
+  ---
+  duration_ms: 2.230408
+  type: 'test'
+  ...
+# Subtest: professional history rejects payloads, invalid fields, unbounded values and old versions
+ok 16 - professional history rejects payloads, invalid fields, unbounded values and old versions
+  ---
+  duration_ms: 0.800964
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4194.615576

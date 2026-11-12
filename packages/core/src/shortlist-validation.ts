@@ -6,6 +6,7 @@ export const ShortlistSchemas = {
     create: v.object({
         title: v.string(160, 1),
         brief: v.optional(v.string(5000)),
+        projectId:v.optional(uuid),
         scopeId: uuid
     }),
     patch: v.object({

@@ -1,0 +1,216 @@
+{
+  "baselineHead": "25130290c29ef6686d61e8843ed12c0e5c825cb8",
+  "sourceRecoverySha256": "31e4b49e7cbc16282551feac8a31a4025777dd02e8813e2021759d9bd3588491",
+  "scope": "local code plus explicitly modified test files; not a remote CI result",
+  "core": {
+    "files": 122,
+    "tests": 1066,
+    "pass": 1065,
+    "fail": 1,
+    "skipped": 0,
+    "outcome": "FAIL"
+  },
+  "postgresContracts": [
+    {
+      "case": "recovery",
+      "resourceRunId": "1cd5119d4978e35c13af6187",
+      "outcome": "PASS",
+      "resourceStatus": "ZERO_RESIDUE",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      },
+      "sourceTreeHash": "5f36bb9f2c9c1f32f8b62e4bc38e20a3cecdfb378052a21fbc2cb15c99d96cf8",
+      "sourceUnchanged": true,
+      "stdoutSha256": "ea5f72b16ab4f049306eaaa02d83d4eac3be20c3f73d149f1e2c925a36aee0ab",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stats": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "case": "approval",
+      "resourceRunId": "d3895e7b88fefd8e8e7c5bc0",
+      "outcome": "FAIL",
+      "resourceStatus": "ZERO_RESIDUE",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      },
+      "sourceTreeHash": "5f36bb9f2c9c1f32f8b62e4bc38e20a3cecdfb378052a21fbc2cb15c99d96cf8",
+      "sourceUnchanged": true,
+      "stdoutSha256": "45663b7280c06da2cf7e819dba1e2a1abf828154163250b2744901d0ea0a6bb0",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stats": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "case": "talent-v2",
+      "resourceRunId": "906bb9550ff11adb1643091a",
+      "outcome": "PASS",
+      "resourceStatus": "ZERO_RESIDUE",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      },
+      "sourceTreeHash": "5f36bb9f2c9c1f32f8b62e4bc38e20a3cecdfb378052a21fbc2cb15c99d96cf8",
+      "sourceUnchanged": true,
+      "stdoutSha256": "a729ca2029456c22071e99dc6363c1239b4e647b3bb79ce2b3bc6d68612f529f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stats": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  ],
+  "defaultDenyPostgres": {
+    "groups": 7,
+    "result": "PASS"
+  },
+  "stopRestorePostgres": {
+    "checks": 11,
+    "result": "PASS"
+  },
+  "typecheck": "PASS",
+  "contractCheck": "PASS: 381 request schemas",
+  "staticReview": "PASS",
+  "build": "PASS",
+  "firstNode24Attempt": "FAIL: native addon ABI mismatch, interrupted; no product outcome inferred",
+  "independentWitness": "NOT_RUN",
+  "realProviders": "NOT_RUN",
+  "browser": "NOT_RUN",
+  "resources": [
+    {
+      "id": "db209a4aff308725f6bd2f37",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "1cd5119d4978e35c13af6187",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "d3895e7b88fefd8e8e7c5bc0",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "906bb9550ff11adb1643091a",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "80920a88bc3376dd138b6897",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "7343ce5d9d6a47673f018e64",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    },
+    {
+      "id": "97aaa11a56e62a014b3a015e",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "0f312ae63fbf0964331bad78",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "b82c8b767dcc2891a277726a",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    }
+  ],
+  "pgOutputEvidence": "Raw child output is not published; recorded SHA-256 identifies it but cannot independently prove the sanitized TAP transformation without that output."
+}

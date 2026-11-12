@@ -1,0 +1,23 @@
+
+> once-production-os@0.1.0-dev.1 test:postgres:owned /workspace/once-production-os
+> node scripts/test-postgres-owned.mjs --browser-suite supplier-directory
+
+{ errors: [], alerts: [] }
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: {"error":{"code":"COLLECTION_ASSET_OWNER","message":"素材不属于当前人物或职业","requestId":"8f84252c-1bc0-4086-bb35-0344f5f35855"}}
+    at cmd (file:///workspace/once-production-os/tests/acceptance/browser-supplier-directory.mjs:41:237)
+    at async file:///workspace/once-production-os/tests/acceptance/browser-supplier-directory.mjs:50:13 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.22.3
+Owned PostgreSQL run refused, failed or interrupted. Inspect private resource journal; no credentials printed.
+ ELIFECYCLE  Command failed with exit code 1.

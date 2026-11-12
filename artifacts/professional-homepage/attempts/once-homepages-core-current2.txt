@@ -1,0 +1,69 @@
+TAP version 13
+# Subtest: homepage: self publishes a whitelisted immutable version, stable URL/QR, draft isolation and explicit unpublish
+ok 1 - homepage: self publishes a whitelisted immutable version, stable URL/QR, draft isolation and explicit unpublish
+  ---
+  duration_ms: 477.847845
+  type: 'test'
+  ...
+# Subtest: homepage: current own account, workspace, SELF grant, exact role, public consent, input whitelist and original receipt
+ok 2 - homepage: current own account, workspace, SELF grant, exact role, public consent, input whitelist and original receipt
+  ---
+  duration_ms: 339.400632
+  type: 'test'
+  ...
+# Subtest: homepage: source withdrawal, asset quarantine, exact credit removal, expired public consent and recovery stop reads
+ok 3 - homepage: source withdrawal, asset quarantine, exact credit removal, expired public consent and recovery stop reads
+  ---
+  duration_ms: 327.391609
+  type: 'test'
+  ...
+# Subtest: homepage: reviewed erasure clears draft and every encrypted publication
+ok 4 - homepage: reviewed erasure clears draft and every encrypted publication
+  ---
+  duration_ms: 315.870044
+  type: 'test'
+  ...
+# Subtest: homepage: ordinary confirmed text changes wait for republication; separate signals and owner export never become leads
+not ok 5 - homepage: ordinary confirmed text changes wait for republication; separate signals and owner export never become leads
+  ---
+  duration_ms: 309.708275
+  type: 'test'
+  location: '/workspace/once-production-os/tests/core/professional-homepages.test.ts:53:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"error":{"code":"NOT_FOUND","message":"记录不存在或你没有访问权限","requestId":"f7008aa2-9080-4571-aef4-41605d410e4d"}}
+
+    404 !== 200
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 200
+  actual: 404
+  operator: 'strictEqual'
+  stack: |-
+    Object.ok (file:///workspace/once-production-os/tests/support/supplier-profiles.ts:11:85)
+    TestContext.<anonymous> (file:///workspace/once-production-os/tests/core/professional-homepages.test.ts:58:113)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: homepage: model parameters are individually selected and known minor records cannot publish
+ok 6 - homepage: model parameters are individually selected and known minor records cannot publish
+  ---
+  duration_ms: 295.656779
+  type: 'test'
+  ...
+# Subtest: homepage: renewed explicit SELF grant can republish at the original address while old versions stay revoked
+ok 7 - homepage: renewed explicit SELF grant can republish at the original address while old versions stay revoked
+  ---
+  duration_ms: 320.120301
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 6
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2832.195345

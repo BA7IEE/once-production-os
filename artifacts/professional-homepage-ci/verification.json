@@ -1,0 +1,342 @@
+{
+  "checkedAt": "2026-11-08T11:29:32.555288+00:00",
+  "baseSha": "19061493020a43d6f8a5fc03cf30ba28f3c710da",
+  "originalBase": "d998cf059ab912b62fcc33d2094c32c62c564bc1",
+  "followupRemoteCI": "PENDING_FINAL_HEAD",
+  "local": {
+    "supplierUpgrade75To85": "PASS",
+    "adminUX": "PASS",
+    "legacyBrowserSuites": [
+      {
+        "baseline": "talent-auth",
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      },
+      {
+        "baseline": "resume",
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      },
+      {
+        "baseline": "handoff",
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      },
+      {
+        "baseline": "media",
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      },
+      {
+        "baseline": "production",
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      },
+      {
+        "baseline": "talent-intake",
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      },
+      {
+        "baseline": "talent-directory",
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      },
+      {
+        "baseline": "agent-media",
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      },
+      {
+        "baseline": "agent-structures",
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      },
+      {
+        "baseline": "agent-handoff",
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    ],
+    "build": "PASS",
+    "diffWhitespace": "PASS",
+    "core": "NOT_RERUN_LOCALLY; initial exact 1906149 remote core passed"
+  },
+  "immutableMigrations": 85,
+  "sourceSha256": {
+    "apps/admin-web/src/supplier-directory.css": "76547304281edd24bf2e7b301b91dc5b4a7e874485f79942101c00e152ab7e18",
+    "tests/acceptance/browser-admin-ux.mjs": "d716a2ebf970b226f5dad22ca43ca2bb2c8ec7598f41bbb4d8d01216c5511afd",
+    "tests/acceptance/browser-agent-handoff.mjs": "3ee62c3b7742bc37169d0a73e7fa1ec1c904d0ae85645ee0cbd5de5b334412bf",
+    "tests/acceptance/browser-agent-media.mjs": "f55c8b9b1992ab61da02390ec559dc22eb42c548f1a259d157b0c0470d69ff10",
+    "tests/acceptance/browser-agent-structures.mjs": "ee9a6bd85921d77bda060d6c1ae4111581d3ef1c46308ba62bea3fb12ad2c6f5",
+    "tests/acceptance/browser-handoff.mjs": "f41907c7e908d90070dfdd0d50ebf771c19a9da5c2f7dce0830cb9d0ed364352",
+    "tests/acceptance/browser-media.mjs": "d1d059dc091e06823015923fa2bcd2bbafdd83e5d08d30a96463ad00870da616",
+    "tests/acceptance/browser-production.mjs": "d882c749c7594e94a98f48457f7195ede2708200f299b5ac482fa012ece2bcd4",
+    "tests/acceptance/browser-resume.mjs": "e2a30055d560bf19c6d24aab20fcca3e885d9f7c919413df7a6c752042418888",
+    "tests/acceptance/browser-talent-auth.mjs": "be1cc21d49d45eecb6aa3ce693d1852c8ca91284880fe304ab17d6c47c5b02dc",
+    "tests/acceptance/browser-talent-directory.mjs": "2bec9e81f4ff2150a9da1c29910d6cfa0d04949da9e30f9c063f5073c0da637d",
+    "tests/acceptance/browser-talent-intake.mjs": "7230a00153c2a6b1fb6ced7b6bfc478de8a281b3e102b78ac2a0f8c3b8a08601",
+    "tests/acceptance/talent-directory-finalization.mjs": "fbee68d1377646f4543a91738482bb8d88d2a9adfd8316f9ba2ae13f169e40cb",
+    "tests/postgres/supplier-upgrade.test.ts": "4757759fc595b31d10fd30a646e9d040b2b20f3cb4de331f873a2375484688e9"
+  },
+  "resourceRuns": [
+    {
+      "id": "02f132e8b6ff05d7acaa3f9f",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "06c29fcd9f7ba447c59e8905",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "09adb8372b8245cb63b8d80d",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "47f9698a3fb7fed58a506457",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "56917e8b032232d572e3459d",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "5d3fb75ee7af479c2bb197e4",
+      "status": "CLEANUP_FAILED",
+      "outcome": "CLEANUP_FAILED",
+      "remaining": {
+        "containers": "UNKNOWN",
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 1
+      }
+    },
+    {
+      "id": "6c11b59591308e9e64eb3ff1",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0
+      }
+    },
+    {
+      "id": "77ea3ea9fe2b0b81348e21a2",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "7e819fac46de1564da7b9b39",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "7fb26768e18c09b0a03ebb93",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "834c9e0ad5a160893ee79230",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "8ba61c88d2c8b75ac8712e95",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "9e369b17694f7374fd9c7d03",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "b7cee1d1153e42b216533f20",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "bb4fcb7636687d968b0cf6e8",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "cff0584db95f6ba624b0e3c0",
+      "status": "ZERO_RESIDUE",
+      "outcome": "PASS",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0,
+        "unresolvedBrowserLaunches": 0
+      }
+    },
+    {
+      "id": "e2c463d062af4a1b9d5b62b4",
+      "status": "ZERO_RESIDUE",
+      "outcome": "FAIL",
+      "remaining": {
+        "containers": 0,
+        "processes": 0,
+        "networks": 0,
+        "temporaryVolumes": 0,
+        "temporaryDirectories": 0
+      }
+    }
+  ],
+  "persistentTestInstance": "PREPARED_NOT_STARTED",
+  "note": "The failed browser launch record stays CLEANUP_FAILED; independent manual reconciliation is stored beside its original record. Browser retests preceded final spacing adjustment; final admin UX uses the final built CSS. Final-head remote CI verifies the complete followup."
+}

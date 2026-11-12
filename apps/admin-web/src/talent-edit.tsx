@@ -1,3 +1,4 @@
+import {AdminForm} from './foundation/patterns.tsx';
 import {useEffect,useRef,useState} from 'react';
 import {EditorFrame,MultiChoice} from './ux-controls.tsx';
 import {CommandRecovery} from './command-recovery.tsx';
@@ -58,7 +59,7 @@ export function TalentFactEditor({kind,row,detail,catalog,schema,onClose,onSaved
  const action=useAction(),freeze=action.busy||outcomeUnknown(action.error);
  const markSaved=useUnsaved(changed.length>0,section.title),form=useRef<HTMLFormElement>(null),snapshot=useRef<{operation:keyof Pick<Inputs,`td2.fact.${TalentFactKind}.create`|`td2.fact.${TalentFactKind}.patch`>;input:Inputs[`td2.fact.${TalentFactKind}.create`]|Inputs[`td2.fact.${TalentFactKind}.patch`];id:string}|null>(null);
  const close=()=>{if(freeze)return;if(changed.length&&!window.confirm('尚有未保存的修改，确定关闭？'))return;markSaved();onClose();};
- const Frame=inline?EditorFrame:Modal;return <Frame title={(row?'编辑':'新增')+section.title} onClose={close}><form ref={form} onChange={()=>{if(!freeze)snapshot.current=null;}} onSubmit={e=>{e.preventDefault();if(!source)return;void action.run(async()=>{
+ const Frame=inline?EditorFrame:Modal;return <Frame title={(row?'编辑':'新增')+section.title} onClose={close}><AdminForm ref={form} onChange={()=>{if(!freeze)snapshot.current=null;}} onSubmit={e=>{e.preventDefault();if(!source)return;void action.run(async()=>{
   if(!snapshot.current){
   const selected=row?fields.filter(f=>changed.includes(f.key)):fields.filter(f=>values[f.key]!==''||f.required||f.key==='namespaceCode');
   const input={schemaVersion:TALENT_VERSION,expectedPersonRevision:detail.revision,sourceId:source.id,sourceRevision:source.revision,values:Object.fromEntries(selected.map(f=>[f.key,talentInputValue(f,values[f.key]??'')])),...(row?{expectedRevision:row.revision}:{})};
@@ -67,5 +68,5 @@ export function TalentFactEditor({kind,row,detail,catalog,schema,onClose,onSaved
   await call(snapshot.current.operation,snapshot.current.input,{id:snapshot.current.id});markSaved();onSaved();
  });}}><div className="modal-body"><ErrorBox error={action.error??originalSource.error}/>{section.hint&&<p className="notice">{section.hint}</p>}{row&&<p>原来源：{originalSource.data?.title??'正在核对'}。其他来源的新信息，请提交字段建议。</p>}{row&&source&&source.id!==row.sourceId&&<p className="notice">所选来源与原记录不同。请返回工作台提交修改建议，由有权成员核对后采用。</p>}<TalentSourceChoice value={source} disabled={freeze} onChange={s=>{setSource(s);setChanged(c=>c.includes('_source')?c:[...c,'_source']);}}/>
  <fieldset disabled={freeze}><div className="form-grid">{fields.map(f=>row?.unavailableFields.includes(f.key)?<p key={f.key}>{f.label}：当前不可读</p>:<TalentValueInput key={f.key} field={f} value={values[f.key]??''} detail={detail} catalog={catalog} schema={schema} onChange={value=>{if(!freeze)snapshot.current=null;setValues(v=>({...v,[f.key]:value}));setChanged(c=>c.includes(f.key)?c:[...c,f.key]);}}/>)}</div></fieldset>
- {outcomeUnknown(action.error)&&snapshot.current&&<CommandRecovery operation={snapshot.current.operation} params={{id:snapshot.current.id}} busy={action.busy} onRetry={()=>form.current?.requestSubmit()}/>}</div><footer className="modal-footer"><button type="button" disabled={freeze} onClick={close}>取消</button><button className="primary" type="submit" disabled={action.busy||!source||(!!row&&source.id!==row.sourceId)||(!!row&&!changed.some(c=>c!=='_source'))}>{action.busy?'正在保存…':outcomeUnknown(action.error)?'原样重试':'保存'+section.title}</button></footer></form></Frame>;
+ {outcomeUnknown(action.error)&&snapshot.current&&<CommandRecovery operation={snapshot.current.operation} params={{id:snapshot.current.id}} busy={action.busy} onRetry={()=>form.current?.requestSubmit()}/>}</div><footer className="modal-footer"><button type="button" disabled={freeze} onClick={close}>取消</button><button className="primary" type="submit" disabled={action.busy||!source||(!!row&&source.id!==row.sourceId)||(!!row&&!changed.some(c=>c!=='_source'))}>{action.busy?'正在保存…':outcomeUnknown(action.error)?'原样重试':'保存'+section.title}</button></footer></AdminForm></Frame>;
 }
